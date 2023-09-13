@@ -1,0 +1,102 @@
+import React, { useState, useEffect } from 'react'
+import Typography from '@mui/material/Typography'
+
+import { getSuppliers } from '../../lib/api/getSupplierList'
+import TableWithFilter from '../../components/TableWithFilter'
+
+const Supplier = () => {
+  const [supplierList, setSupplierList] = useState([])
+
+  const getSupplierList = async () => {
+    const response = await getSuppliers()
+    console.log('list', response)
+    response.sort((a, b) => a.id - b.id)
+    setSupplierList(response)
+
+    // setSupplierList(response);
+  }
+
+  useEffect(() => {
+    getSupplierList()
+  }, [])
+
+  const columns = [
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'id',
+      headerName: 'SL',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'company_name',
+      headerName: 'SUPPLIER NAME',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.company_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'mobile',
+      headerName: 'MOBILE NUMBER',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.mobile}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'name',
+      headerName: 'CONTACT PERSON',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'state_name',
+      headerName: 'STATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.state_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'opening_balance',
+      headerName: 'OPENING BALANCE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.opening_balance}
+        </Typography>
+      )
+    }
+  ]
+
+  return (
+    <>
+      {supplierList.length > 0 ? (
+        <TableWithFilter TableTitle={'Supplier List'} columns={columns} rows={supplierList} />
+      ) : null}
+    </>
+  )
+}
+
+export default Supplier
