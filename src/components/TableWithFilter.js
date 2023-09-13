@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
+import Button from '@mui/material/Button'
 
 // ** Custom Components
 import QuickSearchToolbar from '../views/table/data-grid/QuickSearchToolbar'
@@ -13,7 +14,7 @@ const escapeRegExp = value => {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-const TableWithFilter = ({ TableTitle, columns, rows }) => {
+const TableWithFilter = ({ TableTitle, columns, rows, headerActions }) => {
   // ** States
   const [data] = useState(rows)
   const [searchText, setSearchText] = useState('')
@@ -41,7 +42,7 @@ const TableWithFilter = ({ TableTitle, columns, rows }) => {
 
   return (
     <Card>
-      <CardHeader title={TableTitle} />
+      <CardHeader title={TableTitle} action={headerActions !== undefined ? headerActions : null} />
       <DataGrid
         autoHeight
         columns={columns}

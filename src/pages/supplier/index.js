@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import { getSuppliers } from '../../lib/api/getSupplierList'
 import TableWithFilter from '../../components/TableWithFilter'
+import Button from '@mui/material/Button'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -31,8 +32,8 @@ const Supplier = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      minWidth: 20,
+      flex: 0.05,
+      Width: 40,
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
@@ -48,7 +49,7 @@ const Supplier = () => {
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.company_name}
+          {params.row.name}
         </Typography>
       )
     },
@@ -71,7 +72,7 @@ const Supplier = () => {
       headerName: 'CONTACT PERSON',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.company_name}
         </Typography>
       )
     },
@@ -118,15 +119,26 @@ const Supplier = () => {
     }
   ]
 
+  const handleHeaderAction = () => {
+    console.log('Handle Header Action')
+  }
+
   return (
     <>
-      <Grid container spacing={6}>
-        <Grid item xs={12}>
-          {supplierList.length > 0 ? (
-            <TableWithFilter TableTitle={'Supplier List'} columns={columns} rows={supplierList} />
-          ) : null}
-        </Grid>
-      </Grid>
+      {supplierList.length > 0 ? (
+        <TableWithFilter
+          TableTitle={'Supplier List'}
+          headerActions={
+            <div>
+              <Button size='small' variant='contained' onClick={handleHeaderAction}>
+                Add Supplier
+              </Button>
+            </div>
+          }
+          columns={columns}
+          rows={supplierList}
+        />
+      ) : null}
     </>
   )
 }
