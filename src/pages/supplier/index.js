@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import Typography from '@mui/material/Typography'
 
 import { getSuppliers } from '../../lib/api/getSupplierList'
 import TableWithFilter from '../../components/TableWithFilter'
+
+// ** MUI Imports
+import IconButton from '@mui/material/IconButton'
+import Card from '@mui/material/Card'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import { Box } from '@mui/material'
 
 const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
@@ -22,7 +31,7 @@ const Supplier = () => {
 
   const columns = [
     {
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 20,
       field: 'id',
       headerName: 'SL',
@@ -87,14 +96,37 @@ const Supplier = () => {
           {params.row.opening_balance}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:eye-outline' />
+          </IconButton>
+          <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+          <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:delete-outline' />
+          </IconButton>
+        </Box>
+      )
     }
   ]
 
   return (
     <>
-      {supplierList.length > 0 ? (
-        <TableWithFilter TableTitle={'Supplier List'} columns={columns} rows={supplierList} />
-      ) : null}
+      <Grid container spacing={6}>
+        <Grid item xs={12}>
+          {supplierList.length > 0 ? (
+            <TableWithFilter TableTitle={'Supplier List'} columns={columns} rows={supplierList} />
+          ) : null}
+        </Grid>
+      </Grid>
     </>
   )
 }
