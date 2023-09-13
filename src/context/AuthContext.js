@@ -1,5 +1,6 @@
 // ** React Imports
 import { createContext, useEffect, useState } from 'react'
+import { read, write } from '../lib/windows/utils'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -30,47 +31,103 @@ const AuthProvider = ({ children }) => {
   const router = useRouter()
   useEffect(() => {
     const initAuth = async () => {
+      //   const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
+      //   if (storedToken) {
+      //     setLoading(true)
+      //     await axios
+      //       .get(authConfig.meEndpoint, {
+      //         headers: {
+      //           Authorization: storedToken
+      //         }
+      //       })
+      //       .then(async response => {
+      //         setLoading(false)
+      //         setUser({ ...response.data.userData })
+      //       })
+      //       .catch(() => {
+      //         localStorage.removeItem('userData')
+      //         localStorage.removeItem('refreshToken')
+      //         localStorage.removeItem('accessToken')
+      //         setUser(null)
+      //         setLoading(false)
+      //         if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+      //           router.replace('/login')
+      //         }
+      //       })
+      //   } else {
+      //     setLoading(false)
+      //   }
+      // }
+      // initAuth()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
       if (storedToken) {
-        setLoading(true)
-        await axios
-          .get(authConfig.meEndpoint, {
-            headers: {
-              Authorization: storedToken
-            }
-          })
-          .then(async response => {
-            setLoading(false)
-            setUser({ ...response.data.userData })
-          })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUser(null)
-            setLoading(false)
-            if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-              router.replace('/login')
-            }
-          })
+        const userObj = read('userData')
+        if (userObj) {
+          setLoading(false)
+          setUser(userObj)
+        } else {
+          localStorage.removeItem('userData')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('provider')
+          setUser(null)
+          setLoading(false)
+          if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+            router.replace('/login')
+          }
+        }
       } else {
         setLoading(false)
       }
     }
     initAuth()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleLogin = (params, errorCallback) => {
+    const url = 'https://app.antzsystems.com/api/v1/auth/login'
+
+    //   axios
+    //     .post(authConfig.loginEndpoint, params)
+    //     .then(async response => {
+    //       params.rememberMe
+    //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+    //         : null
+    //       const returnUrl = router.query.returnUrl
+    //       setUser({ ...response.data.userData })
+    //       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+    //       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+    //       router.replace(redirectURL)
+    //     })
+    //     .catch(err => {
+    //       if (errorCallback) errorCallback(err)
+    //     })
+    // }
     axios
-      .post(authConfig.loginEndpoint, params)
+      .post(url, params)
       .then(async response => {
-        params.rememberMe
-          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-          : null
+        console.log('login response', response.data)
+        window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.token)
         const returnUrl = router.query.returnUrl
-        setUser({ ...response.data.userData })
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+
+        // setUser({ ...response.data.data.providerProfile })
+        const resData = response.data
+        write('userDetails', resData)
+
+        const userData = {
+          // email: resData.email,
+          // fullName: resData.firstName,
+          role: 'admin',
+          id: resData.roles.role_id,
+
+          // role: resData.roles.role_name,
+          username: resData.firstName
+        }
+        write('role', resData.roles.role_name)
+        write('userData', userData)
+
+        setUser({ ...userData })
+
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
         router.replace(redirectURL)
       })
