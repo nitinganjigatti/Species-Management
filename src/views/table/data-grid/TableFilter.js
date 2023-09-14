@@ -17,7 +17,7 @@ import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+import { rows } from 'src/@fake-db-old/table/static-data'
 
 // ** renders client column
 const renderClient = params => {
