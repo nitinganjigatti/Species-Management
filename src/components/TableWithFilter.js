@@ -14,7 +14,7 @@ const escapeRegExp = value => {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-const TableWithFilter = ({ TableTitle, columns, rows, headerActions }) => {
+const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }) => {
   // ** States
   const [data] = useState(rows)
   const [searchText, setSearchText] = useState('')
@@ -43,6 +43,7 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions }) => {
   return (
     <Card>
       <CardHeader title={TableTitle} action={headerActions !== undefined ? headerActions : null} />
+      {inpFields ? inpFields : null}
       <DataGrid
         autoHeight
         columns={columns}
