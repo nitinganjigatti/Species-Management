@@ -6,6 +6,9 @@ const navigation = () => {
       icon: 'mdi:home-outline'
     },
     {
+      sectionTitle: 'Pharmacy'
+    },
+    {
       title: 'Supplier',
       path: '/supplier',
       icon: 'mdi:home-outline',
@@ -21,6 +24,9 @@ const navigation = () => {
           path: '/supplier/supplier-ledger'
         }
       ]
+    },
+    {
+      sectionTitle: 'Others'
     },
     {
       title: 'Second Page',
