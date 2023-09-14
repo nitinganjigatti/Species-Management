@@ -115,13 +115,14 @@ const AuthProvider = ({ children }) => {
         write('userDetails', resData)
 
         const userData = {
-          // email: resData.email,
-          // fullName: resData.firstName,
+          email: resData.user.user_email,
+          fullName: resData.user.user_first_name,
+          lastName: resData.user.user_last_name,
           role: 'admin',
           id: resData.roles.role_id,
 
           // role: resData.roles.role_name,
-          username: resData.firstName
+          username: resData.user.user_first_name
         }
         write('role', resData.roles.role_name)
         write('userData', userData)

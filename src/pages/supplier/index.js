@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { getSuppliers } from '../../lib/api/getSupplierList'
 import TableWithFilter from '../../components/TableWithFilter'
 import Button from '@mui/material/Button'
+import FallbackSpinner from '../../@core/components/spinner/index'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -130,7 +131,7 @@ const Supplier = () => {
           TableTitle={'Supplier List'}
           headerActions={
             <div>
-              <Button size='small' variant='contained' onClick={handleHeaderAction}>
+              <Button size='big' variant='contained' onClick={handleHeaderAction}>
                 Add Supplier
               </Button>
             </div>
@@ -138,7 +139,9 @@ const Supplier = () => {
           columns={columns}
           rows={supplierList}
         />
-      ) : null}
+      ) : (
+        <FallbackSpinner />
+      )}
     </>
   )
 }

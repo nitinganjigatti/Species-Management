@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment } from 'react'
+import { useState, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -20,6 +20,8 @@ import Icon from 'src/@core/components/icon'
 // ** Context
 import { useAuth } from 'src/hooks/useAuth'
 
+import { read } from 'src/lib/windows/utils'
+
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
   width: 8,
@@ -35,6 +37,7 @@ const UserDropdown = props => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
+  const [userData, setUserData] = useState([])
 
   // ** Hooks
   const router = useRouter()
@@ -42,6 +45,13 @@ const UserDropdown = props => {
 
   // ** Vars
   const { direction } = settings
+
+  const getUserData = () => {
+    const result = read('userData')
+
+    // console.log(result)
+    setUserData(result)
+  }
 
   const handleDropdownOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -73,6 +83,10 @@ const UserDropdown = props => {
     logout()
     handleDropdownClose()
   }
+
+  useEffect(() => {
+    getUserData()
+  }, [])
 
   return (
     <Fragment>
@@ -114,9 +128,9 @@ const UserDropdown = props => {
               <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userData ? userData.username : null}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {userData ? userData.role : null}
               </Typography>
             </Box>
           </Box>
