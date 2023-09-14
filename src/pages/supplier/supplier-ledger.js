@@ -146,8 +146,6 @@ const SupplierLedger = () => {
         sx={{
           display: 'flex',
           alignItems: 'center',
-
-          // gap: 4,
           justifyItems: 'center',
           mx: 6
         }}

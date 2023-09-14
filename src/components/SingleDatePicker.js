@@ -1,9 +1,3 @@
-// ** React Imports
-import { useState } from 'react'
-
-// ** MUI Imports
-import Box from '@mui/material/Box'
-
 // ** Third Party Imports
 import DatePicker from 'react-datepicker'
 
@@ -14,9 +8,6 @@ import CustomInput from './PickersCustomInput'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
 const SingleDatePicker = ({ popperPlacement, date, onChangeHandler }) => {
-  // ** States
-  // const [date, setDate] = useState(new Date())
-
   return (
     <DatePickerWrapper>
       <DatePicker
