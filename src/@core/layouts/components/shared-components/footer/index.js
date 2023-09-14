@@ -67,7 +67,7 @@ const Footer = props => {
             : { px: [4, 6] })
         }}
       >
-        {/* {userFooterContent ? userFooterContent(props) : <FooterContent />} */}
+        {userFooterContent ? userFooterContent(props) : <FooterContent />}
       </Box>
     </Box>
   )

@@ -5,7 +5,7 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+import { rows } from 'src/@fake-db-old/table/static-data'
 
 const columns = [
   {
