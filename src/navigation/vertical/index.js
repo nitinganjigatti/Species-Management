@@ -10,18 +10,18 @@ const navigation = () => {
     },
     {
       title: 'Supplier',
-      path: '/supplier',
+      path: '/pharmacy/supplier',
       icon: 'mdi:home-outline',
       children: [
         {
           title: 'Supplier',
           icon: 'mdi:email-outline',
-          path: '/supplier'
+          path: '/pharmacy/supplier'
         },
         {
           title: 'Supplier Ledger',
           icon: 'mdi:message-outline',
-          path: '/supplier/supplier-ledger'
+          path: '/pharmacy/supplier/supplier-ledger'
         }
       ]
     },
