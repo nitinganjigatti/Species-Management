@@ -71,14 +71,6 @@ const SupplierLedger = () => {
       setLedgerData(result.ledgers)
     }
 
-    // setLedgerData(result)
-    // console.log('ledgerdata', result.ledgers)
-    // console.log('ledgerdata', result)
-  }
-
-  // const getSupplierLedgerData = () => {
-  //   console.log('Handle Header Action')
-  // }
   useEffect(() => {
     getSupplierList()
   }, [])
