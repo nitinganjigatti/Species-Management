@@ -111,12 +111,12 @@ const Supplier = () => {
           <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          </IconButton> */}
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:delete-outline' />
-          </IconButton>
+          </IconButton> */}
         </Box>
       )
     }
@@ -137,7 +137,7 @@ const Supplier = () => {
                 size='big'
                 variant='contained'
                 onClick={() => {
-                  Router.push('supplier/add-supplier')
+                  Router.push('/pharmacy/supplier/add-supplier')
                 }}
               >
                 Add Supplier

@@ -1,15 +1,13 @@
-// supplierLedger
-
 import React, { useState, useEffect } from 'react'
 
 import { getSuppliers } from 'src/lib/api/getSupplierList'
+import { getSupplierLedger } from 'src/lib/api/getSupplierLedger'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 // ** MUI Imports
-
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
@@ -24,17 +22,32 @@ import FormHelperText from '@mui/material/FormHelperText'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import { useCallback } from 'react'
 
 const SupplierLedger = () => {
   // ** States
 
   const [supplierList, setSupplierList] = useState([])
+  const [ledgerData, setLedgerData] = useState([])
+  const [ledgerBalance, setLedgerBalance] = useState([])
+  const [error, setError] = useState('')
 
   const [supplierDetails, setSuppliersDetails] = useState({
-    name: '',
+    id: '',
     startDate: new Date(),
     endDate: new Date()
   })
+
+  const convertDate = dateString => {
+    if (dateString) {
+      const dateObject = new Date(dateString)
+      const year = dateObject.getFullYear()
+      const month = String(dateObject.getMonth() + 1).padStart(2, '0')
+      const day = String(dateObject.getDate()).padStart(2, '0')
+
+      return `${year}-${month}-${day}`
+    }
+  }
 
   const getSupplierList = async () => {
     const response = await getSuppliers()
@@ -43,9 +56,29 @@ const SupplierLedger = () => {
     setSupplierList(response)
   }
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
+  const getSupplierLedgerData = async () => {
+    if (supplierDetails.id === '') {
+      setError('Please select supplier')
+
+      return
+    } else {
+      setError('')
+      let id = supplierDetails.id
+      let start = convertDate(supplierDetails.startDate)
+      let end = convertDate(supplierDetails.endDate)
+      const result = await getSupplierLedger(id, start, end)
+      setLedgerBalance(result)
+      setLedgerData(result.ledgers)
+    }
+
+    // setLedgerData(result)
+    // console.log('ledgerdata', result.ledgers)
+    // console.log('ledgerdata', result)
   }
+
+  // const getSupplierLedgerData = () => {
+  //   console.log('Handle Header Action')
+  // }
   useEffect(() => {
     getSupplierList()
   }, [])
@@ -65,11 +98,11 @@ const SupplierLedger = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'company_name',
-      headerName: 'SUPPLIER NAME',
+      field: 'date',
+      headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.date}
         </Typography>
       )
     },
@@ -77,68 +110,70 @@ const SupplierLedger = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'mobile',
-      headerName: 'MOBILE NUMBER',
+      field: 'description',
+      headerName: 'DESCRIPTION',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.mobile}
+          {params.row.description}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'name',
-      headerName: 'CONTACT PERSON',
+      field: 'amount',
+      headerName: 'AMOUNT',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.company_name}
+          {params.row.amount}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'state_name',
-      headerName: 'STATE',
+      field: 'type',
+      headerName: 'TYPE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.state_name}
+          {params.row.type}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'opening_balance',
-      headerName: 'OPENING BALANCE',
+      field: 'balance',
+      headerName: 'BALANCE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.opening_balance}
+          {params.row.balance}
         </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton>
-        </Box>
       )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <IconButton size='small' sx={{ mr: 0.5 }}>
+    //         <Icon icon='mdi:eye-outline' />
+    //       </IconButton>
+    //       <IconButton size='small' sx={{ mr: 0.5 }}>
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //       <IconButton size='small' sx={{ mr: 0.5 }}>
+    //         <Icon icon='mdi:delete-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
+  // sl,Date,amount,description,type,balance
   const createForm = () => {
     return (
       <Grid
@@ -157,7 +192,7 @@ const SupplierLedger = () => {
             <Select
               onChange={e => {
                 console.log(e)
-                setSuppliersDetails({ ...supplierDetails, name: e.target.value })
+                setSuppliersDetails({ ...supplierDetails, id: e.target.value })
               }}
               label='Suppliers'
               defaultValue=''
@@ -168,23 +203,32 @@ const SupplierLedger = () => {
               <MenuItem value=''>
                 <em>None</em>
               </MenuItem>
-              <MenuItem value='20'>Ten</MenuItem>
-              <MenuItem value={20}>Twentys</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
+              {supplierList.length > 0
+                ? supplierList.map(el => {
+                    return (
+                      <MenuItem key={el.id} value={el.id}>
+                        {el.name}
+                      </MenuItem>
+                    )
+                  })
+                : null}
             </Select>
-            <FormHelperText></FormHelperText>
+            <FormHelperText sx={{ color: 'red' }}>{error}</FormHelperText>
           </FormControl>
         </Grid>
         <Grid item lg={2}>
           <SingleDatePicker
+            name={'Start'}
             date={supplierDetails.startDate}
             onChangeHandler={date => {
+              console.log(date)
               setSuppliersDetails({ ...supplierDetails, startDate: date })
             }}
           />
         </Grid>
         <Grid item lg={2}>
           <SingleDatePicker
+            name={'end'}
             date={supplierDetails.endDate}
             onChangeHandler={date => {
               setSuppliersDetails({ ...supplierDetails, endDate: date })
@@ -193,16 +237,18 @@ const SupplierLedger = () => {
         </Grid>
 
         <Grid item lg={2}>
-          <Button size='large' sx={{ py: 3 }} variant='contained' onClick={handleHeaderAction}>
+          <Button size='large' sx={{ py: 3 }} variant='contained' onClick={getSupplierLedgerData}>
             Find
           </Button>
         </Grid>
-        <Grid item lg={12}>
-          <Typography sx={{ mb: 2 }}>Opening Balance : 0</Typography>
-          <Typography sx={{ mb: 2 }}>Closing Balance : 0</Typography>
+        <Grid item lg={12} sx={{ display: 'flex' }}>
+          <Typography sx={{ mb: 2, mr: 4 }}>
+            Opening Balance : <strong>{ledgerBalance.opening_balance}</strong>
+          </Typography>
+          <Typography sx={{ mb: 2 }}>
+            Closing Balance : <strong> {ledgerBalance.closing_balance}</strong>
+          </Typography>
         </Grid>
-
-        {/* {console.log(supplierDetails)} */}
       </Grid>
     )
   }
@@ -210,12 +256,7 @@ const SupplierLedger = () => {
   return (
     <Grid>
       {supplierList.length > 0 ? (
-        <TableWithFilter
-          TableTitle={'Supplier Ledger'}
-          inpFields={createForm()}
-          columns={columns}
-          rows={supplierList}
-        />
+        <TableWithFilter TableTitle={'Supplier Ledger'} inpFields={createForm()} columns={columns} rows={ledgerData} />
       ) : (
         <Grid
 

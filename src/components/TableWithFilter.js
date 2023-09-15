@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -16,7 +16,7 @@ const escapeRegExp = value => {
 
 const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }) => {
   // ** States
-  const [data] = useState(rows)
+  const [data, setData] = useState([])
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState([])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
@@ -40,11 +40,15 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }
     }
   }
 
+  useEffect(() => {
+    setData(rows)
+  }, [rows])
+
   return (
     <Card>
       <CardHeader title={TableTitle} action={headerActions !== undefined ? headerActions : null} />
       {inpFields ? inpFields : null}
-      {columns.length > 0 ? (
+      {rows.length > 0 ? (
         <DataGrid
           autoHeight
           columns={columns}

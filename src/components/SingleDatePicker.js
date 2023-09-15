@@ -7,17 +7,16 @@ import CustomInput from './PickersCustomInput'
 // ** Styled Component
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
-const SingleDatePicker = ({ popperPlacement, date, onChangeHandler }) => {
+const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
         selected={date}
         id='basic-input'
-        // dateFormat='yyyy-mm-dd'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
         placeholderText='Click to select a date'
-        customInput={<CustomInput label='Basic' width='auto' />}
+        customInput={<CustomInput label={name} width='auto' />}
       />
     </DatePickerWrapper>
   )
