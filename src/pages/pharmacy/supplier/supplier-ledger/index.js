@@ -70,6 +70,7 @@ const SupplierLedger = () => {
       setLedgerBalance(result)
       setLedgerData(result.ledgers)
     }
+  }
 
   useEffect(() => {
     getSupplierList()
