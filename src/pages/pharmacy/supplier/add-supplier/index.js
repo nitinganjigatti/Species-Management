@@ -6,8 +6,7 @@ import PageHeader from 'src/@core/components/page-header'
 import Grid from '@mui/material/Grid'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import FormValidationBasic from 'src/views/forms/form-validation/FormValidationBasic'
-import AddSupplierForm from 'src/components/supplier/AddSupplierForm'
+import AddSupplierForm from 'src/components/pharmacy/supplier/AddSupplierForm'
 import Button from '@mui/material/Button'
 
 const LinkStyled = styled(Link)(({ theme }) => ({
@@ -36,6 +35,7 @@ const AddSupplier = () => {
                   <Button size='big' variant='contained' href=''>
                     Suppliers List
                   </Button>
+                  <span style={{ marginRight: 4 }}></span>
                   <Button size='big' variant='contained' href=''>
                     Upload CSV
                   </Button>
