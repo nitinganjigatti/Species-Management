@@ -14,7 +14,7 @@ const navigation = () => {
       icon: 'mdi:home-outline',
       children: [
         {
-          title: 'Supplier',
+          title: 'Suppliers',
           icon: 'mdi:email-outline',
           path: '/supplier'
         },
