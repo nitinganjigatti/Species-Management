@@ -13,6 +13,7 @@ const SingleDatePicker = ({ popperPlacement, date, onChangeHandler }) => {
       <DatePicker
         selected={date}
         id='basic-input'
+        // dateFormat='yyyy-mm-dd'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
         placeholderText='Click to select a date'

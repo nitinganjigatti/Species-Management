@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react'
 
-import { getSuppliers } from '../../lib/api/getSupplierList'
-import TableWithFilter from '../../components/TableWithFilter'
+import { getSuppliers } from 'src/lib/api/getSupplierList'
+import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
-import FallbackSpinner from '../../@core/components/spinner/index'
-import SingleDatePicker from '../../components/SingleDatePicker'
+import FallbackSpinner from 'src/@core/components/spinner'
+import SingleDatePicker from 'src/components/SingleDatePicker'
 
 // ** MUI Imports
+
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'

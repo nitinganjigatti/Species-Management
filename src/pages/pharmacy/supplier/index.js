@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 
-import { getSuppliers } from '../../lib/api/getSupplierList'
-import TableWithFilter from '../../components/TableWithFilter'
+import { getSuppliers } from '../../../lib/api/getSupplierList'
+import TableWithFilter from '../../../components/TableWithFilter'
 import Button from '@mui/material/Button'
-import FallbackSpinner from '../../@core/components/spinner/index'
+import FallbackSpinner from '../../../@core/components/spinner/index'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -14,6 +14,8 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+
+import Router from 'next/router'
 
 const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
@@ -36,7 +38,7 @@ const Supplier = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL',
+      headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
@@ -131,7 +133,13 @@ const Supplier = () => {
           TableTitle={'Supplier List'}
           headerActions={
             <div>
-              <Button size='big' variant='contained' onClick={handleHeaderAction}>
+              <Button
+                size='big'
+                variant='contained'
+                onClick={() => {
+                  Router.push('supplier/add-supplier')
+                }}
+              >
                 Add Supplier
               </Button>
             </div>

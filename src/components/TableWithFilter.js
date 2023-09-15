@@ -44,25 +44,27 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }
     <Card>
       <CardHeader title={TableTitle} action={headerActions !== undefined ? headerActions : null} />
       {inpFields ? inpFields : null}
-      <DataGrid
-        autoHeight
-        columns={columns}
-        pageSizeOptions={[7, 10, 25, 50]}
-        paginationModel={paginationModel}
-        slots={{ toolbar: QuickSearchToolbar }}
-        onPaginationModelChange={setPaginationModel}
-        rows={filteredData.length ? filteredData : data}
-        slotProps={{
-          baseButton: {
-            variant: 'outlined'
-          },
-          toolbar: {
-            value: searchText,
-            clearSearch: () => handleSearch(''),
-            onChange: event => handleSearch(event.target.value)
-          }
-        }}
-      />
+      {columns.length > 0 ? (
+        <DataGrid
+          autoHeight
+          columns={columns}
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          slots={{ toolbar: QuickSearchToolbar }}
+          onPaginationModelChange={setPaginationModel}
+          rows={filteredData.length ? filteredData : data}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchText,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+        />
+      ) : null}
     </Card>
   )
 }
