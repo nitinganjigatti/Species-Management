@@ -31,6 +31,7 @@ const SupplierLedger = () => {
   const [ledgerData, setLedgerData] = useState([])
   const [ledgerBalance, setLedgerBalance] = useState([])
   const [error, setError] = useState('')
+  const [loader, setLoader] = useState(false)
 
   const [supplierDetails, setSuppliersDetails] = useState({
     id: '',
@@ -50,10 +51,16 @@ const SupplierLedger = () => {
   }
 
   const getSupplierList = async () => {
+    setLoader(true)
     const response = await getSuppliers()
-    console.log('list', response)
-    response.sort((a, b) => a.id - b.id)
-    setSupplierList(response)
+    if (response?.length > 0) {
+      console.log('list', response)
+      response.sort((a, b) => a.id - b.id)
+      setSupplierList(response)
+      setLoader(false)
+    } else {
+      setLoader(false)
+    }
   }
 
   const getSupplierLedgerData = async () => {
@@ -82,7 +89,7 @@ const SupplierLedger = () => {
       Width: 40,
       field: 'id',
       headerName: 'SL',
-      renderCell: params => (
+      renderCell: (params, index) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
         </Typography>
@@ -248,15 +255,12 @@ const SupplierLedger = () => {
 
   return (
     <Grid>
-      {supplierList.length > 0 ? (
+      {loader ? (
+        <FallbackSpinner />
+      ) : supplierList?.length > 0 ? (
         <TableWithFilter TableTitle={'Supplier Ledger'} inpFields={createForm()} columns={columns} rows={ledgerData} />
       ) : (
-        <Grid
-
-        // sx={{ display: 'flex', height: '100%', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }}
-        >
-          <FallbackSpinner />
-        </Grid>
+        <Typography sx={{ mb: 2 }}>Supplier Ledger list is empty</Typography>
       )}
     </Grid>
   )

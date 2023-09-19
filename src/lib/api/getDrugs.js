@@ -1,14 +1,15 @@
+// getDrugs.js
 import axios from 'axios'
-import { SUPPLIER } from '../../constants/ApiConstant'
+import { DRUG_CLASS } from '../../constants/ApiConstant'
 
-export async function getSuppliers() {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${SUPPLIER}`
+export async function getDrugs() {
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${DRUG_CLASS}`
   console.log('url', url)
 
   return axios
     .get(url)
     .then(response => {
-      console.log('supliers response data', response)
+      console.log('response data', response)
 
       return response.data.data
     })

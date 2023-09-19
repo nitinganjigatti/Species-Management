@@ -1,18 +1,19 @@
 import axios from 'axios'
-import { SUPPLIER } from '../../constants/ApiConstant'
+import { GST_SLAB } from '../../constants/ApiConstant'
 
-export async function getSuppliers() {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${SUPPLIER}`
+export async function getGstList() {
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${GST_SLAB}`
   console.log('url', url)
 
   return axios
     .get(url)
     .then(response => {
-      console.log('supliers response data', response)
+      console.log('gst data', response)
 
       return response.data.data
     })
     .catch(error => {
+      console.log(error)
       console.error(url)
       if (error.response) {
         console.info('Request made and server responded')
@@ -27,7 +28,7 @@ export async function getSuppliers() {
         console.error('Error', error.message)
       }
 
-      return error
+      // return error.response
 
       // throw new Error(error);
     })

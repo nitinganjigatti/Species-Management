@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 
-import { getSuppliers } from '../../../lib/api/getSupplierList'
-import TableWithFilter from '../../../components/TableWithFilter'
+import { getCategories } from 'src/lib/api/getCategories'
+import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
-import FallbackSpinner from '../../../@core/components/spinner/index'
+import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -17,32 +17,33 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-const Supplier = () => {
-  const [supplierList, setSupplierList] = useState([])
+const ListOfCategories = () => {
+  const [categories, setCategories] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const getSupplierList = async () => {
+  const getCategoriesList = async () => {
     setLoader(true)
-    const response = await getSuppliers()
+    const response = await getCategories()
     if (response?.length > 0) {
-      console.log('list ', response)
-      console.log(' status', response.status)
-      response ? response.sort((a, b) => a.id - b.id) : '', setSupplierList(response)
+      console.log('list', response)
+      response.sort((a, b) => a.id - b.id)
+      setCategories(response)
       setLoader(false)
     } else {
       setLoader(false)
     }
+
+    // setSupplierList(response);
   }
 
   useEffect(() => {
-    getSupplierList()
+    getCategoriesList()
   }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      alignItems: 'right',
       field: 'id',
       headerName: 'SL ',
       renderCell: params => (
@@ -54,8 +55,8 @@ const Supplier = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'company_name',
-      headerName: 'SUPPLIER NAME',
+      field: 'name',
+      headerName: 'CATEGORY NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
@@ -66,44 +67,11 @@ const Supplier = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'mobile',
-      headerName: 'MOBILE NUMBER',
+      field: 'status',
+      headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.mobile}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'name',
-      headerName: 'CONTACT PERSON',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.company_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'state_name',
-      headerName: 'STATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.state_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'opening_balance',
-      headerName: 'OPENING BALANCE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.opening_balance}
+          {params.row.status}
         </Typography>
       )
     },
@@ -134,30 +102,33 @@ const Supplier = () => {
 
   return (
     <>
+      {/* {gstList.length > 0 ? ( */}
+
       {loader ? (
         <FallbackSpinner />
       ) : (
         <TableWithFilter
-          TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
+          TableTitle={categories.length > 0 ? 'Category List' : 'Category list is empty add categories'}
           headerActions={
             <div>
               <Button
                 size='big'
                 variant='contained'
-                onClick={() => {
-                  Router.push('/pharmacy/supplier/add-supplier')
-                }}
+
+                // onClick={() => {
+                //   Router.push('/pharmacy/supplier/add-supplier')
+                // }}
               >
-                Add Supplier
+                Add Category
               </Button>
             </div>
           }
           columns={columns}
-          rows={supplierList}
+          rows={categories}
         />
       )}
     </>
   )
 }
 
-export default Supplier
+export default ListOfCategories
