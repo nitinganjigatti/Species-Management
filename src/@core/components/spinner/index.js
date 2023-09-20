@@ -3,6 +3,10 @@ import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 
+import Image from 'next/image'
+
+import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
+
 const FallbackSpinner = ({ sx }) => {
   // ** Hook
   const theme = useTheme()
@@ -10,7 +14,7 @@ const FallbackSpinner = ({ sx }) => {
   return (
     <Box
       sx={{
-        height: '100%',
+        height: '100vh',
         display: 'flex',
         alignItems: 'center',
         flexDirection: 'column',
@@ -18,7 +22,8 @@ const FallbackSpinner = ({ sx }) => {
         ...sx
       }}
     >
-      <svg width={80} fill='none' height={44} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
+      <Image src={logoAlt} height={60} alt='Antz Systems' />
+      {/* <svg width={80} fill='none' height={44} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
         <rect
           rx='25.1443'
           width='50.2886'
@@ -87,7 +92,7 @@ const FallbackSpinner = ({ sx }) => {
             <stop offset='1' stopOpacity='0' />
           </linearGradient>
         </defs>
-      </svg>
+      </svg> */}
       <CircularProgress disableShrink sx={{ mt: 6 }} />
     </Box>
   )

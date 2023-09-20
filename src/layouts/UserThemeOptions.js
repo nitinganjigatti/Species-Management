@@ -49,7 +49,7 @@ const UserThemeOptions = () => {
         contrastText: '#FFF'
       },
       background: {
-        paper: mode === 'light' ? '#EFF5F2' : '#30334E',
+        paper: mode === 'light' ? '#FFFFFF' : '#30334E',
         default: defaultBgColor()
       }
     }
