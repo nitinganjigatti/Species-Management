@@ -35,6 +35,8 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 // ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 
+import PublicLogo from 'src/components/utility/publicLogo'
+
 // ** Styled Components
 const RegisterIllustrationWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(20),
@@ -139,7 +141,8 @@ const Register = () => {
                 justifyContent: 'center'
               }}
             >
-              <svg width={47} fill='none' height={26} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
+              <PublicLogo />
+              {/* <svg width={47} fill='none' height={26} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
                 <rect
                   rx='25.1443'
                   width='50.2886'
@@ -211,7 +214,7 @@ const Register = () => {
               </svg>
               <Typography variant='h6' sx={{ ml: 2, lineHeight: 1, fontWeight: 700, fontSize: '1.5rem !important' }}>
                 {themeConfig.templateName}
-              </Typography>
+              </Typography> */}
             </Box>
             <Box sx={{ mb: 6 }}>
               <TypographyStyled variant='h5'>Adventure starts here 🚀</TypographyStyled>

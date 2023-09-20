@@ -6,12 +6,16 @@ import IconButton from '@mui/material/IconButton'
 import Box from '@mui/material/Box'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import Image from 'next/image'
 
 // ** Custom Icon Import
 import Icon from 'src/@core/components/icon'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
+
+import logo from 'public/images/branding/Antz_logo_h_color.svg'
+import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
 
 // ** Styled Components
 const MenuHeaderWrapper = styled(Box)(({ theme }) => ({
@@ -108,12 +112,18 @@ const VerticalNavHeader = props => {
   }
 
   return (
-    <MenuHeaderWrapper className='nav-header' sx={{ pl: menuHeaderPaddingLeft() }}>
+    <MenuHeaderWrapper className='nav-header' sx={{ pl: menuHeaderPaddingLeft(), mb: 5 }}>
       {userNavMenuBranding ? (
         userNavMenuBranding(props)
       ) : (
-        <LinkStyled href='/'>
-          <svg width={40} fill='none' height={22} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
+        <LinkStyled href='/' style={{ marginVertical: 10 }}>
+          {navCollapsed && !navHover ? (
+            <Image src={logoAlt} height={30} quality={75} alt='Antz Systems' />
+          ) : (
+            <Image src={logo} height={46} quality={75} alt='Antz Systems' />
+          )}
+
+          {/* <svg width={40} fill='none' height={22} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
             <rect
               rx='25.1443'
               width='50.2886'
@@ -185,7 +195,7 @@ const VerticalNavHeader = props => {
           </svg>
           <HeaderTitle variant='h6' sx={{ ...menuCollapsedStyles, ...(navCollapsed && !navHover ? {} : { ml: 2 }) }}>
             {themeConfig.templateName}
-          </HeaderTitle>
+          </HeaderTitle> */}
         </LinkStyled>
       )}
 
