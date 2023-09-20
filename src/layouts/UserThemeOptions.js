@@ -3,25 +3,58 @@
 // ** To use core palette, uncomment the below import
 // import corePalette from 'src/@core/theme/palette'
 // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
-// import { useSettings } from 'src/@core/hooks/useSettings'
+import { useSettings } from 'src/@core/hooks/useSettings'
+
 const UserThemeOptions = () => {
   // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
-  // const { settings } = useSettings()
+  const { settings } = useSettings()
+
   // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
-  // const { mode, skin } = settings
+  const { mode, skin } = settings
+
   // ** To use core palette, uncomment the below line
   // const palette = corePalette(mode as PaletteMode, skin)
+
+  const defaultBgColor = () => {
+    if (skin === 'bordered' && mode === 'light') {
+      return whiteColor
+    } else if (skin === 'bordered' && mode === 'dark') {
+      return '#30334E'
+    } else if (mode === 'light') {
+      return '#EFF5F2'
+    } else return '#282A42'
+  }
+
   return {
-    /*
-    palette:{
-      primary: {
-        light: '#787EFF',
-        main: '#666CFF',
-        dark: '#5A5FE0',
-        contrastText: '#FFF'
-      }
+    customColors: {
+      darkBg: '#282A42',
+      lightBg: '#EFF5F2',
+      bodyBg: '#EFF5F2',
+      trackBg: '#F2F2F4',
+      avatarBg: '#F1F1F3',
+      tooltipBg: '#262732',
+      tableHeaderBg: '#F5F5F7'
     },
-    breakpoints: {
+    palette: {
+      primary: {
+        light: '#20DE67',
+        main: '#37BD69',
+        dark: '#006D35',
+        contrastText: '#FFF'
+      },
+      secondary: {
+        light: '#669494',
+        main: '#00AEA4',
+        dark: '#1F415B',
+        contrastText: '#FFF'
+      },
+      background: {
+        paper: mode === 'light' ? '#EFF5F2' : '#30334E',
+        default: defaultBgColor()
+      }
+    }
+
+    /* breakpoints: {
       values: {
         xs: 0,
         sm: 768,
