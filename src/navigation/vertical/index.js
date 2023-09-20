@@ -32,50 +32,86 @@ const navigation = () => {
 
     {
       title: 'Medicine',
-      path: '/medicine',
+      path: '/pharmacy/medicine',
       icon: 'mdi:home-outline',
       children: [
         {
           title: 'GST',
           icon: 'mdi:email-outline',
 
-          path: '/medicine/gst'
+          path: '/pharmacy/medicine/gst'
         },
 
         // {
         //   title: 'State',
         //   icon: 'mdi:message-outline',
-        //   path: '/medicine/state'
+        //   path: '/pharmacy/medicine/state'
         // },
         {
           title: 'Generic',
           icon: 'mdi:email-outline',
-          path: '/medicine/generic'
+          path: '/pharmacy/medicine/generic'
         },
         {
           title: 'Category',
           icon: 'mdi:email-outline',
 
-          path: '/medicine/category'
+          path: '/pharmacy/medicine/category'
         },
 
         // {
         //   title: 'UOM',
         //   icon: 'mdi:email-outline',
-        //   path: '/medicine/uom'
+        //   path: '/pharmacy/medicine/uom'
         // },
         {
           title: 'Dosage form',
           icon: 'mdi:email-outline',
-          path: '/medicine/dosageForm'
+          path: '/pharmacy/medicine/dosageForm'
         },
         {
           title: 'Drug class',
           icon: 'mdi:email-outline',
-          path: '/medicine/drugClass'
+          path: '/pharmacy/medicine/drugClass'
         }
       ]
     },
+    {
+      title: 'Purchase',
+      path: '/pharmacy/purchase',
+      icon: 'mdi:home-outline',
+      children: [
+        {
+          title: 'Purchase list',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/purchase/purchaseList'
+        }
+
+        // {
+        //   title: 'Payment list',
+        //   icon: 'mdi:email-outline',
+        //   path: '/pharmacy/purchase/paymentList'
+        // }
+      ]
+    },
+    {
+      title: 'Store',
+      path: '/pharmacy/store',
+      icon: 'mdi:home-outline',
+      children: [
+        {
+          title: 'Store list',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/store/storeList'
+        },
+        {
+          title: 'Rack list',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/store/rackList'
+        }
+      ]
+    },
+
     {
       sectionTitle: 'Others'
     },

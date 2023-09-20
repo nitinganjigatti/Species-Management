@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getCategories } from 'src/lib/api/getCategories'
+import { getRackList } from 'src/lib/api/getRackList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,27 +17,25 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-const ListOfCategories = () => {
-  const [categories, setCategories] = useState([])
+const ListOfRacks = () => {
+  const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const getCategoriesList = async () => {
+  const getRacksLists = async () => {
     setLoader(true)
-    const response = await getCategories()
+    const response = await getRackList()
     if (response?.length > 0) {
       console.log('list', response)
       response.sort((a, b) => a.id - b.id)
-      setCategories(response)
+      setRacks(response)
       setLoader(false)
     } else {
       setLoader(false)
     }
-
-    // setSupplierList(response);
   }
 
   useEffect(() => {
-    getCategoriesList()
+    getRacksLists()
   }, [])
 
   const columns = [
@@ -52,14 +50,48 @@ const ListOfCategories = () => {
         </Typography>
       )
     },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'store_name',
+      headerName: 'STORE NAME',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.store_name}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
       field: 'name',
-      headerName: 'CATEGORY NAME',
+      headerName: 'RACK NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'shelfs',
+      headerName: 'SHELFS',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.shelfs}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'position',
+      headerName: 'POSITION',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.position}
         </Typography>
       )
     },
@@ -88,9 +120,9 @@ const ListOfCategories = () => {
           <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+          </IconButton>
         </Box>
       )
     }
@@ -102,33 +134,24 @@ const ListOfCategories = () => {
 
   return (
     <>
-      {/* {gstList.length > 0 ? ( */}
-
       {loader ? (
         <FallbackSpinner />
       ) : (
         <TableWithFilter
-          TableTitle={categories.length > 0 ? 'Category List' : 'Category list is empty add categories'}
+          TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
           headerActions={
             <div>
-              <Button
-                size='big'
-                variant='contained'
-
-                // onClick={() => {
-                //   Router.push('/pharmacy/supplier/add-supplier')
-                // }}
-              >
-                Add Category
+              <Button size='big' variant='contained'>
+                Add Rack
               </Button>
             </div>
           }
           columns={columns}
-          rows={categories}
+          rows={racks}
         />
       )}
     </>
   )
 }
 
-export default ListOfCategories
+export default ListOfRacks

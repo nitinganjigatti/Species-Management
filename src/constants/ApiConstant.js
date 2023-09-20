@@ -13,3 +13,11 @@ export const CATEGORIES = 'categories'
 export const DRUG_CLASS = 'drug-class'
 
 export const DOSAGE_FORM = 'type'
+
+export const PURCHASE = 'purchase'
+
+export const PAYMENT_LIST = 'supplier-ledger'
+
+export const STORE = 'stores'
+
+export const RACK = 'rack'

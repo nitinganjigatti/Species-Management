@@ -32,8 +32,6 @@ const ListOfGst = () => {
     } else {
       setLoader(false)
     }
-
-    // setSupplierList(response);
   }
 
   useEffect(() => {
@@ -94,8 +92,6 @@ const ListOfGst = () => {
 
   return (
     <>
-      {/* {gstList.length > 0 ? ( */}
-
       {loader ? (
         <FallbackSpinner />
       ) : (
@@ -103,14 +99,7 @@ const ListOfGst = () => {
           TableTitle={gstList.length > 0 ? 'GST List' : 'GST list is empty add GST'}
           headerActions={
             <div>
-              <Button
-                size='big'
-                variant='contained'
-
-                // onClick={() => {
-                //   Router.push('/pharmacy/supplier/add-supplier')
-                // }}
-              >
+              <Button size='big' variant='contained'>
                 Add GSt
               </Button>
             </div>

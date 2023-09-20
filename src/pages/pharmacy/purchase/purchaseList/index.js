@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getGenerics } from 'src/lib/api/getGenerics'
+import { getPurchaseList } from 'src/lib/api/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,27 +17,25 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-const ListOfGenerics = () => {
-  const [generics, setGenerics] = useState([])
+const ListOfPurchase = () => {
+  const [purchaseList, setPurchaseList] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const getGenericsLists = async () => {
+  const getPurchaseLists = async () => {
     setLoader(true)
-    const response = await getGenerics()
+    const response = await getPurchaseList()
     if (response?.length > 0) {
       console.log('list', response)
       response.sort((a, b) => a.id - b.id)
-      setGenerics(response)
+      setPurchaseList(response)
       setLoader(false)
     } else {
       setLoader(false)
     }
-
-    // setSupplierList(response);
   }
 
   useEffect(() => {
-    getGenericsLists()
+    getPurchaseLists()
   }, [])
 
   const columns = [
@@ -46,20 +44,9 @@ const ListOfGenerics = () => {
       Width: 40,
       field: 'id',
       headerName: 'SL ',
-      renderCell: params => (
+      renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'name',
-      headerName: 'GENERIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
         </Typography>
       )
     },
@@ -67,14 +54,71 @@ const ListOfGenerics = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
-      headerName: 'STATUS',
+      field: 'po_no',
+      headerName: 'PURCHASE NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.po_no}
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'SUPPLIER NAME',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'total_amount',
+      headerName: 'TOTAL AMOUNT',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.total_amount}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'tax_amount',
+      headerName: 'TAX AMOUNT',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.tax_amount}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'discount_amount',
+      headerName: 'DISCOUNT AMOUNT',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.discount_amount}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'paid_amount',
+      headerName: 'PAID AMOUNT',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.paid_amount}
+        </Typography>
+      )
+    },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -102,33 +146,24 @@ const ListOfGenerics = () => {
 
   return (
     <>
-      {/* {gstList.length > 0 ? ( */}
-
       {loader ? (
         <FallbackSpinner />
       ) : (
         <TableWithFilter
-          TableTitle={generics.length > 0 ? 'Generic List' : 'Generic list is empty add generics'}
+          TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
           headerActions={
             <div>
-              <Button
-                size='big'
-                variant='contained'
-
-                // onClick={() => {
-                //   Router.push('/pharmacy/supplier/add-supplier')
-                // }}
-              >
-                Add Generic
+              <Button size='big' variant='contained'>
+                Add Purchase
               </Button>
             </div>
           }
           columns={columns}
-          rows={generics}
+          rows={purchaseList}
         />
       )}
     </>
   )
 }
 
-export default ListOfGenerics
+export default ListOfPurchase
