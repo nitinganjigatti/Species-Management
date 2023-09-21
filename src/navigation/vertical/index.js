@@ -85,13 +85,13 @@ const navigation = () => {
           title: 'Purchase list',
           icon: 'mdi:email-outline',
           path: '/pharmacy/purchase/purchaseList'
-        }
+        },
 
-        // {
-        //   title: 'Payment list',
-        //   icon: 'mdi:email-outline',
-        //   path: '/pharmacy/purchase/paymentList'
-        // }
+        {
+          title: 'Payment list',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/purchase/paymentList'
+        }
       ]
     },
     {

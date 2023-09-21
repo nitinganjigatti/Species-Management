@@ -29,7 +29,7 @@ const ListOfPayments = () => {
 
       const objectsWithIds = response.map((obj, index) => ({
         ...obj,
-        Id: index + 1
+        id: index + 1
       }))
       console.log('id', objectsWithIds)
 
@@ -49,11 +49,11 @@ const ListOfPayments = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'Id',
+      field: 'id',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.Id}
+          {params.row.id}
         </Typography>
       )
     },
