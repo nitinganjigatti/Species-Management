@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getDosageFormList } from 'src/lib/api/getDosageFormList'
+import { getDrugs } from 'src/lib/api/getDrugs'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,27 +17,25 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-const ListOfDosageForms = () => {
-  const [dosageForms, setDosageForms] = useState([])
+const ListOfDrugs = () => {
+  const [drugClass, setDrugClass] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const getDosageFormsList = async () => {
+  const getDrugsLists = async () => {
     setLoader(true)
-    const response = await getDosageFormList()
+    const response = await getDrugs()
     if (response?.length > 0) {
       console.log('list', response)
       response.sort((a, b) => a.id - b.id)
-      setDosageForms(response)
+      setDrugClass(response)
       setLoader(false)
     } else {
       setLoader(false)
     }
-
-    // setSupplierList(response);
   }
 
   useEffect(() => {
-    getDosageFormsList()
+    getDrugsLists()
   }, [])
 
   const columns = [
@@ -56,7 +54,7 @@ const ListOfDosageForms = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'name',
-      headerName: 'DOSAGE FORM',
+      headerName: 'NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
@@ -102,33 +100,24 @@ const ListOfDosageForms = () => {
 
   return (
     <>
-      {/* {gstList.length > 0 ? ( */}
-
       {loader ? (
         <FallbackSpinner />
       ) : (
         <TableWithFilter
-          TableTitle={dosageForms.length > 0 ? 'Dosage Form List' : 'Dosage form list is empty add dosage'}
+          TableTitle={drugClass.length > 0 ? 'Drug Class List' : 'Drug class list is empty add drug class'}
           headerActions={
             <div>
-              <Button
-                size='big'
-                variant='contained'
-
-                // onClick={() => {
-                //   Router.push('/pharmacy/supplier/add-supplier')
-                // }}
-              >
-                Add Dosage form
+              <Button size='big' variant='contained'>
+                Add Drug class
               </Button>
             </div>
           }
           columns={columns}
-          rows={dosageForms}
+          rows={drugClass}
         />
       )}
     </>
   )
 }
 
-export default ListOfDosageForms
+export default ListOfDrugs
