@@ -13,3 +13,5 @@ export const CATEGORIES = 'categories'
 export const DRUG_CLASS = 'drug-class'
 
 export const DOSAGE_FORM = 'type'
+
+export const STATES = 'state'
