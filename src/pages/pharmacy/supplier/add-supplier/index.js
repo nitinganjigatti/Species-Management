@@ -201,7 +201,13 @@ const AddSupplier = () => {
               title='Add Supplier'
               action={
                 <div>
-                  <Button size='big' variant='contained' href=''>
+                  <Button
+                    size='big'
+                    variant='contained'
+                    onClick={() => {
+                      Router.push('/pharmacy/supplier')
+                    }}
+                  >
                     Suppliers List
                   </Button>
                   <span style={{ marginRight: 4 }}></span>
