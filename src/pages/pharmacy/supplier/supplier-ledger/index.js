@@ -89,11 +89,15 @@ const SupplierLedger = () => {
       Width: 40,
       field: 'id',
       headerName: 'SL',
-      renderCell: (params, index) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
+      renderCell: (params, index) => {
+        console.log('index', params)
+
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.id}
+          </Typography>
+        )
+      }
     },
     {
       flex: 0.2,

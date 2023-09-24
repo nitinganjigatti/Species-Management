@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react'
 
-// ** Next Import
-import Link from 'next/link'
-import PageHeader from 'src/@core/components/page-header'
-
 // ** MUI Imports
 
 import {
@@ -32,14 +28,14 @@ import {
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
-
-import AddSupplierForm from 'src/components/pharmacy/supplier/AddSupplierForm'
+import { useRouter } from 'next/router'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 
 import { addSuppliers } from 'src/lib/api/addSupplier'
 import { getStates } from 'src/lib/api/getStates'
+import { getSupplierById, updateSuppliersById } from 'src/lib/api/getSupplierList'
 import UserSnackbar from 'src/components/utility/snackbar'
 
 const defaultValues = {
@@ -129,6 +125,9 @@ const AddSupplier = () => {
     reValidateMode: 'onChange'
   })
 
+  const router = useRouter()
+  const { id, action } = router.query
+
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -139,10 +138,6 @@ const AddSupplier = () => {
     message: ''
   })
 
-  useEffect(() => {
-    getStatesList()
-  }, [])
-
   const getStatesList = async () => {
     setLoader(true)
     const response = await getStates()
@@ -152,10 +147,21 @@ const AddSupplier = () => {
     }
   }
 
-  const LinkStyled = styled(Link)(({ theme }) => ({
-    textDecoration: 'none',
-    color: theme.palette.primary.main
-  }))
+  const getSupplier = async id => {
+    setLoader(true)
+    const response = await getSupplierById(id)
+    debugger
+    if (response != undefined) {
+      reset(response)
+    }
+  }
+
+  useEffect(() => {
+    getStatesList()
+    if (id != undefined && action === 'edit') {
+      getSupplier(id)
+    }
+  }, [id, action])
 
   const onSubmit = async params => {
     setSubmitLoader(true)
@@ -176,6 +182,34 @@ const AddSupplier = () => {
       description,
       company_name
     }
+    if (id !== undefined && action === 'edit') {
+      debugger
+      await updateSupplier(payload, id)
+    } else {
+      await addSupplerToList(payload)
+    }
+  }
+
+  const updateSupplier = async (payload, id) => {
+    try {
+      const response = await updateSuppliersById(payload, id)
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(true)
+        reset(defaultValues)
+        Router.push('/pharmacy/supplier')
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const addSupplerToList = async payload => {
     try {
       const response = await addSuppliers(payload)
       if (response?.success) {
@@ -184,10 +218,12 @@ const AddSupplier = () => {
         reset(defaultValues)
         Router.push('/pharmacy/supplier')
       } else {
-        setSubmitLoader(true)
+        setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
       }
     } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
@@ -198,7 +234,7 @@ const AddSupplier = () => {
         <Grid item xs={12}>
           <Card>
             <CardHeader
-              title='Add Supplier'
+              title={id ? 'Edit Supplier' : 'Add Supplier'}
               action={
                 <div>
                   <Button
@@ -431,6 +467,7 @@ const AddSupplier = () => {
                             value={value}
                             type='number'
                             label='Opening Balance'
+                            disabled={Boolean(id)}
                             onChange={onChange}
                             placeholder=''
                             name='opening_balance'

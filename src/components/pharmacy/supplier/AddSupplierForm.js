@@ -21,6 +21,8 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import FormHelperText from '@mui/material/FormHelperText'
 import InputAdornment from '@mui/material/InputAdornment'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Third Party Imports
 import toast from 'react-hot-toast'
@@ -31,45 +33,102 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 
 const defaultValues = {
-  supplierName: '',
-  contactPerson: '',
-  mobileNumber: '',
-  state: '',
-  gstNumber: '',
+  name: '',
+  company_name: '',
   email: '',
   phone: '',
+  mobile: '',
   address: '',
-  description: '',
-  openingBalance: 0
-
-  // dob: null,
-  // email: '',
-  // radio: '',
-  // select: '',
-  // lastName: '',
-  // password: '',
-  // textarea: '',
-  // firstName: '',
-  // checkbox: false
+  gst_number: '',
+  state_id: '',
+  opening_balance: 0,
+  description: ''
 }
+
+const schema = yup.object().shape({
+  name: yup
+    .string()
+    .required('Supplier name is required')
+    .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
+    .max(50, 'Supplier name must be at most 50 characters'),
+
+  // email: yup.string().email('Enter valid email').nullable(),
+  email: yup.string().test('valid-email', 'Invalid email format', function (value) {
+    if (!value) {
+      return true // Email is not required, so no validation needed
+    }
+
+    return yup.string().email().isValidSync(value)
+  }),
+  phone: yup
+    .string()
+    .nullable()
+    .test('valid-phone', 'Enter valid phone number', function (value) {
+      if (!value) {
+        return true
+      }
+      const regex = /^[6-9]\d{9}$/
+
+      return regex.test(value)
+    }),
+
+  // .matches(
+  //   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
+  //   'Enter valid phone number',
+  // )
+  // .max(10, 'Maximum of 10 digits')
+  // .nullable(),
+  mobile: yup
+    .string()
+    .required('Mobile No is required')
+    .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
+    .max(10, 'Maximum of 10 digits'),
+  state_id: yup.string().required('Select state'),
+  gst_number: yup
+    .string()
+    .nullable()
+    .test('valid-gst', 'Enter valid GST number', function (value) {
+      if (!value) {
+        return true
+      }
+      const regex = /^(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})$/
+
+      return regex.test(value)
+    }),
+
+  // due_balance: yup.string().required('Enter due balance'),
+
+  opening_balance: yup.string().nullable(),
+  address: yup.string().nullable(),
+  description: yup.string().nullable(),
+  company_name: yup.string().nullable()
+})
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddSupplierForm = ({ action }) => {
+const AddSupplierForm = ({ action, onSubmit, statesList }) => {
   // ** Hooks
   const {
+    reset,
     control,
     handleSubmit,
     formState: { errors }
-  } = useForm({ defaultValues })
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
 
-  const onSubmit = () => {
-    console.log(control._fields)
-    console.log(control._formValues)
-    toast.success('Form Submitted')
-  }
+  // const onSubmit = data => {
+  //   console.log(data.name)
+  //   console.log(data.phone)
+  //   console.log(data)
+  //   toast.success('Form Submitted')
+  // }
 
   return (
     <Card>
@@ -80,7 +139,7 @@ const AddSupplierForm = ({ action }) => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Controller
-                  name='supplierName'
+                  name='name'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
@@ -89,99 +148,86 @@ const AddSupplierForm = ({ action }) => {
                       label='Supplier Name'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.supplierName)}
-
-                      // aria-describedby='validation-basic-first-name'
+                      error={Boolean(errors.name)}
+                      name='name'
                     />
                   )}
                 />
-                {errors.supplierName && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
+                {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
               </FormControl>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Controller
-                  name='contactPerson'
+                  name='company_name'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
                       label='Contact Person'
+                      name='company_name'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.contactPerson)}
-
-                      // aria-describedby='validation-basic-first-name'
                     />
                   )}
                 />
-                {errors.contactPerson && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
               </FormControl>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Controller
-                  name='mobileNumber'
+                  name='mobile'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field: { value, onChange, onBlur } }) => (
                     <TextField
                       value={value}
                       label='Mobile Number'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.mobileNumber)}
-
-                      //aria-describedby='validation-basic-last-name'
+                      error={Boolean(errors?.mobile)}
+                      onBlur={onBlur}
+                      name='mobile'
                     />
                   )}
                 />
-                {errors.mobileNumber && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-last-name'>
-                    This field is required
-                  </FormHelperText>
+                {errors.mobile && (
+                  <FormHelperText sx={{ color: 'error.main' }}> {errors?.mobile?.message} </FormHelperText>
                 )}
               </FormControl>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                <InputLabel id='validation-basic-state' error={Boolean(errors.state)} htmlFor='validation-basic-state'>
+                <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
                   State
                 </InputLabel>
                 <Controller
-                  name='state'
+                  name='state_id'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <Select
+                      name='state_id'
                       value={value}
                       label='Select'
                       onChange={onChange}
-                      error={Boolean(errors.state)}
-                      labelId='validation-basic-state'
-                      aria-describedby='validation-basic-state'
+                      error={Boolean(errors?.state_id)}
+                      labelId='state_id'
                     >
-                      <MenuItem value='west_bengal'>West Bengal</MenuItem>
-                      <MenuItem value='maharashtra'>Maharashtra</MenuItem>
+                      {statesList?.map((item, index) => (
+                        <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                          {item?.name}
+                        </MenuItem>
+                      ))}
                     </Select>
                   )}
                 />
-                {errors.state && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-state'>
-                    This field is required
-                  </FormHelperText>
+                {errors?.state_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.state_id?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -189,7 +235,7 @@ const AddSupplierForm = ({ action }) => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Controller
-                  name='gstNumber'
+                  name='gst_number'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
@@ -198,16 +244,13 @@ const AddSupplierForm = ({ action }) => {
                       label='GST Number'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.gstNumber)}
-
-                      //aria-describedby='validation-basic-last-name'
+                      error={Boolean(errors?.gst_number)}
+                      name='gst_number'
                     />
                   )}
                 />
-                {errors.gstNumber && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-text'>
-                    This field is required
-                  </FormHelperText>
+                {errors?.gst_number && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.gst_number?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -224,16 +267,14 @@ const AddSupplierForm = ({ action }) => {
                       value={value}
                       label='Email'
                       onChange={onChange}
-                      error={Boolean(errors.email)}
-                      placeholder='carterleonard@gmail.com'
-                      aria-describedby='validation-basic-email'
+                      error={Boolean(errors?.email)}
+                      placeholder=''
+                      name='email'
                     />
                   )}
                 />
-                {errors.email && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-email'>
-                    This field is required
-                  </FormHelperText>
+                {errors?.email && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.email?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -250,16 +291,13 @@ const AddSupplierForm = ({ action }) => {
                       label='Phone'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.phone)}
-
-                      //aria-describedby='validation-basic-last-name'
+                      error={Boolean(errors?.phone)}
+                      name='phone'
                     />
                   )}
                 />
-                {errors.phone && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-last-name'>
-                    This field is required
-                  </FormHelperText>
+                {errors?.phone && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.phone?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -276,68 +314,46 @@ const AddSupplierForm = ({ action }) => {
                       label='Description'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.description)}
-
-                      //aria-describedby='validation-basic-last-name'
+                      name='description'
                     />
                   )}
                 />
-                {errors.description && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-last-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
               </FormControl>
             </Grid>
 
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Controller
-                  name='textarea'
+                  name='address'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field }) => (
-                    <TextField
-                      rows={4}
-                      multiline
-                      {...field}
-                      label='Bio'
-                      error={Boolean(errors.textarea)}
-                      aria-describedby='validation-basic-textarea'
-                    />
-                  )}
+                  render={({ field }) => <TextField name='address' rows={4} multiline {...field} label='Address' />}
                 />
-                {errors.textarea && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-textarea'>
-                    This field is required
-                  </FormHelperText>
-                )}
               </FormControl>
             </Grid>
 
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <Controller
-                  name='openingBalance'
+                  name='opening_balance'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
+                      type='number'
                       label='Opening Balance'
                       onChange={onChange}
                       placeholder=''
-                      error={Boolean(errors.openingBalance)}
+                      name='opening_balance'
 
-                      //aria-describedby='validation-basic-last-name'
+                      //error={Boolean(errors?.opening_balance)}
                     />
                   )}
                 />
-                {errors.openingBalance && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-last-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
+                {/* {errors.opening_balance && (
+                  <FormHelperText sx={{ color: 'error.main' }}>This field is required</FormHelperText>
+                )} */}
               </FormControl>
             </Grid>
 

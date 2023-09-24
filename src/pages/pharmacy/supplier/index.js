@@ -16,6 +16,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import { options } from '@fullcalendar/core/preact'
 
 const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
@@ -32,6 +33,13 @@ const Supplier = () => {
     } else {
       setLoader(false)
     }
+  }
+
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/supplier/add-supplier',
+      query: { id: id, action: 'edit' }
+    })
   }
 
   useEffect(() => {
@@ -117,7 +125,7 @@ const Supplier = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
