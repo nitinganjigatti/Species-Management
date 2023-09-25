@@ -52,6 +52,10 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader
@@ -111,7 +115,11 @@ const App = props => {
                 <ThemeComponent settings={settings}>
                   <Guard authGuard={authGuard} guestGuard={guestGuard}>
                     <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                      {getLayout(<Component {...pageProps} />)}
+                      {getLayout(
+                        <QueryClientProvider client={queryClient}>
+                          <Component {...pageProps} />
+                        </QueryClientProvider>
+                      )}
                     </AclGuard>
                   </Guard>
                   <ReactHotToast>

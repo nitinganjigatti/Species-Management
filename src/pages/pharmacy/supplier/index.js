@@ -17,9 +17,27 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 import { options } from '@fullcalendar/core/preact'
+import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const Supplier = () => {
+  const queryClient = useQueryClient()
+
   const [supplierList, setSupplierList] = useState([])
+
+  const fetchSuppliers = async () => {
+    const response = await getSuppliers()
+
+    return response
+  }
+
+  const { supplierData, isLoading, isError, error } = useQuery(['suppliers'], fetchSuppliers, {
+    onSuccess: supplierData => {
+      setSupplierList(supplierData.data.data) // Update state with fetched data
+    }
+  })
+  console.log(supplierData)
+
+  // setSupplierList(data)
   const [loader, setLoader] = useState(false)
 
   const getSupplierList = async () => {
@@ -43,7 +61,7 @@ const Supplier = () => {
   }
 
   useEffect(() => {
-    getSupplierList()
+    // getSupplierList()
   }, [])
 
   const columns = [
@@ -139,31 +157,37 @@ const Supplier = () => {
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
+  if (isLoading) {
+    return <FallbackSpinner />
+  }
+  if (isError) {
+    return <h1>{error.message}</h1>
+  }
 
   return (
     <>
-      {loader ? (
+      {/* {loader ? (
         <FallbackSpinner />
-      ) : (
-        <TableWithFilter
-          TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
-          headerActions={
-            <div>
-              <Button
-                size='big'
-                variant='contained'
-                onClick={() => {
-                  Router.push('/pharmacy/supplier/add-supplier')
-                }}
-              >
-                Add Supplier
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={supplierList}
-        />
-      )}
+      ) : ( */}
+      <TableWithFilter
+        TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
+        headerActions={
+          <div>
+            <Button
+              size='big'
+              variant='contained'
+              onClick={() => {
+                Router.push('/pharmacy/supplier/add-supplier')
+              }}
+            >
+              Add Supplier
+            </Button>
+          </div>
+        }
+        columns={columns}
+        rows={supplierList}
+      />
+      {/* )} */}
     </>
   )
 }
