@@ -13,13 +13,26 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Drawer } from '@mui/material'
 
 import Router from 'next/router'
+
+import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
+import { addTaxas } from 'src/lib/api/getGstList'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 const ListOfGst = () => {
   const [gstList, setGstList] = useState([])
   const [loader, setLoader] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
 
   const getGstLists = async () => {
     setLoader(true)
@@ -90,23 +103,69 @@ const ListOfGst = () => {
     console.log('Handle Header Action')
   }
 
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+      const response = await addTaxas(payload)
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(true)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getGstLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={gstList.length > 0 ? 'GST List' : 'GST list is empty add GST'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add GSt
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={gstList}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={gstList.length > 0 ? 'GST List' : 'GST list is empty add GST'}
+            headerActions={
+              <div>
+                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+                  Add GST
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={gstList}
+          />
+          {/* sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }} */}
+          <AddGstSlabs
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
       )}
     </>
   )
