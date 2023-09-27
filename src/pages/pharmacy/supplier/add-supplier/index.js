@@ -200,7 +200,7 @@ const AddSupplier = () => {
         Router.push('/pharmacy/supplier')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
