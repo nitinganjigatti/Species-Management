@@ -16,42 +16,26 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
-import { options } from '@fullcalendar/core/preact'
-import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 const Supplier = () => {
   const queryClient = useQueryClient()
 
   const [supplierList, setSupplierList] = useState([])
 
-  const fetchSuppliers = async () => {
+  const getSupplierList = async () => {
     const response = await getSuppliers()
 
     return response
   }
 
-  const { supplierData, isLoading, isError, error } = useQuery(['suppliers'], fetchSuppliers, {
+  const { supplierData, isLoading, isError, error } = useQuery(['suppliers'], getSupplierList, {
     onSuccess: supplierData => {
-      setSupplierList(supplierData.data.data) // Update state with fetched data
+      const sorted = supplierData.data.data ? supplierData.data.data.sort((a, b) => a.id - b.id) : []
+      setSupplierList(sorted)
     }
   })
   console.log(supplierData)
-
-  // setSupplierList(data)
-  const [loader, setLoader] = useState(false)
-
-  const getSupplierList = async () => {
-    setLoader(true)
-    const response = await getSuppliers()
-    if (response?.length > 0) {
-      console.log('list ', response)
-      console.log(' status', response.status)
-      response ? response.sort((a, b) => a.id - b.id) : '', setSupplierList(response)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
 
   const handleEdit = id => {
     Router.push({
@@ -59,10 +43,6 @@ const Supplier = () => {
       query: { id: id, action: 'edit' }
     })
   }
-
-  useEffect(() => {
-    // getSupplierList()
-  }, [])
 
   const columns = [
     {
@@ -166,9 +146,6 @@ const Supplier = () => {
 
   return (
     <>
-      {/* {loader ? (
-        <FallbackSpinner />
-      ) : ( */}
       <TableWithFilter
         TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
         headerActions={
@@ -187,7 +164,6 @@ const Supplier = () => {
         columns={columns}
         rows={supplierList}
       />
-      {/* )} */}
     </>
   )
 }

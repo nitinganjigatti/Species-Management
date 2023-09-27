@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 import { getSuppliers } from 'src/lib/api/getSupplierList'
 import { getSupplierLedger } from 'src/lib/api/getSupplierLedger'
@@ -22,21 +22,39 @@ import FormHelperText from '@mui/material/FormHelperText'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
-import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 const SupplierLedger = () => {
   // ** States
+  const queryClient = useQueryClient()
 
   const [supplierList, setSupplierList] = useState([])
   const [ledgerData, setLedgerData] = useState([])
   const [ledgerBalance, setLedgerBalance] = useState([])
-  const [error, setError] = useState('')
-  const [loader, setLoader] = useState(false)
+  const [errors, setErrors] = useState('')
 
   const [supplierDetails, setSuppliersDetails] = useState({
     id: '',
     startDate: new Date(),
     endDate: new Date()
+  })
+
+  const getSupplierList = async () => {
+    const response = await getSuppliers()
+
+    return response
+  }
+
+  const {
+    supplierData,
+    isLoading: supplierLoading,
+    isError: supplierIsError,
+    error: supplierError
+  } = useQuery(['suppliers'], getSupplierList, {
+    onSuccess: supplierData => {
+      const sorted = supplierData.data.data ? supplierData.data.data.sort((a, b) => a.id - b.id) : []
+      setSupplierList(sorted)
+    }
   })
 
   const convertDate = dateString => {
@@ -50,38 +68,47 @@ const SupplierLedger = () => {
     }
   }
 
-  const getSupplierList = async () => {
-    setLoader(true)
-    const response = await getSuppliers()
-    if (response?.length > 0) {
-      console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setSupplierList(response)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
-
   const getSupplierLedgerData = async () => {
     if (supplierDetails.id === '') {
-      setError('Please select supplier')
+      setErrors('Please select supplier')
 
       return
     } else {
-      setError('')
+      setErrors('')
       let id = supplierDetails.id
       let start = convertDate(supplierDetails.startDate)
       let end = convertDate(supplierDetails.endDate)
       const result = await getSupplierLedger(id, start, end)
-      setLedgerBalance(result)
-      setLedgerData(result.ledgers)
+
+      return result
     }
   }
 
-  useEffect(() => {
-    getSupplierList()
-  }, [])
+  const {
+    supplierLedgerData,
+    isLoading: ledgerLoading,
+    isError: ledgerIsError,
+    error: ledgerError,
+    refetch
+  } = useQuery(['supplierLedger'], getSupplierLedgerData, {
+    onSuccess: supplierLedgerData => {
+      console.log('in query', supplierLedgerData)
+
+      const sorted = supplierLedgerData.data.data
+        ? supplierLedgerData.data.data.ledgers.sort((a, b) => a.id - b.id)
+        : []
+      setLedgerBalance(supplierLedgerData.data.data)
+      setLedgerData(sorted)
+    },
+    enabled: false
+  })
+
+  if (supplierLoading) {
+    return <FallbackSpinner />
+  }
+  if (supplierIsError) {
+    return <h1>{supplierError.message}</h1>
+  }
 
   const columns = [
     {
@@ -217,7 +244,7 @@ const SupplierLedger = () => {
                   })
                 : null}
             </Select>
-            <FormHelperText sx={{ color: 'red' }}>{error}</FormHelperText>
+            <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
           </FormControl>
         </Grid>
         <Grid item lg={2}>
@@ -241,7 +268,16 @@ const SupplierLedger = () => {
         </Grid>
 
         <Grid item lg={2}>
-          <Button size='large' sx={{ py: 3 }} variant='contained' onClick={getSupplierLedgerData}>
+          <Button
+            size='large'
+            sx={{ py: 3 }}
+            variant='contained'
+            onClick={() => {
+              refetch()
+
+              // getSupplierLedgerData
+            }}
+          >
             Find
           </Button>
         </Grid>
@@ -259,9 +295,7 @@ const SupplierLedger = () => {
 
   return (
     <Grid>
-      {loader ? (
-        <FallbackSpinner />
-      ) : supplierList?.length > 0 ? (
+      {supplierList?.length > 0 ? (
         <TableWithFilter TableTitle={'Supplier Ledger'} inpFields={createForm()} columns={columns} rows={ledgerData} />
       ) : (
         <Typography sx={{ mb: 2 }}>Supplier Ledger list is empty</Typography>
