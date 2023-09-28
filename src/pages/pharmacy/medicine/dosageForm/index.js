@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getDosageFormList } from 'src/lib/api/getDosageFormList'
+import { addDosageForm, getDosageFormList, updateDosageForm } from 'src/lib/api/getDosageFormList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,9 +17,75 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
+import AddDosageForm from 'src/views/pages/pharmacy/medicine/dosageForm/addDosageForm'
+import UserSnackbar from 'src/components/utility/snackbar'
+
 const ListOfDosageForms = () => {
   const [dosageForms, setDosageForms] = useState([])
   const [loader, setLoader] = useState(false)
+
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, name: null, status: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    console.log(editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateDosageForm(editParams?.id, payload)
+      } else {
+        response = await addDosageForm(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getDosageFormsList()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const handleEdit = async (id, name, status) => {
+    setEditParams({ id: id, name: name, status: status })
+    setOpenDrawer(true)
+  }
+
+  /***** Drawer  */
 
   const getDosageFormsList = async () => {
     setLoader(true)
@@ -83,7 +149,11 @@ const ListOfDosageForms = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
@@ -103,18 +173,32 @@ const ListOfDosageForms = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={dosageForms.length > 0 ? 'Dosage Form List' : 'Dosage form list is empty add dosage'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add Dosage form
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={dosageForms}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={dosageForms.length > 0 ? 'Dosage Form List' : 'Dosage form list is empty add dosage'}
+            headerActions={
+              <div>
+                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+                  Add Dosage form
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={dosageForms}
+          />
+          <AddDosageForm
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
       )}
     </>
   )

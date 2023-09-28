@@ -18,7 +18,7 @@ import { Box, Drawer } from '@mui/material'
 import Router from 'next/router'
 
 import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
-import { addTaxas } from 'src/lib/api/getGstList'
+import { addTaxes } from 'src/lib/api/getGstList'
 import UserSnackbar from 'src/components/utility/snackbar'
 
 const ListOfGst = () => {

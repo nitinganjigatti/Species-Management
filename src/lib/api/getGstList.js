@@ -34,7 +34,7 @@ export async function getGstList() {
     })
 }
 
-export async function addTaxas(payload) {
+export async function addTaxes(payload) {
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${GST_SLAB}`
   console.log('url', url)
   debugger

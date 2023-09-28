@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getCategories } from 'src/lib/api/getCategories'
+import { addCategory, getCategories, updateCategory } from 'src/lib/api/getCategories'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,9 +17,75 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
+import AddCategory from 'src/views/pages/pharmacy/medicine/category/addCategory'
+import UserSnackbar from 'src/components/utility/snackbar'
+
 const ListOfCategories = () => {
   const [categories, setCategories] = useState([])
   const [loader, setLoader] = useState(false)
+
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, name: null, status: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    console.log(editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateCategory(editParams?.id, payload)
+      } else {
+        response = await addCategory(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getCategoriesList()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const handleEdit = async (id, name, status) => {
+    setEditParams({ id: id, name: name, status: status })
+    setOpenDrawer(true)
+  }
+
+  /***** Drawer  */
 
   const getCategoriesList = async () => {
     setLoader(true)
@@ -83,7 +149,12 @@ const ListOfCategories = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+            aria-label='Edit'
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
@@ -103,18 +174,32 @@ const ListOfCategories = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={categories.length > 0 ? 'Category List' : 'Category list is empty add categories'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add Category
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={categories}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={categories.length > 0 ? 'Category List' : 'Category list is empty add categories'}
+            headerActions={
+              <div>
+                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+                  Add Category
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={categories}
+          />
+          <AddCategory
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
       )}
     </>
   )

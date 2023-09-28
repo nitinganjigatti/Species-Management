@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getGenerics } from 'src/lib/api/getGenerics'
+import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/getGenerics'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -13,13 +13,78 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Drawer } from '@mui/material'
 
 import Router from 'next/router'
+import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 const ListOfGenerics = () => {
   const [generics, setGenerics] = useState([])
   const [loader, setLoader] = useState(false)
+
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, name: null, status: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    console.log(editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateGenericName(editParams?.id, payload)
+      } else {
+        response = await addGenericName(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getGenericsLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const handleEdit = async (id, name, status) => {
+    setEditParams({ id: id, name: name, status: status })
+    setOpenDrawer(true)
+  }
+
+  /***** Drawer  */
 
   const getGenericsLists = async () => {
     setLoader(true)
@@ -83,7 +148,12 @@ const ListOfGenerics = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+            aria-label='Edit'
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
@@ -103,18 +173,32 @@ const ListOfGenerics = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={generics.length > 0 ? 'Generic List' : 'Generic list is empty add generics'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add Generic
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={generics}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={generics.length > 0 ? 'Generic List' : 'Generic list is empty add generics'}
+            headerActions={
+              <div>
+                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+                  Add Generic
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={generics}
+          />
+          <AddGenericName
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
       )}
     </>
   )
