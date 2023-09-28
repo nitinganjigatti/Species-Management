@@ -111,6 +111,23 @@ const navigation = () => {
         }
       ]
     },
+    {
+      title: 'Stocks',
+      path: '/pharmacy/store',
+      icon: 'mdi:home-outline',
+      children: [
+        {
+          title: 'Stock report',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/stocks/stocksReport'
+        },
+        {
+          title: 'Stock report(Batch wise)',
+          icon: 'mdi:email-outline',
+          path: '/pharmacy/stocks/stockReportByBatch'
+        }
+      ]
+    },
 
     {
       sectionTitle: 'Others'

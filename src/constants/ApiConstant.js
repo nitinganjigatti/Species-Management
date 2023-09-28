@@ -23,3 +23,7 @@ export const PAYMENT_LIST = 'supplier-ledger'
 export const STORE = 'stores'
 
 export const RACK = 'rack'
+
+export const STOCK_REPORT = 'master-stock'
+
+export const STOCK_BY_BATCH = 'master-stock-batch-wise'
