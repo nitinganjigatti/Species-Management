@@ -38,11 +38,10 @@ const navigation = () => {
           path: '/pharmacy/medicine/gst'
         },
 
-        // {
-        //   title: 'State',
-        //   icon: 'mdi:message-outline',
-        //   path: '/pharmacy/medicine/state'
-        // },
+        {
+          title: 'State',
+          path: '/pharmacy/medicine/state'
+        },
         {
           title: 'Generic',
           path: '/pharmacy/medicine/generic'
@@ -52,11 +51,10 @@ const navigation = () => {
           path: '/pharmacy/medicine/category'
         },
 
-        // {
-        //   title: 'UOM',
-        //   icon: 'mdi:email-outline',
-        //   path: '/pharmacy/medicine/uom'
-        // },
+        {
+          title: 'UOM',
+          path: '/pharmacy/medicine/uom'
+        },
         {
           title: 'Dosage form',
           path: '/pharmacy/medicine/dosageForm'
@@ -64,6 +62,10 @@ const navigation = () => {
         {
           title: 'Drug class',
           path: '/pharmacy/medicine/drugClass'
+        },
+        {
+          title: 'Medicine',
+          path: '/pharmacy/medicine/medicine'
         }
       ]
     },
