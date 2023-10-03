@@ -115,6 +115,41 @@ const navigation = () => {
         }
       ]
     },
+    {
+      title: 'Shipment',
+      path: '/pharmacy/shipment',
+      icon: 'streamline:shipping-box-1-box-package-label-delivery-shipment-shipping',
+      children: [
+        {
+          title: 'Shipment',
+          path: '/pharmacy/shipment/shipment'
+        }
+      ]
+    },
+    {
+      title: 'Debit Note',
+      icon: 'icon-park:play-cycle',
+      children: [
+        {
+          title: 'Debit Note',
+          path: '/pharmacy/debitNote/debitNote'
+        }
+      ]
+    },
+    {
+      title: 'Dispatch',
+      icon: 'bxs:log-out',
+      children: [
+        {
+          title: 'Dispatch',
+          path: '/pharmacy/dispatch/dispatch'
+        },
+        {
+          title: 'Dispatch validation',
+          path: '/pharmacy/dispatch/dispatchValidation'
+        }
+      ]
+    },
 
     {
       sectionTitle: 'Others'

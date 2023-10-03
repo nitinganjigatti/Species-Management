@@ -32,4 +32,12 @@ export const UOM = 'unit'
 
 export const MEDICINE = 'stock-item'
 
+export const SHIPMENT = 'shipment'
+
+export const DEBIT_NOTE = 'purchase-return'
+
+export const DISPATCH = 'dispatch'
+
+export const DISPATCH_VALIDATION = 'dispatch-validation'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
