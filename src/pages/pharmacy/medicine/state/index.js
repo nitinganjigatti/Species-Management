@@ -14,7 +14,6 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 
-import Router from 'next/router'
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
 import UserSnackbar from 'src/components/utility/snackbar'
 
