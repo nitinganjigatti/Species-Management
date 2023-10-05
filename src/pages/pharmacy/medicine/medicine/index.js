@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+import Router from 'next/router'
 
 const ListOfMedicine = () => {
   const [medicineList, setMedicineList] = useState([])
@@ -195,7 +196,13 @@ const ListOfMedicine = () => {
             TableTitle={medicineList.length > 0 ? 'Medicine List' : 'Medicine List is empty add Medicine'}
             headerActions={
               <div>
-                <Button size='big' variant='contained'>
+                <Button
+                  size='big'
+                  variant='contained'
+                  onClick={() => {
+                    Router.push('/pharmacy/medicine/medicine/addMedicine')
+                  }}
+                >
                   Add Medicine
                 </Button>
               </div>
