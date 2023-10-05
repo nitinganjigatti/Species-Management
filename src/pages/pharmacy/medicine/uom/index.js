@@ -25,8 +25,14 @@ const ListOfUOM = () => {
     const response = await getUnits()
     if (response?.length > 0) {
       console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setUomList(response)
+
+      // response.sort((a, b) => a.id - b.id)
+      let listWithId = response
+        ? response.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
+        : []
+      setUomList(listWithId)
       setLoader(false)
     } else {
       setLoader(false)
@@ -43,11 +49,11 @@ const ListOfUOM = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },

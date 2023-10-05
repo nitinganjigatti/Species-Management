@@ -26,8 +26,11 @@ const DispatchValidationList = () => {
     const response = await getDispatchValidation()
     if (response?.length > 0) {
       console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setDispatches(response)
+
+      let listWithId = response.map((el, i) => {
+        return { ...el, uid: i + 1 }
+      })
+      setDispatches(listWithId)
       setLoader(false)
     } else {
       setLoader(false)
@@ -42,11 +45,11 @@ const DispatchValidationList = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },

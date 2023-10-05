@@ -127,8 +127,22 @@ const navigation = () => {
       ]
     },
     {
+      title: 'Allocation',
+      path: '/pharmacy/allocation',
+
+      icon: 'pajamas:assignee',
+      children: [
+        {
+          title: 'Allocation',
+          path: '/pharmacy/allocation/allocation'
+        }
+      ]
+    },
+    {
       title: 'Debit Note',
       icon: 'icon-park:play-cycle',
+      path: '/pharmacy/debitNote',
+
       children: [
         {
           title: 'Debit Note',
@@ -147,6 +161,18 @@ const navigation = () => {
         {
           title: 'Dispatch validation',
           path: '/pharmacy/dispatch/dispatchValidation'
+        }
+      ]
+    },
+    {
+      title: 'Request',
+      icon: 'lucide:git-pull-request',
+      path: '/pharmacy/request',
+
+      children: [
+        {
+          title: 'Request',
+          path: '/pharmacy/request/requestList'
         }
       ]
     },

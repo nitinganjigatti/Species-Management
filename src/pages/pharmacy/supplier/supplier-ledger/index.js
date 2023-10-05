@@ -94,11 +94,16 @@ const SupplierLedger = () => {
     onSuccess: supplierLedgerData => {
       console.log('in query', supplierLedgerData)
 
-      const sorted = supplierLedgerData.data.data
-        ? supplierLedgerData.data.data.ledgers.sort((a, b) => a.id - b.id)
+      // const sorted = supplierLedgerData.data.data
+      //   ? supplierLedgerData.data.data.ledgers.sort((a, b) => a.id - b.id)
+      //   : []
+      let listWithId = supplierLedgerData.data.data
+        ? supplierLedgerData.data.data.ledgers.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
         : []
       setLedgerBalance(supplierLedgerData.data.data)
-      setLedgerData(sorted)
+      setLedgerData(listWithId)
     },
     enabled: false
   })
@@ -114,14 +119,14 @@ const SupplierLedger = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL',
       renderCell: (params, index) => {
         console.log('index', params)
 
         return (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.id}
+            {params.row.uid}
           </Typography>
         )
       }

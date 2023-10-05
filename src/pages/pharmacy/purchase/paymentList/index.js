@@ -27,14 +27,14 @@ const ListOfPayments = () => {
     if (response?.length > 0) {
       console.log('list', response)
 
-      const objectsWithIds = response.map((obj, index) => ({
-        ...obj,
-        id: index + 1
-      }))
-      console.log('id', objectsWithIds)
+      let listWithId = response
+        ? response.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+        : []
 
       // response.sort((a, b) => a.id - b.id)
-      setPaymentList(objectsWithIds)
+      setPaymentList(listWithId)
       setLoader(false)
     } else {
       setLoader(false)

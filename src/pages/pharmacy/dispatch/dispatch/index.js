@@ -26,8 +26,12 @@ const Dispatch = () => {
     const response = await getDispatch()
     if (response?.length > 0) {
       console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setDispatches(response)
+
+      let listWithId = response.map((el, i) => {
+        return { ...el, uid: i + 1 }
+      })
+
+      setDispatches(listWithId)
       setLoader(false)
     } else {
       setLoader(false)
@@ -42,11 +46,11 @@ const Dispatch = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -137,7 +141,13 @@ const Dispatch = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => {
+              console.log(params.row.id)
+            }}
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {params.row.status === 'dispatch' ? (
