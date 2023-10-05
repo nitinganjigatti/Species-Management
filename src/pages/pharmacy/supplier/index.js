@@ -31,8 +31,12 @@ const Supplier = () => {
 
   const { supplierData, isLoading, isError, error } = useQuery(['suppliers'], getSupplierList, {
     onSuccess: supplierData => {
-      const sorted = supplierData.data.data ? supplierData.data.data.sort((a, b) => a.id - b.id) : []
-      setSupplierList(sorted)
+      let listWithId = supplierData.data.data
+        ? supplierData.data.data.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
+        : []
+      setSupplierList(listWithId)
     }
   })
   console.log(supplierData)
@@ -49,11 +53,11 @@ const Supplier = () => {
       flex: 0.05,
       Width: 40,
       alignItems: 'right',
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },

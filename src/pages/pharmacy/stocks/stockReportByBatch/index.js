@@ -53,8 +53,14 @@ const ListOfStocksByBatch = () => {
       const result = await getStocksByBatch(stockId)
       if (result?.length > 0) {
         console.log('stocks', result)
-        result.sort((a, b) => a.id - b.id)
-        setStockReport(result)
+
+        // result.sort((a, b) => a.id - b.id)
+        let listWithId = response
+          ? response.map((el, i) => {
+              return { ...el, uid: i + 1 }
+            })
+          : []
+        setStockReport(listWithId)
       }
     }
   }
@@ -66,11 +72,11 @@ const ListOfStocksByBatch = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },

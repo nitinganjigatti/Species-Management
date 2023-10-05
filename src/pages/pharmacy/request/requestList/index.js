@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/getPurchaseList'
+import { getRequestItemsList } from 'src/lib/api/getRequestItemsList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -17,13 +17,13 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-const ListOfPurchase = () => {
-  const [purchaseList, setPurchaseList] = useState([])
+const Dispatch = () => {
+  const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const getPurchaseLists = async () => {
+  const getRequestItemLists = async () => {
     setLoader(true)
-    const response = await getPurchaseList()
+    const response = await getRequestItemsList()
     if (response?.length > 0) {
       console.log('list', response)
 
@@ -33,7 +33,7 @@ const ListOfPurchase = () => {
             return { ...el, uid: i + 1 }
           })
         : []
-      setPurchaseList(listWithId)
+      setRequestItems(listWithId)
       setLoader(false)
     } else {
       setLoader(false)
@@ -41,7 +41,7 @@ const ListOfPurchase = () => {
   }
 
   useEffect(() => {
-    getPurchaseLists()
+    getRequestItemLists()
   }, [])
 
   const columns = [
@@ -60,44 +60,33 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'po_no',
-      headerName: 'PURCHASE NO',
+      field: 'request_number',
+      headerName: 'REQUEST ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.po_no}
+          {params.row.request_number}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'SUPPLIER NAME',
+      field: 'from_store',
+      headerName: 'FROM STORE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name}
+          {params.row.from_store}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'total_amount',
-      headerName: 'TOTAL AMOUNT',
+      field: 'request_date',
+      headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_amount}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'tax_amount',
-      headerName: 'TAX AMOUNT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.tax_amount}
+          {params.row.request_date}
         </Typography>
       )
     },
@@ -105,22 +94,45 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'discount_amount',
-      headerName: 'DISCOUNT AMOUNT',
+      field: 'to_store',
+      headerName: 'TO STORE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.discount_amount}
+          {params.row.to_store}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'total_box_qty',
+      headerName: 'TOTAL BOXES',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.total_box_qty}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'paid_amount',
-      headerName: 'PAID AMOUNT',
+      field: 'total_qty',
+      headerName: 'TOTAL QTY',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.paid_amount}
+          {params.row.total_qty}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'status',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.status}
         </Typography>
       )
     },
@@ -132,15 +144,29 @@ const ListOfPurchase = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+          {params.row.status === 'Fully Dispatched' ? (
+            <IconButton size='small' sx={{ mr: 0.5 }}>
+              <Icon icon='mdi:package-delivered' />
+            </IconButton>
+          ) : params.row.status === 'Partial Dispatched' ? (
+            <>
+              <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='mdi:package-delivered' />
+              </IconButton>
+              <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='fluent-mdl2:message-friend-request' />
+              </IconButton>
+              <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </>
+          )}
         </Box>
       )
     }
@@ -156,20 +182,20 @@ const ListOfPurchase = () => {
         <FallbackSpinner />
       ) : (
         <TableWithFilter
-          TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
+          TableTitle={requestItems.length > 0 ? 'Request List' : 'Request List is empty add Request List'}
           headerActions={
             <div>
               <Button size='big' variant='contained'>
-                Add Purchase
+                Add Request
               </Button>
             </div>
           }
           columns={columns}
-          rows={purchaseList}
+          rows={requestItems}
         />
       )}
     </>
   )
 }
 
-export default ListOfPurchase
+export default Dispatch
