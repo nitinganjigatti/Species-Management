@@ -40,6 +40,12 @@ const Dispatch = () => {
     }
   }
 
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/request/addRequest/',
+      query: { id: id, action: 'edit' }
+    })
+  }
   useEffect(() => {
     getRequestItemLists()
   }, [])
@@ -153,7 +159,13 @@ const Dispatch = () => {
               <IconButton size='small' sx={{ mr: 0.5 }}>
                 <Icon icon='fluent-mdl2:message-friend-request' />
               </IconButton>
-              <IconButton size='small' sx={{ mr: 0.5 }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() => {
+                  handleEdit(params.row.id)
+                }}
+              >
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
             </>
@@ -162,7 +174,13 @@ const Dispatch = () => {
               <IconButton size='small' sx={{ mr: 0.5 }}>
                 <Icon icon='fluent-mdl2:message-friend-request' />
               </IconButton>
-              <IconButton size='small' sx={{ mr: 0.5 }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() => {
+                  handleEdit(params.row.id)
+                }}
+              >
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
             </>
