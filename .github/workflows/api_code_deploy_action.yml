@@ -16,7 +16,7 @@ jobs:
   deploy:
     name: Deploy Antz Project
     runs-on: ubuntu-latest
-    container: node:16
+    container: node:18
     steps:
       - run: apt-get update -qq
         name: Update System Repositories
