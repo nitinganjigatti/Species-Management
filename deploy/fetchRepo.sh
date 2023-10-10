@@ -55,6 +55,11 @@ then
   cp -r .env.production .env
 fi
 
+
+# node -v
+npm -v
+nvm -v
+
 # Update node-gyp to latest
 # npm install --global node-gyp@latest
 # npm config set node_gyp $(npm prefix -g)/lib/node_modules/node-gyp/bin/node-gyp.js
