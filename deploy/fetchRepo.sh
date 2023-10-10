@@ -14,6 +14,9 @@ CURRENT_RELEASE=$APP_DIR"/current"
 NEW_RELEASE=$(date +"%Y%m%d%H%M%S")
 NEW_RELEASE_DIR=$RELEASES_DIR/$NEW_RELEASE
 
+export NVM_DIR=~/.nvm
+source ~/.nvm/nvm.sh
+
 # CREATE APP DIRECTORIES FOR THE FIRST TIME
 [ -d $APP_DIR ] || mkdir -p $APP_DIR
 [ -d $RELEASES_DIR ] || mkdir -p $RELEASES_DIR
