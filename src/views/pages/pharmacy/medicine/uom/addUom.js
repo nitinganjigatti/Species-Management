@@ -17,7 +17,7 @@ import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { RadioGroup, FormLabel, Radio } from '@mui/material'
-import { getStateById } from 'src/lib/api/getStates'
+import { getUnitsById } from 'src/lib/api/getUnits'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
@@ -33,25 +33,23 @@ import Icon from 'src/@core/components/icon'
 
 const schema = yup.object().shape({
   name: yup.string().required('State Name is Required'),
-  code: yup.number().required('State code is Required'),
-  short_code: yup.string().required('State short code is Required'),
   status: yup.string().nullable()
 })
 
 const defaultValues = {
   name: '',
-  code: '',
-  short_code: '',
   status: 'active'
 }
 
-const AddStates = props => {
+const AddUOM = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
     reset,
     control,
+    setValue,
+    clearErrors,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -63,21 +61,20 @@ const AddStates = props => {
   })
 
   const onSubmit = async params => {
-    const { name, code, short_code, status } = { ...params }
+    const { name, status } = { ...params }
 
     const payload = {
       name,
-      code,
-      short_code,
+
       status
     }
     console.log(payload)
     await handleSubmitData(payload)
   }
 
-  const getStates = useCallback(
+  const getUnits = useCallback(
     async id => {
-      const response = await getStateById(id)
+      const response = await getUnitsById(id)
       console.log('add state comp', response)
       if (response?.success) {
         reset(response.data)
@@ -93,9 +90,9 @@ const AddStates = props => {
     }
 
     if (editParams?.id !== null) {
-      getStates(editParams?.id)
+      getUnits(editParams?.id)
     }
-  }, [resetForm, editParams, reset, getStates])
+  }, [resetForm, editParams, reset, getUnits])
 
   const RenderSidebarFooter = () => {
     return (
@@ -123,7 +120,7 @@ const AddStates = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} State</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} UOM</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -139,10 +136,10 @@ const AddStates = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='State Name'
+                  label='UOM Name'
                   value={value}
                   onChange={onChange}
-                  placeholder='State Name'
+                  placeholder='UOM Name'
                   error={Boolean(errors.name)}
                   name='name'
                 />
@@ -151,41 +148,6 @@ const AddStates = props => {
             {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
           </FormControl>
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='code'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Code'
-                  type='number'
-                  value={value}
-                  onChange={onChange}
-                  name='code'
-                  error={Boolean(errors.code)}
-                />
-              )}
-            />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='short_code'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Short Code'
-                  value={value.toLocaleUpperCase()}
-                  onChange={onChange}
-                  name='short_code'
-                  error={Boolean(errors.short_code)}
-                />
-              )}
-            />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
-          </FormControl>
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
@@ -226,4 +188,4 @@ const AddStates = props => {
   )
 }
 
-export default AddStates
+export default AddUOM

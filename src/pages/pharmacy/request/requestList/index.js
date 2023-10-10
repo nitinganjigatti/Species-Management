@@ -151,7 +151,7 @@ const Dispatch = () => {
           ) : params.row.status === 'Partial Dispatched' ? (
             <>
               <IconButton size='small' sx={{ mr: 0.5 }}>
-                <Icon icon='mdi:package-delivered' />
+                <Icon icon='fluent-mdl2:message-friend-request' />
               </IconButton>
               <IconButton size='small' sx={{ mr: 0.5 }}>
                 <Icon icon='mdi:pencil-outline' />
@@ -185,7 +185,13 @@ const Dispatch = () => {
           TableTitle={requestItems.length > 0 ? 'Request List' : 'Request List is empty add Request List'}
           headerActions={
             <div>
-              <Button size='big' variant='contained'>
+              <Button
+                size='big'
+                variant='contained'
+                onClick={() => {
+                  Router.push('/pharmacy/request/addRequest/')
+                }}
+              >
                 Add Request
               </Button>
             </div>
