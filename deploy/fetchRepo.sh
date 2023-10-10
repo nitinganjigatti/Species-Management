@@ -41,6 +41,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
+sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 
 rm -f .env;
 if [ $ENV_TO_LOAD == 'development' ]
