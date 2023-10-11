@@ -35,10 +35,6 @@ import { axiosGet, axiosPost } from './utility'
 // }
 
 export async function getSuppliers() {
-  //const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${SUPPLIER}`
-
-  //console.log(SUPPLIER)
-
   return axiosGet({ url: SUPPLIER })
 }
 
@@ -77,16 +73,9 @@ export async function updateSuppliersById(payload, id) {
     const url = `${SUPPLIER}/${id}/update`
     var data = payload
     data.id = id
-
     const response = await axiosPost({ url, body: data })
 
     return response?.data
-
-    // response.then(response => {
-    //   console.log('supliers post data', response)
-
-    //   return response?.data
-    // })
   } catch (error) {
     debugger
     console.error(url)
