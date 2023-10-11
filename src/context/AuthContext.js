@@ -68,6 +68,7 @@ const AuthProvider = ({ children }) => {
           setUser(userObj)
         } else {
           localStorage.removeItem('userData')
+          localStorage.removeItem('userDetails')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('accessToken')
           localStorage.removeItem('provider')
