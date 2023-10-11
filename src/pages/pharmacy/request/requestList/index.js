@@ -72,7 +72,7 @@ const Dispatch = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'FROM STORE',
+      headerName: 'Requested Store',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}
@@ -95,7 +95,7 @@ const Dispatch = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
-      headerName: 'TO STORE',
+      headerName: 'Requested To',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.to_store}

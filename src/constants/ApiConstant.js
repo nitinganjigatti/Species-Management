@@ -42,4 +42,6 @@ export const DISPATCH_VALIDATION = 'dispatch-validation'
 
 export const REQUEST_ITEMS = 'request-item'
 
+export const LEAF = 'leaf'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
