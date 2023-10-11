@@ -25,6 +25,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import { debounce } from 'lodash'
 import CircularProgress from '@mui/material/CircularProgress'
 import Router from 'next/router'
+import { useRouter } from 'next/router'
 
 // ** React Imports
 import { forwardRef, useState, useEffect } from 'react'
@@ -33,8 +34,10 @@ import { forwardRef, useState, useEffect } from 'react'
 import themeConfig from 'src/configs/themeConfig'
 import AddRequestDialog from './AddRequestDialog'
 import SingleDatePicker from '../../SingleDatePicker'
+import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
+import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
 
 const MUITableCell = styled(TableCell)(({ theme }) => ({
   borderBottom: 0,
@@ -61,26 +64,19 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { Label } from 'recharts'
 
-const defaultValues = {
-  medicine_name: '',
-  user: '',
-  batch_id: '',
-  expiry_date: '',
-  stock_qty: '',
-  box_pattern: '',
-  box_qty: '',
-  qty: ''
-}
-
 const editParamsInitialState = {
+  id: '',
   medicine_name: '',
-  user: '',
+  from_store_id: '',
+  to_store_id: '',
   batch_id: '',
-  expiry_date: '',
+  ro_date: '',
   stock_qty: '',
   box_pattern: '',
   box_qty: '',
-  qty: ''
+  total_qty: '',
+  user: '',
+  nestedRows: []
 }
 
 const storesData = {
@@ -90,11 +86,19 @@ const storesData = {
   user: ''
 }
 
-const schema = yup.object().shape({
-  // medicine_name: yup.string().required(),
-  dosage_form: yup.string().required(),
-  qty: yup.string().required()
-})
+const initialState = [
+  {
+    id: '',
+    medicine_name: '',
+    batch_id: '',
+    expiry_date: '',
+    stock_qty: '',
+    box_pattern: '',
+    box_qty: '',
+    qty: '',
+    nestedRows: []
+  }
+]
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -106,10 +110,62 @@ const AddRequestForm = () => {
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
-
-  const [options, setOptions] = useState([])
+  const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [show, setShow] = useState(false)
-  const [value, setValue] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [itemErrors, setItemErrors] = useState({})
+
+  const [nestedRowMedicine, setNestedRowMedicine] = useState({
+    medicine_name: '',
+    id: '',
+    qty: '',
+    dosageForm: ''
+  })
+  const router = useRouter()
+  const { id, action } = router.query
+
+  const getListOfItemsById = async id => {
+    const result = await getRequestItemsListById(id)
+    console.log('data of update values', result)
+
+    if (result) {
+      // const items=result.request_item_details.map((=>{}))
+      setToStocks(fromStocks)
+      setEditParams({
+        ...editParams,
+        id: result.id,
+        from_store_id: result.from_store_id,
+        to_store_id: result.to_store_id,
+        ro_date: result.ro_date,
+        nestedRows: result.request_item_details
+      })
+    }
+  }
+
+  const editTableData = id => {
+    if (id != undefined && action === 'edit') {
+      const getItems = editParams.nestedRows.filter(el => {
+        return el.id === id
+      })
+      console.log('filtered', getItems[0].medicine_name)
+
+      setNestedRowMedicine({
+        ...nestedRowMedicine,
+        medicine_name: getItems[0].medicine_name,
+        id: getItems[0].id,
+        qty: getItems[0].qty,
+        dosageForm: ''
+      })
+    }
+  }
+  console.log('nestedRowMedicine', nestedRowMedicine)
+
+  useEffect(() => {
+    if (id != undefined && action === 'edit') {
+      getListOfItemsById(id)
+      setToStocks(fromStocks)
+    }
+  }, [id, action])
 
   const closeDialog = () => {
     setShow(false)
@@ -118,24 +174,111 @@ const AddRequestForm = () => {
   const showDialog = () => {
     setShow(true)
   }
+  const totalQty = editParams.nestedRows.reduce((acc, row) => acc + parseInt(row.qty), 0)
+  console.log(totalQty)
+
+  const onSubmit = () => {
+    const newData = {
+      medicine_name: nestedRowMedicine.medicine_name,
+      id: nestedRowMedicine.id,
+      qty: nestedRowMedicine.qty,
+      dosageForm: nestedRowMedicine.dosageForm
+    }
+
+    const updatedNestedRows = [...editParams.nestedRows, newData]
+    console.log(updatedNestedRows)
+    setEditParams({
+      ...editParams,
+      nestedRows: updatedNestedRows
+    })
+
+    setNestedRowMedicine({
+      medicine_name: '',
+      id: '',
+      qty: '',
+      dosageForm: ''
+    })
+  }
+  function formatDate(dateString) {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
+    const day = String(date.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+  }
+  function parseFormattedDate(formattedDate) {
+    const parts = formattedDate.split('-')
+    const year = parts[0]
+    const month = Number(parts[1]) - 1 // Months are 0-indexed
+    const day = parts[2]
+
+    return new Date(year, month, day)
+  }
+
+  const validate = values => {
+    const itemErrors = {}
+    if (!values.name || values.name === '') {
+      itemErrors.name = 'This field is required'
+    }
+    if (!values.qty) {
+      itemErrors.qty = 'This field is required'
+    }
+    if (!values.dosageForm) {
+      itemErrors.dosageForm = 'This field is required'
+    }
+
+    return itemErrors
+  }
+
+  const validateItems = values => {
+    const errors = {}
+
+    if (!values.from_store_id) {
+      errors.from_store_id = 'This field is required'
+    }
+    if (!values.to_store_id) {
+      errors.to_store_id = 'This field is required'
+    }
+    if (!values.ro_date) {
+      errors.ro_date = 'This field is required'
+    }
+    if (!values.user) {
+      errors.user = 'This field is required'
+    }
+
+    return errors
+  }
+
+  const submitItems = () => {
+    const HasErrors = !nestedRowMedicine.name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
+    if (HasErrors) {
+      setItemErrors(validate(nestedRowMedicine))
+
+      return
+    }
+    setErrors({}) // Reset errors when the form is valid
+    onSubmit()
+  }
+
+  const handleSubmit = () => {
+    const formHasErrors =
+      !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date || !editParams.user
+    console.log(formHasErrors)
+    if (formHasErrors) {
+      setErrors(validateItems(editParams))
+
+      return
+    }
+
+    setErrors({}) // Reset errors when the form is valid
+    showDialog()
+  }
 
   const filterToStocks = id => {
     const optionsForSelectB = fromStocks.filter(option => option.id !== id)
     setToStocks(optionsForSelectB)
   }
-
-  const {
-    reset,
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
-  })
 
   const getStoresLists = async () => {
     // setLoader(true)
@@ -152,118 +295,133 @@ const AddRequestForm = () => {
     getStoresLists()
   }, [])
 
-  const {
-    control: controlMultipleMedicine,
-    handleSubmit: addMultipleMedicine,
-    formState: { errors: errorMultipleMedicine }
-  } = useForm({ resolver: yupResolver(schema), shouldUnregister: false, mode: 'onChange', reValidateMode: 'onChange' })
-  const [formDataArray, setFormDataArray] = useState([])
+  console.log('editParams', editParams)
 
-  const onSubmit = data => {
-    // event.preventDefault()
-    console.log('errors', errors)
-    console.log(data)
-    setFormDataArray(prevArray => [...prevArray, data])
-  }
-  console.log('formDataArray', formDataArray)
-
-  const debouncedFetchData = debounce(async query => {
+  const handleCustom = async data => {
+    console.log('in custom', data)
     try {
-      const response = await getMedicineBySearch(query)
-      console.log('in debounce', response[0].name)
-      setOptions(response)
+      getSearchValue(data)
+      console.log('Validation successful')
 
-      return response
-    } catch (error) {
-      console.error(error)
+      // Perform your custom validation logic here if needed
+    } catch (validationErrors) {
+      console.log('Validation failed:', validationErrors)
 
-      return []
+      // Validation errors will be available in the 'validationErrors' object
     }
-  }, 300)
-
-  // useEffect(() => {
-  // }, [])
+  }
+  async function getSearchValue(searchText, index) {
+    if (searchText !== '') {
+      const searchResults = await getMedicineBySearch(searchText)
+      console.log('in search input ', searchResults)
+      if (searchResults?.length) {
+        console.log(
+          'maped obj',
+          searchResults?.map(item => ({
+            value: item.id,
+            label: item.name
+          }))
+        )
+        setOptionsMedicineList(
+          searchResults?.map(item => ({
+            value: item.id,
+            label: item.name
+          }))
+        )
+      }
+    }
+  }
 
   const createForm = () => {
     return (
       <CardContent>
-        <form onSubmit={addMultipleMedicine(onSubmit)}>
+        <form
+        // onSubmit={addMultipleMedicine(onSubmit)}
+        >
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                <Controller
-                  name='medicine_name'
-                  control={controlMultipleMedicine}
-                  render={({ field: { onChange } }) => (
-                    <Autocomplete
-                      sx={{ width: '100%' }}
-                      name='medicine_name'
-                      options={options.length > 0 ? options : []}
-                      // eslint-disable-next-line lines-around-comment
-                      // onInputChange
-                      onInputChange={(e, newInputValue) => {
-                        console.log('in onchnage', newInputValue)
-                        onChange(newInputValue)
-                        debouncedFetchData(newInputValue, data => {
-                          console.log('datasss', data)
+                <Autocomplete
+                  inputProps={{ tabIndex: '6' }}
+                  disablePortal
+                  id='autocomplete-controlled'
+                  options={optionsMedicineList}
+                  value={nestedRowMedicine.medicine_name}
+                  onChange={(event, newValue) => {
+                    console.log('options', newValue)
+                    // nestedRowMedicine, setNestedRowMedicine
 
-                          setOptions(data)
-                        })
-                      }}
-                      id='autocomplete-controlled'
-                      renderInput={params => <TextField {...params} label='Medicine Name' />}
-                    />
+                    setNestedRowMedicine({ ...nestedRowMedicine, medicine_name: newValue.label, id: newValue.value })
+                    setItemErrors({})
+                  }}
+                  onKeyUp={e => {
+                    console.log('eee values', e.target.value)
+                    handleCustom(e.target.value)
+                    setItemErrors({})
+                  }}
+                  renderInput={params => (
+                    <TextField {...params} label='Medicine Name' error={Boolean(itemErrors.medicine_name)} />
                   )}
                 />
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Controller
-                  name='dosage_form'
-                  control={controlMultipleMedicine}
-                  rules={{ required: 'Dosage form is required' }}
-                  render={({ field: { onChange, value, onBlur } }) => (
-                    <TextField
-                      value={value}
-                      label='Dosage form'
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      placeholder=''
-                      error={Boolean(errorMultipleMedicine?.dosage_form)}
-                    />
-                  )}
-                />
-                {errorMultipleMedicine?.dosage_form && (
-                  <FormHelperText sx={{ color: 'error.main' }}>
-                    {errorMultipleMedicine?.dosage_form.message}
+                {itemErrors.medicine_name && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
                   </FormHelperText>
                 )}
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                <Controller
-                  name='qty'
-                  control={controlMultipleMedicine}
-                  rules={{ required: 'Quantity is required' }}
-                  render={({ field: { onChange, value } }) => (
-                    <TextField
-                      value={value}
-                      label='Quantity'
-                      onChange={onChange}
-                      placeholder=''
-                      error={Boolean(errorMultipleMedicine?.qty)}
-                    />
-                  )}
+                <TextField
+                  value={nestedRowMedicine.dosageForm}
+                  error={Boolean(itemErrors.dosageForm)}
+                  label='Dosage form'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, dosageForm: event.target.value })
+                    setItemErrors({})
+                  }}
+                  placeholder=''
                 />
-                {errorMultipleMedicine?.qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errorMultipleMedicine?.qty.message}</FormHelperText>
+                {/*
+                {errorMultipleMedicine?.dosage_form && (
+                  <FormHelperText sx={{ color: 'error.main' }}>
+                    {errorMultipleMedicine?.dosage_form.message}
+                  </FormHelperText>
+                )} */}
+                {itemErrors.dosageForm && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='number'
+                  value={nestedRowMedicine.qty}
+                  error={Boolean(itemErrors.qty)}
+                  label='Quantity'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, qty: event.target.value })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.qty && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
                 )}
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <Button size='large' type='submit' variant='contained'>
+              <Button
+                onClick={() => {
+                  submitItems()
+                }}
+                size='large'
+                variant='contained'
+              >
                 Submit
               </Button>
             </Grid>
@@ -272,6 +430,8 @@ const AddRequestForm = () => {
       </CardContent>
     )
   }
+  // console.log('stores', stores)
+  console.log('nestedRowMedicine', editParams)
 
   return (
     <Card>
@@ -286,14 +446,22 @@ const AddRequestForm = () => {
         }}
       >
         <CardHeader title='Add Request Item' />
-        <Grid sm={4} xs={12}>
+        <Grid
+          sm={4}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mx: 4
+          }}
+        >
           <Button
             onClick={() => {
-              showDialog()
+              handleSubmit()
             }}
             size='big'
             variant='contained'
-            sx={{ mx: 2 }}
           >
             Add Request Item
           </Button>
@@ -330,37 +498,31 @@ const AddRequestForm = () => {
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
-                    Store
-                  </InputLabel>
-                  <Controller
-                    name='state_id'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='state_id'
-                        value={stores.fromStore}
-                        label='Select'
-                        // onChange={onChange}
-                        onChange={e => {
-                          // onChange()
-                          filterToStocks(e.target.value)
-                          setStores({ ...stores, fromStore: e.target.value })
-                        }}
-                        error={Boolean(errors?.state_id)}
-                        labelId='state_id'
-                      >
-                        {fromStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors?.state_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.state_id?.message}</FormHelperText>
+                  <InputLabel error={Boolean(errors.from_store_id)}>Store</InputLabel>
+                  <Select
+                    value={editParams.from_store_id}
+                    error={Boolean(errors.from_store_id)}
+                    label='Select'
+                    onChange={e => {
+                      filterToStocks(e.target.value)
+                      setStores({ ...stores, fromStore: e.target.value })
+                      setEditParams({ ...editParams, from_store_id: e.target.value })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {fromStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.from_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
                   )}
                 </FormControl>
               </Grid>
@@ -368,19 +530,23 @@ const AddRequestForm = () => {
                 <FormControl fullWidth>
                   <SingleDatePicker
                     fullWidth
+                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     width={'100%'}
-                    // eslint-disable-next-line lines-around-comment
-                    // name={'expiry_date'}
+                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     name={'Date'}
-                    // eslint-disable-next-line lines-around-comment
-                    // date={supplierDetails.startDate}
-
                     onChangeHandler={date => {
                       console.log(date)
+                      setStores({ ...stores, date: date })
+                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setErrors({})
                     }}
-
-                    // customInput={<CustomInput label='Date' />}
+                    customInput={<CustomInput label='Date' error={Boolean(errors.ro_date)} />}
                   />
+                  {errors.ro_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
                 </FormControl>
               </Grid>
             </Grid>
@@ -392,67 +558,65 @@ const AddRequestForm = () => {
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
+                  <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                     Store
                   </InputLabel>
-                  <Controller
-                    name='state_id'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='state_id'
-                        value={stores.toStore}
-                        label='Select'
-                        // onChange={onChange}
-                        onChange={e => {
-                          // onChange()
-                          setStores({ ...stores, toStore: e.target.value })
 
-                          // filterFromStocks(e.target.value)
-                        }}
-                        error={Boolean(errors?.state_id)}
-                        labelId='state_id'
-                      >
-                        {toStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors?.state_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.state_id?.message}</FormHelperText>
+                  <Select
+                    name='state_id'
+                    error={Boolean(errors.to_store_id)}
+                    value={editParams.to_store_id}
+                    label='Select'
+                    onChange={e => {
+                      setStores({ ...stores, toStore: e.target.value })
+                      setEditParams({ ...editParams, to_store_id: e.target.value })
+                      setErrors({})
+
+                      // filterFromStocks(e.target.value)
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {toStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.to_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
                   )}
                 </FormControl>
               </Grid>
 
               <Grid item xs={12} sm={12}>
                 <FormControl fullWidth>
-                  <Controller
+                  <TextField
+                    value={editParams.user}
+                    label='User'
+                    error={Boolean(errors.user)}
+                    onChange={e => {
+                      setStores({ ...stores, user: e.target.value })
+                      setEditParams({ ...editParams, user: e.target.value })
+                      setErrors({})
+                    }}
+                    placeholder=''
+                    // error={Boolean(errors?.user)}
                     name='user'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange, onBlur } }) => (
-                      <TextField
-                        value={value}
-                        label='User'
-                        onChange={onChange}
-                        placeholder=''
-                        error={Boolean(errors?.user)}
-                        onBlur={onBlur}
-                        name='user'
-                      />
-                    )}
                   />
+
                   {errors.user && (
-                    <FormHelperText sx={{ color: 'error.main' }}> {errors?.user?.message} </FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
                   )}
                 </FormControl>
               </Grid>
             </Grid>
-          </Grid>{' '}
+          </Grid>
         </form>
       </CardContent>
       <Divider
@@ -469,15 +633,24 @@ const AddRequestForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {formDataArray
-              ? formDataArray.map((el, index) => {
+            {editParams.nestedRows
+              ? editParams.nestedRows.map((el, index) => {
                   return (
                     <TableRow key={index}>
-                      <TableCell>{el.dosage_form}</TableCell>
-                      <TableCell>{el.qty}</TableCell>
                       <TableCell>{el.medicine_name}</TableCell>
+                      <TableCell>{el.dosageForm}</TableCell>
+                      <TableCell>{el.qty}</TableCell>
+
                       <TableCell>
-                        <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit'>
+                        <IconButton
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                          aria-label='Edit'
+                          onClick={() => {
+                            editTableData(el.id)
+                            showDialog()
+                          }}
+                        >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
                         <IconButton size='small' sx={{ mr: 0.5 }}>
@@ -492,27 +665,30 @@ const AddRequestForm = () => {
         </Table>
       </TableContainer>
       <CardContent sx={{ pt: 8 }}>
-        <Grid container>
-          <Grid item xs={12} sm={5} lg={3} sx={{ mb: { sm: 0, xs: 4 }, order: { sm: 2, xs: 1 }, marginLeft: 'auto' }}>
-            <CalcWrapper>
-              <Typography variant='body2'>Total QTY:</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                18
-              </Typography>
-            </CalcWrapper>
+        {totalQty ? (
+          <Grid container>
+            <Grid item xs={12} sm={5} lg={3} sx={{ mb: { sm: 0, xs: 4 }, order: { sm: 2, xs: 1 }, marginLeft: 'auto' }}>
+              <CalcWrapper>
+                <Typography variant='body2'>Total QTY:</Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                  {totalQty}
+                </Typography>
+              </CalcWrapper>
 
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>Total:</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                18
-              </Typography>
-            </CalcWrapper>
+              <Divider
+                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+              />
+              <CalcWrapper>
+                <Typography variant='body2'>Total:</Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                  {totalQty}
+                </Typography>
+              </CalcWrapper>
+            </Grid>
           </Grid>
-        </Grid>
+        ) : null}
       </CardContent>
+
       <Divider sx={{ mt: theme => `${theme.spacing(4.5)} !important`, mb: '0 !important' }} />
     </Card>
   )
