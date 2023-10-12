@@ -63,6 +63,7 @@ import { useForm, Controller } from 'react-hook-form'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Label } from 'recharts'
+import { getItemDescriptor } from '@babel/core/lib/config/item'
 
 const editParamsInitialState = {
   id: '',
@@ -114,6 +115,7 @@ const AddRequestForm = () => {
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
+  const [medicineItemId, setMedicineItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState({
     medicine_name: '',
@@ -124,48 +126,14 @@ const AddRequestForm = () => {
   const router = useRouter()
   const { id, action } = router.query
 
-  const getListOfItemsById = async id => {
-    const result = await getRequestItemsListById(id)
-    console.log('data of update values', result)
-
-    if (result) {
-      // const items=result.request_item_details.map((=>{}))
-      setToStocks(fromStocks)
-      setEditParams({
-        ...editParams,
-        id: result.id,
-        from_store_id: result.from_store_id,
-        to_store_id: result.to_store_id,
-        ro_date: result.ro_date,
-        nestedRows: result.request_item_details
-      })
-    }
+  const storesType = {
+    local: 1,
+    central: 2
   }
 
-  const editTableData = id => {
-    if (id != undefined && action === 'edit') {
-      const getItems = editParams.nestedRows.filter(el => {
-        return el.id === id
-      })
-      console.log('filtered', getItems[0].medicine_name)
-
-      setNestedRowMedicine({
-        ...nestedRowMedicine,
-        medicine_name: getItems[0].medicine_name,
-        id: getItems[0].id,
-        qty: getItems[0].qty,
-        dosageForm: ''
-      })
-    }
+  const filteredStoreType = value => {
+    return fromStocks?.find(item => item.id == value)?.type
   }
-  console.log('nestedRowMedicine', nestedRowMedicine)
-
-  useEffect(() => {
-    if (id != undefined && action === 'edit') {
-      getListOfItemsById(id)
-      setToStocks(fromStocks)
-    }
-  }, [id, action])
 
   const closeDialog = () => {
     setShow(false)
@@ -177,7 +145,7 @@ const AddRequestForm = () => {
   const totalQty = editParams.nestedRows.reduce((acc, row) => acc + parseInt(row.qty), 0)
   console.log(totalQty)
 
-  const onSubmit = () => {
+  const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
       id: nestedRowMedicine.id,
@@ -202,7 +170,7 @@ const AddRequestForm = () => {
   function formatDate(dateString) {
     const date = new Date(dateString)
     const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
+    const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
@@ -210,7 +178,7 @@ const AddRequestForm = () => {
   function parseFormattedDate(formattedDate) {
     const parts = formattedDate.split('-')
     const year = parts[0]
-    const month = Number(parts[1]) - 1 // Months are 0-indexed
+    const month = Number(parts[1]) - 1
     const day = parts[2]
 
     return new Date(year, month, day)
@@ -218,8 +186,8 @@ const AddRequestForm = () => {
 
   const validate = values => {
     const itemErrors = {}
-    if (!values.name || values.name === '') {
-      itemErrors.name = 'This field is required'
+    if (!values.medicine_name || values.medicine_name === '') {
+      itemErrors.medicine_name = 'This field is required'
     }
     if (!values.qty) {
       itemErrors.qty = 'This field is required'
@@ -251,14 +219,47 @@ const AddRequestForm = () => {
   }
 
   const submitItems = () => {
-    const HasErrors = !nestedRowMedicine.name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
+    const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
-    setErrors({}) // Reset errors when the form is valid
-    onSubmit()
+    setErrors({})
+    addItemsToTable()
+  }
+
+  const updateTableItems = itemId => {
+    const updatedState = { ...editParams }
+    const updatedIndex = updatedState.nestedRows.findIndex(row => row.stock_item_id === itemId)
+    if (updatedIndex !== -1) {
+      const updatedNestedRows = [...updatedState.nestedRows]
+      updatedNestedRows[updatedIndex] = {
+        ...updatedNestedRows[updatedIndex],
+        ...nestedRowMedicine
+      }
+      updatedState.nestedRows = updatedNestedRows
+      setEditParams(updatedState)
+      setNestedRowMedicine({
+        medicine_name: '',
+        id: '',
+        qty: '',
+        dosageForm: ''
+      })
+    } else {
+      console.error('updateTableItems error')
+    }
+  }
+
+  const updateFormItems = () => {
+    const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
+    if (HasErrors) {
+      setItemErrors(validate(nestedRowMedicine))
+
+      return
+    }
+    setErrors({})
+    updateTableItems(medicineItemId)
   }
 
   const handleSubmit = () => {
@@ -271,7 +272,7 @@ const AddRequestForm = () => {
       return
     }
 
-    setErrors({}) // Reset errors when the form is valid
+    setErrors({})
     showDialog()
   }
 
@@ -287,6 +288,7 @@ const AddRequestForm = () => {
       console.log('list', response)
 
       setFromStocks(response)
+      setToStocks(response)
     } else {
     }
   }
@@ -302,12 +304,8 @@ const AddRequestForm = () => {
     try {
       getSearchValue(data)
       console.log('Validation successful')
-
-      // Perform your custom validation logic here if needed
     } catch (validationErrors) {
       console.log('Validation failed:', validationErrors)
-
-      // Validation errors will be available in the 'validationErrors' object
     }
   }
   async function getSearchValue(searchText, index) {
@@ -332,11 +330,92 @@ const AddRequestForm = () => {
     }
   }
 
+  const getListOfItemsById = async id => {
+    const result = await getRequestItemsListById(id)
+    console.log('data of update values', result)
+
+    if (result) {
+      // filterToStocks(result.to_store_id)
+      setEditParams({
+        ...editParams,
+        id: result.id,
+        from_store_id: result.from_store_id,
+        to_store_id: result.to_store_id,
+        ro_date: result.ro_date,
+        nestedRows: result.request_item_details
+      })
+    }
+  }
+
+  // ****** edit section //////
+  const editTableData = itemId => {
+    if (id != undefined && action === 'edit') {
+      const getItems = editParams.nestedRows.filter(el => {
+        return el.id === itemId
+      })
+      console.log('filtered items while editing', getItems[0])
+
+      setNestedRowMedicine({
+        ...nestedRowMedicine,
+        medicine_name: getItems[0].medicine_name,
+        id: getItems[0].id,
+        qty: getItems[0].qty,
+        dosageForm: getItems[0].dosageForm,
+        batch_no: getItems[0].batch_no,
+        box_qty: getItems[0].box_qty,
+        created_at: getItems[0].created_at,
+        created_by: getItems[0].created_by,
+        deleted_at: getItems[0].deleted_at,
+        description: getItems[0].description,
+        dispatch_qty: getItems[0].dispatch_qty,
+        expiry_date: getItems[0].expiry_date,
+        leaf_id: getItems[0].leaf_id,
+        mrp_price: getItems[0].mrp_price,
+        net_amount: getItems[0].net_amount,
+        purchase_price: getItems[0].purchase_price,
+        recieved_qty: getItems[0].recieved_qty,
+        request_item_id: getItems[0].request_item_id,
+        request_status: getItems[0].request_status,
+        requested_qty: getItems[0].requested_qty,
+        status: getItems[0].status,
+        stock_item_id: getItems[0].stock_item_id,
+        stock_qty: getItems[0].stock_qty,
+        unit_id: getItems[0].unit_id,
+        unit_price: getItems[0].unit_price,
+        updated_at: getItems[0].updated_at,
+        updated_by: getItems[0].updated_by
+      })
+    } else {
+      const getItems = editParams.nestedRows.filter(el => {
+        return el.id === itemId
+      })
+      // console.log('filtered', getItems[0].medicine_name)
+      console.log('filtered', getItems)
+
+      setNestedRowMedicine({
+        ...nestedRowMedicine,
+        medicine_name: getItems[0].medicine_name,
+        id: getItems[0].id,
+        qty: getItems[0].qty,
+        dosageForm: getItems[0].dosageForm
+      })
+    }
+  }
+  console.log('nestedRowMedicine', nestedRowMedicine)
+
+  useEffect(() => {
+    if (id != undefined && action === 'edit') {
+      getListOfItemsById(id)
+    }
+  }, [id, action])
+
+  // ****** edit section //////
+
   const createForm = () => {
     return (
       <CardContent>
         <form
-        // onSubmit={addMultipleMedicine(onSubmit)}
+        // addItemsToTable={addMultipleMedicine(addItemsToTable)}
         >
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
@@ -415,15 +494,27 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <Button
-                onClick={() => {
-                  submitItems()
-                }}
-                size='large'
-                variant='contained'
-              >
-                Submit
-              </Button>
+              {id ? (
+                <Button
+                  onClick={() => {
+                    updateFormItems()
+                  }}
+                  size='large'
+                  variant='contained'
+                >
+                  Update
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    submitItems()
+                  }}
+                  size='large'
+                  variant='contained'
+                >
+                  Submit
+                </Button>
+              )}
             </Grid>
           </Grid>
         </form>
@@ -446,35 +537,19 @@ const AddRequestForm = () => {
         }}
       >
         <CardHeader title='Add Request Item' />
-        <Grid
-          sm={4}
-          xs={12}
+
+        <Button
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mx: 4
+            mx: { sm: 6, xs: 'auto' }
+          }}
+          size='big'
+          variant='contained'
+          onClick={() => {
+            Router.push('/pharmacy/request/requestList/')
           }}
         >
-          <Button
-            onClick={() => {
-              handleSubmit()
-            }}
-            size='big'
-            variant='contained'
-          >
-            Add Request Item
-          </Button>
-          <Button
-            size='big'
-            variant='contained'
-            onClick={() => {
-              Router.push('/pharmacy/request/requestList/')
-            }}
-          >
-            Request Item List
-          </Button>
-        </Grid>
+          Request Item List
+        </Button>
       </Grid>
       <CardContent>
         <Grid container>
@@ -505,6 +580,7 @@ const AddRequestForm = () => {
                     label='Select'
                     onChange={e => {
                       filterToStocks(e.target.value)
+                      console.log('from stock selected', filteredStoreType(e.target.value))
                       setStores({ ...stores, fromStore: e.target.value })
                       setEditParams({ ...editParams, from_store_id: e.target.value })
                       setErrors({})
@@ -577,6 +653,7 @@ const AddRequestForm = () => {
                     // error={Boolean(errors?.state_id)}
                     // labelId='state_id'
                   >
+                    {console.log('in stocks', toStocks)}
                     {toStocks?.map((item, index) => (
                       <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
                         {item?.name}
@@ -619,9 +696,34 @@ const AddRequestForm = () => {
           </Grid>
         </form>
       </CardContent>
-      <Divider
+      <Grid
+        container
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          mb: 4
+        }}
+      >
+        <Button
+          sx={{
+            mx: { sm: 6, xs: 'auto' }
+          }}
+          onClick={() => {
+            handleSubmit()
+          }}
+          size='big'
+          variant='contained'
+        >
+          Add Request Item
+        </Button>
+      </Grid>
+
+      {/* <Divider
         sx={{ mt: theme => `${theme.spacing(6.5)} !important`, mb: theme => `${theme.spacing(5.5)} !important` }}
-      />
+      /> */}
       <TableContainer>
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -647,8 +749,16 @@ const AddRequestForm = () => {
                           sx={{ mr: 0.5 }}
                           aria-label='Edit'
                           onClick={() => {
-                            editTableData(el.id)
-                            showDialog()
+                            if (id) {
+                              console.log(id.stock_item_id)
+                              setMedicineItemId(el.stock_item_id)
+                              editTableData(el.id)
+                              showDialog()
+                            } else {
+                              console.log(el.id)
+                              editTableData(el.id)
+                              showDialog()
+                            }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
@@ -667,7 +777,18 @@ const AddRequestForm = () => {
       <CardContent sx={{ pt: 8 }}>
         {totalQty ? (
           <Grid container>
-            <Grid item xs={12} sm={5} lg={3} sx={{ mb: { sm: 0, xs: 4 }, order: { sm: 2, xs: 1 }, marginLeft: 'auto' }}>
+            <Grid
+              item
+              xs={12}
+              sm={2}
+              lg={2}
+              sx={{
+                mb: { sm: 0, xs: 4 },
+                order: { sm: 2, xs: 1 },
+                marginLeft: 'auto',
+                mr: { sm: 12, xs: 0 }
+              }}
+            >
               <CalcWrapper>
                 <Typography variant='body2'>Total QTY:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
@@ -678,12 +799,12 @@ const AddRequestForm = () => {
               <Divider
                 sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
               />
-              <CalcWrapper>
+              {/* <CalcWrapper>
                 <Typography variant='body2'>Total:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                   {totalQty}
                 </Typography>
-              </CalcWrapper>
+              </CalcWrapper> */}
             </Grid>
           </Grid>
         ) : null}
