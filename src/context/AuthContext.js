@@ -120,12 +120,12 @@ const AuthProvider = ({ children }) => {
           fullName: resData.user.user_first_name,
           lastName: resData.user.user_last_name,
           role: 'admin',
-          id: resData.roles.role_id,
+          id: resData.roles?.role_id,
 
           // role: resData.roles.role_name,
           username: resData.user.user_first_name
         }
-        write('role', resData.roles.role_name)
+        write('role', resData.roles?.role_name)
         write('userData', userData)
 
         setUser({ ...userData })
