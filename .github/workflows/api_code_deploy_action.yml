@@ -3,8 +3,8 @@ on:
   push:
     branches:
       # - main
-      - dev-release
-      - prod-release
+      # - dev-release
+      # - prod-release
       - staging-release
 env:
   SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}

@@ -15,10 +15,18 @@ function read(key) {
   return undefined
 }
 
+async function readAsync(key) {
+  if (typeof window !== 'undefined' && window.localStorage.getItem(key) !== 'undefined') {
+    return await deserialize(window.localStorage.getItem(key))
+  }
+
+  return undefined
+}
+
 function remove(key) {
   if (typeof window !== 'undefined') {
     window.localStorage.removeItem(key)
   }
 }
 
-export { write, read, remove }
+export { write, read, remove, readAsync }

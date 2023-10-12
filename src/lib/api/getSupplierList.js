@@ -35,7 +35,7 @@ import { axiosGet, axiosPost } from './utility'
 // }
 
 export async function getSuppliers() {
-  return axiosGet({ url: SUPPLIER })
+  return await axiosGet({ url: SUPPLIER })
 }
 
 export async function getSupplierById(id) {
