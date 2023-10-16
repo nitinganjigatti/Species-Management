@@ -24,7 +24,8 @@ export const axiosGet = async ({ url }) => {
 
 export const axiosPost = async ({ url, body }) => {
   console.log(url)
-  debugger
+
+  // debugger
 
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
   const headers = await GetAPIHeader()

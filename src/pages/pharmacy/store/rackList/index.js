@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react'
 
-import { getRackList } from 'src/lib/api/getRackList'
+import { getRackList, addRackList, updateRackList, deleteRackItem } from 'src/lib/api/getRackList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import UserSnackbar from 'src/components/utility/snackbar'
+import AddRack from 'src/views/pages/pharmacy/store/rack/addRack'
+import DialogConfirmation from 'src/components/utility/DialogConfirmation'
+import toast from 'react-hot-toast'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -20,6 +24,99 @@ import Router from 'next/router'
 const ListOfRacks = () => {
   const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
+  const [deleteRowId, setDeleteRowId] = useState('')
+
+  // ** State
+  const [open, setOpen] = useState(false)
+  const handleClickOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
+
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, name: null, position: null, store_id: null, shelf: null, status: 'active' }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({ id: null, name: null, position: null, store_id: null, shelf: null, status: 'active' })
+    setResetForm(true)
+    console.log(editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateRackList(editParams?.id, payload)
+      } else {
+        response = await addRackList(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getRacksLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const handleEdit = async (id, name, position, store_id, shelfs, status) => {
+    console.log('hendle edit', id, name, position, store_id, shelfs, status)
+    setEditParams({
+      id: id,
+      name: name,
+      store_id: store_id,
+      position: position,
+      shelf: shelfs,
+      status: status
+    })
+    setOpenDrawer(true)
+  }
+
+  const confirmDeleteAction = async () => {
+    console.log(deleteRowId)
+    const response = await deleteRackItem(deleteRowId)
+    console.log('afterdelte', response)
+
+    if (response?.success) {
+      handleClose()
+      toast.success(response?.message)
+      getRacksLists()
+      setDeleteRowId('')
+    } else {
+      handleClose()
+      toast.error(response?.message)
+    }
+  }
+
+  /***** Drawer  */
 
   const getRacksLists = async () => {
     setLoader(true)
@@ -123,10 +220,30 @@ const ListOfRacks = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() =>
+              handleEdit(
+                params.row.id,
+                params.row.name,
+                params.row.position,
+                params.row.store_id,
+                params.row.shelfs,
+                params.row.status
+              )
+            }
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => {
+              setDeleteRowId(params.row.id)
+              handleClickOpen()
+            }}
+          >
             <Icon icon='mdi:delete-outline' />
           </IconButton>
         </Box>
@@ -143,18 +260,38 @@ const ListOfRacks = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add Rack
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={racks}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
+            headerActions={
+              <div>
+                <Button onClick={() => addEventSidebarOpen()} size='big' variant='contained'>
+                  Add Rack
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={racks}
+          />
+          <DialogConfirmation
+            handleClose={handleClose}
+            action={confirmDeleteAction}
+            open={open}
+            message={'Are you sure to delete'}
+          />
+          <AddRack
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
       )}
     </>
   )

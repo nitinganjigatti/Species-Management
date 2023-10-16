@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getPaymentList } from 'src/lib/api/getPaymentList'
+import { getPaymentList, addPaymentList } from 'src/lib/api/getPaymentList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -16,11 +16,106 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import AddPayment from 'src/views/pages/pharmacy/purchase/payment/addPayment'
+import toast from 'react-hot-toast'
 
 const ListOfPayments = () => {
   const [paymentList, setPaymentList] = useState([])
   const [loader, setLoader] = useState(false)
 
+  /*** Drawer ****/
+  const editParamsInitialState = {
+    id: null,
+    supplier_id: null,
+
+    // date: new Date().toISOString().slice(0, 10),
+    date: '',
+    total_due_amount: 0,
+    amount: null,
+    payment_mode: 'cash',
+    txn_no: null,
+    type: 'dr'
+  }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({
+      id: null,
+      supplier_id: null,
+
+      // date: new Date().toISOString().slice(0, 10),
+      date: '',
+      total_due_amount: 0,
+      amount: null,
+      payment_mode: 'cash',
+      txn_no: null,
+      type: 'dr'
+    })
+    setResetForm(true)
+    console.log(editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    setSubmitLoader(true)
+    const response = await addPaymentList(payload)
+    if (response?.success) {
+      toast.success(response.message)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+      setSubmitLoader(false)
+      setResetForm(true)
+      setOpenDrawer(false)
+
+      await getPaymentsLists()
+    } else {
+      setSubmitLoader(false)
+      console.log('test')
+      toast.error(response.message)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+    }
+
+    // try {
+    //   setSubmitLoader(true)
+
+    //   const response = await addPaymentList(payload)
+    //   console.log('after add payment', response)
+
+    //   if (response?.success) {
+    //     setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+    //     setSubmitLoader(false)
+    //     setResetForm(true)
+    //     setOpenDrawer(false)
+
+    //     await getPaymentsLists()
+    //   } else {
+    //     setSubmitLoader(false)
+    //     console.log('test')
+    //     setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+    //   }
+    // } catch (e) {
+    //   console.log(e)
+    //   setSubmitLoader(false)
+    //   setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    // }
+  }
+
+  /***** Drawer  */
   const getPaymentsLists = async () => {
     setLoader(true)
     const response = await getPaymentList()
@@ -113,18 +208,29 @@ const ListOfPayments = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={paymentList.length > 0 ? 'Payment List' : 'Payment List is empty add Payment List'}
-          headerActions={
-            <div>
-              <Button size='big' variant='contained'>
-                Add Payment
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={paymentList}
-        />
+        <>
+          <TableWithFilter
+            TableTitle={paymentList.length > 0 ? 'Payment List' : 'Payment List is empty add Payment List'}
+            headerActions={
+              <div>
+                <Button onClick={() => addEventSidebarOpen()} size='big' variant='contained'>
+                  Add Payment
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={paymentList}
+          />
+          <AddPayment
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+        </>
       )}
     </>
   )

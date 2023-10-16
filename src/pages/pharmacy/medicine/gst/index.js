@@ -122,7 +122,7 @@ const ListOfGst = () => {
   const handleSubmitData = async payload => {
     try {
       setSubmitLoader(true)
-      const response = await addTaxas(payload)
+      const response = await addTaxes(payload)
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(false)

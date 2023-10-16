@@ -38,6 +38,10 @@ export async function getSuppliers() {
   return await axiosGet({ url: SUPPLIER })
 }
 
+// export async function getSupplierById(id) {
+//   return await axiosGet({ url: `${SUPPLIER}/${id}/show` })
+// }
+
 export async function getSupplierById(id) {
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${SUPPLIER}/${id}/show`
 
@@ -77,7 +81,7 @@ export async function updateSuppliersById(payload, id) {
 
     return response?.data
   } catch (error) {
-    debugger
+    // debugger
     console.error(url)
     if (error.response) {
       console.info('Request made and server responded')

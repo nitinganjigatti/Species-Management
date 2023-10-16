@@ -1,34 +1,27 @@
-import axios from 'axios'
 import { PAYMENT_LIST } from '../../constants/ApiConstant'
+import { axiosGet, axiosPost } from './utility'
 
 export async function getPaymentList() {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${PAYMENT_LIST}`
-  console.log('url', url)
+  const response = await axiosGet({ url: PAYMENT_LIST })
 
-  return axios
-    .get(url)
-    .then(response => {
-      console.log('response data', response)
+  return response.data.data
+}
 
-      return response.data.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
+export async function addPaymentList(payload) {
+  try {
+    const url = `${PAYMENT_LIST}`
+    var data = payload
+    const response = await axiosPost({ url, body: data })
 
-      return error
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
 
-      // throw new Error(error);
-    })
+    return error
+  }
 }

@@ -1,138 +1,54 @@
-import axios from 'axios'
 import { CATEGORIES } from '../../constants/ApiConstant'
+import { axiosGet, axiosPost } from './utility'
 
 export async function getCategories() {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${CATEGORIES}`
-  console.log('url', url)
+  const response = await axiosGet({ url: CATEGORIES })
 
-  return axios
-    .get(url)
-    .then(response => {
-      console.log('response data', response)
-
-      return response.data.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
-
-      return error
-
-      // throw new Error(error);
-    })
+  return response.data.data
 }
 
 export async function getCategoryById(id) {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${CATEGORIES}/${id}/show`
-  console.log('url', url)
+  const response = await axiosGet({ url: `${CATEGORIES}/${id}/show` })
 
-  return axios
-    .get(url)
-    .then(response => {
-      console.log('response data', response)
-
-      return response.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
-
-      return error
-
-      // throw new Error(error);
-    })
+  return response.data
 }
 
 export async function addCategory(payload) {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${CATEGORIES}`
-  console.log('url', url)
-  debugger
-  console.log('params: ', payload)
+  try {
+    const url = `${CATEGORIES}`
+    var data = payload
+    const response = await axiosPost({ url, body: data })
 
-  return axios({
-    method: 'post',
-    url: url,
-    data: payload,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-    .then(response => {
-      console.log('Category POST DATA', response)
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
 
-      return response?.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
-
-      return error
-    })
+    return error
+  }
 }
 
 export async function updateCategory(id, payload) {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${CATEGORIES}/${id}/update`
-  console.log('url', url)
-  debugger
-  console.log('params: ', payload)
+  try {
+    const url = `${CATEGORIES}/${id}/update`
+    var data = payload
+    data.id = id
+    const response = await axiosPost({ url, body: data })
 
-  return axios({
-    method: 'post',
-    url: url,
-    data: payload,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-    .then(response => {
-      console.log('Category Update DATA', response)
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
 
-      return response?.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
-
-      return error
-    })
+    return error
+  }
 }

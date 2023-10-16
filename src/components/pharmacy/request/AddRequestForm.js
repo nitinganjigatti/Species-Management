@@ -26,6 +26,8 @@ import { debounce } from 'lodash'
 import CircularProgress from '@mui/material/CircularProgress'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
+import { LoadingButton } from '@mui/lab'
+import toast from 'react-hot-toast'
 
 // ** React Imports
 import { forwardRef, useState, useEffect } from 'react'
@@ -37,7 +39,7 @@ import SingleDatePicker from '../../SingleDatePicker'
 import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
-import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
+import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
 
 const MUITableCell = styled(TableCell)(({ theme }) => ({
   borderBottom: 0,
@@ -56,7 +58,6 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Third Party Imports
-import toast from 'react-hot-toast'
 import DatePicker from 'react-datepicker'
 import { useForm, Controller } from 'react-hook-form'
 
@@ -66,40 +67,44 @@ import { Label } from 'recharts'
 import { getItemDescriptor } from '@babel/core/lib/config/item'
 
 const editParamsInitialState = {
-  id: '',
-  medicine_name: '',
+  // id: '',
+  // medicine_name: '',
   from_store_id: '',
   to_store_id: '',
-  batch_id: '',
+  from_store_type: '',
+  to_store_type: '',
+  dispatch_id: '',
+  // batch_id: '',
   ro_date: '',
   stock_qty: '',
   box_pattern: '',
   box_qty: '',
   total_qty: '',
+  total_box: '20',
   user: '',
   nestedRows: []
 }
 
-const storesData = {
-  toStore: '',
-  fromStore: '',
-  date: '',
-  user: ''
-}
+// const storesData = {
+//   toStore: '',
+//   fromStore: '',
+//   date: '',
+//   user: ''
+// }
 
-const initialState = [
-  {
-    id: '',
-    medicine_name: '',
-    batch_id: '',
-    expiry_date: '',
-    stock_qty: '',
-    box_pattern: '',
-    box_qty: '',
-    qty: '',
-    nestedRows: []
-  }
-]
+// const initialState = [
+//   {
+//     id: '',
+//     medicine_name: '',
+//     batch_id: '',
+//     expiry_date: '',
+//     stock_qty: '',
+//     box_pattern: '',
+//     box_qty: '',
+//     qty: '',
+//     nestedRows: []
+//   }
+// ]
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -107,7 +112,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const AddRequestForm = () => {
   // ** Hook
-  const [stores, setStores] = useState(storesData)
+  // const [stores, setStores] = useState(storesData)
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
@@ -116,10 +121,12 @@ const AddRequestForm = () => {
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
   const [medicineItemId, setMedicineItemId] = useState('')
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState({
     medicine_name: '',
-    id: '',
+    medicine_id: '',
+    // id: '',
     qty: '',
     dosageForm: ''
   })
@@ -142,13 +149,23 @@ const AddRequestForm = () => {
   const showDialog = () => {
     setShow(true)
   }
+
+  // local nested items delete
+  const removeItemsFroTable = itemId => {
+    const updatedItems = editParams.nestedRows.filter(el => {
+      return el.medicine_id != itemId
+    })
+    setEditParams({ ...editParams, nestedRows: updatedItems })
+  }
+
   const totalQty = editParams.nestedRows.reduce((acc, row) => acc + parseInt(row.qty), 0)
   console.log(totalQty)
 
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
-      id: nestedRowMedicine.id,
+      medicine_id: nestedRowMedicine.medicine_id,
+      // id: nestedRowMedicine.id,
       qty: nestedRowMedicine.qty,
       dosageForm: nestedRowMedicine.dosageForm
     }
@@ -162,9 +179,10 @@ const AddRequestForm = () => {
 
     setNestedRowMedicine({
       medicine_name: '',
-      id: '',
+      // id: '',
       qty: '',
-      dosageForm: ''
+      dosageForm: '',
+      medicine_id: ''
     })
   }
   function formatDate(dateString) {
@@ -229,9 +247,14 @@ const AddRequestForm = () => {
     addItemsToTable()
   }
 
-  const updateTableItems = itemId => {
+  const updateTableItems = () => {
+    const itemId = medicineItemId
     const updatedState = { ...editParams }
-    const updatedIndex = updatedState.nestedRows.findIndex(row => row.stock_item_id === itemId)
+
+    const updatedIndex = id
+      ? updatedState.nestedRows.findIndex(row => row.stock_item_id === medicineItemId)
+      : updatedState.nestedRows.findIndex(row => row.medicine_id === itemId)
+
     if (updatedIndex !== -1) {
       const updatedNestedRows = [...updatedState.nestedRows]
       updatedNestedRows[updatedIndex] = {
@@ -242,10 +265,12 @@ const AddRequestForm = () => {
       setEditParams(updatedState)
       setNestedRowMedicine({
         medicine_name: '',
-        id: '',
+        // id: '',
         qty: '',
+        medicine_id: '',
         dosageForm: ''
       })
+      setMedicineItemId('')
     } else {
       console.error('updateTableItems error')
     }
@@ -259,7 +284,7 @@ const AddRequestForm = () => {
       return
     }
     setErrors({})
-    updateTableItems(medicineItemId)
+    updateTableItems()
   }
 
   const handleSubmit = () => {
@@ -342,6 +367,8 @@ const AddRequestForm = () => {
         from_store_id: result.from_store_id,
         to_store_id: result.to_store_id,
         ro_date: result.ro_date,
+        from_store_type: result.from_store_type,
+        to_store_type: result.to_store_type,
         nestedRows: result.request_item_details
       })
     }
@@ -386,8 +413,10 @@ const AddRequestForm = () => {
         updated_by: getItems[0].updated_by
       })
     } else {
+      console.log('in else ', editParams.nestedRows)
+
       const getItems = editParams.nestedRows.filter(el => {
-        return el.id === itemId
+        return el.medicine_id === itemId
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
@@ -395,7 +424,8 @@ const AddRequestForm = () => {
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0].medicine_name,
-        id: getItems[0].id,
+        medicine_id: getItems[0].medicine_id,
+        // id: getItems[0].id,
         qty: getItems[0].qty,
         dosageForm: getItems[0].dosageForm
       })
@@ -410,7 +440,42 @@ const AddRequestForm = () => {
   }, [id, action])
 
   // ****** edit section //////
+  // data posting section
 
+  const postItemsData = async () => {
+    setSubmitLoader(true)
+    const postData = editParams
+    postData.total_qty = totalQty
+    console.log('while posting data', postData)
+    console.log('totalQtya', totalQty)
+    console.log('editParms', editParams)
+    if (id) {
+      const response = await updateRequestItems(id, postData)
+      console.log('after posting', response)
+
+      if (response?.success) {
+        toast.success(response.message)
+        setSubmitLoader(false)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    } else {
+      const response = await addRequestItems(postData)
+      console.log('after posting', response)
+      if (response?.success) {
+        toast.success(response.message)
+        setSubmitLoader(false)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    }
+  }
+
+  // data posting section
   const createForm = () => {
     return (
       <CardContent>
@@ -430,7 +495,11 @@ const AddRequestForm = () => {
                     console.log('options', newValue)
                     // nestedRowMedicine, setNestedRowMedicine
 
-                    setNestedRowMedicine({ ...nestedRowMedicine, medicine_name: newValue.label, id: newValue.value })
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      medicine_name: newValue?.label,
+                      medicine_id: newValue?.value
+                    })
                     setItemErrors({})
                   }}
                   onKeyUp={e => {
@@ -505,15 +574,35 @@ const AddRequestForm = () => {
                   Update
                 </Button>
               ) : (
-                <Button
-                  onClick={() => {
-                    submitItems()
-                  }}
-                  size='large'
-                  variant='contained'
-                >
-                  Submit
-                </Button>
+                <>
+                  <>
+                    {medicineItemId ? (
+                      <Button
+                        onClick={() => {
+                          updateFormItems()
+
+                          // submitItems()
+                        }}
+                        size='large'
+                        variant='contained'
+                      >
+                        update
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          // updateFormItems()
+
+                          submitItems()
+                        }}
+                        size='large'
+                        variant='contained'
+                      >
+                        Submit
+                      </Button>
+                    )}
+                  </>
+                </>
               )}
             </Grid>
           </Grid>
@@ -578,11 +667,20 @@ const AddRequestForm = () => {
                     value={editParams.from_store_id}
                     error={Boolean(errors.from_store_id)}
                     label='Select'
+                    disabled={id ? true : false}
                     onChange={e => {
                       filterToStocks(e.target.value)
-                      console.log('from stock selected', filteredStoreType(e.target.value))
-                      setStores({ ...stores, fromStore: e.target.value })
-                      setEditParams({ ...editParams, from_store_id: e.target.value })
+                      // console.log('from stock selected', storesType[filteredStoreType(e.target.value)])
+                      // setStores({
+                      //   ...stores,
+                      //   fromStore: e.target.value,
+                      //   from_store_type: storesType[filteredStoreType(e.target.value)].toString()
+                      // })
+                      setEditParams({
+                        ...editParams,
+                        from_store_id: e.target.value,
+                        from_store_type: storesType[filteredStoreType(e.target.value)].toString()
+                      })
                       setErrors({})
                     }}
                     // error={Boolean(errors?.state_id)}
@@ -612,7 +710,7 @@ const AddRequestForm = () => {
                     name={'Date'}
                     onChangeHandler={date => {
                       console.log(date)
-                      setStores({ ...stores, date: date })
+                      // setStores({ ...stores, date: date })
                       setEditParams({ ...editParams, ro_date: formatDate(date) })
                       setErrors({})
                     }}
@@ -643,9 +741,14 @@ const AddRequestForm = () => {
                     error={Boolean(errors.to_store_id)}
                     value={editParams.to_store_id}
                     label='Select'
+                    disabled={id ? true : false}
                     onChange={e => {
-                      setStores({ ...stores, toStore: e.target.value })
-                      setEditParams({ ...editParams, to_store_id: e.target.value })
+                      // setStores({ ...stores, toStore: e.target.value })
+                      setEditParams({
+                        ...editParams,
+                        to_store_id: e.target.value,
+                        to_store_type: storesType[filteredStoreType(e.target.value)].toString()
+                      })
                       setErrors({})
 
                       // filterFromStocks(e.target.value)
@@ -676,7 +779,7 @@ const AddRequestForm = () => {
                     label='User'
                     error={Boolean(errors.user)}
                     onChange={e => {
-                      setStores({ ...stores, user: e.target.value })
+                      // setStores({ ...stores, user: e.target.value })
                       setEditParams({ ...editParams, user: e.target.value })
                       setErrors({})
                     }}
@@ -707,18 +810,20 @@ const AddRequestForm = () => {
           mb: 4
         }}
       >
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          onClick={() => {
-            handleSubmit()
-          }}
-          size='big'
-          variant='contained'
-        >
-          Add Request Item
-        </Button>
+        {id ? null : (
+          <Button
+            sx={{
+              mx: { sm: 6, xs: 'auto' }
+            }}
+            onClick={() => {
+              handleSubmit()
+            }}
+            size='big'
+            variant='contained'
+          >
+            Add Request Item
+          </Button>
+        )}
       </Grid>
 
       {/* <Divider
@@ -755,17 +860,27 @@ const AddRequestForm = () => {
                               editTableData(el.id)
                               showDialog()
                             } else {
-                              console.log(el.id)
-                              editTableData(el.id)
+                              console.log(el.medicine_id)
+                              setMedicineItemId(el.medicine_id)
+
+                              editTableData(el.medicine_id)
                               showDialog()
                             }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        <IconButton size='small' sx={{ mr: 0.5 }}>
-                          <Icon icon='mdi:delete-outline' />
-                        </IconButton>
+                        {id ? null : (
+                          <IconButton
+                            onClick={() => {
+                              removeItemsFroTable(el.medicine_id)
+                            }}
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                          >
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
@@ -809,8 +924,17 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent>
-
-      <Divider sx={{ mt: theme => `${theme.spacing(4.5)} !important`, mb: '0 !important' }} />
+      <LoadingButton
+        sx={{ float: 'right', my: 4, mx: 6 }}
+        size='large'
+        onClick={() => {
+          postItemsData()
+        }}
+        variant='contained'
+        loading={submitLoader}
+      >
+        Save
+      </LoadingButton>
     </Card>
   )
 }

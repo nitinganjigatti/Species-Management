@@ -150,7 +150,8 @@ const AddSupplier = () => {
   const getSupplier = async id => {
     setLoader(true)
     const response = await getSupplierById(id)
-    debugger
+
+    // debugger
     if (response != undefined) {
       reset(response)
     }

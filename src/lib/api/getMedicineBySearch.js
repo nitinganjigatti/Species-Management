@@ -1,34 +1,8 @@
-import axios from 'axios'
 import { MEDICINE_SEARCH } from '../../constants/ApiConstant'
+import { axiosGet } from './utility'
 
 export async function getMedicineBySearch(name) {
-  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${MEDICINE_SEARCH}${name}`
-  console.log('url', url)
+  const response = await axiosGet({ url: `${MEDICINE_SEARCH}${name}` })
 
-  return axios
-    .get(url)
-    .then(response => {
-      console.log('response data', response)
-
-      return response.data.data
-    })
-    .catch(error => {
-      console.error(url)
-      if (error.response) {
-        console.info('Request made and server responded')
-        console.error(error.response.data)
-        console.error(error.response.status)
-        console.error(error.response.headers)
-      } else if (error.request) {
-        console.info('The request was made but no response was received')
-        console.error(error.request)
-      } else {
-        console.info('Something happened in setting up the request that triggered an Error')
-        console.error('Error', error.message)
-      }
-
-      return error
-
-      // throw new Error(error);
-    })
+  return response.data.data
 }
