@@ -158,7 +158,7 @@ const AddRequestForm = () => {
     setEditParams({ ...editParams, nestedRows: updatedItems })
   }
 
-  const totalQty = editParams.nestedRows.reduce((acc, row) => acc + parseInt(row.qty), 0)
+  const totalQty = editParams.nestedRows?.reduce((acc, row) => acc + parseInt(row.qty), 0)
   console.log(totalQty)
 
   const addItemsToTable = () => {
@@ -456,6 +456,7 @@ const AddRequestForm = () => {
       if (response?.success) {
         toast.success(response.message)
         setSubmitLoader(false)
+        getListOfItemsById(id)
       } else {
         setSubmitLoader(false)
         console.log('test')
@@ -466,6 +467,7 @@ const AddRequestForm = () => {
       console.log('after posting', response)
       if (response?.success) {
         toast.success(response.message)
+        setEditParams(editParamsInitialState)
         setSubmitLoader(false)
       } else {
         setSubmitLoader(false)

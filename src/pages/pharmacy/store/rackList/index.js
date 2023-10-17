@@ -78,7 +78,7 @@ const ListOfRacks = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -87,14 +87,14 @@ const ListOfRacks = () => {
     }
   }
 
-  const handleEdit = async (id, name, position, store_id, shelfs, status) => {
-    console.log('hendle edit', id, name, position, store_id, shelfs, status)
+  const handleEdit = async (id, name, position, store_id, shelf, status) => {
+    console.log('hendle edit', id, name, position, store_id, shelf, status)
     setEditParams({
       id: id,
       name: name,
       store_id: store_id,
       position: position,
-      shelf: shelfs,
+      shelf: shelf,
       status: status
     })
     setOpenDrawer(true)

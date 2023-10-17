@@ -43,7 +43,7 @@ const defaultValues = {
   name: ' ',
   position: ' ',
   store_id: ' ',
-  shelf: null,
+  shelf: '',
   status: 'active'
 }
 
@@ -234,7 +234,25 @@ const AddRack = props => {
             />
             {errors.position && <FormHelperText sx={{ color: 'error.main' }}>{errors.position.message}</FormHelperText>}
           </FormControl>
-          {console.log('shelf', typeof editParams.shelf)}
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='shelf'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='shelf'
+                  value={value}
+                  onChange={onChange}
+                  placeholder='shelf'
+                  error={Boolean(errors.shelf)}
+                  name='shelf'
+                />
+              )}
+            />
+            {errors.shelf && <FormHelperText sx={{ color: 'error.main' }}>{errors.shelf.message}</FormHelperText>}
+          </FormControl> */}
+          {console.log('shelf', editParams.shelf)}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='shelf'
@@ -244,8 +262,6 @@ const AddRack = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  control={control}
-                  rules={{ required: true }}
                   rows={4}
                   multiline
                   label='shelf'
