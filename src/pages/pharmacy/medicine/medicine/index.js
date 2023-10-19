@@ -39,7 +39,12 @@ const ListOfMedicine = () => {
     }
   }
 
-  const handleEdit = async (id, name, status) => {}
+  const handleEdit = async id => {
+    Router.push({
+      pathname: '/pharmacy/medicine/medicine/add-medicine',
+      query: { id: id, action: 'edit' }
+    })
+  }
 
   useEffect(() => {
     console.log(IMAGE_BASE_URL)
@@ -206,7 +211,7 @@ const ListOfMedicine = () => {
                   size='big'
                   variant='contained'
                   onClick={() => {
-                    Router.push('/pharmacy/medicine/medicine/addMedicine')
+                    Router.push('/pharmacy/medicine/medicine/add-medicine')
                   }}
                 >
                   Add Medicine
