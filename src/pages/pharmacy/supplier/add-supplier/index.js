@@ -247,10 +247,10 @@ const AddSupplier = () => {
                   >
                     Suppliers List
                   </Button>
-                  <span style={{ marginRight: 4 }}></span>
+                  {/* <span style={{ marginRight: 4 }}></span>
                   <Button size='big' variant='contained' href=''>
                     Upload CSV
-                  </Button>
+                  </Button> */}
                 </div>
               }
             />
