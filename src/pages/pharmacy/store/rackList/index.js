@@ -77,7 +77,6 @@ const ListOfRacks = () => {
         await getRacksLists()
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
@@ -88,7 +87,6 @@ const ListOfRacks = () => {
   }
 
   const handleEdit = async (id, name, position, store_id, shelf, status) => {
-    console.log('hendle edit', id, name, position, store_id, shelf, status)
     setEditParams({
       id: id,
       name: name,
@@ -217,9 +215,6 @@ const ListOfRacks = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}
