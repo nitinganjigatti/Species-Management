@@ -88,7 +88,14 @@ const AddRack = props => {
     async id => {
       const response = await getRackListById(id)
       if (response?.success) {
-        reset(response.data)
+        const data = {
+          name: response.data?.name,
+          store_id: response.data?.store_id,
+          position: response.data?.position,
+          shelf: response.data?.shelfs,
+          status: response.data?.status
+        }
+        reset(data)
       } else {
       }
     },
