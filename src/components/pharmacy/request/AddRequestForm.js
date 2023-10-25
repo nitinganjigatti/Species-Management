@@ -474,6 +474,7 @@ const AddRequestForm = () => {
     if (id != undefined && action === 'edit') {
       getListOfItemsById(id)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
 
   // ****** edit section //////

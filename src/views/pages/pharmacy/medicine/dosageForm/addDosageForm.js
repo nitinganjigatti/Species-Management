@@ -125,7 +125,7 @@ const AddDosageForm = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Category</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Dosage form</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
