@@ -11,6 +11,8 @@ import axios from 'axios'
 // ** Config
 import authConfig from 'src/configs/auth'
 
+const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+
 // ** Defaults
 const defaultProvider = {
   user: null,
@@ -86,7 +88,7 @@ const AuthProvider = ({ children }) => {
   }, [])
 
   const handleLogin = (params, errorCallback) => {
-    const url = 'https://app.antzsystems.com/api/v1/auth/login'
+    const url = `${base_url}v1/auth/login`
 
     //   axios
     //     .post(authConfig.loginEndpoint, params)
