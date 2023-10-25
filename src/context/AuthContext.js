@@ -142,7 +142,11 @@ const AuthProvider = ({ children }) => {
 
   const handleLogout = () => {
     setUser(null)
-    window.localStorage.removeItem('userData')
+    localStorage.removeItem('userData')
+    localStorage.removeItem('userDetails')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('provider')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     router.push('/login')
   }

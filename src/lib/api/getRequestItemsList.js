@@ -8,7 +8,7 @@ export async function getRequestItemsList() {
 }
 
 export async function getRequestItemsListById(id) {
-  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/edit` })
+  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show` })
 
   return response.data.data
 }

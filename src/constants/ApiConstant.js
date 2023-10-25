@@ -44,6 +44,10 @@ export const REQUEST_ITEMS = 'request-item'
 
 export const LEAF = 'leaf'
 
-export const MEDICINE_SEARCH = 'stock-item/suppiler/1/search//'
+export const STOCK_OUT = 'outofstock-medicine/store'
+
+export const EXPIRED_MEDICINE = 'expire-medicine/store'
+
+export const MEDICINE_SEARCH = 'stock-item/suppiler/1/search/'
 
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
