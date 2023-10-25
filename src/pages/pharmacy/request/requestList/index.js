@@ -46,6 +46,16 @@ const Dispatch = () => {
       query: { id: id, action: 'edit' }
     })
   }
+
+  const onRowClick = data => {
+    console.log('onRowClickData', data.id)
+
+    Router.push({
+      pathname: '/pharmacy/request/individual-request/',
+      query: { id: data.id, request_number: data.row.request_number }
+    })
+  }
+
   useEffect(() => {
     getRequestItemLists()
   }, [])
@@ -78,7 +88,7 @@ const Dispatch = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'Requested Store',
+      headerName: 'Requested By',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}
@@ -113,24 +123,25 @@ const Dispatch = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'total_box_qty',
-      headerName: 'TOTAL BOXES',
+      headerName: 'TOTAL ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_box_qty}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'total_qty',
-      headerName: 'TOTAL QTY',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_qty}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'total_qty',
+    //   headerName: 'TOTAL QTY',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.total_qty}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -141,53 +152,53 @@ const Dispatch = () => {
           {params.row.status}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {params.row.status === 'Fully Dispatched' ? (
-            <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='mdi:package-delivered' />
-            </IconButton>
-          ) : params.row.status === 'Partial Dispatched' ? (
-            <>
-              <IconButton size='small' sx={{ mr: 0.5 }}>
-                <Icon icon='fluent-mdl2:message-friend-request' />
-              </IconButton>
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => {
-                  handleEdit(params.row.id)
-                }}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <IconButton size='small' sx={{ mr: 0.5 }}>
-                <Icon icon='fluent-mdl2:message-friend-request' />
-              </IconButton>
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => {
-                  handleEdit(params.row.id)
-                }}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
-            </>
-          )}
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       {params.row.status === 'Fully Dispatched' ? (
+    //         <IconButton size='small' sx={{ mr: 0.5 }}>
+    //           <Icon icon='mdi:package-delivered' />
+    //         </IconButton>
+    //       ) : params.row.status === 'Partial Dispatched' ? (
+    //         <>
+    //           <IconButton size='small' sx={{ mr: 0.5 }}>
+    //             <Icon icon='fluent-mdl2:message-friend-request' />
+    //           </IconButton>
+    //           <IconButton
+    //             size='small'
+    //             sx={{ mr: 0.5 }}
+    //             onClick={() => {
+    //               handleEdit(params.row.id)
+    //             }}
+    //           >
+    //             <Icon icon='mdi:pencil-outline' />
+    //           </IconButton>
+    //         </>
+    //       ) : (
+    //         <>
+    //           <IconButton size='small' sx={{ mr: 0.5 }}>
+    //             <Icon icon='fluent-mdl2:message-friend-request' />
+    //           </IconButton>
+    //           <IconButton
+    //             size='small'
+    //             sx={{ mr: 0.5 }}
+    //             onClick={() => {
+    //               handleEdit(params.row.id)
+    //             }}
+    //           >
+    //             <Icon icon='mdi:pencil-outline' />
+    //           </IconButton>
+    //         </>
+    //       )}
+    //     </Box>
+    //   )
+    // }
   ]
 
   const handleHeaderAction = () => {
@@ -216,6 +227,7 @@ const Dispatch = () => {
           }
           columns={columns}
           rows={requestItems}
+          onRowClick={onRowClick}
         />
       )}
     </>
