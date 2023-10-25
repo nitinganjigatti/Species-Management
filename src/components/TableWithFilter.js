@@ -14,7 +14,7 @@ const escapeRegExp = value => {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }) => {
+const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick }) => {
   // ** States
   const [data, setData] = useState([])
   const [searchText, setSearchText] = useState('')
@@ -67,6 +67,7 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields }
               onChange: event => handleSearch(event.target.value)
             }
           }}
+          onRowClick={onRowClick}
         />
       ) : null}
     </Card>
