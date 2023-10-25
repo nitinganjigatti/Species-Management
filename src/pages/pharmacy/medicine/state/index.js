@@ -53,7 +53,11 @@ const ListOfStates = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
+        // debugger
+        console.log('while updating', editParams?.id, payload)
+
         response = await updateStates(editParams?.id, payload)
+        console.log('while updating', response)
       } else {
         response = await addState(payload)
       }

@@ -28,7 +28,8 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-
+import Chip from '@mui/material/Chip'
+import Avatar from '@mui/material/Avatar'
 // ** React Imports
 import { forwardRef, useState, useEffect } from 'react'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -78,10 +79,11 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   medicine_id: '',
   qty: '',
-  dosageForm: '',
+  // dosageForm: '',
   priority: 'high',
-  controlled_substance: 'yes',
-  prescription: []
+  // control_substance: 'false',
+  control_substance: false,
+  control_substance_file: []
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -100,6 +102,7 @@ const AddRequestForm = () => {
   const [itemErrors, setItemErrors] = useState({})
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [duplicateMedError, setDuplicateMedError] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
@@ -113,6 +116,14 @@ const AddRequestForm = () => {
   const filteredStoreType = value => {
     return fromStocks?.find(item => item.id == value)?.type
   }
+
+  // const checkIfMedicineExists = medicineName => {
+  //   const isMedicineAlreadyExists = editParams.request_item_details.some(item => item.medicine_name === medicineName)
+
+  //   if (isMedicineAlreadyExists) {
+  //     setDuplicateMedError('Medicine already exists')
+  //   }
+  // }
 
   const closeDialog = () => {
     setShow(false)
@@ -144,8 +155,8 @@ const AddRequestForm = () => {
       qty: nestedRowMedicine.qty,
       // dosageForm: nestedRowMedicine.dosageForm,
       priority: nestedRowMedicine.priority,
-      controlled_substance: nestedRowMedicine.controlled_substance,
-      prescription: nestedRowMedicine.prescription
+      control_substance: nestedRowMedicine.control_substance,
+      control_substance_file: nestedRowMedicine.control_substance_file
     }
 
     const updatedNestedRows = [...editParams.request_item_details, newData]
@@ -186,16 +197,16 @@ const AddRequestForm = () => {
     if (!values.priority) {
       itemErrors.priority = 'This field is required'
     }
-    if (!values.prescription) {
-      itemErrors.prescription = 'This field is required'
+    if (!values.control_substance_file) {
+      itemErrors.control_substance_file = 'This field is required'
     }
-    // if (values.controlled_substance) {
-    if (values.controlled_substance === 'yes') {
-      if (values.prescription.length === 0) {
-        itemErrors.prescription = 'This field is required'
+    // if (values.control_substance) {
+    if (values.control_substance === true) {
+      if (values.control_substance_file.length === 0) {
+        itemErrors.control_substance_file = 'This field is required'
       }
     }
-    // itemErrors.controlled_substance = 'This field is required'
+    // itemErrors.control_substance = 'This field is required'
     // }
 
     return itemErrors
@@ -222,18 +233,28 @@ const AddRequestForm = () => {
       !nestedRowMedicine.medicine_name ||
       !nestedRowMedicine.qty ||
       !nestedRowMedicine.priority ||
-      !nestedRowMedicine.controlled_substance
+      !nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
-    if (nestedRowMedicine.controlled_substance === 'yes') {
-      if (nestedRowMedicine.prescription.length === 0) {
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
 
         return
       }
+    }
+
+    const isMedicineAlreadyExists = editParams.request_item_details.some(
+      item => item.medicine_name === nestedRowMedicine.medicine_name
+    )
+
+    if (isMedicineAlreadyExists) {
+      setDuplicateMedError('Medicine already exists')
+
+      return
     }
     setErrors({})
     addItemsToTable()
@@ -255,9 +276,7 @@ const AddRequestForm = () => {
         ...nestedRowMedicine
       }
       updatedState.request_item_details = updatedNestedRows
-      // if (updatedState.request_item_details[0].controlled_substance === 'no') {
-      //   updatedState.prescription = []
-      // }
+
       console.log('after update editParams', updatedNestedRows)
 
       console.log('test while update', updatedNestedRows)
@@ -281,14 +300,14 @@ const AddRequestForm = () => {
       !nestedRowMedicine.medicine_name ||
       !nestedRowMedicine.qty ||
       !nestedRowMedicine.priority ||
-      !nestedRowMedicine.controlled_substance
+      !nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
-    if (nestedRowMedicine.controlled_substance === 'yes') {
-      if (nestedRowMedicine.prescription.length === 0) {
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
 
         return
@@ -317,8 +336,11 @@ const AddRequestForm = () => {
   }
 
   const getStoresLists = async () => {
+    console.log('function in')
     // setLoader(true)
     const response = await getStoreList()
+    console.log('function in')
+    console.log('response', response)
     if (response?.length > 0) {
       console.log('list', response)
 
@@ -430,7 +452,7 @@ const AddRequestForm = () => {
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
-      console.log('file', getItems[0].prescription)
+      console.log('file', getItems[0].control_substance_file)
       console.log('nestedRowMedicine', nestedRowMedicine)
       // const file=[]
 
@@ -440,9 +462,9 @@ const AddRequestForm = () => {
         medicine_id: getItems[0].medicine_id,
         // id: getItems[0].id,
         qty: getItems[0].qty,
-        prescription: getItems[0].prescription,
+        control_substance_file: getItems[0].control_substance_file,
         priority: getItems[0].priority,
-        controlled_substance: getItems[0].controlled_substance
+        control_substance: getItems[0].control_substance
       })
     }
   }
@@ -517,6 +539,7 @@ const AddRequestForm = () => {
                       medicine_name: newValue?.label,
                       medicine_id: newValue?.value
                     })
+                    setDuplicateMedError('')
                     setItemErrors({})
                   }}
                   onKeyUp={e => {
@@ -531,6 +554,11 @@ const AddRequestForm = () => {
                 {itemErrors.medicine_name && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
+                  </FormHelperText>
+                )}
+                {duplicateMedError && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {duplicateMedError}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -597,20 +625,28 @@ const AddRequestForm = () => {
                 <ToggleButtonGroup
                   exclusive
                   color='primary'
-                  value={nestedRowMedicine.controlled_substance}
+                  value={nestedRowMedicine.control_substance}
                   onChange={event => {
                     const val = event.target.value
-                    if (val === 'no') {
-                      setNestedRowMedicine({ ...nestedRowMedicine, controlled_substance: val, prescription: '' })
+                    // console.log('event.target', event.target.value)
+
+                    // console.log(typeof val)
+                    // console.log('boooooooooooooooo', val)
+                    if (val === 'false') {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+                        control_substance: false,
+                        control_substance_file: []
+                      })
+                    } else {
+                      setNestedRowMedicine({ ...nestedRowMedicine, control_substance: true })
                     }
-                    setNestedRowMedicine({ ...nestedRowMedicine, controlled_substance: val })
                   }}
                 >
-                  test
-                  <ToggleButton color='error' value='yes'>
+                  <ToggleButton color='error' value={true}>
                     Yes
                   </ToggleButton>
-                  <ToggleButton color='primary' value='no'>
+                  <ToggleButton color='primary' value={false}>
                     No
                   </ToggleButton>
                 </ToggleButtonGroup>
@@ -623,37 +659,87 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
             {/* // file uploader */}
-            {console.log(typeof nestedRowMedicine.prescription)}
-            {nestedRowMedicine.controlled_substance === 'yes' ? (
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='file'
-                    value={nestedRowMedicine?.prescription.file ? nestedRowMedicine?.prescription.file : ''}
-                    error={Boolean(itemErrors.prescription)}
-                    label=''
-                    onChange={e => {
-                      const file = e.target.files[0]
-                      console.log(e.target.files[0])
-                      setNestedRowMedicine({ ...nestedRowMedicine, prescription: file })
-                      // setNestedRowMedicine({
-                      //   ...nestedRowMedicine,
-                      //   prescription: [...nestedRowMedicine.prescription, file]
-                      // })
-                      // setNestedRowMedicine({ ...nestedRowMedicine, prescription: event.target.value })
-                      setItemErrors({})
-                    }}
-                  />
-                  {itemErrors.prescription && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
+            {console.log(nestedRowMedicine.control_substance_file[0])}
+            {nestedRowMedicine.control_substance === true ? (
+              nestedRowMedicine.control_substance_file[0] ? (
+                <Grid item xs={12} sm={6}>
+                  {nestedRowMedicine.control_substance_file[0]?.type === 'application/pdf' ? (
+                    <Chip
+                      label={nestedRowMedicine.control_substance_file[0]?.name}
+                      color='secondary'
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          control_substance: false,
+                          control_substance_file: []
+                        })
+                      }}
+                      deleteIcon={<Icon icon='mdi:delete-outline' />}
+                    />
+                  ) : (
+                    <>
+                      <Chip
+                        label={nestedRowMedicine.control_substance_file[0]?.name}
+                        avatar={
+                          <Avatar
+                            alt={nestedRowMedicine.control_substance_file[0]?.name}
+                            src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
+                          />
+                        }
+                        onDelete={() => {
+                          setNestedRowMedicine({
+                            ...nestedRowMedicine,
+                            control_substance: false,
+                            control_substance_file: []
+                          })
+                        }}
+                      />
+                      {/* <img
+                        width={38}
+                        height={38}
+                        alt={nestedRowMedicine.control_substance_file[0]?.name}
+                        src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
+                      /> */}
+                    </>
                   )}
-                </FormControl>
-              </Grid>
+                </Grid>
+              ) : (
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='file'
+                      value={
+                        nestedRowMedicine?.control_substance_file[0]
+                          ? nestedRowMedicine?.control_substance_file[0].File
+                          : []
+                      }
+                      error={Boolean(itemErrors.control_substance_file)}
+                      label='Attach prescription'
+                      onChange={e => {
+                        const file = e.target.files[0]
+                        console.log(e.target.files[0])
+                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                        const updatedPrescription = [...nestedRowMedicine.control_substance_file]
+                        updatedPrescription[0] = file
+                        setNestedRowMedicine(prevState => ({
+                          ...prevState,
+                          control_substance_file: updatedPrescription
+                        }))
+                        setItemErrors({})
+                      }}
+                    />
+                    {itemErrors.control_substance_file && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              )
             ) : null}
             {/* // file uploader */}
-            <Typography>{nestedRowMedicine.prescription[0]?.name}</Typography>
+            {console.log('application/pdf')}
+
             <Grid item xs={12}>
               {id ? (
                 <Button
@@ -749,7 +835,7 @@ const AddRequestForm = () => {
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  From Stock:
+                  Requested by :
                 </Typography>
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
@@ -820,7 +906,7 @@ const AddRequestForm = () => {
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    To Stock:
+                    Requested to :
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
@@ -903,8 +989,8 @@ const AddRequestForm = () => {
             <TableRow>
               <TableCell>Medicine Names</TableCell>
               <TableCell>Priority</TableCell>
-              <TableCell>Controlled substance</TableCell>
-              <TableCell>Prescription</TableCell>
+              {/* <TableCell>Controlled substance</TableCell> */}
+              {/* <TableCell>control_substance_file</TableCell> */}
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
@@ -916,9 +1002,8 @@ const AddRequestForm = () => {
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
                       <TableCell>{el.priority}</TableCell>
-                      <TableCell>{el.controlled_substance}</TableCell>
-                      <TableCell>{el.prescription.name}</TableCell>
-
+                      {/* <TableCell>{el.control_substance}</TableCell> */}
+                      {/* <TableCell>{el.control_substance_file.name}</TableCell> */}
                       <TableCell>{el.qty}</TableCell>
 
                       <TableCell>

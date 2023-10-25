@@ -3,6 +3,7 @@ import { axiosGet, axiosPost } from './utility'
 
 export async function getStoreList() {
   const response = await axiosGet({ url: STORE })
+  console.log('sotreslistsss', response)
 
   return response.data.data
 }

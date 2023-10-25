@@ -37,7 +37,7 @@ export async function getStateById(id) {
 
 export async function updateStates(id, payload) {
   try {
-    const url = `${DOSAGE_FORM}/${id}/update`
+    const url = `${STATES}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })
