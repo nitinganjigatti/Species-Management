@@ -31,6 +31,8 @@ import toast from 'react-hot-toast'
 
 // ** React Imports
 import { forwardRef, useState, useEffect } from 'react'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -41,11 +43,6 @@ import { getStoreList } from 'src/lib/api/getStoreList'
 import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
 
-const MUITableCell = styled(TableCell)(({ theme }) => ({
-  borderBottom: 0,
-  padding: `${theme.spacing(1, 0)} !important`
-}))
-
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -54,17 +51,9 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(2)
   }
 }))
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-
-// ** Third Party Imports
-import DatePicker from 'react-datepicker'
-import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Label } from 'recharts'
-import { getItemDescriptor } from '@babel/core/lib/config/item'
 
 const editParamsInitialState = {
   // id: '',
@@ -81,30 +70,19 @@ const editParamsInitialState = {
   box_qty: '',
   total_qty: '',
   total_box: '20',
-  user: '',
-  nestedRows: []
+  // nestedRows: [],
+  request_item_details: []
 }
 
-// const storesData = {
-//   toStore: '',
-//   fromStore: '',
-//   date: '',
-//   user: ''
-// }
-
-// const initialState = [
-//   {
-//     id: '',
-//     medicine_name: '',
-//     batch_id: '',
-//     expiry_date: '',
-//     stock_qty: '',
-//     box_pattern: '',
-//     box_qty: '',
-//     qty: '',
-//     nestedRows: []
-//   }
-// ]
+const initialNestedRowMedicine = {
+  medicine_name: '',
+  medicine_id: '',
+  qty: '',
+  dosageForm: '',
+  priority: 'high',
+  controlled_substance: 'yes',
+  prescription: []
+}
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -123,13 +101,7 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
 
-  const [nestedRowMedicine, setNestedRowMedicine] = useState({
-    medicine_name: '',
-    medicine_id: '',
-    // id: '',
-    qty: '',
-    dosageForm: ''
-  })
+  const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -144,6 +116,8 @@ const AddRequestForm = () => {
 
   const closeDialog = () => {
     setShow(false)
+    setNestedRowMedicine(initialNestedRowMedicine)
+    setMedicineItemId('')
   }
 
   const showDialog = () => {
@@ -152,13 +126,14 @@ const AddRequestForm = () => {
 
   // local nested items delete
   const removeItemsFroTable = itemId => {
-    const updatedItems = editParams.nestedRows.filter(el => {
+    const updatedItems = editParams.request_item_details.filter(el => {
       return el.medicine_id != itemId
     })
-    setEditParams({ ...editParams, nestedRows: updatedItems })
+    setEditParams({ ...editParams, request_item_details: updatedItems })
+    setMedicineItemId('')
   }
 
-  const totalQty = editParams.nestedRows?.reduce((acc, row) => acc + parseInt(row.qty), 0)
+  const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.qty), 0)
   console.log(totalQty)
 
   const addItemsToTable = () => {
@@ -167,23 +142,21 @@ const AddRequestForm = () => {
       medicine_id: nestedRowMedicine.medicine_id,
       // id: nestedRowMedicine.id,
       qty: nestedRowMedicine.qty,
-      dosageForm: nestedRowMedicine.dosageForm
+      // dosageForm: nestedRowMedicine.dosageForm,
+      priority: nestedRowMedicine.priority,
+      controlled_substance: nestedRowMedicine.controlled_substance,
+      prescription: nestedRowMedicine.prescription
     }
 
-    const updatedNestedRows = [...editParams.nestedRows, newData]
+    const updatedNestedRows = [...editParams.request_item_details, newData]
     console.log(updatedNestedRows)
     setEditParams({
       ...editParams,
-      nestedRows: updatedNestedRows
+      request_item_details: updatedNestedRows
     })
 
-    setNestedRowMedicine({
-      medicine_name: '',
-      // id: '',
-      qty: '',
-      dosageForm: '',
-      medicine_id: ''
-    })
+    setNestedRowMedicine(initialNestedRowMedicine)
+    console.log('last', nestedRowMedicine)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -210,9 +183,20 @@ const AddRequestForm = () => {
     if (!values.qty) {
       itemErrors.qty = 'This field is required'
     }
-    if (!values.dosageForm) {
-      itemErrors.dosageForm = 'This field is required'
+    if (!values.priority) {
+      itemErrors.priority = 'This field is required'
     }
+    if (!values.prescription) {
+      itemErrors.prescription = 'This field is required'
+    }
+    // if (values.controlled_substance) {
+    if (values.controlled_substance === 'yes') {
+      if (values.prescription.length === 0) {
+        itemErrors.prescription = 'This field is required'
+      }
+    }
+    // itemErrors.controlled_substance = 'This field is required'
+    // }
 
     return itemErrors
   }
@@ -229,19 +213,27 @@ const AddRequestForm = () => {
     if (!values.ro_date) {
       errors.ro_date = 'This field is required'
     }
-    if (!values.user) {
-      errors.user = 'This field is required'
-    }
 
     return errors
   }
 
   const submitItems = () => {
-    const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
+    const HasErrors =
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.qty ||
+      !nestedRowMedicine.priority ||
+      !nestedRowMedicine.controlled_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
+    }
+    if (nestedRowMedicine.controlled_substance === 'yes') {
+      if (nestedRowMedicine.prescription.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
     }
     setErrors({})
     addItemsToTable()
@@ -250,26 +242,27 @@ const AddRequestForm = () => {
   const updateTableItems = () => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
+    console.log('beforeupdate editParams', editParams)
 
     const updatedIndex = id
-      ? updatedState.nestedRows.findIndex(row => row.stock_item_id === medicineItemId)
-      : updatedState.nestedRows.findIndex(row => row.medicine_id === itemId)
+      ? updatedState.request_item_details.findIndex(row => row.stock_item_id === medicineItemId)
+      : updatedState.request_item_details.findIndex(row => row.medicine_id === itemId)
 
     if (updatedIndex !== -1) {
-      const updatedNestedRows = [...updatedState.nestedRows]
+      const updatedNestedRows = [...updatedState.request_item_details]
       updatedNestedRows[updatedIndex] = {
         ...updatedNestedRows[updatedIndex],
         ...nestedRowMedicine
       }
-      updatedState.nestedRows = updatedNestedRows
+      updatedState.request_item_details = updatedNestedRows
+      // if (updatedState.request_item_details[0].controlled_substance === 'no') {
+      //   updatedState.prescription = []
+      // }
+      console.log('after update editParams', updatedNestedRows)
+
+      console.log('test while update', updatedNestedRows)
       setEditParams(updatedState)
-      setNestedRowMedicine({
-        medicine_name: '',
-        // id: '',
-        qty: '',
-        medicine_id: '',
-        dosageForm: ''
-      })
+      setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
     } else {
       console.error('updateTableItems error')
@@ -277,19 +270,36 @@ const AddRequestForm = () => {
   }
 
   const updateFormItems = () => {
-    const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty || !nestedRowMedicine.dosageForm
+    // const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty
+    // if (HasErrors) {
+    //   setItemErrors(validate(nestedRowMedicine))
+
+    //   return
+    // }
+    // setErrors({})
+    const HasErrors =
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.qty ||
+      !nestedRowMedicine.priority ||
+      !nestedRowMedicine.controlled_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
+    }
+    if (nestedRowMedicine.controlled_substance === 'yes') {
+      if (nestedRowMedicine.prescription.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
     }
     setErrors({})
     updateTableItems()
   }
 
   const handleSubmit = () => {
-    const formHasErrors =
-      !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date || !editParams.user
+    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
     console.log(formHasErrors)
     if (formHasErrors) {
       setErrors(validateItems(editParams))
@@ -369,7 +379,7 @@ const AddRequestForm = () => {
         ro_date: result.ro_date,
         from_store_type: result.from_store_type,
         to_store_type: result.to_store_type,
-        nestedRows: result.request_item_details
+        request_item_details: result.request_item_details
       })
     }
   }
@@ -377,7 +387,7 @@ const AddRequestForm = () => {
   // ****** edit section //////
   const editTableData = itemId => {
     if (id != undefined && action === 'edit') {
-      const getItems = editParams.nestedRows.filter(el => {
+      const getItems = editParams.request_item_details.filter(el => {
         return el.id === itemId
       })
       console.log('filtered items while editing', getItems[0])
@@ -413,13 +423,16 @@ const AddRequestForm = () => {
         updated_by: getItems[0].updated_by
       })
     } else {
-      console.log('in else ', editParams.nestedRows)
+      console.log('in else ', editParams.request_item_details)
 
-      const getItems = editParams.nestedRows.filter(el => {
+      const getItems = editParams.request_item_details.filter(el => {
         return el.medicine_id === itemId
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
+      console.log('file', getItems[0].prescription)
+      console.log('nestedRowMedicine', nestedRowMedicine)
+      // const file=[]
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -427,7 +440,9 @@ const AddRequestForm = () => {
         medicine_id: getItems[0].medicine_id,
         // id: getItems[0].id,
         qty: getItems[0].qty,
-        dosageForm: getItems[0].dosageForm
+        prescription: getItems[0].prescription,
+        priority: getItems[0].priority,
+        controlled_substance: getItems[0].controlled_substance
       })
     }
   }
@@ -520,31 +535,7 @@ const AddRequestForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  value={nestedRowMedicine.dosageForm}
-                  error={Boolean(itemErrors.dosageForm)}
-                  label='Dosage form'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, dosageForm: event.target.value })
-                    setItemErrors({})
-                  }}
-                  placeholder=''
-                />
-                {/*
-                {errorMultipleMedicine?.dosage_form && (
-                  <FormHelperText sx={{ color: 'error.main' }}>
-                    {errorMultipleMedicine?.dosage_form.message}
-                  </FormHelperText>
-                )} */}
-                {itemErrors.dosageForm && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <TextField
@@ -564,6 +555,105 @@ const AddRequestForm = () => {
                 )}
               </FormControl>
             </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Typography sx={{ mb: 2 }}>Priority</Typography>
+
+              <FormControl fullWidth>
+                {/* <div>
+                  <InputLabel sx={{ my: 4 }} error={Boolean(itemErrors.priority)}>
+                    Priority
+                  </InputLabel>
+                </div> */}
+                <ToggleButtonGroup
+                  exclusive
+                  color='primary'
+                  value={nestedRowMedicine.priority}
+                  onChange={event => {
+                    console.log('values', event.target.value)
+                    setNestedRowMedicine({ ...nestedRowMedicine, priority: event.target.value })
+                  }}
+                >
+                  test
+                  <ToggleButton color='error' value='high'>
+                    High
+                  </ToggleButton>
+                  <ToggleButton color='primary' value='Normal'>
+                    Normal
+                  </ToggleButton>
+                </ToggleButtonGroup>
+
+                {itemErrors.priority && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} sx={{}}>
+              <Typography sx={{ mb: 2 }}>Controlled substance</Typography>
+
+              <FormControl>
+                <ToggleButtonGroup
+                  exclusive
+                  color='primary'
+                  value={nestedRowMedicine.controlled_substance}
+                  onChange={event => {
+                    const val = event.target.value
+                    if (val === 'no') {
+                      setNestedRowMedicine({ ...nestedRowMedicine, controlled_substance: val, prescription: '' })
+                    }
+                    setNestedRowMedicine({ ...nestedRowMedicine, controlled_substance: val })
+                  }}
+                >
+                  test
+                  <ToggleButton color='error' value='yes'>
+                    Yes
+                  </ToggleButton>
+                  <ToggleButton color='primary' value='no'>
+                    No
+                  </ToggleButton>
+                </ToggleButtonGroup>
+
+                {itemErrors.priority && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            {/* // file uploader */}
+            {console.log(typeof nestedRowMedicine.prescription)}
+            {nestedRowMedicine.controlled_substance === 'yes' ? (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <TextField
+                    type='file'
+                    value={nestedRowMedicine?.prescription.file ? nestedRowMedicine?.prescription.file : ''}
+                    error={Boolean(itemErrors.prescription)}
+                    label=''
+                    onChange={e => {
+                      const file = e.target.files[0]
+                      console.log(e.target.files[0])
+                      setNestedRowMedicine({ ...nestedRowMedicine, prescription: file })
+                      // setNestedRowMedicine({
+                      //   ...nestedRowMedicine,
+                      //   prescription: [...nestedRowMedicine.prescription, file]
+                      // })
+                      // setNestedRowMedicine({ ...nestedRowMedicine, prescription: event.target.value })
+                      setItemErrors({})
+                    }}
+                  />
+                  {itemErrors.prescription && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            ) : null}
+            {/* // file uploader */}
+            <Typography>{nestedRowMedicine.prescription[0]?.name}</Typography>
             <Grid item xs={12}>
               {id ? (
                 <Button
@@ -773,30 +863,6 @@ const AddRequestForm = () => {
                   )}
                 </FormControl>
               </Grid>
-
-              <Grid item xs={12} sm={12}>
-                <FormControl fullWidth>
-                  <TextField
-                    value={editParams.user}
-                    label='User'
-                    error={Boolean(errors.user)}
-                    onChange={e => {
-                      // setStores({ ...stores, user: e.target.value })
-                      setEditParams({ ...editParams, user: e.target.value })
-                      setErrors({})
-                    }}
-                    placeholder=''
-                    // error={Boolean(errors?.user)}
-                    name='user'
-                  />
-
-                  {errors.user && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
             </Grid>
           </Grid>
         </form>
@@ -836,18 +902,23 @@ const AddRequestForm = () => {
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
               <TableCell>Medicine Names</TableCell>
-              <TableCell>Dosage form</TableCell>
+              <TableCell>Priority</TableCell>
+              <TableCell>Controlled substance</TableCell>
+              <TableCell>Prescription</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.nestedRows
-              ? editParams.nestedRows.map((el, index) => {
+            {editParams.request_item_details
+              ? editParams.request_item_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
-                      <TableCell>{el.dosageForm}</TableCell>
+                      <TableCell>{el.priority}</TableCell>
+                      <TableCell>{el.controlled_substance}</TableCell>
+                      <TableCell>{el.prescription.name}</TableCell>
+
                       <TableCell>{el.qty}</TableCell>
 
                       <TableCell>
