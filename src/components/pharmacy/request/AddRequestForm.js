@@ -58,39 +58,22 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 
 const editParamsInitialState = {
-  // id: '',
-  // medicine_name: '',
   from_store_id: '',
   to_store_id: '',
   from_store_type: '',
   to_store_type: '',
-  // dispatch_id: '',
-  // batch_id: '',
   ro_date: '',
-  // stock_qty: '',
-  // box_pattern: '',
-  // box_qty: '',
   total_qty: '',
-  // total_box: '20',
-  // nestedRows: [],
   request_item_details: []
 }
 
 const initialNestedRowMedicine = {
-  // medicine_name: '',
-  // request_item_medicine_id: '',
-  // request_item_qty: '',
-  // priority_item: 'high',
-  // control_substance: 'no',
-  // control_substance_file: []
-
   request_item_medicine_id: '',
   medicine_name: '',
   request_item_qty: '',
   request_item_leaf_id: '',
-  // request_item_box_qty: '',
   priority_item: 'high',
-  control_substance: true,
+  control_substance: false,
   control_substance_file: []
 }
 
@@ -234,8 +217,7 @@ const AddRequestForm = () => {
 
     const HasErrors =
       !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // ||
-    // !nestedRowMedicine.control_substance
+    // || !nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -299,10 +281,8 @@ const AddRequestForm = () => {
     // }
     // setErrors({})
     const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.request_item_qty ||
-      !nestedRowMedicine.priority_item ||
-      !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+    // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -397,6 +377,32 @@ const AddRequestForm = () => {
 
     if (result) {
       // filterToStocks(result.to_store_id)
+      const lineItems = result.request_item_details.map(el => {
+        let substanceType = ''
+        let substanceFile = []
+
+        if (el.control_substance_file === '') {
+          substanceFile = []
+        } else {
+          substanceFile[0] = el.control_substance_file
+        }
+        if (el.control_substance === '0') {
+          substanceType = false
+        } else {
+          substanceType = true
+        }
+
+        return {
+          request_item_medicine_id: el.stock_item_id,
+          medicine_name: el.stock_name,
+          request_item_qty: el.qty,
+          request_item_leaf_id: el.stock_item_id,
+          priority_item: el.priority,
+          control_substance: substanceType,
+          control_substance_file: substanceFile
+        }
+      })
+      console.log('testts', lineItems)
       setEditParams({
         ...editParams,
         id: result.id,
@@ -405,7 +411,7 @@ const AddRequestForm = () => {
         ro_date: result.ro_date,
         from_store_type: result.from_store_type,
         to_store_type: result.to_store_type,
-        request_item_details: result.request_item_details
+        request_item_details: lineItems
       })
     }
   }
