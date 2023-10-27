@@ -312,7 +312,7 @@ const AddMedicine = () => {
         <Grid item xs={12}>
           <Card>
             <CardHeader
-              title={id ? 'Edit Medicine' : 'Add Medicine'}
+              title={id ? 'Edit Medicine' : 'Add New Medicine'}
               action={
                 <div>
                   <Button
@@ -621,7 +621,7 @@ const AddMedicine = () => {
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.part_of_out_of_stock)} id='part_of_out_of_stock'>
-                        Out of Stock
+                        Part Out of Stock
                       </InputLabel>
                       <Controller
                         name='part_of_out_of_stock'
