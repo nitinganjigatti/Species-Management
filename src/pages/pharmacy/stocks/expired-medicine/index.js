@@ -17,7 +17,8 @@ const ExpiredMedicine = () => {
       let data = response
       data?.map((obj, i) => (obj['id'] = i + 1))
       console.log(data)
-      debugger
+
+      // debugger
       setStockoutItems(data)
       setLoading(false)
     } else {

@@ -21,7 +21,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const AddRequestDialog = ({ title, dialogBoxStatus, formComponent, close }) => {
+const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
   return (
     <Card>
       <Dialog
@@ -64,4 +64,4 @@ const AddRequestDialog = ({ title, dialogBoxStatus, formComponent, close }) => {
   )
 }
 
-export default AddRequestDialog
+export default CommonDialogBox
