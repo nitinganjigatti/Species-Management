@@ -62,7 +62,7 @@ const ListOfCategories = () => {
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)

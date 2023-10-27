@@ -1,5 +1,5 @@
 import { MEDICINE } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { axiosGet, axiosPost, axiosFormPost } from './utility'
 
 export async function getMedicineList() {
   const response = await axiosGet({ url: MEDICINE })
@@ -15,7 +15,7 @@ export async function addMedicine(payload) {
   try {
     const url = `${MEDICINE}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {

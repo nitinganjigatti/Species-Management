@@ -123,20 +123,24 @@ const ListOfGst = () => {
     try {
       setSubmitLoader(true)
       const response = await addTaxes(payload)
+      debugger
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
-        setOpenDrawer(false)
 
         await getGstLists()
+        setOpenDrawer(false)
       } else {
         setSubmitLoader(false)
+        console.log(response?.data)
+        debugger
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
+        console.log(response?.data)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }

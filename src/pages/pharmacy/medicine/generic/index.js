@@ -58,11 +58,15 @@ const ListOfGenerics = () => {
       if (editParams?.id !== null) {
         response = await updateGenericName(editParams?.id, payload)
       } else {
+        console.log(JSON.stringify(payload))
+        debugger
         response = await addGenericName(payload)
+        debugger
+        console.log(response)
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -71,7 +75,7 @@ const ListOfGenerics = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
