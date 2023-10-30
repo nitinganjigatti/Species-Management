@@ -28,6 +28,7 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
         fullWidth
         open={dialogBoxStatus}
         maxWidth='md'
+        height='auto'
         scroll='body'
         onClose={() => close()}
         TransitionComponent={Transition}
@@ -50,6 +51,7 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
         <DialogContent
           sx={{
             position: 'relative',
+            height: 'auto',
             pb: theme => `${theme.spacing(8)} !important`,
             px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
             pt: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]

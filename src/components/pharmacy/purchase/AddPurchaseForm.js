@@ -22,29 +22,23 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
-import { debounce } from 'lodash'
-import CircularProgress from '@mui/material/CircularProgress'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
 
-// ** Configs
-import themeConfig from 'src/configs/themeConfig'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-// import AddRequestDialog from './AddRequestDialog'
-import SingleDatePicker from '../../SingleDatePicker'
 import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
+import { getMedicineBySearch, getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
+import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/getPurchaseList'
+import CommonDialogBox from 'src/components/CommonDialogBox'
+import SingleDatePicker from '../../SingleDatePicker'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -55,38 +49,57 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
   }
 }))
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 const editParamsInitialState = {
-  // id: '',
-  // medicine_name: '',
-  from_store_id: '',
-  to_store_id: '',
-  from_store_type: '',
-  to_store_type: '',
-  // dispatch_id: '',
-  // batch_id: '',
-  ro_date: '',
-  // stock_qty: '',
-  // box_pattern: '',
-  // box_qty: '',
-  total_qty: '',
-  total_box: '20',
-  // nestedRows: [],
-  request_item_details: []
+  po_no: '',
+  po_date: '',
+  store_id: '',
+  supplier_id: '',
+  description: '',
+  type_of_store: '',
+  purchase_details: [],
+
+  expected_delivery_date: '',
+  delivery_date: '',
+
+  transport_details: '',
+  transport_charge: '',
+  total_amount: '',
+  cgst: '',
+  sgst: '',
+  igst: '',
+  tax_amount: '',
+  taxeble_amount: '',
+  discount_type: '',
+  discount_amount: '',
+  discount_percentage: '',
+  net_amount: '',
+  paid_amount: ''
 }
 
 const initialNestedRowMedicine = {
   medicine_name: '',
-  medicine_id: '',
-  qty: '',
-  // dosageForm: '',
-  priority_item: 'high',
-  // priority_item:
-  // control_substance: 'false',
-  control_substance: 'yes',
-  control_substance_file: []
+  purchase_unit_id: '',
+  purchase_stock_item_id: '',
+
+  purchase_qty: '',
+  // supplier_price: '',
+
+  purchase_unit_price: '',
+  purchase_purchase_price: '',
+
+  purchase_batch_no: '',
+  purchase_expiry_date: '',
+  min_stock_qty: '',
+  purchase_gst_type: '',
+  purchase_cgst: '',
+  purchase_sgst: '',
+  purchase_igst: '',
+  purchase_tax_amount: '',
+  purchase_taxeble_amount: '',
+  purchase_net_amount: '',
+  purchase_discount_amount: '',
+  purchase_discount_type: '',
+  purchase_is_before_tax: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -102,6 +115,7 @@ const AddPurchaseForm = () => {
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
+
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
@@ -120,35 +134,43 @@ const AddPurchaseForm = () => {
     setShow(true)
   }
 
+  const getStoreType = id => {
+    const foundOStores = stores.find(item => item.id === id)
+    if (foundOStores) {
+      const storeType = foundOStores.type
+      setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
+    }
+  }
+
   // local nested items delete
   const removeItemsFroTable = itemId => {
-    const updatedItems = editParams.request_item_details.filter(el => {
-      return el.medicine_id != itemId
+    const updatedItems = editParams.purchase_details.filter(el => {
+      return el.purchase_unit_id != itemId
     })
-    setEditParams({ ...editParams, request_item_details: updatedItems })
+    setEditParams({ ...editParams, purchase_details: updatedItems })
     setMedicineItemId('')
   }
 
-  const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.qty), 0)
+  const totalQty = editParams.purchase_details?.reduce((acc, row) => acc + parseInt(row.purchase_qty), 0)
   console.log(totalQty)
 
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
-      medicine_id: nestedRowMedicine.medicine_id,
+      purchase_unit_id: nestedRowMedicine.purchase_unit_id,
       // id: nestedRowMedicine.id,
-      qty: nestedRowMedicine.qty,
+      purchase_qty: nestedRowMedicine.purchase_qty,
       // dosageForm: nestedRowMedicine.dosageForm,
       priority_item: nestedRowMedicine.priority_item,
       control_substance: nestedRowMedicine.control_substance,
       control_substance_file: nestedRowMedicine.control_substance_file
     }
 
-    const updatedNestedRows = [...editParams.request_item_details, newData]
+    const updatedNestedRows = [...editParams.purchase_details, newData]
     console.log(updatedNestedRows)
     setEditParams({
       ...editParams,
-      request_item_details: updatedNestedRows
+      purchase_details: updatedNestedRows
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
@@ -176,8 +198,8 @@ const AddPurchaseForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!values.qty) {
-      itemErrors.qty = 'This field is required'
+    if (!values.purchase_qty) {
+      itemErrors.purchase_qty = 'This field is required'
     }
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
@@ -200,14 +222,17 @@ const AddPurchaseForm = () => {
   const validateItems = values => {
     const errors = {}
 
-    if (!values.from_store_id) {
-      errors.from_store_id = 'This field is required'
+    if (!values.po_no) {
+      errors.po_no = 'This field is required'
     }
-    if (!values.to_store_id) {
-      errors.to_store_id = 'This field is required'
+    if (!values.store_id) {
+      errors.store_id = 'This field is required'
     }
-    if (!values.ro_date) {
-      errors.ro_date = 'This field is required'
+    if (!values.supplier_id) {
+      errors.supplier_id = 'This field is required'
+    }
+    if (!values.po_date) {
+      errors.po_date = 'This field is required'
     }
 
     return errors
@@ -216,7 +241,7 @@ const AddPurchaseForm = () => {
   const submitItems = () => {
     const HasErrors =
       !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.qty ||
+      !nestedRowMedicine.purchase_qty ||
       !nestedRowMedicine.priority_item ||
       !nestedRowMedicine.control_substance
     if (HasErrors) {
@@ -232,7 +257,7 @@ const AddPurchaseForm = () => {
       }
     }
 
-    const isMedicineAlreadyExists = editParams.request_item_details.some(
+    const isMedicineAlreadyExists = editParams.purchase_details.some(
       item => item.medicine_name === nestedRowMedicine.medicine_name
     )
 
@@ -251,16 +276,16 @@ const AddPurchaseForm = () => {
     console.log('beforeupdate editParams', editParams)
 
     const updatedIndex = id
-      ? updatedState.request_item_details.findIndex(row => row.stock_item_id === medicineItemId)
-      : updatedState.request_item_details.findIndex(row => row.medicine_id === itemId)
+      ? updatedState.purchase_details.findIndex(row => row.stock_item_id === medicineItemId)
+      : updatedState.purchase_details.findIndex(row => row.purchase_unit_id === itemId)
 
     if (updatedIndex !== -1) {
-      const updatedNestedRows = [...updatedState.request_item_details]
+      const updatedNestedRows = [...updatedState.purchase_details]
       updatedNestedRows[updatedIndex] = {
         ...updatedNestedRows[updatedIndex],
         ...nestedRowMedicine
       }
-      updatedState.request_item_details = updatedNestedRows
+      updatedState.purchase_details = updatedNestedRows
 
       console.log('after update editParams', updatedNestedRows)
 
@@ -274,7 +299,7 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = () => {
-    // const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty
+    // const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.purchase_qty
     // if (HasErrors) {
     //   setItemErrors(validate(nestedRowMedicine))
 
@@ -283,7 +308,7 @@ const AddPurchaseForm = () => {
     // setErrors({})
     const HasErrors =
       !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.qty ||
+      !nestedRowMedicine.purchase_qty ||
       !nestedRowMedicine.priority_item ||
       !nestedRowMedicine.control_substance
     if (HasErrors) {
@@ -303,7 +328,7 @@ const AddPurchaseForm = () => {
   }
 
   const handleSubmit = () => {
-    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
+    const formHasErrors = !editParams.po_no || !editParams.po_date || !editParams.store_id || !editParams.supplier_id
     console.log(formHasErrors)
     if (formHasErrors) {
       setErrors(validateItems(editParams))
@@ -315,6 +340,8 @@ const AddPurchaseForm = () => {
     showDialog()
   }
 
+  console.log('getMedicineOptions', optionsMedicineList)
+
   const getStoresLists = async () => {
     console.log('function in')
     // setLoader(true)
@@ -324,7 +351,6 @@ const AddPurchaseForm = () => {
     if (response?.length > 0) {
       console.log('list', response)
       setStores(response)
-    } else {
     }
   }
 
@@ -343,6 +369,7 @@ const AddPurchaseForm = () => {
     getStoresLists()
     getSuppliersLists()
   }, [])
+  // API calling functions on mount endnd
 
   console.log('editParams', editParams)
 
@@ -357,7 +384,7 @@ const AddPurchaseForm = () => {
   }
   async function getSearchValue(searchText, index) {
     if (searchText !== '') {
-      const searchResults = await getMedicineBySearch(searchText)
+      const searchResults = await getMedicineToAddPurchase(searchText)
       console.log('in search input ', searchResults)
       if (searchResults?.length) {
         console.log(
@@ -365,14 +392,14 @@ const AddPurchaseForm = () => {
           searchResults?.map(item => ({
             value: item.id,
             label: item.name
-            // control_substance: item.brand_sustance
           }))
         )
         setOptionsMedicineList(
           searchResults?.map(item => ({
             value: item.id,
-            label: item.name
-            // control_substance: item.brand_sustance
+            label: item.name,
+            purchase_unit_price: item.supplier_price
+            // supplier_price: item.supplier_price
           }))
         )
       }
@@ -380,7 +407,7 @@ const AddPurchaseForm = () => {
   }
 
   const getListOfItemsById = async id => {
-    const result = await getRequestItemsListById(id)
+    const result = await getPurchaseListById(id)
     console.log('data of update values', result)
 
     if (result) {
@@ -393,7 +420,7 @@ const AddPurchaseForm = () => {
         ro_date: result.ro_date,
         from_store_type: result.from_store_type,
         to_store_type: result.to_store_type,
-        request_item_details: result.request_item_details
+        purchase_details: result.purchase_details
       })
     }
   }
@@ -401,7 +428,7 @@ const AddPurchaseForm = () => {
   // ****** edit section //////
   const editTableData = itemId => {
     if (id != undefined && action === 'edit') {
-      const getItems = editParams.request_item_details.filter(el => {
+      const getItems = editParams.purchase_details.filter(el => {
         return el.id === itemId
       })
       console.log('filtered items while editing', getItems[0])
@@ -410,37 +437,14 @@ const AddPurchaseForm = () => {
         ...nestedRowMedicine,
         medicine_name: getItems[0].medicine_name,
         id: getItems[0].id,
-        qty: getItems[0].qty,
-        dosageForm: getItems[0].dosageForm,
-        batch_no: getItems[0].batch_no,
-        box_qty: getItems[0].box_qty,
-        created_at: getItems[0].created_at,
-        created_by: getItems[0].created_by,
-        deleted_at: getItems[0].deleted_at,
-        description: getItems[0].description,
-        dispatch_qty: getItems[0].dispatch_qty,
-        expiry_date: getItems[0].expiry_date,
-        leaf_id: getItems[0].leaf_id,
-        mrp_price: getItems[0].mrp_price,
-        net_amount: getItems[0].net_amount,
-        purchase_price: getItems[0].purchase_price,
-        recieved_qty: getItems[0].recieved_qty,
-        request_item_id: getItems[0].request_item_id,
-        request_status: getItems[0].request_status,
-        requested_qty: getItems[0].requested_qty,
-        status: getItems[0].status,
-        stock_item_id: getItems[0].stock_item_id,
-        stock_qty: getItems[0].stock_qty,
-        unit_id: getItems[0].unit_id,
-        unit_price: getItems[0].unit_price,
-        updated_at: getItems[0].updated_at,
-        updated_by: getItems[0].updated_by
+        purchase_qty: getItems[0].purchase_qty,
+        dosageForm: getItems[0].dosageForm
       })
     } else {
-      console.log('in else ', editParams.request_item_details)
+      console.log('in else ', editParams.purchase_details)
 
-      const getItems = editParams.request_item_details.filter(el => {
-        return el.medicine_id === itemId
+      const getItems = editParams.purchase_details.filter(el => {
+        return el.purchase_unit_id === itemId
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
@@ -451,9 +455,9 @@ const AddPurchaseForm = () => {
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0].medicine_name,
-        medicine_id: getItems[0].medicine_id,
+        purchase_unit_id: getItems[0].purchase_unit_id,
         // id: getItems[0].id,
-        qty: getItems[0].qty,
+        purchase_qty: getItems[0].purchase_qty,
         control_substance_file: getItems[0].control_substance_file,
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance
@@ -480,7 +484,7 @@ const AddPurchaseForm = () => {
     console.log('totalQtya', totalQty)
     console.log('editParms', editParams)
     if (id) {
-      const response = await updateRequestItems(id, postData)
+      const response = await updatePurchase(id, postData)
       console.log('after posting', response)
 
       if (response?.success) {
@@ -493,7 +497,7 @@ const AddPurchaseForm = () => {
         toast.error(response.message)
       }
     } else {
-      const response = await addRequestItems(postData)
+      const response = await addPurchase(postData)
       console.log('after posting', response)
       if (response?.success) {
         toast.success(response.message)
@@ -530,8 +534,9 @@ const AddPurchaseForm = () => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
-                      medicine_id: newValue?.value
-                      // control_substance: newValue?.brand_sustance
+                      request_item_medicine_id: newValue?.value,
+                      purchase_unit_price: newValue?.purchase_unit_price
+                      // purchase_purchase_price: newValue?.supplier_price * nestedRowMedicine.purchase_qty
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -557,20 +562,60 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
-
+            <Grid item xs={12} sm={6}>
+              {/* purchase_expiry_date */}
+              <FormControl fullWidth>
+                <SingleDatePicker
+                  fullWidth
+                  date={
+                    nestedRowMedicine.purchase_expiry_date
+                      ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
+                      : null
+                  }
+                  width={'100%'}
+                  value={
+                    nestedRowMedicine.purchase_expiry_date
+                      ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
+                      : null
+                  }
+                  name={'Date'}
+                  onChangeHandler={date => {
+                    console.log(date)
+                    // setStores({ ...stores, date: date })
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_expiry_date: formatDate(date)
+                    })
+                    setItemErrors({})
+                  }}
+                  customInput={<CustomInput label='Date' error={Boolean(errors.purchase_expiry_date)} />}
+                />
+                {itemErrors.purchase_expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <TextField
                   type='number'
-                  value={nestedRowMedicine.qty}
-                  error={Boolean(itemErrors.qty)}
+                  value={nestedRowMedicine.purchase_qty}
+                  error={Boolean(itemErrors.purchase_qty)}
                   label='Quantity'
                   onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, qty: event.target.value })
+                    const val = event.target.value.parseInt
+                    const supplierPrice = nestedRowMedicine.purchase_unit_price
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_qty: val,
+                      purchase_purchase_price: val * supplierPrice
+                    })
                     setItemErrors({})
                   }}
                 />
-                {itemErrors.qty && (
+                {itemErrors.purchase_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -579,203 +624,113 @@ const AddPurchaseForm = () => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography sx={{ mb: 2 }}>Priority</Typography>
-
               <FormControl fullWidth>
-                {/* <div>
-                  <InputLabel sx={{ my: 4 }} error={Boolean(itemErrors.priority_item)}>
-                    priority_item
-                  </InputLabel>
-                </div> */}
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.priority_item}
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_batch_no}
+                  error={Boolean(itemErrors.purchase_batch_no)}
+                  label='Batch'
                   onChange={event => {
-                    console.log('values', event.target.value)
-                    setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
+                    setItemErrors({})
                   }}
-                >
-                  test
-                  <ToggleButton color='error' value='high'>
-                    High
-                  </ToggleButton>
-                  <ToggleButton color='primary' value='Normal'>
-                    Normal
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {itemErrors.priority_item && (
+                />
+                {itemErrors.purchase_batch_no && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
                 )}
               </FormControl>
             </Grid>
-            {/* <Grid item xs={12} sm={6} sx={{}}>
-              <Typography sx={{ mb: 2 }}>Controlled substance</Typography>
-
-              <FormControl>
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.control_substance}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_unit_price}
+                  error={Boolean(itemErrors.purchase_unit_price)}
+                  label='Supplier rate'
                   onChange={event => {
-                    const val = event.target.value
-                    // console.log('event.target', event.target.value)
-
-                    // console.log(typeof val)
-                    // console.log('boooooooooooooooo', val)
-                    if (val === 'false') {
-                      setNestedRowMedicine({
-                        ...nestedRowMedicine,
-                        control_substance: false,
-                        control_substance_file: []
-                      })
-                    } else {
-                      setNestedRowMedicine({ ...nestedRowMedicine, control_substance: true })
-                    }
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
+                    setItemErrors({})
                   }}
-                >
-                  <ToggleButton color='error' value={true}>
-                    Yes
-                  </ToggleButton>
-                  <ToggleButton color='primary' value={false}>
-                    No
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {itemErrors.priority_item && (
+                />
+                {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
                 )}
               </FormControl>
-            </Grid> */}
-            {/* // file uploader */}
-            {console.log(nestedRowMedicine.control_substance_file[0])}
-            {nestedRowMedicine.control_substance === 'yes' ? (
-              nestedRowMedicine.control_substance_file[0] ? (
-                <Grid item xs={12} sm={6}>
-                  {nestedRowMedicine.control_substance_file[0]?.type === 'application/pdf' ? (
-                    <Chip
-                      label={nestedRowMedicine.control_substance_file[0]?.name}
-                      color='secondary'
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          control_substance: 'no',
-                          control_substance_file: []
-                        })
-                      }}
-                      deleteIcon={<Icon icon='mdi:delete-outline' />}
-                    />
-                  ) : (
-                    <>
-                      <Chip
-                        label={nestedRowMedicine.control_substance_file[0]?.name}
-                        avatar={
-                          <Avatar
-                            alt={nestedRowMedicine.control_substance_file[0]?.name}
-                            src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
-                          />
-                        }
-                        onDelete={() => {
-                          setNestedRowMedicine({
-                            ...nestedRowMedicine,
-                            control_substance: 'no',
-                            control_substance_file: []
-                          })
-                        }}
-                      />
-                      {/* <img
-                        width={38}
-                        height={38}
-                        alt={nestedRowMedicine.control_substance_file[0]?.name}
-                        src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
-                      /> */}
-                    </>
-                  )}
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription</Typography>
-
-                  <FormControl fullWidth>
-                    <TextField
-                      type='file'
-                      value={
-                        nestedRowMedicine?.control_substance_file[0]
-                          ? nestedRowMedicine?.control_substance_file[0].File
-                          : []
-                      }
-                      error={Boolean(itemErrors.control_substance_file)}
-                      // label='Attach prescription'
-                      onChange={e => {
-                        const file = e.target.files[0]
-                        console.log(e.target.files[0])
-                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        const updatedPrescription = [...nestedRowMedicine.control_substance_file]
-                        updatedPrescription[0] = file
-                        setNestedRowMedicine(prevState => ({
-                          ...prevState,
-                          control_substance_file: updatedPrescription
-                        }))
-                        setItemErrors({})
-                      }}
-                    />
-                    {itemErrors.control_substance_file && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              )
-            ) : null}
-            {/* // file uploader */}
-            {console.log('application/pdf')}
-
-            <Grid item xs={12}>
-              {id ? (
-                <Button
-                  onClick={() => {
-                    updateFormItems()
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='Number'
+                  value={nestedRowMedicine.purchase_purchase_price}
+                  error={Boolean(itemErrors.purchase_purchase_price)}
+                  label='Total purchase price'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_purchase_price: event.target.value })
+                    setItemErrors({})
                   }}
-                  size='large'
-                  variant='contained'
-                >
-                  Update
-                </Button>
+                />
+                {itemErrors.purchase_purchase_price && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+
+            {/* // file uploader */}
+            <Grid item xs={12}>
+              {medicineItemId ? (
+                <>
+                  <Button
+                    onClick={() => {
+                      closeDialog()
+                    }}
+                    size='large'
+                    variant='contained'
+                    color='error'
+                    sx={{ mr: 2 }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      updateFormItems()
+
+                      // submitItems()
+                    }}
+                    size='large'
+                    variant='contained'
+                  >
+                    update
+                  </Button>
+                </>
               ) : (
                 <>
-                  <>
-                    {medicineItemId ? (
-                      <Button
-                        onClick={() => {
-                          updateFormItems()
-
-                          // submitItems()
-                        }}
-                        size='large'
-                        variant='contained'
-                      >
-                        update
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          // updateFormItems()
-
-                          submitItems()
-                        }}
-                        size='large'
-                        variant='contained'
-                      >
-                        Submit
-                      </Button>
-                    )}
-                  </>
+                  <Button
+                    onClick={() => {
+                      closeDialog()
+                    }}
+                    size='large'
+                    variant='contained'
+                    color='error'
+                    sx={{ mr: 2 }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // updateFormItems()
+                      submitItems()
+                    }}
+                    size='large'
+                    variant='contained'
+                  >
+                    Add
+                  </Button>
                 </>
               )}
             </Grid>
@@ -827,7 +782,7 @@ const AddPurchaseForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Purchase Item'}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -841,22 +796,21 @@ const AddPurchaseForm = () => {
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Requested by :
+                  Supplier :
                 </Typography>
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Supplier</InputLabel>
+                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier</InputLabel>
                   <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
+                    value={editParams.supplier_id}
+                    error={Boolean(errors.supplier_id)}
                     label='Select'
                     disabled={id ? true : false}
                     onChange={e => {
                       setEditParams({
                         ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: ''
+                        supplier_id: e.target.value
                       })
                       setErrors({})
                     }}
@@ -870,7 +824,7 @@ const AddPurchaseForm = () => {
                     ))}
                   </Select>
 
-                  {errors.from_store_id && (
+                  {errors.supplier_id && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -881,15 +835,18 @@ const AddPurchaseForm = () => {
                 <FormControl fullWidth>
                   <TextField
                     type='text'
-                    value={nestedRowMedicine.qty}
-                    error={Boolean(itemErrors.qty)}
+                    value={editParams.po_no}
+                    error={Boolean(errors.po_no)}
                     label='Purchase No'
-                    onChange={event => {
-                      setNestedRowMedicine({ ...nestedRowMedicine, qty: event.target.value })
-                      setItemErrors({})
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        po_no: e.target.value
+                      })
+                      setErrors({})
                     }}
                   />
-                  {itemErrors.qty && (
+                  {errors.po_no && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -900,15 +857,18 @@ const AddPurchaseForm = () => {
                 <FormControl fullWidth>
                   <TextField
                     type='text'
-                    value={nestedRowMedicine.qty}
-                    error={Boolean(itemErrors.qty)}
+                    value={editParams.description}
+                    error={Boolean(errors.description)}
                     label='Comments'
-                    onChange={event => {
-                      setNestedRowMedicine({ ...nestedRowMedicine, qty: event.target.value })
-                      setItemErrors({})
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        description: e.target.value
+                      })
+                      setErrors({})
                     }}
                   />
-                  {itemErrors.qty && (
+                  {errors.description && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -920,27 +880,27 @@ const AddPurchaseForm = () => {
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Requested to :
+                    Store:
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                  <InputLabel id='state_id' error={Boolean(errors.store_id)}>
                     Store
                   </InputLabel>
 
                   <Select
                     name='state_id'
-                    error={Boolean(errors.to_store_id)}
-                    value={editParams.to_store_id}
+                    error={Boolean(errors.store_id)}
+                    value={editParams.store_id}
                     label='Select'
                     disabled={id ? true : false}
                     onChange={e => {
                       // setStores({ ...stores, toStore: e.target.value })
-                      setEditParams({
-                        ...editParams,
-                        to_store_id: e.target.value,
-                        to_store_type: ''
-                      })
+                      // setEditParams({
+                      //   ...editParams,
+                      //   store_id: e.target.value
+                      // })
+                      getStoreType(e.target.value)
                       setErrors({})
                     }}
                     // error={Boolean(errors?.state_id)}
@@ -953,7 +913,7 @@ const AddPurchaseForm = () => {
                     ))}
                   </Select>
 
-                  {errors.to_store_id && (
+                  {errors.store_id && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -964,19 +924,38 @@ const AddPurchaseForm = () => {
                 <FormControl fullWidth>
                   <SingleDatePicker
                     fullWidth
-                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    date={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
                     width={'100%'}
-                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    value={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
                     name={'Date'}
                     onChangeHandler={date => {
                       console.log(date)
                       // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setEditParams({ ...editParams, po_date: formatDate(date) })
                       setErrors({})
                     }}
-                    customInput={<CustomInput label='Date' error={Boolean(errors.ro_date)} />}
+                    customInput={<CustomInput label='Date' error={Boolean(errors.po_date)} />}
                   />
-                  {errors.ro_date && (
+                  {errors.po_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    type='text'
+                    value={nestedRowMedicine.purchase_qty}
+                    error={Boolean(errors.purchase_qty)}
+                    label='User'
+                    onChange={event => {
+                      setNestedRowMedicine({ ...nestedRowMedicine, purchase_qty: event.target.value })
+                      setErrors({})
+                    }}
+                  />
+                  {errors.purchase_qty && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -1021,24 +1000,25 @@ const AddPurchaseForm = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
-              <TableCell>Medicine Names</TableCell>
-              <TableCell>priority_item</TableCell>
-              {/* <TableCell>Controlled substance</TableCell> */}
-              {/* <TableCell>control_substance_file</TableCell> */}
+              <TableCell>Medicine Name</TableCell>
+              <TableCell>Batch</TableCell>
+              <TableCell>Expiry Date</TableCell>
               <TableCell>Quantity</TableCell>
+              <TableCell>Supplier Rate</TableCell>
+              <TableCell>Total Purchase purchase_unit_price</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
+            {editParams.purchase_details
+              ? editParams.purchase_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
                       <TableCell>{el.priority_item}</TableCell>
                       {/* <TableCell>{el.control_substance}</TableCell> */}
                       {/* <TableCell>{el.control_substance_file.name}</TableCell> */}
-                      <TableCell>{el.qty}</TableCell>
+                      <TableCell>{el.purchase_qty}</TableCell>
 
                       <TableCell>
                         <IconButton
@@ -1052,10 +1032,10 @@ const AddPurchaseForm = () => {
                               editTableData(el.id)
                               showDialog()
                             } else {
-                              console.log(el.medicine_id)
-                              setMedicineItemId(el.medicine_id)
+                              console.log(el.purchase_unit_id)
+                              setMedicineItemId(el.purchase_unit_id)
 
-                              editTableData(el.medicine_id)
+                              editTableData(el.purchase_unit_id)
                               showDialog()
                             }
                           }}
@@ -1065,7 +1045,7 @@ const AddPurchaseForm = () => {
                         {id ? null : (
                           <IconButton
                             onClick={() => {
-                              removeItemsFroTable(el.medicine_id)
+                              removeItemsFroTable(el.purchase_unit_id)
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
@@ -1082,39 +1062,96 @@ const AddPurchaseForm = () => {
         </Table>
       </TableContainer>
       <CardContent sx={{ pt: 8 }}>
-        {totalQty ? (
-          <Grid container>
-            <Grid
-              item
-              xs={12}
-              sm={2}
-              lg={2}
-              sx={{
-                mb: { sm: 0, xs: 4 },
-                order: { sm: 2, xs: 1 },
-                marginLeft: 'auto',
-                mr: { sm: 12, xs: 0 }
-              }}
-            >
-              <CalcWrapper>
-                <Typography variant='body2'>Total QTY:</Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                  {totalQty}
-                </Typography>
-              </CalcWrapper>
+        {/* {totalQty ? ( */}
+        <Grid container>
+          <Grid
+            item
+            xs={12}
+            sm={3}
+            lg={3}
+            sx={{
+              mb: { sm: 0, xs: 4 },
+              order: { sm: 2, xs: 1 },
+              marginLeft: 'auto',
+              mr: { sm: 12, xs: 0 }
+            }}
+          >
+            <CalcWrapper>
+              <Typography variant='body2'>Sub Total :</Typography>
+              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                {totalQty}
+              </Typography>
+            </CalcWrapper>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            <CalcWrapper>
+              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Grid item xs={12} sm={5}>
+                  <FormControl fullWidth>
+                    <InputLabel>Discount</InputLabel>
+                    <Select
+                      label='Discount'
+                      disabled={id ? true : false}
+                      onChange={e => {
+                        setEditParams({
+                          ...editParams,
+                          from_store_id: e.target.value,
+                          from_store_type: ''
+                        })
+                        setErrors({})
+                      }}
+                      // error={Boolean(errors?.state_id)}
+                      // labelId='state_id'
+                    >
+                      <MenuItem value=''>%</MenuItem>
+                      <MenuItem value=''>₹</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='text'
+                      value={nestedRowMedicine.purchase_qty}
+                      error={Boolean(itemErrors.purchase_qty)}
+                      label='Discount'
+                      onChange={event => {
+                        setNestedRowMedicine({ ...nestedRowMedicine, purchase_qty: event.target.value })
+                        setErrors({})
+                      }}
+                    />
+                    {itemErrors.purchase_qty && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </CalcWrapper>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            <CalcWrapper>
+              <Typography variant='body2'>Grand Total :</Typography>
+              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                {totalQty}
+              </Typography>
+            </CalcWrapper>
 
-              <Divider
-                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-              />
-              {/* <CalcWrapper>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            {/* <CalcWrapper>
                 <Typography variant='body2'>Total:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                   {totalQty}
                 </Typography>
               </CalcWrapper> */}
-            </Grid>
           </Grid>
-        ) : null}
+        </Grid>
+        {/* // ) : null} */}
       </CardContent>
       <LoadingButton
         sx={{ float: 'right', my: 4, mx: 6 }}
