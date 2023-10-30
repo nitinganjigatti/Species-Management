@@ -81,11 +81,11 @@ const initialNestedRowMedicine = {
   purchase_unit_id: '',
   purchase_stock_item_id: '',
 
-  purchase_qty: '',
+  purchase_qty: 0,
   // supplier_price: '',
 
-  purchase_unit_price: '',
-  purchase_purchase_price: '',
+  purchase_unit_price: 0,
+  purchase_purchase_price: 0,
 
   purchase_batch_no: '',
   purchase_expiry_date: '',
@@ -534,7 +534,8 @@ const AddPurchaseForm = () => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
-                      request_item_medicine_id: newValue?.value,
+                      // purchase_stock_item_id: newValue?.value,
+                      purchase_unit_id: newValue?.value,
                       purchase_unit_price: newValue?.purchase_unit_price
                       // purchase_purchase_price: newValue?.supplier_price * nestedRowMedicine.purchase_qty
                     })
@@ -605,7 +606,7 @@ const AddPurchaseForm = () => {
                   error={Boolean(itemErrors.purchase_qty)}
                   label='Quantity'
                   onChange={event => {
-                    const val = event.target.value.parseInt
+                    const val = parseInt(event.target.value, 10)
                     const supplierPrice = nestedRowMedicine.purchase_unit_price
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
