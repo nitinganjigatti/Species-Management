@@ -1,4 +1,4 @@
-import { REQUEST_ITEMS } from '../../constants/ApiConstant'
+import { REQUEST_ITEMS, BATCH_DETAILS } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from './utility'
 
 export async function getRequestItemsList() {
@@ -10,7 +10,15 @@ export async function getRequestItemsList() {
 export async function getRequestItemsListById(id) {
   const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show` })
 
-  return response.data.data
+  return response.data
+}
+
+//http://localhost:8080/api/batch-details/20
+
+export async function getAvailableMedicineByMedicineId(id, data) {
+  const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}`, body: data })
+
+  return response.data
 }
 
 // export async function getRequestItemsListById(id) {
