@@ -1,5 +1,5 @@
 import { REQUEST_ITEMS, BATCH_DETAILS } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { axiosGet, axiosPost, axiosFormPost } from './utility'
 
 export async function getRequestItemsList() {
   const response = await axiosGet({ url: REQUEST_ITEMS })
@@ -57,7 +57,9 @@ export async function addRequestItems(payload) {
   try {
     const url = `${REQUEST_ITEMS}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+
+    // const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {
@@ -108,7 +110,9 @@ export async function updateRequestItems(id, payload) {
     const url = `${REQUEST_ITEMS}/${id}/update`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+
+    // const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {

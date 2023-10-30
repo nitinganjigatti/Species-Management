@@ -159,7 +159,13 @@ const ListOfPurchase = () => {
           TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
           headerActions={
             <div>
-              <Button size='big' variant='contained'>
+              <Button
+                size='big'
+                variant='contained'
+                onClick={() => {
+                  Router.push('/pharmacy/purchase/addPurchase/')
+                }}
+              >
                 Add Purchase
               </Button>
             </div>

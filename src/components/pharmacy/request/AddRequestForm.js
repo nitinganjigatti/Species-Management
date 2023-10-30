@@ -22,8 +22,7 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
-import { debounce } from 'lodash'
-import CircularProgress from '@mui/material/CircularProgress'
+
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -35,9 +34,7 @@ import { forwardRef, useState, useEffect } from 'react'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
-// ** Configs
-import themeConfig from 'src/configs/themeConfig'
-import AddRequestDialog from './AddRequestDialog'
+import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
@@ -55,35 +52,26 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import { boolean } from 'yup'
 
 const editParamsInitialState = {
-  // id: '',
-  // medicine_name: '',
   from_store_id: '',
   to_store_id: '',
   from_store_type: '',
   to_store_type: '',
-  dispatch_id: '',
-  // batch_id: '',
   ro_date: '',
-  stock_qty: '',
-  box_pattern: '',
-  box_qty: '',
   total_qty: '',
-  total_box: '20',
-  // nestedRows: [],
   request_item_details: []
 }
 
 const initialNestedRowMedicine = {
+  request_item_medicine_id: '',
   medicine_name: '',
-  medicine_id: '',
-  qty: '',
-  // dosageForm: '',
-  priority: 'high',
-  // control_substance: 'false',
-  control_substance: false,
-  control_substance_file: []
+  request_item_qty: '',
+  request_item_leaf_id: '',
+  priority_item: 'high',
+  control_substance: Boolean,
+  control_substance_file: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -92,7 +80,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const AddRequestForm = () => {
   // ** Hook
-  // const [stores, setStores] = useState(storesData)
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
@@ -117,14 +104,6 @@ const AddRequestForm = () => {
     return fromStocks?.find(item => item.id == value)?.type
   }
 
-  // const checkIfMedicineExists = medicineName => {
-  //   const isMedicineAlreadyExists = editParams.request_item_details.some(item => item.medicine_name === medicineName)
-
-  //   if (isMedicineAlreadyExists) {
-  //     setDuplicateMedError('Medicine already exists')
-  //   }
-  // }
-
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
@@ -138,25 +117,26 @@ const AddRequestForm = () => {
   // local nested items delete
   const removeItemsFroTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
-      return el.medicine_id != itemId
+      return el.request_item_medicine_id != itemId
     })
     setEditParams({ ...editParams, request_item_details: updatedItems })
     setMedicineItemId('')
   }
 
-  const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.qty), 0)
+  const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
   console.log(totalQty)
 
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
-      medicine_id: nestedRowMedicine.medicine_id,
+      request_item_medicine_id: nestedRowMedicine.request_item_medicine_id,
       // id: nestedRowMedicine.id,
-      qty: nestedRowMedicine.qty,
+      request_item_qty: nestedRowMedicine.request_item_qty,
       // dosageForm: nestedRowMedicine.dosageForm,
-      priority: nestedRowMedicine.priority,
+      priority_item: nestedRowMedicine.priority_item,
       control_substance: nestedRowMedicine.control_substance,
-      control_substance_file: nestedRowMedicine.control_substance_file
+      control_substance_file: nestedRowMedicine.control_substance_file,
+      request_item_leaf_id: ''
     }
 
     const updatedNestedRows = [...editParams.request_item_details, newData]
@@ -191,11 +171,11 @@ const AddRequestForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!values.qty) {
-      itemErrors.qty = 'This field is required'
+    if (!values.request_item_qty) {
+      itemErrors.request_item_qty = 'This field is required'
     }
-    if (!values.priority) {
-      itemErrors.priority = 'This field is required'
+    if (!values.priority_item) {
+      itemErrors.priority_item = 'This field is required'
     }
     if (!values.control_substance_file) {
       itemErrors.control_substance_file = 'This field is required'
@@ -229,11 +209,11 @@ const AddRequestForm = () => {
   }
 
   const submitItems = () => {
+    console.log('checking error', !nestedRowMedicine.control_substance)
+
     const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.qty ||
-      !nestedRowMedicine.priority ||
-      !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+    // || !nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -265,9 +245,7 @@ const AddRequestForm = () => {
     const updatedState = { ...editParams }
     console.log('beforeupdate editParams', editParams)
 
-    const updatedIndex = id
-      ? updatedState.request_item_details.findIndex(row => row.stock_item_id === medicineItemId)
-      : updatedState.request_item_details.findIndex(row => row.medicine_id === itemId)
+    const updatedIndex = updatedState.request_item_details.findIndex(row => row.request_item_medicine_id === itemId)
 
     if (updatedIndex !== -1) {
       const updatedNestedRows = [...updatedState.request_item_details]
@@ -289,18 +267,9 @@ const AddRequestForm = () => {
   }
 
   const updateFormItems = () => {
-    // const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.qty
-    // if (HasErrors) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
-    // setErrors({})
     const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.qty ||
-      !nestedRowMedicine.priority ||
-      !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+    // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -370,17 +339,19 @@ const AddRequestForm = () => {
       const searchResults = await getMedicineBySearch(searchText)
       console.log('in search input ', searchResults)
       if (searchResults?.length) {
-        console.log(
-          'maped obj',
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name
-          }))
-        )
+        // console.log(
+        //   'maped obj',
+        //   searchResults?.map(item => ({
+        //     value: item.id,
+        //     label: item.name
+        //     // control_substance: item.brand_sustance
+        //   }))
+        // )
         setOptionsMedicineList(
           searchResults?.map(item => ({
             value: item.id,
-            label: item.name
+            label: item.name,
+            control_substance: item.brand_sustance === 'yes' ? true : false
           }))
         )
       }
@@ -393,15 +364,29 @@ const AddRequestForm = () => {
 
     if (result) {
       // filterToStocks(result.to_store_id)
+      const lineItems = result.request_item_details.map(el => {
+        return {
+          request_item_medicine_id: el.stock_item_id,
+          medicine_name: el.stock_name,
+          request_item_qty: el.qty,
+          request_item_leaf_id: el.stock_item_id,
+          priority_item: el.priority,
+          control_substance: el.control_substance === '0' ? false : true,
+          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
+          id: el.id,
+          request_item_detail_id: el.id
+        }
+      })
+      console.log('testts', lineItems)
       setEditParams({
         ...editParams,
         id: result.id,
         from_store_id: result.from_store_id,
         to_store_id: result.to_store_id,
-        ro_date: result.ro_date,
+        ro_date: result.request_date,
         from_store_type: result.from_store_type,
         to_store_type: result.to_store_type,
-        request_item_details: result.request_item_details
+        request_item_details: lineItems
       })
     }
   }
@@ -410,61 +395,41 @@ const AddRequestForm = () => {
   const editTableData = itemId => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.request_item_details.filter(el => {
-        return el.id === itemId
+        return el.request_item_medicine_id === itemId
       })
       console.log('filtered items while editing', getItems[0])
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
+        request_item_medicine_id: getItems[0].request_item_medicine_id,
         medicine_name: getItems[0].medicine_name,
-        id: getItems[0].id,
-        qty: getItems[0].qty,
-        dosageForm: getItems[0].dosageForm,
-        batch_no: getItems[0].batch_no,
-        box_qty: getItems[0].box_qty,
-        created_at: getItems[0].created_at,
-        created_by: getItems[0].created_by,
-        deleted_at: getItems[0].deleted_at,
-        description: getItems[0].description,
-        dispatch_qty: getItems[0].dispatch_qty,
-        expiry_date: getItems[0].expiry_date,
-        leaf_id: getItems[0].leaf_id,
-        mrp_price: getItems[0].mrp_price,
-        net_amount: getItems[0].net_amount,
-        purchase_price: getItems[0].purchase_price,
-        recieved_qty: getItems[0].recieved_qty,
-        request_item_id: getItems[0].request_item_id,
-        request_status: getItems[0].request_status,
-        requested_qty: getItems[0].requested_qty,
-        status: getItems[0].status,
-        stock_item_id: getItems[0].stock_item_id,
-        stock_qty: getItems[0].stock_qty,
-        unit_id: getItems[0].unit_id,
-        unit_price: getItems[0].unit_price,
-        updated_at: getItems[0].updated_at,
-        updated_by: getItems[0].updated_by
+        request_item_qty: getItems[0].request_item_qty,
+        request_item_leaf_id: getItems[0].request_item_leaf_id,
+        priority_item: getItems[0].priority_item,
+        control_substance: getItems[0].control_substance,
+        control_substance_file: getItems[0].control_substance_file,
+        id: getItems[0].id
       })
     } else {
       console.log('in else ', editParams.request_item_details)
 
       const getItems = editParams.request_item_details.filter(el => {
-        return el.medicine_id === itemId
+        return el.request_item_medicine_id === itemId
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
       console.log('file', getItems[0].control_substance_file)
       console.log('nestedRowMedicine', nestedRowMedicine)
-      // const file=[]
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0].medicine_name,
-        medicine_id: getItems[0].medicine_id,
+        request_item_medicine_id: getItems[0].request_item_medicine_id,
         // id: getItems[0].id,
-        qty: getItems[0].qty,
-        control_substance_file: getItems[0].control_substance_file,
-        priority: getItems[0].priority,
-        control_substance: getItems[0].control_substance
+        request_item_qty: getItems[0].request_item_qty,
+        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
+        priority_item: getItems[0].priority_item,
+        control_substance: getItems[0].control_substance === '0' ? false : true
       })
     }
   }
@@ -534,11 +499,12 @@ const AddRequestForm = () => {
                   onChange={(event, newValue) => {
                     console.log('options', newValue)
                     // nestedRowMedicine, setNestedRowMedicine
-
+                    console.log('in medicine auto complte', newValue)
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
-                      medicine_id: newValue?.value
+                      request_item_medicine_id: newValue?.value,
+                      control_substance: newValue?.control_substance
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -569,15 +535,15 @@ const AddRequestForm = () => {
               <FormControl fullWidth>
                 <TextField
                   type='number'
-                  value={nestedRowMedicine.qty}
-                  error={Boolean(itemErrors.qty)}
+                  value={nestedRowMedicine.request_item_qty}
+                  error={Boolean(itemErrors.request_item_qty)}
                   label='Quantity'
                   onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, qty: event.target.value })
+                    setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                     setItemErrors({})
                   }}
                 />
-                {itemErrors.qty && (
+                {itemErrors.request_item_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -589,18 +555,13 @@ const AddRequestForm = () => {
               <Typography sx={{ mb: 2 }}>Priority</Typography>
 
               <FormControl fullWidth>
-                {/* <div>
-                  <InputLabel sx={{ my: 4 }} error={Boolean(itemErrors.priority)}>
-                    Priority
-                  </InputLabel>
-                </div> */}
                 <ToggleButtonGroup
                   exclusive
                   color='primary'
-                  value={nestedRowMedicine.priority}
+                  value={nestedRowMedicine.priority_item}
                   onChange={event => {
                     console.log('values', event.target.value)
-                    setNestedRowMedicine({ ...nestedRowMedicine, priority: event.target.value })
+                    setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
                   }}
                 >
                   test
@@ -612,120 +573,90 @@ const AddRequestForm = () => {
                   </ToggleButton>
                 </ToggleButtonGroup>
 
-                {itemErrors.priority && (
+                {itemErrors.priority_item && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} sx={{}}>
-              <Typography sx={{ mb: 2 }}>Controlled substance</Typography>
 
-              <FormControl>
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.control_substance}
-                  onChange={event => {
-                    const val = event.target.value
-                    // console.log('event.target', event.target.value)
-
-                    // console.log(typeof val)
-                    // console.log('boooooooooooooooo', val)
-                    if (val === 'false') {
-                      setNestedRowMedicine({
-                        ...nestedRowMedicine,
-                        control_substance: false,
-                        control_substance_file: []
-                      })
-                    } else {
-                      setNestedRowMedicine({ ...nestedRowMedicine, control_substance: true })
-                    }
-                  }}
-                >
-                  <ToggleButton color='error' value={true}>
-                    Yes
-                  </ToggleButton>
-                  <ToggleButton color='primary' value={false}>
-                    No
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {itemErrors.priority && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
             {/* // file uploader */}
-            {console.log(nestedRowMedicine.control_substance_file[0])}
+            {console.log(nestedRowMedicine.control_substance_file)}
             {nestedRowMedicine.control_substance === true ? (
-              nestedRowMedicine.control_substance_file[0] ? (
+              nestedRowMedicine.control_substance_file ? (
                 <Grid item xs={12} sm={6}>
-                  {nestedRowMedicine.control_substance_file[0]?.type === 'application/pdf' ? (
+                  {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
                     <Chip
-                      label={nestedRowMedicine.control_substance_file[0]?.name}
+                      label={nestedRowMedicine.control_substance_file?.name}
                       color='secondary'
                       onDelete={() => {
                         setNestedRowMedicine({
                           ...nestedRowMedicine,
-                          control_substance: false,
-                          control_substance_file: []
+                          // control_substance: false,
+                          control_substance_file: ''
                         })
                       }}
                       deleteIcon={<Icon icon='mdi:delete-outline' />}
                     />
-                  ) : (
+                  ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
+                    nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
                     <>
                       <Chip
-                        label={nestedRowMedicine.control_substance_file[0]?.name}
+                        label={nestedRowMedicine.control_substance_file?.name}
                         avatar={
                           <Avatar
-                            alt={nestedRowMedicine.control_substance_file[0]?.name}
-                            src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
+                            alt={nestedRowMedicine.control_substance_file?.name}
+                            src={
+                              nestedRowMedicine.control_substance_file
+                                ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
+                                : ''
+                            }
                           />
                         }
                         onDelete={() => {
                           setNestedRowMedicine({
                             ...nestedRowMedicine,
-                            control_substance: false,
-                            control_substance_file: []
+                            // control_substance: false,
+                            control_substance_file: ''
                           })
                         }}
                       />
-                      {/* <img
-                        width={38}
-                        height={38}
-                        alt={nestedRowMedicine.control_substance_file[0]?.name}
-                        src={URL.createObjectURL(nestedRowMedicine.control_substance_file[0])}
-                      /> */}
                     </>
+                  ) : (
+                    <Chip
+                      label={nestedRowMedicine.control_substance_file}
+                      avatar={
+                        <Avatar
+                          alt='image'
+                          src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
+                        />
+                      }
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          control_substance_file: ''
+                        })
+                      }}
+                    />
                   )}
+                  {console.log('image', nestedRowMedicine.control_substance_file)}
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
+                  <Typography sx={{ mb: 2 }}>Attach prescription</Typography>
+                  {console.log('data type', typeof nestedRowMedicine.control_substance_file)}
                   <FormControl fullWidth>
                     <TextField
                       type='file'
-                      value={
-                        nestedRowMedicine?.control_substance_file[0]
-                          ? nestedRowMedicine?.control_substance_file[0].File
-                          : []
-                      }
+                      accept='.pdf, .jpeg, .jpg, .png'
                       error={Boolean(itemErrors.control_substance_file)}
-                      label='Attach prescription'
+                      // label='Attach prescription'
                       onChange={e => {
                         const file = e.target.files[0]
                         console.log(e.target.files[0])
-                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        const updatedPrescription = [...nestedRowMedicine.control_substance_file]
-                        updatedPrescription[0] = file
-                        setNestedRowMedicine(prevState => ({
-                          ...prevState,
-                          control_substance_file: updatedPrescription
-                        }))
+                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
                         setItemErrors({})
                       }}
                     />
@@ -742,47 +673,58 @@ const AddRequestForm = () => {
             {console.log('application/pdf')}
 
             <Grid item xs={12}>
-              {id ? (
-                <Button
-                  onClick={() => {
-                    updateFormItems()
-                  }}
-                  size='large'
-                  variant='contained'
-                >
-                  Update
-                </Button>
-              ) : (
-                <>
+              <>
+                {medicineItemId ? (
                   <>
-                    {medicineItemId ? (
-                      <Button
-                        onClick={() => {
-                          updateFormItems()
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='contained'
+                      color='error'
+                      sx={{ mr: 2 }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        updateFormItems()
 
-                          // submitItems()
-                        }}
-                        size='large'
-                        variant='contained'
-                      >
-                        update
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          // updateFormItems()
-
-                          submitItems()
-                        }}
-                        size='large'
-                        variant='contained'
-                      >
-                        Submit
-                      </Button>
-                    )}
+                        // submitItems()
+                      }}
+                      size='large'
+                      variant='contained'
+                    >
+                      update
+                    </Button>
                   </>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='contained'
+                      color='error'
+                      sx={{ mr: 2 }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        // updateFormItems()
+                        submitItems()
+                      }}
+                      size='large'
+                      variant='contained'
+                    >
+                      Add
+                    </Button>
+                  </>
+                )}
+              </>
             </Grid>
           </Grid>
         </form>
@@ -821,7 +763,7 @@ const AddRequestForm = () => {
       </Grid>
       <CardContent>
         <Grid container>
-          <AddRequestDialog
+          <CommonDialogBox
             title={'Add Request Item'}
             dialogBoxStatus={show}
             formComponent={createForm()}
@@ -849,12 +791,6 @@ const AddRequestForm = () => {
                     disabled={id ? true : false}
                     onChange={e => {
                       filterToStocks(e.target.value)
-                      // console.log('from stock selected', storesType[filteredStoreType(e.target.value)])
-                      // setStores({
-                      //   ...stores,
-                      //   fromStore: e.target.value,
-                      //   from_store_type: storesType[filteredStoreType(e.target.value)].toString()
-                      // })
                       setEditParams({
                         ...editParams,
                         from_store_id: e.target.value,
@@ -922,15 +858,12 @@ const AddRequestForm = () => {
                     label='Select'
                     disabled={id ? true : false}
                     onChange={e => {
-                      // setStores({ ...stores, toStore: e.target.value })
                       setEditParams({
                         ...editParams,
                         to_store_id: e.target.value,
                         to_store_type: storesType[filteredStoreType(e.target.value)].toString()
                       })
                       setErrors({})
-
-                      // filterFromStocks(e.target.value)
                     }}
                     // error={Boolean(errors?.state_id)}
                     // labelId='state_id'
@@ -965,25 +898,20 @@ const AddRequestForm = () => {
           mb: 4
         }}
       >
-        {id ? null : (
-          <Button
-            sx={{
-              mx: { sm: 6, xs: 'auto' }
-            }}
-            onClick={() => {
-              handleSubmit()
-            }}
-            size='big'
-            variant='contained'
-          >
-            Add Request Item
-          </Button>
-        )}
+        <Button
+          sx={{
+            mx: { sm: 6, xs: 'auto' }
+          }}
+          onClick={() => {
+            handleSubmit()
+          }}
+          size='big'
+          variant='contained'
+        >
+          Add Request Item
+        </Button>
       </Grid>
 
-      {/* <Divider
-        sx={{ mt: theme => `${theme.spacing(6.5)} !important`, mb: theme => `${theme.spacing(5.5)} !important` }}
-      /> */}
       <TableContainer>
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -1002,10 +930,8 @@ const AddRequestForm = () => {
                   return (
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
-                      <TableCell>{el.priority}</TableCell>
-                      {/* <TableCell>{el.control_substance}</TableCell> */}
-                      {/* <TableCell>{el.control_substance_file.name}</TableCell> */}
-                      <TableCell>{el.qty}</TableCell>
+                      <TableCell>{el.priority_item}</TableCell>
+                      <TableCell>{el.request_item_qty}</TableCell>
 
                       <TableCell>
                         <IconButton
@@ -1013,26 +939,20 @@ const AddRequestForm = () => {
                           sx={{ mr: 0.5 }}
                           aria-label='Edit'
                           onClick={() => {
-                            if (id) {
-                              console.log(id.stock_item_id)
-                              setMedicineItemId(el.stock_item_id)
-                              editTableData(el.id)
-                              showDialog()
-                            } else {
-                              console.log(el.medicine_id)
-                              setMedicineItemId(el.medicine_id)
+                            console.log(el.request_item_medicine_id)
+                            setMedicineItemId(el.request_item_medicine_id)
 
-                              editTableData(el.medicine_id)
-                              showDialog()
-                            }
+                            editTableData(el.request_item_medicine_id)
+                            showDialog()
+                            // }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id ? null : (
+                        {id && el.request_item_detail_id ? null : (
                           <IconButton
                             onClick={() => {
-                              removeItemsFroTable(el.medicine_id)
+                              removeItemsFroTable(el.request_item_medicine_id)
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
@@ -1064,7 +984,7 @@ const AddRequestForm = () => {
               }}
             >
               <CalcWrapper>
-                <Typography variant='body2'>Total QTY:</Typography>
+                <Typography variant='body2'>Total Qty:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                   {totalQty}
                 </Typography>
@@ -1073,12 +993,6 @@ const AddRequestForm = () => {
               <Divider
                 sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
               />
-              {/* <CalcWrapper>
-                <Typography variant='body2'>Total:</Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                  {totalQty}
-                </Typography>
-              </CalcWrapper> */}
             </Grid>
           </Grid>
         ) : null}
