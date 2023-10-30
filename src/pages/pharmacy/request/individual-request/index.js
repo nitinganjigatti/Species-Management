@@ -12,6 +12,13 @@ import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -27,27 +34,25 @@ const IndividualRequest = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
+  const [fulfillMedicine, setFulfillMedicine] = useState(false)
 
   const router = useRouter()
   const { id, request_number } = router.query
 
+  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+
+  console.log('base_url', base_url)
+
   console.log('id', id)
 
   const getRequestItemLists = async id => {
-    //setLoader(true)
+    setLoader(true)
     console.log('getRequestItemList', id)
     const response = await getRequestItemsListById(id)
-    if (response?.length > 0) {
-      console.log('list', response)
+    debugger
+    if (response.success) {
       debugger
-
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setRequestItems(listWithId)
+      setRequestItems(response.data)
       setLoader(false)
     } else {
       setLoader(false)
@@ -67,7 +72,6 @@ const IndividualRequest = () => {
 
   useEffect(() => {
     if (id !== undefined) {
-      console.log('id in use Effect', id)
       getRequestItemLists(id)
     }
   }, [id])
@@ -118,11 +122,11 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'name',
-      headerName: 'Medicine Name ',
+      field: 'stock_name',
+      headerName: 'Medicine Name',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.stock_name}
         </Typography>
       )
     },
@@ -159,6 +163,9 @@ const IndividualRequest = () => {
           size='small'
           variant='contained'
           onClick={() => {
+            setFulfillMedicine({
+              ...params.row
+            })
             showDialog()
           }}
         >
@@ -166,15 +173,14 @@ const IndividualRequest = () => {
         </Button>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'fulfilled',
+      field: 'dispatch_qty',
       headerName: 'Fulfilled',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.fulfilled}
+          {params.row.dispatch_qty}
         </Typography>
       )
     },
@@ -186,7 +192,7 @@ const IndividualRequest = () => {
       headerName: 'Remaining',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.remaining}
+          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
         </Typography>
       )
     },
@@ -222,27 +228,35 @@ const IndividualRequest = () => {
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
-                  <p>Local Pharmacy</p>
+                  <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
-                  <p>Central Pharmacy</p>
+                  <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Date</h5>
-                  <p>24/10/2023</p>
+                  <p>{requestItems?.request_date}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
-                  <p>#12345</p>
+                  <p>{requestItems?.request_number}</p>
                 </Grid>
               </Grid>
               {/* Medicine Listing */}
             </CardContent>
-            <TableBasic columns={columns} rows={rows}></TableBasic>
+            {requestItems?.request_item_details?.length > 0 ? (
+              <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+            ) : null}
             <CardContent>
               <Grid container>
-                <FulfillDialog title={'Fulfill'} dialogBoxStatus={show} close={closeDialog} show={showDialog} />
+                <FulfillDialog
+                  fulfillMedicine={fulfillMedicine}
+                  title={'Fulfill'}
+                  dialogBoxStatus={show}
+                  close={closeDialog}
+                  show={showDialog}
+                />
               </Grid>
             </CardContent>
           </Card>

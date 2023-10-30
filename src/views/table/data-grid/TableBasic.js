@@ -11,18 +11,7 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
 
   return (
-    <Box>
-      {rows.length > 0 ? (
-        <DataGrid
-          autoHeight
-          columns={columns}
-          rows={rows}
-          onRowClick={onRowClick}
-          pagination={false}
-          hideFooter={true}
-        />
-      ) : null}
-    </Box>
+    <Box>{rows.length > 0 ? <DataGrid autoHeight columns={columns} rows={rows} onRowClick={onRowClick} /> : null}</Box>
   )
 }
 
