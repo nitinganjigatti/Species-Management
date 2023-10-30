@@ -360,11 +360,9 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    console.log('data of update values', result)
 
-    if (result) {
-      // filterToStocks(result.to_store_id)
-      const lineItems = result.request_item_details.map(el => {
+    if (result.success === true && result.data !== '') {
+      const lineItems = result.data.request_item_details.map(el => {
         return {
           request_item_medicine_id: el.stock_item_id,
           medicine_name: el.stock_name,
@@ -377,17 +375,18 @@ const AddRequestForm = () => {
           request_item_detail_id: el.id
         }
       })
-      console.log('testts', lineItems)
+
       setEditParams({
         ...editParams,
-        id: result.id,
-        from_store_id: result.from_store_id,
-        to_store_id: result.to_store_id,
-        ro_date: result.request_date,
-        from_store_type: result.from_store_type,
-        to_store_type: result.to_store_type,
+        id: result.data.id,
+        from_store_id: result.data.from_store_id,
+        to_store_id: result.data.to_store_id,
+        ro_date: result.data.request_date,
+        from_store_type: result.data.from_store_type,
+        to_store_type: result.data.to_store_type,
         request_item_details: lineItems
       })
+      // }
     }
   }
 
