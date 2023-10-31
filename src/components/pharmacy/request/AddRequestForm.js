@@ -70,7 +70,7 @@ const initialNestedRowMedicine = {
   request_item_qty: '',
   request_item_leaf_id: '',
   priority_item: 'high',
-  control_substance: Boolean,
+  control_substance: false,
   control_substance_file: ''
 }
 
@@ -397,6 +397,7 @@ const AddRequestForm = () => {
         return el.request_item_medicine_id === itemId
       })
       console.log('filtered items while editing', getItems[0])
+      console.log('filtered control_substance', getItems[0].priority_item)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -418,7 +419,7 @@ const AddRequestForm = () => {
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
       console.log('file', getItems[0].control_substance_file)
-      console.log('nestedRowMedicine', nestedRowMedicine)
+      console.log('control_substance', getItems[0].control_substance)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -428,7 +429,7 @@ const AddRequestForm = () => {
         request_item_qty: getItems[0].request_item_qty,
         control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
         priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance === '0' ? false : true
+        control_substance: getItems[0].control_substance
       })
     }
   }
@@ -680,11 +681,10 @@ const AddRequestForm = () => {
                         closeDialog()
                       }}
                       size='large'
-                      variant='contained'
-                      color='error'
+                      variant='outlined'
                       sx={{ mr: 2 }}
                     >
-                      Cancel
+                      Done
                     </Button>
                     <Button
                       onClick={() => {
@@ -705,11 +705,10 @@ const AddRequestForm = () => {
                         closeDialog()
                       }}
                       size='large'
-                      variant='contained'
-                      color='error'
+                      variant='outlined'
                       sx={{ mr: 2 }}
                     >
-                      Cancel
+                      Done
                     </Button>
                     <Button
                       onClick={() => {

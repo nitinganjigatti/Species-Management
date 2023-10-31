@@ -40,6 +40,12 @@ const ListOfPurchase = () => {
     }
   }
 
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/purchase/addPurchase/',
+      query: { id: id, action: 'edit' }
+    })
+  }
   useEffect(() => {
     getPurchaseLists()
   }, [])
@@ -135,7 +141,13 @@ const ListOfPurchase = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => {
+              handleEdit(params.row.id)
+            }}
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>

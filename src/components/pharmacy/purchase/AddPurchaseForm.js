@@ -57,11 +57,11 @@ const editParamsInitialState = {
   description: '',
   type_of_store: '',
   purchase_details: [],
+  is_before_tax: 0,
+  expected_delivery_date: '2023-11-01',
+  delivery_date: '2023-11-01',
 
-  expected_delivery_date: '',
-  delivery_date: '',
-
-  transport_details: '',
+  transport_details: 'test',
   transport_charge: 0,
   cgst: 0,
   sgst: 0,
@@ -86,7 +86,6 @@ const initialNestedRowMedicine = {
 
   purchase_unit_price: 0,
   purchase_purchase_price: 0,
-
   purchase_batch_no: '',
   purchase_expiry_date: '',
   min_stock_qty: 0,
@@ -167,7 +166,7 @@ const AddPurchaseForm = () => {
         setEditParams({
           ...editParams,
           discount_percentage: discountValue,
-          discount_amount: '',
+          discount_amount: 0,
           net_amount: finalAmount
         })
       } else if (editParams.discount_type === 'F') {
@@ -175,7 +174,7 @@ const AddPurchaseForm = () => {
         setEditParams({
           ...editParams,
           discount_amount: discountValue,
-          discount_percentage: '',
+          discount_percentage: 0,
           net_amount: finalAmount
         })
       }
@@ -191,13 +190,23 @@ const AddPurchaseForm = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
       purchase_unit_id: nestedRowMedicine.purchase_unit_id,
-      // id: nestedRowMedicine.id,
       purchase_qty: nestedRowMedicine.purchase_qty,
-      // dosageForm: nestedRowMedicine.dosageForm,
       purchase_unit_price: nestedRowMedicine.purchase_unit_price,
       purchase_purchase_price: nestedRowMedicine.purchase_purchase_price,
       purchase_batch_no: nestedRowMedicine.purchase_batch_no,
-      purchase_expiry_date: nestedRowMedicine.purchase_expiry_date
+      purchase_expiry_date: nestedRowMedicine.purchase_expiry_date,
+      purchase_stock_item_id: nestedRowMedicine.purchase_stock_item_id,
+      min_stock_qty: 0,
+      purchase_gst_type: 0,
+      purchase_cgst: 0,
+      purchase_sgst: 0,
+      purchase_igst: 0,
+      purchase_tax_amount: 0,
+      purchase_taxeble_amount: 0,
+      purchase_net_amount: 0,
+      purchase_discount_amount: 0,
+      purchase_discount_type: 0,
+      purchase_is_before_tax: 0
     }
 
     const updatedNestedRows = [...editParams.purchase_details, newData]
@@ -445,25 +454,25 @@ const AddPurchaseForm = () => {
 
         return {
           id: el.id,
-          medicine_name: el.medicine_name,
-          purchase_unit_id: el.purchase_unit_id,
-          purchase_stock_item_id: el.purchase_stock_item_id,
-          purchase_qty: el.purchase_qty,
-          purchase_unit_price: el.purchase_unit_price,
-          purchase_purchase_price: el.purchase_purchase_price,
-          purchase_batch_no: el.purchase_batch_no,
-          purchase_expiry_date: el.purchase_expiry_date,
+          medicine_name: el.stock_item_name,
+          purchase_unit_id: el.unit_id,
+          purchase_stock_item_id: el.stock_item_id,
+          purchase_qty: el.qty,
+          purchase_unit_price: el.unit_price,
+          purchase_purchase_price: el.purchase_price,
+          purchase_batch_no: el.batch_no,
+          purchase_expiry_date: el.expiry_date,
           min_stock_qty: el.min_stock_qty,
-          purchase_gst_type: el.purchase_gst_type,
-          purchase_cgst: el.purchase_cgst,
-          purchase_sgst: el.purchase_sgst,
-          purchase_igst: el.purchase_igst,
-          purchase_tax_amount: el.purchase_tax_amount,
-          purchase_taxeble_amount: el.purchase_taxeble_amount,
-          purchase_net_amount: el.purchase_net_amount,
-          purchase_discount_amount: el.purchase_discount_amount,
-          purchase_discount_type: el.purchase_discount_type,
-          purchase_is_before_tax: el.purchase_is_before_tax
+          purchase_gst_type: el.gst_type,
+          purchase_cgst: el.cgst,
+          purchase_sgst: el.sgst,
+          purchase_igst: el.igst,
+          purchase_tax_amount: el.tax_amount,
+          purchase_taxeble_amount: el.taxeble_amount,
+          purchase_net_amount: el.net_amount,
+          purchase_discount_amount: el.discount_amount,
+          purchase_discount_type: el.discount_type,
+          purchase_is_before_tax: el.is_before_tax
         }
       })
       console.log('lineItems', lineItems)
@@ -477,7 +486,7 @@ const AddPurchaseForm = () => {
         description: result.data.description,
         type_of_store: result.data.type_of_store,
         purchase_details: lineItems,
-        expected_delivery_date: result.data.purchase_details,
+        expected_delivery_date: result.data.expected_delivery_date,
         delivery_date: result.data.delivery_date,
         transport_details: result.data.transport_details,
         transport_charge: result.data.transport_charge,
@@ -500,30 +509,31 @@ const AddPurchaseForm = () => {
   const editTableData = itemId => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.purchase_details.filter(el => {
-        return el.id === itemId
+        return el.purchase_unit_id === itemId
       })
-      console.log('filtered items while editing', getItems[0])
+      console.log('filtered items while editing', getItems)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        medicine_name: getItems[0].medicine_name,
+        id: getItems[0]?.id,
+        medicine_name: getItems[0]?.medicine_name,
         purchase_unit_id: getItems[0].purchase_unit_id,
         purchase_qty: getItems[0].purchase_qty,
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_purchase_price: getItems[0].purchase_purchase_price,
         purchase_batch_no: getItems[0].purchase_batch_no,
         purchase_expiry_date: getItems[0].purchase_expiry_date,
-        min_stock_qty: '',
-        purchase_gst_type: '',
-        purchase_cgst: '',
-        purchase_sgst: '',
-        purchase_igst: '',
-        purchase_tax_amount: '',
-        purchase_taxeble_amount: '',
-        purchase_net_amount: '',
-        purchase_discount_amount: '',
-        purchase_discount_type: '',
-        purchase_is_before_tax: ''
+        min_stock_qty: getItems[0].min_stock_qty,
+        purchase_gst_type: getItems[0].purchase_gst_type,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_tax_amount: getItems[0].purchase_tax_amount,
+        purchase_taxeble_amount: getItems[0].purchase_taxeble_amount,
+        purchase_net_amount: getItems[0].purchase_net_amount,
+        purchase_discount_amount: getItems[0].purchase_discount_amount,
+        purchase_discount_type: getItems[0].purchase_discount_type,
+        purchase_is_before_tax: getItems[0].purchase_is_before_tax
       })
     } else {
       console.log('in else ', editParams.purchase_details)
@@ -533,30 +543,30 @@ const AddPurchaseForm = () => {
       })
       // console.log('filtered', getItems[0].medicine_name)
       console.log('filtered', getItems)
-      console.log('file', getItems[0].control_substance_file)
+      console.log('file', getItems[0])
       console.log('nestedRowMedicine', nestedRowMedicine)
       // const file=[]
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        medicine_name: getItems[0].medicine_name,
+        medicine_name: getItems[0]?.medicine_name,
         purchase_unit_id: getItems[0].purchase_unit_id,
         purchase_qty: getItems[0].purchase_qty,
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_purchase_price: getItems[0].purchase_purchase_price,
         purchase_batch_no: getItems[0].purchase_batch_no,
         purchase_expiry_date: getItems[0].purchase_expiry_date,
-        min_stock_qty: '',
-        purchase_gst_type: '',
-        purchase_cgst: '',
-        purchase_sgst: '',
-        purchase_igst: '',
-        purchase_tax_amount: '',
-        purchase_taxeble_amount: '',
-        purchase_net_amount: '',
-        purchase_discount_amount: '',
-        purchase_discount_type: '',
-        purchase_is_before_tax: ''
+        min_stock_qty: getItems[0].min_stock_qty,
+        purchase_gst_type: getItems[0].purchase_gst_type,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_tax_amount: getItems[0].purchase_tax_amount,
+        purchase_taxeble_amount: getItems[0].purchase_taxeble_amount,
+        purchase_net_amount: getItems[0].purchase_net_amount,
+        purchase_discount_amount: getItems[0].purchase_discount_amount,
+        purchase_discount_type: getItems[0].purchase_discount_type,
+        purchase_is_before_tax: getItems[0].purchase_is_before_taxs
       })
     }
   }
@@ -629,7 +639,7 @@ const AddPurchaseForm = () => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
-                      // purchase_stock_item_id: newValue?.value,
+                      purchase_stock_item_id: newValue?.value,
                       purchase_unit_id: newValue?.value,
                       purchase_unit_price: newValue?.purchase_unit_price,
                       purchase_qty: 0,
@@ -790,11 +800,10 @@ const AddPurchaseForm = () => {
                       closeDialog()
                     }}
                     size='large'
-                    variant='contained'
-                    color='error'
+                    variant='outlined'
                     sx={{ mr: 2 }}
                   >
-                    Cancel
+                    Done
                   </Button>
                   <Button
                     onClick={() => {
@@ -815,11 +824,10 @@ const AddPurchaseForm = () => {
                       closeDialog()
                     }}
                     size='large'
-                    variant='contained'
-                    color='error'
+                    variant='outlined'
                     sx={{ mr: 2 }}
                   >
-                    Cancel
+                    Done
                   </Button>
                   <Button
                     onClick={() => {
@@ -860,7 +868,7 @@ const AddPurchaseForm = () => {
             size='big'
             variant='contained'
             onClick={() => {
-              Router.push('/pharmacy/request/requestList/')
+              Router.push('/pharmacy/purchase/paymentList/')
             }}
           >
             Payment List
@@ -872,7 +880,7 @@ const AddPurchaseForm = () => {
             size='big'
             variant='contained'
             onClick={() => {
-              Router.push('/pharmacy/request/requestList/')
+              Router.push('/pharmacy/purchase/purchaseList/')
             }}
           >
             Purchase List
@@ -934,11 +942,13 @@ const AddPurchaseForm = () => {
               <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <TextField
-                    type='text'
+                    type='tect'
                     value={editParams.po_no}
                     error={Boolean(errors.po_no)}
                     label='Purchase No'
                     onChange={e => {
+                      // const val = parseInt(e.target.value, 10)
+
                       setEditParams({
                         ...editParams,
                         po_no: e.target.value
@@ -1186,7 +1196,7 @@ const AddPurchaseForm = () => {
                     <InputLabel>Discount</InputLabel>
                     <Select
                       label='Discount'
-                      // disabled={id ? true : false}
+                      value={editParams.discount_type}
                       onChange={event => {
                         setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
                         setErrors({})
