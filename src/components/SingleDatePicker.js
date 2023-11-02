@@ -12,7 +12,7 @@ const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name }) => {
     <DatePickerWrapper>
       <DatePicker
         selected={date}
-        id='basic-input'
+        id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
         placeholderText='Click to select a date'

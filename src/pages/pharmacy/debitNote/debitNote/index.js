@@ -40,6 +40,12 @@ const ListOfDebitNote = () => {
     }
   }
 
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/debitNote/addDebitNote/',
+      query: { id: id, action: 'edit' }
+    })
+  }
   useEffect(() => {
     getDebitLists()
   }, [])
@@ -135,7 +141,13 @@ const ListOfDebitNote = () => {
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => {
+              handleEdit(params.row.id)
+            }}
+          >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton size='small' sx={{ mr: 0.5 }}>
@@ -159,7 +171,13 @@ const ListOfDebitNote = () => {
           TableTitle={debitList.length > 0 ? 'Debit note List' : 'Debit note List is empty add Debit note List'}
           headerActions={
             <div>
-              <Button size='big' variant='contained'>
+              <Button
+                size='big'
+                variant='contained'
+                onClick={() => {
+                  Router.push('/pharmacy/debitNote/addDebitNote/')
+                }}
+              >
                 Add Debit note
               </Button>
             </div>
