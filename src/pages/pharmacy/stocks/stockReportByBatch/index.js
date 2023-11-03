@@ -7,8 +7,7 @@ import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
+
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Select from '@mui/material/Select'
@@ -16,10 +15,6 @@ import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
@@ -51,12 +46,9 @@ const ListOfStocksByBatch = () => {
       return
     } else {
       const result = await getStocksByBatch(stockId)
-      if (result?.length > 0) {
-        console.log('stocks', result)
-
-        // result.sort((a, b) => a.id - b.id)
-        let listWithId = response
-          ? response.map((el, i) => {
+      if (result.success === true && result.data !== '') {
+        let listWithId = result.data
+          ? result.data.map((el, i) => {
               return { ...el, uid: i + 1 }
             })
           : []

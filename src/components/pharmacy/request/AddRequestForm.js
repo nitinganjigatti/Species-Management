@@ -996,6 +996,7 @@ const AddRequestForm = () => {
         ) : null}
       </CardContent>
       <LoadingButton
+        disabled={editParams.request_item_details.length > 0 ? false : true}
         sx={{ float: 'right', my: 4, mx: 6 }}
         size='large'
         onClick={() => {

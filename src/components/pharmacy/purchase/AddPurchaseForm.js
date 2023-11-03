@@ -32,7 +32,6 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getSuppliers } from 'src/lib/api/getSupplierList'
 import { getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
@@ -62,31 +61,8 @@ const editParamsInitialState = {
   discount_amount: 0,
   discount_percentage: 0,
   net_amount: 0,
-  user: ''
-  // po_no: '',
-  // po_date: '',
-  // store_id: '',
-  // supplier_id: '',
-  // description: '',
-  // type_of_store: '',
-  // purchase_details: [],
-  // is_before_tax: 0,
-  // expected_delivery_date: '2023-11-01',
-  // delivery_date: '2023-11-01',
-
-  // transport_details: 'test',
-  // transport_charge: 0,
-  // cgst: 0,
-  // sgst: 0,
-  // igst: 0,
-  // tax_amount: 0,
-  // taxeble_amount: 0,
-  // total_amount: 0,
-  // discount_type: 0,
-  // discount_amount: 0,
-  // discount_percentage: 0,
-  // net_amount: 0,
-  // paid_amount: 0
+  user: '',
+  tax_amount: 0
 }
 
 const initialNestedRowMedicine = {
@@ -97,26 +73,9 @@ const initialNestedRowMedicine = {
   purchase_purchase_price: 0,
   purchase_batch_no: '',
   purchase_expiry_date: '',
-  purchase_stock_item_id: ''
-  // medicine_name: '',
-  // purchase_unit_id: '',
-  // purchase_stock_item_id: '',
-  // purchase_qty: 0,
-  // purchase_unit_price: 0,
-  // purchase_purchase_price: 0,
-  // purchase_batch_no: '',
-  // purchase_expiry_date: '',
-  // min_stock_qty: 0,
-  // purchase_gst_type: 0,
-  // purchase_cgst: 0,
-  // purchase_sgst: 0,
-  // purchase_igst: 0,
-  // purchase_tax_amount: 0,
-  // purchase_taxeble_amount: 0,
-  // purchase_net_amount: 0,
-  // purchase_discount_amount: 0,
-  // purchase_discount_type: 0,
-  // purchase_is_before_tax: 0
+  purchase_stock_item_id: '',
+  purchase_gst_type: '',
+  purchase_tax_amount: 0
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -174,44 +133,60 @@ const AddPurchaseForm = () => {
     0
   )
 
+  const calculateTotalTaxAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseInt(row.purchase_tax_amount ? row.purchase_tax_amount : 0),
+    0
+  )
+  function calculateTaxAmount(gst_name, totalAmount) {
+    if (!gst_name || !totalAmount) {
+      return 0
+    }
+
+    const gstPercentage = parseFloat(gst_name)
+    console.log('gstPercentage', gstPercentage)
+
+    const taxAmount = totalAmount * (gstPercentage / 100)
+
+    // return taxAmount.toFixed(2)
+    return taxAmount
+  }
+
   const calculateFinalAmount = useCallback(
     discountValue => {
       // const calculateFinalAmount = discountValue => {
       let finalAmount = totalLineItemsPurchase
+      let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
+      let netAmount = 0
       console.log('before discount', finalAmount)
       setEditParams({
         ...editParams,
         total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-        net_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0
+        net_amount: netAmountWithGST ? netAmountWithGST : 0
+        // purchase_tax_amount: calculateTotalTaxAmount
       })
-
       if (editParams.discount_type === 'P') {
-        finalAmount *= (100 - discountValue) / 100
-        const discountedAmount = totalLineItemsPurchase - finalAmount
-        console.log('discountedAmount in p', discountedAmount)
-
+        netAmount = (netAmountWithGST * discountValue) / 100
+        const discountValueAmount = netAmount
+        const netValueAfterDiscount = netAmountWithGST - netAmount
+        console.log('discountValueAmount', discountValueAmount)
+        console.log('netValueAfterDiscount', netValueAfterDiscount)
         setEditParams({
           ...editParams,
           discount_percentage: discountValue,
-          discount_amount: discountedAmount,
-          net_amount: finalAmount
+          discount_amount: discountValueAmount,
+          net_amount: netValueAfterDiscount,
+          tax_amount: calculateTotalTaxAmount
         })
       } else if (editParams.discount_type === 'F') {
-        finalAmount -= discountValue
-        const discountedAmount = totalLineItemsPurchase - finalAmount
-        console.log('discountedAmount in F', discountedAmount)
-
+        const netValueAfterDiscount = netAmountWithGST - discountValue
         setEditParams({
           ...editParams,
           discount_amount: discountValue,
-          discount_percentage: discountedAmount,
-          net_amount: finalAmount
+          discount_percentage: 0,
+          net_amount: netValueAfterDiscount,
+          tax_amount: calculateTotalTaxAmount
         })
       }
-      console.log('after discount', finalAmount)
-
-      // return finalAmount
-      // }
     },
     [totalLineItemsPurchase, editParams]
   )
@@ -229,20 +204,9 @@ const AddPurchaseForm = () => {
       purchase_purchase_price: nestedRowMedicine.purchase_purchase_price,
       purchase_batch_no: nestedRowMedicine.purchase_batch_no,
       purchase_expiry_date: nestedRowMedicine.purchase_expiry_date,
-      purchase_stock_item_id: nestedRowMedicine.purchase_stock_item_id
-
-      // purchase_stock_item_id: nestedRowMedicine.purchase_stock_item_id,
-      // min_stock_qty: 0,
-      // purchase_gst_type: 0,
-      // purchase_cgst: 0,
-      // purchase_sgst: 0,
-      // purchase_igst: 0,
-      // purchase_tax_amount: 0,
-      // purchase_taxeble_amount: 0,
-      // purchase_net_amount: 0,
-      // purchase_discount_amount: 0,
-      // purchase_discount_type: 0,
-      // purchase_is_before_tax: 0
+      purchase_stock_item_id: nestedRowMedicine.purchase_stock_item_id,
+      purchase_gst_type: nestedRowMedicine.purchase_gst_type,
+      purchase_tax_amount: nestedRowMedicine.purchase_tax_amount
     }
 
     const updatedNestedRows = [...editParams.purchase_details, newData]
@@ -370,13 +334,6 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = () => {
-    // const HasErrors = !nestedRowMedicine.medicine_name || !nestedRowMedicine.purchase_qty
-    // if (HasErrors) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
-    // setErrors({})
     const HasErrors =
       !nestedRowMedicine.medicine_name ||
       !nestedRowMedicine.purchase_unit_id ||
@@ -466,14 +423,18 @@ const AddPurchaseForm = () => {
           'maped obj',
           searchResults?.map(item => ({
             value: item.id,
-            label: item.name
+            label: item.name,
+            purchase_unit_price: item.supplier_price,
+            tax_type: item.gst_tax ? item.gst_tax : ''
+            // supplier_price: item.supplier_price
           }))
         )
         setOptionsMedicineList(
           searchResults?.map(item => ({
             value: item.id,
             label: item.name,
-            purchase_unit_price: item.supplier_price
+            purchase_unit_price: item.supplier_price,
+            tax_type: item.gst_tax ? item.gst_tax : ''
             // supplier_price: item.supplier_price
           }))
         )
@@ -498,18 +459,9 @@ const AddPurchaseForm = () => {
           purchase_unit_price: el.unit_price,
           purchase_purchase_price: el.purchase_price,
           purchase_batch_no: el.batch_no,
-          purchase_expiry_date: el.expiry_date
-          // min_stock_qty: el.min_stock_qty,
-          // purchase_gst_type: el.gst_type,
-          // purchase_cgst: el.cgst,
-          // purchase_sgst: el.sgst,
-          // purchase_igst: el.igst,
-          // purchase_tax_amount: el.tax_amount,
-          // purchase_taxeble_amount: el.taxeble_amount,
-          // purchase_net_amount: el.net_amount,
-          // purchase_discount_amount: el.discount_amount,
-          // purchase_discount_type: el.discount_type,
-          // purchase_is_before_tax: el.is_before_tax
+          purchase_expiry_date: el.expiry_date,
+          purchase_gst_type: el.gst_type,
+          purchase_tax_amount: el.tax_amount
         }
       })
       console.log('lineItems', lineItems)
@@ -524,21 +476,12 @@ const AddPurchaseForm = () => {
         type_of_store: result.data.type_of_store,
         purchase_details: lineItems,
         user: result.data.user,
-        // expected_delivery_date: result.data.expected_delivery_date,
-        // delivery_date: result.data.delivery_date,
-        // transport_details: result.data.transport_details,
-        // transport_charge: result.data.transport_charge,
-        // cgst: result.data.cgst,
-        // sgst: result.data.sgst,
-        // igst: result.data.igst,
-        // tax_amount: result.data.tax_amount,
-        // taxeble_amount: result.data.taxeble_amount,
-        // paid_amount: result.data.paid_amount
         total_amount: result.data.total_amount,
         discount_type: result.data.discount_type ? result.data.discount_type : '',
         discount_amount: result.data.discount_amount,
         discount_percentage: result.data.discount_percentage,
-        net_amount: result.data.net_amount
+        net_amount: result.data.net_amount,
+        tax_amount: result.data.tax_amount
       })
     }
   }
@@ -563,18 +506,9 @@ const AddPurchaseForm = () => {
         purchase_expiry_date: getItems[0].purchase_expiry_date,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
-          : getItems[0].purchase_unit_id
-        // min_stock_qty: getItems[0].min_stock_qty,
-        // purchase_gst_type: getItems[0].purchase_gst_type,
-        // purchase_cgst: getItems[0].purchase_cgst,
-        // purchase_sgst: getItems[0].purchase_sgst,
-        // purchase_igst: getItems[0].purchase_igst,
-        // purchase_tax_amount: getItems[0].purchase_tax_amount,
-        // purchase_taxeble_amount: getItems[0].purchase_taxeble_amount,
-        // purchase_net_amount: getItems[0].purchase_net_amount,
-        // purchase_discount_amount: getItems[0].purchase_discount_amount,
-        // purchase_discount_type: getItems[0].purchase_discount_type,
-        // purchase_is_before_tax: getItems[0].purchase_is_before_tax
+          : getItems[0].purchase_unit_id,
+        purchase_gst_type: getItems[0].purchase_gst_type,
+        purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     } else {
       console.log('in else ', editParams.purchase_details)
@@ -599,18 +533,9 @@ const AddPurchaseForm = () => {
         purchase_expiry_date: getItems[0].purchase_expiry_date,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
-          : getItems[0].purchase_unit_id
-        // min_stock_qty: getItems[0].min_stock_qty,
-        // purchase_gst_type: getItems[0].purchase_gst_type,
-        // purchase_cgst: getItems[0].purchase_cgst,
-        // purchase_sgst: getItems[0].purchase_sgst,
-        // purchase_igst: getItems[0].purchase_igst,
-        // purchase_tax_amount: getItems[0].purchase_tax_amount,
-        // purchase_taxeble_amount: getItems[0].purchase_taxeble_amount,
-        // purchase_net_amount: getItems[0].purchase_net_amount,
-        // purchase_discount_amount: getItems[0].purchase_discount_amount,
-        // purchase_discount_type: getItems[0].purchase_discount_type,
-        // purchase_is_before_tax: getItems[0].purchase_is_before_taxs
+          : getItems[0].purchase_unit_id,
+        purchase_gst_type: getItems[0].purchase_gst_type,
+        purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     }
   }
@@ -702,7 +627,9 @@ const AddPurchaseForm = () => {
                       // purchase_stock_item_id: newValue?.value,
                       purchase_unit_price: newValue?.purchase_unit_price,
                       purchase_qty: 0,
-                      purchase_purchase_price: 0
+                      purchase_purchase_price: 0,
+                      purchase_gst_type: newValue?.tax_type,
+                      purchase_tax_amount: 0
 
                       // purchase_purchase_price: newValue?.supplier_price * nestedRowMedicine.purchase_qty
                     })
@@ -746,7 +673,7 @@ const AddPurchaseForm = () => {
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
                       : null
                   }
-                  name={'Date'}
+                  name={'Expiry date'}
                   onChangeHandler={date => {
                     console.log(date)
                     // setStores({ ...stores, date: date })
@@ -775,10 +702,13 @@ const AddPurchaseForm = () => {
                   onChange={event => {
                     const val = parseInt(event.target.value, 10)
                     const supplierPrice = nestedRowMedicine.purchase_unit_price
+                    const totalPrice = val * supplierPrice
+                    const taxAmount = calculateTaxAmount(nestedRowMedicine.purchase_gst_type, totalPrice)
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       purchase_qty: val,
-                      purchase_purchase_price: val * supplierPrice
+                      purchase_purchase_price: totalPrice,
+                      purchase_tax_amount: taxAmount
                     })
                     setItemErrors({})
                   }}
@@ -850,6 +780,50 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
+            {nestedRowMedicine.purchase_gst_type ? (
+              <>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='text'
+                      disabled={true}
+                      value={nestedRowMedicine.purchase_gst_type}
+                      error={Boolean(itemErrors.purchase_gst_type)}
+                      label='GST'
+                      onChange={event => {
+                        setNestedRowMedicine({ ...nestedRowMedicine, purchase_gst_type: event.target.value })
+                        setItemErrors({})
+                      }}
+                    />
+                    {itemErrors.purchase_gst_type && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='number'
+                      disabled={true}
+                      value={nestedRowMedicine.purchase_tax_amount}
+                      error={Boolean(itemErrors.purchase_tax_amount)}
+                      label='Tax amount'
+                      onChange={event => {
+                        setNestedRowMedicine({ ...nestedRowMedicine, purchase_tax_amount: event.target.value })
+                        setItemErrors({})
+                      }}
+                    />
+                    {itemErrors.purchase_tax_amount && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              </>
+            ) : null}
 
             {/* // file uploader */}
             <Grid item xs={12}>
@@ -1252,6 +1226,15 @@ const AddPurchaseForm = () => {
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
             <CalcWrapper>
+              <Typography variant='body2'>GST :</Typography>
+              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
+              </Typography>
+            </CalcWrapper>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            <CalcWrapper>
               <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Grid item xs={12} sm={5}>
                   <FormControl fullWidth>
@@ -1312,12 +1295,6 @@ const AddPurchaseForm = () => {
             <Divider
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
-            {/* <CalcWrapper>
-                <Typography variant='body2'>Total:</Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                  {totalQty}
-                </Typography>
-              </CalcWrapper> */}
           </Grid>
         </Grid>
         {/* // ) : null} */}
