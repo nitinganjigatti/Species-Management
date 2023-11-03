@@ -575,7 +575,6 @@ const AddDebitForm = () => {
       }
     } else {
       console.log('postData', postData)
-      debugger
       const response = await addDebit(postData)
       console.log('after posting', response)
       if (response?.success) {
