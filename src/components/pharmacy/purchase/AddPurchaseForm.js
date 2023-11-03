@@ -161,7 +161,9 @@ const AddPurchaseForm = () => {
       setEditParams({
         ...editParams,
         total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-        net_amount: netAmountWithGST ? netAmountWithGST : 0
+        net_amount: netAmountWithGST ? netAmountWithGST : 0,
+        tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
+
         // purchase_tax_amount: calculateTotalTaxAmount
       })
       if (editParams.discount_type === 'P') {
@@ -559,7 +561,8 @@ const AddPurchaseForm = () => {
         return
       }
     }
-    setSubmitLoader(false)
+    setSubmitLoader(true)
+
     const postData = editParams
     postData.total_amount = totalLineItemsPurchase
     console.log('while posting data', postData)

@@ -160,10 +160,12 @@ const AddDebitForm = () => {
       let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
       let netAmount = 0
       console.log('before discount', finalAmount)
+
       setEditParams({
         ...editParams,
         total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-        net_amount: netAmountWithGST ? netAmountWithGST : 0
+        net_amount: netAmountWithGST ? netAmountWithGST : 0,
+        tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
         // purchase_return_tax_amount: calculateTotalTaxAmount
       })
       if (editParams.discount_type === 'P') {
@@ -551,7 +553,8 @@ const AddDebitForm = () => {
         return
       }
     }
-    setSubmitLoader(false)
+    setSubmitLoader(true)
+
     const postData = editParams
     postData.total_amount = totalLineItemsPurchase
     console.log('while posting data', postData)
@@ -571,6 +574,8 @@ const AddDebitForm = () => {
         toast.error(response.message)
       }
     } else {
+      console.log('postData', postData)
+      debugger
       const response = await addDebit(postData)
       console.log('after posting', response)
       if (response?.success) {
