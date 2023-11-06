@@ -60,7 +60,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField fullWidth inputRef={ref} {...props} />
 })
 
-const ShipRequest = ({ dispatchedItems, storeDetails }) => {
+const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
   const {
     reset,
@@ -90,15 +90,20 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
   const [date, setDate] = useState(new Date())
 
   const shipRequest = async payload => {
+    console.log(JSON.stringify(payload))
+
     try {
       setSubmitLoader(true)
+
+      console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
       debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
-        setResetForm(true)
+        reset(defaultValues)
+        close()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
@@ -136,6 +141,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       payloadItem.status = delivery_mode
       payloadItem.to_store_id = storeDetails.to_store_id
       payloadItem.from_store_id = storeDetails.from_store_id
+      payloadItem.vehicle_number = vehicle_number
       payload.push(payloadItem)
     })
 

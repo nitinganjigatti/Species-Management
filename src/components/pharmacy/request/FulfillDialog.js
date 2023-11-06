@@ -48,6 +48,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [submitLoader, setSubmitLoader] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
+  const [rowErrors, setRowErrors] = useState({})
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -55,8 +56,51 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     message: ''
   })
 
-  console.log('fulfilStockItems', fulfilStockItems)
-  debugger
+  const checkForPositiveInteger = number => {
+    const regex = /^\d+$/
+    const test = regex.test(number)
+
+    return test
+  }
+
+  // const handleQuantityChange = (enteredQuantity, row, index) => {
+  //   if (checkForPositiveInteger(enteredQuantity) && checkNumber(enteredQuantity) <= checkNumber(row.qty)) {
+  //     // No error, the entered quantity is valid
+  //     const tempState = rowErrors
+  //     tempState[index] = false
+  //     setRowErrors(tempState)
+  //   } else if (enteredQuantity === '') {
+  //     const tempState = rowErrors
+  //     tempState[index] = false
+  //     setRowErrors(tempState)
+  //   } else {
+  //     debugger
+  //     const tempState = rowErrors
+  //     tempState[index] = true
+  //     setRowErrors(tempState)
+  //   }
+
+  //   console.log('rowErrors', rowErrors)
+  //   onQuantityChange(row, enteredQuantity)
+  // }
+
+  const handleQuantityChange = (enteredQuantity, row, text_id) => {
+    const tempRowErrors = { ...rowErrors }
+    if (checkForPositiveInteger(enteredQuantity) && checkNumber(enteredQuantity) <= checkNumber(row.qty)) {
+      tempRowErrors[text_id] = { status: false }
+    } else if (enteredQuantity === '') {
+      tempRowErrors[text_id] = { status: false }
+    } else {
+      tempRowErrors[text_id] = { status: true }
+    }
+
+    setRowErrors(tempRowErrors)
+
+    console.log('tempRowErrors', tempRowErrors)
+
+    console.log('rowErrors', rowErrors)
+    onQuantityChange(row, enteredQuantity)
+  }
 
   const onQuantityChange = (row, qty) => {
     if (fulfilStockItems.length > 0) {
@@ -85,23 +129,23 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             request_item_expiry_date: row.expiry_date,
             description: ''
           }
-          setFulfilStockItems([medicineRow])
-          setTotalMedicine(getMedicineTotal([medicineRow]))
+
+          tempFulfilStockItems.push(medicineRow)
+
+          // setFulfilStockItems(localStockItems)
+          // setTotalMedicine(getMedicineTotal(localStockItems))
         }
       } else {
-        if (itemExists) {
-        }
-      }
+        if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
+          const index = tempFulfilStockItems.findIndex(item => {
+            console.log('item.batch_no', item.batch_no)
+            console.log('row.batch_no', row.batch_no)
 
-      if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
-        const index = tempFulfilStockItems.findIndex(item => {
-          console.log('item.batch_no', item.batch_no)
-          console.log('row.batch_no', row.batch_no)
-
-          return item.request_item_batch_no === row.batch_no
-        })
-        if (index !== -1) {
-          tempFulfilStockItems.splice(index, 1)
+            return item.request_item_batch_no === row.batch_no
+          })
+          if (index !== -1) {
+            tempFulfilStockItems.splice(index, 1)
+          }
         }
       }
 
@@ -130,6 +174,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setTotalMedicine(getMedicineTotal([medicineRow]))
       }
     }
+    console.log('fulfilStockItems', fulfilStockItems)
   }
 
   const getMedicineTotal = data => {
@@ -145,6 +190,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         }
       })
     }
+
+    console.log(total)
 
     return total
   }
@@ -190,8 +237,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       setError(false)
       setSubmitLoader(true)
 
-      response = await addDispatch(payload)
-      debugger
+      const response = await addDispatch(payload)
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -231,6 +277,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     textDecoration: 'none',
     color: theme.palette.primary.main,
     cursor: 'pointer'
+  })
+
+  const StyledErrorText = styled('span')({
+    textDecoration: 'none',
+    color: theme.palette.error.main,
+    marginBottom: theme.spacing(2),
+    cursor: 'pointer',
+    display: 'inline-block'
   })
 
   return (
@@ -291,9 +345,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {batchItems?.map(row => (
+                  {batchItems?.map((row, index) => (
                     <TableRow
-                      key={row.id}
+                      key={`batch_central_${index}`}
                       sx={{
                         '&:last-of-type td, &:last-of-type th': {
                           border: 0
@@ -308,24 +362,18 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       <TableCell align='center'>
                         <TextField
                           size='small'
-                          type='number'
+                          name={`batch_central_${index}`}
+                          error={rowErrors[`batch_central_${index}`]?.status}
                           onChange={e => {
-                            if (parseInt(e.target.value) < parseInt(row.qty)) {
-                              setErrors(prevErrors => ({
-                                ...prevErrors,
-                                [row.batch_no]: 'Quantity should be lesser than available quantity'
-                              }))
-                            } else {
-                              setErrors(prevErrors => ({
-                                ...prevErrors,
-                                [row.batch_no]: '' // Clear the error message
-                              }))
-                            }
-                            console.log(errors)
-                            onQuantityChange(row, e.target.value, 'central')
+                            console.log(e.target.value)
+                            handleQuantityChange(e.target.value, row, `batch_central_${index}`)
                           }}
                         />
-                        {errors[row.batch_no] && <div style={{ color: 'red' }}>{errors[row.id]}</div>}
+                        {/* {rowErrors[`batch_central_${index}`]?.status && (
+                          <div>
+                            <span className='error'>Invalid input</span>
+                          </div>
+                        )} */}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -347,6 +395,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   <Table sx={{ minWidth: 650 }} aria-label='simple table'>
                     <TableHead>
                       <TableRow>
+                        <TableCell>Store</TableCell>
                         <TableCell>Batch</TableCell>
                         <TableCell align='center'>Expiring</TableCell>
                         <TableCell align='center'>Quantity Available</TableCell>
@@ -354,15 +403,18 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {localBatchItems?.map(row => (
+                      {localBatchItems?.map((row, index) => (
                         <TableRow
-                          key={row.id}
+                          key={`batch_local_${index}`}
                           sx={{
                             '&:last-of-type td, &:last-of-type th': {
                               border: 0
                             }
                           }}
                         >
+                          <TableCell component='th' scope='row'>
+                            {row.store_name}
+                          </TableCell>
                           <TableCell component='th' scope='row'>
                             {row.batch_no}
                           </TableCell>
@@ -371,25 +423,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           <TableCell align='center'>
                             <TextField
                               size='small'
-                              type='number'
+                              name={`batch_local_${index}`}
+                              error={rowErrors[`batch_local_${index}`]?.status}
                               onChange={e => {
-                                // onQuantityChange(row, e.target.value)
-                                const newValue = e.target.value
-                                const availableQuantity = row.qty // The available quantity from the row
-                                if (newValue > availableQuantity) {
-                                  // You can display an error message or handle the validation as needed
-                                  // For example, you can set an error state and display an error message.
-                                  setError(`Quantity should be less than or equal to ${availableQuantity}`)
-                                } else {
-                                  // If the entered quantity is valid, you can clear the error state.
-                                  setError('')
-
-                                  // Call your onQuantityChange function with the valid value
-                                  onQuantityChange(row, newValue)
-                                }
+                                console.log(e.target.value)
+                                handleQuantityChange(e.target.value, row, `batch_local_${index}`)
                               }}
                             />
-                            {errors[row.id] && <div style={{ color: 'red' }}>{errors[row.id]}</div>}
+                            {/* {rowErrors[`batch_local_${index}`]?.status && <span className='error'>Invalid input</span>} */}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -416,13 +457,25 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           ) : null}
 
           <CardContent>
+            {totalMedicine >
+            checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) ? (
+              <div style={{ color: `${theme.palette.warning}` }}>
+                <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
+              </div>
+            ) : null}
             <Grid item xs={12}>
               <LoadingButton
                 size='large'
                 variant='contained'
                 loading={submitLoader}
                 onClick={() => {
-                  dispatchRequest()
+                  const count = Object.values(rowErrors).filter(item => item.status).length
+                  if (
+                    count <= 0 &&
+                    totalMedicine <=
+                      checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
+                  )
+                    dispatchRequest()
                 }}
               >
                 Submit

@@ -105,8 +105,8 @@ export async function getShippedItemsByRequestId(id) {
 
 export async function addRequestItems(payload) {
   try {
-    const url = `${SHIPMENT}`
-    const response = await axiosPost({ url, body: payload })
+    const url = `${REQUEST_ITEMS}`
+    const response = await axiosFormPost({ url, body: payload })
 
     return response?.data
   } catch (error) {
