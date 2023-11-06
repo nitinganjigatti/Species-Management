@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect } from 'react'
 
-import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
+import {
+  getRequestItemsListById,
+  getDispatchItemsByBatchId,
+  getShippedItemsByRequestId
+} from 'src/lib/api/getRequestItemsList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import DataGrid from 'src/@core/theme/overrides/dataGrid'
+import Dialog from '@mui/material/Dialog'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -19,6 +25,7 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
+import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -29,17 +36,25 @@ import Router from 'next/router'
 import { column } from 'stylis'
 
 import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
+import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Fade ref={ref} {...props} />
+})
 
 const IndividualRequest = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
+  const [showShipDialog, setShowShipDialog] = useState(false)
+  const [dispatchedItems, setDispatchedItems] = useState([])
 
   const router = useRouter()
   const { id, request_number } = router.query
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  const base_image_url = '/uploads/control_substance/'
 
   console.log('base_url', base_url)
 
@@ -49,12 +64,41 @@ const IndividualRequest = () => {
     setLoader(true)
     console.log('getRequestItemList', id)
     const response = await getRequestItemsListById(id)
-    debugger
     if (response.success) {
-      debugger
       setRequestItems(response.data)
       setLoader(false)
     } else {
+      setLoader(false)
+    }
+  }
+
+  const getDispatchedItems = async id => {
+    setLoader(true)
+    console.log('dispatchedItems', id)
+    const response = await getDispatchItemsByBatchId(id)
+    if (response.success) {
+      setDispatchedItems(response.data)
+      setLoader(false)
+    } else {
+      setLoader(false)
+    }
+  }
+
+  const getShippedItems = async id => {
+    debugger
+    try {
+      setLoader(true)
+      const response = await getShippedItemsByRequestId(id)
+      debugger
+      if (response.success) {
+        debugger
+        setDispatchedItems(response.data)
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (e) {
+      console.log(e)
       setLoader(false)
     }
   }
@@ -73,8 +117,10 @@ const IndividualRequest = () => {
   useEffect(() => {
     if (id !== undefined) {
       getRequestItemLists(id)
+      getDispatchedItems(id)
+      getShippedItems(id)
     }
-  }, [id])
+  }, [id, request_number])
 
   const closeDialog = () => {
     setShow(false)
@@ -84,28 +130,13 @@ const IndividualRequest = () => {
     setShow(true)
   }
 
-  const rows = [
-    {
-      id: 1,
-      name: 'Crocin',
-      controlledSubstance: true,
-      requested_qty: 5,
-      priority: 'High',
-      fulfilled: 3,
-      remaining: 2,
-      attachment: ''
-    },
-    {
-      id: 2,
-      name: 'Ecosprin',
-      controlledSubstance: false,
-      requested_qty: 5,
-      priority: 'Normal',
-      fulfilled: 3,
-      remaining: 2,
-      attachment: ''
-    }
-  ]
+  const openShipDialog = () => {
+    setShowShipDialog(true)
+  }
+
+  const closeShipDialog = () => {
+    setShowShipDialog(false)
+  }
 
   const columns = [
     {
@@ -125,21 +156,14 @@ const IndividualRequest = () => {
       field: 'stock_name',
       headerName: 'Medicine Name',
       renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_name}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'requested_qty',
-      headerName: 'Requested QTY',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.requested_qty}
-        </Typography>
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_name}
+          </Typography>
+          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+            <CustomChip label='CS' skin='light' color='success' size='small' />
+          ) : null}
+        </div>
       )
     },
     {
@@ -153,24 +177,16 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
-      field: '',
-      headerName: 'Action',
+      field: 'requested_qty',
+      headerName: 'Requested QTY',
       renderCell: params => (
-        <Button
-          size='small'
-          variant='contained'
-          onClick={() => {
-            setFulfillMedicine({
-              ...params.row
-            })
-            showDialog()
-          }}
-        >
-          Fulfill
-        </Button>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.requested_qty}
+        </Typography>
       )
     },
     {
@@ -199,14 +215,122 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: '',
+      headerName: 'Action',
+      renderCell: params => (
+        <Button
+          size='small'
+          disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+          variant='contained'
+          onClick={() => {
+            setFulfillMedicine({
+              ...params.row
+            })
+            showDialog()
+          }}
+        >
+          Fulfill
+        </Button>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
+      renderCell: params =>
+        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+          <img
+            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
+            alt='Medicine Image'
+            style={{ width: '60px', height: '60px' }}
+          />
+        ) : null
+    }
+  ]
+
+  const fulfillRows = [
+    {
+      id: 1,
+      stock_name: 'Crocin',
+      controlledSubstances: 1,
+      batch_no: '1012, 1105',
+      expiryDate: '24/10/2025',
+      fulfilledDate: '11/08/2023',
+      filledQuantity: 3
+    }
+  ]
+
+  const fulfillColumns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'Id',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'medicin_name',
+      headerName: 'Medicine Name',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.medicin_name}</div>
+          </Typography>
+        </div>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'Batch No',
       renderCell: params => (
-        <img
-          src='https://pharmacaredemo.bdtask-demo.com/pharmacare-9.4_demo/assets/dist/img/products/product.png'
-          alt='Medicine Image'
-          style={{ width: '60px', height: '60px' }}
-        />
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'Expiry Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.expiry_date}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'fulfilledDate',
+      headerName: 'Fulfilled Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {dispatchedItems.dispatch_date}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'dispatch_qty',
+      headerName: 'Fulfilled QTY',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.dispatch_qty}
+        </Typography>
       )
     }
   ]
@@ -249,17 +373,91 @@ const IndividualRequest = () => {
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
             <CardContent>
-              <Grid container>
-                <FulfillDialog
-                  fulfillMedicine={fulfillMedicine}
-                  title={'Fulfill'}
-                  dialogBoxStatus={show}
-                  close={closeDialog}
-                  show={showDialog}
-                />
+              <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                <Grid item xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
+                </Grid>
+                <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                  <Button
+                    size='big'
+                    variant='contained'
+                    onClick={() => {
+                      openShipDialog()
+                    }}
+                  >
+                    Ship
+                  </Button>
+                </Grid>
               </Grid>
             </CardContent>
+            {dispatchedItems?.dispatch_items?.length > 0 ? (
+              <TableBasic columns={fulfillColumns} rows={dispatchedItems?.dispatch_items}></TableBasic>
+            ) : null}
           </Card>
+          {/* Fulfill Request Dialog */}
+          <CardContent>
+            <Grid container>
+              <Card>
+                <Dialog
+                  fullWidth
+                  open={show}
+                  maxWidth='md'
+                  scroll='body'
+                  onClose={() => closeDialog()}
+                  TransitionComponent={Transition}
+                  onBackdropClick={() => closeDialog()}
+                >
+                  <Grid
+                    container
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <CardHeader title={`Fulfill - ${fulfillMedicine.id}`} />
+                    <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
+                      <Icon icon='mdi:close' />
+                    </IconButton>
+                  </Grid>
+
+                  <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} />
+                </Dialog>
+              </Card>
+            </Grid>
+          </CardContent>
+          {/* Ship Request Dialog */}
+          <CardContent>
+            <Grid container>
+              <Card>
+                <Dialog
+                  fullWidth
+                  open={showShipDialog}
+                  maxWidth='md'
+                  scroll='body'
+                  onClose={() => closeShipDialog()}
+                  TransitionComponent={Transition}
+                  onBackdropClick={() => closeShipDialog()}
+                >
+                  <Grid
+                    container
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <CardHeader title={`Fulfill`} />
+                    <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
+                      <Icon icon='mdi:close' />
+                    </IconButton>
+                  </Grid>
+
+                  <ShipRequest dispatchedItems={dispatchedItems} storeDetails={requestItems} />
+                </Dialog>
+              </Card>
+            </Grid>
+          </CardContent>
         </>
       )}
     </>

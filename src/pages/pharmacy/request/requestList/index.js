@@ -47,14 +47,14 @@ const Dispatch = () => {
     })
   }
 
-  // const onRowClick = data => {
-  //   console.log('onRowClickData', data.id)
+  const onRowClick = data => {
+    console.log('onRowClickData', data.id)
 
-  //   Router.push({
-  //     pathname: '/pharmacy/request/individual-request/',
-  //     query: { id: data.id, request_number: data.row.request_number }
-  //   })
-  // }
+    Router.push({
+      pathname: '/pharmacy/request/individual-request/',
+      query: { id: data.id, request_number: data.row.request_number }
+    })
+  }
 
   useEffect(() => {
     getRequestItemLists()
@@ -227,8 +227,7 @@ const Dispatch = () => {
           }
           columns={columns}
           rows={requestItems}
-
-          // onRowClick={onRowClick}
+          onRowClick={onRowClick}
         />
       )}
     </>
