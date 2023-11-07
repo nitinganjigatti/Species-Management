@@ -114,11 +114,17 @@ const IndividualRequest = () => {
     console.log('onRowClickData', data)
   }
 
+  const init = async id => {
+    if (id !== undefined) {
+      await getRequestItemLists(id)
+      await getDispatchedItems(id)
+      await getShippedItems(id)
+    }
+  }
+
   useEffect(() => {
     if (id !== undefined) {
-      getRequestItemLists(id)
-      getDispatchedItems(id)
-      getShippedItems(id)
+      init(id)
     }
   }, [id, request_number])
 
@@ -136,6 +142,7 @@ const IndividualRequest = () => {
 
   const closeShipDialog = () => {
     setShowShipDialog(false)
+    init(id)
   }
 
   const columns = [
@@ -453,7 +460,7 @@ const IndividualRequest = () => {
                     </IconButton>
                   </Grid>
 
-                  <ShipRequest dispatchedItems={dispatchedItems} storeDetails={requestItems} />
+                  <ShipRequest dispatchedItems={dispatchedItems} storeDetails={requestItems} close={closeShipDialog} />
                 </Dialog>
               </Card>
             </Grid>
