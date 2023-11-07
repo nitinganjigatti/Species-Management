@@ -22,6 +22,8 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import CommonDialogBox from 'src/components/CommonDialogBox'
+import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
 const ListOfStocks = () => {
   const [stores, setStores] = useState([])
@@ -29,12 +31,22 @@ const ListOfStocks = () => {
   const [stockId, setStockId] = useState('')
   const [loader, setLoader] = useState(false)
   const [errors, setErrors] = useState('')
+  const [configureMedId, setConfigureMedId] = useState('')
+  const [show, setShow] = useState(false)
+
+  const closeDialog = () => {
+    setShow(false)
+  }
+
+  const showDialog = () => {
+    setShow(true)
+  }
 
   const getStoresLists = async () => {
     setLoader(true)
     const response = await getStoreList()
     if (response?.length > 0) {
-      console.log('list', response)
+      // console.log('list', response)
       response.sort((a, b) => a.id - b.id)
       setStores(response)
       setLoader(false)
@@ -44,7 +56,7 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = async () => {
-    console.log(stockId)
+    // console.log(stockId)
     if (stockId === '' || undefined) {
       setErrors('Please select Store')
 
@@ -52,7 +64,7 @@ const ListOfStocks = () => {
     } else {
       const result = await getStocksReportById(stockId)
       if (result?.length > 0) {
-        console.log('stocks', result)
+        // console.log('stocks', result)
 
         // result.sort((a, b) => a.id - b.id)
         let listWithId = result
@@ -157,27 +169,35 @@ const ListOfStocks = () => {
           {params.row.stock_purchase_price}
         </Typography>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //       {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:eye-outline' />
-    //       </IconButton> */}
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //       {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:delete-outline' />
-    //       </IconButton> */}
-    //     </Box>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:eye-outline' />
+          </IconButton> */}
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => {
+              setConfigureMedId(params.row.stock_item_id)
+
+              showDialog()
+            }}
+          >
+            <Icon icon='grommet-icons:configure' />
+          </IconButton>
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:delete-outline' />
+          </IconButton> */}
+        </Box>
+      )
+    }
   ]
 
   const createForm = () => {
@@ -198,11 +218,10 @@ const ListOfStocks = () => {
             <InputLabel id='controlled-select-label'>Stores</InputLabel>
             <Select
               onChange={e => {
-                console.log(e)
                 let id = e.target.value
-                console.log(id)
-
                 setStockId(id)
+                setStockReport([])
+                setConfigureMedId('')
               }}
               label='Stores'
               value={stockId}
@@ -243,34 +262,39 @@ const ListOfStocks = () => {
     )
   }
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <TableWithFilter
-          TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
-          inpFields={createForm()}
-          headerActions={
-            <div>
-              <Button
-                onClick={() => {
-                  Router.push('/pharmacy/stocks/stockReportByBatch')
-                }}
-                size='big'
-                variant='contained'
-              >
-                Stock report bach wise
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={stockReport}
-        />
+        <>
+          <CommonDialogBox
+            title={'Configure Medicine'}
+            dialogBoxStatus={show}
+            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+            close={closeDialog}
+            show={showDialog}
+          />
+          <TableWithFilter
+            TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
+            inpFields={createForm()}
+            headerActions={
+              <div>
+                <Button
+                  onClick={() => {
+                    Router.push('/pharmacy/stocks/stockReportByBatch')
+                  }}
+                  size='big'
+                  variant='contained'
+                >
+                  Stock report bach wise
+                </Button>
+              </div>
+            }
+            columns={columns}
+            rows={stockReport}
+          />
+        </>
       )}
     </>
   )
