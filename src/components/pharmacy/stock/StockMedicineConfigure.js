@@ -176,7 +176,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     }
   }
 
-  // updateMedicineConfig(payload, id, configId)
   const addMinQuantity = async params => {
     setSubmitLoader(true)
 
