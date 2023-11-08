@@ -241,8 +241,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
+        close()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })

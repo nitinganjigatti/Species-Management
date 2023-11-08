@@ -64,6 +64,10 @@ const navigation = () => {
           path: '/pharmacy/medicine/drugClass'
         },
         {
+          title: 'Manufacturer',
+          path: '/pharmacy/medicine/manufacturer'
+        },
+        {
           title: 'Medicine',
           path: '/pharmacy/medicine/medicine'
         }

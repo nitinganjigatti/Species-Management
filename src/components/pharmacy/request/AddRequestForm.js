@@ -452,32 +452,32 @@ const AddRequestForm = () => {
     console.log('while posting data', postData)
     console.log('totalQtya', totalQty)
     console.log('editParms', editParams)
-    // if (id) {
-    //   const response = await updateRequestItems(id, postData)
-    //   console.log('after posting', response)
+    if (id) {
+      const response = await updateRequestItems(id, postData)
+      console.log('after posting', response)
 
-    //   if (response?.success) {
-    //     toast.success(response.message)
-    //     setSubmitLoader(false)
-    //     getListOfItemsById(id)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     console.log('test')
-    //     toast.error(response.message)
-    //   }
-    // } else {
-    //   const response = await addRequestItems(postData)
-    //   console.log('after posting', response)
-    //   if (response?.success) {
-    //     toast.success(response.message)
-    //     setEditParams(editParamsInitialState)
-    //     setSubmitLoader(false)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     console.log('test')
-    //     toast.error(response.message)
-    //   }
-    // }
+      if (response?.success) {
+        toast.success(response.message)
+        setSubmitLoader(false)
+        getListOfItemsById(id)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    } else {
+      const response = await addRequestItems(postData)
+      console.log('after posting', response)
+      if (response?.success) {
+        toast.success(response.message)
+        setEditParams(editParamsInitialState)
+        setSubmitLoader(false)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    }
   }
 
   // data posting section

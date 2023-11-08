@@ -75,10 +75,13 @@ const IndividualRequest = () => {
 
   const getDispatchedItems = async id => {
     setLoader(true)
-    console.log('dispatchedItems', id)
     const response = await getDispatchItemsByBatchId(id)
     if (response.success) {
-      setDispatchedItems(response.data)
+      var responseData = response.data
+      var dispatches = response?.data?.dispatch_items.filter(item => item.dispatch_status !== 'Shipped')
+      responseData['dispatch_items'] = dispatches
+      console.log(dispatches)
+      setDispatchedItems(responseData)
       setLoader(false)
     } else {
       setLoader(false)
@@ -147,6 +150,11 @@ const IndividualRequest = () => {
 
   const closeShipmentDialog = () => {
     setShowShipDialog(false)
+    init(id)
+  }
+
+  const closeFulfillDialog = () => {
+    setShow(false)
     init(id)
   }
 
@@ -262,18 +270,6 @@ const IndividualRequest = () => {
     }
   ]
 
-  const fulfillRows = [
-    {
-      id: 1,
-      stock_name: 'Crocin',
-      controlledSubstances: 1,
-      batch_no: '1012, 1105',
-      expiryDate: '24/10/2025',
-      fulfilledDate: '11/08/2023',
-      filledQuantity: 3
-    }
-  ]
-
   const fulfillColumns = [
     {
       flex: 0.05,
@@ -344,6 +340,17 @@ const IndividualRequest = () => {
           {params.row.dispatch_qty}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'dispatch_status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.dispatch_status}
+        </Typography>
+      )
     }
   ]
 
@@ -387,22 +394,22 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'from_store',
+      field: 'from_store_name',
       headerName: 'From Store',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store}
+          {params.row.from_store_name}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'to_store',
+      field: 'to_store_name',
       headerName: 'To Store',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
+          {params.row.to_store_name}
         </Typography>
       )
     },
@@ -421,22 +428,22 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'person_shiping',
+      field: 'person_shipping',
       headerName: 'Person Shipping',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.person_shiping}
+          {params.row.person_shipping}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'shipment_status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.shipment_status}
         </Typography>
       )
     }
@@ -545,7 +552,11 @@ const IndividualRequest = () => {
                     </IconButton>
                   </Grid>
 
-                  <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} />
+                  <FulfillDialog
+                    fulfillMedicine={fulfillMedicine}
+                    storeDetails={requestItems}
+                    close={closeFulfillDialog}
+                  />
                 </Dialog>
               </Card>
             </Grid>
