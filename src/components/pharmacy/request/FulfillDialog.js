@@ -385,7 +385,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           )}
           <CardContent>
             <div>
-              <StyledText onClick={toggleLocalTable}>Show/hide other stores</StyledText>
+              <StyledText onClick={toggleLocalTable}>Show stock in other stores</StyledText>
             </div>
           </CardContent>
           {isLocalTableVisible ? (

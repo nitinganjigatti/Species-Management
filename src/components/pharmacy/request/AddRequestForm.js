@@ -645,7 +645,7 @@ const AddRequestForm = () => {
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription</Typography>
+                  <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
                   {console.log('data type', typeof nestedRowMedicine.control_substance_file)}
                   <FormControl fullWidth>
                     <TextField

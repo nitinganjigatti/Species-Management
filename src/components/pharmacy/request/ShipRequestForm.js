@@ -46,14 +46,14 @@ const defaultValues = {
 
   person_shiping: null,
   delivery_mode: null,
-  vehicle_number: null
+  vehicle_no: null
 }
 
 const schema = yup.object().shape({
   person_shiping: yup.string().required('Person Shipping Info is required'),
   shipment_date: yup.string().required('Shipment Date is required'),
   delivery_mode: yup.string().required('Delivery Mode is required'),
-  vehicle_number: yup.string().required('Vehicle Number is required')
+  vehicle_no: yup.string().required('Vehicle Number is required')
 })
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -92,27 +92,27 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const shipRequest = async payload => {
     console.log(JSON.stringify(payload))
 
-    try {
-      setSubmitLoader(true)
+    // try {
+    //   setSubmitLoader(true)
 
-      console.log(JSON.stringify(payload))
+    //   console.log(JSON.stringify(payload))
 
-      const response = await shipRequestedItems(payload)
-      debugger
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
-        setSubmitLoader(false)
-        reset(defaultValues)
-        close()
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
+    //   const response = await shipRequestedItems(payload)
+    //   debugger
+    //   if (response?.success) {
+    //     setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+    //     setSubmitLoader(false)
+    //     reset(defaultValues)
+    //     close()
+    //   } else {
+    //     setSubmitLoader(false)
+    //     setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+    //   }
+    // } catch (e) {
+    //   console.log(e)
+    //   setSubmitLoader(false)
+    //   setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    // }
   }
 
   // useEffect(() => {
@@ -125,7 +125,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { person_shiping, delivery_mode, vehicle_number } = {
+    const { person_shiping, delivery_mode, vehicle_no } = {
       ...params
     }
 
@@ -133,15 +133,18 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
     const payload = []
 
+    debugger
+
     dispatchedItems?.dispatch_items?.forEach((value, index) => {
       const payloadItem = {}
-      payloadItem.dispatch_id = value.id
+      payloadItem.dispatch_item_id = value.id
+      payloadItem.dispatch_id = dispatchedItems.id
       payloadItem.shipment_date = shipmentDate
       payloadItem.person_shiping = person_shiping
       payloadItem.status = delivery_mode
       payloadItem.to_store_id = storeDetails.to_store_id
       payloadItem.from_store_id = storeDetails.from_store_id
-      payloadItem.vehicle_number = vehicle_number
+      payloadItem.vehicle_no = vehicle_no
       payload.push(payloadItem)
     })
 
@@ -193,7 +196,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
-                      name='vehicle_number'
+                      name='vehicle_no'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
@@ -202,13 +205,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           label='Vechicle Number*'
                           onChange={onChange}
                           placeholder=''
-                          error={Boolean(errors.vehicle_number)}
-                          name='vehicle_number'
+                          error={Boolean(errors.vehicle_no)}
+                          name='vehicle_no'
                         />
                       )}
                     />
-                    {errors.vehicle_number && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_number.message}</FormHelperText>
+                    {errors.vehicle_no && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_no.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
