@@ -52,4 +52,6 @@ export const BATCH_DETAILS = 'batch-details'
 
 export const MEDICINE_SEARCH = 'stock-item/suppiler/1/search/'
 
+export const MANUFACTURER = 'manufacture'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'

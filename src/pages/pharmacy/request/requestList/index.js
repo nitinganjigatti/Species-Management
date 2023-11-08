@@ -122,11 +122,11 @@ const Dispatch = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'total_box_qty',
+      field: 'total_qty',
       headerName: 'TOTAL ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_box_qty}
+          {params.row.total_qty}
         </Typography>
       )
     },

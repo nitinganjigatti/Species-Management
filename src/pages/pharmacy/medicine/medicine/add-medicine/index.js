@@ -333,26 +333,6 @@ const AddMedicine = () => {
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <Controller
-                        name='qrcode'
-                        control={control}
-                        rules={{ required: false }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Bar Code/QR Code'
-                            onChange={onChange}
-                            placeholder='Bar Code/QR Code'
-                            error={Boolean(errors.qrcode)}
-                            name='qrcode'
-                          />
-                        )}
-                      />
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
                         name='name'
                         control={control}
                         rules={{ required: true }}
@@ -372,7 +352,6 @@ const AddMedicine = () => {
                       )}
                     </FormControl>
                   </Grid>
-
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.generic_name_id)} id='generic_name_id'>
@@ -404,7 +383,6 @@ const AddMedicine = () => {
                       )}
                     </FormControl>
                   </Grid>
-
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.type_id)} id='type_id'>
@@ -433,6 +411,68 @@ const AddMedicine = () => {
                       />
                       {errors?.type_id && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors?.type_id?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel error={Boolean(errors?.drug_class_id)} id='drug_class_id'>
+                        Drug Class*
+                      </InputLabel>
+                      <Controller
+                        name='drug_class_id'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='drug_class_id'
+                            value={value}
+                            label='Drug Class'
+                            onChange={onChange}
+                            error={Boolean(errors?.drug_class_id)}
+                            labelId='drug_class_id'
+                          >
+                            {drugsClass?.map((item, index) => (
+                              <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                                {item?.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors?.drug_class_id && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.drug_class_id?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel error={Boolean(errors?.category_id)} id='category_id'>
+                        Category*
+                      </InputLabel>
+                      <Controller
+                        name='category_id'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='category_id'
+                            value={value}
+                            label='Category'
+                            onChange={onChange}
+                            error={Boolean(errors?.category_id)}
+                            labelId='category_id'
+                          >
+                            {categoryList?.map((item, index) => (
+                              <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                                {item?.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors?.category_id && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.category_id?.message}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
@@ -492,68 +532,51 @@ const AddMedicine = () => {
                       </Grid>
                     </Grid>
                   </Grid>
-
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors?.drug_class_id)} id='drug_class_id'>
-                        Drug Class*
+                      <InputLabel error={Boolean(errors?.brand_sustance)} id='brand_sustance'>
+                        Controlled Substances*
                       </InputLabel>
                       <Controller
-                        name='drug_class_id'
+                        name='brand_sustance'
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Select
-                            name='drug_class_id'
+                            name='brand_sustance'
                             value={value}
-                            label='Drug Class'
+                            label='Controlled Substances*'
                             onChange={onChange}
-                            error={Boolean(errors?.drug_class_id)}
-                            labelId='drug_class_id'
+                            error={Boolean(errors?.brand_sustance)}
+                            labelId='brand_sustance'
                           >
-                            {drugsClass?.map((item, index) => (
-                              <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                                {item?.name}
-                              </MenuItem>
-                            ))}
+                            <MenuItem value='yes'> Yes</MenuItem>
+                            <MenuItem value='no'> No</MenuItem>
                           </Select>
                         )}
                       />
-                      {errors?.drug_class_id && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.drug_class_id?.message}</FormHelperText>
+                      {errors?.brand_sustance && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.brand_sustance?.message}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
-
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors?.category_id)} id='category_id'>
-                        Category*
-                      </InputLabel>
                       <Controller
-                        name='category_id'
+                        name='qrcode'
                         control={control}
-                        rules={{ required: true }}
+                        rules={{ required: false }}
                         render={({ field: { value, onChange } }) => (
-                          <Select
-                            name='category_id'
+                          <TextField
                             value={value}
-                            label='Category'
+                            label='Bar Code/QR Code'
                             onChange={onChange}
-                            error={Boolean(errors?.category_id)}
-                            labelId='category_id'
-                          >
-                            {categoryList?.map((item, index) => (
-                              <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                                {item?.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
+                            placeholder='Bar Code/QR Code'
+                            error={Boolean(errors.qrcode)}
+                            name='qrcode'
+                          />
                         )}
                       />
-                      {errors?.category_id && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.category_id?.message}</FormHelperText>
-                      )}
                     </FormControl>
                   </Grid>
 
@@ -585,35 +608,6 @@ const AddMedicine = () => {
                       />
                       {errors?.leaf_id && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors?.leaf_id?.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors?.brand_sustance)} id='brand_sustance'>
-                        Controlled Substances*
-                      </InputLabel>
-                      <Controller
-                        name='brand_sustance'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <Select
-                            name='brand_sustance'
-                            value={value}
-                            label='Controlled Substances*'
-                            onChange={onChange}
-                            error={Boolean(errors?.brand_sustance)}
-                            labelId='brand_sustance'
-                          >
-                            <MenuItem value='yes'> Yes</MenuItem>
-                            <MenuItem value='no'> No</MenuItem>
-                          </Select>
-                        )}
-                      />
-                      {errors?.brand_sustance && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.brand_sustance?.message}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>

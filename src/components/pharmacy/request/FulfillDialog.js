@@ -241,8 +241,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
+        close()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
@@ -385,7 +384,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           )}
           <CardContent>
             <div>
-              <StyledText onClick={toggleLocalTable}>Show/hide other stores</StyledText>
+              <StyledText onClick={toggleLocalTable}>Show stock in other stores</StyledText>
             </div>
           </CardContent>
           {isLocalTableVisible ? (

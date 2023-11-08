@@ -452,32 +452,32 @@ const AddRequestForm = () => {
     console.log('while posting data', postData)
     console.log('totalQtya', totalQty)
     console.log('editParms', editParams)
-    // if (id) {
-    //   const response = await updateRequestItems(id, postData)
-    //   console.log('after posting', response)
+    if (id) {
+      const response = await updateRequestItems(id, postData)
+      console.log('after posting', response)
 
-    //   if (response?.success) {
-    //     toast.success(response.message)
-    //     setSubmitLoader(false)
-    //     getListOfItemsById(id)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     console.log('test')
-    //     toast.error(response.message)
-    //   }
-    // } else {
-    //   const response = await addRequestItems(postData)
-    //   console.log('after posting', response)
-    //   if (response?.success) {
-    //     toast.success(response.message)
-    //     setEditParams(editParamsInitialState)
-    //     setSubmitLoader(false)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     console.log('test')
-    //     toast.error(response.message)
-    //   }
-    // }
+      if (response?.success) {
+        toast.success(response.message)
+        setSubmitLoader(false)
+        getListOfItemsById(id)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    } else {
+      const response = await addRequestItems(postData)
+      console.log('after posting', response)
+      if (response?.success) {
+        toast.success(response.message)
+        setEditParams(editParamsInitialState)
+        setSubmitLoader(false)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        toast.error(response.message)
+      }
+    }
   }
 
   // data posting section
@@ -645,7 +645,7 @@ const AddRequestForm = () => {
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription</Typography>
+                  <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
                   {console.log('data type', typeof nestedRowMedicine.control_substance_file)}
                   <FormControl fullWidth>
                     <TextField
