@@ -26,13 +26,13 @@ import { getManufacturerById } from 'src/lib/api/manufacturer'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Dosage Form is Required'),
-  status: yup.string().required('Status is Required')
+  manufacturer_name: yup.string().required('Dosage Form is Required'),
+  active: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
-  name: '',
-  status: 'active'
+  manufacturer_name: '',
+  active: '1'
 }
 
 const AddManufacturer = props => {
@@ -58,11 +58,11 @@ const AddManufacturer = props => {
   })
 
   const onSubmit = async params => {
-    const { name, status } = { ...params }
+    const { manufacturer_name, active } = { ...params }
 
     const payload = {
-      name,
-      status
+      manufacturer_name,
+      active
     }
     await handleSubmitData(payload)
   }
@@ -84,8 +84,6 @@ const AddManufacturer = props => {
     }
 
     if (editParams?.id !== null) {
-      console.log()
-
       getManufacturerById(editParams?.id)
     }
   }, [resetForm, editParams, reset])
@@ -127,7 +125,7 @@ const AddManufacturer = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='name'
+              name='manufacturer_name'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -136,30 +134,32 @@ const AddManufacturer = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='Manufacturer Name'
-                  error={Boolean(errors.name)}
-                  name='name'
+                  error={Boolean(errors.manufacturer_name)}
+                  name='manufacturer_name'
                 />
               )}
             />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+            {errors.manufacturer_name && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.manufacturer_name.message}</FormHelperText>
+            )}
           </FormControl>
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
-                name='status'
+                name='active'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
                     <FormControlLabel
-                      value='active'
+                      value='1'
                       label='Active'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
                     />
                     <FormControlLabel
-                      value='inactive'
+                      value='0'
                       label='Inactive'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
