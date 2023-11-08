@@ -1,8 +1,8 @@
-import { MANUFACTURER } from 'src/constants/ApiConstant'
+import { MANUFACTURER, MASTER_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
 export async function getManufacturers() {
-  const response = await axiosGet({ url: `v1/master/pharma/${MANUFACTURER}/list` })
+  const response = await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list` })
 
   return response.data
 }
@@ -15,7 +15,7 @@ export async function getManufacturerById(id) {
 
 export async function addManufacturer(payload) {
   try {
-    const url = `v1/master/pharma/${MANUFACTURER}/add`
+    const url = `${MASTER_BASE_URL}${MANUFACTURER}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

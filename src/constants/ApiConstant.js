@@ -54,4 +54,8 @@ export const MEDICINE_SEARCH = 'stock-item/suppiler/1/search/'
 
 export const MANUFACTURER = 'manufacture'
 
+export const PACKAGES = 'packages'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
+
+export const MASTER_BASE_URL = 'v1/master/pharma/'
