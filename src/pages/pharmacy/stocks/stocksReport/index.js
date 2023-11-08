@@ -186,8 +186,11 @@ const ListOfStocks = () => {
             sx={{ mr: 0.5 }}
             onClick={() => {
               setConfigureMedId(params.row.stock_item_id)
-
               showDialog()
+
+              // console.log('line items', params.row)
+              // console.log('line itemsb id', params.row.stock_item_id)
+              // console.log('storrrrr', stockId)
             }}
           >
             <Icon icon='grommet-icons:configure' />

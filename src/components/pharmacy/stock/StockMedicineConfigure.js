@@ -56,6 +56,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   const [values, setValues] = useState(defaultValues)
   const [stores, setStores] = useState([])
   const [racks, setRacks] = useState([])
+  const [shouldGetShelf, setShouldGetShelf] = useState(false)
+
   const [selectedRacks, setSelectedRacks] = useState([])
   const [selectedShelf, setSelectedShelf] = useState([])
   const [tableData, setTableData] = useState([])
@@ -118,15 +120,25 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   const getRackFromStore = id => {
     if (id) {
       const filteredRacks = racks.filter(el => el.store_id === id)
-
-      // console.log('filtered racks fromstore id', filteredRacks)
+      console.log('get filtered filteredRacks', filteredRacks)
       setSelectedRacks(filteredRacks)
+      setShouldGetShelf(true)
     }
   }
+  useEffect(() => {
+    if (shouldGetShelf && selectedRacks.length > 0) {
+      const id = selectedRacks[0].id
+      getShelfFromRacks(id)
+      setShouldGetShelf(false) // Reset the flag
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldGetShelf, selectedRacks])
 
   const getShelfFromRacks = id => {
     if (selectedRacks.length > 0) {
       const filteredShelf = selectedRacks?.filter(el => el.id === id)
+
+      // console.log('get filtered shelfs', filteredShelf)
       setSelectedShelf(filteredShelf[0]?.shelf_config || [])
     }
   }
@@ -208,6 +220,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
       if (result?.length > 0) {
         const listWithId = result.map((el, i) => ({ ...el, uid: i + 1 }))
         setTableData(listWithId)
+      } else {
+        setTableData([])
       }
     } catch (error) {
       console.error('Error configuring medicine:', error)
@@ -215,9 +229,12 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   }
 
   const handleEdit = (store, shelf) => {
-    // config_id:''
-    // console.log('store', store)
-    // console.log('shelf', shelf)
+    // console.log('store', store.id)
+    // console.log(' pre selected store id', storeId)
+    // console.log(' pre seleced ', configureMedId)
+    // configureMedId
+    // console.log('shelf', shelf.id)
+    // console.log('shelf all details', shelf)
 
     const valuesObject = {
       store_id: store.store_id,
@@ -226,14 +243,19 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
       config_id: shelf.config_id
     }
 
+    // console.log(' pre selected store id', storeId)
+
+    // console.log('valuesObject', valuesObject)
+
     // getRackFromStore(store.store_id)
 
     // if (selectedRacks.length > 0) {
-    getShelfFromRacks(store.racks[0].id)
+    // getShelfFromRacks(store.racks[0].id)
 
     // }
 
     reset(valuesObject)
+    getRackFromStore(store.store_id)
   }
 
   const editQty = el => {
@@ -252,6 +274,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     if (response?.success === true) {
       toast.success(response?.data)
       configureMedicine(configureMedId)
+      reset(defaultValues)
+
       handleClose()
 
       setDeleteRowId('')
@@ -279,6 +303,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   useEffect(() => {
     getStoresLists()
     getRacksLists()
+
+    // if (storeId) {
+    //   setValues('store_id', storeId)
+    // }
   }, [])
 
   return (
@@ -313,10 +341,12 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                       {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
                           <Chip
+                            key={el.id}
                             label={el.name}
                             color='primary'
                             sx={{ m: 1 }}
                             onDelete={() => {
+                              // console.log('elssss', elm)
                               handleEdit(elm, el)
                               setQtyForm(false)
                               setDeleteRowId(el.config_id)
@@ -367,6 +397,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Select
+                        disabled={true}
                         name='store_id'
                         value={value}
                         label='Store'
@@ -434,6 +465,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                         label='Shelf'
                         onChange={e => {
                           onChange(e)
+
+                          // console.log('selected self id', e.target.value)
                         }}
                         error={Boolean(errors?.shelf_id)}
                       >

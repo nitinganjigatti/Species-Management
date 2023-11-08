@@ -47,6 +47,7 @@ const MedicineConfigure = ({ configureMedId }) => {
   const [values, setValues] = useState(defaultValues)
   const [stores, setStores] = useState([])
   const [racks, setRacks] = useState([])
+  const [shouldGetShelf, setShouldGetShelf] = useState(false)
   const [selectedRacks, setSelectedRacks] = useState([])
   const [selectedShelf, setSelectedShelf] = useState([])
   const [tableData, setTableData] = useState([])
@@ -110,8 +111,17 @@ const MedicineConfigure = ({ configureMedId }) => {
     if (id) {
       const filteredRacks = racks.filter(el => el.store_id === id)
       setSelectedRacks(filteredRacks)
+      setShouldGetShelf(true)
     }
   }
+  useEffect(() => {
+    if (shouldGetShelf && selectedRacks.length > 0) {
+      const id = selectedRacks[0].id
+      getShelfFromRacks(id)
+      setShouldGetShelf(false) // Reset the flag
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldGetShelf, selectedRacks])
 
   const getShelfFromRacks = id => {
     if (selectedRacks.length > 0) {
@@ -129,7 +139,7 @@ const MedicineConfigure = ({ configureMedId }) => {
         const payload = { rack_id, store_id, shelf_id }
         const result = await updateMedicineConfig(payload, configureMedId, config_id)
         if (result.success == true) {
-          // console.log('result', result)
+          console.log('while updating result', result)
           toast.success(result.data)
           setDeleteRowId('')
           configureMedicine(configureMedId)
@@ -148,7 +158,7 @@ const MedicineConfigure = ({ configureMedId }) => {
         const payload = { rack_id, store_id, shelf_id }
         const result = await addMedicineConfig(payload, configureMedId)
         if (result.success == true) {
-          // console.log('result', result)
+          console.log(' while adding result', result)
           toast.success(result.data)
           configureMedicine(configureMedId)
           setDeleteRowId('')
@@ -200,6 +210,8 @@ const MedicineConfigure = ({ configureMedId }) => {
       if (result?.length > 0) {
         const listWithId = result.map((el, i) => ({ ...el, uid: i + 1 }))
         setTableData(listWithId)
+      } else {
+        setTableData([])
       }
     } catch (error) {
       console.error('Error configuring medicine:', error)
@@ -217,13 +229,15 @@ const MedicineConfigure = ({ configureMedId }) => {
       shelf_id: shelf.id,
       config_id: shelf.config_id
     }
-    getRackFromStore(store.store_id)
 
-    if (selectedRacks.length > 0) {
-      getShelfFromRacks(store.racks[0].id)
-    }
+    // getRackFromStore(store.store_id)
+
+    // if (selectedRacks.length > 0) {
+    //   getShelfFromRacks(store.racks[0].id)
+    // }
 
     reset(valuesObject)
+    getRackFromStore(store.store_id)
   }
 
   const editQty = el => {
@@ -244,6 +258,7 @@ const MedicineConfigure = ({ configureMedId }) => {
     if (response?.success === true) {
       toast.success(response?.data)
       configureMedicine(configureMedId)
+      reset(defaultValues)
       handleClose()
 
       setDeleteRowId('')
@@ -299,7 +314,10 @@ const MedicineConfigure = ({ configureMedId }) => {
                     <TableCell>
                       {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
+                          {console.log('el in chip', el)}
+
                           <Chip
+                            key={el.id}
                             label={el.name}
                             color='primary'
                             sx={{ m: 1 }}
