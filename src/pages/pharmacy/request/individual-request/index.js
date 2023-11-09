@@ -94,7 +94,6 @@ const IndividualRequest = () => {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
-      // debugger
       if (response.success) {
         // debugger
         setShippedItems(response.data)
