@@ -89,13 +89,14 @@ const IndividualRequest = () => {
   }
 
   const getShippedItems = async id => {
-    debugger
+    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
-      debugger
+
+      // debugger
       if (response.success) {
-        debugger
+        // debugger
         setShippedItems(response.data)
         setLoader(false)
       } else {

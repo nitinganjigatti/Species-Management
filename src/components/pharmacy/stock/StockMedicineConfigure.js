@@ -120,7 +120,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   const getRackFromStore = id => {
     if (id) {
       const filteredRacks = racks.filter(el => el.store_id === id)
-      console.log('get filtered filteredRacks', filteredRacks)
+
+      // console.log('get filtered filteredRacks', filteredRacks)
       setSelectedRacks(filteredRacks)
       setShouldGetShelf(true)
     }
