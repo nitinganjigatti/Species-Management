@@ -26,16 +26,16 @@ import { getManufacturerById } from 'src/lib/api/manufacturer'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  manufacturer_name: yup.string().required('Manufacturer Name is Required'),
+  name: yup.string().required('Package Name is Required'),
   active: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
-  manufacturer_name: '',
+  name: '',
   active: '1'
 }
 
-const AddManufacturer = props => {
+const AddPackages = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
@@ -58,10 +58,10 @@ const AddManufacturer = props => {
   })
 
   const onSubmit = async params => {
-    const { manufacturer_name, active } = { ...params }
+    const { name, active } = { ...params }
 
     const payload = {
-      manufacturer_name,
+      name,
       active
     }
     await handleSubmitData(payload)
@@ -114,7 +114,7 @@ const AddManufacturer = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Manufacturer</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Package</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -125,23 +125,21 @@ const AddManufacturer = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='manufacturer_name'
+              name='name'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Manufacturer Name'
+                  label='Package Name'
                   value={value}
                   onChange={onChange}
                   placeholder='Manufacturer Name'
-                  error={Boolean(errors.manufacturer_name)}
-                  name='manufacturer_name'
+                  error={Boolean(errors.name)}
+                  name='name'
                 />
               )}
             />
-            {errors.manufacturer_name && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.manufacturer_name.message}</FormHelperText>
-            )}
+            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
@@ -183,4 +181,4 @@ const AddManufacturer = props => {
   )
 }
 
-export default AddManufacturer
+export default AddPackages
