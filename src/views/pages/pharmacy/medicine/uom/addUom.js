@@ -1,6 +1,6 @@
 // addState
 // ** React Imports
-import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -32,13 +32,13 @@ import Icon from 'src/@core/components/icon'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('State Name is Required'),
-  status: yup.string().nullable()
+  unit_name: yup.string().required('UOM is Required'),
+  active: yup.string().nullable()
 })
 
 const defaultValues = {
-  name: '',
-  status: 'active'
+  unit_name: '',
+  active: '1'
 }
 
 const AddUOM = props => {
@@ -61,14 +61,12 @@ const AddUOM = props => {
   })
 
   const onSubmit = async params => {
-    const { name, status } = { ...params }
+    const { unit_name, active } = { ...params }
 
     const payload = {
-      name,
-
-      status
+      unit_name: unit_name.trim(),
+      active
     }
-    console.log(payload)
     await handleSubmitData(payload)
   }
 
@@ -131,7 +129,7 @@ const AddUOM = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='name'
+              name='unit_name'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -140,34 +138,36 @@ const AddUOM = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='UOM Name'
-                  error={Boolean(errors.name)}
-                  name='name'
+                  error={Boolean(errors.unit_name)}
+                  name='unit_name'
                 />
               )}
             />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
+            {errors.unit_name && (
+              <FormHelperText sx={{ color: 'error.main' }}>{error.unit_name.message}</FormHelperText>
+            )}
           </FormControl>
 
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
-                name='status'
+                name='active'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
                     <FormControlLabel
-                      value='active'
+                      value='1'
                       label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                      sx={errors.active ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
                     />
                     <FormControlLabel
-                      value='inactive'
+                      value='0'
                       label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                      sx={errors.active ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
                     />
                   </RadioGroup>
                 )}

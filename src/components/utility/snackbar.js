@@ -1,8 +1,6 @@
-// ** React Imports
 import { useState } from 'react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
-// ** MUI Imports
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Snackbar from '@mui/material/Snackbar'
@@ -10,7 +8,6 @@ import Snackbar from '@mui/material/Snackbar'
 const UserSnackbar = ({ status, severity, message }) => {
   const [open, setOpen] = useState(status)
 
-  // ** Hook & Var
   const { settings } = useSettings()
   const { skin } = settings
 
