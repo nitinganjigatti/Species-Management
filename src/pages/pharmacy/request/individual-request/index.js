@@ -340,17 +340,6 @@ const IndividualRequest = () => {
           {params.row.dispatch_qty}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'dispatch_status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.dispatch_status}
-        </Typography>
-      )
     }
   ]
 
