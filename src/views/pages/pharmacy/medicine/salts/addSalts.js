@@ -32,7 +32,10 @@ import Icon from 'src/@core/components/icon'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('UOM is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Salt is Required'),
   active: yup.string().nullable()
 })
 
@@ -142,7 +145,7 @@ const AddSalts = props => {
                 />
               )}
             />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
+            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
 
           {editParams?.id !== null ? (

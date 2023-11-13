@@ -1,10 +1,10 @@
-import { DRUG_CLASS } from '../../constants/ApiConstant'
+import { DRUG_CLASS, MASTER_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
-export async function getDrugs() {
-  const response = await axiosGet({ url: DRUG_CLASS })
+export async function getDrugClass({ params }) {
+  const response = await axiosGet({ url: `${MASTER_BASE_URL}${DRUG_CLASS}/list`, params: params })
 
-  return response.data.data
+  return response.data
 }
 
 export async function getDrugById(id) {
@@ -15,7 +15,7 @@ export async function getDrugById(id) {
 
 export async function addDrug(payload) {
   try {
-    const url = `${DRUG_CLASS}`
+    const url = `${MASTER_BASE_URL}${DRUG_CLASS}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

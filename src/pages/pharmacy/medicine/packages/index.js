@@ -50,33 +50,6 @@ const ManufacturerList = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    console.log(payload)
-
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        // response = await updateManufacturer(editParams?.id, payload)
-      } else {
-        response = await addPackages(payload)
-      }
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-        await getPackagesList()
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
-      }
-    } catch (e) {
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
-
   const handleEdit = async (id, name, status) => {
     setEditParams({ id: id, name: name, status: status })
     setOpenDrawer(true)
@@ -197,6 +170,33 @@ const ManufacturerList = () => {
       </Button>
     </div>
   )
+
+  const handleSubmitData = async payload => {
+    console.log(payload)
+
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        // response = await updateManufacturer(editParams?.id, payload)
+      } else {
+        response = await addPackages(payload)
+      }
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
 
   return (
     <>

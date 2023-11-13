@@ -26,7 +26,10 @@ import { getManufacturerById } from 'src/lib/api/manufacturer'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Package Name is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Package Name is Required'),
   active: yup.string().required('Status is Required')
 })
 
@@ -61,7 +64,7 @@ const AddPackages = props => {
     const { name, active } = { ...params }
 
     const payload = {
-      name,
+      name: name.trim(),
       active
     }
     await handleSubmitData(payload)

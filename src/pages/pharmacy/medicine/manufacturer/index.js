@@ -10,7 +10,6 @@ import { DataGrid } from '@mui/x-data-grid'
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
@@ -50,64 +49,10 @@ const ManufacturerList = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        // response = await updateManufacturer(editParams?.id, payload)
-      } else {
-        response = await addManufacturer(payload)
-      }
-
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getManufacturersList()
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
-      }
-    } catch (e) {
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
-
   const handleEdit = async (id, name, status) => {
     setEditParams({ id: id, name: name, status: status })
     setOpenDrawer(true)
   }
-
-  /***** Drawer  */
-
-  // const getManufacturersList = async () => {
-  //   try {
-  //     setLoader(true)
-  //     const initialPage = 1
-  //     const limit = 10
-  //     const response = await getManufacturers({ page: initialPage, limit })
-  //     if (response.success) {
-  //       debugger
-  //       setManufacturers(response?.data)
-  //       setLoader(false)
-  //     } else {
-  //       setLoader(false)
-  //       setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-  //     }
-  //   } catch (e) {
-  //     setLoader(false)
-  //     console.log(e)
-  //     setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify, severity: 'error' })
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   getManufacturersList()
-  // }, [])
 
   const columns = [
     {
@@ -222,6 +167,33 @@ const ManufacturerList = () => {
       </Button>
     </div>
   )
+
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        // response = await updateManufacturer(editParams?.id, payload)
+      } else {
+        response = await addManufacturer(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
 
   return (
     <>

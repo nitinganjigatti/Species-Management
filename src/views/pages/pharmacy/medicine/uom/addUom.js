@@ -32,7 +32,10 @@ import Icon from 'src/@core/components/icon'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  unit_name: yup.string().required('UOM is Required'),
+  unit_name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('UOM is Required'),
   active: yup.string().nullable()
 })
 

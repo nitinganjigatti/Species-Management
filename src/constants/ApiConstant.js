@@ -10,7 +10,7 @@ export const GENERICS = 'generic-name'
 
 export const CATEGORIES = 'categories'
 
-export const DRUG_CLASS = 'drug-class'
+export const DRUG_CLASS = 'drugclass'
 
 export const DOSAGE_FORM = 'type'
 

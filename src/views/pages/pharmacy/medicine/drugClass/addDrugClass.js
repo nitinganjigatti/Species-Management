@@ -28,7 +28,10 @@ import { getDrugById } from 'src/lib/api/getDrugs'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Drug Class Name is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Drug Class Name is Required'),
   status: yup.string().required('Status is Required')
 })
 
@@ -70,7 +73,7 @@ const AddDrugClass = props => {
     const { name, status } = { ...params }
 
     const payload = {
-      name,
+      name: name.trim(),
       status
     }
     await handleSubmitData(payload)

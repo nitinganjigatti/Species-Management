@@ -53,36 +53,6 @@ const Salts = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    console.log('payload', payload)
-
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        response = await updateUnits(editParams?.id, payload)
-      } else {
-        response = await addSalt(payload)
-      }
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getUOMLists()
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
-    }
-  }
-
   const handleEdit = async (id, name, status) => {
     console.log('in state file', id, name, status)
     setEditParams({ id: id, name: name, status: status })
@@ -205,6 +175,36 @@ const Salts = () => {
       </Button>
     </div>
   )
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateUnits(editParams?.id, payload)
+      } else {
+        response = await addSalt(payload)
+      }
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
+    }
+  }
 
   return (
     <>
