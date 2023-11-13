@@ -165,7 +165,7 @@ const ManufacturerList = () => {
       ) : (
         <>
           <TableWithFilter
-            TableTitle={packages.length > 0 ? 'Packages List' : 'Packages List is empty add dosage'}
+            TableTitle={packages.length > 0 ? 'Packages List' : 'Packages List is empty'}
             headerActions={
               <div>
                 <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>

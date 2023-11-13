@@ -1,8 +1,8 @@
 import { MANUFACTURER, MASTER_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
-export async function getManufacturers() {
-  const response = await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list` })
+export async function getManufacturers({ params }) {
+  const response = await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list`, params: params })
 
   return response.data
 }

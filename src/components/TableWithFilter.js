@@ -48,7 +48,7 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
     <Card>
       <CardHeader title={TableTitle} action={headerActions !== undefined ? headerActions : null} />
       {inpFields ? inpFields : null}
-      {rows.length > 0 ? (
+      {rows?.length > 0 ? (
         <DataGrid
           autoHeight
           columns={columns}
