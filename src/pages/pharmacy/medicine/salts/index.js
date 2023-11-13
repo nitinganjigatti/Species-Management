@@ -1,0 +1,261 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
+import { getSalts, addSalt } from 'src/lib/api/salts'
+import TableWithFilter from 'src/components/TableWithFilter'
+import Button from '@mui/material/Button'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+
+// ** MUI Imports
+
+import Typography from '@mui/material/Typography'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import { Box, Drawer } from '@mui/material'
+import Card from '@mui/material/Card'
+import IconButton from '@mui/material/IconButton'
+import UserSnackbar from 'src/components/utility/snackbar'
+
+import Router from 'next/router'
+import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+
+const Salts = () => {
+  const [saltsList, setSaltsList] = useState([])
+  const [loader, setLoader] = useState(false)
+
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, name: null, status: null, code: null, short_code: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: '',
+    status: false
+  })
+
+  const addEventSidebarOpen = () => {
+    console.log('event clicked')
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    console.log('edit', editParams)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateUnits(editParams?.id, payload)
+      } else {
+        response = await addSalt(payload)
+      }
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getUOMLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
+    }
+  }
+
+  const handleEdit = async (id, name, status) => {
+    console.log('in state file', id, name, status)
+    setEditParams({ id: id, name: name, status: status })
+    setOpenDrawer(true)
+  }
+
+  /***** Drawer  */
+
+  const columns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'label',
+      headerName: 'Salt',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.label}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'active',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+            aria-label='Edit'
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        </Box>
+      )
+    }
+  ]
+
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('full_name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        q,
+        column,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      await getSalts({ params: params }).then(res => {
+        setTotal(parseInt(res.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+      })
+      setLoading(false)
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('full_name')
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add Salt
+      </Button>
+    </div>
+  )
+
+  return (
+    <>
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <>
+          <Card>
+            <CardHeader title='Salts' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={rows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
+          <AddSalts
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
+        </>
+      )}
+    </>
+  )
+}
+
+export default Salts
