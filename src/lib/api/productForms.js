@@ -1,21 +1,21 @@
-import { DOSAGE_FORM } from '../../constants/ApiConstant'
+import { PRODUCT_FORM, MASTER_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
-export async function getDosageFormList() {
-  const response = await axiosGet({ url: DOSAGE_FORM })
+export async function getProductFormList({ params }) {
+  const response = await axiosGet({ url: `${MASTER_BASE_URL}${PRODUCT_FORM}/list`, params })
 
-  return response.data.data
+  return response.data
 }
 
-export async function getDosageFormById(id) {
+export async function getProductFormById(id) {
   const response = await axiosGet({ url: `${DOSAGE_FORM}/${id}/show` })
 
   return response.data
 }
 
-export async function addDosageForm(payload) {
+export async function addProductForm(payload) {
   try {
-    const url = `${DOSAGE_FORM}`
+    const url = `${MASTER_BASE_URL}${PRODUCT_FORM}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,7 +32,7 @@ export async function addDosageForm(payload) {
   }
 }
 
-export async function updateDosageForm(id, payload) {
+export async function updateProductForm(id, payload) {
   try {
     const url = `${DOSAGE_FORM}/${id}/update`
     var data = payload

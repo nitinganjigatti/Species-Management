@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/manufacturer'
+
+import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/api/productForms'
 import TableWithFilter from 'src/components/TableWithFilter'
-import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
@@ -18,12 +18,12 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 
-import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
+import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-const ManufacturerList = () => {
-  const [manufacturers, setManufacturers] = useState({})
+const ListOfDosageForms = () => {
+  const [dosageForms, setDosageForms] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -40,12 +40,15 @@ const ManufacturerList = () => {
   })
 
   const addEventSidebarOpen = () => {
+    console.log('event clicked')
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
+    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
+    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -59,7 +62,7 @@ const ManufacturerList = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'ID ',
+      headerName: 'ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.id)}
@@ -70,7 +73,7 @@ const ManufacturerList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'Manufacturer',
+      headerName: 'Product Form',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -81,10 +84,11 @@ const ManufacturerList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'active',
+      field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.status}
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
@@ -96,6 +100,9 @@ const ManufacturerList = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:eye-outline' />
+          </IconButton> */}
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}
@@ -103,6 +110,9 @@ const ManufacturerList = () => {
           >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
+          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+            <Icon icon='mdi:delete-outline' />
+          </IconButton> */}
         </Box>
       )
     }
@@ -132,7 +142,7 @@ const ManufacturerList = () => {
         limit: paginationModel.pageSize
       }
 
-      await getManufacturers({ params: params }).then(res => {
+      await getProductFormList({ params: params }).then(res => {
         setTotal(parseInt(res.data?.total_count))
         setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
       })
@@ -163,19 +173,21 @@ const ManufacturerList = () => {
   const headerAction = (
     <div>
       <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add Manufacturer
+        Add Product Form
       </Button>
     </div>
   )
 
   const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    debugger
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        // response = await updateManufacturer(editParams?.id, payload)
+        response = await updateProductForm(editParams?.id, payload)
       } else {
-        response = await addManufacturer(payload)
+        response = await addProductForm(payload)
       }
 
       if (response?.success) {
@@ -187,9 +199,11 @@ const ManufacturerList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
+        console.log('test')
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
       }
     } catch (e) {
+      console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -202,7 +216,7 @@ const ManufacturerList = () => {
       ) : (
         <>
           <Card>
-            <CardHeader title='Manufacturers' action={headerAction} />
+            <CardHeader title='Product Form List' action={headerAction} />
             <DataGrid
               autoHeight
               pagination
@@ -229,7 +243,7 @@ const ManufacturerList = () => {
               }}
             />
           </Card>
-          <AddManufacturer
+          <AddProductForm
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}
             handleSidebarClose={handleSidebarClose}
@@ -247,4 +261,4 @@ const ManufacturerList = () => {
   )
 }
 
-export default ManufacturerList
+export default ListOfDosageForms

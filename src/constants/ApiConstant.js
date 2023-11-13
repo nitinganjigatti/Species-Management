@@ -12,7 +12,7 @@ export const CATEGORIES = 'categories'
 
 export const DRUG_CLASS = 'drugclass'
 
-export const DOSAGE_FORM = 'type'
+export const PRODUCT_FORM = 'productforms'
 
 export const STATES = 'state'
 

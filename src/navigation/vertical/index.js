@@ -56,12 +56,12 @@ const navigation = () => {
           path: '/pharmacy/medicine/uom'
         },
         {
-          title: 'Dosage form',
-          path: '/pharmacy/medicine/dosageForm'
+          title: 'Product Form',
+          path: '/pharmacy/medicine/product-form'
         },
         {
           title: 'Drug class',
-          path: '/pharmacy/medicine/drugClass'
+          path: '/pharmacy/medicine/drug-class'
         },
         {
           title: 'Manufacturer',

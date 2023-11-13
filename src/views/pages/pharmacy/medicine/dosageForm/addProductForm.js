@@ -23,12 +23,15 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getDosageFormById } from 'src/lib/api/getDosageFormList'
+import { getDosageFormById } from 'src/lib/api/productForms'
 
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Dosage Form is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Dosage Form is Required'),
   status: yup.string().required('Status is Required')
 })
 
@@ -37,7 +40,7 @@ const defaultValues = {
   status: 'active'
 }
 
-const AddDosageForm = props => {
+const AddProductForm = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
@@ -70,7 +73,7 @@ const AddDosageForm = props => {
     const { name, status } = { ...params }
 
     const payload = {
-      name,
+      name: name.trim(),
       status
     }
     await handleSubmitData(payload)
@@ -125,7 +128,7 @@ const AddDosageForm = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Dosage form</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Product Form</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -192,4 +195,4 @@ const AddDosageForm = props => {
   )
 }
 
-export default AddDosageForm
+export default AddProductForm
