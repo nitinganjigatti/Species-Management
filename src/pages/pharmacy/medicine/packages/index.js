@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -8,6 +8,8 @@ import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -19,7 +21,7 @@ import { getPackages, addPackages } from 'src/lib/api/packages'
 
 import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
 import UserSnackbar from 'src/components/utility/snackbar'
-import { id } from 'date-fns/locale'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const ManufacturerList = () => {
   const [packages, setPackages] = useState([])
@@ -82,28 +84,6 @@ const ManufacturerList = () => {
 
   /***** Drawer  */
 
-  const getPackagesList = async () => {
-    try {
-      setLoader(true)
-      const response = await getPackages()
-      if (response.success) {
-        setPackages(response.data)
-        setLoader(false)
-      } else {
-        setLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-      }
-    } catch (e) {
-      setLoader(false)
-      console.log(e)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify, severity: 'error' })
-    }
-  }
-
-  useEffect(() => {
-    getPackagesList()
-  }, [])
-
   const columns = [
     {
       flex: 0.05,
@@ -158,24 +138,100 @@ const ManufacturerList = () => {
     }
   ]
 
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('full_name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        q,
+        column,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      await getPackages({ params: params }).then(res => {
+        setTotal(parseInt(res.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+      })
+      setLoading(false)
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('full_name')
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add Package
+      </Button>
+    </div>
+  )
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={packages.length > 0 ? 'Packages List' : 'Packages List is empty'}
-            headerActions={
-              <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add Package
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={packages}
-          />
+          <Card>
+            <CardHeader title='Packages' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={rows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
           <AddPackages
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}
