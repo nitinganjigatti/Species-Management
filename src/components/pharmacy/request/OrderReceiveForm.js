@@ -1,30 +1,48 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 
 import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import DataGrid from 'src/@core/theme/overrides/dataGrid'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
+import {
+  Grid,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableRow,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  TextField,
+  Box,
+  Button,
+  Chip,
+  CardContent,
+  CardHeader,
+  Divider
+} from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import Fade from '@mui/material/Fade'
+import toast from 'react-hot-toast'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -32,69 +50,334 @@ import { column } from 'stylis'
 
 import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
+import { getShipmentOrderDetails } from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-function OrderReceiveForm() {
+function OrderReceiveForm({ orderId }) {
+  const defaultValues = {
+    shipment_id: '',
+    shipment_date: '',
+    traking_information: '',
+    person_shipping: '',
+    shipment_status: '',
+    vehicle_no: '',
+    from_store_name: '',
+    to_store_name: '',
+    shipment_item_details: []
+  }
+  const [values, setValues] = useState(defaultValues)
+  const [orderData, setOrderData] = useState([])
+
+  const schema = yup.object().shape({
+    shipment_status: yup.string().required('order is required')
+  })
+
+  const {
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+  const options = ['Received', 'Broken/damaged', 'Missing', 'Wrong count', 'Expired', 'Shipped']
+
+  const getOrderDetails = async orderId => {
+    // const result = await getdatta()
+    const response = await getShipmentOrderDetails(orderId)
+    console.log('response', response)
+    console.log('response', response.data)
+
+    // const response = getRequestItemsListById('83')
+    console.log('check', response.success === true && response.data !== '')
+    if (response.success === true && response.data !== '') {
+      setOrderData(response.data)
+
+      const data = {
+        shipment_id: response.data.shipment_id,
+        shipment_date: response.data.shipment_date,
+        traking_information: response.data.traking_information,
+        person_shipping: response.data.person_shipping,
+        shipment_status: response.data.shipment_status,
+        vehicle_no: response.data.vehicle_no,
+        from_store_name: response.data.from_store_name,
+        to_store_name: response.data.to_store_name,
+        shipment_item_details: response.data.shipment_item_details
+      }
+      reset(data)
+    }
+
+    // if (response.success === true && response.data.length > 0) {
+    //   setOrderData(response.data)
+
+    //   // setLoader(false)
+    // } else {
+    //   // setLoader(false)
+    // }
+  }
+
+  useEffect(() => {
+    if (orderId) {
+      getOrderDetails(orderId)
+    }
+  }, [])
+
+  const columns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'Id',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'stock_name',
+      headerName: 'Medicine Name',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_name}
+          </Typography>
+          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+            <CustomChip label='CS' skin='light' color='success' size='small' />
+          ) : null}
+        </div>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch',
+      headerName: 'Batch',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'quantity',
+      headerName: 'Quantity',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.quantity}
+        </Typography>
+      )
+    }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: '',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <FormControl fullWidth>
+    //       <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
+    //         Status
+    //       </InputLabel>
+    //       <Controller
+    //         name='shipment_status'
+    //         control={control}
+    //         rules={{ required: true }}
+    //         render={({ field: { value, onChange } }) => (
+    //           <Select
+    //             size='small'
+    //             name='shipment_status'
+    //             value={value}
+    //             label='Status'
+    //             onChange={e => {
+    //               onChange(e)
+    //             }}
+    //             error={Boolean(errors?.shipment_status)}
+    //           >
+    //             {options?.map((item, index) => (
+    //               <MenuItem key={index} value={item}>
+    //                 {item}
+    //               </MenuItem>
+    //             ))}
+    //           </Select>
+    //         )}
+    //       />
+    //       {errors?.shipment_status && (
+    //         <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
+    //       )}
+    //     </FormControl>
+    //   )
+    // }
+  ]
+
+  const updateStatus = async params => {
+    const {
+      shipment_id,
+      shipment_date,
+      traking_information,
+      person_shipping,
+      shipment_status,
+      vehicle_no,
+      from_store_name,
+      to_store_name,
+      shipment_item_details
+    } = params
+
+    const payLoad = {
+      shipment_id,
+      shipment_date,
+      traking_information,
+      person_shipping,
+      shipment_status,
+      vehicle_no,
+      from_store_name,
+      to_store_name,
+      shipment_item_details
+    }
+    console.log('payload', payLoad)
+  }
+
   return (
-    <Card>
-      <CardHeader title={`Order received`} />
-      <CardHeader title={`Shipping Id`} />
-      <CardContent>
-        {/* Request Basic Info */}
-        <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-          <Grid item xs={3}>
-            <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-            <p>{requestItems?.from_store}</p>
-          </Grid>
-          <Grid item xs={3}>
-            <h5 style={{ marginBottom: '0px' }}>Store name </h5>
-            <p>{requestItems?.to_store}</p>
-          </Grid>
-          <Grid item xs={3}>
-            <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-            <p>{requestItems?.request_date}</p>
-          </Grid>
-          <Grid item xs={3}>
-            <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-            <p>{requestItems?.request_number}</p>
-          </Grid>
-          <Grid item xs={3}>
-            <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-            <p>{requestItems?.request_number}</p>
-          </Grid>
-        </Grid>
-        {/* Medicine Listing */}
-      </CardContent>
-      {requestItems?.request_item_details?.length > 0 ? (
-        <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-      ) : null}
-      {/* Dispatch list */}
-      {dispatchedItems?.dispatch_items?.length > 0 ? (
-        <>
-          <CardContent>
-            <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-              <Grid item xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
-              </Grid>
-              <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                <Button
-                  size='big'
-                  variant='contained'
-                  onClick={() => {
-                    openShipDialog()
-                  }}
-                >
-                  Ship
-                </Button>
-              </Grid>
+    <>
+      <Grid xs={12} sx={{ mx: 'auto' }}>
+        {/* <CardHeader title={`Order received`} /> */}
+        <Grid container xs={12}>
+          {orderData?.shipment_id ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
+              <p>{orderData.shipment_id}</p>
             </Grid>
-          </CardContent>
-          {/* <TableBasic columns={fulfillColumns} rows={dispatchedItems?.dispatch_items}></TableBasic> */}
-        </>
-      ) : null}
-    </Card>
+          ) : null}
+          {orderData?.from_store_name ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}> From Store </h5>
+              <p>{orderData.from_store_name}</p>
+            </Grid>
+          ) : null}
+          {orderData?.shipment_date ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
+              <p>{orderData.shipment_date}</p>
+            </Grid>
+          ) : null}
+          {orderData?.vehicle_no ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
+              <p>{orderData.vehicle_no}</p>
+            </Grid>
+          ) : null}
+          {orderData?.to_store_name ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}>To Store </h5>
+              <p>{orderData.to_store_name}</p>
+            </Grid>
+          ) : null}
+
+          {orderData?.person_shipping ? (
+            <Grid item md={4} sm={4} xs={4}>
+              <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+              <p>{orderData.person_shipping}</p>
+            </Grid>
+          ) : null}
+        </Grid>
+
+        {orderData?.shipment_item_details?.length > 0 ? (
+          <>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
+              <TableBasic columns={columns} rows={orderData?.shipment_item_details}></TableBasic>
+            </Grid>
+          </>
+        ) : null}
+
+        <form autoComplete='off' onSubmit={handleSubmit(updateStatus)}>
+          <Grid container items sx={{ my: 12 }}>
+            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
+                  Status
+                </InputLabel>
+                <Controller
+                  name='shipment_status'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='shipment_status'
+                      value={value}
+                      label='Status'
+                      onChange={e => {
+                        onChange(e)
+                      }}
+                      error={Boolean(errors?.shipment_status)}
+                    >
+                      {options?.map((item, index) => (
+                        <MenuItem key={index} value={item}>
+                          {item}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.shipment_status && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+              <FormControl fullWidth>
+                <Controller
+                  name='comment'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      type='text'
+                      label='Comment'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='comment'
+                      error={Boolean(errors.comment)}
+                      name='comment'
+                    />
+                  )}
+                />
+                {errors.comment && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.comment.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Divider
+            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+          />
+          <LoadingButton
+            sx={{ float: 'right', my: 4, mx: 6 }}
+            size='large'
+            variant='contained'
+            type='submit'
+
+            // loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
+        </form>
+      </Grid>
+    </>
   )
 }
 

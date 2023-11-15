@@ -37,6 +37,8 @@ import { column } from 'stylis'
 
 import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import CommonDialogBox from 'src/components/CommonDialogBox'
+import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -46,10 +48,12 @@ const IndividualRequest = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
+  const [orderFormDialog, setOrderFormDialog] = useState(false)
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [showShipDialog, setShowShipDialog] = useState(false)
   const [dispatchedItems, setDispatchedItems] = useState([])
   const [shippedItems, setShippedItems] = useState([])
+  const [orderId, setOrderId] = useState('')
 
   const router = useRouter()
   const { id, request_number } = router.query
@@ -132,7 +136,16 @@ const IndividualRequest = () => {
     }
   }, [id])
 
+  const closeOrderFormDialog = () => {
+    setOrderFormDialog(false)
+  }
+
+  const showOrderFormDialog = () => {
+    setOrderFormDialog(true)
+  }
+
   const closeDialog = () => {
+    setOrderId('')
     setShow(false)
   }
 
@@ -446,12 +459,33 @@ const IndividualRequest = () => {
           {params.row.shipment_status}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <Box sx={{ marginLeft: -6 }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              setOrderId(params.row.id)
+              showOrderFormDialog()
+            }}
+            aria-label='Edit'
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        </Box>
+      )
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  // const handleHeaderAction = () => {
+  //   showOrderFormDialog()
+  // }
 
   return (
     <>
@@ -459,6 +493,13 @@ const IndividualRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
+          <CommonDialogBox
+            title={'Order received'}
+            dialogBoxStatus={orderFormDialog}
+            formComponent={<OrderReceiveForm orderId={orderId} />}
+            close={closeOrderFormDialog}
+            show={showOrderFormDialog}
+          />
           <Card>
             <CardHeader title={`Request - ${request_number}`} />
             <CardContent>

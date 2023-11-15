@@ -6,3 +6,9 @@ export async function getShipmentList() {
 
   return response.data.data
 }
+
+export async function getShipmentOrderDetails(id) {
+  const response = await axiosGet({ url: `${SHIPMENT}/shipped/${id}` })
+
+  return response.data
+}
