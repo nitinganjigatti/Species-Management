@@ -21,7 +21,7 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getManufacturerById } from 'src/lib/api/manufacturer'
+import { getPackageById } from 'src/lib/api/packages'
 
 // ** Styled Components
 
@@ -70,12 +70,16 @@ const AddPackages = props => {
     await handleSubmitData(payload)
   }
 
-  const getManufacturer = useCallback(
+  const getPackages = useCallback(
     async id => {
-      const response = await getManufacturerById(id)
-      if (response?.success) {
-        reset(response.data)
-      } else {
+      try {
+        const response = await getPackageById(id)
+        if (response?.success) {
+          reset({ id: response.data.id, name: response.data.label, active: response.data.active })
+        } else {
+        }
+      } catch (e) {
+        console.log(e)
       }
     },
     [reset]
@@ -87,9 +91,9 @@ const AddPackages = props => {
     }
 
     if (editParams?.id !== null) {
-      getManufacturerById(editParams?.id)
+      getPackages(editParams?.id)
     }
-  }, [resetForm, editParams, reset])
+  }, [resetForm, editParams, reset, getPackages])
 
   const RenderSidebarFooter = () => {
     return (
@@ -136,7 +140,7 @@ const AddPackages = props => {
                   label='Package Name'
                   value={value}
                   onChange={onChange}
-                  placeholder='Manufacturer Name'
+                  placeholder='Package Name'
                   error={Boolean(errors.name)}
                   name='name'
                 />

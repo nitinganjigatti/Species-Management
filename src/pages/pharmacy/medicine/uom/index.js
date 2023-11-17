@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getUnits, addUnits, updateUnits } from 'src/lib/api/getUnits'
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -14,6 +14,10 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import UserSnackbar from 'src/components/utility/snackbar'
+import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
@@ -23,7 +27,7 @@ const ListOfUOM = () => {
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null, code: null, short_code: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -38,7 +42,7 @@ const ListOfUOM = () => {
 
   const addEventSidebarOpen = () => {
     console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
     console.log('edit', editParams)
     setOpenDrawer(true)
@@ -49,74 +53,40 @@ const ListOfUOM = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    console.log('payload', payload)
-
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        response = await updateUnits(editParams?.id, payload)
-      } else {
-        response = await addUnits(payload)
-      }
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getUOMLists()
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
-    }
-  }
-
-  const handleEdit = async (id, name, status) => {
-    console.log('in state file', id, name, status)
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    console.log('in state file', id, name, active)
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
 
   /***** Drawer  */
 
-  const getUOMLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getUnits()
-      if (response.success) {
-        setUomList(response.data)
-        setLoader(false)
-      } else {
-        setLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
-      }
-    } catch (e) {
-      setLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
-    }
-  }
-
-  useEffect(() => {
-    getUOMLists()
-  }, [])
+  // const getUOMLists = async () => {
+  //   try {
+  //     setLoader(true)
+  //     const response = await getUnits()
+  //     if (response.success) {
+  //       setUomList(response.data)
+  //       setLoader(false)
+  //     } else {
+  //       setLoader(false)
+  //       setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+  //     }
+  //   } catch (e) {
+  //     setLoader(false)
+  //     setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
+  //   }
+  // }
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'ID ',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -150,18 +120,122 @@ const ListOfUOM = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+              aria-label='Edit'
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     }
   ]
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add UOM
+      </Button>
+    </div>
+  )
+
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getUnits({ params: params }).then(res => {
+          setTotal(parseInt(res.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('label')
+    }
+  }
+
+  const handleSearch = value => {
+    //setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateUnits(editParams?.id, payload)
+      } else {
+        response = await addUnits(payload)
+      }
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getUOMLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
+    }
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+  }))
 
   return (
     <>
@@ -169,7 +243,35 @@ const ListOfUOM = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
+          <Card>
+            <CardHeader title='UOM (Unit of Measurement) List' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => (searchValue === '' ? null : handleSearch('')),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
+          {/* <TableWithFilter
             TableTitle={
               uomList.length > 0 ? 'UOM (Unit of Measurement) List' : 'UOM (Unit of Measurement) List is empty add UOM'
             }
@@ -182,7 +284,7 @@ const ListOfUOM = () => {
             }
             columns={columns}
             rows={uomList}
-          />
+          /> */}
           <AddUOM
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}

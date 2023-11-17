@@ -19,7 +19,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
 import { axiosGet } from 'src/lib/api/utility'
-import { MASTER_BASE_URL, MANUFACTURER } from 'src/constants/ApiConstant'
+import { PHARMACY_MASTER_BASE_URL, MANUFACTURER } from 'src/constants/ApiConstant'
 
 // ** renders client column
 const renderClient = params => {
@@ -160,9 +160,9 @@ const TableServerSide = ({ columns, getCall }) => {
         setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
       })
 
-      // const response = await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list?page=${page}&limit=${limit}` })
+      // const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/list?page=${page}&limit=${limit}` })
 
-      // await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list`, params: params }).then(res => {
+      // await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/list`, params: params }).then(res => {
       //   console.log(res)
       //   debugger
       //   setTotal(parseInt(res.data.data.total_count))

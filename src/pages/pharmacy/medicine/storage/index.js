@@ -1,30 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react'
+
+import { getStorage, updateStorage } from 'src/lib/api/storage'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-
-// ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 
+// ** MUI Imports
+
+import Typography from '@mui/material/Typography'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Drawer } from '@mui/material'
+import Card from '@mui/material/Card'
+import IconButton from '@mui/material/IconButton'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 import Router from 'next/router'
-
-import { getPackages, addPackages, updatePackage } from 'src/lib/api/packages'
-
-import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
-import UserSnackbar from 'src/components/utility/snackbar'
+import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { addStorage } from 'src/lib/api/storage'
+import { ConstructionOutlined } from '@mui/icons-material'
 
-const ManufacturerList = () => {
-  const [packages, setPackages] = useState([])
+const StorageList = () => {
+  const [saltsList, setSaltsList] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -37,20 +38,25 @@ const ManufacturerList = () => {
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
-    message: ''
+    message: '',
+    status: false
   })
 
   const addEventSidebarOpen = () => {
+    console.log('event clicked')
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
+    console.log('edit', editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
+    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
   const handleEdit = async (id, name, active) => {
+    console.log('in state file', id, name, active)
     setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
@@ -73,7 +79,7 @@ const ManufacturerList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'Package',
+      headerName: 'Storage',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -103,7 +109,8 @@ const ManufacturerList = () => {
             <IconButton
               size='small'
               sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
+              aria-label='Edit'
             >
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
@@ -138,13 +145,12 @@ const ManufacturerList = () => {
           limit: paginationModel.pageSize
         }
 
-        await getPackages({ params: params }).then(res => {
+        await getStorage({ params: params }).then(res => {
           setTotal(parseInt(res.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
         setLoading(false)
       }
     },
@@ -166,42 +172,46 @@ const ManufacturerList = () => {
   }
 
   const handleSearch = value => {
-    setSearchValue(value)
+    //setSearchValue(value)
     fetchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
     <div>
       <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add Package
+        Add Storage
       </Button>
     </div>
   )
 
-  const handleSubmitData = async payload => {
-    console.log(payload)
-
+  const handleSubmitData = async (payload, id) => {
+    console.log(id)
+    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
-      if (editParams?.id !== null) {
-        response = await updatePackage(editParams?.id, payload)
+      if (id !== null) {
+        debugger
+        response = await updateStorage(id, payload)
       } else {
-        response = await addPackages(payload)
+        response = await addStorage(payload)
       }
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
+      console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
 
@@ -219,7 +229,7 @@ const ManufacturerList = () => {
       ) : (
         <>
           <Card>
-            <CardHeader title='Packages' action={headerAction} />
+            <CardHeader title='Storage' action={headerAction} />
             <DataGrid
               autoHeight
               pagination
@@ -240,13 +250,13 @@ const ManufacturerList = () => {
                 },
                 toolbar: {
                   value: searchValue,
-                  clearSearch: () => handleSearch(''),
+                  clearSearch: () => (searchValue === '' ? null : handleSearch('')),
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
             />
           </Card>
-          <AddPackages
+          <AddStorage
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}
             handleSidebarClose={handleSidebarClose}
@@ -264,4 +274,4 @@ const ManufacturerList = () => {
   )
 }
 
-export default ManufacturerList
+export default StorageList

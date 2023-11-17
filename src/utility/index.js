@@ -7,8 +7,19 @@ const formatDate = dateString => {
   return `${year}-${month}-${day}`
 }
 
+function formatNumber(number) {
+  // Convert to a floating-point number with two decimal places
+  var formattedNumber = parseFloat(number).toFixed(2)
+
+  // Remove trailing zeros and the decimal point if unnecessary
+  formattedNumber = formattedNumber.replace(/\.0+$/, '')
+
+  return formattedNumber
+}
+
 const Utility = {
-  formatDate
+  formatDate,
+  formatNumber
 }
 
 export default Utility

@@ -27,7 +27,7 @@ const ListOfDrugs = () => {
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -41,7 +41,7 @@ const ListOfDrugs = () => {
 
   const addEventSidebarOpen = () => {
     console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
     console.log(editParams)
     setOpenDrawer(true)
@@ -52,8 +52,8 @@ const ListOfDrugs = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
 
@@ -62,10 +62,10 @@ const ListOfDrugs = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'ID ',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.id)}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -99,19 +99,15 @@ const ListOfDrugs = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     }
@@ -122,7 +118,7 @@ const ListOfDrugs = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('full_name')
+  const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -131,21 +127,25 @@ const ListOfDrugs = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      setLoading(true)
+      try {
+        setLoading(true)
 
-      const params = {
-        sort,
-        q,
-        column,
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getDrugClass({ params: params }).then(res => {
+          setTotal(parseInt(res.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch {
+        setLoading(false)
       }
-
-      await getDrugClass({ params: params }).then(res => {
-        setTotal(parseInt(res.data?.total_count))
-        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-      })
-      setLoading(false)
     },
     [paginationModel]
   )
@@ -160,7 +160,7 @@ const ListOfDrugs = () => {
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
       setSort('asc')
-      setSortColumn('full_name')
+      setSortColumn('label')
     }
   }
 
@@ -207,6 +207,13 @@ const ListOfDrugs = () => {
     }
   }
 
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+  }))
+
   return (
     <>
       {loader ? (
@@ -218,7 +225,7 @@ const ListOfDrugs = () => {
             <DataGrid
               autoHeight
               pagination
-              rows={rows}
+              rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
               sortingMode='server'

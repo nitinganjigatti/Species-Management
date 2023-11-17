@@ -30,7 +30,7 @@ export const STOCK_BY_BATCH = 'master-stock-batch-wise'
 
 export const UOM = 'uom'
 
-export const MEDICINE = 'stock-item'
+export const MEDICINE = 'stock'
 
 export const SHIPMENT = 'shipment'
 
@@ -58,6 +58,10 @@ export const PACKAGES = 'packages'
 
 export const SALTS = 'salts'
 
+export const STORAGE = 'storage'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
-export const MASTER_BASE_URL = 'v1/master/pharma/'
+export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
+
+export const PHARMACY_BASE_URL = 'v1/pharma/'

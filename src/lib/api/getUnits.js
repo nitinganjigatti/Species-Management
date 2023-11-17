@@ -1,15 +1,15 @@
-import { UOM, MASTER_BASE_URL } from '../../constants/ApiConstant'
+import { UOM, PHARMACY_MASTER_BASE_URL } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
 export async function getUnits() {
-  const response = await axiosGet({ url: `${MASTER_BASE_URL}${UOM}/list` })
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/list` })
 
   return response.data
 }
 
 export async function addUnits(payload) {
   try {
-    const url = `${MASTER_BASE_URL}${UOM}/add`
+    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -27,14 +27,14 @@ export async function addUnits(payload) {
 }
 
 export async function getUnitsById(id) {
-  const response = await axiosGet({ url: `${UOM}/${id}/show` })
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/${id}` })
 
   return response.data
 }
 
 export async function updateUnits(id, payload) {
   try {
-    const url = `${UOM}/${id}/update`
+    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/edit/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

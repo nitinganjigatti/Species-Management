@@ -21,7 +21,8 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { getSaltById } from 'src/lib/api/salts'
+
+import { getStorageById } from 'src/lib/api/storage'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -35,7 +36,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .required('Salt is Required'),
+    .required('Storage is Required'),
   active: yup.string().nullable()
 })
 
@@ -44,7 +45,7 @@ const defaultValues = {
   active: '1'
 }
 
-const AddSalts = props => {
+const AddStorage = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
@@ -70,13 +71,13 @@ const AddSalts = props => {
       name: name.trim(),
       active
     }
-    await handleSubmitData(payload)
+    await handleSubmitData(payload, editParams?.id)
   }
 
-  const getSalt = useCallback(
+  const getStorage = useCallback(
     async id => {
       try {
-        const response = await getSaltById(id)
+        const response = await getStorageById(id)
         if (response?.success) {
           reset({ id: response.data.id, name: response.data.label, active: response.data.active })
         } else {
@@ -94,9 +95,9 @@ const AddSalts = props => {
     }
 
     if (editParams?.id !== null) {
-      getSalt(editParams?.id)
+      getStorage(editParams?.id)
     }
-  }, [resetForm, editParams, reset, getSalt])
+  }, [resetForm, editParams, reset, getStorage])
 
   const RenderSidebarFooter = () => {
     return (
@@ -124,7 +125,7 @@ const AddSalts = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Salt</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Storage</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -192,4 +193,4 @@ const AddSalts = props => {
   )
 }
 
-export default AddSalts
+export default AddStorage

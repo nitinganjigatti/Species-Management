@@ -1,19 +1,15 @@
-import { MEDICINE } from '../../constants/ApiConstant'
+import { MEDICINE, PHARMACY_BASE_URL } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from './utility'
 
-export async function getMedicineList() {
-  const response = await axiosGet({ url: MEDICINE })
+export async function getMedicineList({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${MEDICINE}/list`, params })
 
-  if (response?.status == 200 && response?.data?.success) {
-    return response.data.data
-  } else {
-    return []
-  }
+  return response.data
 }
 
 export async function addMedicine(payload) {
   try {
-    const url = `${MEDICINE}`
+    const url = `${PHARMACY_BASE_URL}${MEDICINE}/add`
     var data = payload
     const response = await axiosFormPost({ url, body: data })
 
@@ -31,14 +27,14 @@ export async function addMedicine(payload) {
 }
 
 export async function getMedicineById(id) {
-  const response = await axiosGet({ url: `${MEDICINE}/${id}/show` })
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${MEDICINE}/${id}` })
 
-  return response.data.data
+  return response.data
 }
 
 export async function updateMedicineById(payload, id) {
   try {
-    const url = `${MEDICINE}/${id}/update`
+    const url = `${PHARMACY_BASE_URL}${MEDICINE}/edit/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

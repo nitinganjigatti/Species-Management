@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getMedicineList } from 'src/lib/api/getMedicineList'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
@@ -11,6 +11,10 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import Card from '@mui/material/Card'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -19,6 +23,7 @@ import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
+import Utility from 'src/utility'
 
 const ListOfMedicine = () => {
   const [medicineList, setMedicineList] = useState([])
@@ -34,25 +39,6 @@ const ListOfMedicine = () => {
     setShow(true)
   }
 
-  const getMedicinesLists = async () => {
-    setLoader(true)
-    const response = await getMedicineList()
-    if (response?.length > 0) {
-      console.log('list', response)
-
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setMedicineList(listWithId)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
-
   const handleEdit = async id => {
     Router.push({
       pathname: '/pharmacy/medicine/medicine/add-medicine',
@@ -60,27 +46,20 @@ const ListOfMedicine = () => {
     })
   }
 
-  useEffect(() => {
-    console.log(IMAGE_BASE_URL)
-    getMedicinesLists()
-
-    // configureMedicine()
-  }, [])
-
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'id',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'name',
       headerName: 'MEDICINE NAME',
@@ -91,73 +70,50 @@ const ListOfMedicine = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
-      field: 'generic_names',
-      headerName: 'GENERIC',
+      field: 'stock_type',
+      headerName: 'Type',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.generic_names}
+          <span alt={params.row.stock_type}>{params.row.stock_type}</span>
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
-      field: 'categories_name',
-      headerName: 'CATEGORY',
+      field: 'package',
+      headerName: 'PACKAGE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.categories_name}
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)} ${params.row.package_uom}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
-      field: 'type_name',
-      headerName: 'DOSAGE FORM',
+      field: 'manufacturer_name',
+      headerName: 'Manufacturer Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.type_name}
+          <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
-      field: 'unit_name',
-      headerName: 'UOM',
+      field: 'drug_class_label',
+      headerName: 'Drug Class',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.unit_name}
+          <span alt={params.row.manufacturer_name}>{params.row.drug_class_label}</span>
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'leaf_name',
-      headerName: 'LEAFS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.leaf_name}
-        </Typography>
-      )
-    },
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'gst_name',
-    //   headerName: 'GST',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.gst_name}
-    //     </Typography>
-    //   )
-    // },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -183,11 +139,11 @@ const ListOfMedicine = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
     },
@@ -202,7 +158,7 @@ const ListOfMedicine = () => {
           <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          <IconButton
+          {/* <IconButton
             size='small'
             onClick={() => {
               setConfigureMedId(params.row.id)
@@ -210,7 +166,7 @@ const ListOfMedicine = () => {
             }}
           >
             <Icon icon='grommet-icons:configure' />
-          </IconButton>
+          </IconButton> */}
           {/* <IconButton size='small'>
             <Icon icon='mdi:eye-outline' />
           </IconButton>
@@ -222,6 +178,84 @@ const ListOfMedicine = () => {
       )
     }
   ]
+
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getMedicineList({ params: params }).then(res => {
+          setTotal(parseInt(res.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('name')
+    }
+  }
+
+  const handleSearch = value => {
+    //setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button
+        size='big'
+        variant='contained'
+        onClick={() => {
+          Router.push('/pharmacy/medicine/medicine/add-medicine')
+        }}
+      >
+        Add Medicine
+      </Button>
+    </div>
+  )
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+  }))
 
   return (
     <>
@@ -236,24 +270,34 @@ const ListOfMedicine = () => {
             close={closeDialog}
             show={showDialog}
           />
-          <TableWithFilter
-            TableTitle={medicineList.length > 0 ? 'Medicine List' : 'Medicine List is empty add Medicine'}
-            headerActions={
-              <div>
-                <Button
-                  size='big'
-                  variant='contained'
-                  onClick={() => {
-                    Router.push('/pharmacy/medicine/medicine/add-medicine')
-                  }}
-                >
-                  Add Medicine
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={medicineList}
-          />
+          <Card>
+            <CardHeader title='Medicine List' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => (searchValue === '' ? null : handleSearch('')),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
         </>
       )}
     </>

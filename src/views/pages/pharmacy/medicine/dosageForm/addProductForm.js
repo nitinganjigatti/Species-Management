@@ -16,7 +16,7 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
-import { getCategoryById } from 'src/lib/api/getCategories'
+import { getProductFormById } from 'src/lib/api/productForms'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -32,12 +32,12 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Dosage Form is Required'),
-  status: yup.string().required('Status is Required')
+  active: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
   name: '',
-  status: 'active'
+  active: '1'
 }
 
 const AddProductForm = props => {
@@ -70,21 +70,25 @@ const AddProductForm = props => {
   })
 
   const onSubmit = async params => {
-    const { name, status } = { ...params }
+    const { name, active } = { ...params }
 
     const payload = {
       name: name.trim(),
-      status
+      active
     }
     await handleSubmitData(payload)
   }
 
   const getDosage = useCallback(
     async id => {
-      const response = await getDosageFormById(id)
-      if (response?.success) {
-        reset(response.data)
-      } else {
+      try {
+        const response = await getProductFormById(id)
+        if (response?.success) {
+          reset({ name: response.data.label, active: response.data.active, id: response.data.id })
+        } else {
+        }
+      } catch (e) {
+        console.log(e)
       }
     },
     [reset]
@@ -144,10 +148,10 @@ const AddProductForm = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Dosage Form'
+                  label='Product Form'
                   value={value}
                   onChange={onChange}
-                  placeholder='Dosage Form'
+                  placeholder='Product Form'
                   error={Boolean(errors.name)}
                   name='name'
                 />
@@ -159,19 +163,19 @@ const AddProductForm = props => {
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
-                name='status'
+                name='active'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
                     <FormControlLabel
-                      value='active'
+                      value='1'
                       label='Active'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
                     />
                     <FormControlLabel
-                      value='inactive'
+                      value='0'
                       label='Inactive'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}

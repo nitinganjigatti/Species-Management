@@ -72,10 +72,15 @@ const AddManufacturer = props => {
 
   const getManufacturer = useCallback(
     async id => {
-      const response = await getManufacturerById(id)
-      if (response?.success) {
-        reset(response.data)
-      } else {
+      try {
+        const response = await getManufacturerById(id)
+        debugger
+        if (response?.success) {
+          reset({ id: response.data.id, manufacturer_name: response.data.label, active: response.data.active })
+        } else {
+        }
+      } catch (e) {
+        console.log(e)
       }
     },
     [reset]
@@ -87,9 +92,9 @@ const AddManufacturer = props => {
     }
 
     if (editParams?.id !== null) {
-      getManufacturerById(editParams?.id)
+      getManufacturer(editParams?.id)
     }
-  }, [resetForm, editParams, reset])
+  }, [resetForm, editParams, reset, getManufacturer])
 
   const RenderSidebarFooter = () => {
     return (

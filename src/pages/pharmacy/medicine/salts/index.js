@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getSalts, addSalt } from 'src/lib/api/salts'
+import { getSalts, addSalt, updateSalt } from 'src/lib/api/salts'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -27,7 +27,7 @@ const Salts = () => {
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null, code: null, short_code: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -41,21 +41,17 @@ const Salts = () => {
   })
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log('edit', editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, status) => {
-    console.log('in state file', id, name, status)
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
 
@@ -66,10 +62,10 @@ const Salts = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'ID',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -103,14 +99,16 @@ const Salts = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+              aria-label='Edit'
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     }
@@ -121,7 +119,7 @@ const Salts = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('full_name')
+  const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -130,21 +128,25 @@ const Salts = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      setLoading(true)
+      try {
+        setLoading(true)
 
-      const params = {
-        sort,
-        q,
-        column,
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getSalts({ params: params }).then(res => {
+          setTotal(parseInt(res.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
       }
-
-      await getSalts({ params: params }).then(res => {
-        setTotal(parseInt(res.data?.total_count))
-        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-      })
-      setLoading(false)
     },
     [paginationModel]
   )
@@ -159,7 +161,7 @@ const Salts = () => {
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
       setSort('asc')
-      setSortColumn('full_name')
+      setSortColumn('label')
     }
   }
 
@@ -177,13 +179,11 @@ const Salts = () => {
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
-
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updateUnits(editParams?.id, payload)
+        response = await updateSalt(editParams?.id, payload)
       } else {
         response = await addSalt(payload)
       }
@@ -196,7 +196,6 @@ const Salts = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
@@ -205,6 +204,13 @@ const Salts = () => {
       setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+  }))
 
   return (
     <>
@@ -217,7 +223,7 @@ const Salts = () => {
             <DataGrid
               autoHeight
               pagination
-              rows={rows}
+              rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
               sortingMode='server'
