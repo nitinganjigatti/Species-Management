@@ -33,6 +33,7 @@ import Avatar from '@mui/material/Avatar'
 import { forwardRef, useState, useEffect } from 'react'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -238,6 +239,7 @@ const AddRequestForm = () => {
     }
     setErrors({})
     addItemsToTable()
+    closeDialog()
   }
 
   const updateTableItems = () => {
@@ -460,6 +462,7 @@ const AddRequestForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
+        Router.push('/pharmacy/request/requestList/')
       } else {
         setSubmitLoader(false)
         console.log('test')
@@ -472,6 +475,7 @@ const AddRequestForm = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
+        Router.push('/pharmacy/request/requestList/')
       } else {
         setSubmitLoader(false)
         console.log('test')
@@ -689,7 +693,7 @@ const AddRequestForm = () => {
                     <Button
                       onClick={() => {
                         updateFormItems()
-
+                        closeDialog()
                         // submitItems()
                       }}
                       size='large'
@@ -917,7 +921,6 @@ const AddRequestForm = () => {
               <TableCell>Medicine Names</TableCell>
               <TableCell>Priority</TableCell>
               {/* <TableCell>Controlled substance</TableCell> */}
-              {/* <TableCell>control_substance_file</TableCell> */}
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
@@ -925,10 +928,20 @@ const AddRequestForm = () => {
           <TableBody>
             {editParams.request_item_details
               ? editParams.request_item_details.map((el, index) => {
+                  console.log(el)
+
                   return (
                     <TableRow key={index}>
-                      <TableCell>{el.medicine_name}</TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.medicine_name}
+                        </Typography>
+                        {el.control_substance ? (
+                          <CustomChip label='CS' skin='light' color='success' size='small' />
+                        ) : null}
+                      </TableCell>
                       <TableCell>{el.priority_item}</TableCell>
+
                       <TableCell>{el.request_item_qty}</TableCell>
 
                       <TableCell>

@@ -1,18 +1,15 @@
-import { UOM } from '../../constants/ApiConstant'
+import { UOM, MASTER_BASE_URL } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
 export async function getUnits() {
-  const response = await axiosGet({ url: UOM })
-  if (response?.status == 200 && response?.data?.success) {
-    return response.data.data
-  } else {
-    return []
-  }
+  const response = await axiosGet({ url: `${MASTER_BASE_URL}${UOM}/list` })
+
+  return response.data
 }
 
 export async function addUnits(payload) {
   try {
-    const url = `${UOM}`
+    const url = `${MASTER_BASE_URL}${UOM}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

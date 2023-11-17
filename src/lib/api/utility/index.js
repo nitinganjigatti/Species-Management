@@ -21,12 +21,14 @@ export const GetAPIHeader = async () => {
   return header
 }
 
-export const axiosGet = async ({ url }) => {
+export const axiosGet = async ({ url, params }) => {
   const headers = await GetAPIHeader()
   const completeUrl = `${base_url}${url}`
   headers['Content-Type'] = 'application/json'
 
-  return axios.get(completeUrl, { headers })
+  console.log('params', params)
+
+  return axios.get(completeUrl, { headers: headers, params: params })
 }
 
 export const axiosPost = async ({ url, body }) => {

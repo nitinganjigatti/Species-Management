@@ -41,7 +41,7 @@ import { addMedicine, getMedicineById, updateMedicineById } from 'src/lib/api/ge
 import { getStates } from 'src/lib/api/getStates'
 import UserSnackbar from 'src/components/utility/snackbar'
 import { getGenerics } from 'src/lib/api/getGenerics'
-import { getDosageFormList } from 'src/lib/api/getDosageFormList'
+import { getDosageFormList } from 'src/lib/api/productForms'
 import { getUnits } from 'src/lib/api/getUnits'
 import { getDrugs } from 'src/lib/api/getDrugs'
 import { getCategories } from 'src/lib/api/getCategories'

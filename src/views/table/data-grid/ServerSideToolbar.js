@@ -19,7 +19,7 @@ const ServerSideToolbar = props => {
         p: theme => theme.spacing(2, 5, 4, 5)
       }}
     >
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      {/* <GridToolbarExport printOptions={{ disableToolbarButton: true }} /> */}
       <TextField
         size='small'
         value={props.value}

@@ -18,6 +18,8 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
+import { axiosGet } from 'src/lib/api/utility'
+import { MASTER_BASE_URL, MANUFACTURER } from 'src/constants/ApiConstant'
 
 // ** renders client column
 const renderClient = params => {
@@ -44,87 +46,87 @@ const statusObj = {
   5: { title: 'applied', color: 'info' }
 }
 
-const columns = [
-  {
-    flex: 0.25,
-    minWidth: 290,
-    field: 'full_name',
-    headerName: 'Name',
-    renderCell: params => {
-      const { row } = params
+// const columns = [
+//   {
+//     flex: 0.25,
+//     minWidth: 290,
+//     field: 'full_name',
+//     headerName: 'Name',
+//     renderCell: params => {
+//       const { row } = params
 
-      return (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderClient(params)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
-              {row.full_name}
-            </Typography>
-            <Typography noWrap variant='caption'>
-              {row.email}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    }
-  },
-  {
-    flex: 0.175,
-    type: 'date',
-    minWidth: 120,
-    headerName: 'Date',
-    field: 'start_date',
-    valueGetter: params => new Date(params.value),
-    renderCell: params => (
-      <Typography variant='body2' sx={{ color: 'text.primary' }}>
-        {params.row.start_date}
-      </Typography>
-    )
-  },
-  {
-    flex: 0.175,
-    minWidth: 110,
-    field: 'salary',
-    headerName: 'Salary',
-    renderCell: params => (
-      <Typography variant='body2' sx={{ color: 'text.primary' }}>
-        {params.row.salary}
-      </Typography>
-    )
-  },
-  {
-    flex: 0.125,
-    field: 'age',
-    minWidth: 80,
-    headerName: 'Age',
-    renderCell: params => (
-      <Typography variant='body2' sx={{ color: 'text.primary' }}>
-        {params.row.age}
-      </Typography>
-    )
-  },
-  {
-    flex: 0.175,
-    minWidth: 140,
-    field: 'status',
-    headerName: 'Status',
-    renderCell: params => {
-      const status = statusObj[params.row.status]
+//       return (
+//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//           {renderClient(params)}
+//           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+//             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+//               {row.full_name}
+//             </Typography>
+//             <Typography noWrap variant='caption'>
+//               {row.email}
+//             </Typography>
+//           </Box>
+//         </Box>
+//       )
+//     }
+//   },
+//   {
+//     flex: 0.175,
+//     type: 'date',
+//     minWidth: 120,
+//     headerName: 'Date',
+//     field: 'start_date',
+//     valueGetter: params => new Date(params.value),
+//     renderCell: params => (
+//       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//         {params.row.start_date}
+//       </Typography>
+//     )
+//   },
+//   {
+//     flex: 0.175,
+//     minWidth: 110,
+//     field: 'salary',
+//     headerName: 'Salary',
+//     renderCell: params => (
+//       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//         {params.row.salary}
+//       </Typography>
+//     )
+//   },
+//   {
+//     flex: 0.125,
+//     field: 'age',
+//     minWidth: 80,
+//     headerName: 'Age',
+//     renderCell: params => (
+//       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//         {params.row.age}
+//       </Typography>
+//     )
+//   },
+//   {
+//     flex: 0.175,
+//     minWidth: 140,
+//     field: 'status',
+//     headerName: 'Status',
+//     renderCell: params => {
+//       const status = statusObj[params.row.status]
 
-      return (
-        <CustomChip
-          size='small'
-          skin='light'
-          color={status.color}
-          label={status.title}
-          sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
-        />
-      )
-    }
-  }
-]
+//       return (
+//         <CustomChip
+//           size='small'
+//           skin='light'
+//           color={status.color}
+//           label={status.title}
+//           sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
+//         />
+//       )
+//     }
+//   }
+// ]
 
-const TableServerSide = () => {
+const TableServerSide = ({ columns, getCall }) => {
   // ** States
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
@@ -133,29 +135,46 @@ const TableServerSide = () => {
   const [sortColumn, setSortColumn] = useState('full_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   function loadServerRows(currentPage, data) {
-    return data.slice(currentPage * paginationModel.pageSize, (currentPage + 1) * paginationModel.pageSize)
+    debugger
+
+    // console.log(data?.slice(currentPage * paginationModel.pageSize, (currentPage + 1) * paginationModel.pageSize))
+
+    return data
   }
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      await axios
-        .get('/api/table/data', {
-          params: {
-            q,
-            sort,
-            column
-          }
-        })
-        .then(res => {
-          setTotal(res.data.total)
-          setRows(loadServerRows(paginationModel.page, res.data.data))
-        })
+      debugger
+
+      const params = {
+        sort,
+        q,
+        column,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      await getCall().then(res => {
+        debugger
+        setTotal(res.data?.total_count)
+        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+      })
+
+      // const response = await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list?page=${page}&limit=${limit}` })
+
+      // await axiosGet({ url: `${MASTER_BASE_URL}${MANUFACTURER}/list`, params: params }).then(res => {
+      //   console.log(res)
+      //   debugger
+      //   setTotal(parseInt(res.data.data.total_count))
+      //   setRows(loadServerRows(paginationModel.page, res?.data?.data?.list_items))
+      // })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
+    debugger
   }, [fetchTableData, searchValue, sort, sortColumn])
 
   const handleSortModel = newModel => {

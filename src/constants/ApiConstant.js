@@ -10,9 +10,9 @@ export const GENERICS = 'generic-name'
 
 export const CATEGORIES = 'categories'
 
-export const DRUG_CLASS = 'drug-class'
+export const DRUG_CLASS = 'drugclass'
 
-export const DOSAGE_FORM = 'type'
+export const PRODUCT_FORM = 'productforms'
 
 export const STATES = 'state'
 
@@ -28,7 +28,7 @@ export const STOCK_REPORT = 'master-stock'
 
 export const STOCK_BY_BATCH = 'master-stock-batch-wise'
 
-export const UOM = 'unit'
+export const UOM = 'uom'
 
 export const MEDICINE = 'stock-item'
 
@@ -55,6 +55,8 @@ export const MEDICINE_SEARCH = 'stock-item/suppiler/1/search/'
 export const MANUFACTURER = 'manufacture'
 
 export const PACKAGES = 'packages'
+
+export const SALTS = 'salts'
 
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 

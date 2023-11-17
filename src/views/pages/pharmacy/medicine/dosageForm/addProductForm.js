@@ -16,12 +16,14 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
+import { getCategoryById } from 'src/lib/api/getCategories'
+
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getManufacturerById } from 'src/lib/api/manufacturer'
+import { getDosageFormById } from 'src/lib/api/productForms'
 
 // ** Styled Components
 
@@ -29,21 +31,28 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .required('Package Name is Required'),
-  active: yup.string().required('Status is Required')
+    .required('Dosage Form is Required'),
+  status: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
   name: '',
-  active: '1'
+  status: 'active'
 }
 
-const AddPackages = props => {
+const AddProductForm = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   // ** States
   const [values, setValues] = useState(defaultValues)
+
+  // const router = useRouter()
+  // const { id, action } = router.query
+
+  // const handleSidebarClose = () => {
+  //   setOpenSidebar(false)
+  // }
 
   const {
     reset,
@@ -61,18 +70,18 @@ const AddPackages = props => {
   })
 
   const onSubmit = async params => {
-    const { name, active } = { ...params }
+    const { name, status } = { ...params }
 
     const payload = {
       name: name.trim(),
-      active
+      status
     }
     await handleSubmitData(payload)
   }
 
-  const getManufacturer = useCallback(
+  const getDosage = useCallback(
     async id => {
-      const response = await getManufacturerById(id)
+      const response = await getDosageFormById(id)
       if (response?.success) {
         reset(response.data)
       } else {
@@ -87,9 +96,11 @@ const AddPackages = props => {
     }
 
     if (editParams?.id !== null) {
-      getManufacturerById(editParams?.id)
+      console.log()
+
+      getDosage(editParams?.id)
     }
-  }, [resetForm, editParams, reset])
+  }, [resetForm, editParams, reset, getDosage])
 
   const RenderSidebarFooter = () => {
     return (
@@ -117,7 +128,7 @@ const AddPackages = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Package</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Product Form</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -133,10 +144,10 @@ const AddPackages = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Package Name'
+                  label='Dosage Form'
                   value={value}
                   onChange={onChange}
-                  placeholder='Manufacturer Name'
+                  placeholder='Dosage Form'
                   error={Boolean(errors.name)}
                   name='name'
                 />
@@ -148,19 +159,19 @@ const AddPackages = props => {
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
-                name='active'
+                name='status'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
                     <FormControlLabel
-                      value='1'
+                      value='active'
                       label='Active'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
                     />
                     <FormControlLabel
-                      value='0'
+                      value='inactive'
                       label='Inactive'
                       sx={errors.status ? { color: 'error.main' } : null}
                       control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
@@ -184,4 +195,4 @@ const AddPackages = props => {
   )
 }
 
-export default AddPackages
+export default AddProductForm

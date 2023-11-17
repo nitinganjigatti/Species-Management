@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
@@ -31,7 +32,8 @@ const ListOfUOM = () => {
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
-    message: ''
+    message: '',
+    status: false
   })
 
   const addEventSidebarOpen = () => {
@@ -49,6 +51,7 @@ const ListOfUOM = () => {
 
   const handleSubmitData = async payload => {
     console.log('payload', payload)
+
     try {
       setSubmitLoader(true)
       var response
@@ -57,9 +60,8 @@ const ListOfUOM = () => {
       } else {
         response = await addUnits(payload)
       }
-
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -68,12 +70,12 @@ const ListOfUOM = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
 
@@ -86,21 +88,19 @@ const ListOfUOM = () => {
   /***** Drawer  */
 
   const getUOMLists = async () => {
-    setLoader(true)
-    const response = await getUnits()
-    if (response?.length > 0) {
-      console.log('list', response)
-
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setUomList(listWithId)
+    try {
+      setLoader(true)
+      const response = await getUnits()
+      if (response.success) {
+        setUomList(response.data)
+        setLoader(false)
+      } else {
+        setLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
       setLoader(false)
-    } else {
-      setLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
 
@@ -112,22 +112,22 @@ const ListOfUOM = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
+      field: 'id',
+      headerName: 'ID ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.id}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'name',
+      field: 'unit_name',
       headerName: 'UOM NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.unit_name}
         </Typography>
       )
     },
@@ -135,11 +135,11 @@ const ListOfUOM = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
@@ -192,6 +192,9 @@ const ListOfUOM = () => {
             submitLoader={submitLoader}
             editParams={editParams}
           />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
         </>
       )}
     </>

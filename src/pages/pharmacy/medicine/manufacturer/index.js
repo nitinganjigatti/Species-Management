@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/manufacturer'
 import TableWithFilter from 'src/components/TableWithFilter'
+import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
@@ -18,9 +20,10 @@ import Router from 'next/router'
 
 import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
 import UserSnackbar from 'src/components/utility/snackbar'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const ManufacturerList = () => {
-  const [manufacturers, setManufacturers] = useState([])
+  const [manufacturers, setManufacturers] = useState({})
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -46,61 +49,10 @@ const ManufacturerList = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        // response = await updateManufacturer(editParams?.id, payload)
-      } else {
-        response = await addManufacturer(payload)
-      }
-
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getManufacturersList()
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
-      }
-    } catch (e) {
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
-
   const handleEdit = async (id, name, status) => {
     setEditParams({ id: id, name: name, status: status })
     setOpenDrawer(true)
   }
-
-  /***** Drawer  */
-
-  const getManufacturersList = async () => {
-    try {
-      setLoader(true)
-      const response = await getManufacturers()
-      if (response.success) {
-        setManufacturers(response.data)
-        setLoader(false)
-      } else {
-        setLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-      }
-    } catch (e) {
-      setLoader(false)
-      console.log(e)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify, severity: 'error' })
-    }
-  }
-
-  useEffect(() => {
-    getManufacturersList()
-  }, [])
 
   const columns = [
     {
@@ -110,7 +62,7 @@ const ManufacturerList = () => {
       headerName: 'ID ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {parseInt(params.row.id)}
         </Typography>
       )
     },
@@ -156,24 +108,127 @@ const ManufacturerList = () => {
     }
   ]
 
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('full_name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        q,
+        column,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      await getManufacturers({ params: params }).then(res => {
+        setTotal(parseInt(res.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+      })
+      setLoading(false)
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('full_name')
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add Manufacturer
+      </Button>
+    </div>
+  )
+
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        // response = await updateManufacturer(editParams?.id, payload)
+      } else {
+        response = await addManufacturer(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={manufacturers.length > 0 ? 'Manufacturers List' : 'Manufacturers List is empty add dosage'}
-            headerActions={
-              <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add Manufacturer
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={manufacturers}
-          />
+          <Card>
+            <CardHeader title='Manufacturers' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={rows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
           <AddManufacturer
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}
