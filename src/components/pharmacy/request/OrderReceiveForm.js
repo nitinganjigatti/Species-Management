@@ -91,6 +91,8 @@ function OrderReceiveForm({ orderId }) {
 
   const getOrderDetails = async orderId => {
     // const result = await getdatta()
+    // const response = await getShipmentOrderDetails('52')
+
     const response = await getShipmentOrderDetails(orderId)
     console.log('response', response)
     console.log('response', response.data)
@@ -98,18 +100,53 @@ function OrderReceiveForm({ orderId }) {
     // const response = getRequestItemsListById('83')
     console.log('check', response.success === true && response.data !== '')
     if (response.success === true && response.data !== '') {
-      setOrderData(response.data)
+      // setOrderData(response.data)
+      const addStatus = response?.data?.shipment_item_details.map(el => {
+        const data = {
+          id: el.id,
+          shipment_id: el.shipment_id,
+          dispatch_id: el.dispatch_id,
+          dispatch_item_id: el.dispatch_item_id,
+          stock_id: el.stock_id,
+          batch: el.batch,
+          expiry: el.expiry,
+          quantity: el.quantity,
+          created_by: el.created_by,
+          created_at: el.created_at,
+          stock_name: el.stock_name,
+          shipment_status: response?.data?.shipment_status
+        }
+        console.log('updated data', data)
+
+        return data
+      })
+      setOrderData({
+        ...orderData,
+        shipment_id: response?.data?.shipment_id,
+        shipment_date: response?.data?.shipment_date,
+        traking_information: response?.data?.traking_information,
+        person_shipping: response?.data?.person_shipping,
+        shipment_status: response?.data?.shipment_status,
+        vehicle_no: response?.data?.vehicle_no,
+        from_store_name: response?.data?.from_store_name,
+        to_store_name: response?.data?.to_store_name,
+
+        // shipment_item_details: response?.data?.shipment_item_details
+        shipment_item_details: addStatus
+      })
 
       const data = {
-        shipment_id: response.data.shipment_id,
-        shipment_date: response.data.shipment_date,
-        traking_information: response.data.traking_information,
-        person_shipping: response.data.person_shipping,
-        shipment_status: response.data.shipment_status,
-        vehicle_no: response.data.vehicle_no,
-        from_store_name: response.data.from_store_name,
-        to_store_name: response.data.to_store_name,
-        shipment_item_details: response.data.shipment_item_details
+        shipment_id: response?.data?.shipment_id,
+        shipment_date: response?.data?.shipment_date,
+        traking_information: response?.data?.traking_information,
+        person_shipping: response?.data?.person_shipping,
+        shipment_status: response?.data?.shipment_status,
+        vehicle_no: response?.data?.vehicle_no,
+        from_store_name: response?.data?.from_store_name,
+        to_store_name: response?.data?.to_store_name,
+
+        // shipment_item_details: response?.data?.shipment_item_details
+        shipment_item_details: addStatus
       }
       reset(data)
     }
@@ -151,9 +188,6 @@ function OrderReceiveForm({ orderId }) {
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.stock_name}
           </Typography>
-          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
-            <CustomChip label='CS' skin='light' color='success' size='small' />
-          ) : null}
         </div>
       )
     },
@@ -179,48 +213,82 @@ function OrderReceiveForm({ orderId }) {
           {params.row.quantity}
         </Typography>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: '',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <FormControl fullWidth>
-    //       <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-    //         Status
-    //       </InputLabel>
-    //       <Controller
-    //         name='shipment_status'
-    //         control={control}
-    //         rules={{ required: true }}
-    //         render={({ field: { value, onChange } }) => (
-    //           <Select
-    //             size='small'
-    //             name='shipment_status'
-    //             value={value}
-    //             label='Status'
-    //             onChange={e => {
-    //               onChange(e)
-    //             }}
-    //             error={Boolean(errors?.shipment_status)}
-    //           >
-    //             {options?.map((item, index) => (
-    //               <MenuItem key={index} value={item}>
-    //                 {item}
-    //               </MenuItem>
-    //             ))}
-    //           </Select>
-    //         )}
-    //       />
-    //       {errors?.shipment_status && (
-    //         <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
-    //       )}
-    //     </FormControl>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: '',
+      headerName: 'Action',
+      renderCell: params => (
+        // <FormControl fullWidth>
+        //   <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
+        //     Status
+        //   </InputLabel>
+        //   <Controller
+        //     name={`shipment_item_details[${params.row.id}].shipment_status`}
+        //     // name='shipment_item_details.shipment_status'
+        //     control={control}
+        //     rules={{ required: true }}
+        //     render={({ field: { value, onChange } }) => (
+        //       <Select
+        //         size='small'
+        //         name={`shipment_item_details[${params.row.id}].shipment_status`}
+        //         // name='shipment_item_details.shipment_status'
+        //         value={value}
+        //         label='Status'
+        //         onChange={e => {
+        //           onChange(e)
+        //         }}
+
+        //         // error={Boolean(errors?.shipment_item_details.shipment_status)}
+        //       >
+        //         {options?.map((item, index) => (
+        //           <MenuItem key={index} value={item}>
+        //             {item}
+        //           </MenuItem>
+        //         ))}
+        //       </Select>
+        //     )}
+        //   />
+        //   {errors?.shipment_item_details.shipment_status && (
+        //     <FormHelperText sx={{ color: 'error.main' }}>
+        //       {errors?.shipment_item_details.shipment_status?.message}
+        //     </FormHelperText>
+        //   )}
+        // </FormControl>
+        <FormControl fullWidth>
+          <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
+            Status
+          </InputLabel>
+          <Select
+            size='small'
+            name={`shipment_item_details[${params.row.id}].shipment_status`}
+            value={params.row.shipment_status}
+            label='Status'
+            onChange={e => (params.row.shipment_status = e.target.value)}
+            error={Boolean(errors?.shipment_status)}
+          >
+            {options.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+          {/* Error handling for shipment_status */}
+          {/* {params.row.shipment_item_details.map(
+            (item, index) =>
+              errors?.shipment_item_details?.[index]?.shipment_status && (
+                <Typography key={index} variant='body2' sx={{ color: 'error.main' }}>
+                  {errors?.shipment_item_details?.[index]?.shipment_status?.message}
+                </Typography>
+              )
+          )} */}
+        </FormControl>
+      )
+    }
   ]
+  useEffect(() => {}, [orderData.shipment_item_details])
 
   const updateStatus = async params => {
     const {
@@ -247,6 +315,7 @@ function OrderReceiveForm({ orderId }) {
       shipment_item_details
     }
     console.log('payload', payLoad)
+    console.log('orderData', orderData)
   }
 
   return (
@@ -292,21 +361,61 @@ function OrderReceiveForm({ orderId }) {
             </Grid>
           ) : null}
         </Grid>
+        {/* <Button
+          variant='contained'
+          onClick={() => {
+            const addStatus = orderData?.shipment_item_details.map(el => {
+              const data = {
+                id: el.id,
+                shipment_id: el.shipment_id,
+                dispatch_id: el.dispatch_id,
+                dispatch_item_id: el.dispatch_item_id,
+                stock_id: el.stock_id,
+                batch: el.batch,
+                expiry: el.expiry,
+                quantity: el.quantity,
+                created_by: el.created_by,
+                created_at: el.created_at,
+                stock_name: el.stock_name,
+                shipment_status: 'Received'
+              }
+              console.log('updated data', data)
 
+              return data
+            })
+            setOrderData({
+              ...orderData,
+              shipment_id: orderData?.shipment_id,
+              shipment_date: orderData?.shipment_date,
+              traking_information: orderData?.traking_information,
+              person_shipping: orderData?.person_shipping,
+              shipment_status: orderData?.shipment_status,
+              vehicle_no: orderData?.vehicle_no,
+              from_store_name: orderData?.from_store_name,
+              to_store_name: orderData?.to_store_name,
+
+              // shipment_item_details: response?.data?.shipment_item_details
+              shipment_item_details: addStatus
+            })
+          }}
+        >
+          Select all
+        </Button> */}
         {orderData?.shipment_item_details?.length > 0 ? (
           <>
             <Divider
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
-            <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
+            <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+              {console.log('collll', orderData?.shipment_item_details)}
               <TableBasic columns={columns} rows={orderData?.shipment_item_details}></TableBasic>
             </Grid>
           </>
         ) : null}
 
         <form autoComplete='off' onSubmit={handleSubmit(updateStatus)}>
-          <Grid container items sx={{ my: 12 }}>
-            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+          <Grid container items>
+            {/* <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
                   Status
@@ -337,7 +446,7 @@ function OrderReceiveForm({ orderId }) {
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
                 )}
               </FormControl>
-            </Grid>
+            </Grid> */}
             <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
               <FormControl fullWidth>
                 <Controller

@@ -33,6 +33,8 @@ import { useRouter } from 'next/router'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
+import TableBasic from 'src/views/table/data-grid/TableBasic'
+import Typography from '@mui/material/Typography'
 
 import UserSnackbar from 'src/components/utility/snackbar'
 import SingleDatePicker from 'src/components/SingleDatePicker'
@@ -41,20 +43,22 @@ import PickersComponent from 'src/components/PickersCustomInput'
 import Utility from 'src/utility'
 import { shipRequestedItems } from 'src/lib/api/getRequestItemsList'
 
+// import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
+
 const defaultValues = {
   shipment_date: new Date().toISOString().slice(0, 10),
-
   person_shipping: null,
   delivery_mode: null,
-  vehicle_no: null
+  vehicle_no: null,
+  receiver_name: null
 }
 
-const schema = yup.object().shape({
-  person_shipping: yup.string().required('Person Shipping Info is required'),
-  shipment_date: yup.string().required('Shipment Date is required'),
-  delivery_mode: yup.string().required('Delivery Mode is required'),
-  vehicle_no: yup.string().required('Vehicle Number is required')
-})
+// const schema = yup.object().shape({
+//   person_shipping: yup.string().required('Person Shipping Info is required'),
+//   shipment_date: yup.string().required('Shipment Date is required'),
+//   delivery_mode: yup.string().required('Delivery Mode is required'),
+//   vehicle_no: yup.string().required('Vehicle Number is required')
+// })
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField fullWidth inputRef={ref} {...props} />
@@ -62,6 +66,36 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
+
+  const [statesList, setStatesList] = useState([])
+  const [loader, setLoader] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
+  const [deliveryType, setDeliveryType] = useState({
+    pickUp: false,
+    Ship: true
+  })
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
+  const [date, setDate] = useState(new Date())
+
+  const schema = deliveryType.Ship
+    ? yup.object().shape({
+        person_shipping: yup.string().required('Person Shipping Info is required'),
+        shipment_date: yup.string().required('Shipment Date is required'),
+        delivery_mode: yup.string().required('Delivery Mode is required'),
+        vehicle_no: yup.string().required('Vehicle Number is required')
+      })
+    : yup.object().shape({
+        receiver_name: yup.string().required('Person Receiving  Info is required'),
+        shipment_date: yup.string().required('Shipment Date is required'),
+        delivery_mode: yup.string().required('Delivery Mode is required')
+      })
+
   const {
     reset,
     control,
@@ -74,20 +108,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  {
+    console.log('dispatchedItems', dispatchedItems)
+  }
 
   const router = useRouter()
   const { id, action } = router.query
-
-  const [statesList, setStatesList] = useState([])
-  const [loader, setLoader] = useState(false)
-  const [submitLoader, setSubmitLoader] = useState(false)
-
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
-  const [date, setDate] = useState(new Date())
 
   const shipRequest = async payload => {
     console.log(JSON.stringify(payload))
@@ -164,115 +190,324 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     )
   })
 
+  const columns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'Id',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'medicin_name',
+      headerName: 'Medicine Name',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.medicin_name}
+          </Typography>
+        </div>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'from_store_name',
+      headerName: 'Shipped from ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.from_store_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'to_store_name',
+      headerName: 'Shipped to',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.to_store_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'Batch no',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'Expiry date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.expiry_date}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'dispatch_qty',
+      headerName: 'Dispatch qty',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.dispatch_qty}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'dispatch_status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.dispatch_status}
+        </Typography>
+      )
+    }
+  ]
+
+  const handleDeliveryTypeChange = type => {
+    setDeliveryType({
+      Ship: type === 'Ship',
+      pickUp: type === 'pickUp'
+    })
+  }
+
   return (
     <>
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12}>
           <CardContent>
+            {dispatchedItems?.dispatch_items.length > 0 ? (
+              <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
+                <TableBasic columns={columns} rows={dispatchedItems.dispatch_items}></TableBasic>
+              </Grid>
+            ) : null}
+            <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
+              <FormControlLabel
+                value={deliveryType.Ship}
+                label='Ship'
+                control={
+                  <Radio
+                    onChange={() => handleDeliveryTypeChange('Ship')}
+                    checked={deliveryType.Ship}
+                    sx={deliveryType.Ship ? { color: 'error.main' } : null}
+                  />
+                }
+              />
+              <FormControlLabel
+                value={deliveryType.pickUp}
+                label='Pickup'
+                control={
+                  <Radio
+                    onChange={() => handleDeliveryTypeChange('pickUp')}
+                    checked={deliveryType.pickUp}
+                    sx={deliveryType.pickUp ? { color: 'error.main' } : null}
+                  />
+                }
+              />
+            </Grid>
+            {/* {deliveryType.Ship ? (
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                ship
+              </Typography>
+            ) : (
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                Pickup
+              </Typography>
+            )} */}
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <SingleDatePicker
-                      fullWidth
-                      width={'100%'}
-                      date={date}
-                      value={date}
-                      name={'Shipment Date*'}
-                      label='Shipment Date*'
-                      placeholderText={'Shipment Date*'}
-                      onChangeHandler={date => {
-                        console.log(date)
-                        setDate(date)
-                      }}
-                      customInput={<CustomInput label='Shipment Date*' auto />}
-                    />
-                    {errors.shipment_date && (
-                      <FormHelperText sx={{ color: 'error.main' }}>Shipment Date is required</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='vehicle_no'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={value}
-                          label='Vechicle Number*'
-                          onChange={onChange}
-                          placeholder=''
-                          error={Boolean(errors.vehicle_no)}
+                {deliveryType.Ship ? (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <SingleDatePicker
+                          fullWidth
+                          width={'100%'}
+                          date={date}
+                          value={date}
+                          name={'Shipment Date*'}
+                          label='Shipment Date*'
+                          placeholderText={'Shipment Date*'}
+                          onChangeHandler={date => {
+                            console.log(date)
+                            setDate(date)
+                          }}
+                          customInput={<CustomInput label='Shipment Date*' auto />}
+                        />
+                        {errors.shipment_date && (
+                          <FormHelperText sx={{ color: 'error.main' }}>Shipment Date is required</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <Controller
                           name='vehicle_no'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Vechicle Number*'
+                              onChange={onChange}
+                              placeholder=''
+                              error={Boolean(errors.vehicle_no)}
+                              name='vehicle_no'
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    {errors.vehicle_no && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_no.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='person_shipping'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={value}
-                          label='Person Shipping*'
-                          onChange={onChange}
-                          placeholder=''
-                          error={Boolean(errors.person_shipping)}
+                        {errors.vehicle_no && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_no.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <Controller
                           name='person_shipping'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Person Shipping*'
+                              onChange={onChange}
+                              placeholder=''
+                              error={Boolean(errors.person_shipping)}
+                              name='person_shipping'
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    {errors.person_shipping && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.delivery_mode)} id='delivery_mode'>
-                      Delivery Mode*
-                    </InputLabel>
-                    <Controller
-                      name='delivery_mode'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
+                        {errors.person_shipping && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel error={Boolean(errors?.delivery_mode)} id='delivery_mode'>
+                          Delivery Mode*
+                        </InputLabel>
+                        <Controller
                           name='delivery_mode'
-                          value={value}
-                          label='Delivery Mode*'
-                          onChange={onChange}
-                          error={Boolean(errors?.delivery_mode)}
-                          labelId='delivery_mode'
-                        >
-                          <MenuItem value={'Shipped'}>Shipped</MenuItem>
-                          <MenuItem value={'Delivered'}>Delivered</MenuItem>
-                          {/* {statesList?.map((item, index) => (
-                        <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                          {item?.name}
-                        </MenuItem>
-                      ))} */}
-                        </Select>
-                      )}
-                    />
-                    {errors?.delivery_mode && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.delivery_mode?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='delivery_mode'
+                              value={value}
+                              label='Delivery Mode*'
+                              onChange={onChange}
+                              error={Boolean(errors?.delivery_mode)}
+                              labelId='delivery_mode'
+                            >
+                              <MenuItem value={'Shipped'}>Shipped</MenuItem>
+                              {/* <MenuItem value={'Delivered'}>Delivered</MenuItem> */}
+                            </Select>
+                          )}
+                        />
+                        {errors?.delivery_mode && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.delivery_mode?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </>
+                ) : (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <SingleDatePicker
+                          fullWidth
+                          width={'100%'}
+                          date={date}
+                          value={date}
+                          name={'Shipment Date*'}
+                          label='Shipment Date*'
+                          placeholderText={'Shipment Date*'}
+                          onChangeHandler={date => {
+                            console.log(date)
+                            setDate(date)
+                          }}
+                          customInput={<CustomInput label='Shipment Date*' auto />}
+                        />
+                        {errors.shipment_date && (
+                          <FormHelperText sx={{ color: 'error.main' }}>Shipment Date is required</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
 
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='receiver_name'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Receiver Name*'
+                              onChange={onChange}
+                              placeholder=''
+                              error={Boolean(errors.receiver_name)}
+                              name='receiver_name'
+                            />
+                          )}
+                        />
+                        {errors.receiver_name && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.receiver_name.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel error={Boolean(errors?.delivery_mode)} id='delivery_mode'>
+                          Delivery Mode*
+                        </InputLabel>
+                        <Controller
+                          name='delivery_mode'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='delivery_mode'
+                              value={value}
+                              label='Delivery Mode*'
+                              onChange={onChange}
+                              error={Boolean(errors?.delivery_mode)}
+                              labelId='delivery_mode'
+                            >
+                              <MenuItem value={'PickedUp'}>Picked Up</MenuItem>
+                              {/* <MenuItem value={'Delivered'}>Delivered</MenuItem> */}
+                            </Select>
+                          )}
+                        />
+                        {errors?.delivery_mode && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.delivery_mode?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </>
+                )}
                 <Grid item xs={12}>
                   <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                     Submit
