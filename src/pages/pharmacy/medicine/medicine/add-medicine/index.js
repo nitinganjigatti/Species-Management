@@ -321,7 +321,7 @@ const AddMedicine = () => {
         console.log(data)
         setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
 
-        setUploadedImage(response?.data?.image)
+        setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.PNG')
         reset({
           ...response.data,
           medicine_name: response.data.name

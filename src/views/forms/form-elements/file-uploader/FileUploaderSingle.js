@@ -71,7 +71,7 @@ const FileUploaderSingle = props => {
           <img
             alt='Medicine Picture'
             className='single-file-image'
-            src={`${IMAGE_BASE_URL}${props?.image}`}
+            src={`${props?.image}`}
             style={{ maxHeight: '300px', maxWidth: '300px', objectFit: 'contain' }}
           />
         )
