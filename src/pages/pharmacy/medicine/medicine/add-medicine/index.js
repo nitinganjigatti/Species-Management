@@ -331,7 +331,7 @@ const AddMedicine = () => {
         setValue('manufacturer', { id: response.data.manufacturer, label: response.data.manufacturer_name })
         setDefaultManufacturer({ id: response.data.manufacturer, label: response.data.manufacturer_name })
         setDefaultPackage({ id: response.data.package_type, label: response.data.package })
-        setDefaultUom({ id: response.data.package_uom, label: response.data.package_uom_label })
+        setDefaultUom({ id: response.data.package_uom, unit_name: response.data.package_uom_label })
         setDefaultProductForm({ id: response.data.product_form, label: response.data.product_form_label })
         setDefaultDrugClass({ id: response.data.drug_class, label: response.data.drug_class_label })
         setDefaultStorage({ id: response.data.storage, label: response.data.storage_value })
@@ -685,6 +685,7 @@ const AddMedicine = () => {
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
+                            value={defaultProductForm || value}
                             disablePortal
                             id='product_form'
                             options={productForm}
@@ -887,6 +888,7 @@ const AddMedicine = () => {
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
+                            value={defaultDrugClass || value}
                             disablePortal
                             id='drug_class'
                             options={drugsClassList}
@@ -912,6 +914,7 @@ const AddMedicine = () => {
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
+                            value={defaultStorage || value}
                             disablePortal
                             id='storage'
                             options={storageList}
