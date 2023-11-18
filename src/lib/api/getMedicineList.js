@@ -37,7 +37,7 @@ export async function updateMedicineById(payload, id) {
     const url = `${PHARMACY_BASE_URL}${MEDICINE}/edit/${id}`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {
