@@ -1,6 +1,7 @@
 // ** React Imports
 import { createContext, useEffect, useState } from 'react'
 import { read, write } from '../lib/windows/utils'
+import { callRefreshToken } from 'src/lib/api/auth'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -66,16 +67,29 @@ const AuthProvider = ({ children }) => {
       if (storedToken) {
         const userObj = read('userData')
         if (userObj) {
+          const resData = await callRefreshToken()
           setLoading(false)
-          setUser(userObj)
+          if (resData.token) {
+            const userData = {
+              email: resData.user.user_email,
+              fullName: resData.user.user_first_name,
+              lastName: resData.user.user_last_name,
+              role: 'admin',
+              id: resData.roles.role_id,
+
+              // role: resData.roles.role_name,
+              username: resData.user.user_first_name
+            }
+            write('role', resData.roles.role_name)
+            write('userData', userData)
+
+            setUser({ ...userData })
+          } else {
+            logOutUser()
+            router.replace('/login')
+          }
         } else {
-          localStorage.removeItem('userData')
-          localStorage.removeItem('userDetails')
-          localStorage.removeItem('refreshToken')
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('provider')
-          setUser(null)
-          setLoading(false)
+          logOutUser()
           if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
             router.replace('/login')
           }
@@ -86,6 +100,16 @@ const AuthProvider = ({ children }) => {
     }
     initAuth()
   }, [])
+
+  const logOutUser = () => {
+    localStorage.removeItem('userData')
+    localStorage.removeItem('userDetails')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('provider')
+    setUser(null)
+    setLoading(false)
+  }
 
   const handleLogin = (params, errorCallback) => {
     const url = `${base_url}v1/auth/login`
