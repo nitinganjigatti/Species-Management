@@ -22,7 +22,6 @@ import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { addStorage } from 'src/lib/api/storage'
-import { ConstructionOutlined } from '@mui/icons-material'
 
 const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])

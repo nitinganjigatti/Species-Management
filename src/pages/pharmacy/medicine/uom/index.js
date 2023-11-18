@@ -217,7 +217,7 @@ const ListOfUOM = () => {
         setResetForm(true)
         setOpenDrawer(false)
 
-        await getUOMLists()
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
         console.log('test')
