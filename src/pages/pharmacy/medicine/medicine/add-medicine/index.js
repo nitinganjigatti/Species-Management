@@ -68,9 +68,9 @@ const defaultValues = {
   product_form: '',
   salts: [
     {
-      salt_name: '',
+      label: '',
       salt_qty: '',
-      salt_id: ''
+      id: ''
     }
   ],
   gst_slab: '',
@@ -354,38 +354,63 @@ const AddMedicine = () => {
     try {
       const response = await getMedicineById(id)
       if (response.success) {
-        var data = { ...response?.data, medicine_name: response.data.name }
-        debugger
-        console.log(data)
-        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
-
         setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.PNG')
 
         const salts = []
-        if (response.data.salts.length > 0) {
-          response.data.salts.map((value, index) => {
+        const tempSalts = []
+        if (response?.data?.salts != null && response?.data?.salts?.length > 0) {
+          response?.data?.salts?.map((value, index) => {
             const salt = {}
+            const tempSalt = {}
             salt['label'] = value.label
             salt['salt_qty'] = value.qty
-            salt['id'] = value.id.toString()
+            salt['salt_id'] = value.id.toString()
+            tempSalt['id'] = value.id
+            tempSalt['label'] = value.label
             salts.push(salt)
+            tempSalts.push(tempSalt)
           })
         }
-        setDefaultManufacturer({ id: response.data.manufacturer, label: response.data.manufacturer_name })
-        setDefaultPackage({ id: response.data.package_type, label: response.data.package })
-        setDefaultUom({ id: response.data.package_uom, unit_name: response.data.package_uom_label })
-        setDefaultProductForm({ id: response.data.product_form, label: response.data.product_form_label })
-        setDefaultDrugClass({ id: response.data.drug_class, label: response.data.drug_class_label })
-        setDefaultStorage({ id: response.data.storage, label: response.data.storage_value })
-        setDefaultSalts(salts)
 
-        console.log(salts)
+        // setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
+        // setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
+        // setUom([{ id: response?.data?.package_uom, label: response?.data?.package_uom_label }])
+        // setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
+        // setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
+
+        setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
+        setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
+        setDefaultUom({ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label })
+        setDefaultProductForm({ id: response?.data?.product_form, label: response?.data?.product_form_label })
+        setDefaultDrugClass({ id: response?.data?.drug_class, label: response?.data?.drug_class_label })
+        setDefaultStorage({ id: response?.data?.storage, label: response?.data?.storage_value })
+        setDefaultSalts(
+          salts !== null && salts.length > 0
+            ? salts
+            : [
+                {
+                  label: '',
+                  salt_qty: '',
+                  id: ''
+                }
+              ]
+        )
 
         reset({
           ...response.data,
           medicine_type: response.data.stock_type,
           medicine_name: response.data.name,
-          salts: salts
+          salts:
+            salts !== null && salts.length > 0
+              ? salts
+              : [
+                  {
+                    label: '',
+                    salt_qty: '',
+                    id: ''
+                  }
+                ],
+          status: response?.data?.active
         })
       }
       setLoader(false)
@@ -442,6 +467,8 @@ const AddMedicine = () => {
 
     // console.log(params)
 
+    var filtered_salts = salts.filter(item => item.salt_id !== '')
+
     const payload = {
       medicine_type,
       medicine_name,
@@ -450,7 +477,7 @@ const AddMedicine = () => {
       package_qty,
       package_uom,
       product_form,
-      salts,
+      salts: filtered_salts.length > 0 ? filtered_salts : [],
       gst_slab,
       drug_class,
       storage,
@@ -468,6 +495,8 @@ const AddMedicine = () => {
 
     if (id !== undefined && action === 'edit') {
       debugger
+
+      console.log(payload)
 
       await updateMedicine(payload, id)
     } else {
@@ -636,7 +665,7 @@ const AddMedicine = () => {
                                 value={defaultManufacturer}
                                 options={manufacturer}
                                 getOptionLabel={option => option.label}
-                                isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultManufacturer(undefined)
@@ -682,7 +711,7 @@ const AddMedicine = () => {
                                 id='package_type'
                                 options={packages}
                                 getOptionLabel={option => option.label}
-                                isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultPackage(undefined)
@@ -745,7 +774,7 @@ const AddMedicine = () => {
                                 id='package_uom'
                                 options={uomList}
                                 getOptionLabel={option => option.unit_name}
-                                isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultUom(undefined)
@@ -767,9 +796,7 @@ const AddMedicine = () => {
                             )}
                           />
                           {errors?.package_uom && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.package_uom?.message}{' '}
-                            </FormHelperText>
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.package_uom?.message}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -785,8 +812,8 @@ const AddMedicine = () => {
                                 disablePortal
                                 id='product_form'
                                 options={productForm}
-                                getOptionLabel={option => option.label}
-                                isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                getOptionLabel={option => option?.label}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultProductForm(undefined)
@@ -834,47 +861,53 @@ const AddMedicine = () => {
                                       name={`salts[${index}].salt_id`}
                                       control={control}
                                       rules={{ required: true }}
-                                      render={({ field: { value, onChange } }) => (
-                                        <Autocomplete
-                                          value={defaultSalts[index]}
-                                          disablePortal
-                                          id={`salts[${index}].salt_id`}
-                                          options={saltsList}
-                                          getOptionLabel={option => option.label}
-                                          isOptionEqualToValue={(option, value) => {
-                                            debugger
-
-                                            return parseInt(option.id) === parseInt(value.id)
-                                          }}
-                                          onChange={(e, val) => {
-                                            if (val === null) {
-                                              //setDefaultProductForm(undefined)
-                                              var saltComposition = defaultSalts
-                                              saltComposition[index] = undefined
-                                              setDefaultSalts(saltComposition)
-
-                                              return onChange('')
-                                            } else {
-                                              debugger
-                                              var saltComposition = defaultSalts
-                                              saltComposition[index] = val
-                                              setDefaultSalts(saltComposition)
-
-                                              return onChange(val.id)
+                                      render={({ field: { value, onChange } }) => {
+                                        return (
+                                          <Autocomplete
+                                            value={
+                                              defaultSalts != null && defaultSalts.length > 0
+                                                ? defaultSalts[index]
+                                                : undefined
                                             }
-                                          }}
-                                          onKeyUp={e => {
-                                            getSaltsList({ key: e.target.value })
-                                          }}
-                                          renderInput={params => (
-                                            <TextField
-                                              {...params}
-                                              label='Salt Name'
-                                              error={Boolean(errors?.salts?.[index]?.salt_id)}
-                                            />
-                                          )}
-                                        />
-                                      )}
+                                            disablePortal
+                                            id={`salts[${index}].salt_id`}
+                                            options={saltsList}
+                                            getOptionLabel={option => option?.label}
+                                            isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                            onChange={(e, val) => {
+                                              if (val === null) {
+                                                debugger
+
+                                                //setDefaultProductForm(undefined)
+                                                var saltComposition = defaultSalts
+                                                saltComposition[index] = undefined
+                                                setDefaultSalts(saltComposition)
+
+                                                return onChange('')
+                                              } else {
+                                                debugger
+                                                var saltComposition = defaultSalts
+                                                saltComposition[index] = { id: val.id, label: val.label }
+                                                setDefaultSalts(saltComposition)
+
+                                                return onChange(val.id)
+                                              }
+                                            }}
+                                            onKeyUp={e => {
+                                              getSaltsList({ key: e.target.value })
+                                            }}
+                                            renderInput={params => {
+                                              return (
+                                                <TextField
+                                                  {...params}
+                                                  label='Salt Name'
+                                                  error={Boolean(errors?.salts?.[index]?.salt_id)}
+                                                />
+                                              )
+                                            }}
+                                          />
+                                        )
+                                      }}
                                     />
                                     {errors?.salts?.[index]?.salt_id && (
                                       <FormHelperText sx={{ color: 'error.main' }}>

@@ -135,45 +135,45 @@ const UserDropdown = props => {
             </Box>
           </Box>
         </Box>
-        <Divider sx={{ mt: '0 !important' }} />
+        {/* <Divider sx={{ mt: '0 !important' }} />
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             Profile
           </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
+        </MenuItem> */}
+        {/* <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:email-outline' />
             Inbox
           </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
+        </MenuItem> */}
+        {/* <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:message-outline' />
             Chat
           </Box>
-        </MenuItem>
-        <Divider />
+        </MenuItem> */}
+        {/* <Divider />
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
             Settings
           </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
+        </MenuItem> */}
+        {/* <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:currency-usd' />
             Pricing
           </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
+        </MenuItem> */}
+        {/* <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:help-circle-outline' />
             FAQ
           </Box>
         </MenuItem>
-        <Divider />
+        <Divider /> */}
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
