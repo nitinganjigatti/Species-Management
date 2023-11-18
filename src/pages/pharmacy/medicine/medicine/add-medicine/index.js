@@ -349,7 +349,6 @@ const AddMedicine = () => {
   }
 
   const getMedicine = async id => {
-    debugger
     setLoader(true)
     try {
       const response = await getMedicineById(id)
@@ -424,7 +423,6 @@ const AddMedicine = () => {
     getGSTList()
 
     if (id != undefined && action === 'edit') {
-      debugger
       getMedicine(id)
     } else {
       getManufacturersList({ page: 1, limit: 10 })
@@ -467,7 +465,10 @@ const AddMedicine = () => {
 
     // console.log(params)
 
-    var filtered_salts = salts.filter(item => item.salt_id !== '')
+    console.log('Original Salts: ', salts)
+    const duplicatedSalts = [...salts]
+    let filtered_salts = duplicatedSalts.filter(item => item.id !== '' && item.salt_id !== '')
+    console.log('Filtered Salts: ', filtered_salts)
 
     const payload = {
       medicine_type,
@@ -494,14 +495,11 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
-      debugger
-
       console.log(payload)
 
       await updateMedicine(payload, id)
     } else {
       console.log(payload)
-
       await addMedicineToList(payload)
     }
   }
@@ -528,7 +526,6 @@ const AddMedicine = () => {
   const addMedicineToList = async payload => {
     try {
       console.log('payload', payload)
-      debugger
 
       const response = await addMedicine(payload)
       if (response?.success) {
@@ -876,8 +873,6 @@ const AddMedicine = () => {
                                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                             onChange={(e, val) => {
                                               if (val === null) {
-                                                debugger
-
                                                 //setDefaultProductForm(undefined)
                                                 var saltComposition = defaultSalts
                                                 saltComposition[index] = undefined
@@ -885,7 +880,6 @@ const AddMedicine = () => {
 
                                                 return onChange('')
                                               } else {
-                                                debugger
                                                 var saltComposition = defaultSalts
                                                 saltComposition[index] = { id: val.id, label: val.label }
                                                 setDefaultSalts(saltComposition)
