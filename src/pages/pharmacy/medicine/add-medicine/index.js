@@ -378,8 +378,6 @@ const AddMedicine = () => {
           })
         }
 
-        debugger
-
         setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
         setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
         setUom([{ id: response?.data?.package_uom, label: response?.data?.package_uom_label }])
@@ -437,7 +435,6 @@ const AddMedicine = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -493,7 +490,7 @@ const AddMedicine = () => {
 
     console.log('Original Salts: ', salts)
     const duplicatedSalts = [...salts]
-    debugger
+
     let filtered_salts = duplicatedSalts.filter(item => item.salt_id !== '')
     console.log('Filtered Salts: ', filtered_salts)
 
@@ -528,7 +525,7 @@ const AddMedicine = () => {
     } else {
       console.log(payload)
 
-      // await addMedicineToList(payload)
+      await addMedicineToList(payload)
     }
   }
 
@@ -561,7 +558,6 @@ const AddMedicine = () => {
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
@@ -572,9 +568,8 @@ const AddMedicine = () => {
   const addMedicineToList = async payload => {
     try {
       const response = await addMedicine(payload)
-      debugger
+
       if (response?.success) {
-        debugger
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
@@ -603,7 +598,6 @@ const AddMedicine = () => {
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
@@ -672,8 +666,6 @@ const AddMedicine = () => {
                                 value={value}
                                 label='Medicine Type*'
                                 onChange={e => {
-                                  console.log(e.target.value)
-
                                   if (e.target.value === 'non_medical') {
                                     //reset({ salts: [] }, { keepValues: true })
                                     setValue('salts', [])
@@ -947,7 +939,6 @@ const AddMedicine = () => {
                                             options={saltsList.filter(option => {
                                               // Assuming defaultSalts is an array of objects with a 'salt_id' property
                                               const selectedSaltIds = defaultSalts.map(salt => salt?.salt_id)
-                                              console.log(!selectedSaltIds.includes(option.id))
 
                                               return !selectedSaltIds.includes(option.id)
                                             })}
@@ -962,7 +953,6 @@ const AddMedicine = () => {
 
                                                 return onChange('')
                                               } else {
-                                                debugger
                                                 var saltComposition = defaultSalts
                                                 saltComposition[index] = { id: val.id, label: val.label }
                                                 setDefaultSalts(saltComposition)
@@ -1035,7 +1025,6 @@ const AddMedicine = () => {
                                       <Button
                                         variant='outlined'
                                         onClick={() => {
-                                          debugger
                                           var tempDefaultSalts = defaultSalts
                                           tempDefaultSalts[index] = undefined
                                           setDefaultSalts(tempDefaultSalts)
