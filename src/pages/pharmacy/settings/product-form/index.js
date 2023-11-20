@@ -217,7 +217,7 @@ const ListOfDosageForms = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setAlertDefaults({ status: true, message: response?.message?.name, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -276,9 +276,7 @@ const ListOfDosageForms = () => {
             submitLoader={submitLoader}
             editParams={editParams}
           />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
         </>
       )}
     </>

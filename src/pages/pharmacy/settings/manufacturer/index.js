@@ -208,7 +208,7 @@ const ManufacturerList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: response?.message?.name, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
@@ -266,9 +266,7 @@ const ManufacturerList = () => {
             submitLoader={submitLoader}
             editParams={editParams}
           />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
         </>
       )}
     </>

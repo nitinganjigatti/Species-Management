@@ -307,9 +307,7 @@ const ListOfUOM = () => {
             submitLoader={submitLoader}
             editParams={editParams}
           />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
         </>
       )}
     </>
