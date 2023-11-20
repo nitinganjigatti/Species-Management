@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 // ** MUI Imports
 
@@ -28,6 +28,9 @@ import {
 import FormGroup from '@mui/material/FormGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import Icon from '@mui/material/Icon'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
+import { useSettings } from 'src/@core/hooks/useSettings'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -57,6 +60,7 @@ import { getProductFormList } from 'src/lib/api/productForms'
 import { getSalts } from 'src/lib/api/salts'
 import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
+import Spacing from 'src/@core/theme/spacing'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -123,6 +127,7 @@ const AddMedicine = () => {
     control,
     handleSubmit,
     formState: { errors },
+    trigger,
     setValue
   } = useForm({
     defaultValues,
@@ -134,6 +139,9 @@ const AddMedicine = () => {
 
   const router = useRouter()
   const { id, action } = router.query
+
+  const { settings } = useSettings()
+  const { skin } = settings
 
   const [statesList, setStatesList] = useState([])
   const [genericNames, setGenericNames] = useState([])
@@ -166,12 +174,11 @@ const AddMedicine = () => {
   const [defaultDrugClass, setDefaultDrugClass] = useState(undefined)
   const [defaultStorage, setDefaultStorage] = useState(undefined)
   const [defaultSalts, setDefaultSalts] = useState([])
+  const [shouldClearFields, setShouldClearFields] = useState(false)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('')
 
   const getManufacturersList = async ({ key, page, limit }) => {
     try {
@@ -419,6 +426,21 @@ const AddMedicine = () => {
     }
   }
 
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    debugger
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
+
   useEffect(() => {
     getGSTList()
 
@@ -434,6 +456,8 @@ const AddMedicine = () => {
       getStorageList({ page: 1, limit: 10 })
     }
   }, [id, action])
+
+  const shouldClearFieldsRef = useRef(false)
 
   const onSubmit = async params => {
     console.log('params', params)
@@ -495,12 +519,22 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
-      console.log(payload)
-
       await updateMedicine(payload, id)
     } else {
-      console.log(payload)
       await addMedicineToList(payload)
+    }
+  }
+
+  const handleSubmitAddAnother = async () => {
+    try {
+      debugger
+      const errors = await trigger()
+      if (errors) {
+        shouldClearFieldsRef.current = true
+        handleSubmit(onSubmit)()
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -508,46 +542,83 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
         Router.push('/pharmacy/medicine/medicine')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
   const addMedicineToList = async payload => {
     try {
-      console.log('payload', payload)
-
       const response = await addMedicine(payload)
+      debugger
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        debugger
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/medicine')
+        if (shouldClearFieldsRef.current) {
+          shouldClearFieldsRef.current = false
+          setDefaultManufacturer(undefined)
+          setDefaultPackage(undefined)
+          setDefaultUom(undefined)
+          setDefaultProductForm(undefined)
+          setDefaultSaltName(undefined)
+          setDefaultDrugClass(undefined)
+          setDefaultStorage(undefined)
+          setDefaultSalts([])
+          setShouldClearFields(false)
+        } else {
+          Router.push('/pharmacy/medicine/medicine')
+        }
+        setSubmitLoader(false)
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+
+        // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+        shouldClearFieldsRef.current = false
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      shouldClearFieldsRef.current = false
     }
   }
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, insert } = useFieldArray({
     control,
     name: 'salts'
   })
+
+  const checkDuplicateSalt = id => {
+    const selectedSaltIds = defaultSalts.filter(salt => salt?.id == id)
+    if (selectedSaltIds.length > 0) {
+      return true
+    } else {
+      return false
+    }
+  }
 
   return (
     <>
@@ -575,8 +646,7 @@ const AddMedicine = () => {
                   }
                 />
                 <CardContent>
-                  {/* <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}> */}
-                  <form onSubmit={handleSubmit(onSubmit)}>
+                  <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                     <Grid container spacing={5}>
                       <Grid item xs={12} sm={12}>
                         <div>Medicine</div>
@@ -852,7 +922,7 @@ const AddMedicine = () => {
                             </Grid>
                             {fields.map((field, index) => (
                               <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                                <Grid item xs={5}>
+                                <Grid item xs={4}>
                                   <FormControl fullWidth>
                                     <Controller
                                       name={`salts[${index}].salt_id`}
@@ -868,7 +938,12 @@ const AddMedicine = () => {
                                             }
                                             disablePortal
                                             id={`salts[${index}].salt_id`}
-                                            options={saltsList}
+                                            options={saltsList.filter(option => {
+                                              const selectedSaltIds = defaultSalts.map(salt => salt?.id)
+                                              console.log(selectedSaltIds)
+
+                                              return !selectedSaltIds.includes(option.id)
+                                            })}
                                             getOptionLabel={option => option?.label}
                                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                             onChange={(e, val) => {
@@ -910,7 +985,7 @@ const AddMedicine = () => {
                                     )}
                                   </FormControl>
                                 </Grid>
-                                <Grid item xs={5}>
+                                <Grid item xs={4}>
                                   <FormControl fullWidth>
                                     <Controller
                                       name={`salts[${index}].salt_qty`}
@@ -935,13 +1010,38 @@ const AddMedicine = () => {
                                   </FormControl>
                                 </Grid>
 
-                                <Grid item xs={2} justifyContent='flex-end' alignSelf='center'>
+                                <Grid item xs={4} justifyContent='flex-end' alignSelf='center'>
                                   {index === 0 ? (
-                                    <Button variant='outlined' onClick={() => append({})}>
-                                      Add Another
-                                    </Button>
+                                    <>
+                                      <Button variant='outlined' onClick={() => append({})} sx={{ marginRight: '4px' }}>
+                                        Add Another
+                                      </Button>
+
+                                      <Button
+                                        variant='outlined'
+                                        onClick={() => {
+                                          debugger
+                                          var tempDefaultSalts = defaultSalts
+                                          tempDefaultSalts[index] = undefined
+                                          setDefaultSalts(tempDefaultSalts)
+                                          remove(index)
+                                          insert(index, {})
+                                        }}
+                                      >
+                                        Clear
+                                      </Button>
+                                    </>
                                   ) : (
-                                    <Button variant='outlined' color='error' onClick={() => remove(index)}>
+                                    <Button
+                                      variant='outlined'
+                                      color='error'
+                                      onClick={() => {
+                                        var tempDefaultSalts = defaultSalts
+                                        tempDefaultSalts.splice(index, 1)
+                                        setDefaultSalts(tempDefaultSalts)
+                                        remove(index)
+                                      }}
+                                    >
                                       Remove
                                     </Button>
                                   )}
@@ -1319,16 +1419,32 @@ const AddMedicine = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12}>
-                        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+                        <LoadingButton
+                          size='large'
+                          type='submit'
+                          variant='contained'
+                          loading={submitLoader}
+                          sx={{ marginRight: '8px' }}
+                        >
                           Submit
                         </LoadingButton>
-                        {openSnackbar.open ? (
-                          <UserSnackbar
-                            severity={openSnackbar?.severity}
-                            status={true}
-                            message={openSnackbar?.message}
-                          />
-                        ) : null}
+                        {/* {id === undefined && (
+                          <LoadingButton
+                            size='large'
+                            variant='contained'
+                            loading={submitLoader}
+                            onClick={handleSubmitAddAnother}
+                          >
+                            Submit & Add Another
+                          </LoadingButton>
+                        )} */}
+
+                        <UserSnackbar
+                          status={openSnackbar}
+                          message={snackbarMessage}
+                          severity={severity}
+                          handleClose={handleClose}
+                        />
                       </Grid>
                     </Grid>
                   </form>

@@ -33,12 +33,24 @@ const ListOfUOM = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: '',
-    status: false
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('')
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    debugger
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
 
   const addEventSidebarOpen = () => {
     console.log('event clicked')
@@ -212,7 +224,8 @@ const ListOfUOM = () => {
         response = await addUnits(payload)
       }
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success', status: true })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -221,12 +234,12 @@ const ListOfUOM = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(e), severity: 'error' })
+      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
 

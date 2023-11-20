@@ -5,26 +5,18 @@ import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Snackbar from '@mui/material/Snackbar'
 
-const UserSnackbar = ({ status, severity, message }) => {
-  const [open, setOpen] = useState(status)
-
+const UserSnackbar = ({ status, severity, message, handleClose }) => {
   const { settings } = useSettings()
   const { skin } = settings
 
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpen(false)
-  }
-
   return (
     <Snackbar
-      open={open}
+      open={status}
       onClose={handleClose}
       autoHideDuration={3000}
       key={'bottomright'}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      message={message}
     >
       <Alert variant='filled' elevation={skin === 'bordered' ? 0 : 3} onClose={handleClose} severity={severity}>
         {message}

@@ -70,7 +70,7 @@ const ListOfMedicine = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 20,
       field: 'stock_type',
       headerName: 'Type',
@@ -106,11 +106,11 @@ const ListOfMedicine = () => {
     {
       flex: 0.3,
       minWidth: 20,
-      field: 'drug_class_label',
-      headerName: 'Drug Class',
+      field: 'created_at',
+      headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.manufacturer_name}>{params.row.drug_class_label}</span>
+          {Utility.formatDate(params.row.created_at)}
         </Typography>
       )
     },

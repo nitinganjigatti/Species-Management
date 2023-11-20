@@ -33,11 +33,24 @@ const ListOfDosageForms = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('')
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    debugger
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
 
   const addEventSidebarOpen = () => {
     console.log('event clicked')
@@ -194,7 +207,8 @@ const ListOfDosageForms = () => {
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -203,12 +217,12 @@ const ListOfDosageForms = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message?.name, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 

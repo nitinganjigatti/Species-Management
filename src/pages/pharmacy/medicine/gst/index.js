@@ -28,11 +28,24 @@ const ListOfGst = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('')
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    debugger
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
 
   const getGstLists = async () => {
     setLoader(true)
@@ -125,7 +138,8 @@ const ListOfGst = () => {
       const response = await addTaxes(payload)
       debugger
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+        setAlertDefaults({ status: true, message: response?.data, severity: 'success' })
+
         setSubmitLoader(false)
         setResetForm(true)
 
@@ -135,14 +149,14 @@ const ListOfGst = () => {
         setSubmitLoader(false)
         console.log(response?.data)
         debugger
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.data, severity: 'error' })
         console.log(response?.data)
         console.log('test')
       }
     } catch (e) {
       // console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 
