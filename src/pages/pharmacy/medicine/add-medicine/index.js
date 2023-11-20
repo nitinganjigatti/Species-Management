@@ -378,11 +378,13 @@ const AddMedicine = () => {
           })
         }
 
-        // setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
-        // setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
-        // setUom([{ id: response?.data?.package_uom, label: response?.data?.package_uom_label }])
-        // setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
-        // setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
+        debugger
+
+        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
+        setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
+        setUom([{ id: response?.data?.package_uom, label: response?.data?.package_uom_label }])
+        setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
+        setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
 
         setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
         setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
@@ -491,7 +493,8 @@ const AddMedicine = () => {
 
     console.log('Original Salts: ', salts)
     const duplicatedSalts = [...salts]
-    let filtered_salts = duplicatedSalts.filter(item => item.id !== '' && item.salt_id !== '')
+    debugger
+    let filtered_salts = duplicatedSalts.filter(item => item.salt_id !== '')
     console.log('Filtered Salts: ', filtered_salts)
 
     const payload = {
@@ -519,15 +522,18 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
+      console.log(payload)
+
       await updateMedicine(payload, id)
     } else {
-      await addMedicineToList(payload)
+      console.log(payload)
+
+      // await addMedicineToList(payload)
     }
   }
 
   const handleSubmitAddAnother = async () => {
     try {
-      debugger
       const errors = await trigger()
       if (errors) {
         shouldClearFieldsRef.current = true
@@ -547,7 +553,7 @@ const AddMedicine = () => {
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/medicine')
+        Router.push('/pharmacy/medicine/medicine-list')
       } else {
         setSubmitLoader(false)
 
@@ -557,7 +563,7 @@ const AddMedicine = () => {
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -586,7 +592,7 @@ const AddMedicine = () => {
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          Router.push('/pharmacy/medicine/medicine')
+          Router.push('/pharmacy/medicine/medicine-list')
         }
         setSubmitLoader(false)
       } else {
@@ -637,7 +643,7 @@ const AddMedicine = () => {
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          Router.push('/pharmacy/medicine/medicine')
+                          Router.push('/pharmacy/medicine/medicine-list')
                         }}
                       >
                         Medicine List
@@ -939,8 +945,9 @@ const AddMedicine = () => {
                                             disablePortal
                                             id={`salts[${index}].salt_id`}
                                             options={saltsList.filter(option => {
-                                              const selectedSaltIds = defaultSalts.map(salt => salt?.id)
-                                              console.log(selectedSaltIds)
+                                              // Assuming defaultSalts is an array of objects with a 'salt_id' property
+                                              const selectedSaltIds = defaultSalts.map(salt => salt?.salt_id)
+                                              console.log(!selectedSaltIds.includes(option.id))
 
                                               return !selectedSaltIds.includes(option.id)
                                             })}
@@ -955,6 +962,7 @@ const AddMedicine = () => {
 
                                                 return onChange('')
                                               } else {
+                                                debugger
                                                 var saltComposition = defaultSalts
                                                 saltComposition[index] = { id: val.id, label: val.label }
                                                 setDefaultSalts(saltComposition)
@@ -1013,7 +1021,14 @@ const AddMedicine = () => {
                                 <Grid item xs={4} justifyContent='flex-end' alignSelf='center'>
                                   {index === 0 ? (
                                     <>
-                                      <Button variant='outlined' onClick={() => append({})} sx={{ marginRight: '4px' }}>
+                                      <Button
+                                        variant='outlined'
+                                        onClick={() => {
+                                          setSalts([])
+                                          append({})
+                                        }}
+                                        sx={{ marginRight: '4px' }}
+                                      >
                                         Add Another
                                       </Button>
 

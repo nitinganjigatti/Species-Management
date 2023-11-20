@@ -11,12 +11,12 @@ const navigation = () => {
 
     {
       title: 'Medicine',
-      path: '/pharmacy/medicine',
+      path: '/pharmacy/medicine/medicine-list',
       icon: 'mdi:medical-bag',
       children: [
         {
           title: 'Medicine',
-          path: '/pharmacy/medicine'
+          path: '/pharmacy/medicine/medicine-list'
         },
         {
           title: 'Add Medicine',

@@ -4,7 +4,6 @@ import { getMedicineList } from 'src/lib/api/getMedicineList'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 // import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
-import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
@@ -41,7 +40,7 @@ const ListOfMedicine = () => {
 
   const handleEdit = async id => {
     Router.push({
-      pathname: '/pharmacy/medicine/medicine/add-medicine',
+      pathname: '/pharmacy/medicine/add-medicine',
       query: { id: id, action: 'edit' }
     })
   }
@@ -232,7 +231,7 @@ const ListOfMedicine = () => {
   }
 
   const handleSearch = value => {
-    //setSearchValue(value)
+    setSearchValue(value)
     fetchTableData(sort, value, sortColumn)
   }
 
@@ -292,7 +291,7 @@ const ListOfMedicine = () => {
                 },
                 toolbar: {
                   value: searchValue,
-                  clearSearch: () => (searchValue === '' ? null : handleSearch('')),
+                  clearSearch: () => handleSearch(''),
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
