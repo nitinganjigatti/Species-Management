@@ -9,6 +9,22 @@ const navigation = () => {
       sectionTitle: 'Pharmacy'
     },
 
+    {
+      title: 'Medicine',
+      path: '/pharmacy/medicine',
+      icon: 'mdi:medical-bag',
+      children: [
+        {
+          title: 'Medicine',
+          path: '/pharmacy/medicine'
+        },
+        {
+          title: 'Add Medicine',
+          path: '/pharmacy/medicine/add-medicine'
+        }
+      ]
+    },
+
     // {
     //   title: 'Supplier',
     //   path: '/pharmacy/supplier',
@@ -30,13 +46,13 @@ const navigation = () => {
     // },
 
     {
-      title: 'Medicine',
-      path: '/pharmacy/medicine',
-      icon: 'mdi:medical-bag',
+      title: 'Settings',
+      path: '/pharmacy/settings',
+      icon: 'mdi:settings',
       children: [
         {
           title: 'GST',
-          path: '/pharmacy/medicine/gst'
+          path: '/pharmacy/settings/gst'
         },
 
         // {
@@ -54,35 +70,31 @@ const navigation = () => {
 
         {
           title: 'UOM',
-          path: '/pharmacy/medicine/uom'
+          path: '/pharmacy/settings/uom'
         },
         {
           title: 'Product Form',
-          path: '/pharmacy/medicine/product-form'
+          path: '/pharmacy/settings/product-form'
         },
         {
           title: 'Drug class',
-          path: '/pharmacy/medicine/drug-class'
+          path: '/pharmacy/settings/drug-class'
         },
         {
           title: 'Manufacturer',
-          path: '/pharmacy/medicine/manufacturer'
+          path: '/pharmacy/settings/manufacturer'
         },
         {
           title: 'Packages',
-          path: '/pharmacy/medicine/packages'
+          path: '/pharmacy/settings/packages'
         },
         {
           title: 'Salts',
-          path: '/pharmacy/medicine/salts'
+          path: '/pharmacy/settings/salts'
         },
         {
           title: 'Storage',
-          path: '/pharmacy/medicine/storage'
-        },
-        {
-          title: 'Medicine',
-          path: '/pharmacy/medicine/medicine'
+          path: '/pharmacy/settings/storage'
         }
       ]
     }
