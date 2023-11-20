@@ -131,7 +131,7 @@ const ListOfMedicine = () => {
           <Avatar
             alt='Medicine image'
             sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.PNG'}
+            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
           />
         </Badge>
       )
