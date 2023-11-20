@@ -353,7 +353,7 @@ const AddMedicine = () => {
     try {
       const response = await getMedicineById(id)
       if (response.success) {
-        setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.PNG')
+        setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.png')
 
         const salts = []
         const tempSalts = []
