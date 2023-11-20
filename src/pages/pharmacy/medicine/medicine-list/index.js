@@ -241,7 +241,7 @@ const ListOfMedicine = () => {
         size='big'
         variant='contained'
         onClick={() => {
-          Router.push('/pharmacy/medicine/medicine/add-medicine')
+          Router.push('/pharmacy/medicine/add-medicine')
         }}
       >
         Add Medicine
