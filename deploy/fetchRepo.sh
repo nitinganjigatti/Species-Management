@@ -8,7 +8,7 @@ ENV_TO_LOAD=$2
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
 #APP_DIR="/var/www/app"
-APP_DIR="/var/www/apps/source-code/web"
+APP_DIR="/var/www/apps/source-code/antz_web"
 RELEASES_DIR=$APP_DIR"/releases"
 CURRENT_RELEASE=$APP_DIR"/current"
 NEW_RELEASE=$(date +"%Y%m%d%H%M%S")
@@ -79,16 +79,26 @@ npm install
 echo "Running npm build"
 npm run build
 
-echo "STOP  PM2 SERVICE:"
-{
-  pm2 delete antz-web
-} || {
-  echo "PM2 delete catch"
-}
+process_name="antz-web"
 
-# pm2 start npm --name "antz-web" -- start
+echo "Stopping PM2 Service: $process_name"
+
+# Check if the process is running
+if pm2 list | grep -q $process_name; then
+    # If running, delete the process
+    pm2 delete $process_name
+    echo "PM2 process $process_name stopped."
+else
+    echo "PM2 process $process_name is not running."
+fi
+
+pm2 start npm --name "$process_name" -- start
 
 echo "Deployed. DONE!!!"
 
 #  DELETE ALL FOLDERS EXCEPT LAST 5 releases
-ls -dt $RELEASES_DIR/*/ | tail -n +6 | xargs sudo rm -r
+if [ -n "$(ls -dt $RELEASES_DIR/*/ | tail -n +6)" ]; then
+    ls -dt $RELEASES_DIR/*/ | tail -n +6 | xargs sudo rm -r
+else
+    echo "No directories to remove."
+fi
