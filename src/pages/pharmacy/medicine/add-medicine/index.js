@@ -99,7 +99,7 @@ const schema = yup.object().shape({
   manufacturer: yup.string().required('Manufacturer name is required'),
   package_type: yup.string().required('Package is required'),
   package_qty: yup.number().typeError('This should be a number').required('Package Quantity is required'),
-  package_uom: yup.string().required('UOM is required'),
+  package_uom: yup.string().nullable(),
   product_form: yup.string().required('Product Form is required'),
   salts: yup.array().of(
     yup.object().shape({
@@ -326,25 +326,11 @@ const AddMedicine = () => {
   //   }
   // }
 
-  const getCategoriesList = async () => {
-    const response = await getCategories()
-    if (response?.length > 0) {
-      setCategoryList(response)
-    }
-  }
-
-  const getLeafList = async () => {
-    const response = await getLeafs()
-    if (response?.length > 0) {
-      setLeafList(response)
-    }
-  }
-
   const getGSTList = async () => {
     try {
-      const response = await getGstList()
-      if (response?.length > 0) {
-        setGstList(response)
+      const response = await getGstList({ params: {} })
+      if (response?.success) {
+        setGstList(response?.data?.list_items)
       }
     } catch (e) {
       console.log(e)
@@ -648,50 +634,54 @@ const AddMedicine = () => {
                 <CardContent>
                   <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                     <Grid container spacing={5}>
-                      <Grid item xs={12} sm={12}>
-                        <div>Medicine</div>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
-                            Medicine Type*
-                          </InputLabel>
-                          <Controller
-                            name='medicine_type'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Select
+                      <Grid item xs={12}>
+                        <Grid container spacing={5}>
+                          <Grid item xs={12} sm={12}>
+                            <div>Medicine</div>
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                              <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
+                                Medicine Type*
+                              </InputLabel>
+                              <Controller
                                 name='medicine_type'
-                                value={value}
-                                label='Medicine Type*'
-                                onChange={e => {
-                                  if (e.target.value === 'non_medical') {
-                                    //reset({ salts: [] }, { keepValues: true })
-                                    setValue('salts', [])
-                                  } else {
-                                    //reset({ salts: [{}] }, { keepValues: true })
-                                    setValue('salts', [{}])
-                                  }
-                                  onChange(e.target.value)
-                                  setMedicineType(e.target.value)
-                                }}
-                                error={Boolean(errors?.medicine_type)}
-                                labelId='medicine_type'
-                              >
-                                <MenuItem value='allopathy'>Allopathy</MenuItem>
-                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                                <MenuItem value='unani'>Unani</MenuItem>
-                                <MenuItem value='non_medical'>Non Medical</MenuItem>
-                              </Select>
-                            )}
-                          />
-                          {errors?.medicine_type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.medicine_type?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <Select
+                                    name='medicine_type'
+                                    value={value}
+                                    label='Medicine Type*'
+                                    onChange={e => {
+                                      if (e.target.value === 'non_medical') {
+                                        //reset({ salts: [] }, { keepValues: true })
+                                        setValue('salts', [])
+                                      } else {
+                                        //reset({ salts: [{}] }, { keepValues: true })
+                                        setValue('salts', [{}])
+                                      }
+                                      onChange(e.target.value)
+                                      setMedicineType(e.target.value)
+                                    }}
+                                    error={Boolean(errors?.medicine_type)}
+                                    labelId='medicine_type'
+                                  >
+                                    <MenuItem value='allopathy'>Allopathy</MenuItem>
+                                    <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                                    <MenuItem value='unani'>Unani</MenuItem>
+                                    <MenuItem value='non_medical'>Non Medical</MenuItem>
+                                  </Select>
+                                )}
+                              />
+                              {errors?.medicine_type && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.medicine_type?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+                        </Grid>
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
@@ -855,7 +845,7 @@ const AddMedicine = () => {
                                   getUnitsList(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='UOM*' error={Boolean(errors.package_uom)} />
+                                  <TextField {...params} label='UOM' error={Boolean(errors.package_uom)} />
                                 )}
                               />
                             )}
@@ -1125,11 +1115,13 @@ const AddMedicine = () => {
                                 error={Boolean(errors?.gst_slab)}
                                 labelId='gst_slab'
                               >
-                                {gstList?.map((item, index) => (
-                                  <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                                    {item?.name}
-                                  </MenuItem>
-                                ))}
+                                {gstList?.map((item, index) => {
+                                  return (
+                                    <MenuItem key={index} disabled={item?.active === '0'} value={item?.id}>
+                                      {item?.label}
+                                    </MenuItem>
+                                  )
+                                })}
                               </Select>
                             )}
                           />

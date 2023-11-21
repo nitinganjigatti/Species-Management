@@ -6,7 +6,7 @@ export const SUPPLIER = 'supplier'
 
 export const SUPPLIER_LEDGER = 'supplier-ledger'
 
-export const GST_SLAB = 'gst-slab'
+export const TAX_SLAB = 'v1/master/taxslab'
 
 export const GENERICS = 'generic-name'
 

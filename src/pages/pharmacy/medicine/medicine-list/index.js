@@ -68,17 +68,18 @@ const ListOfMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_type',
-      headerName: 'Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.stock_type}>{params.row.stock_type}</span>
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'stock_type',
+    //   headerName: 'Type',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <span alt={params.row.stock_type}>{params.row.stock_type}</span>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.4,
       minWidth: 20,
@@ -86,7 +87,7 @@ const ListOfMedicine = () => {
       headerName: 'PACKAGE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)} ${params.row.package_uom}
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
@@ -102,17 +103,18 @@ const ListOfMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'created_at',
-      headerName: 'Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDate(params.row.created_at)}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'created_at',
+    //   headerName: 'Date',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDate(params.row.created_at)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -128,7 +130,7 @@ const ListOfMedicine = () => {
           }}
         >
           <Avatar
-            alt='Medicine image'
+            alt='Medicine Image'
             sx={{ width: 40, height: 40 }}
             src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
           />

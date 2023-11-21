@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getGstList } from 'src/lib/api/getGstList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -18,8 +20,9 @@ import { Box, Drawer } from '@mui/material'
 import Router from 'next/router'
 
 import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
-import { addTaxes } from 'src/lib/api/getGstList'
+import { addTaxes, updateTax } from 'src/lib/api/getGstList'
 import UserSnackbar from 'src/components/utility/snackbar'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const ListOfGst = () => {
   const [gstList, setGstList] = useState([])
@@ -31,6 +34,8 @@ const ListOfGst = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('')
+  const editParamsInitialState = { id: null, name: null, tax_value: null, active: null }
+  const [editParams, setEditParams] = useState(editParamsInitialState)
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -47,49 +52,31 @@ const ListOfGst = () => {
     setSeverity(severity)
   }
 
-  const getGstLists = async () => {
-    setLoader(true)
-    const response = await getGstList()
-    if (response?.length > 0) {
-      console.log('list', response)
-
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setGstList(listWithId)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
+  const handleEdit = async (id, name, tax_value, active) => {
+    setEditParams({ id: id, name: name, tax_value: tax_value, active: active })
+    setOpenDrawer(true)
   }
-
-  useEffect(() => {
-    getGstLists()
-  }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'id',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'name',
+      field: 'label',
       headerName: 'TAX NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.label}
         </Typography>
       )
     },
@@ -97,23 +84,43 @@ const ListOfGst = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'tax',
+      field: 'tax_value',
       headerName: 'TAX',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.tax}
+          {params.row.tax_value}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.tax_value, params.row.active)}
+              aria-label='Edit'
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
+        </Box>
       )
     }
   ]
@@ -123,6 +130,7 @@ const ListOfGst = () => {
   }
 
   const addEventSidebarOpen = () => {
+    setEditParams({ id: null, name: null, tax_value: null, active: null })
     console.log('event clicked')
     setOpenDrawer(true)
   }
@@ -132,24 +140,93 @@ const ListOfGst = () => {
     setOpenDrawer(false)
   }
 
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        debugger
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getGstList({ params: params }).then(res => {
+          setTotal(parseInt(res.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData, searchValue, sort, sortColumn])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+      setSort('asc')
+      setSortColumn('label')
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    fetchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add GST
+      </Button>
+    </div>
+  )
+
   const handleSubmitData = async payload => {
     try {
       setSubmitLoader(true)
-      const response = await addTaxes(payload)
-      debugger
+      var response
+      if (editParams?.id !== null) {
+        response = await updateTax(editParams?.id, payload)
+      } else {
+        response = await addTaxes(payload)
+      }
+
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.data, severity: 'success' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         setSubmitLoader(false)
         setResetForm(true)
 
-        await getGstLists()
+        await fetchTableData(sort, searchValue, sortColumn)
         setOpenDrawer(false)
       } else {
         setSubmitLoader(false)
         console.log(response?.data)
         debugger
-        setAlertDefaults({ status: true, message: response?.data, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         console.log(response?.data)
         console.log('test')
       }
@@ -160,24 +237,47 @@ const ListOfGst = () => {
     }
   }
 
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+  }))
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={gstList.length > 0 ? 'GST List' : 'GST list is empty add GST'}
-            headerActions={
-              <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add GST
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={gstList}
-          />
+          <Card>
+            <CardHeader title='GST' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
           {/* sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }} */}
           <AddGstSlabs
             drawerWidth={400}
@@ -186,10 +286,9 @@ const ListOfGst = () => {
             handleSubmitData={handleSubmitData}
             resetForm={resetForm}
             submitLoader={submitLoader}
+            editParams={editParams}
           />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
         </>
       )}
     </>

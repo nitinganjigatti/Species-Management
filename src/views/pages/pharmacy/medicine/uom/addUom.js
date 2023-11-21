@@ -147,7 +147,7 @@ const AddUOM = props => {
               )}
             />
             {errors.unit_name && (
-              <FormHelperText sx={{ color: 'error.main' }}>{error.unit_name.message}</FormHelperText>
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.unit_name.message}</FormHelperText>
             )}
           </FormControl>
 

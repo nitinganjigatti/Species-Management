@@ -27,7 +27,7 @@ const ListOfUOM = () => {
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, active: null }
+  const editParamsInitialState = { id: null, unit_name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -65,9 +65,8 @@ const ListOfUOM = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, active) => {
-    console.log('in state file', id, name, active)
-    setEditParams({ id: id, name: name, active: active })
+  const handleEdit = async (id, unit_name, active) => {
+    setEditParams({ id: id, unit_name: unit_name, active: active })
     setOpenDrawer(true)
   }
 
@@ -136,7 +135,7 @@ const ListOfUOM = () => {
             <IconButton
               size='small'
               sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+              onClick={() => handleEdit(params.row.id, params.row.unit_name, params.row.active)}
               aria-label='Edit'
             >
               <Icon icon='mdi:pencil-outline' />
@@ -160,7 +159,7 @@ const ListOfUOM = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('unit_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -203,12 +202,12 @@ const ListOfUOM = () => {
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
       setSort('asc')
-      setSortColumn('label')
+      setSortColumn('unit_name')
     }
   }
 
   const handleSearch = value => {
-    //setSearchValue(value)
+    setSearchValue(value)
     fetchTableData(sort, value, sortColumn)
   }
 
@@ -278,7 +277,7 @@ const ListOfUOM = () => {
                 },
                 toolbar: {
                   value: searchValue,
-                  clearSearch: () => (searchValue === '' ? null : handleSearch('')),
+                  clearSearch: () => handleSearch(''),
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
