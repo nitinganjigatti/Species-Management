@@ -272,7 +272,7 @@ const ListOfMedicine = () => {
             show={showDialog}
           />
           <Card>
-            <CardHeader title='Medicine List' action={headerAction} />
+            <CardHeader title='Product List' action={headerAction} />
             <DataGrid
               autoHeight
               pagination

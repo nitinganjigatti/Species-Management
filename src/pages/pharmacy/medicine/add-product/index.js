@@ -93,11 +93,11 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  medicine_type: yup.string().required('Medicine Type name is required'),
+  medicine_type: yup.string().required('Product Type is required'),
   medicine_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .required('Medicine name is required'),
+    .required('Product name is required'),
   manufacturer: yup.string().required('Manufacturer name is required'),
   package_type: yup.string().required('Package is required'),
   package_qty: yup.number().typeError('This should be a number').required('Package Quantity is required'),
@@ -560,11 +560,11 @@ const AddMedicine = () => {
     if (id !== undefined && action === 'edit') {
       console.log(payload)
 
-      await updateMedicine(payload, id)
+      //await updateMedicine(payload, id)
     } else {
       console.log(payload)
 
-      await addMedicineToList(payload)
+      //await addMedicineToList(payload)
     }
   }
 
@@ -773,7 +773,7 @@ const AddMedicine = () => {
             <Grid item xs={12}>
               <Card>
                 <CardHeader
-                  title={id ? 'Edit Medicine' : 'Add New Medicine'}
+                  title={id ? 'Edit Product' : 'Add New Product'}
                   action={
                     <div>
                       <Button
@@ -794,12 +794,12 @@ const AddMedicine = () => {
                       <Grid item xs={12}>
                         <Grid container spacing={5}>
                           <Grid item xs={12} sm={12}>
-                            <div>Medicine</div>
+                            <div>Product</div>
                           </Grid>
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
-                                Medicine Type*
+                                Product Type*
                               </InputLabel>
                               <Controller
                                 name='medicine_type'
@@ -849,7 +849,7 @@ const AddMedicine = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 value={value}
-                                label='Medicine Name*'
+                                label='Product Name*'
                                 name='medicine_name'
                                 error={Boolean(errors.medicine_name)}
                                 onChange={onChange}
@@ -1004,17 +1004,15 @@ const AddMedicine = () => {
                                 getOptionLabel={option => option.unit_name}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
-                                  setDefaultUom(val)
+                                  if (val === null) {
+                                    setDefaultUom(null)
 
-                                  // if (val === null) {
-                                  //   setDefaultUom(null)
+                                    return onChange('')
+                                  } else {
+                                    setDefaultUom(val)
 
-                                  //   return onChange('')
-                                  // } else {
-                                  //   setDefaultUom(val)
-
-                                  //   return onChange(val.id)
-                                  // }
+                                    return onChange(val.id)
+                                  }
                                 }}
                                 onKeyUp={e => {
                                   //getUnitsList(e.target.value)
@@ -1129,7 +1127,7 @@ const AddMedicine = () => {
                                                 saltComposition[index] = null
                                                 setDefaultSalts(saltComposition)
 
-                                                return onChange(val?.salt_id)
+                                                return onChange('')
                                               } else {
                                                 var saltComposition = defaultSalts
                                                 saltComposition[index] = { salt_id: val.salt_id, label: val.label }
@@ -1592,7 +1590,7 @@ const AddMedicine = () => {
 
                       <Grid item xs={12}>
                         <Card>
-                          <CardHeader title='Upload Medicine Picture' />
+                          <CardHeader title='Upload Product Picture' />
                           <CardContent>
                             <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
                           </CardContent>
