@@ -156,7 +156,7 @@ const TableServerSide = ({ columns, getCall }) => {
 
       await getCall().then(res => {
         debugger
-        setTotal(res.data?.total_count)
+        setTotal(res?.data?.total_count)
         setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
       })
 
