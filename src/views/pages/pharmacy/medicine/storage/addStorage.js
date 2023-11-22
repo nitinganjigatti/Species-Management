@@ -141,10 +141,10 @@ const AddStorage = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Salt Name'
+                  label='Storage'
                   value={value}
                   onChange={onChange}
-                  placeholder='Salt Name'
+                  placeholder='Storage'
                   error={Boolean(errors.name)}
                   name='name'
                 />

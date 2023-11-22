@@ -183,7 +183,7 @@ const StorageList = () => {
   }
 
   const handleSearch = value => {
-    //setSearchValue(value)
+    setSearchValue(value)
     fetchTableData(sort, value, sortColumn)
   }
 
