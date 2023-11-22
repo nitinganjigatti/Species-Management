@@ -560,11 +560,11 @@ const AddMedicine = () => {
     if (id !== undefined && action === 'edit') {
       console.log(payload)
 
-      //await updateMedicine(payload, id)
+      await updateMedicine(payload, id)
     } else {
       console.log(payload)
 
-      //await addMedicineToList(payload)
+      await addMedicineToList(payload)
     }
   }
 
