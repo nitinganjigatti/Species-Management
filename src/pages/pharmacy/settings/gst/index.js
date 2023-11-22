@@ -20,7 +20,7 @@ import { Box, Drawer } from '@mui/material'
 import Router from 'next/router'
 
 import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
-import { addTaxes, updateTax } from 'src/lib/api/getGstList'
+import { addTax, updateTax } from 'src/lib/api/getGstList'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
@@ -33,7 +33,7 @@ const ListOfGst = () => {
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('')
+  const [severity, setSeverity] = useState('success')
   const editParamsInitialState = { id: null, name: null, tax_value: null, active: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
@@ -205,13 +205,14 @@ const ListOfGst = () => {
   )
 
   const handleSubmitData = async payload => {
+    debugger
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
         response = await updateTax(editParams?.id, payload)
       } else {
-        response = await addTaxes(payload)
+        response = await addTax(payload)
       }
 
       if (response?.success) {

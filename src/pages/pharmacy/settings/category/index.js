@@ -33,7 +33,7 @@ const ListOfCategories = () => {
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('')
+  const [severity, setSeverity] = useState('success')
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
