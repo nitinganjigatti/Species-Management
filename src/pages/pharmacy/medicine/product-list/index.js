@@ -206,7 +206,7 @@ const ListOfMedicine = () => {
         }
 
         await getMedicineList({ params: params }).then(res => {
-          setTotal(parseInt(res.data?.total_count))
+          setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
@@ -255,7 +255,7 @@ const ListOfMedicine = () => {
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    sl_no: getSlNo(index) // Assign sl no based on current page and page size
+    sl_no: getSlNo(index)
   }))
 
   return (
