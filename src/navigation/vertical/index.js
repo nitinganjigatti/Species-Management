@@ -10,17 +10,17 @@ const navigation = () => {
     },
 
     {
-      title: 'Medicine',
-      path: '/pharmacy/medicine/medicine-list',
+      title: 'Inventory',
+      path: '/pharmacy/medicine/product-list',
       icon: 'mdi:medical-bag',
       children: [
         {
-          title: 'Medicine',
-          path: '/pharmacy/medicine/medicine-list'
+          title: 'Product List',
+          path: '/pharmacy/medicine/product-list'
         },
         {
-          title: 'Add Medicine',
-          path: '/pharmacy/medicine/add-medicine'
+          title: 'Add Product',
+          path: '/pharmacy/medicine/add-product'
         }
       ]
     },

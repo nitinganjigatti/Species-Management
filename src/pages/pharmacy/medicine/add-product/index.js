@@ -31,6 +31,7 @@ import Icon from '@mui/material/Icon'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { debounce } from 'lodash'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -65,7 +66,7 @@ import Spacing from 'src/@core/theme/spacing'
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
-  medicine_manufacturer: '',
+  manufacturer: '',
   package_type: '',
   package_qty: '',
   package_uom: '',
@@ -74,7 +75,7 @@ const defaultValues = {
     {
       label: '',
       salt_qty: '',
-      id: ''
+      salt_id: ''
     }
   ],
   gst_slab: '',
@@ -87,7 +88,8 @@ const defaultValues = {
   uses: '',
   safety_advice: '',
   image: '',
-  status: '1'
+  active: '1',
+  url: ''
 }
 
 const schema = yup.object().shape({
@@ -117,7 +119,8 @@ const schema = yup.object().shape({
   side_effects: yup.string().nullable(),
   uses: yup.string().nullable(),
   safety_advice: yup.string().nullable(),
-  status: yup.string().nullable()
+  active: yup.string().nullable(),
+  url: yup.string().nullable()
 })
 
 const AddMedicine = () => {
@@ -128,7 +131,8 @@ const AddMedicine = () => {
     handleSubmit,
     formState: { errors },
     trigger,
-    setValue
+    setValue,
+    getValues
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -143,12 +147,7 @@ const AddMedicine = () => {
   const { settings } = useSettings()
   const { skin } = settings
 
-  const [statesList, setStatesList] = useState([])
-  const [genericNames, setGenericNames] = useState([])
-  const [dosageForms, setDosageForms] = useState([])
   const [drugsClassList, setDrugsClass] = useState([])
-  const [categoryList, setCategoryList] = useState([])
-  const [leafList, setLeafList] = useState([])
   const [gstList, setGstList] = useState([])
   const [files, setFiles] = useState([])
   const [uploadedImage, setUploadedImage] = useState()
@@ -164,21 +163,23 @@ const AddMedicine = () => {
   const [uomList, setUom] = useState([])
   const [storageList, setStorageList] = useState([])
 
+  const [packageQuantity, setPackageQuantity] = useState('')
+
   //Default preSelected values on Edit
 
-  const [defaultManufacturer, setDefaultManufacturer] = useState(undefined)
-  const [defaultPackage, setDefaultPackage] = useState(undefined)
-  const [defaultUom, setDefaultUom] = useState(undefined)
-  const [defaultProductForm, setDefaultProductForm] = useState(undefined)
-  const [defaultSaltName, setDefaultSaltName] = useState(undefined)
-  const [defaultDrugClass, setDefaultDrugClass] = useState(undefined)
-  const [defaultStorage, setDefaultStorage] = useState(undefined)
+  const [defaultManufacturer, setDefaultManufacturer] = useState(null)
+  const [defaultPackage, setDefaultPackage] = useState(null)
+  const [defaultUom, setDefaultUom] = useState(null)
+  const [defaultProductForm, setDefaultProductForm] = useState(null)
+  const [defaultSaltName, setDefaultSaltName] = useState(null)
+  const [defaultDrugClass, setDefaultDrugClass] = useState(null)
+  const [defaultStorage, setDefaultStorage] = useState(null)
   const [defaultSalts, setDefaultSalts] = useState([])
   const [shouldClearFields, setShouldClearFields] = useState(false)
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('')
+  const [severity, setSeverity] = useState('success')
 
   const getManufacturersList = async ({ key, page, limit }) => {
     try {
@@ -237,7 +238,14 @@ const AddMedicine = () => {
         limit
       }
       await getSalts({ params: params }).then(res => {
-        setSalts(res?.data?.list_items)
+        const tempSaltsList = []
+        res?.data?.list_items?.map((value, index) => {
+          const tempSalt = {}
+          tempSalt['salt_id'] = value.id
+          tempSalt['label'] = value.label
+          tempSaltsList.push(tempSalt)
+        })
+        setSalts(tempSaltsList)
       })
     } catch (e) {
       console.log(e)
@@ -292,40 +300,6 @@ const AddMedicine = () => {
     }
   }
 
-  const getStatesList = async () => {
-    try {
-      setLoader(true)
-      const response = await getStates()
-      console.log(response)
-      if (response?.length > 0) {
-        setStatesList(response)
-      }
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  const getGenericNames = async () => {
-    const response = await getGenerics()
-    if (response?.length > 0) {
-      setGenericNames(response)
-    }
-  }
-
-  const getDosageForms = async () => {
-    const response = await getDosageFormList()
-    if (response?.length > 0) {
-      setDosageForms(response)
-    }
-  }
-
-  // const getDrugsClassList = async () => {
-  //   const response = await getDrugs()
-  //   if (response?.length > 0) {
-  //     setDrugsClass(response)
-  //   }
-  // }
-
   const getGSTList = async () => {
     try {
       const response = await getGstList({ params: {} })
@@ -356,8 +330,8 @@ const AddMedicine = () => {
             const tempSalt = {}
             salt['label'] = value.label
             salt['salt_qty'] = value.qty
-            salt['salt_id'] = value.id.toString()
-            tempSalt['id'] = value.id
+            salt['salt_id'] = value.id
+            tempSalt['salt_id'] = value.id
             tempSalt['label'] = value.label
             salts.push(salt)
             tempSalts.push(tempSalt)
@@ -366,9 +340,11 @@ const AddMedicine = () => {
 
         setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
         setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
-        setUom([{ id: response?.data?.package_uom, label: response?.data?.package_uom_label }])
+        setUom([{ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label }])
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
+
+        setPackageQuantity(response?.data?.package_qty)
 
         setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
         setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
@@ -383,7 +359,7 @@ const AddMedicine = () => {
                 {
                   label: '',
                   salt_qty: '',
-                  id: ''
+                  salt_id: ''
                 }
               ]
         )
@@ -399,7 +375,7 @@ const AddMedicine = () => {
                   {
                     label: '',
                     salt_qty: '',
-                    id: ''
+                    salt_id: ''
                   }
                 ],
           status: response?.data?.active
@@ -426,19 +402,96 @@ const AddMedicine = () => {
     setSeverity(severity)
   }
 
+  const manufacturerSearch = debounce(async value => {
+    try {
+      await getManufacturersList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
+
+  const packageSearch = debounce(async value => {
+    debugger
+    try {
+      await getPackagesList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const unitListSearch = debounce(async value => {
+    try {
+      await getUnitsList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const productFormSearch = debounce(async value => {
+    try {
+      await getProductForm({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const saltsListSearch = debounce(async value => {
+    try {
+      await getSaltsList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const drugClassListSearch = debounce(async value => {
+    try {
+      await getDrugsClassList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const storageListSearch = debounce(async value => {
+    try {
+      await getStorageList({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
   useEffect(() => {
     getGSTList()
 
     if (id != undefined && action === 'edit') {
       getMedicine(id)
     } else {
-      getManufacturersList({ page: 1, limit: 10 })
-      getPackagesList({ page: 1, limit: 10 })
-      getUnitsList({ page: 1, limit: 10 })
-      getProductForm({ page: 1, limit: 10 })
-      getSaltsList({ page: 1, limit: 10 })
-      getDrugsClassList({ page: 1, limit: 10 })
-      getStorageList({ page: 1, limit: 10 })
+      reset(defaultValues)
+      setDefaultPackage(null)
+      setDefaultUom(null)
+      setDefaultProductForm(null)
+      setDefaultSaltName(null)
+      setDefaultDrugClass(null)
+      setDefaultStorage(null)
+      setDefaultSalts([])
+      setShouldClearFields(null)
+      setDefaultManufacturer(null)
+      setPackageQuantity('')
+
+      setManufacturers([])
+      setPackages([])
+      setProductForm([])
+      setSalts([])
+      setMedicineType('allopathy')
+      setUom([])
+      setStorageList([])
+
+      // getManufacturersList({ page: 1, limit: 10 })
+      // getPackagesList({ page: 1, limit: 10 })
+      // getUnitsList({ page: 1, limit: 10 })
+      // getProductForm({ page: 1, limit: 10 })
+      // getSaltsList({ page: 1, limit: 10 })
+      // getDrugsClassList({ page: 1, limit: 10 })
+      // getStorageList({ page: 1, limit: 10 })
     }
   }, [id, action])
 
@@ -467,7 +520,7 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      status
+      active
     } = {
       ...params
     }
@@ -477,7 +530,7 @@ const AddMedicine = () => {
     console.log('Original Salts: ', salts)
     const duplicatedSalts = [...salts]
 
-    let filtered_salts = duplicatedSalts.filter(item => item.salt_id !== '')
+    let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
     console.log('Filtered Salts: ', filtered_salts)
 
     const payload = {
@@ -498,7 +551,7 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      status
+      status: active
     }
     if (files.length > 0) {
       payload.image = files[0]
@@ -512,6 +565,19 @@ const AddMedicine = () => {
       console.log(payload)
 
       await addMedicineToList(payload)
+    }
+  }
+
+  const handleSubmitData = async () => {
+    try {
+      const errors = await trigger()
+      if (errors) {
+        handleSubmit(onSubmit)()
+      } else {
+        scrollToTop()
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -536,7 +602,7 @@ const AddMedicine = () => {
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/medicine-list')
+        Router.push('/pharmacy/medicine/product-list')
       } else {
         setSubmitLoader(false)
 
@@ -563,17 +629,17 @@ const AddMedicine = () => {
         reset(defaultValues)
         if (shouldClearFieldsRef.current) {
           shouldClearFieldsRef.current = false
-          setDefaultManufacturer(undefined)
-          setDefaultPackage(undefined)
-          setDefaultUom(undefined)
-          setDefaultProductForm(undefined)
-          setDefaultSaltName(undefined)
-          setDefaultDrugClass(undefined)
-          setDefaultStorage(undefined)
+          setDefaultManufacturer(null)
+          setDefaultPackage(null)
+          setDefaultUom(null)
+          setDefaultProductForm(null)
+          setDefaultSaltName(null)
+          setDefaultDrugClass(null)
+          setDefaultStorage(null)
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          Router.push('/pharmacy/medicine/medicine-list')
+          Router.push('/pharmacy/medicine/product-list')
         }
         setSubmitLoader(false)
       } else {
@@ -606,6 +672,97 @@ const AddMedicine = () => {
     }
   }
 
+  const addSaltButton = () => {
+    return (
+      <Button
+        variant='outlined'
+        onClick={() => {
+          setSalts([])
+          append({
+            salt_qty: '',
+            slat_id: ''
+          })
+        }}
+        sx={{ marginRight: '4px' }}
+      >
+        Add Another
+      </Button>
+    )
+  }
+
+  const removeSaltButton = index => {
+    return (
+      <Button
+        variant='outlined'
+        color='error'
+        onClick={() => {
+          var tempDefaultSalts = defaultSalts
+          tempDefaultSalts.splice(index, 1)
+          setDefaultSalts(tempDefaultSalts)
+          remove(index)
+        }}
+      >
+        Remove
+      </Button>
+    )
+  }
+
+  const clearSaltFields = index => {
+    return (
+      <Button
+        variant='outlined'
+        onClick={() => {
+          var tempDefaultSalts = defaultSalts
+          tempDefaultSalts[index] = undefined
+          setDefaultSalts(tempDefaultSalts)
+          remove(index)
+          insert(index, {})
+        }}
+      >
+        Clear
+      </Button>
+    )
+  }
+
+  const handleAddRemoveSalts = (fields, index) => {
+    if (fields.length - 1 === index && index > 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {removeSaltButton(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length - 1 <= 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {clearSaltFields(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length > 0) {
+      return <>{clearSaltFields(index)}</>
+    } else {
+      return <>{removeSaltButton(index)}</>
+    }
+  }
+
+  const getPackageString = () => {
+    if (defaultPackage?.label) {
+      return `(${defaultPackage?.label} of ${getValues('package_qty')} ${
+        defaultUom?.unit_name ? defaultUom?.unit_name : ''
+      } ${defaultProductForm?.label ? defaultProductForm?.label : ''})`
+    } else {
+      return ''
+    }
+  }
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
   return (
     <>
       {loader ? (
@@ -623,10 +780,10 @@ const AddMedicine = () => {
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          Router.push('/pharmacy/medicine/medicine-list')
+                          Router.push('/pharmacy/medicine/product-list')
                         }}
                       >
-                        Medicine List
+                        Product List
                       </Button>
                     </div>
                   }
@@ -722,8 +879,10 @@ const AddMedicine = () => {
                                 getOptionLabel={option => option.label}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
+                                  // setDefaultManufacturer(val)
+
                                   if (val === null) {
-                                    setDefaultManufacturer(undefined)
+                                    setDefaultManufacturer(val)
 
                                     return onChange('')
                                   } else {
@@ -733,25 +892,33 @@ const AddMedicine = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  getManufacturersList({ key: e.target.value })
+                                  manufacturerSearch(e.target.value)
+
+                                  // getManufacturersList({ key: e.target.value })
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='Manufacturer*' error={Boolean(errors.manufacturer)} />
+                                  <TextField
+                                    {...params}
+                                    label='Manufacturer*'
+                                    placeholder='Search'
+                                    error={Boolean(errors.manufacturer)}
+                                  />
                                 )}
                               />
                             )}
                           />
                           {errors?.manufacturer && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.manufacturer?.message}{' '}
+                              {errors?.manufacturer?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
+
                       {/* Packages */}
 
                       <Grid item xs={12} sm={12}>
-                        <div>Package</div>
+                        <div>Package {getPackageString()}</div>
                       </Grid>
                       <Grid item xs={12} sm={3}>
                         <FormControl fullWidth>
@@ -769,7 +936,7 @@ const AddMedicine = () => {
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    setDefaultPackage(undefined)
+                                    setDefaultPackage(null)
 
                                     return onChange('')
                                   } else {
@@ -779,17 +946,22 @@ const AddMedicine = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  getPackagesList({ key: e.target.value })
+                                  packageSearch(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='Package*' error={Boolean(errors.package_type)} />
+                                  <TextField
+                                    {...params}
+                                    label='Package*'
+                                    placeholder='Search'
+                                    error={Boolean(errors.package_type)}
+                                  />
                                 )}
                               />
                             )}
                           />
                           {errors?.package_type && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.package_type?.message}{' '}
+                              {errors?.package_type?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -805,6 +977,7 @@ const AddMedicine = () => {
                                 value={value}
                                 label='Quantity*'
                                 onChange={onChange}
+                                onKeyUp={e => setPackageQuantity(e.target.value)}
                                 placeholder='Quantity*'
                                 error={Boolean(errors.package_qty)}
                                 name='package_qty'
@@ -831,21 +1004,29 @@ const AddMedicine = () => {
                                 getOptionLabel={option => option.unit_name}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
-                                  if (val === null) {
-                                    setDefaultUom(undefined)
+                                  setDefaultUom(val)
 
-                                    return onChange('')
-                                  } else {
-                                    setDefaultUom(val)
+                                  // if (val === null) {
+                                  //   setDefaultUom(null)
 
-                                    return onChange(val.id)
-                                  }
+                                  //   return onChange('')
+                                  // } else {
+                                  //   setDefaultUom(val)
+
+                                  //   return onChange(val.id)
+                                  // }
                                 }}
                                 onKeyUp={e => {
-                                  getUnitsList(e.target.value)
+                                  //getUnitsList(e.target.value)
+                                  unitListSearch(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='UOM' error={Boolean(errors.package_uom)} />
+                                  <TextField
+                                    {...params}
+                                    label='UOM'
+                                    placeholder='Search'
+                                    error={Boolean(errors.package_uom)}
+                                  />
                                 )}
                               />
                             )}
@@ -871,7 +1052,7 @@ const AddMedicine = () => {
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    setDefaultProductForm(undefined)
+                                    setDefaultProductForm(null)
 
                                     return onChange('')
                                   } else {
@@ -881,10 +1062,15 @@ const AddMedicine = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  getProductForm({ key: e.target.value })
+                                  productFormSearch(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='Product Form*' error={Boolean(errors.product_form)} />
+                                  <TextField
+                                    {...params}
+                                    label='Product Form*'
+                                    placeholder='Search'
+                                    error={Boolean(errors.product_form)}
+                                  />
                                 )}
                               />
                             )}
@@ -922,7 +1108,7 @@ const AddMedicine = () => {
                                             value={
                                               defaultSalts != null && defaultSalts.length > 0
                                                 ? defaultSalts[index]
-                                                : undefined
+                                                : null
                                             }
                                             disablePortal
                                             id={`salts[${index}].salt_id`}
@@ -930,34 +1116,38 @@ const AddMedicine = () => {
                                               // Assuming defaultSalts is an array of objects with a 'salt_id' property
                                               const selectedSaltIds = defaultSalts.map(salt => salt?.salt_id)
 
-                                              return !selectedSaltIds.includes(option.id)
+                                              return !selectedSaltIds.includes(option.salt_id)
                                             })}
                                             getOptionLabel={option => option?.label}
-                                            isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                            isOptionEqualToValue={(option, value) =>
+                                              parseInt(option?.salt_id) === parseInt(value?.salt_id)
+                                            }
                                             onChange={(e, val) => {
                                               if (val === null) {
                                                 //setDefaultProductForm(undefined)
                                                 var saltComposition = defaultSalts
-                                                saltComposition[index] = undefined
+                                                saltComposition[index] = null
                                                 setDefaultSalts(saltComposition)
 
-                                                return onChange('')
+                                                return onChange(val?.salt_id)
                                               } else {
                                                 var saltComposition = defaultSalts
-                                                saltComposition[index] = { id: val.id, label: val.label }
+                                                saltComposition[index] = { salt_id: val.salt_id, label: val.label }
                                                 setDefaultSalts(saltComposition)
 
-                                                return onChange(val.id)
+                                                return onChange(val.salt_id)
                                               }
                                             }}
                                             onKeyUp={e => {
-                                              getSaltsList({ key: e.target.value })
+                                              // getSaltsList({ key: e.target.value })
+                                              saltsListSearch(e.target.value)
                                             }}
                                             renderInput={params => {
                                               return (
                                                 <TextField
                                                   {...params}
                                                   label='Salt Name'
+                                                  placeholder='Search'
                                                   error={Boolean(errors?.salts?.[index]?.salt_id)}
                                                 />
                                               )
@@ -999,46 +1189,7 @@ const AddMedicine = () => {
                                 </Grid>
 
                                 <Grid item xs={4} justifyContent='flex-end' alignSelf='center'>
-                                  {index === 0 ? (
-                                    <>
-                                      <Button
-                                        variant='outlined'
-                                        onClick={() => {
-                                          setSalts([])
-                                          append({})
-                                        }}
-                                        sx={{ marginRight: '4px' }}
-                                      >
-                                        Add Another
-                                      </Button>
-
-                                      <Button
-                                        variant='outlined'
-                                        onClick={() => {
-                                          var tempDefaultSalts = defaultSalts
-                                          tempDefaultSalts[index] = undefined
-                                          setDefaultSalts(tempDefaultSalts)
-                                          remove(index)
-                                          insert(index, {})
-                                        }}
-                                      >
-                                        Clear
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <Button
-                                      variant='outlined'
-                                      color='error'
-                                      onClick={() => {
-                                        var tempDefaultSalts = defaultSalts
-                                        tempDefaultSalts.splice(index, 1)
-                                        setDefaultSalts(tempDefaultSalts)
-                                        remove(index)
-                                      }}
-                                    >
-                                      Remove
-                                    </Button>
-                                  )}
+                                  {handleAddRemoveSalts(fields, index)}
                                 </Grid>
                               </Grid>
                             ))}
@@ -1146,7 +1297,7 @@ const AddMedicine = () => {
                                 isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    setDefaultDrugClass(undefined)
+                                    setDefaultDrugClass(null)
 
                                     return onChange('')
                                   } else {
@@ -1156,10 +1307,16 @@ const AddMedicine = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  getDrugsClassList({ key: e.target.value })
+                                  //getDrugsClassList({ key: e.target.value })
+                                  drugClassListSearch(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='Drug Class' error={Boolean(errors.drug_class)} />
+                                  <TextField
+                                    {...params}
+                                    label='Drug Class'
+                                    placeholder='Search'
+                                    error={Boolean(errors.drug_class)}
+                                  />
                                 )}
                               />
                             )}
@@ -1182,7 +1339,7 @@ const AddMedicine = () => {
                                 isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    setDefaultStorage(undefined)
+                                    setDefaultStorage(null)
 
                                     return onChange('')
                                   } else {
@@ -1192,10 +1349,16 @@ const AddMedicine = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  getStorageList({ key: e.target.value })
+                                  //getStorageList({ key: e.target.value })
+                                  storageListSearch(e.target.value)
                                 }}
                                 renderInput={params => (
-                                  <TextField {...params} label='Storage' error={Boolean(errors.storage)} />
+                                  <TextField
+                                    {...params}
+                                    label='Storage'
+                                    placeholder='Search'
+                                    error={Boolean(errors.storage)}
+                                  />
                                 )}
                               />
                             )}
@@ -1371,6 +1534,27 @@ const AddMedicine = () => {
                           )}
                         </FormControl>
                       </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='url'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                value={value}
+                                label='Reference URL'
+                                name='safety_advice'
+                                onChange={onChange}
+                                placeholder='URL'
+                              />
+                            )}
+                          />
+                          {errors.url && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.url?.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
                       <Grid item xs={12} sm={6}>
                         {id !== undefined ? (
@@ -1417,10 +1601,10 @@ const AddMedicine = () => {
                       <Grid item xs={12}>
                         <LoadingButton
                           size='large'
-                          type='submit'
                           variant='contained'
                           loading={submitLoader}
                           sx={{ marginRight: '8px' }}
+                          onClick={handleSubmitData}
                         >
                           Submit
                         </LoadingButton>

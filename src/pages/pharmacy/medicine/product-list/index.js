@@ -40,7 +40,7 @@ const ListOfMedicine = () => {
 
   const handleEdit = async id => {
     Router.push({
-      pathname: '/pharmacy/medicine/add-medicine',
+      pathname: '/pharmacy/medicine/add-product',
       query: { id: id, action: 'edit' }
     })
   }
@@ -155,7 +155,7 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        <Box sx={{ marginLeft: -6 }}>
+        <Box>
           <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
@@ -243,10 +243,10 @@ const ListOfMedicine = () => {
         size='big'
         variant='contained'
         onClick={() => {
-          Router.push('/pharmacy/medicine/add-medicine')
+          Router.push('/pharmacy/medicine/add-product')
         }}
       >
-        Add Medicine
+        Add Product
       </Button>
     </div>
   )

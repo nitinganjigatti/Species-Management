@@ -12,13 +12,14 @@ const formatDate = dateString => {
 }
 
 function formatNumber(number) {
-  // Convert to a floating-point number with two decimal places
-  var formattedNumber = parseFloat(number).toFixed(2)
+  if (!isNaN(number)) {
+    var formattedNumber = parseFloat(number).toFixed(2)
+    formattedNumber = formattedNumber.replace(/\.0+$/, '')
 
-  // Remove trailing zeros and the decimal point if unnecessary
-  formattedNumber = formattedNumber.replace(/\.0+$/, '')
-
-  return formattedNumber
+    return formattedNumber
+  } else {
+    return ''
+  }
 }
 
 const Utility = {
