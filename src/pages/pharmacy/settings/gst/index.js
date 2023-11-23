@@ -25,6 +25,7 @@ import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
 import { addTax, updateTax } from 'src/lib/api/getGstList'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import Utility from 'src/utility'
 
 const ListOfGst = () => {
   const [gstList, setGstList] = useState([])
@@ -89,7 +90,7 @@ const ListOfGst = () => {
       headerName: 'TAX',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.tax_value}
+          {Utility.formatNumber(params.row.tax_value)}
         </Typography>
       )
     },
