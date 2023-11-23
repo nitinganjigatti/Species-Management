@@ -123,7 +123,7 @@ const schema = yup.object().shape({
   uses: yup.string().nullable(),
   safety_advice: yup.string().nullable(),
   active: yup.string().nullable(),
-  url: yup.string().nullable()
+  url: yup.string().url('Please enter a valid URL').nullable()
 })
 
 const AddMedicine = () => {
