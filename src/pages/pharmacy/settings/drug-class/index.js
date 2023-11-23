@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import { debounce } from 'lodash'
 
 import AddDrugClass from 'src/views/pages/pharmacy/medicine/drugClass/addDrugClass'
 import UserSnackbar from 'src/components/utility/snackbar'
@@ -46,22 +47,18 @@ const ListOfDrugs = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
   }
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -164,7 +161,7 @@ const ListOfDrugs = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -172,14 +169,24 @@ const ListOfDrugs = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
@@ -191,7 +198,6 @@ const ListOfDrugs = () => {
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
@@ -211,7 +217,6 @@ const ListOfDrugs = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {

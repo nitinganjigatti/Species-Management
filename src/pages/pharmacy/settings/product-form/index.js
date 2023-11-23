@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import { debounce } from 'lodash'
 
 import Router from 'next/router'
 
@@ -46,27 +47,22 @@ const ListOfDosageForms = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
   }
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
   const handleEdit = async (id, name, active) => {
-    debugger
     setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
@@ -167,7 +163,7 @@ const ListOfDosageForms = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -175,14 +171,24 @@ const ListOfDosageForms = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
@@ -194,14 +200,11 @@ const ListOfDosageForms = () => {
   )
 
   const handleSubmitData = async payload => {
-    debugger
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        debugger
         response = await updateProductForm(editParams?.id, payload)
-        debugger
       } else {
         response = await addProductForm(payload)
       }
@@ -216,11 +219,9 @@ const ListOfDosageForms = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }

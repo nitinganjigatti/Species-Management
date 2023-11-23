@@ -17,6 +17,8 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 
+import { debounce } from 'lodash'
+
 import Router from 'next/router'
 
 import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
@@ -46,7 +48,6 @@ const ListOfGst = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -125,18 +126,12 @@ const ListOfGst = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, tax_value: null, active: null })
-    console.log('event clicked')
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -154,7 +149,6 @@ const ListOfGst = () => {
   const fetchTableData = useCallback(
     async (sort, q, column) => {
       try {
-        debugger
         setLoading(true)
 
         const params = {
@@ -178,7 +172,7 @@ const ListOfGst = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -186,14 +180,24 @@ const ListOfGst = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
@@ -205,7 +209,6 @@ const ListOfGst = () => {
   )
 
   const handleSubmitData = async payload => {
-    debugger
     try {
       setSubmitLoader(true)
       var response
@@ -225,14 +228,10 @@ const ListOfGst = () => {
         setOpenDrawer(false)
       } else {
         setSubmitLoader(false)
-        console.log(response?.data)
-        debugger
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-        console.log(response?.data)
-        console.log('test')
       }
     } catch (e) {
-      // console.log(e)
+      //console.log(e)
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }

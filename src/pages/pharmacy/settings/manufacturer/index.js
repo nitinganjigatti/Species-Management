@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import { debounce } from 'lodash'
 
 import Router from 'next/router'
 
@@ -46,7 +47,6 @@ const ManufacturerList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -162,7 +162,7 @@ const ManufacturerList = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -170,14 +170,26 @@ const ManufacturerList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
+      // setSort('asc')
+      // setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
