@@ -12,7 +12,7 @@ const formatDate = dateString => {
 }
 
 function formatNumber(number) {
-  if (!isNaN(number)) {
+  if (number !== null && !isNaN(number)) {
     var formattedNumber = parseFloat(number).toFixed(2)
     formattedNumber = formattedNumber.replace(/\.0+$/, '')
 
