@@ -333,7 +333,6 @@ const AddMedicine = () => {
       const response = await getMedicineById(id)
       if (response.success) {
         setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.png')
-
         const salts = []
         const tempSalts = []
         if (response?.data?.salts != null && response?.data?.salts?.length > 0) {
@@ -547,7 +546,7 @@ const AddMedicine = () => {
       package_qty,
       package_uom,
       product_form,
-      salts: filtered_salts.length > 0 ? filtered_salts : [],
+      salts: filtered_salts.length > 0 && medicine_type !== 'non_medical' ? filtered_salts : [],
       gst_slab,
       drug_class,
       storage,
@@ -561,6 +560,7 @@ const AddMedicine = () => {
     }
     if (files.length > 0) {
       payload.image = files[0]
+    } else {
     }
 
     if (id !== undefined && action === 'edit') {
@@ -874,10 +874,10 @@ const AddMedicine = () => {
                                     onChange={e => {
                                       if (e.target.value === 'non_medical') {
                                         //reset({ salts: [] }, { keepValues: true })
-                                        setValue('salts', [])
+                                        //setValue('salts', [])
                                       } else {
                                         //reset({ salts: [{}] }, { keepValues: true })
-                                        setValue('salts', [{}])
+                                        //setValue('salts', [{}])
                                       }
                                       onChange(e.target.value)
                                       setMedicineType(e.target.value)
