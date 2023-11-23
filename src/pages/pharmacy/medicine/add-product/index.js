@@ -1482,7 +1482,7 @@ const AddMedicine = () => {
                               <Select
                                 name='part_out_of_stock'
                                 value={value}
-                                label='Out of Stock'
+                                label='Part Out of Stock'
                                 onChange={onChange}
                                 error={Boolean(errors?.part_out_of_stock)}
                                 labelId='part_out_of_stock'
