@@ -354,6 +354,7 @@ const AddMedicine = () => {
         setUom([{ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label }])
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
+        setMedicineType(response.data.stock_type)
 
         setPackageQuantity(response?.data?.package_qty)
 
