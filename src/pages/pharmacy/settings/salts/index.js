@@ -18,6 +18,8 @@ import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 import UserSnackbar from 'src/components/utility/snackbar'
 
+import { debounce } from 'lodash'
+
 import Router from 'next/router'
 import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
@@ -46,7 +48,6 @@ const Salts = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -164,7 +165,7 @@ const Salts = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -172,14 +173,24 @@ const Salts = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (

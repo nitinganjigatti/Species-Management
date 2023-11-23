@@ -26,8 +26,6 @@ export const axiosGet = async ({ url, params }) => {
   const completeUrl = `${base_url}${url}`
   headers['Content-Type'] = 'application/json'
 
-  console.log('params', params)
-
   return axios.get(completeUrl, { headers: headers, params: params })
 }
 

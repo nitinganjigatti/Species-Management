@@ -14,6 +14,7 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -122,7 +123,6 @@ const ListOfMedicine = () => {
       headerName: 'IMAGE',
       renderCell: params => (
         <Badge
-          overlap='circular'
           sx={{ ml: 2, cursor: 'pointer' }}
           anchorOrigin={{
             vertical: 'bottom',
@@ -130,6 +130,7 @@ const ListOfMedicine = () => {
           }}
         >
           <Avatar
+            variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40 }}
             src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
@@ -193,7 +194,7 @@ const ListOfMedicine = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async ({ sort, q, column }) => {
       try {
         setLoading(true)
 
@@ -217,24 +218,33 @@ const ListOfMedicine = () => {
     },
     [paginationModel]
   )
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
 
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+  const searchTableData = useCallback(
+    debounce(async ({ sort, q, column }) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData({ sort, q, column })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  useEffect(() => {
+    fetchTableData({ sort, q: searchValue, column: sortColumn })
+  }, [fetchTableData])
+
+  const handleSortModel = async newModel => {
+    if (newModel.length > 0) {
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
-      setSort('asc')
-      setSortColumn('name')
     }
   }
 
-  const handleSearch = value => {
+  const handleSearch = async value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    await searchTableData({ sort, q: value, column: sortColumn })
   }
 
   const headerAction = (
@@ -294,7 +304,12 @@ const ListOfMedicine = () => {
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
+
+                  onChange: event => {
+                    setSearchValue(event.target.value)
+
+                    return handleSearch(event.target.value)
+                  }
                 }
               }}
             />

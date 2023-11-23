@@ -19,6 +19,8 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
+import { debounce } from 'lodash'
+
 import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
 
@@ -46,22 +48,18 @@ const ListOfUOM = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
   }
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log('edit', editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -193,7 +191,7 @@ const ListOfUOM = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -201,19 +199,27 @@ const ListOfUOM = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('unit_name')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
-
     try {
       setSubmitLoader(true)
       var response
@@ -232,7 +238,6 @@ const ListOfUOM = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {

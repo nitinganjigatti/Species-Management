@@ -18,6 +18,8 @@ import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 import UserSnackbar from 'src/components/utility/snackbar'
 
+import { debounce } from 'lodash'
+
 import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
@@ -47,27 +49,22 @@ const StorageList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
   }
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log('edit', editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
   const handleEdit = async (id, name, active) => {
-    console.log('in state file', id, name, active)
     setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
@@ -169,7 +166,7 @@ const StorageList = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData, searchValue, sort, sortColumn])
+  }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -177,14 +174,24 @@ const StorageList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setSort('asc')
-      setSortColumn('label')
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const handleSearch = value => {
     setSearchValue(value)
-    fetchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn)
   }
 
   const headerAction = (
@@ -196,13 +203,10 @@ const StorageList = () => {
   )
 
   const handleSubmitData = async (payload, id) => {
-    console.log(id)
-    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
       if (id !== null) {
-        debugger
         response = await updateStorage(id, payload)
       } else {
         response = await addStorage(payload)
@@ -216,11 +220,9 @@ const StorageList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
         setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
     }

@@ -15,7 +15,6 @@ import {
   FormLabel,
   CardHeader,
   InputLabel,
-  IconButton,
   RadioGroup,
   CardContent,
   FormControl,
@@ -23,11 +22,13 @@ import {
   FormHelperText,
   InputAdornment,
   FormControlLabel,
-  CircularProgress
+  CircularProgress,
+  Box
 } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
 import FormGroup from '@mui/material/FormGroup'
 import Autocomplete from '@mui/material/Autocomplete'
-import Icon from '@mui/material/Icon'
+import Icon from 'src/@core/components/icon'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -40,6 +41,8 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
+import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
 
 // ** Source code imports
 import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
@@ -58,10 +61,10 @@ import { getGstList } from 'src/lib/api/getGstList'
 import { getManufacturers } from 'src/lib/api/manufacturer'
 import { getPackages } from 'src/lib/api/packages'
 import { getProductFormList } from 'src/lib/api/productForms'
-import { getSalts } from 'src/lib/api/salts'
+import { getSalts, addSalt } from 'src/lib/api/salts'
 import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
-import Spacing from 'src/@core/theme/spacing'
+import { addManufacturer } from 'src/lib/api/manufacturer'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -180,6 +183,15 @@ const AddMedicine = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+
+  // states for Manufacturer and salt
+
+  const [openManufacturer, setOpenManufacturer] = useState(false)
+  const [openSalt, setOpenSalt] = useState(false)
+  const [popupLoader, setPopupLoader] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const editParamsInitialState = { id: null, name: null, active: null }
+  const [editParams, setEditParams] = useState(editParamsInitialState)
 
   const getManufacturersList = async ({ key, page, limit }) => {
     try {
@@ -411,7 +423,6 @@ const AddMedicine = () => {
   }, 500)
 
   const packageSearch = debounce(async value => {
-    debugger
     try {
       await getPackagesList({ key: value, active: 1, page: 1, limit: 10 })
     } catch (e) {
@@ -498,8 +509,6 @@ const AddMedicine = () => {
   const shouldClearFieldsRef = useRef(false)
 
   const onSubmit = async params => {
-    console.log('params', params)
-
     // setSubmitLoader(true)
 
     const {
@@ -526,12 +535,9 @@ const AddMedicine = () => {
     }
 
     // console.log(params)
-
-    console.log('Original Salts: ', salts)
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
-    console.log('Filtered Salts: ', filtered_salts)
 
     const payload = {
       medicine_type,
@@ -558,12 +564,8 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
-      console.log(payload)
-
       await updateMedicine(payload, id)
     } else {
-      console.log(payload)
-
       await addMedicineToList(payload)
     }
   }
@@ -763,6 +765,65 @@ const AddMedicine = () => {
     })
   }
 
+  const handleSidebarClose = () => {
+    setOpenManufacturer(false)
+    setOpenSalt(false)
+    setResetForm(true)
+    setPopupLoader(false)
+  }
+
+  const addNewManufacturer = () => {
+    setOpenManufacturer(true)
+    setResetForm(false)
+  }
+
+  const addNewSalt = () => {
+    setOpenSalt(true)
+    setResetForm(false)
+  }
+
+  const handleManufacturer = async payload => {
+    try {
+      setPopupLoader(true)
+
+      var response = await addManufacturer(payload)
+
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        setPopupLoader(false)
+        setResetForm(true)
+        setOpenManufacturer(false)
+      } else {
+        setPopupLoader(false)
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
+    } catch (e) {
+      setPopupLoader(false)
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const handleSalt = async payload => {
+    try {
+      setPopupLoader(true)
+      var response = await addSalt(payload)
+
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        setPopupLoader(false)
+        setResetForm(true)
+        setOpenSalt(false)
+      } else {
+        setPopupLoader(false)
+        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setPopupLoader(false)
+      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+    }
+  }
+
   return (
     <>
       {loader ? (
@@ -865,54 +926,72 @@ const AddMedicine = () => {
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='manufacturer'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Autocomplete
-                                disablePortal
-                                id='manufacturer'
-                                value={defaultManufacturer}
-                                options={manufacturer}
-                                getOptionLabel={option => option.label}
-                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                onChange={(e, val) => {
-                                  // setDefaultManufacturer(val)
+                        <Grid container spacing={5}>
+                          <Grid item xs={8} sm={8}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='manufacturer'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <Autocomplete
+                                    disablePortal
+                                    id='manufacturer'
+                                    value={defaultManufacturer}
+                                    options={manufacturer}
+                                    getOptionLabel={option => option.label}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                    onChange={(e, val) => {
+                                      // setDefaultManufacturer(val)
 
-                                  if (val === null) {
-                                    setDefaultManufacturer(val)
+                                      if (val === null) {
+                                        setDefaultManufacturer(val)
 
-                                    return onChange('')
-                                  } else {
-                                    setDefaultManufacturer(val)
+                                        return onChange('')
+                                      } else {
+                                        setDefaultManufacturer(val)
 
-                                    return onChange(val.id)
-                                  }
-                                }}
-                                onKeyUp={e => {
-                                  manufacturerSearch(e.target.value)
+                                        return onChange(val.id)
+                                      }
+                                    }}
+                                    onKeyUp={e => {
+                                      manufacturerSearch(e.target.value)
 
-                                  // getManufacturersList({ key: e.target.value })
-                                }}
-                                renderInput={params => (
-                                  <TextField
-                                    {...params}
-                                    label='Manufacturer*'
-                                    placeholder='Search'
-                                    error={Boolean(errors.manufacturer)}
+                                      // getManufacturersList({ key: e.target.value })
+                                    }}
+                                    renderInput={params => (
+                                      <TextField
+                                        {...params}
+                                        label='Manufacturer*'
+                                        placeholder='Search'
+                                        error={Boolean(errors.manufacturer)}
+                                      />
+                                    )}
                                   />
                                 )}
                               />
-                            )}
-                          />
-                          {errors?.manufacturer && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.manufacturer?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
+                              {errors?.manufacturer && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.manufacturer?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={4} sm={4} justifyContent='flex-end' alignSelf='center'>
+                            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                              <IconButton
+                                aria-label='capture screenshot'
+                                color='primary'
+                                onClick={() => addNewManufacturer()}
+                              >
+                                <Icon icon='mdi:plus' />
+                              </IconButton>
+                            </Box>
+                            {/* <Button variant='outlined' onClick={() => addNewManufacturer()}>
+                              +
+                            </Button> */}
+                          </Grid>
+                        </Grid>
                       </Grid>
 
                       {/* Packages */}
@@ -1090,6 +1169,15 @@ const AddMedicine = () => {
                             <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
                               <Grid item xs={6}>
                                 <span style={{ marginRight: '10px' }}>Salt Composition</span>
+                                <span>
+                                  <IconButton
+                                    aria-label='capture screenshot'
+                                    color='primary'
+                                    onClick={() => addNewSalt()}
+                                  >
+                                    <Icon icon='mdi:plus' />
+                                  </IconButton>
+                                </span>
                               </Grid>
                             </Grid>
                             {fields.map((field, index) => (
@@ -1194,52 +1282,6 @@ const AddMedicine = () => {
                           </FormGroup>
                         </Grid>
                       )}
-                      {/* <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='package'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <Autocomplete
-                            disablePortal
-                            id='package'
-                            options={[]}
-                            onKeyUp={e => {
-                              console.log('eee values', e.target.value)
-                            }}
-                            renderInput={params => (
-                              <TextField {...params} label='Package*' error={Boolean(errors.package)} />
-                            )}
-                          />
-                        )}
-                      />
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='package_quantity'
-                        control={control}
-                        rules={{ required: false }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Quantity*'
-                            onChange={onChange}
-                            placeholder='Quantity*'
-                            error={Boolean(errors.package_quantity)}
-                            name='package_quantity'
-                          />
-                        )}
-                      />
-                      {errors?.package_quantity && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors?.package_quantity?.message}{' '}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid> */}
 
                       {/* //Salt Composition */}
                       {/* Others */}
@@ -1630,6 +1672,24 @@ const AddMedicine = () => {
               </Card>
             </Grid>
           </Grid>
+          <AddManufacturer
+            drawerWidth={400}
+            addEventSidebarOpen={openManufacturer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleManufacturer}
+            resetForm={resetForm}
+            submitLoader={popupLoader}
+            editParams={editParams}
+          />
+          <AddSalts
+            drawerWidth={400}
+            addEventSidebarOpen={openSalt}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSalt}
+            resetForm={resetForm}
+            submitLoader={popupLoader}
+            editParams={editParams}
+          />
         </>
       )}
     </>
