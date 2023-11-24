@@ -533,8 +533,6 @@ const AddMedicine = () => {
     } = {
       ...params
     }
-
-    // console.log(params)
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
