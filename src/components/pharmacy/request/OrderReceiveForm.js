@@ -1,81 +1,36 @@
 /* eslint-disable lines-around-comment */
 import React, { forwardRef, useState, useEffect } from 'react'
-
-import TableWithFilter from 'src/components/TableWithFilter'
-import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import DataGrid from 'src/@core/theme/overrides/dataGrid'
-import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
-import {
-  Grid,
-  Table,
-  TableContainer,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  TextField,
-  Box,
-  Button,
-  Chip,
-  CardContent,
-  CardHeader,
-  Divider
-} from '@mui/material'
+
+import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
+
 import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
 import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
-import { useForm, Controller, useFieldArray } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-import { useRouter } from 'next/router'
-
-import Router from 'next/router'
-import { column } from 'stylis'
-
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
-import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
-import { getShipmentOrderDetails, addDisputeItems } from 'src/lib/api/getShipmentList'
+import { getShipmentOrderDetails, addDisputeItems, addDispenseItems } from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
+
 function OrderReceiveForm({ orderId }) {
   const defaultValues = {
-    from_store_name: '',
-    to_store_name: '',
-    shipment_date: '',
-    person_shipping: '',
-    vehicle_no: '',
-
     shipment_id: '',
     dispatch_id: '',
     request_id: '',
     comments: '',
-    dispute_item_details: [
+    store_id: '',
+    item_details: [
       {
         id: '',
         stock_id: '',
         stock_name: '',
+        count: '',
         batch_no: '',
-        return_count: '',
         from_store: '',
         to_store: '',
         from_store_name: '',
@@ -85,64 +40,46 @@ function OrderReceiveForm({ orderId }) {
     ]
   }
 
+  const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
+  const [orderData, setOrderData] = useState([])
+
   const handleStatusChange = (itemId, event) => {
-    console.log('itemId', itemId)
-    console.log('event.target.value', event.target.value)
-
-    // const updatedData = {
-    //   ...orderData,
-    //   dispute_item_details: orderData.dispute_item_details.map(item =>
-    //     item.id === itemId ? { ...item, status: event.target.value } : item
-    //   )
-    // }
-
     const updatedData = {
       ...disputeItemDetails,
-      dispute_item_details: disputeItemDetails.dispute_item_details.map(item =>
+      item_details: disputeItemDetails.item_details.map(item =>
         item.id === itemId ? { ...item, status: event.target.value } : item
       )
     }
     setDisputeItemDetails(updatedData)
-    // setOrderData(updatedData)
   }
 
-  const schema = yup.object().shape({
-    dispute_item_details: yup.array().of(
-      yup.object().shape({
-        status: yup.string().required('status required')
-      })
-    )
-  })
-
-  const {
-    reset,
-    control,
-    handleSubmit,
-    getValues,
-    setValue,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onBlur',
-    reValidateMode: 'onChange'
-  })
   const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired', 'Shipped']
 
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
       console.log('response', response)
-      console.log('response', response.data)
 
       if (response.success === true && response.data !== '') {
+        setOrderData({
+          ...orderData,
+
+          shipping_id: response?.data?.shipping_id,
+          shipment_id: response?.data?.shipment_id,
+          shipment_date: response?.data?.shipment_date,
+          person_shipping: response?.data?.person_shipping,
+          shipment_status: response?.data?.shipment_status,
+          vehicle_no: response?.data?.vehicle_no
+        })
+
         const disputeLineItems = response?.data?.shipment_item_details?.map(el => {
           const data = {
             id: el?.id,
             stock_id: el?.stock_id,
             batch_no: el?.batch,
-            return_count: el?.return_count,
+            count: el?.quantity,
             from_store: el?.from_store,
             to_store: el?.to_store,
             stock_name: el?.stock_name,
@@ -153,23 +90,16 @@ function OrderReceiveForm({ orderId }) {
 
           return data
         })
-        console.log('line item data', disputeLineItems)
 
         const deputesData = {
-          from_store_name: response?.data?.shipment_item_details[0]?.from_store_name,
-          to_store_name: response?.data?.shipment_item_details[0]?.to_store_name,
-          shipment_date: response?.data?.shipment_date,
-          person_shipping: response?.data?.person_shipping,
-          vehicle_no: response?.data?.vehicle_no,
-
-          shipment_id: response?.data?.shipment_id,
+          shipment_id: orderId,
+          store_id: response?.data?.shipment_item_details[0]?.from_store,
           dispatch_id: response?.data?.dispatch_id,
           request_id: response?.data?.request_id,
-          dispute_item_details: disputeLineItems
+          item_details: disputeLineItems
         }
-        console.log('deputesData', deputesData)
-        // setValue(deputesData)
-        reset(deputesData)
+
+        setDisputeItemDetails(deputesData)
       }
     } catch (error) {
       console.log('error', error)
@@ -180,18 +110,18 @@ function OrderReceiveForm({ orderId }) {
     if (orderId) {
       getOrderDetails(orderId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'index',
-      headerName: 'Sl',
-      renderCell: params => (
+      field: 'id',
+      headerName: 'Id',
+      renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.index}
-          {console.log('params.row.id', params.row.index)}
+          {params.row.id}
         </Typography>
       )
     },
@@ -200,15 +130,9 @@ function OrderReceiveForm({ orderId }) {
       Width: 40,
       field: 'stock_name',
       headerName: 'Medicine Name',
-      renderCell: (params, rowIndex) => (
+      renderCell: (params, rowId) => (
         <div>
-          <Typography
-            onClick={() => {
-              console.log('rowIndex', rowIndex)
-            }}
-            variant='body2'
-            sx={{ color: 'text.primary' }}
-          >
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.stock_name}
           </Typography>
         </div>
@@ -249,6 +173,7 @@ function OrderReceiveForm({ orderId }) {
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -256,215 +181,151 @@ function OrderReceiveForm({ orderId }) {
       headerName: 'Action',
       renderCell: params => (
         <FormControl fullWidth>
-          <InputLabel
-            // error={Boolean(errors?.dispute_item_details?.[params.row.id]?.status)}
-            id='status'
+          <InputLabel id='status'>Status</InputLabel>
+          <Select
+            fullWidth
+            size='small'
+            value={params?.row?.status}
+            label='Status'
+            onChange={event => handleStatusChange(params.row.id, event)}
           >
-            Status
-          </InputLabel>
-          <Controller
-            name={`dispute_item_details[${params.row.index}].status`}
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <Select
-                type='text'
-                size='small'
-                name={`dispute_item_details[${params.row.index}].status`}
-                value={params.row.status}
-                // value={value}
-                label='Status'
-                onChange={onChange}
-                // onChange={event => handleStatusChange(params.row.index, event)}
-                error={Boolean(errors?.dispute_item_details?.[params.row.index]?.status)}
-              >
-                {options.map((item, index) => (
-                  <MenuItem key={index} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-            )}
-          />
-          {errors?.employer && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors?.employer?.message}</FormHelperText>
-          )}
+            {options.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
       )
     }
   ]
 
-  const updateStatus = async params => {
-    const {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      dispute_item_details
-    } = params
+  async function updateStatus() {
+    const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
+    const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
 
-    const payLoad = {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      dispute_item_details
+    if (receivedItems.length > 0) {
+      setSubmitLoader(true)
+      const finalData = { ...disputeItemDetails, item_details: receivedItems }
+      try {
+        const result = await addDispenseItems(finalData)
+        console.log('after submission of dispense items', result)
+
+        if (result?.success) {
+          toast.success(result?.message)
+          setSubmitLoader(false)
+        }
+      } catch (error) {
+        setSubmitLoader(false)
+
+        console.log('Add dispense error', error)
+        toast.error(error?.message)
+      }
     }
-    console.log('payload', payLoad)
-  }
+    if (notReceivedItems.length > 0) {
+      setSubmitLoader(true)
 
-  const { fields, append, remove, insert } = useFieldArray({
-    control,
-    name: 'dispute_item_details'
-  })
+      const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
+      try {
+        const result = await addDisputeItems(finalData)
+        console.log('after submission of dispute items', result)
+        if (result?.success) {
+          toast.success(result?.message)
+          setSubmitLoader(false)
+        }
+      } catch (error) {
+        setSubmitLoader(false)
+
+        toast.error(error?.message)
+        console.log('Add dispute error', error)
+      }
+    }
+  }
 
   return (
     <>
       <Grid xs={12} sx={{ mx: 'auto' }}>
         <Grid container xs={12}>
-          {getValues('shipment_id') ? (
+          {orderData?.shipment_id ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-              <p>{getValues('shipment_id')}</p>
+              <p>{orderData.shipment_id}</p>
             </Grid>
           ) : null}
-          {getValues('rom_store_name') ? (
+          {orderData?.from_store_name ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}> From Store </h5>
-              <p>{getValues('rom_store_name')}</p>
+              <p>{orderData.from_store_name}</p>
             </Grid>
           ) : null}
-          {getValues('shipment_date') ? (
+          {orderData?.shipment_date ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-              <p>{getValues('shipment_date')}</p>
+              <p>{orderData.shipment_date}</p>
             </Grid>
           ) : null}
-          {getValues('vehicle_no') ? (
+          {orderData?.vehicle_no ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-              <p>{getValues('Vehicle_no')}</p>
+              <p>{orderData.vehicle_no}</p>
             </Grid>
           ) : null}
-          {getValues('to_store_name') ? (
+          {orderData?.to_store_name ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-              <p>{getValues('to_store_name')}</p>
+              <p>{orderData.to_store_name}</p>
             </Grid>
           ) : null}
 
-          {getValues('person_shipping') ? (
+          {orderData?.person_shipping ? (
             <Grid item md={4} sm={4} xs={4}>
               <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-              <p>{getValues('person_shipping')}</p>
+              <p>{orderData.person_shipping}</p>
             </Grid>
           ) : null}
         </Grid>
-        {/* <Button
+
+        {disputeItemDetails?.item_details?.length > 0 ? (
+          <>
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+            <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+              <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+            </Grid>
+          </>
+        ) : null}
+
+        <Grid container items>
+          <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+            <FormControl fullWidth>
+              <TextField
+                type='text'
+                label='Comment'
+                value={disputeItemDetails?.comments}
+                onChange={e => {
+                  setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                }}
+                placeholder='comment'
+                name='comments'
+              />
+            </FormControl>
+          </Grid>
+        </Grid>
+        <Divider
+          sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+        />
+        <LoadingButton
+          sx={{ float: 'right', my: 4, mx: 6 }}
+          size='large'
           variant='contained'
           onClick={() => {
-            const addStatus = orderData?.dispute_item_details.map(el => {
-              const data = {
-                id: el.id,
-                shipment_id: el.shipment_id,
-                dispatch_id: el.dispatch_id,
-                dispatch_item_id: el.dispatch_item_id,
-                stock_id: el.stock_id,
-                batch: el.batch,
-                expiry: el.expiry,
-                quantity: el.quantity,
-                created_by: el.created_by,
-                created_at: el.created_at,
-                stock_name: el.stock_name,
-                shipment_status: 'Received'
-              }
-              console.log('updated data', data)
-
-              return data
-            })
-            setOrderData({
-              ...orderData,
-              shipment_id: orderData?.shipment_id,
-              shipment_date: orderData?.shipment_date,
-              traking_information: orderData?.traking_information,
-              person_shipping: orderData?.person_shipping,
-              shipment_status: orderData?.shipment_status,
-              vehicle_no: orderData?.vehicle_no,
-              from_store_name: orderData?.from_store_name,
-              to_store_name: orderData?.to_store_name,
-
-              // dispute_item_details: response?.data?.dispute_item_details
-              dispute_item_details: addStatus
-            })
+            updateStatus()
           }}
+          loading={submitLoader}
         >
-          Select all
-        </Button> */}
-
-        <form autoComplete='off' onSubmit={handleSubmit(updateStatus)}>
-          {console.log('fields table', fields)}
-
-          {fields?.length > 0 ? (
-            <>
-              <Divider
-                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-              />
-              <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-                <TableBasic
-                  columns={columns}
-                  rows={fields?.map((row, index) => ({ ...row, index: index + 1 }))}
-                ></TableBasic>
-              </Grid>
-            </>
-          ) : null}
-
-          <Grid container items>
-            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='comment'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      type='text'
-                      label='Comment'
-                      value={value}
-                      onChange={onChange}
-                      placeholder='comment'
-                      error={Boolean(errors.comment)}
-                      name='comment'
-                    />
-                  )}
-                />
-                {errors.comment && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.comment.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-          </Grid>
-          <Divider
-            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-          />
-          <LoadingButton
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            variant='contained'
-            type='submit'
-
-            // loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
-        </form>
+          Save
+        </LoadingButton>
       </Grid>
     </>
   )

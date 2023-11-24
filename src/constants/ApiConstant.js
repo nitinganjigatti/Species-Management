@@ -46,6 +46,10 @@ export const REQUEST_ITEMS = 'request-item'
 
 export const LEAF = 'leaf'
 
+export const DISPENSE_ITEM = 'dispense-item'
+
+export const DISPUTE_ITEM = 'dispute-item'
+
 export const STOCK_OUT = 'outofstock-medicine/store'
 
 export const EXPIRED_MEDICINE = 'expire-medicine/store'

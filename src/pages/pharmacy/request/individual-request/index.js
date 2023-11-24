@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { forwardRef, useState, useEffect } from 'react'
 
 import {
@@ -33,7 +34,6 @@ import { Box, CardContent, CardHeader } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
-import { column } from 'stylis'
 
 import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
@@ -460,7 +460,6 @@ const IndividualRequest = () => {
           <IconButton
             size='small'
             onClick={() => {
-              console.log('row id', params.row)
               setOrderId(params.row.shipping_id)
               showOrderFormDialog()
             }}
@@ -472,10 +471,6 @@ const IndividualRequest = () => {
       )
     }
   ]
-
-  // const handleHeaderAction = () => {
-  //   showOrderFormDialog()
-  // }
 
   return (
     <>
