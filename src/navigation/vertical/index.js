@@ -97,7 +97,7 @@ const navigation = () => {
           path: '/pharmacy/settings/storage'
         }
       ]
-    }
+    },
 
     // {
     //   title: 'Purchase',
@@ -202,18 +202,18 @@ const navigation = () => {
     //     }
     //   ]
     // },
-    // {
-    //   title: 'Request',
-    //   icon: 'lucide:git-pull-request',
-    //   path: '/pharmacy/request',
+    {
+      title: 'Request',
+      icon: 'lucide:git-pull-request',
+      path: '/pharmacy/request',
 
-    //   children: [
-    //     {
-    //       title: 'Request',
-    //       path: '/pharmacy/request/requestList'
-    //     }
-    //   ]
-    // }
+      children: [
+        {
+          title: 'Request',
+          path: '/pharmacy/request/requestList'
+        }
+      ]
+    }
 
     // {
     //   sectionTitle: 'Others'

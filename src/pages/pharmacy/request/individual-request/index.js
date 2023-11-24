@@ -460,7 +460,8 @@ const IndividualRequest = () => {
           <IconButton
             size='small'
             onClick={() => {
-              setOrderId(params.row.id)
+              console.log('row id', params.row)
+              setOrderId(params.row.shipping_id)
               showOrderFormDialog()
             }}
             aria-label='Edit'
