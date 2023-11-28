@@ -30,17 +30,22 @@ import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 // ** React Imports
-import { forwardRef, useState, useEffect } from 'react'
+import { forwardRef, useState, useEffect, useCallback } from 'react'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
+import { debounce } from 'lodash'
+
 import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
+import { getMedicineList } from 'src/lib/api/getMedicineList'
+
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
+import Utility from 'src/utility'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -60,7 +65,7 @@ const editParamsInitialState = {
   to_store_id: '',
   from_store_type: '',
   to_store_type: '',
-  ro_date: '',
+  ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   request_item_details: []
 }
@@ -360,6 +365,45 @@ const AddRequestForm = () => {
     }
   }
 
+  //  ****** debounce
+  const fetchMedicineData = async searchText => {
+    if (searchText !== '') {
+      try {
+        const params = {
+          sort: 'asc',
+          q: searchText,
+          limit: 10
+        }
+
+        const searchResults = await getMedicineList({ params: params })
+        if (searchResults?.data?.list_items.length > 0) {
+          console.log('searchResults', searchResults?.data?.list_items)
+          setOptionsMedicineList(
+            searchResults?.data?.list_items?.map(item => ({
+              value: item.id,
+              label: item.name,
+              control_substance: item.controlled_substance === '1' ? true : false
+            }))
+          )
+        }
+      } catch (e) {
+        console.log('error', e)
+      }
+    }
+  }
+
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  //  ****** debounce
+
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
 
@@ -515,11 +559,12 @@ const AddRequestForm = () => {
                   }}
                   onKeyUp={e => {
                     console.log('eee values', e.target.value)
-                    handleCustom(e.target.value)
+                    // handleCustom(e.target.value)
+                    searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
                   renderInput={params => (
-                    <TextField {...params} label='Medicine Name' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
                   )}
                 />
                 {itemErrors.medicine_name && (
@@ -541,7 +586,7 @@ const AddRequestForm = () => {
                   type='number'
                   value={nestedRowMedicine.request_item_qty}
                   error={Boolean(itemErrors.request_item_qty)}
-                  label='Quantity'
+                  label='Quantity*'
                   onChange={event => {
                     setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                     setItemErrors({})
@@ -785,11 +830,11 @@ const AddRequestForm = () => {
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store</InputLabel>
+                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
                   <Select
                     value={editParams.from_store_id}
                     error={Boolean(errors.from_store_id)}
-                    label='Select'
+                    label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
                       filterToStocks(e.target.value)
@@ -824,14 +869,14 @@ const AddRequestForm = () => {
                     date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     width={'100%'}
                     value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    name={'Date'}
+                    name={'Date*'}
                     onChangeHandler={date => {
                       console.log(date)
                       // setStores({ ...stores, date: date })
                       setEditParams({ ...editParams, ro_date: formatDate(date) })
                       setErrors({})
                     }}
-                    customInput={<CustomInput label='Date' error={Boolean(errors.ro_date)} />}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                   />
                   {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -850,14 +895,13 @@ const AddRequestForm = () => {
                 </Grid>
                 <FormControl fullWidth>
                   <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                    Store
+                    Store*
                   </InputLabel>
 
                   <Select
-                    name='state_id'
                     error={Boolean(errors.to_store_id)}
                     value={editParams.to_store_id}
-                    label='Select'
+                    label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
                       setEditParams({
@@ -918,7 +962,7 @@ const AddRequestForm = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
-              <TableCell>Medicine Names</TableCell>
+              <TableCell>Product Name</TableCell>
               <TableCell>Priority</TableCell>
               {/* <TableCell>Controlled substance</TableCell> */}
               <TableCell>Quantity</TableCell>

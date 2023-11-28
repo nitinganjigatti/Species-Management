@@ -9,9 +9,10 @@ export async function getMedicineBySearch(name) {
 }
 
 export async function getMedicineToAddPurchase(name) {
-  const response = await axiosGet({ url: `${MEDICINE}?page=1&limit=50&search=${name}&` })
+  const response = await axiosGet({ url: `stock-item?page=1&limit=50&search=a${name}&` })
 
-  if (response?.status == 200 && response?.data?.success) {
+  //localhost:8080/api/stock-item?page=1&limit=50&search=a&
+  http: if (response?.status == 200 && response?.data?.success) {
     console.log('medicines', response)
 
     return response.data.data

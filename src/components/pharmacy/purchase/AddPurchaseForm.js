@@ -25,6 +25,8 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
+import { debounce } from 'lodash'
+
 import toast from 'react-hot-toast'
 
 // ** React Imports
@@ -34,10 +36,11 @@ import Icon from 'src/@core/components/icon'
 
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
+import { getMedicineList } from 'src/lib/api/getMedicineList'
 import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
+import Utility from 'src/utility'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -50,7 +53,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 const editParamsInitialState = {
   po_no: '',
-  po_date: '',
+  po_date: Utility.formattedPresentDate(),
   store_id: '',
   supplier_id: '',
   description: '',
@@ -61,7 +64,7 @@ const editParamsInitialState = {
   discount_amount: 0,
   discount_percentage: 0,
   net_amount: 0,
-  user: '',
+
   tax_amount: 0
 }
 
@@ -143,7 +146,6 @@ const AddPurchaseForm = () => {
     }
 
     const gstPercentage = parseFloat(gst_name)
-    console.log('gstPercentage', gstPercentage)
 
     const taxAmount = totalAmount * (gstPercentage / 100)
 
@@ -153,25 +155,19 @@ const AddPurchaseForm = () => {
 
   const calculateFinalAmount = useCallback(
     discountValue => {
-      // const calculateFinalAmount = discountValue => {
       let finalAmount = totalLineItemsPurchase
       let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
       let netAmount = 0
-      console.log('before discount', finalAmount)
       setEditParams({
         ...editParams,
         total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
         net_amount: netAmountWithGST ? netAmountWithGST : 0,
         tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-
-        // purchase_tax_amount: calculateTotalTaxAmount
       })
       if (editParams.discount_type === 'P') {
         netAmount = (netAmountWithGST * discountValue) / 100
         const discountValueAmount = netAmount
         const netValueAfterDiscount = netAmountWithGST - netAmount
-        console.log('discountValueAmount', discountValueAmount)
-        console.log('netValueAfterDiscount', netValueAfterDiscount)
         setEditParams({
           ...editParams,
           discount_percentage: discountValue,
@@ -190,6 +186,7 @@ const AddPurchaseForm = () => {
         })
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [totalLineItemsPurchase, editParams]
   )
   useEffect(() => {
@@ -212,14 +209,12 @@ const AddPurchaseForm = () => {
     }
 
     const updatedNestedRows = [...editParams.purchase_details, newData]
-    console.log(updatedNestedRows)
     setEditParams({
       ...editParams,
       purchase_details: updatedNestedRows
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
-    console.log('last', nestedRowMedicine)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -312,7 +307,6 @@ const AddPurchaseForm = () => {
   const updateTableItems = () => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
-    console.log('beforeupdate editParams', editParams)
 
     const updatedIndex = updatedState.purchase_details.findIndex(row => row.purchase_unit_id === itemId)
 
@@ -324,9 +318,6 @@ const AddPurchaseForm = () => {
       }
       updatedState.purchase_details = updatedNestedRows
 
-      console.log('after update editParams', updatedNestedRows)
-
-      console.log('test while update', updatedNestedRows)
       setEditParams(updatedState)
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
@@ -363,7 +354,6 @@ const AddPurchaseForm = () => {
 
   const handleSubmit = () => {
     const formHasErrors = !editParams.po_no || !editParams.po_date || !editParams.store_id || !editParams.supplier_id
-    console.log(formHasErrors)
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -374,27 +364,17 @@ const AddPurchaseForm = () => {
     showDialog()
   }
 
-  console.log('getMedicineOptions', optionsMedicineList)
-
   const getStoresLists = async () => {
-    console.log('function in')
-    // setLoader(true)
     const response = await getStoreList()
-    console.log('function in')
-    console.log('response', response)
+
     if (response?.length > 0) {
-      console.log('list', response)
       setStores(response)
     }
   }
 
   const getSuppliersLists = async () => {
-    console.log('function in')
-    // setLoader(true)
     const response = await getSuppliers()
-    console.log('suppliers response', response)
     if (response.data.data?.length > 0) {
-      console.log('list', response)
       setSuppliers(response.data.data)
     }
   }
@@ -403,87 +383,81 @@ const AddPurchaseForm = () => {
     getStoresLists()
     getSuppliersLists()
   }, [])
-  // API calling functions on mount endnd
 
-  console.log('editParams', editParams)
-
-  const handleCustom = async data => {
-    console.log('in custom', data)
-    try {
-      getSearchValue(data)
-      console.log('Validation successful')
-    } catch (validationErrors) {
-      console.log('Validation failed:', validationErrors)
-    }
-  }
-  async function getSearchValue(searchText, index) {
+  //  ******
+  const fetchMedicineData = async searchText => {
     if (searchText !== '') {
-      const searchResults = await getMedicineToAddPurchase(searchText)
-      console.log('in search input ', searchResults)
-      if (searchResults?.length) {
-        console.log(
-          'maped obj',
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name,
-            purchase_unit_price: item.supplier_price,
-            tax_type: item.gst_tax ? item.gst_tax : ''
-            // supplier_price: item.supplier_price
-          }))
-        )
-        setOptionsMedicineList(
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name,
-            purchase_unit_price: item.supplier_price,
-            tax_type: item.gst_tax ? item.gst_tax : ''
-            // supplier_price: item.supplier_price
-          }))
-        )
+      try {
+        const params = {
+          sort: 'asc',
+          q: searchText,
+          limit: 10
+        }
+
+        const searchResults = await getMedicineList({ params: params })
+        if (searchResults?.data?.list_items.length > 0) {
+          setOptionsMedicineList(
+            searchResults?.data?.list_items?.map(item => ({
+              value: item.id,
+              label: item.name,
+              purchase_unit_price: item?.price,
+              tax_type: item.gst_value ? item.gst_value : ''
+              // supplier_price: item.supplier_price
+            }))
+          )
+        }
+      } catch (e) {
+        console.log('error', e)
       }
     }
   }
 
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const getListOfItemsById = async id => {
     const result = await getPurchaseListById(id)
-    console.log('data of update values', result)
     if (result.success === true && result.data !== '') {
       const lineItems = result.data.purchase_detailss.map(el => {
-        console.log('elsss', el)
-
         return {
-          id: el.id,
-          medicine_name: el.stock_item_name,
-          purchase_unit_id: el.unit_id,
-          purchase_stock_item_id: el.stock_item_id,
-          // purchase_stock_item_id: el.stock_item_id,
-          purchase_qty: el.qty,
-          purchase_unit_price: el.unit_price,
-          purchase_purchase_price: el.purchase_price,
-          purchase_batch_no: el.batch_no,
-          purchase_expiry_date: el.expiry_date,
-          purchase_gst_type: el.gst_type,
-          purchase_tax_amount: el.tax_amount
+          id: el?.id,
+          medicine_name: el?.stock_item_name,
+          purchase_unit_id: el?.unit_id,
+          purchase_stock_item_id: el?.stock_item_id,
+          // purchase_stock_item_id: el?.stock_item_id,
+          purchase_qty: el?.qty,
+          purchase_unit_price: el?.unit_price,
+          purchase_purchase_price: el?.purchase_price,
+          purchase_batch_no: el?.batch_no,
+          purchase_expiry_date: el?.expiry_date,
+          purchase_gst_type: el?.gst_type,
+          purchase_tax_amount: el?.tax_amount
         }
       })
-      console.log('lineItems', lineItems)
       setEditParams({
         ...editParams,
-        id: result.data.id,
-        po_no: result.data.po_no,
-        po_date: result.data.po_date,
-        store_id: result.data.store_id,
-        supplier_id: result.data.supplier_id,
-        description: result.data.description,
-        type_of_store: result.data.type_of_store,
+        id: result?.data?.id,
+        po_no: result?.data?.po_no,
+        po_date: result?.data?.po_date,
+        store_id: result?.data?.store_id,
+        supplier_id: result?.data?.supplier_id,
+        description: result?.data?.description,
+        type_of_store: result?.data?.type_of_store,
         purchase_details: lineItems,
-        user: result.data.user,
-        total_amount: result.data.total_amount,
-        discount_type: result.data.discount_type ? result.data.discount_type : '',
-        discount_amount: result.data.discount_amount,
-        discount_percentage: result.data.discount_percentage,
-        net_amount: result.data.net_amount,
-        tax_amount: result.data.tax_amount
+        total_amount: result?.data?.total_amount,
+        discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
+        discount_amount: result?.data?.discount_amount,
+        discount_percentage: result?.data?.discount_percentage,
+        net_amount: result?.data?.net_amount,
+        tax_amount: result?.data?.tax_amount
       })
     }
   }
@@ -494,7 +468,6 @@ const AddPurchaseForm = () => {
       const getItems = editParams.purchase_details.filter(el => {
         return el.purchase_unit_id === itemId
       })
-      console.log('filtered items while editing', getItems)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -513,16 +486,9 @@ const AddPurchaseForm = () => {
         purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     } else {
-      console.log('in else ', editParams.purchase_details)
-
       const getItems = editParams.purchase_details.filter(el => {
         return el.purchase_unit_id === itemId
       })
-      // console.log('filtered', getItems[0].medicine_name)
-      console.log('filtered', getItems)
-      console.log('file', getItems[0])
-      console.log('nestedRowMedicine', nestedRowMedicine)
-      // const file=[]
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -541,7 +507,6 @@ const AddPurchaseForm = () => {
       })
     }
   }
-  console.log('nestedRowMedicine', nestedRowMedicine)
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
@@ -565,11 +530,9 @@ const AddPurchaseForm = () => {
 
     const postData = editParams
     postData.total_amount = totalLineItemsPurchase
-    console.log('while posting data', postData)
-    console.log('editParms', editParams)
+
     if (id) {
       const response = await updatePurchase(id, postData)
-      console.log('after posting', response)
 
       if (response?.success) {
         toast.success(response.message)
@@ -578,12 +541,10 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchaseList/')
       } else {
         setSubmitLoader(false)
-        console.log('test')
         toast.error(response.message)
       }
     } else {
       const response = await addPurchase(postData)
-      console.log('after posting', response)
       if (response?.success) {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
@@ -619,33 +580,26 @@ const AddPurchaseForm = () => {
                   options={optionsMedicineList}
                   value={nestedRowMedicine.medicine_name}
                   onChange={(event, newValue) => {
-                    console.log('options', newValue)
-                    // nestedRowMedicine, setNestedRowMedicine
-                    console.log('peices', newValue?.purchase_unit_price)
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
                       purchase_unit_id: newValue?.value,
                       purchase_stock_item_id: newValue?.value,
-                      // purchase_stock_item_id: newValue?.value,
                       purchase_unit_price: newValue?.purchase_unit_price,
                       purchase_qty: 0,
                       purchase_purchase_price: 0,
                       purchase_gst_type: newValue?.tax_type,
                       purchase_tax_amount: 0
-
-                      // purchase_purchase_price: newValue?.supplier_price * nestedRowMedicine.purchase_qty
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
                   }}
                   onKeyUp={e => {
-                    console.log('eee values', e.target.value)
-                    handleCustom(e.target.value)
+                    searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
                   renderInput={params => (
-                    <TextField {...params} label='Medicine Name' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
                   )}
                 />
                 {itemErrors.medicine_name && (
@@ -676,10 +630,8 @@ const AddPurchaseForm = () => {
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
                       : null
                   }
-                  name={'Expiry date'}
+                  name={'Expiry date*'}
                   onChangeHandler={date => {
-                    console.log(date)
-                    // setStores({ ...stores, date: date })
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       purchase_expiry_date: formatDate(date)
@@ -699,9 +651,30 @@ const AddPurchaseForm = () => {
               <FormControl fullWidth>
                 <TextField
                   type='number'
+                  // disabled={true}
+                  value={nestedRowMedicine.purchase_unit_price}
+                  error={Boolean(itemErrors.purchase_unit_price)}
+                  label='Supplier rate*'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.purchase_unit_price && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='number'
                   value={nestedRowMedicine.purchase_qty}
                   error={Boolean(itemErrors.purchase_qty)}
-                  label='Quantity'
+                  label='Quantity*'
                   onChange={event => {
                     const val = parseInt(event.target.value, 10)
                     const supplierPrice = nestedRowMedicine.purchase_unit_price
@@ -717,46 +690,6 @@ const AddPurchaseForm = () => {
                   }}
                 />
                 {itemErrors.purchase_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  value={nestedRowMedicine.purchase_batch_no}
-                  error={Boolean(itemErrors.purchase_batch_no)}
-                  label='Batch'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_batch_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  disabled={true}
-                  value={nestedRowMedicine.purchase_unit_price}
-                  error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -783,6 +716,27 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_batch_no}
+                  error={Boolean(itemErrors.purchase_batch_no)}
+                  label='Batch*'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.purchase_batch_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+
             {nestedRowMedicine.purchase_gst_type ? (
               <>
                 <Grid item xs={12} sm={6}>
@@ -884,8 +838,6 @@ const AddPurchaseForm = () => {
       </CardContent>
     )
   }
-  // console.log('stores', stores)
-  console.log('nestedRowMedicine', editParams)
 
   return (
     <Card>
@@ -946,11 +898,11 @@ const AddPurchaseForm = () => {
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier</InputLabel>
+                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
                   <Select
                     value={editParams.supplier_id}
                     error={Boolean(errors.supplier_id)}
-                    label='Select'
+                    label='Supplier*'
                     disabled={id ? true : false}
                     onChange={e => {
                       setEditParams({
@@ -959,8 +911,6 @@ const AddPurchaseForm = () => {
                       })
                       setErrors({})
                     }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
                   >
                     {suppliers?.map((item, index) => (
                       <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -983,10 +933,8 @@ const AddPurchaseForm = () => {
                     disabled={id ? true : false}
                     value={editParams.po_no}
                     error={Boolean(errors.po_no)}
-                    label='Purchase No'
+                    label='Purchase No*'
                     onChange={e => {
-                      // const val = parseInt(e.target.value, 10)
-
                       setEditParams({
                         ...editParams,
                         po_no: e.target.value
@@ -1032,27 +980,17 @@ const AddPurchaseForm = () => {
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.store_id)}>
-                    Store
-                  </InputLabel>
+                  <InputLabel error={Boolean(errors.store_id)}>Stores*</InputLabel>
 
                   <Select
-                    name='state_id'
                     error={Boolean(errors.store_id)}
                     value={editParams.store_id}
                     label='Select'
                     disabled={id ? true : false}
                     onChange={e => {
-                      // setStores({ ...stores, toStore: e.target.value })
-                      // setEditParams({
-                      //   ...editParams,
-                      //   store_id: e.target.value
-                      // })
                       getStoreType(e.target.value)
                       setErrors({})
                     }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
                   >
                     {stores?.map((item, index) => (
                       <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -1075,36 +1013,14 @@ const AddPurchaseForm = () => {
                     date={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
                     width={'100%'}
                     value={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
-                    name={'Date'}
+                    name={'Date*'}
                     onChangeHandler={date => {
-                      console.log(date)
-                      // setStores({ ...stores, date: date })
                       setEditParams({ ...editParams, po_date: formatDate(date) })
                       setErrors({})
                     }}
                     customInput={<CustomInput label='Date' error={Boolean(errors.po_date)} />}
                   />
                   {errors.po_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    value={editParams.user}
-                    error={Boolean(errors.user)}
-                    label='User'
-                    onChange={event => {
-                      setEditParams({ ...editParams, user: event.target.value })
-
-                      setErrors({})
-                    }}
-                  />
-                  {errors.user && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -1126,7 +1042,6 @@ const AddPurchaseForm = () => {
           mb: 4
         }}
       >
-        {/* {id ? null : ( */}
         <Button
           sx={{
             mx: { sm: 6, xs: 'auto' }
@@ -1139,17 +1054,13 @@ const AddPurchaseForm = () => {
         >
           Add Purchase Item
         </Button>
-        {/* )} */}
       </Grid>
 
-      {/* <Divider
-        sx={{ mt: theme => `${theme.spacing(6.5)} !important`, mb: theme => `${theme.spacing(5.5)} !important` }}
-      /> */}
       <TableContainer>
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
-              <TableCell>Medicine Name</TableCell>
+              <TableCell>Product Name</TableCell>
               <TableCell>Batch</TableCell>
               <TableCell>Expiry Date</TableCell>
               <TableCell>Quantity</TableCell>
@@ -1176,7 +1087,6 @@ const AddPurchaseForm = () => {
                           sx={{ mr: 0.5 }}
                           aria-label='Edit'
                           onClick={() => {
-                            console.log(el.purchase_unit_id)
                             setMedicineItemId(el.purchase_unit_id)
 
                             editTableData(el.purchase_unit_id)
@@ -1249,8 +1159,6 @@ const AddPurchaseForm = () => {
                         setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
                         setErrors({})
                       }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
                     >
                       <MenuItem value='P'>%</MenuItem>
                       <MenuItem value='F'>₹</MenuItem>
@@ -1261,17 +1169,14 @@ const AddPurchaseForm = () => {
                   <FormControl fullWidth>
                     <TextField
                       type='text'
-                      // value={editParams.discount_percentage}
                       value={
                         editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount
                       }
-                      // error={Boolean(itemErrors.discount_amount)}
                       label='Discount'
                       onChange={event => {
                         const val = event.target.value
 
                         calculateFinalAmount(val)
-                        // setEditParams({ ...editParams, discount_type: val })
                         setErrors({})
                         setValidateDiscount('')
                       }}

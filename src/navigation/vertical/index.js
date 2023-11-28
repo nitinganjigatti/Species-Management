@@ -99,22 +99,23 @@ const navigation = () => {
       ]
     },
 
-    // {
-    //   title: 'Purchase',
-    //   path: '/pharmacy/purchase',
-    //   icon: 'raphael:cart',
-    //   children: [
-    //     {
-    //       title: 'Purchase list',
-    //       path: '/pharmacy/purchase/purchaseList'
-    //     },
+    {
+      title: 'Purchase',
+      path: '/pharmacy/purchase',
+      icon: 'raphael:cart',
+      children: [
+        {
+          title: 'Purchase list',
+          path: '/pharmacy/purchase/purchaseList'
+        },
 
-    //     {
-    //       title: 'Payment list',
-    //       path: '/pharmacy/purchase/paymentList'
-    //     }
-    //   ]
-    // },
+        {
+          title: 'Payment list',
+          path: '/pharmacy/purchase/paymentList'
+        }
+      ]
+    },
+
     // {
     //   title: 'Store',
     //   path: '/pharmacy/store',
