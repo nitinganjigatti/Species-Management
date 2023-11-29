@@ -22,7 +22,7 @@ export const PURCHASE = 'purchase'
 
 export const PAYMENT_LIST = 'supplier-ledger'
 
-export const STORE = 'stores'
+export const STORE = 'store'
 
 export const RACK = 'rack'
 

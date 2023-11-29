@@ -1,16 +1,14 @@
-import { STORE } from '../../constants/ApiConstant'
+import { STORE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
 // http://localhost:8080/api/v1/pharma/store/add
 // http://localhost:8080/api/v1/pharma/store/update/17
 // http://localhost:8080/api/v1/pharma/store/list
 
-export async function getStoreList() {
-  // const response = await axiosGet({ url: STORE })
-  const response = await axiosGet({ url: 'v1/pharma/store/list' })
-  console.log('sotreslistsss', response)
+export async function getStoreList({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/list`, params: params })
 
-  return response.data.data
+  return response.data
 }
 
 export async function getStoreById(id) {

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStoreList, addStore, updateStore } from 'src/lib/api/getStoreList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -14,10 +16,13 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import { debounce } from 'lodash'
 
 import Router from 'next/router'
 import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
 import UserSnackbar from 'src/components/utility/snackbar'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { column } from 'stylis'
 
 const ListOfStores = () => {
   const [stores, setStores] = useState([])
@@ -49,36 +54,6 @@ const ListOfStores = () => {
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    console.log('payload', payload)
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        response = await updateStore(editParams?.id, payload)
-      } else {
-        response = await addStore(payload)
-      }
-
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getStoresLists()
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
-
   const handleEdit = async (id, name, status) => {
     setEditParams({ id: id, name: name, status: status })
     setOpenDrawer(true)
@@ -86,38 +61,15 @@ const ListOfStores = () => {
 
   /***** Drawer  */
 
-  const getStoresLists = async () => {
-    setLoader(true)
-    const response = await getStoreList()
-    if (response?.length > 0) {
-      console.log('list', response)
-
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setStores(listWithId)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
-
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -202,9 +154,117 @@ const ListOfStores = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
   }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getStoreList({ params: params }).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
+
+  const handleSortModel = newModel => {
+    debugger
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+        Add Storage
+      </Button>
+    </div>
+  )
+
+  const handleSubmitData = async payload => {
+    console.log('payload', payload)
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateStore(editParams?.id, payload)
+      } else {
+        response = await addStore(payload)
+      }
+
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await getStoresLists()
+      } else {
+        setSubmitLoader(false)
+        console.log('test')
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
 
   return (
     <>
@@ -212,18 +272,34 @@ const ListOfStores = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={stores.length > 0 ? 'Store List' : 'Store List is empty add Store List'}
-            headerActions={
-              <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add Store
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={stores}
-          />
+          <Card>
+            <CardHeader title='Storage' action={headerAction} />
+            <DataGrid
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+            />
+          </Card>
           <AddStore
             drawerWidth={400}
             addEventSidebarOpen={openDrawer}
