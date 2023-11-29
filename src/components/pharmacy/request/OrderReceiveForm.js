@@ -4,6 +4,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
+import FormHelperText from '@mui/material/FormHelperText'
 
 // ** MUI Imports
 
@@ -11,13 +12,18 @@ import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
 
-import { getShipmentOrderDetails, addDisputeItems, addDispenseItems } from 'src/lib/api/getShipmentList'
+import {
+  getShipmentOrderDetails,
+  addDisputeItems,
+  addDispenseItems,
+  getDisputeItemById
+} from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function OrderReceiveForm({ orderId }) {
+function OrderReceiveForm({ orderId, disputeId }) {
   const defaultValues = {
     shipment_id: '',
     dispatch_id: '',
@@ -44,6 +50,12 @@ function OrderReceiveForm({ orderId }) {
   const [submitLoader, setSubmitLoader] = useState(false)
 
   const [orderData, setOrderData] = useState([])
+
+  const buttonStatus = disputeItemDetails?.item_details.every(el => {
+    return el.status !== ''
+  })
+
+  console.log('buttonStatus', buttonStatus)
 
   const handleStatusChange = (itemId, event) => {
     const updatedData = {
@@ -85,7 +97,7 @@ function OrderReceiveForm({ orderId }) {
             stock_name: el?.stock_name,
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
-            status: response?.data?.shipment_status
+            status: el.dispute_status ? el.dispute_status : ''
           }
 
           return data
@@ -176,31 +188,50 @@ function OrderReceiveForm({ orderId }) {
 
     {
       flex: 0.2,
-      minWidth: 20,
-      field: '',
-      headerName: 'Action',
+      minWidth: 40,
+      my: 4,
+      field: 'status',
+      headerName: 'Status',
       renderCell: params => (
-        <FormControl fullWidth>
-          <InputLabel id='status'>Status</InputLabel>
-          <Select
-            fullWidth
-            size='small'
-            value={params?.row?.status}
-            label='Status'
-            onChange={event => handleStatusChange(params.row.id, event)}
-          >
-            {options.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Grid item xs={12} sm={12}>
+          {params?.row?.status === '' ? (
+            <FormControl fullWidth>
+              <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
+                Status
+              </InputLabel>
+              <Select
+                fullWidth
+                size='small'
+                error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                value={params?.row?.status}
+                label='Status'
+                onChange={event => handleStatusChange(params.row.id, event)}
+              >
+                {options.map((item, index) => (
+                  <MenuItem key={index} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.status}
+            </Typography>
+          )}
+        </Grid>
       )
     }
   ]
 
   async function updateStatus() {
+    const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
+
+    if (isStatusEmpty) {
+      console.error('Please fill in all status fields.')
+
+      return
+    }
     const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
     const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
 
@@ -241,6 +272,22 @@ function OrderReceiveForm({ orderId }) {
       }
     }
   }
+
+  const viewSingleDisputeItem = async disputeId => {
+    try {
+      const result = await getDisputeItemById(disputeId)
+      console.log('single dispute item', result)
+    } catch (error) {
+      console.log('error', error)
+      console.log('disputeId', disputeId)
+    }
+  }
+  useEffect(() => {
+    if (disputeId) {
+      viewSingleDisputeItem(disputeId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
@@ -300,6 +347,7 @@ function OrderReceiveForm({ orderId }) {
           <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
             <FormControl fullWidth>
               <TextField
+                disabled={buttonStatus}
                 type='text'
                 label='Comment'
                 value={disputeItemDetails?.comments}
@@ -318,6 +366,7 @@ function OrderReceiveForm({ orderId }) {
         <LoadingButton
           sx={{ float: 'right', my: 4, mx: 6 }}
           size='large'
+          disabled={buttonStatus}
           variant='contained'
           onClick={() => {
             updateStatus()

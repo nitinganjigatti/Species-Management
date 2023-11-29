@@ -13,6 +13,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 import DataGrid from 'src/@core/theme/overrides/dataGrid'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
+import { getDisputeItemList } from 'src/lib/api/getShipmentList'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -53,7 +54,9 @@ const IndividualRequest = () => {
   const [showShipDialog, setShowShipDialog] = useState(false)
   const [dispatchedItems, setDispatchedItems] = useState([])
   const [shippedItems, setShippedItems] = useState([])
+  const [disputedItems, setDisputedItemsItems] = useState([])
   const [orderId, setOrderId] = useState('')
+  const [disputeId, setDisputeId] = useState('')
 
   const router = useRouter()
   const { id, request_number } = router.query
@@ -100,6 +103,7 @@ const IndividualRequest = () => {
 
       if (response.success) {
         // debugger
+        console.log('shipped items', response)
         setShippedItems(response.data)
         setLoader(false)
       } else {
@@ -108,6 +112,21 @@ const IndividualRequest = () => {
     } catch (e) {
       console.log(e)
       setLoader(false)
+    }
+  }
+
+  const getDisputeItems = async id => {
+    try {
+      console.log('request id', id)
+      const response = await getDisputeItemList(id)
+      response?.data?.dispute_item_details?.sort((a, b) => a.id - b.id)
+
+      if (response.success) {
+        setDisputedItemsItems(response.data)
+      } else {
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
@@ -133,6 +152,7 @@ const IndividualRequest = () => {
   useEffect(() => {
     if (id !== undefined) {
       init(id)
+      getDisputeItems(id)
     }
   }, [id])
 
@@ -146,6 +166,7 @@ const IndividualRequest = () => {
 
   const closeDialog = () => {
     setOrderId('')
+    setDisputeId('')
     setShow(false)
   }
 
@@ -460,6 +481,8 @@ const IndividualRequest = () => {
           <IconButton
             size='small'
             onClick={() => {
+              setDisputeId('')
+              console.log(params.row)
               setOrderId(params.row.shipping_id)
               showOrderFormDialog()
             }}
@@ -472,6 +495,106 @@ const IndividualRequest = () => {
     }
   ]
 
+  const disputedItemsColumns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'Id',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'stock_name',
+      headerName: 'Medicine Name',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.stock_name}</div>
+          </Typography>
+        </div>
+      )
+    },
+
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'from_store_name',
+      headerName: 'From store',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.from_store_name}</div>
+          </Typography>
+        </div>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'to_store_name',
+      headerName: 'To store ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.to_store_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'Batch ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.status}
+        </Typography>
+      )
+    }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <Box sx={{ marginLeft: -6 }}>
+    //       <IconButton
+    //         size='small'
+    //         onClick={() => {
+    //           setOrderId('')
+    //           setDisputeId(params.row.request_id)
+    //           showOrderFormDialog()
+    //         }}
+    //         aria-label='Edit'
+    //       >
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
+  ]
+
   return (
     <>
       {loader ? (
@@ -481,7 +604,7 @@ const IndividualRequest = () => {
           <CommonDialogBox
             title={'Order received'}
             dialogBoxStatus={orderFormDialog}
-            formComponent={<OrderReceiveForm orderId={orderId} />}
+            formComponent={<OrderReceiveForm orderId={orderId} disputeId={disputeId} />}
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
@@ -548,6 +671,28 @@ const IndividualRequest = () => {
                   </Grid>
                 </CardContent>
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
+              </>
+            ) : null}
+            {disputedItems?.dispute_item_details?.length > 0 ? (
+              <>
+                <CardContent>
+                  <Grid item spacing={2} xs={6}>
+                    <h5 style={{ marginBottom: '0px' }}>Dispute Items</h5>
+                  </Grid>
+                  <Grid container sx={{ flexGrow: 1 }}>
+                    <Grid container sx={{ flexGrow: 1 }}>
+                      <Grid item xs={3}>
+                        <h5 style={{ marginBottom: '0px' }}>Shipment Id</h5>
+                        <p>{disputedItems?.shipment_id}</p>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <h5 style={{ marginBottom: '0px' }}>Shipment Date</h5>
+                        <p>{disputedItems?.shipment_date}</p>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+                <TableBasic columns={disputedItemsColumns} rows={disputedItems?.dispute_item_details}></TableBasic>
               </>
             ) : null}
           </Card>

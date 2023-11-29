@@ -60,6 +60,9 @@ import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 
 const editParamsInitialState = {
+  from_store_type: '',
+  to_store_type: '',
+
   from_store_id: '',
   to_store_id: '',
   from_store_type: '',
@@ -106,7 +109,11 @@ const AddRequestForm = () => {
   }
 
   const filteredStoreType = value => {
-    return fromStocks?.find(item => item.id == value)?.type
+    console.log('fromStocks', fromStocks)
+    const storeType = fromStocks?.find(item => item.id == value)?.type
+    console.log('storeType', storeType)
+
+    return storeType
   }
 
   const closeDialog = () => {
@@ -316,11 +323,11 @@ const AddRequestForm = () => {
     const response = await getStoreList()
     console.log('function in')
     console.log('response', response)
-    if (response?.length > 0) {
+    if (response?.list_items?.length > 0) {
       console.log('list', response)
 
-      setFromStocks(response)
-      setToStocks(response)
+      setFromStocks(response.list_items)
+      setToStocks(response.list_items)
     } else {
     }
   }
@@ -836,11 +843,13 @@ const AddRequestForm = () => {
                     label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
+                      console.log('in stores select', e.target.value)
                       filterToStocks(e.target.value)
+                      console.log('store type', storesType[filteredStoreType(e.target.value)])
                       setEditParams({
                         ...editParams,
                         from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)].toString()
+                        from_store_type: storesType[filteredStoreType(e.target.value)]
                       })
                       setErrors({})
                     }}
@@ -906,7 +915,7 @@ const AddRequestForm = () => {
                       setEditParams({
                         ...editParams,
                         to_store_id: e.target.value,
-                        to_store_type: storesType[filteredStoreType(e.target.value)].toString()
+                        to_store_type: storesType[filteredStoreType(e.target.value)]
                       })
                       setErrors({})
                     }}

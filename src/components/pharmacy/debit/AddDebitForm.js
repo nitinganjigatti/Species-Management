@@ -407,6 +407,7 @@ const AddDebitForm = () => {
   // API calling functions on mount endnd
 
   console.log('editParams', editParams)
+  // *****
 
   const handleCustom = async data => {
     console.log('in custom', data)
@@ -442,6 +443,7 @@ const AddDebitForm = () => {
       }
     }
   }
+  // *****
 
   const getListOfItemsById = async id => {
     const result = await getDebitListById(id)

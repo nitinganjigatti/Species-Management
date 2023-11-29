@@ -367,8 +367,12 @@ const AddPurchaseForm = () => {
   const getStoresLists = async () => {
     const response = await getStoreList()
 
-    if (response?.length > 0) {
-      setStores(response)
+    // if (response?.length > 0) {
+    //   setStores(response)
+    // }
+    if (response?.list_items?.length > 0) {
+      console.log('list', response)
+      setStores(response.list_items)
     }
   }
 

@@ -13,6 +13,18 @@ export async function getShipmentOrderDetails(id) {
   return response.data
 }
 
+export async function getDisputeItemList(id) {
+  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/request` })
+
+  return response.data
+}
+
+export async function getDisputeItemById(id) {
+  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/show` })
+
+  return response.data.data
+}
+
 export async function addDisputeItems(payload) {
   try {
     const url = `${DISPUTE_ITEM}`

@@ -1,8 +1,13 @@
 import { STORE } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
+// http://localhost:8080/api/v1/pharma/store/add
+// http://localhost:8080/api/v1/pharma/store/update/17
+// http://localhost:8080/api/v1/pharma/store/list
+
 export async function getStoreList() {
-  const response = await axiosGet({ url: STORE })
+  // const response = await axiosGet({ url: STORE })
+  const response = await axiosGet({ url: 'v1/pharma/store/list' })
   console.log('sotreslistsss', response)
 
   return response.data.data
