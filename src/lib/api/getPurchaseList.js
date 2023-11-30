@@ -1,4 +1,4 @@
-import { PURCHASE } from '../../constants/ApiConstant'
+import { PURCHASE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
 export async function getPurchaseList() {
@@ -15,7 +15,7 @@ export async function getPurchaseListById(id) {
 
 export async function addPurchase(payload) {
   try {
-    const url = `${PURCHASE}`
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

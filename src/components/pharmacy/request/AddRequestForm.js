@@ -320,14 +320,12 @@ const AddRequestForm = () => {
   const getStoresLists = async () => {
     console.log('function in')
     // setLoader(true)
-    const response = await getStoreList()
+    const response = await getStoreList({})
     console.log('function in')
     console.log('response', response)
-    if (response?.list_items?.length > 0) {
-      console.log('list', response)
-
-      setFromStocks(response.list_items)
-      setToStocks(response.list_items)
+    if (response?.data?.list_items?.length > 0) {
+      setFromStocks(response?.data?.list_items)
+      setToStocks(response?.data?.list_items)
     } else {
     }
   }
@@ -405,7 +403,7 @@ const AddRequestForm = () => {
       } catch (error) {
         console.error(error)
       }
-    }, 1000),
+    }, 500),
     []
   )
   //  ****** debounce
