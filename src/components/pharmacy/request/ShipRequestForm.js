@@ -66,7 +66,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-
+  console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -124,7 +124,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
-      debugger
+
+      // debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -159,12 +160,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
     const payload = []
 
-    debugger
+    // debugger
 
-    dispatchedItems?.dispatch_items?.forEach((value, index) => {
+    dispatchedItems?.forEach((value, index) => {
       const payloadItem = {}
-      payloadItem.dispatch_item_id = value.id
-      payloadItem.dispatch_id = dispatchedItems.id
+      payloadItem.dispatch_item_id = value.dispatch_item_id
+      payloadItem.dispatch_id = value.dispatch_id
       payloadItem.shipment_date = shipmentDate
       payloadItem.person_shipping = person_shipping
       payloadItem.status = delivery_mode
@@ -173,6 +174,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.vehicle_no = vehicle_no
       payload.push(payloadItem)
     })
+    console.log('payload', payload)
 
     shipRequest(payload)
   }
@@ -296,9 +298,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12}>
           <CardContent>
-            {dispatchedItems?.dispatch_items.length > 0 ? (
+            {dispatchedItems?.length > 0 ? (
               <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
-                <TableBasic columns={columns} rows={dispatchedItems.dispatch_items}></TableBasic>
+                <TableBasic columns={columns} rows={dispatchedItems}></TableBasic>
               </Grid>
             ) : null}
             <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>

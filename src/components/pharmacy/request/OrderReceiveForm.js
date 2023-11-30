@@ -23,15 +23,18 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function OrderReceiveForm({ orderId, disputeId }) {
+function OrderReceiveForm({ orderId, disputeId, requestId }) {
+  console.log('orderId', orderId)
+
   const defaultValues = {
     shipment_id: '',
-    dispatch_id: '',
-    request_id: '',
+    // dispatch_id: '',
+    request_id: requestId,
     comments: '',
     store_id: '',
     item_details: [
       {
+        dispatch_id: '',
         id: '',
         stock_id: '',
         stock_name: '',
@@ -97,7 +100,8 @@ function OrderReceiveForm({ orderId, disputeId }) {
             stock_name: el?.stock_name,
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
-            status: el.dispute_status ? el.dispute_status : ''
+            status: el.dispute_status ? el.dispute_status : '',
+            dispatch_id: el?.dispatch_id
           }
 
           return data
@@ -106,8 +110,8 @@ function OrderReceiveForm({ orderId, disputeId }) {
         const deputesData = {
           shipment_id: orderId,
           store_id: response?.data?.shipment_item_details[0]?.from_store,
-          dispatch_id: response?.data?.dispatch_id,
-          request_id: response?.data?.request_id,
+          // dispatch_id: response?.data?.dispatch_id,
+          request_id: requestId,
           item_details: disputeLineItems
         }
 
@@ -194,31 +198,32 @@ function OrderReceiveForm({ orderId, disputeId }) {
       headerName: 'Status',
       renderCell: params => (
         <Grid item xs={12} sm={12}>
-          {params?.row?.status === '' ? (
-            <FormControl fullWidth>
-              <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
-                Status
-              </InputLabel>
-              <Select
-                fullWidth
-                size='small'
-                error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                value={params?.row?.status}
-                label='Status'
-                onChange={event => handleStatusChange(params.row.id, event)}
-              >
-                {options.map((item, index) => (
-                  <MenuItem key={index} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : (
+          {/* {params?.row?.status === '' ? ( */}
+          <FormControl fullWidth>
+            <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
+              Status
+            </InputLabel>
+            <Select
+              // disabled={buttonStatus}
+              fullWidth
+              size='small'
+              error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+              value={params?.row?.status}
+              label='Status'
+              onChange={event => handleStatusChange(params.row.id, event)}
+            >
+              {options.map((item, index) => (
+                <MenuItem key={index} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {/* ) : (
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params?.row?.status}
             </Typography>
-          )}
+          )} */}
         </Grid>
       )
     }
@@ -234,6 +239,9 @@ function OrderReceiveForm({ orderId, disputeId }) {
     }
     const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
     const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
+    // const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
+
+    // console.log('payload', finalData)
 
     if (receivedItems.length > 0) {
       setSubmitLoader(true)
@@ -258,6 +266,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
 
       const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
       try {
+        console.log(JSON.stringify(finalData))
         const result = await addDisputeItems(finalData)
         console.log('after submission of dispute items', result)
         if (result?.success) {
@@ -272,22 +281,6 @@ function OrderReceiveForm({ orderId, disputeId }) {
       }
     }
   }
-
-  const viewSingleDisputeItem = async disputeId => {
-    try {
-      const result = await getDisputeItemById(disputeId)
-      console.log('single dispute item', result)
-    } catch (error) {
-      console.log('error', error)
-      console.log('disputeId', disputeId)
-    }
-  }
-  useEffect(() => {
-    if (disputeId) {
-      viewSingleDisputeItem(disputeId)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <>
@@ -347,7 +340,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
           <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
             <FormControl fullWidth>
               <TextField
-                disabled={buttonStatus}
+                // disabled={buttonStatus}
                 type='text'
                 label='Comment'
                 value={disputeItemDetails?.comments}
@@ -366,7 +359,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
         <LoadingButton
           sx={{ float: 'right', my: 4, mx: 6 }}
           size='large'
-          disabled={buttonStatus}
+          // disabled={buttonStatus}
           variant='contained'
           onClick={() => {
             updateStatus()
