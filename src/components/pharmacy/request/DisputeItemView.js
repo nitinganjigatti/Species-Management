@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { forwardRef } from 'react'
+import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import { Grid } from '@mui/material'
@@ -9,11 +9,31 @@ import { Grid } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 
+import { getDisputeItemById } from 'src/lib/api/getShipmentList'
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function DisputeItemView({ disputeItemDetails }) {
+function DisputeItemView({ disputeId }) {
+  const [disputedItem, setDisputedItem] = useState([])
+
+  const viewSingleDisputeItem = async disputeId => {
+    try {
+      const result = await getDisputeItemById(disputeId)
+      console.log('single dispute item', result)
+      setDisputedItem(result)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+  useEffect(() => {
+    if (disputeId) {
+      viewSingleDisputeItem(disputeId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const disputedItemsColumns = [
     {
       flex: 0.05,
@@ -89,36 +109,13 @@ function DisputeItemView({ disputeItemDetails }) {
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <Box sx={{ marginLeft: -6 }}>
-    //       <IconButton
-    //         size='small'
-    //         onClick={() => {
-    //           setOrderId('')
-    //           setDisputeId(params.row.request_id)
-    //           showOrderFormDialog()
-    //         }}
-    //         aria-label='Edit'
-    //       >
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   return (
     <Grid xs={12}>
-      {disputeItemDetails?.dispute_item_details?.length > 0 ? (
+      {disputedItem?.dispute_item_details?.length > 0 ? (
         <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-          <TableBasic columns={disputedItemsColumns} rows={disputeItemDetails?.dispute_item_details}></TableBasic>
+          <TableBasic columns={disputedItemsColumns} rows={disputedItem?.dispute_item_details}></TableBasic>
         </Grid>
       ) : null}
     </Grid>

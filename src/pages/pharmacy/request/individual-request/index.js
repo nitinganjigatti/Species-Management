@@ -123,12 +123,14 @@ const IndividualRequest = () => {
 
         return items
       })
+      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped')
+      responseData['dispatch_items'] = dispatches
       console.log('data', data)
       console.log(' responseData.dispatch_items', responseData.dispatch_items)
 
-      setDispatchedItems(data)
+      // setDispatchedItems(data)
 
-      // setDispatchedItems(responseData.dispatch_items)
+      setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
       setLoader(false)
@@ -144,7 +146,8 @@ const IndividualRequest = () => {
 
       if (response.success) {
         // debugger
-        console.log('shipped items', response)
+        console.log('shipped items after shipping', response)
+
         setShippedItems(response.data)
         setLoader(false)
       } else {
@@ -163,6 +166,7 @@ const IndividualRequest = () => {
       response?.data?.dispute_item_details?.sort((a, b) => a.id - b.id)
 
       if (response.success) {
+        console.log('disputed items', response.data)
         setDisputedItemsItems(response.data)
       } else {
       }
@@ -206,6 +210,7 @@ const IndividualRequest = () => {
   }
 
   const closeDisputeDialog = () => {
+    setDisputeId('')
     setDisputeItemDialog(false)
   }
 
@@ -215,7 +220,6 @@ const IndividualRequest = () => {
 
   const closeDialog = () => {
     setOrderId('')
-    setDisputeId('')
     setShow(false)
   }
 
@@ -464,28 +468,29 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'from_store_name',
-      headerName: 'From Store',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store_name',
-      headerName: 'To Store',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'from_store_name',
+    //   headerName: 'From Store',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.from_store_name}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'to_store_name',
+    //   headerName: 'To Store',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.to_store_name}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -533,7 +538,11 @@ const IndividualRequest = () => {
             onClick={() => {
               setDisputeId('')
               console.log(params.row)
-              setOrderId(params.row.shipping_id)
+              console.log('sipping id', params.row.id)
+
+              // setOrderId(params.row.shipping_id)
+              setOrderId(params.row.id)
+
               showOrderFormDialog()
             }}
             aria-label='Edit'
@@ -560,12 +569,12 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'stock_name',
-      headerName: 'Medicine Name',
+      field: 'person_shipping',
+      headerName: 'Person shipping',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.stock_name}</div>
+            <div>{params.row.person_shipping}</div>
           </Typography>
         </div>
       )
@@ -574,12 +583,12 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'from_store_name',
-      headerName: 'From store',
+      field: 'shipment_date',
+      headerName: 'Shipment Date',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.from_store_name}</div>
+            <div>{params.row.shipment_date}</div>
           </Typography>
         </div>
       )
@@ -588,61 +597,73 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'to_store_name',
-      headerName: 'To store ',
+      field: 'shipment_id',
+      headerName: 'Shipment Id ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
+          {params.row.shipment_id}
         </Typography>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'batch_no',
-      headerName: 'Batch ',
+      field: 'shipment_status',
+      headerName: 'Shipment Status ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
+          {params.row.shipment_status}
         </Typography>
       )
     },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
-        </Typography>
-      )
-    }
 
     // {
     //   flex: 0.2,
     //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
+    //   field: 'batch_no',
+    //   headerName: 'Batch ',
     //   renderCell: params => (
-    //     <Box sx={{ marginLeft: -6 }}>
-    //       <IconButton
-    //         size='small'
-    //         onClick={() => {
-    //           setOrderId('')
-    //           setDisputeId(params.row.request_id)
-    //           showOrderFormDialog()
-    //         }}
-    //         aria-label='Edit'
-    //       >
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //     </Box>
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.batch_no}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.status}
+    //     </Typography>
     //   )
     // }
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <Box sx={{ marginLeft: -6 }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              setDisputeId(params.row.shipping_id)
+
+              console.log('params od disput column', params.row)
+              showDisputeDialog()
+            }}
+            aria-label='Edit'
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        </Box>
+      )
+    }
   ]
 
   return (
@@ -654,12 +675,12 @@ const IndividualRequest = () => {
           <CommonDialogBox
             title={'Order received'}
             dialogBoxStatus={orderFormDialog}
-            formComponent={<OrderReceiveForm orderId={orderId} disputeId={disputeId} />}
+            formComponent={<OrderReceiveForm orderId={orderId} requestId={id} disputeId={disputeId} />}
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader title={`Request - ${request_number}`} />
+            <CardHeader title={`Request`} />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -724,44 +745,21 @@ const IndividualRequest = () => {
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
               </>
             ) : null}
-            {disputedItems?.dispute_item_details?.length > 0 ? (
+            {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
-                  <Grid item spacing={2} xs={6}>
-                    <h5 style={{ marginBottom: '0px' }}>Dispute Items</h5>
-                  </Grid>
-
-                  <Grid container sx={{ flexGrow: 1 }}>
-                    <Grid container sx={{ flexGrow: 1 }}>
-                      <Grid item xs={3}>
-                        <h5 style={{ marginBottom: '0px' }}>Shipment Id</h5>
-                        <p>{disputedItems?.shipment_id}</p>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <h5 style={{ marginBottom: '0px' }}>Shipment Date</h5>
-                        <p>{disputedItems?.shipment_date}</p>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <h5 style={{ marginBottom: '0px' }}>View Items</h5>
-
-                        <IconButton
-                          sx={{ mx: 2, my: 2 }}
-                          size='small'
-                          onClick={() => {
-                            showDisputeDialog()
-                          }}
-                          aria-label='Edit'
-                        >
-                          <Icon icon='carbon:view' />
-                        </IconButton>
-                      </Grid>
+                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                    <Grid item xs={6}>
+                      <h5 style={{ marginBottom: '0px' }}>Disputed Items</h5>
                     </Grid>
                   </Grid>
                 </CardContent>
+                <TableBasic columns={disputedItemsColumns} rows={disputedItems}></TableBasic>
+
                 <CommonDialogBox
                   title={'Dispute Items'}
                   dialogBoxStatus={disputeItemDialog}
-                  formComponent={<DisputeItemView disputeItemDetails={disputedItems} />}
+                  formComponent={<DisputeItemView disputeId={disputeId} />}
                   close={closeDisputeDialog}
                   show={showDisputeDialog}
                 />
