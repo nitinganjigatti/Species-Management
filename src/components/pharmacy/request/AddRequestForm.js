@@ -352,14 +352,6 @@ const AddRequestForm = () => {
       const searchResults = await getMedicineBySearch(searchText)
       console.log('in search input ', searchResults)
       if (searchResults?.length) {
-        // console.log(
-        //   'maped obj',
-        //   searchResults?.map(item => ({
-        //     value: item.id,
-        //     label: item.name
-        //     // control_substance: item.brand_sustance
-        //   }))
-        // )
         setOptionsMedicineList(
           searchResults?.map(item => ({
             value: item.id,

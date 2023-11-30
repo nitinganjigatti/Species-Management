@@ -26,6 +26,8 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
+import { debounce } from 'lodash'
+import { getMedicineList } from 'src/lib/api/getMedicineList'
 
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
@@ -39,6 +41,7 @@ import { getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
 import { addDebit, getDebitListById, updateDebit } from 'src/lib/api/getDebitNote'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
+import Utility from 'src/utility'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -55,7 +58,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 const editParamsInitialState = {
   // po_no: '',
   debit_note_no: '',
-  return_date: '',
+  return_date: Utility.formattedPresentDate(),
   store_id: '',
   supplier_id: '',
   description: '',
@@ -409,40 +412,77 @@ const AddDebitForm = () => {
   console.log('editParams', editParams)
   // *****
 
-  const handleCustom = async data => {
-    console.log('in custom', data)
-    try {
-      getSearchValue(data)
-      console.log('Validation successful')
-    } catch (validationErrors) {
-      console.log('Validation failed:', validationErrors)
-    }
-  }
-  async function getSearchValue(searchText, index) {
-    if (searchText !== '') {
-      const searchResults = await getMedicineToAddPurchase(searchText)
-      console.log('in search input ', searchResults)
-      if (searchResults?.length) {
-        console.log(
-          'maped obj',
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name
-          }))
-        )
-        setOptionsMedicineList(
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name,
-            purchase_unit_price: item.supplier_price,
-            tax_type: item.gst_tax ? item.gst_tax : ''
+  // const handleCustom = async data => {
+  //   console.log('in custom', data)
+  //   try {
+  //     getSearchValue(data)
+  //     console.log('Validation successful')
+  //   } catch (validationErrors) {
+  //     console.log('Validation failed:', validationErrors)
+  //   }
+  // }
+  // async function getSearchValue(searchText, index) {
+  //   if (searchText !== '') {
+  //     const searchResults = await getMedicineToAddPurchase(searchText)
+  //     console.log('in search input ', searchResults)
+  //     if (searchResults?.length) {
+  //       console.log(
+  //         'maped obj',
+  //         searchResults?.map(item => ({
+  //           value: item.id,
+  //           label: item.name
+  //         }))
+  //       )
+  //       setOptionsMedicineList(
+  //         searchResults?.map(item => ({
+  //           value: item.id,
+  //           label: item.name,
+  //           purchase_unit_price: item.supplier_price,
+  //           tax_type: item.gst_tax ? item.gst_tax : ''
 
-            // supplier_price: item.supplier_price
-          }))
-        )
+  //           // supplier_price: item.supplier_price
+  //         }))
+  //       )
+  //     }
+  //   }
+  // }
+
+  const fetchMedicineData = async searchText => {
+    if (searchText !== '') {
+      try {
+        const params = {
+          sort: 'asc',
+          q: searchText,
+          limit: 10
+        }
+
+        const searchResults = await getMedicineList({ params: params })
+        if (searchResults?.data?.list_items.length > 0) {
+          setOptionsMedicineList(
+            searchResults?.data?.list_items?.map(item => ({
+              value: item.id,
+              label: item.name,
+              purchase_unit_price: item.supplier_price,
+              tax_type: item.gst_tax ? item.gst_tax : ''
+            }))
+          )
+        }
+      } catch (e) {
+        console.log('error', e)
       }
     }
   }
+
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
   // *****
 
   const getListOfItemsById = async id => {
@@ -634,7 +674,8 @@ const AddDebitForm = () => {
                   }}
                   onKeyUp={e => {
                     console.log('eee values', e.target.value)
-                    handleCustom(e.target.value)
+                    // handleCustom(e.target.value)
+                    searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
                   renderInput={params => (

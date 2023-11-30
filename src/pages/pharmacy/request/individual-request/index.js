@@ -40,6 +40,7 @@ import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
+import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -50,6 +51,7 @@ const IndividualRequest = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [orderFormDialog, setOrderFormDialog] = useState(false)
+  const [disputeItemDialog, setDisputeItemDialog] = useState(false)
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [showShipDialog, setShowShipDialog] = useState(false)
   const [dispatchedItems, setDispatchedItems] = useState([])
@@ -162,6 +164,14 @@ const IndividualRequest = () => {
 
   const showOrderFormDialog = () => {
     setOrderFormDialog(true)
+  }
+
+  const closeDisputeDialog = () => {
+    setDisputeItemDialog(false)
+  }
+
+  const showDisputeDialog = () => {
+    setDisputeItemDialog(true)
   }
 
   const closeDialog = () => {
@@ -679,6 +689,7 @@ const IndividualRequest = () => {
                   <Grid item spacing={2} xs={6}>
                     <h5 style={{ marginBottom: '0px' }}>Dispute Items</h5>
                   </Grid>
+
                   <Grid container sx={{ flexGrow: 1 }}>
                     <Grid container sx={{ flexGrow: 1 }}>
                       <Grid item xs={3}>
@@ -689,10 +700,30 @@ const IndividualRequest = () => {
                         <h5 style={{ marginBottom: '0px' }}>Shipment Date</h5>
                         <p>{disputedItems?.shipment_date}</p>
                       </Grid>
+                      <Grid item xs={3}>
+                        <h5 style={{ marginBottom: '0px' }}>View Items</h5>
+
+                        <IconButton
+                          sx={{ mx: 2, my: 2 }}
+                          size='small'
+                          onClick={() => {
+                            showDisputeDialog()
+                          }}
+                          aria-label='Edit'
+                        >
+                          <Icon icon='carbon:view' />
+                        </IconButton>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </CardContent>
-                <TableBasic columns={disputedItemsColumns} rows={disputedItems?.dispute_item_details}></TableBasic>
+                <CommonDialogBox
+                  title={'Dispute Items'}
+                  dialogBoxStatus={disputeItemDialog}
+                  formComponent={<DisputeItemView disputeItemDetails={disputedItems} />}
+                  close={closeDisputeDialog}
+                  show={showDisputeDialog}
+                />
               </>
             ) : null}
           </Card>

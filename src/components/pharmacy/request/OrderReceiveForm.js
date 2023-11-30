@@ -200,6 +200,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
                 Status
               </InputLabel>
               <Select
+                disabled={buttonStatus}
                 fullWidth
                 size='small'
                 error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
