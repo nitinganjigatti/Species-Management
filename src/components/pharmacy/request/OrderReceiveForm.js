@@ -100,7 +100,7 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
             stock_name: el?.stock_name,
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
-            status: el.dispute_status ? el.dispute_status : '',
+            status: el.status ? el.status : '',
             dispatch_id: el?.dispatch_id
           }
 

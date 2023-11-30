@@ -655,7 +655,13 @@ const AddPurchaseForm = () => {
                   error={Boolean(itemErrors.purchase_unit_price)}
                   label='Supplier rate*'
                   onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_unit_price: event.target.value,
+                      purchase_qty: '',
+                      purchase_purchase_price: '',
+                      purchase_tax_amount: ''
+                    })
                     setItemErrors({})
                   }}
                 />
@@ -704,7 +710,10 @@ const AddPurchaseForm = () => {
                   error={Boolean(itemErrors.purchase_purchase_price)}
                   label='Total purchase price'
                   onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_purchase_price: event.target.value })
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_purchase_price: event.target.value
+                    })
                     setItemErrors({})
                   }}
                 />
