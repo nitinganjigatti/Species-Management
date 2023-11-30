@@ -100,6 +100,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -152,7 +153,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { person_shipping, delivery_mode, vehicle_no } = {
+    const { person_shipping, delivery_mode, vehicle_no, receiver_name } = {
       ...params
     }
 
@@ -168,6 +169,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.dispatch_id = value.dispatch_id
       payloadItem.shipment_date = shipmentDate
       payloadItem.person_shipping = person_shipping
+      payloadItem.receiver_name = receiver_name
       payloadItem.status = delivery_mode
       payloadItem.to_store_id = storeDetails.to_store_id
       payloadItem.from_store_id = storeDetails.from_store_id
@@ -309,7 +311,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 label='Ship'
                 control={
                   <Radio
-                    onChange={() => handleDeliveryTypeChange('Ship')}
+                    onChange={() => {
+                      handleDeliveryTypeChange('Ship')
+
+                      setValue('receiver_name', '')
+                      setValue('delivery_mode', '')
+                    }}
                     checked={deliveryType.Ship}
                     sx={deliveryType.Ship ? { color: 'error.main' } : null}
                   />
@@ -320,7 +327,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 label='Pickup'
                 control={
                   <Radio
-                    onChange={() => handleDeliveryTypeChange('pickUp')}
+                    onChange={() => {
+                      handleDeliveryTypeChange('pickUp')
+                      setValue('vehicle_no', '')
+                      setValue('person_shipping', '')
+                      setValue('delivery_mode', '')
+                    }}
                     checked={deliveryType.pickUp}
                     sx={deliveryType.pickUp ? { color: 'error.main' } : null}
                   />
