@@ -194,32 +194,32 @@ function OrderReceiveForm({ orderId, disputeId }) {
       headerName: 'Status',
       renderCell: params => (
         <Grid item xs={12} sm={12}>
-          {params?.row?.status === '' ? (
-            <FormControl fullWidth>
-              <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
-                Status
-              </InputLabel>
-              <Select
-                disabled={buttonStatus}
-                fullWidth
-                size='small'
-                error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                value={params?.row?.status}
-                label='Status'
-                onChange={event => handleStatusChange(params.row.id, event)}
-              >
-                {options.map((item, index) => (
-                  <MenuItem key={index} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : (
+          {/* {params?.row?.status === '' ? ( */}
+          <FormControl fullWidth>
+            <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
+              Status
+            </InputLabel>
+            <Select
+              // disabled={buttonStatus}
+              fullWidth
+              size='small'
+              error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+              value={params?.row?.status}
+              label='Status'
+              onChange={event => handleStatusChange(params.row.id, event)}
+            >
+              {options.map((item, index) => (
+                <MenuItem key={index} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {/* ) : (
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params?.row?.status}
             </Typography>
-          )}
+          )} */}
         </Grid>
       )
     }
@@ -348,7 +348,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
           <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
             <FormControl fullWidth>
               <TextField
-                disabled={buttonStatus}
+                // disabled={buttonStatus}
                 type='text'
                 label='Comment'
                 value={disputeItemDetails?.comments}
@@ -367,7 +367,7 @@ function OrderReceiveForm({ orderId, disputeId }) {
         <LoadingButton
           sx={{ float: 'right', my: 4, mx: 6 }}
           size='large'
-          disabled={buttonStatus}
+          // disabled={buttonStatus}
           variant='contained'
           onClick={() => {
             updateStatus()

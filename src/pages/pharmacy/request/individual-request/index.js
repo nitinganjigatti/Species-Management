@@ -85,12 +85,50 @@ const IndividualRequest = () => {
   const getDispatchedItems = async id => {
     setLoader(true)
     const response = await getDispatchItemsByBatchId(id)
+    console.log('dispatched items', response)
     if (response.success) {
-      var responseData = response.data
-      var dispatches = response?.data?.dispatch_items.filter(item => item.dispatch_status !== 'Shipped')
-      responseData['dispatch_items'] = dispatches
-      console.log(dispatches)
-      setDispatchedItems(responseData)
+      var responseData = response?.data
+
+      // var dispatches = response?.data?.dispatch_items?.filter(item => item.dispatch_status !== 'Shipped')
+
+      // responseData['dispatch_items'] = dispatches
+      // console.log(dispatches)
+      const data = responseData?.dispatch_items?.map((el, index) => {
+        const items = {
+          id: index + 1,
+          dispatch_id: el.dispatch_id,
+          dispatch_item_id: el.dispatch_item_id,
+          stock_item_id: el.stock_item_id,
+          request_number: el.request_number,
+          medicin_name: el.medicin_name,
+          unit_price: el.unit_price,
+          mrp_price: el.mrp_price,
+          purchase_price: el.purchase_price,
+          batch_no: el.batch_no,
+          expiry_date: el.expiry_date,
+          dispatch_qty: el.dispatch_qty,
+          dispatch_box_qty: el.dispatch_box_qty,
+          unit_id: el.unit_id,
+          leaf_id: el.leaf_id,
+          leaf_name: el.leaf_name,
+          net_amount: el.net_amount,
+          dispatch_status: el.dispatch_status,
+          description: el.description,
+          stock_qty: el.stock_qty,
+          from_store_name: el.from_store_name,
+          to_store_name: el.to_store_name,
+          total_requested_qty: el.total_requested_qty,
+          total_dispatch_qty: el.total_dispatch_qty
+        }
+
+        return items
+      })
+      console.log('data', data)
+      console.log(' responseData.dispatch_items', responseData.dispatch_items)
+
+      setDispatchedItems(data)
+
+      // setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
       setLoader(false)
@@ -102,6 +140,7 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
+      console.log('shipped items', response)
 
       if (response.success) {
         // debugger
@@ -320,12 +359,13 @@ const IndividualRequest = () => {
       Width: 40,
       field: 'id',
       headerName: 'Id',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       Width: 40,
@@ -646,7 +686,8 @@ const IndividualRequest = () => {
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
             {/* Dispatch list */}
-            {dispatchedItems?.dispatch_items?.length > 0 ? (
+            {console.log('dispatchedItems', dispatchedItems)}
+            {dispatchedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -666,7 +707,7 @@ const IndividualRequest = () => {
                     </Grid>
                   </Grid>
                 </CardContent>
-                <TableBasic columns={fulfillColumns} rows={dispatchedItems?.dispatch_items}></TableBasic>
+                <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
               </>
             ) : null}
 
