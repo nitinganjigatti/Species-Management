@@ -224,7 +224,7 @@ const ListOfStores = () => {
   const headerAction = (
     <div>
       <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add Storage
+        Add Store
       </Button>
     </div>
   )
@@ -246,7 +246,7 @@ const ListOfStores = () => {
         setResetForm(true)
         setOpenDrawer(false)
 
-        await getStoresLists()
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
         console.log('test')

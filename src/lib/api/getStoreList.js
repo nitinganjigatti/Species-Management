@@ -12,14 +12,14 @@ export async function getStoreList({ params }) {
 }
 
 export async function getStoreById(id) {
-  const response = await axiosGet({ url: `${STORE}/${id}/show` })
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/${id}` })
 
   return response.data
 }
 
 export async function addStore(payload) {
   try {
-    const url = `${STORE}`
+    const url = `${PHARMACY_BASE_URL}${STORE}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -38,7 +38,7 @@ export async function addStore(payload) {
 
 export async function updateStore(id, payload) {
   try {
-    const url = `${STORE}/${id}/update`
+    const url = `${PHARMACY_BASE_URL}${STORE}/update/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

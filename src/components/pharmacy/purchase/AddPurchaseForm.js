@@ -531,6 +531,7 @@ const AddPurchaseForm = () => {
     postData.total_amount = totalLineItemsPurchase
 
     if (id) {
+      postData.antz_pharmacy_purchase_id = id
       const response = await updatePurchase(id, postData)
 
       if (response?.success) {

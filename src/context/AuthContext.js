@@ -12,12 +12,18 @@ import axios from 'axios'
 // ** Config
 import authConfig from 'src/configs/auth'
 
+// ** redux
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchData } from 'src/store/user'
+
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
 // ** Defaults
 const defaultProvider = {
   user: null,
+  userData: null,
   loading: true,
+  setUserData: () => null,
   setUser: () => null,
   setLoading: () => Boolean,
   login: () => Promise.resolve(),
@@ -26,8 +32,11 @@ const defaultProvider = {
 const AuthContext = createContext(defaultProvider)
 
 const AuthProvider = ({ children }) => {
+  // const dispatch = useDispatch()
+
   // ** States
   const [user, setUser] = useState(defaultProvider.user)
+  const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
 
   // ** Hooks
@@ -84,6 +93,7 @@ const AuthProvider = ({ children }) => {
             write('userData', userData)
 
             setUser({ ...userData })
+            setUserData({ ...resData })
           } else {
             logOutUser()
             router.replace('/login')
@@ -108,10 +118,13 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     setUser(null)
+    setUserData(null)
     setLoading(false)
   }
 
   const handleLogin = (params, errorCallback) => {
+    // dispatch(fetchData(params))
+
     const url = `${base_url}v1/auth/login`
 
     //   axios
@@ -153,7 +166,7 @@ const AuthProvider = ({ children }) => {
         }
         write('role', resData.roles.role_name)
         write('userData', userData)
-
+        setUserData({ ...resData })
         setUser({ ...userData })
 
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
@@ -166,6 +179,7 @@ const AuthProvider = ({ children }) => {
 
   const handleLogout = () => {
     setUser(null)
+    setUserData(null)
     localStorage.removeItem('userData')
     localStorage.removeItem('userDetails')
     localStorage.removeItem('refreshToken')
@@ -177,8 +191,10 @@ const AuthProvider = ({ children }) => {
 
   const values = {
     user,
+    userData,
     loading,
     setUser,
+    setUserData,
     setLoading,
     login: handleLogin,
     logout: handleLogout
