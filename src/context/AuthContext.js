@@ -12,10 +12,6 @@ import axios from 'axios'
 // ** Config
 import authConfig from 'src/configs/auth'
 
-// ** redux
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchData } from 'src/store/user'
-
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
 // ** Defaults
