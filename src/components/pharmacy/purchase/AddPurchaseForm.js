@@ -411,6 +411,7 @@ const AddPurchaseForm = () => {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
