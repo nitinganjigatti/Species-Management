@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -14,7 +14,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
+import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem } from '@mui/material'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -23,17 +23,23 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { getStoreById } from 'src/lib/api/getStoreList'
 
+// ** auth context
+
+import { AuthContext } from 'src/context/AuthContext'
+
 // ** Styled Components
 
 const schema = yup.object().shape({
   name: yup.string().required('Dosage Form is Required'),
   type: yup.string().required('Type is Required'),
+  site_id: yup.string().nullable(),
   status: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
   name: '',
   type: '',
+  site_id: '',
   latitude: '',
   logitude: '',
   status: 'active'
@@ -45,6 +51,12 @@ const AddStore = props => {
 
   // ** States
   const [values, setValues] = useState(defaultValues)
+
+  const authData = useContext(AuthContext)
+
+  debugger
+
+  console.log(authData)
 
   // const router = useRouter()
   // const { id, action } = router.query
@@ -69,11 +81,12 @@ const AddStore = props => {
   })
 
   const onSubmit = async params => {
-    const { name, type, latitude, logitude, status } = { ...params }
+    const { name, type, site_id, latitude, logitude, status } = { ...params }
 
     const payload = {
       name,
       type,
+      site_id,
       latitude,
       logitude,
       status
@@ -191,6 +204,41 @@ const AddStore = props => {
               <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-type'>
                 {errors?.type?.message}
               </FormHelperText>
+            )}
+          </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+              Site
+            </InputLabel>
+            <Controller
+              name='site_id'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  name='site_id'
+                  value={value}
+                  label='Site'
+                  onChange={onChange}
+                  error={Boolean(errors?.gst_slab)}
+                  labelId='site_id'
+                >
+                  <MenuItem value={10}>Ten</MenuItem>
+                  <MenuItem value={20}>Twenty</MenuItem>
+                  <MenuItem value={30}>Thirty</MenuItem>
+                  {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                    return (
+                      <MenuItem key={index} value={item?.site_id}>
+                        {item?.site_name}
+                      </MenuItem>
+                    )
+                  })}
+                </Select>
+              )}
+            />
+            {errors?.site_id && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
