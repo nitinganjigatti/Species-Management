@@ -215,6 +215,7 @@ const AddPurchaseForm = () => {
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
+    setShow(false)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -321,6 +322,7 @@ const AddPurchaseForm = () => {
       setEditParams(updatedState)
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
+      closeDialog()
     } else {
       console.error('updateTableItems error')
     }
