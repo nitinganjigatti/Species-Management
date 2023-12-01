@@ -128,7 +128,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
   function disableButton() {
     if (orderData?.item_details) {
-      const allReceived = orderData?.item_details.every(item => item.status !== ' ')
+      const allReceived = orderData?.item_details.every(item => item.status !== '')
 
       return allReceived
     }
