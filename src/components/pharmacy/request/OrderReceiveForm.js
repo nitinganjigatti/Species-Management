@@ -23,9 +23,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function OrderReceiveForm({ orderId, disputeId, requestId }) {
-  console.log('orderId', orderId)
-
+function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const defaultValues = {
     shipment_id: '',
     // dispatch_id: '',
@@ -35,6 +33,7 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
     item_details: [
       {
         dispatch_id: '',
+        uid: '',
         id: '',
         stock_id: '',
         stock_name: '',
@@ -54,12 +53,6 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
 
   const [orderData, setOrderData] = useState([])
 
-  const buttonStatus = disputeItemDetails?.item_details.every(el => {
-    return el.status !== ''
-  })
-
-  console.log('buttonStatus', buttonStatus)
-
   const handleStatusChange = (itemId, event) => {
     const updatedData = {
       ...disputeItemDetails,
@@ -75,22 +68,11 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
-      console.log('response', response)
 
-      if (response.success === true && response.data !== '') {
-        setOrderData({
-          ...orderData,
-
-          shipping_id: response?.data?.shipping_id,
-          shipment_id: response?.data?.shipment_id,
-          shipment_date: response?.data?.shipment_date,
-          person_shipping: response?.data?.person_shipping,
-          shipment_status: response?.data?.shipment_status,
-          vehicle_no: response?.data?.vehicle_no
-        })
-
-        const disputeLineItems = response?.data?.shipment_item_details?.map(el => {
+      if (response?.success === true && response?.data !== '') {
+        const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
+            uid: index + 1,
             id: el?.id,
             stock_id: el?.stock_id,
             batch_no: el?.batch,
@@ -105,6 +87,17 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
           }
 
           return data
+        })
+        setOrderData({
+          ...orderData,
+
+          shipping_id: response?.data?.shipping_id,
+          shipment_id: response?.data?.shipment_id,
+          shipment_date: response?.data?.shipment_date,
+          person_shipping: response?.data?.person_shipping,
+          shipment_status: response?.data?.shipment_status,
+          vehicle_no: response?.data?.vehicle_no,
+          item_details: disputeLineItems
         })
 
         const deputesData = {
@@ -122,6 +115,24 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
     }
   }
 
+  function getDisableStatus(id) {
+    if (!Array.isArray(orderData.item_details)) {
+      return
+    }
+    const foundItem = orderData.item_details?.find(item => item.id == id)
+    if (foundItem.status !== '') {
+      return true
+    } else {
+      return false
+    }
+  }
+  function disableButton() {
+    if (orderData?.item_details) {
+      const allReceived = orderData?.item_details.every(item => item.status !== ' ')
+
+      return allReceived
+    }
+  }
   useEffect(() => {
     if (orderId) {
       getOrderDetails(orderId)
@@ -133,11 +144,11 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'Id',
+      field: 'uid',
+      headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -198,13 +209,12 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
       headerName: 'Status',
       renderCell: params => (
         <Grid item xs={12} sm={12}>
-          {/* {params?.row?.status === '' ? ( */}
           <FormControl fullWidth>
             <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
               Status
             </InputLabel>
             <Select
-              // disabled={buttonStatus}
+              disabled={getDisableStatus(params.row.id)}
               fullWidth
               size='small'
               error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
@@ -219,11 +229,6 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
               ))}
             </Select>
           </FormControl>
-          {/* ) : (
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {params?.row?.status}
-            </Typography>
-          )} */}
         </Grid>
       )
     }
@@ -239,16 +244,12 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
     }
     const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
     const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
-    // const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
-
-    // console.log('payload', finalData)
 
     if (receivedItems.length > 0) {
       setSubmitLoader(true)
       const finalData = { ...disputeItemDetails, item_details: receivedItems }
       try {
         const result = await addDispenseItems(finalData)
-        console.log('after submission of dispense items', result)
 
         if (result?.success) {
           toast.success(result?.message)
@@ -257,7 +258,6 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
       } catch (error) {
         setSubmitLoader(false)
 
-        console.log('Add dispense error', error)
         toast.error(error?.message)
       }
     }
@@ -266,9 +266,7 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
 
       const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
       try {
-        console.log(JSON.stringify(finalData))
         const result = await addDisputeItems(finalData)
-        console.log('after submission of dispute items', result)
         if (result?.success) {
           toast.success(result?.message)
           setSubmitLoader(false)
@@ -280,6 +278,7 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
         console.log('Add dispute error', error)
       }
     }
+    closeOrderFormDialog()
   }
 
   return (
@@ -337,10 +336,11 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
         ) : null}
 
         <Grid container items>
-          <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+          <Grid item md={6} sm={6} xs={12} sx={{ mr: 6 }}>
             <FormControl fullWidth>
               <TextField
-                // disabled={buttonStatus}
+                disabled={disableButton()}
+                multiline
                 type='text'
                 label='Comment'
                 value={disputeItemDetails?.comments}
@@ -359,7 +359,7 @@ function OrderReceiveForm({ orderId, disputeId, requestId }) {
         <LoadingButton
           sx={{ float: 'right', my: 4, mx: 6 }}
           size='large'
-          // disabled={buttonStatus}
+          disabled={disableButton()}
           variant='contained'
           onClick={() => {
             updateStatus()

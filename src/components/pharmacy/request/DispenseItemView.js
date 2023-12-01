@@ -9,39 +9,41 @@ import { Grid } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 
-import { getDisputeItemById } from 'src/lib/api/getShipmentList'
+import { getDispenseItemById } from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function DisputeItemView({ disputeId }) {
-  const [disputedItem, setDisputedItem] = useState([])
+function DispenseItemView({ dispenseId }) {
+  const [dispenseItem, setDispenseItem] = useState([])
 
-  const viewSingleDisputeItem = async disputeId => {
+  const viewSingleDispenseItem = async dispenseId => {
     try {
-      const result = await getDisputeItemById(disputeId)
-      const responseData = result
+      const result = await getDispenseItemById(dispenseId)
 
-      const mappedWithUid = result?.dispute_item_details?.map((item, index) => ({
+      const responseData = result.data
+
+      const mappedWithUid = result?.data[0]?.dispense_item_details?.map((item, index) => ({
         ...item,
         uid: index + 1
       }))
-      responseData['dispute_item_details'] = mappedWithUid
-      // setDisputedItem(result)
-      setDisputedItem(responseData)
+
+      responseData['dispense_item_details'] = mappedWithUid
+      // setDispenseItem(result.data)
+      setDispenseItem(responseData)
     } catch (error) {
       console.log('error', error)
     }
   }
   useEffect(() => {
-    if (disputeId) {
-      viewSingleDisputeItem(disputeId)
+    if (dispenseId) {
+      viewSingleDispenseItem(dispenseId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const disputedItemsColumns = [
+  const dispenseItemsColumns = [
     {
       flex: 0.05,
       Width: 40,
@@ -70,26 +72,14 @@ function DisputeItemView({ disputeId }) {
     {
       flex: 0.2,
       Width: 40,
-      field: 'from_store_name',
-      headerName: 'From store',
+      field: 'given_count',
+      headerName: 'Quantity',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.from_store_name}</div>
+            <div>{params.row.given_count}</div>
           </Typography>
         </div>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store_name',
-      headerName: 'To store ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
       )
     },
 
@@ -120,19 +110,19 @@ function DisputeItemView({ disputeId }) {
 
   return (
     <Grid xs={12}>
-      {disputedItem?.dispute_item_details?.length > 0 ? (
+      {dispenseItem?.dispense_item_details?.length > 0 ? (
         <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-          <TableBasic columns={disputedItemsColumns} rows={disputedItem?.dispute_item_details}></TableBasic>
+          <TableBasic columns={dispenseItemsColumns} rows={dispenseItem?.dispense_item_details}></TableBasic>
         </Grid>
       ) : null}
-      {disputedItem?.dispute_comments ? (
+      {dispenseItem[0]?.comments ? (
         <Grid item>
           <h5 style={{ marginBottom: '0px' }}>Comments</h5>
-          <p>{disputedItem?.dispute_comments}</p>
+          <p>{dispenseItem[0]?.comments}</p>
         </Grid>
       ) : null}
     </Grid>
   )
 }
 
-export default DisputeItemView
+export default DispenseItemView

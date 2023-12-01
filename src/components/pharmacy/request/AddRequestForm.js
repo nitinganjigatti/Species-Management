@@ -40,7 +40,6 @@ import SingleDatePicker from '../../SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/getStoreList'
-import { getMedicineBySearch } from 'src/lib/api/getMedicineBySearch'
 import { getMedicineList } from 'src/lib/api/getMedicineList'
 
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
@@ -109,9 +108,7 @@ const AddRequestForm = () => {
   }
 
   const filteredStoreType = value => {
-    console.log('fromStocks', fromStocks)
     const storeType = fromStocks?.find(item => item.id == value)?.type
-    console.log('storeType', storeType)
 
     return storeType
   }
@@ -136,7 +133,6 @@ const AddRequestForm = () => {
   }
 
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
-  console.log(totalQty)
 
   const addItemsToTable = () => {
     const newData = {
@@ -152,14 +148,12 @@ const AddRequestForm = () => {
     }
 
     const updatedNestedRows = [...editParams.request_item_details, newData]
-    console.log(updatedNestedRows)
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
-    console.log('last', nestedRowMedicine)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -221,8 +215,6 @@ const AddRequestForm = () => {
   }
 
   const submitItems = () => {
-    console.log('checking error', !nestedRowMedicine.control_substance)
-
     const HasErrors =
       !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
     // || !nestedRowMedicine.control_substance
@@ -256,7 +248,6 @@ const AddRequestForm = () => {
   const updateTableItems = () => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
-    console.log('beforeupdate editParams', editParams)
 
     const updatedIndex = updatedState.request_item_details.findIndex(row => row.request_item_medicine_id === itemId)
 
@@ -268,9 +259,6 @@ const AddRequestForm = () => {
       }
       updatedState.request_item_details = updatedNestedRows
 
-      console.log('after update editParams', updatedNestedRows)
-
-      console.log('test while update', updatedNestedRows)
       setEditParams(updatedState)
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
@@ -301,7 +289,6 @@ const AddRequestForm = () => {
 
   const handleSubmit = () => {
     const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
-    console.log(formHasErrors)
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -318,48 +305,22 @@ const AddRequestForm = () => {
   }
 
   const getStoresLists = async () => {
-    console.log('function in')
     // setLoader(true)
-    const response = await getStoreList({})
-    console.log('function in')
-    console.log('response', response)
-    if (response?.data?.list_items?.length > 0) {
-      setFromStocks(response?.data?.list_items)
-      setToStocks(response?.data?.list_items)
-    } else {
+    try {
+      const response = await getStoreList({})
+
+      if (response?.data?.list_items?.length > 0) {
+        setFromStocks(response?.data?.list_items)
+        setToStocks(response?.data?.list_items)
+      }
+    } catch (error) {
+      console.log('err', error)
     }
   }
 
   useEffect(() => {
     getStoresLists()
   }, [])
-
-  console.log('editParams', editParams)
-
-  const handleCustom = async data => {
-    console.log('in custom', data)
-    try {
-      getSearchValue(data)
-      console.log('Validation successful')
-    } catch (validationErrors) {
-      console.log('Validation failed:', validationErrors)
-    }
-  }
-  async function getSearchValue(searchText, index) {
-    if (searchText !== '') {
-      const searchResults = await getMedicineBySearch(searchText)
-      console.log('in search input ', searchResults)
-      if (searchResults?.length) {
-        setOptionsMedicineList(
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name,
-            control_substance: item.brand_sustance === 'yes' ? true : false
-          }))
-        )
-      }
-    }
-  }
 
   //  ****** debounce
   const fetchMedicineData = async searchText => {
@@ -373,7 +334,6 @@ const AddRequestForm = () => {
 
         const searchResults = await getMedicineList({ params: params })
         if (searchResults?.data?.list_items.length > 0) {
-          console.log('searchResults', searchResults?.data?.list_items)
           setOptionsMedicineList(
             searchResults?.data?.list_items?.map(item => ({
               value: item.id,
@@ -438,8 +398,6 @@ const AddRequestForm = () => {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-      console.log('filtered items while editing', getItems[0])
-      console.log('filtered control_substance', getItems[0].priority_item)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -453,15 +411,9 @@ const AddRequestForm = () => {
         id: getItems[0].id
       })
     } else {
-      console.log('in else ', editParams.request_item_details)
-
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-      // console.log('filtered', getItems[0].medicine_name)
-      console.log('filtered', getItems)
-      console.log('file', getItems[0].control_substance_file)
-      console.log('control_substance', getItems[0].control_substance)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -475,7 +427,6 @@ const AddRequestForm = () => {
       })
     }
   }
-  console.log('nestedRowMedicine', nestedRowMedicine)
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
@@ -491,35 +442,37 @@ const AddRequestForm = () => {
     setSubmitLoader(true)
     const postData = editParams
     postData.total_qty = totalQty
-    console.log('while posting data', postData)
-    console.log('totalQtya', totalQty)
-    console.log('editParms', editParams)
-    if (id) {
-      const response = await updateRequestItems(id, postData)
-      console.log('after posting', response)
 
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        getListOfItemsById(id)
-        Router.push('/pharmacy/request/requestList/')
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        toast.error(response.message)
+    if (id) {
+      try {
+        const response = await updateRequestItems(id, postData)
+
+        if (response?.success) {
+          toast.success(response?.message)
+          setSubmitLoader(false)
+          getListOfItemsById(id)
+          Router.push('/pharmacy/request/requestList/')
+        } else {
+          setSubmitLoader(false)
+          toast.error(response?.message)
+        }
+      } catch (error) {
+        console.log('error', error)
       }
     } else {
-      const response = await addRequestItems(postData)
-      console.log('after posting', response)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/request/requestList/')
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        toast.error(response.message)
+      try {
+        const response = await addRequestItems(postData)
+        if (response?.success) {
+          toast.success(response?.message)
+          setEditParams(editParamsInitialState)
+          setSubmitLoader(false)
+          Router.push('/pharmacy/request/requestList/')
+        } else {
+          setSubmitLoader(false)
+          toast.error(response?.message)
+        }
+      } catch (error) {
+        console.log('error', error)
       }
     }
   }
@@ -541,9 +494,6 @@ const AddRequestForm = () => {
                   options={optionsMedicineList}
                   value={nestedRowMedicine.medicine_name}
                   onChange={(event, newValue) => {
-                    console.log('options', newValue)
-                    // nestedRowMedicine, setNestedRowMedicine
-                    console.log('in medicine auto complte', newValue)
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
@@ -554,8 +504,6 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                   onKeyUp={e => {
-                    console.log('eee values', e.target.value)
-                    // handleCustom(e.target.value)
                     searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
@@ -605,7 +553,6 @@ const AddRequestForm = () => {
                   color='primary'
                   value={nestedRowMedicine.priority_item}
                   onChange={event => {
-                    console.log('values', event.target.value)
                     setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
                   }}
                 >
@@ -627,7 +574,6 @@ const AddRequestForm = () => {
             </Grid>
 
             {/* // file uploader */}
-            {console.log(nestedRowMedicine.control_substance_file)}
             {nestedRowMedicine.control_substance === true ? (
               nestedRowMedicine.control_substance_file ? (
                 <Grid item xs={12} sm={6}>
@@ -686,12 +632,10 @@ const AddRequestForm = () => {
                       }}
                     />
                   )}
-                  {console.log('image', nestedRowMedicine.control_substance_file)}
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
                   <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
-                  {console.log('data type', typeof nestedRowMedicine.control_substance_file)}
                   <FormControl fullWidth>
                     <TextField
                       type='file'
@@ -700,7 +644,6 @@ const AddRequestForm = () => {
                       // label='Attach prescription'
                       onChange={e => {
                         const file = e.target.files[0]
-                        console.log(e.target.files[0])
                         setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
                         setItemErrors({})
                       }}
@@ -715,7 +658,6 @@ const AddRequestForm = () => {
               )
             ) : null}
             {/* // file uploader */}
-            {console.log('application/pdf')}
 
             <Grid item xs={12}>
               <>
@@ -774,8 +716,6 @@ const AddRequestForm = () => {
       </CardContent>
     )
   }
-  // console.log('stores', stores)
-  console.log('nestedRowMedicine', editParams)
 
   return (
     <Card>
@@ -833,9 +773,7 @@ const AddRequestForm = () => {
                     label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
-                      console.log('in stores select', e.target.value)
                       filterToStocks(e.target.value)
-                      console.log('store type', storesType[filteredStoreType(e.target.value)])
                       setEditParams({
                         ...editParams,
                         from_store_id: e.target.value,
@@ -869,7 +807,6 @@ const AddRequestForm = () => {
                     value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     name={'Date*'}
                     onChangeHandler={date => {
-                      console.log(date)
                       // setStores({ ...stores, date: date })
                       setEditParams({ ...editParams, ro_date: formatDate(date) })
                       setErrors({})
@@ -912,7 +849,6 @@ const AddRequestForm = () => {
                     // error={Boolean(errors?.state_id)}
                     // labelId='state_id'
                   >
-                    {console.log('in stocks', toStocks)}
                     {toStocks?.map((item, index) => (
                       <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
                         {item?.name}
@@ -962,7 +898,6 @@ const AddRequestForm = () => {
             <TableRow>
               <TableCell>Product Name</TableCell>
               <TableCell>Priority</TableCell>
-              {/* <TableCell>Controlled substance</TableCell> */}
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
@@ -970,8 +905,6 @@ const AddRequestForm = () => {
           <TableBody>
             {editParams.request_item_details
               ? editParams.request_item_details.map((el, index) => {
-                  console.log(el)
-
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -992,7 +925,6 @@ const AddRequestForm = () => {
                           sx={{ mr: 0.5 }}
                           aria-label='Edit'
                           onClick={() => {
-                            console.log(el.request_item_medicine_id)
                             setMedicineItemId(el.request_item_medicine_id)
 
                             editTableData(el.request_item_medicine_id)

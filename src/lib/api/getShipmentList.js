@@ -88,3 +88,15 @@ export async function addDispenseItems(payload) {
     return error
   }
 }
+
+export async function getDispenseItemList(id) {
+  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/request` })
+
+  return response.data
+}
+
+export async function getDispenseItemById(id) {
+  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/show` })
+
+  return response.data
+}
