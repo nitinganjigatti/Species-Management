@@ -367,7 +367,11 @@ const AddPurchaseForm = () => {
   }
 
   const getStoresLists = async () => {
-    const response = await getStoreList({})
+    const params = {
+      q: 'central',
+      column: 'type'
+    }
+    const response = await getStoreList({ params })
     if (response?.success && response?.data?.list_items?.length > 0) {
       setStores(response?.data?.list_items)
     }
@@ -865,7 +869,7 @@ const AddPurchaseForm = () => {
       >
         <CardHeader title='Add Purchase' />
         <Grid>
-          <Button
+          {/* <Button
             size='big'
             variant='contained'
             onClick={() => {
@@ -873,7 +877,7 @@ const AddPurchaseForm = () => {
             }}
           >
             Payment List
-          </Button>
+          </Button> */}
           <Button
             sx={{
               mx: { sm: 6, xs: 'auto' }

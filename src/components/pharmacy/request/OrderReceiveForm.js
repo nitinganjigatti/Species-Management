@@ -63,7 +63,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     setDisputeItemDetails(updatedData)
   }
 
-  const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired', 'Shipped']
+  const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
 
   const getOrderDetails = async orderId => {
     try {
@@ -209,14 +209,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       renderCell: params => (
         <Grid xs={12} sm={12}>
           <FormControl fullWidth>
-            <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
-              Status
-            </InputLabel>
             <Select
               disabled={getDisableStatus(params.row.id)}
               fullWidth
-              label='Status'
-              // size='small'
+              placeholder='Status'
+              size='small'
               error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
               value={params?.row?.status}
               onChange={event => handleStatusChange(params.row.id, event)}
@@ -282,92 +279,94 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   return (
     <>
-      <Grid xs={12} sx={{ mx: 'auto' }}>
-        <Grid container xs={12}>
-          {orderData?.shipment_id ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-              <p>{orderData.shipment_id}</p>
-            </Grid>
-          ) : null}
-          {orderData?.from_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}> From Store </h5>
-              <p>{orderData.from_store_name}</p>
-            </Grid>
-          ) : null}
-          {orderData?.shipment_date ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-              <p>{orderData.shipment_date}</p>
-            </Grid>
-          ) : null}
-          {orderData?.vehicle_no ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-              <p>{orderData.vehicle_no}</p>
-            </Grid>
-          ) : null}
-          {orderData?.to_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-              <p>{orderData.to_store_name}</p>
-            </Grid>
-          ) : null}
+      <Grid container xs={12} sx={{ mx: 'auto' }}>
+        <Grid item xs={12}>
+          <Grid container xs={12}>
+            {orderData?.shipment_id ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
+                <p>{orderData.shipment_id}</p>
+              </Grid>
+            ) : null}
+            {orderData?.from_store_name ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>From Store </h5>
+                <p>{orderData.from_store_name}</p>
+              </Grid>
+            ) : null}
+            {orderData?.shipment_date ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
+                <p>{orderData.shipment_date}</p>
+              </Grid>
+            ) : null}
+            {orderData?.vehicle_no ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
+                <p>{orderData.vehicle_no}</p>
+              </Grid>
+            ) : null}
+            {orderData?.to_store_name ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>To Store </h5>
+                <p>{orderData.to_store_name}</p>
+              </Grid>
+            ) : null}
 
-          {orderData?.person_shipping ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-              <p>{orderData.person_shipping}</p>
-            </Grid>
-          ) : null}
-        </Grid>
-
-        {disputeItemDetails?.item_details?.length > 0 ? (
-          <>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-              <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
-            </Grid>
-          </>
-        ) : null}
-
-        <Grid container items>
-          <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-            <FormControl fullWidth>
-              <TextField
-                disabled={disableButton()}
-                multiline
-                rows={3}
-                type='text'
-                label='Comment'
-                value={disputeItemDetails?.comments}
-                onChange={e => {
-                  setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                }}
-                placeholder='comment'
-                name='comments'
-              />
-            </FormControl>
+            {orderData?.person_shipping ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                <p>{orderData.person_shipping}</p>
+              </Grid>
+            ) : null}
           </Grid>
+
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <>
+              <Divider
+                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+              />
+              <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+              </Grid>
+            </>
+          ) : null}
+
+          <Grid container items>
+            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+              <FormControl fullWidth>
+                <TextField
+                  disabled={disableButton()}
+                  multiline
+                  rows={3}
+                  type='text'
+                  label='Comment'
+                  value={disputeItemDetails?.comments}
+                  onChange={e => {
+                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                  }}
+                  placeholder='comment'
+                  name='comments'
+                />
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Divider
+            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+          />
+          <LoadingButton
+            sx={{ float: 'right', my: 4, mx: 6 }}
+            size='large'
+            disabled={disableButton()}
+            variant='contained'
+            onClick={() => {
+              updateStatus()
+            }}
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
         </Grid>
-        <Divider
-          sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-        />
-        <LoadingButton
-          sx={{ float: 'right', my: 4, mx: 6 }}
-          size='large'
-          disabled={disableButton()}
-          variant='contained'
-          onClick={() => {
-            updateStatus()
-          }}
-          loading={submitLoader}
-        >
-          Save
-        </LoadingButton>
       </Grid>
     </>
   )
