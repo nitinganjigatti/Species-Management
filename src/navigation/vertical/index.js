@@ -130,7 +130,7 @@ const pharmacyNav = [
       },
       {
         title: 'Supplier list',
-        path: '/pharmacy/settings/supplier'
+        path: '/pharmacy/settings/supplier/supplier-list'
       }
     ]
   }
@@ -224,7 +224,8 @@ const pharmacyNav = [
   //       path: '/pharmacy/debitNote/debitNote'
   //     }
   //   ]
-  // },
+  // }
+
   // {
   //   title: 'Dispatch',
   //   icon: 'bxs:log-out',

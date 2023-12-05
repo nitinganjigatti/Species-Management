@@ -27,17 +27,16 @@ import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
-import { getMedicineList } from 'src/lib/api/getMedicineList'
 
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// import { debouncedSearchCommon, generateErrMsg } from 'src/components/utility/debounce'
+import { getMedicineList } from 'src/lib/api/getMedicineList'
+
 import { getStoreList } from 'src/lib/api/getStoreList'
 import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
 import { addDebit, getDebitListById, updateDebit } from 'src/lib/api/getDebitNote'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -162,7 +161,6 @@ const AddDebitForm = () => {
       let finalAmount = totalLineItemsPurchase
       let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
       let netAmount = 0
-      console.log('before discount', finalAmount)
 
       setEditParams({
         ...editParams,
@@ -175,8 +173,7 @@ const AddDebitForm = () => {
         netAmount = (netAmountWithGST * discountValue) / 100
         const discountValueAmount = netAmount
         const netValueAfterDiscount = netAmountWithGST - netAmount
-        console.log('discountValueAmount', discountValueAmount)
-        console.log('netValueAfterDiscount', netValueAfterDiscount)
+
         setEditParams({
           ...editParams,
           discount_percentage: discountValue,
@@ -216,14 +213,12 @@ const AddDebitForm = () => {
     }
 
     const updatedNestedRows = [...editParams.purchase_details, newData]
-    console.log(updatedNestedRows)
     setEditParams({
       ...editParams,
       purchase_details: updatedNestedRows
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
-    console.log('last', nestedRowMedicine)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -271,10 +266,6 @@ const AddDebitForm = () => {
 
   const validateItems = values => {
     const errors = {}
-
-    // if (!values.po_no) {
-    //   errors.po_no = 'This field is required'
-    // }
     if (!values.store_id) {
       errors.store_id = 'This field is required'
     }
@@ -316,7 +307,6 @@ const AddDebitForm = () => {
   const updateTableItems = () => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
-    console.log('beforeupdate editParams', editParams)
 
     const updatedIndex = updatedState.purchase_details.findIndex(row => row.purchase_stock_item_id === itemId)
 
@@ -328,9 +318,6 @@ const AddDebitForm = () => {
       }
       updatedState.purchase_details = updatedNestedRows
 
-      console.log('after update editParams', updatedNestedRows)
-
-      console.log('test while update', updatedNestedRows)
       setEditParams(updatedState)
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
@@ -367,7 +354,6 @@ const AddDebitForm = () => {
 
   const handleSubmit = () => {
     const formHasErrors = !editParams.return_date || !editParams.store_id || !editParams.supplier_id
-    console.log(formHasErrors)
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -378,28 +364,26 @@ const AddDebitForm = () => {
     showDialog()
   }
 
-  console.log('getMedicineOptions', optionsMedicineList)
-
   const getStoresLists = async () => {
-    console.log('function in')
-    // setLoader(true)
-    const response = await getStoreList()
-    console.log('function in')
-    console.log('response', response)
-    if (response?.length > 0) {
-      console.log('list', response)
-      setStores(response)
+    try {
+      const response = await getStoreList({})
+      if (response?.success && response?.data?.list_items?.length > 0) {
+        setStores(response?.data?.list_items)
+      }
+    } catch (error) {
+      console.log('Store list', error)
     }
   }
 
   const getSuppliersLists = async () => {
-    console.log('function in')
     // setLoader(true)
-    const response = await getSuppliers()
-    console.log('suppliers response', response)
-    if (response.data.data?.length > 0) {
-      console.log('list', response)
-      setSuppliers(response.data.data)
+    try {
+      const response = await getSuppliers()
+      if (response.data.data?.length > 0) {
+        setSuppliers(response.data.data)
+      }
+    } catch (error) {
+      console.log('Suppliers list', error)
     }
   }
 
@@ -408,44 +392,6 @@ const AddDebitForm = () => {
     getSuppliersLists()
   }, [])
   // API calling functions on mount endnd
-
-  console.log('editParams', editParams)
-  // *****
-
-  // const handleCustom = async data => {
-  //   console.log('in custom', data)
-  //   try {
-  //     getSearchValue(data)
-  //     console.log('Validation successful')
-  //   } catch (validationErrors) {
-  //     console.log('Validation failed:', validationErrors)
-  //   }
-  // }
-  // async function getSearchValue(searchText, index) {
-  //   if (searchText !== '') {
-  //     const searchResults = await getMedicineToAddPurchase(searchText)
-  //     console.log('in search input ', searchResults)
-  //     if (searchResults?.length) {
-  //       console.log(
-  //         'maped obj',
-  //         searchResults?.map(item => ({
-  //           value: item.id,
-  //           label: item.name
-  //         }))
-  //       )
-  //       setOptionsMedicineList(
-  //         searchResults?.map(item => ({
-  //           value: item.id,
-  //           label: item.name,
-  //           purchase_unit_price: item.supplier_price,
-  //           tax_type: item.gst_tax ? item.gst_tax : ''
-
-  //           // supplier_price: item.supplier_price
-  //         }))
-  //       )
-  //     }
-  //   }
-  // }
 
   const fetchMedicineData = async searchText => {
     if (searchText !== '') {
@@ -463,7 +409,7 @@ const AddDebitForm = () => {
               value: item.id,
               label: item.name,
               purchase_unit_price: item.supplier_price,
-              tax_type: item.gst_tax ? item.gst_tax : ''
+              tax_type: item.gst_value ? item.gst_value : ''
             }))
           )
         }
@@ -473,6 +419,7 @@ const AddDebitForm = () => {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
@@ -486,45 +433,45 @@ const AddDebitForm = () => {
   // *****
 
   const getListOfItemsById = async id => {
-    const result = await getDebitListById(id)
-    console.log('data of update values', result)
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.purchase_return_details.map(el => {
-        console.log('elsss', el)
+    try {
+      const result = await getDebitListById(id)
+      if (result.success === true && result.data !== '') {
+        const lineItems = result.data.purchase_return_details.map(el => {
+          return {
+            id: el.id,
+            medicine_name: el.stock_item_name,
+            purchase_stock_item_id: el.stock_item_id,
 
-        return {
-          id: el.id,
-          medicine_name: el.stock_item_name,
-          purchase_stock_item_id: el.stock_item_id,
-
-          purchase_qty: el.qty,
-          purchase_unit_price: el.unit_price,
-          purchase_purchase_price: el.purchase_price,
-          purchase_batch_no: el.batch_no,
-          purchase_expiry_date: el.expiry_date,
-          gst_type: el.gst_type,
-          purchase_return_tax_amount: el.tax_amount
-        }
-      })
-      console.log('lineItems', lineItems)
-      setEditParams({
-        ...editParams,
-        id: result.data.id,
-        // po_no: result.data.po_no,
-        return_date: result.data.return_date,
-        store_id: result.data.store_id,
-        supplier_id: result.data.supplier_id,
-        description: result.data.description,
-        type_of_store: result.data.type_of_store,
-        purchase_details: lineItems,
-        debit_note_no: result.data.debit_note_no,
-        total_amount: result.data.total_amount,
-        discount_type: result.data.discount_type ? result.data.discount_type : '',
-        discount_amount: result.data.discount_amount,
-        discount_percentage: result.data.discount_percentage,
-        net_amount: result.data.net_amount,
-        tax_amount: result.data.tax_amount
-      })
+            purchase_qty: el.qty,
+            purchase_unit_price: el.unit_price,
+            purchase_purchase_price: el.purchase_price,
+            purchase_batch_no: el.batch_no,
+            purchase_expiry_date: el.expiry_date,
+            gst_type: el.gst_type,
+            purchase_return_tax_amount: el.tax_amount
+          }
+        })
+        setEditParams({
+          ...editParams,
+          id: result.data.id,
+          // po_no: result.data.po_no,
+          return_date: result.data.return_date,
+          store_id: result.data.store_id,
+          supplier_id: result.data.supplier_id,
+          description: result.data.description,
+          type_of_store: result.data.type_of_store,
+          purchase_details: lineItems,
+          debit_note_no: result.data.debit_note_no,
+          total_amount: result.data.total_amount,
+          discount_type: result.data.discount_type ? result.data.discount_type : '',
+          discount_amount: result.data.discount_amount,
+          discount_percentage: result.data.discount_percentage,
+          net_amount: result.data.net_amount,
+          tax_amount: result.data.tax_amount
+        })
+      }
+    } catch (error) {
+      console.log('error', error)
     }
   }
 
@@ -534,7 +481,6 @@ const AddDebitForm = () => {
       const getItems = editParams.purchase_details.filter(el => {
         return el.purchase_stock_item_id === itemId
       })
-      console.log('filtered items while editing', getItems)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -550,16 +496,9 @@ const AddDebitForm = () => {
         purchase_return_tax_amount: getItems[0].purchase_return_tax_amount
       })
     } else {
-      console.log('in else ', editParams.purchase_details)
-
       const getItems = editParams.purchase_details.filter(el => {
         return el.purchase_stock_item_id === itemId
       })
-      // console.log('filtered', getItems[0].medicine_name)
-      console.log('filtered', getItems)
-      console.log('file', getItems[0])
-      console.log('nestedRowMedicine', nestedRowMedicine)
-      // const file=[]
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -575,7 +514,6 @@ const AddDebitForm = () => {
       })
     }
   }
-  console.log('nestedRowMedicine', nestedRowMedicine)
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
@@ -599,38 +537,40 @@ const AddDebitForm = () => {
 
     const postData = editParams
     postData.total_amount = totalLineItemsPurchase
-    console.log('while posting data', postData)
-    console.log('editParms', editParams)
+
     if (id) {
-      const response = await updateDebit(id, postData)
-      console.log('after posting', response)
-
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        getListOfItemsById(id)
-        Router.push('/pharmacy/debitNote/debitNote/')
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        toast.error(response.message)
-      }
-    } else {
-      console.log('postData', postData)
-      const response = await addDebit(postData)
-      console.log('after posting', response)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/debitNote/debitNote/')
-      } else {
-        setSubmitLoader(false)
-        console.log('response catch purchase', response)
-
-        if (response?.message) {
+      try {
+        const response = await updateDebit(id, postData)
+        if (response?.success) {
+          toast.success(response.msg)
+          setSubmitLoader(false)
+          getListOfItemsById(id)
+          Router.push('/pharmacy/debitNote/debitNote/')
+        } else {
+          setSubmitLoader(false)
           toast.error(response.message)
         }
+      } catch (error) {
+        console.log('error', error)
+      }
+    } else {
+      try {
+        const response = await addDebit(postData)
+        if (response?.success) {
+          toast.success(response.msg)
+          setEditParams(editParamsInitialState)
+          setSubmitLoader(false)
+          Router.push('/pharmacy/debitNote/debitNote/')
+        } else {
+          setSubmitLoader(false)
+          console.log('response catch purchase', response)
+
+          if (response?.message) {
+            toast.error(response.message)
+          }
+        }
+      } catch (error) {
+        console.log('error', error)
       }
     }
   }
@@ -652,15 +592,11 @@ const AddDebitForm = () => {
                   options={optionsMedicineList}
                   value={nestedRowMedicine.medicine_name}
                   onChange={(event, newValue) => {
-                    console.log('options', newValue)
-                    // nestedRowMedicine, setNestedRowMedicine
-                    console.log('peices', newValue?.purchase_unit_price)
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
                       purchase_stock_item_id: newValue?.value,
-                      // purchase_stock_item_id: newValue?.value,
-                      // purchase_stock_item_id: newValue?.value,
+
                       purchase_unit_price: newValue?.purchase_unit_price,
                       purchase_qty: 0,
                       purchase_purchase_price: 0,
@@ -673,8 +609,6 @@ const AddDebitForm = () => {
                     setItemErrors({})
                   }}
                   onKeyUp={e => {
-                    console.log('eee values', e.target.value)
-                    // handleCustom(e.target.value)
                     searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
@@ -712,8 +646,6 @@ const AddDebitForm = () => {
                   }
                   name={'Expiry Date'}
                   onChangeHandler={date => {
-                    console.log(date)
-                    // setStores({ ...stores, date: date })
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       purchase_expiry_date: formatDate(date)
@@ -723,6 +655,31 @@ const AddDebitForm = () => {
                   customInput={<CustomInput label='Date' error={Boolean(errors.purchase_expiry_date)} />}
                 />
                 {itemErrors.purchase_expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='number'
+                  value={nestedRowMedicine.purchase_unit_price}
+                  error={Boolean(itemErrors.purchase_unit_price)}
+                  label='Supplier rate'
+                  onChange={event => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_unit_price: event.target.value,
+                      purchase_qty: '',
+                      purchase_purchase_price: '',
+                      purchase_tax_amount: ''
+                    })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -751,46 +708,6 @@ const AddDebitForm = () => {
                   }}
                 />
                 {itemErrors.purchase_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  value={nestedRowMedicine.purchase_batch_no}
-                  error={Boolean(itemErrors.purchase_batch_no)}
-                  label='Batch'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_batch_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  disabled={true}
-                  value={nestedRowMedicine.purchase_unit_price}
-                  error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -862,6 +779,26 @@ const AddDebitForm = () => {
               </>
             ) : null}
 
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_batch_no}
+                  error={Boolean(itemErrors.purchase_batch_no)}
+                  label='Batch'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.purchase_batch_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+
             <Grid item xs={12}>
               {medicineItemId ? (
                 <>
@@ -917,8 +854,6 @@ const AddDebitForm = () => {
       </CardContent>
     )
   }
-  // console.log('stores', stores)
-  console.log('nestedRowMedicine', editParams)
 
   return (
     <Card>
@@ -1103,8 +1038,6 @@ const AddDebitForm = () => {
                     value={editParams.return_date ? parseFormattedDate(editParams.return_date) : null}
                     name={'Date'}
                     onChangeHandler={date => {
-                      console.log(date)
-                      // setStores({ ...stores, date: date })
                       setEditParams({ ...editParams, return_date: formatDate(date) })
                       setErrors({})
                     }}
@@ -1179,7 +1112,6 @@ const AddDebitForm = () => {
                           sx={{ mr: 0.5 }}
                           aria-label='Edit'
                           onClick={() => {
-                            console.log(el.purchase_stock_item_id)
                             setMedicineItemId(el.purchase_stock_item_id)
 
                             editTableData(el.purchase_stock_item_id)

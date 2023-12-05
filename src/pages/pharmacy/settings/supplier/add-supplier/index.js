@@ -242,7 +242,7 @@ const AddSupplier = () => {
                     size='big'
                     variant='contained'
                     onClick={() => {
-                      Router.push('/pharmacy/supplier')
+                      Router.push('/pharmacy/settings/supplier/supplier-list')
                     }}
                   >
                     Suppliers List
