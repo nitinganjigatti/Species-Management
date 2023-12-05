@@ -266,10 +266,6 @@ const AddDebitForm = () => {
 
   const validateItems = values => {
     const errors = {}
-
-    // if (!values.po_no) {
-    //   errors.po_no = 'This field is required'
-    // }
     if (!values.store_id) {
       errors.store_id = 'This field is required'
     }
@@ -423,6 +419,7 @@ const AddDebitForm = () => {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
