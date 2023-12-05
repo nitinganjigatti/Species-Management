@@ -52,6 +52,22 @@ const pharmacyNav = [
       }
     ]
   },
+  {
+    title: 'Return',
+    icon: 'lucide:git-pull-request',
+    path: '/pharmacy/return-product/request-list',
+
+    children: [
+      {
+        title: 'Return Request List',
+        path: '/pharmacy/return-product/request-list'
+      },
+      {
+        title: 'Add Return Request',
+        path: '/pharmacy/return-product/add-request'
+      }
+    ]
+  },
 
   // {
   //   title: 'Supplier',
