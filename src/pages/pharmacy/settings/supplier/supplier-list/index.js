@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 
 import { getSuppliers } from 'src/lib/api/getSupplierList'
-import TableWithFilter from '../../../../components/TableWithFilter'
+import TableWithFilter from '../../../../../components/TableWithFilter'
 import Button from '@mui/material/Button'
-import FallbackSpinner from '../../../../@core/components/spinner/index'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -43,7 +43,7 @@ const Supplier = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/supplier/add-supplier',
+      pathname: '/pharmacy/settings/supplier/add-supplier',
       query: { id: id, action: 'edit' }
     })
   }
@@ -158,7 +158,7 @@ const Supplier = () => {
               size='big'
               variant='contained'
               onClick={() => {
-                Router.push('/pharmacy/supplier/add-supplier')
+                Router.push('/pharmacy/settings/supplier/add-supplier')
               }}
             >
               Add Supplier

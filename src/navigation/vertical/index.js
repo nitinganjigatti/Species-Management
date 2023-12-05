@@ -130,7 +130,7 @@ const pharmacyNav = [
       },
       {
         title: 'Supplier list',
-        path: '/pharmacy/settings/supplier'
+        path: '/pharmacy/settings/supplier/supplier-list'
       }
     ]
   }
