@@ -222,6 +222,7 @@ const IndividualRequest = () => {
 
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
+    init(id)
   }
 
   const showOrderFormDialog = () => {

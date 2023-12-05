@@ -127,9 +127,13 @@ const pharmacyNav = [
       {
         title: 'Store list',
         path: '/pharmacy/settings/storeList'
+      },
+      {
+        title: 'Supplier list',
+        path: '/pharmacy/settings/supplier'
       }
     ]
-  },
+  }
 
   // {
   //   title: 'Purchase',
@@ -147,21 +151,21 @@ const pharmacyNav = [
   //     }
   //   ]
   // },
-  {
-    title: 'Store',
-    path: '/pharmacy/store',
-    icon: 'bx:store',
-    children: [
-      {
-        title: 'Store list',
-        path: '/pharmacy/store/storeList'
-      },
-      {
-        title: 'Rack list',
-        path: '/pharmacy/store/rackList'
-      }
-    ]
-  }
+  // {
+  //   title: 'Store',
+  //   path: '/pharmacy/store',
+  //   icon: 'bx:store',
+  //   children: [
+  //     {
+  //       title: 'Store list',
+  //       path: '/pharmacy/store/storeList'
+  //     },
+  //     {
+  //       title: 'Rack list',
+  //       path: '/pharmacy/store/rackList'
+  //     }
+  //   ]
+  // }
 
   // {
   //   title: 'Stocks',

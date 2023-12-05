@@ -1,10 +1,6 @@
 import { STORE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
-// http://localhost:8080/api/v1/pharma/store/add
-// http://localhost:8080/api/v1/pharma/store/update/17
-// http://localhost:8080/api/v1/pharma/store/list
-
 export async function getStoreList({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/list`, params: params })
 
