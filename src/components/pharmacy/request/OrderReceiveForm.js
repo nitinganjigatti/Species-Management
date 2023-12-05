@@ -1,180 +1,154 @@
+/* eslint-disable lines-around-comment */
 import React, { forwardRef, useState, useEffect } from 'react'
-
-import TableWithFilter from 'src/components/TableWithFilter'
-import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import DataGrid from 'src/@core/theme/overrides/dataGrid'
-import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
-import {
-  Grid,
-  Table,
-  TableContainer,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  TextField,
-  Box,
-  Button,
-  Chip,
-  CardContent,
-  CardHeader,
-  Divider
-} from '@mui/material'
+
+import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
+import FormHelperText from '@mui/material/FormHelperText'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
+
 import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
 import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
-import { useForm, Controller } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-import { useRouter } from 'next/router'
-
-import Router from 'next/router'
-import { column } from 'stylis'
-
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
-import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
-import { getShipmentOrderDetails } from 'src/lib/api/getShipmentList'
+import {
+  getShipmentOrderDetails,
+  addDisputeItems,
+  addDispenseItems,
+  getDisputeItemById
+} from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-function OrderReceiveForm({ orderId }) {
+
+function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const defaultValues = {
     shipment_id: '',
-    shipment_date: '',
-    traking_information: '',
-    person_shipping: '',
-    shipment_status: '',
-    vehicle_no: '',
-    from_store_name: '',
-    to_store_name: '',
-    shipment_item_details: []
+    // dispatch_id: '',
+    request_id: requestId,
+    comments: '',
+    store_id: '',
+    item_details: [
+      {
+        dispatch_id: '',
+        uid: '',
+        id: '',
+        stock_id: '',
+        stock_name: '',
+        count: '',
+        batch_no: '',
+        from_store: '',
+        to_store: '',
+        from_store_name: '',
+        to_store_name: '',
+        status: ''
+      }
+    ]
   }
-  const [values, setValues] = useState(defaultValues)
+
+  const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
   const [orderData, setOrderData] = useState([])
 
-  const schema = yup.object().shape({
-    shipment_status: yup.string().required('order is required')
-  })
-
-  const {
-    reset,
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onBlur',
-    reValidateMode: 'onChange'
-  })
-  const options = ['Received', 'Broken/damaged', 'Missing', 'Wrong count', 'Expired', 'Shipped']
-
-  const getOrderDetails = async orderId => {
-    // const result = await getdatta()
-    // const response = await getShipmentOrderDetails('52')
-
-    const response = await getShipmentOrderDetails(orderId)
-    console.log('response', response)
-    console.log('response', response.data)
-
-    // const response = getRequestItemsListById('83')
-    console.log('check', response.success === true && response.data !== '')
-    if (response.success === true && response.data !== '') {
-      // setOrderData(response.data)
-      const addStatus = response?.data?.shipment_item_details.map(el => {
-        const data = {
-          id: el.id,
-          shipment_id: el.shipment_id,
-          dispatch_id: el.dispatch_id,
-          dispatch_item_id: el.dispatch_item_id,
-          stock_id: el.stock_id,
-          batch: el.batch,
-          expiry: el.expiry,
-          quantity: el.quantity,
-          created_by: el.created_by,
-          created_at: el.created_at,
-          stock_name: el.stock_name,
-          shipment_status: response?.data?.shipment_status
-        }
-        console.log('updated data', data)
-
-        return data
-      })
-      setOrderData({
-        ...orderData,
-        shipment_id: response?.data?.shipment_id,
-        shipment_date: response?.data?.shipment_date,
-        traking_information: response?.data?.traking_information,
-        person_shipping: response?.data?.person_shipping,
-        shipment_status: response?.data?.shipment_status,
-        vehicle_no: response?.data?.vehicle_no,
-        from_store_name: response?.data?.from_store_name,
-        to_store_name: response?.data?.to_store_name,
-
-        // shipment_item_details: response?.data?.shipment_item_details
-        shipment_item_details: addStatus
-      })
-
-      const data = {
-        shipment_id: response?.data?.shipment_id,
-        shipment_date: response?.data?.shipment_date,
-        traking_information: response?.data?.traking_information,
-        person_shipping: response?.data?.person_shipping,
-        shipment_status: response?.data?.shipment_status,
-        vehicle_no: response?.data?.vehicle_no,
-        from_store_name: response?.data?.from_store_name,
-        to_store_name: response?.data?.to_store_name,
-
-        // shipment_item_details: response?.data?.shipment_item_details
-        shipment_item_details: addStatus
-      }
-      reset(data)
+  const handleStatusChange = (itemId, event) => {
+    const updatedData = {
+      ...disputeItemDetails,
+      item_details: disputeItemDetails.item_details.map(item =>
+        item.id === itemId ? { ...item, status: event.target.value } : item
+      )
     }
-
-    // if (response.success === true && response.data.length > 0) {
-    //   setOrderData(response.data)
-
-    //   // setLoader(false)
-    // } else {
-    //   // setLoader(false)
-    // }
+    setDisputeItemDetails(updatedData)
   }
 
+  const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
+
+  const getOrderDetails = async orderId => {
+    try {
+      const response = await getShipmentOrderDetails(orderId)
+
+      if (response?.success === true && response?.data !== '') {
+        const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
+          const data = {
+            uid: index + 1,
+            id: el?.id,
+            stock_id: el?.stock_id,
+            batch_no: el?.batch,
+            count: el?.quantity,
+            from_store: el?.from_store,
+            to_store: el?.to_store,
+            stock_name: el?.stock_name,
+            from_store_name: el?.from_store_name,
+            to_store_name: el?.to_store_name,
+            status: el.status ? el.status : '',
+            dispatch_id: el?.dispatch_id
+          }
+
+          return data
+        })
+        setOrderData({
+          ...orderData,
+
+          shipping_id: response?.data?.shipping_id,
+          shipment_id: response?.data?.shipment_id,
+          shipment_date: response?.data?.shipment_date,
+          person_shipping: response?.data?.person_shipping,
+          shipment_status: response?.data?.shipment_status,
+          vehicle_no: response?.data?.vehicle_no,
+          item_details: disputeLineItems
+        })
+
+        const deputesData = {
+          shipment_id: orderId,
+          store_id: response?.data?.shipment_item_details[0]?.from_store,
+          // dispatch_id: response?.data?.dispatch_id,
+          request_id: requestId,
+          item_details: disputeLineItems
+        }
+
+        setDisputeItemDetails(deputesData)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  function getDisableStatus(id) {
+    if (!Array.isArray(orderData.item_details)) {
+      return
+    }
+    const foundItem = orderData.item_details?.find(item => item.id == id)
+    if (foundItem.status !== '') {
+      return true
+    } else {
+      return false
+    }
+  }
+  function disableButton() {
+    if (orderData?.item_details) {
+      const allReceived = orderData?.item_details.every(item => item.status !== '')
+
+      return allReceived
+    }
+  }
   useEffect(() => {
     if (orderId) {
       getOrderDetails(orderId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'Id',
+      field: 'uid',
+      headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -194,11 +168,11 @@ function OrderReceiveForm({ orderId }) {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'batch',
+      field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch}
+          {params.row.batch_no}
         </Typography>
       )
     },
@@ -206,269 +180,174 @@ function OrderReceiveForm({ orderId }) {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'quantity',
-      headerName: 'Quantity',
+      field: 'from_store_name',
+      headerName: 'Shipped from',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.quantity}
+          {params.row.from_store_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+
+      field: 'to_store_name',
+      headerName: 'Shipped To',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.to_store_name}
         </Typography>
       )
     },
 
     {
       flex: 0.2,
-      minWidth: 20,
-      field: '',
-      headerName: 'Action',
+      minWidth: 200,
+      field: 'status',
+      headerName: 'Status',
       renderCell: params => (
-        // eslint-disable-next-line lines-around-comment
-        // <FormControl fullWidth>
-        //   <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-        //     Status
-        //   </InputLabel>
-        //   <Controller
-        //     name={`shipment_item_details[${params.row.id}].shipment_status`}
-        //     // name='shipment_item_details.shipment_status'
-        //     control={control}
-        //     rules={{ required: true }}
-        //     render={({ field: { value, onChange } }) => (
-        //       <Select
-        //         size='small'
-        //         name={`shipment_item_details[${params.row.id}].shipment_status`}
-        //         // name='shipment_item_details.shipment_status'
-        //         value={value}
-        //         label='Status'
-        //         onChange={e => {
-        //           onChange(e)
-        //         }}
-
-        //         // error={Boolean(errors?.shipment_item_details.shipment_status)}
-        //       >
-        //         {options?.map((item, index) => (
-        //           <MenuItem key={index} value={item}>
-        //             {item}
-        //           </MenuItem>
-        //         ))}
-        //       </Select>
-        //     )}
-        //   />
-        //   {errors?.shipment_item_details.shipment_status && (
-        //     <FormHelperText sx={{ color: 'error.main' }}>
-        //       {errors?.shipment_item_details.shipment_status?.message}
-        //     </FormHelperText>
-        //   )}
-        // </FormControl>
-        <FormControl fullWidth>
-          <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-            Status
-          </InputLabel>
-          <Select
-            size='small'
-            name={`shipment_item_details[${params.row.id}].shipment_status`}
-            value={params.row.shipment_status}
-            label='Status'
-            onChange={e => (params.row.shipment_status = e.target.value)}
-            error={Boolean(errors?.shipment_status)}
-          >
-            {options.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-          {/* Error handling for shipment_status */}
-          {/* {params.row.shipment_item_details.map(
-            (item, index) =>
-              errors?.shipment_item_details?.[index]?.shipment_status && (
-                <Typography key={index} variant='body2' sx={{ color: 'error.main' }}>
-                  {errors?.shipment_item_details?.[index]?.shipment_status?.message}
-                </Typography>
-              )
-          )} */}
-        </FormControl>
+        <Grid xs={12} sm={12}>
+          <FormControl fullWidth>
+            <Select
+              disabled={getDisableStatus(params.row.id)}
+              fullWidth
+              placeholder='Status'
+              size='small'
+              error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+              value={params?.row?.status}
+              onChange={event => handleStatusChange(params.row.id, event)}
+            >
+              {options.map((item, index) => (
+                <MenuItem key={index} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
       )
     }
   ]
-  useEffect(() => {}, [orderData.shipment_item_details])
 
-  const updateStatus = async params => {
-    const {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      shipment_item_details
-    } = params
+  async function updateStatus() {
+    const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
 
-    const payLoad = {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      shipment_item_details
+    if (isStatusEmpty) {
+      console.error('Please fill in all status fields.')
+
+      return
     }
-    console.log('payload', payLoad)
-    console.log('orderData', orderData)
+    const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
+    const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
+
+    if (receivedItems.length > 0) {
+      setSubmitLoader(true)
+      const finalData = { ...disputeItemDetails, item_details: receivedItems }
+      try {
+        const result = await addDispenseItems(finalData)
+
+        if (result?.success) {
+          toast.success(result?.message)
+          setSubmitLoader(false)
+        }
+      } catch (error) {
+        setSubmitLoader(false)
+
+        toast.error(error?.message)
+      }
+    }
+    if (notReceivedItems.length > 0) {
+      setSubmitLoader(true)
+
+      const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
+      try {
+        const result = await addDisputeItems(finalData)
+        if (result?.success) {
+          toast.success(result?.message)
+          setSubmitLoader(false)
+        }
+      } catch (error) {
+        setSubmitLoader(false)
+
+        toast.error(error?.message)
+        console.log('Add dispute error', error)
+      }
+    }
+    closeOrderFormDialog()
   }
 
   return (
     <>
-      <Grid xs={12} sx={{ mx: 'auto' }}>
-        {/* <CardHeader title={`Order received`} /> */}
-        <Grid container xs={12}>
-          {orderData?.shipment_id ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-              <p>{orderData.shipment_id}</p>
-            </Grid>
-          ) : null}
-          {orderData?.from_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}> From Store </h5>
-              <p>{orderData.from_store_name}</p>
-            </Grid>
-          ) : null}
-          {orderData?.shipment_date ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-              <p>{orderData.shipment_date}</p>
-            </Grid>
-          ) : null}
-          {orderData?.vehicle_no ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-              <p>{orderData.vehicle_no}</p>
-            </Grid>
-          ) : null}
-          {orderData?.to_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-              <p>{orderData.to_store_name}</p>
-            </Grid>
+      <Grid container xs={12} sx={{ mx: 'auto' }}>
+        <Grid item xs={12}>
+          <Grid container xs={12}>
+            {orderData?.shipment_id ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
+                <p>{orderData.shipment_id}</p>
+              </Grid>
+            ) : null}
+            {orderData?.from_store_name ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>From Store </h5>
+                <p>{orderData.from_store_name}</p>
+              </Grid>
+            ) : null}
+            {orderData?.shipment_date ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
+                <p>{orderData.shipment_date}</p>
+              </Grid>
+            ) : null}
+            {orderData?.vehicle_no ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
+                <p>{orderData.vehicle_no}</p>
+              </Grid>
+            ) : null}
+            {orderData?.to_store_name ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>To Store </h5>
+                <p>{orderData.to_store_name}</p>
+              </Grid>
+            ) : null}
+
+            {orderData?.person_shipping ? (
+              <Grid item md={3} sm={3} xs={6}>
+                <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                <p>{orderData.person_shipping}</p>
+              </Grid>
+            ) : null}
+          </Grid>
+
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <>
+              <Divider
+                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+              />
+              <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+              </Grid>
+            </>
           ) : null}
 
-          {orderData?.person_shipping ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-              <p>{orderData.person_shipping}</p>
-            </Grid>
-          ) : null}
-        </Grid>
-        {/* <Button
-          variant='contained'
-          onClick={() => {
-            const addStatus = orderData?.shipment_item_details.map(el => {
-              const data = {
-                id: el.id,
-                shipment_id: el.shipment_id,
-                dispatch_id: el.dispatch_id,
-                dispatch_item_id: el.dispatch_item_id,
-                stock_id: el.stock_id,
-                batch: el.batch,
-                expiry: el.expiry,
-                quantity: el.quantity,
-                created_by: el.created_by,
-                created_at: el.created_at,
-                stock_name: el.stock_name,
-                shipment_status: 'Received'
-              }
-              console.log('updated data', data)
-
-              return data
-            })
-            setOrderData({
-              ...orderData,
-              shipment_id: orderData?.shipment_id,
-              shipment_date: orderData?.shipment_date,
-              traking_information: orderData?.traking_information,
-              person_shipping: orderData?.person_shipping,
-              shipment_status: orderData?.shipment_status,
-              vehicle_no: orderData?.vehicle_no,
-              from_store_name: orderData?.from_store_name,
-              to_store_name: orderData?.to_store_name,
-
-              // shipment_item_details: response?.data?.shipment_item_details
-              shipment_item_details: addStatus
-            })
-          }}
-        >
-          Select all
-        </Button> */}
-        {orderData?.shipment_item_details?.length > 0 ? (
-          <>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-              {console.log('collll', orderData?.shipment_item_details)}
-              <TableBasic columns={columns} rows={orderData?.shipment_item_details}></TableBasic>
-            </Grid>
-          </>
-        ) : null}
-
-        <form autoComplete='off' onSubmit={handleSubmit(updateStatus)}>
           <Grid container items>
-            {/* <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
+            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
               <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-                  Status
-                </InputLabel>
-                <Controller
-                  name='shipment_status'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='shipment_status'
-                      value={value}
-                      label='Status'
-                      onChange={e => {
-                        onChange(e)
-                      }}
-                      error={Boolean(errors?.shipment_status)}
-                    >
-                      {options?.map((item, index) => (
-                        <MenuItem key={index} value={item}>
-                          {item}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
+                <TextField
+                  disabled={disableButton()}
+                  multiline
+                  rows={3}
+                  type='text'
+                  label='Comment'
+                  value={disputeItemDetails?.comments}
+                  onChange={e => {
+                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                  }}
+                  placeholder='comment'
+                  name='comments'
                 />
-                {errors?.shipment_status && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid> */}
-            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='comment'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      type='text'
-                      label='Comment'
-                      value={value}
-                      onChange={onChange}
-                      placeholder='comment'
-                      error={Boolean(errors.comment)}
-                      name='comment'
-                    />
-                  )}
-                />
-                {errors.comment && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.comment.message}</FormHelperText>
-                )}
               </FormControl>
             </Grid>
           </Grid>
@@ -478,14 +357,16 @@ function OrderReceiveForm({ orderId }) {
           <LoadingButton
             sx={{ float: 'right', my: 4, mx: 6 }}
             size='large'
+            disabled={disableButton()}
             variant='contained'
-            type='submit'
-
-            // loading={submitLoader}
+            onClick={() => {
+              updateStatus()
+            }}
+            loading={submitLoader}
           >
             Save
           </LoadingButton>
-        </form>
+        </Grid>
       </Grid>
     </>
   )

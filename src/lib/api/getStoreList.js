@@ -1,22 +1,21 @@
-import { STORE } from '../../constants/ApiConstant'
+import { STORE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from './utility'
 
-export async function getStoreList() {
-  const response = await axiosGet({ url: STORE })
-  console.log('sotreslistsss', response)
+export async function getStoreList({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/list`, params: params })
 
-  return response.data.data
+  return response.data
 }
 
 export async function getStoreById(id) {
-  const response = await axiosGet({ url: `${STORE}/${id}/show` })
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/${id}` })
 
   return response.data
 }
 
 export async function addStore(payload) {
   try {
-    const url = `${STORE}`
+    const url = `${PHARMACY_BASE_URL}${STORE}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -35,7 +34,7 @@ export async function addStore(payload) {
 
 export async function updateStore(id, payload) {
   try {
-    const url = `${STORE}/${id}/update`
+    const url = `${PHARMACY_BASE_URL}${STORE}/update/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

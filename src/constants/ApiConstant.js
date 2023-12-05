@@ -22,7 +22,7 @@ export const PURCHASE = 'purchase'
 
 export const PAYMENT_LIST = 'supplier-ledger'
 
-export const STORE = 'stores'
+export const STORE = 'store'
 
 export const RACK = 'rack'
 
@@ -45,6 +45,10 @@ export const DISPATCH_VALIDATION = 'dispatch-validation'
 export const REQUEST_ITEMS = 'request-item'
 
 export const LEAF = 'leaf'
+
+export const DISPENSE_ITEM = 'dispense-item'
+
+export const DISPUTE_ITEM = 'dispute-item'
 
 export const STOCK_OUT = 'outofstock-medicine/store'
 

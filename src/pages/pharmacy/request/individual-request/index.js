@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { forwardRef, useState, useEffect } from 'react'
 
 import {
@@ -5,26 +6,18 @@ import {
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId
 } from 'src/lib/api/getRequestItemsList'
-import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import DataGrid from 'src/@core/theme/overrides/dataGrid'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
+import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/getShipmentList'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
@@ -33,12 +26,13 @@ import { Box, CardContent, CardHeader } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
-import { column } from 'stylis'
 
 import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
+import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
+import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -49,11 +43,19 @@ const IndividualRequest = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [orderFormDialog, setOrderFormDialog] = useState(false)
+  const [disputeItemDialog, setDisputeItemDialog] = useState(false)
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [showShipDialog, setShowShipDialog] = useState(false)
+  const [dispenseDialog, setDispenseDialog] = useState(false)
+
   const [dispatchedItems, setDispatchedItems] = useState([])
   const [shippedItems, setShippedItems] = useState([])
+  const [disputedItems, setDisputedItemsItems] = useState([])
+  const [dispenseItems, setDispenseItems] = useState([])
+
   const [orderId, setOrderId] = useState('')
+  const [disputeId, setDisputeId] = useState('')
+  const [dispenseId, setDispenseId] = useState('')
 
   const router = useRouter()
   const { id, request_number } = router.query
@@ -61,16 +63,21 @@ const IndividualRequest = () => {
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
 
-  console.log('base_url', base_url)
-
-  console.log('id', id)
-
   const getRequestItemLists = async id => {
     setLoader(true)
-    console.log('getRequestItemList', id)
     const response = await getRequestItemsListById(id)
     if (response.success) {
-      setRequestItems(response.data)
+      const responseData = response.data
+
+      const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
+        ...item,
+        uid: index + 1
+      }))
+
+      responseData['request_item_details'] = mappedWithUid
+
+      // setRequestItems(response.data)
+      setRequestItems(responseData)
       setLoader(false)
     } else {
       setLoader(false)
@@ -81,11 +88,41 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getDispatchItemsByBatchId(id)
     if (response.success) {
-      var responseData = response.data
-      var dispatches = response?.data?.dispatch_items.filter(item => item.dispatch_status !== 'Shipped')
+      var responseData = response?.data
+
+      const data = responseData?.dispatch_items?.map((el, index) => {
+        const items = {
+          id: index + 1,
+          dispatch_id: el.dispatch_id,
+          dispatch_item_id: el.dispatch_item_id,
+          stock_item_id: el.stock_item_id,
+          request_number: el.request_number,
+          medicin_name: el.medicin_name,
+          unit_price: el.unit_price,
+          mrp_price: el.mrp_price,
+          purchase_price: el.purchase_price,
+          batch_no: el.batch_no,
+          expiry_date: el.expiry_date,
+          dispatch_qty: el.dispatch_qty,
+          dispatch_box_qty: el.dispatch_box_qty,
+          unit_id: el.unit_id,
+          leaf_id: el.leaf_id,
+          leaf_name: el.leaf_name,
+          net_amount: el.net_amount,
+          dispatch_status: el.dispatch_status,
+          description: el.description,
+          stock_qty: el.stock_qty,
+          from_store_name: el.from_store_name,
+          to_store_name: el.to_store_name,
+          total_requested_qty: el.total_requested_qty,
+          total_dispatch_qty: el.total_dispatch_qty
+        }
+
+        return items
+      })
+      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
-      console.log(dispatches)
-      setDispatchedItems(responseData)
+      setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
       setLoader(false)
@@ -100,14 +137,56 @@ const IndividualRequest = () => {
 
       if (response.success) {
         // debugger
-        setShippedItems(response.data)
+
+        const mappedWithUid = response?.data?.map((item, index) => ({
+          ...item,
+          uid: index + 1
+        }))
+
+        setShippedItems(mappedWithUid)
         setLoader(false)
       } else {
         setLoader(false)
       }
     } catch (e) {
-      console.log(e)
+      console.log('error', e)
       setLoader(false)
+    }
+  }
+
+  const getDisputeItems = async id => {
+    try {
+      const response = await getDisputeItemList(id)
+      response?.data?.sort((a, b) => a.id - b.id)
+
+      if (response?.success) {
+        const mappedWithUid = response?.data?.map((item, index) => ({
+          ...item,
+          uid: index + 1
+        }))
+
+        setDisputedItemsItems(mappedWithUid)
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getDispenseItems = async id => {
+    try {
+      const response = await getDispenseItemList(id)
+
+      if (response.success) {
+        const mappedWithUid = response?.data?.map((item, index) => ({
+          ...item,
+          uid: index + 1
+        }))
+
+        setDispenseItems(mappedWithUid)
+      } else {
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
@@ -118,9 +197,7 @@ const IndividualRequest = () => {
     })
   }
 
-  const onRowClick = data => {
-    console.log('onRowClickData', data)
-  }
+  const onRowClick = data => {}
 
   const init = async id => {
     if (id !== undefined) {
@@ -136,12 +213,29 @@ const IndividualRequest = () => {
     }
   }, [id])
 
+  useEffect(() => {
+    if (id !== undefined && orderFormDialog === false) {
+      getDisputeItems(id)
+      getDispenseItems(id)
+    }
+  }, [orderFormDialog])
+
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
+    init(id)
   }
 
   const showOrderFormDialog = () => {
     setOrderFormDialog(true)
+  }
+
+  const closeDisputeDialog = () => {
+    setDisputeId('')
+    setDisputeItemDialog(false)
+  }
+
+  const showDisputeDialog = () => {
+    setDisputeItemDialog(true)
   }
 
   const closeDialog = () => {
@@ -151,6 +245,16 @@ const IndividualRequest = () => {
 
   const showDialog = () => {
     setShow(true)
+  }
+
+  const closeDispenseDialog = () => {
+    setDispenseId('')
+
+    setDispenseDialog(false)
+  }
+
+  const showDispenseDialog = () => {
+    setDispenseDialog(true)
   }
 
   const openShipDialog = () => {
@@ -175,11 +279,11 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'Id',
+      field: 'uid',
+      headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -289,12 +393,13 @@ const IndividualRequest = () => {
       Width: 40,
       field: 'id',
       headerName: 'Id',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       Width: 40,
@@ -360,11 +465,11 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'Id',
+      field: 'uid',
+      headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -396,29 +501,6 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'from_store_name',
-      headerName: 'From Store',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store_name',
-      headerName: 'To Store',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       renderCell: params => (
@@ -434,7 +516,7 @@ const IndividualRequest = () => {
       headerName: 'Person Shipping',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.person_shipping}
+          {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
         </Typography>
       )
     },
@@ -461,6 +543,7 @@ const IndividualRequest = () => {
             size='small'
             onClick={() => {
               setOrderId(params.row.id)
+
               showOrderFormDialog()
             }}
             aria-label='Edit'
@@ -472,9 +555,165 @@ const IndividualRequest = () => {
     }
   ]
 
-  // const handleHeaderAction = () => {
-  //   showOrderFormDialog()
-  // }
+  const disputedItemsColumns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.uid}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'person_shipping',
+      headerName: 'Person shipping',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}</div>
+          </Typography>
+        </div>
+      )
+    },
+
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'shipment_date',
+      headerName: 'Shipment Date',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.shipment_date}</div>
+          </Typography>
+        </div>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'shipment_id',
+      headerName: 'Shipment Id ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.shipment_id}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'shipment_status',
+      headerName: 'Shipment Status ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.shipment_status}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <Box sx={{ marginLeft: -6 }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              setDisputeId(params.row.shipping_id)
+
+              showDisputeDialog()
+            }}
+            aria-label='Edit'
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        </Box>
+      )
+    }
+  ]
+
+  const dispenseItemsColumns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.uid}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'from_store',
+      headerName: 'FROM STORE',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <div>{params.row.from_store}</div>
+          </Typography>
+        </div>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'shipping_id',
+      headerName: 'Shipping Id ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.shipping_id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'shipment_status',
+      headerName: 'Status ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.shipment_status}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <Box sx={{ marginLeft: -6 }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              setDispenseId(params.row.shipment_id)
+
+              showDispenseDialog()
+            }}
+            aria-label='Edit'
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        </Box>
+      )
+    }
+  ]
 
   return (
     <>
@@ -485,12 +724,19 @@ const IndividualRequest = () => {
           <CommonDialogBox
             title={'Order received'}
             dialogBoxStatus={orderFormDialog}
-            formComponent={<OrderReceiveForm orderId={orderId} />}
+            formComponent={
+              <OrderReceiveForm
+                orderId={orderId}
+                requestId={id}
+                disputeId={disputeId}
+                closeOrderFormDialog={closeOrderFormDialog}
+              />
+            }
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader title={`Request - ${request_number}`} />
+            <CardHeader title={`Request`} />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -517,7 +763,7 @@ const IndividualRequest = () => {
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
             {/* Dispatch list */}
-            {dispatchedItems?.dispatch_items?.length > 0 ? (
+            {dispatchedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -537,7 +783,7 @@ const IndividualRequest = () => {
                     </Grid>
                   </Grid>
                 </CardContent>
-                <TableBasic columns={fulfillColumns} rows={dispatchedItems?.dispatch_items}></TableBasic>
+                <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
               </>
             ) : null}
 
@@ -552,6 +798,46 @@ const IndividualRequest = () => {
                   </Grid>
                 </CardContent>
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
+              </>
+            ) : null}
+            {disputedItems?.length > 0 ? (
+              <>
+                <CardContent>
+                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                    <Grid item xs={6}>
+                      <h5 style={{ marginBottom: '0px' }}>Disputed Items</h5>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+                <TableBasic columns={disputedItemsColumns} rows={disputedItems}></TableBasic>
+
+                <CommonDialogBox
+                  title={'Dispute Items'}
+                  dialogBoxStatus={disputeItemDialog}
+                  formComponent={<DisputeItemView disputeId={disputeId} />}
+                  close={closeDisputeDialog}
+                  show={showDisputeDialog}
+                />
+              </>
+            ) : null}
+            {dispenseItems?.length > 0 ? (
+              <>
+                <CardContent>
+                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                    <Grid item xs={6}>
+                      <h5 style={{ marginBottom: '0px' }}>Dispense Items</h5>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+                <TableBasic columns={dispenseItemsColumns} rows={dispenseItems}></TableBasic>
+
+                <CommonDialogBox
+                  title={'Dispense Items'}
+                  dialogBoxStatus={dispenseDialog}
+                  formComponent={<DispenseItemView dispenseId={dispenseId} />}
+                  close={closeDispenseDialog}
+                  show={showDispenseDialog}
+                />
               </>
             ) : null}
           </Card>

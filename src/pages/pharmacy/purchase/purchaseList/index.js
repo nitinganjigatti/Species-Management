@@ -22,20 +22,25 @@ const ListOfPurchase = () => {
   const [loader, setLoader] = useState(false)
 
   const getPurchaseLists = async () => {
-    setLoader(true)
-    const response = await getPurchaseList()
-    if (response?.length > 0) {
-      console.log('list', response)
+    try {
+      setLoader(true)
+      const response = await getPurchaseList()
+      if (response?.length > 0) {
+        console.log('list', response)
 
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setPurchaseList(listWithId)
-      setLoader(false)
-    } else {
+        // response.sort((a, b) => a.id - b.id)
+        let listWithId = response
+          ? response.map((el, i) => {
+              return { ...el, uid: i + 1 }
+            })
+          : []
+        setPurchaseList(listWithId)
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      console.log('error', error)
       setLoader(false)
     }
   }

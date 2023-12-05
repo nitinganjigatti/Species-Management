@@ -116,7 +116,7 @@ const AddRack = props => {
 
   // list the stores
   const getStoresLists = async () => {
-    const response = await getStoreList()
+    const response = await getStoreList({})
     if (response?.length > 0) {
       console.log('list', response)
       response.sort((a, b) => a.id - b.id)

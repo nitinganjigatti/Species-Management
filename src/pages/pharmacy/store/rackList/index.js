@@ -117,21 +117,26 @@ const ListOfRacks = () => {
   /***** Drawer  */
 
   const getRacksLists = async () => {
-    setLoader(true)
-    const response = await getRackList()
-    if (response?.length > 0) {
-      console.log('list', response)
+    try {
+      setLoader(true)
+      const response = await getRackList()
+      if (response?.length > 0) {
+        console.log('list', response)
 
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setRacks(listWithId)
+        // response.sort((a, b) => a.id - b.id)
+        let listWithId = response
+          ? response.map((el, i) => {
+              return { ...el, uid: i + 1 }
+            })
+          : []
+        setRacks(listWithId)
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
       setLoader(false)
-    } else {
-      setLoader(false)
+      console.log('error', error)
     }
   }
 
