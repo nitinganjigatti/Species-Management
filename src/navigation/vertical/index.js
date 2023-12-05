@@ -224,7 +224,8 @@ const pharmacyNav = [
   //       path: '/pharmacy/debitNote/debitNote'
   //     }
   //   ]
-  // },
+  // }
+
   // {
   //   title: 'Dispatch',
   //   icon: 'bxs:log-out',
