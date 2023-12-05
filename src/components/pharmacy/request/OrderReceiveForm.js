@@ -203,12 +203,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
     {
       flex: 0.2,
-      minWidth: 40,
-      my: 4,
+      minWidth: 200,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Grid item xs={12} sm={12}>
+        <Grid xs={12} sm={12}>
           <FormControl fullWidth>
             <InputLabel id={`status-${params?.row?.id}`} error={params?.row?.status.trim() === ''}>
               Status
@@ -216,10 +215,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             <Select
               disabled={getDisableStatus(params.row.id)}
               fullWidth
-              size='small'
+              label='Status'
+              // size='small'
               error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
               value={params?.row?.status}
-              label='Status'
               onChange={event => handleStatusChange(params.row.id, event)}
             >
               {options.map((item, index) => (
@@ -336,11 +335,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         ) : null}
 
         <Grid container items>
-          <Grid item md={6} sm={6} xs={12} sx={{ mr: 6 }}>
+          <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
             <FormControl fullWidth>
               <TextField
                 disabled={disableButton()}
                 multiline
+                rows={3}
                 type='text'
                 label='Comment'
                 value={disputeItemDetails?.comments}

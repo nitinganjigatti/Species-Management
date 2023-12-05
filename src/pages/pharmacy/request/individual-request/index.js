@@ -120,7 +120,7 @@ const IndividualRequest = () => {
 
         return items
       })
-      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped')
+      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
@@ -204,8 +204,6 @@ const IndividualRequest = () => {
       await getRequestItemLists(id)
       await getDispatchedItems(id)
       await getShippedItems(id)
-      await getDisputeItems(id)
-      await getDispenseItems(id)
     }
   }
 
@@ -214,6 +212,13 @@ const IndividualRequest = () => {
       init(id)
     }
   }, [id])
+
+  useEffect(() => {
+    if (id !== undefined && orderFormDialog === false) {
+      getDisputeItems(id)
+      getDispenseItems(id)
+    }
+  }, [orderFormDialog])
 
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
@@ -510,7 +515,7 @@ const IndividualRequest = () => {
       headerName: 'Person Shipping',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.person_shipping}
+          {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
         </Typography>
       )
     },
@@ -569,7 +574,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.person_shipping}</div>
+            <div>{params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}</div>
           </Typography>
         </div>
       )
