@@ -149,7 +149,7 @@ const pharmacyNav = [
         path: '/pharmacy/settings/supplier/supplier-list'
       }
     ]
-  }
+  },
 
   // {
   //   title: 'Purchase',
@@ -182,30 +182,30 @@ const pharmacyNav = [
   //     }
   //   ]
   // }
+  {
+    title: 'Stocks',
+    path: '/pharmacy/store',
+    icon: 'bi:boxes',
+    children: [
+      {
+        title: 'Stock report',
+        path: '/pharmacy/stocks/stocksReport'
+      },
+      {
+        title: 'Stock report(Batch wise)',
+        path: '/pharmacy/stocks/stockReportByBatch'
+      },
+      {
+        title: 'Stock Out',
+        path: '/pharmacy/stocks/stock-out'
+      },
+      {
+        title: 'Expired Medicine',
+        path: '/pharmacy/stocks/expired-medicine'
+      }
+    ]
+  }
 
-  // {
-  //   title: 'Stocks',
-  //   path: '/pharmacy/store',
-  //   icon: 'bi:boxes',
-  //   children: [
-  //     {
-  //       title: 'Stock report',
-  //       path: '/pharmacy/stocks/stocksReport'
-  //     },
-  //     {
-  //       title: 'Stock report(Batch wise)',
-  //       path: '/pharmacy/stocks/stockReportByBatch'
-  //     },
-  //     {
-  //       title: 'Stock Out',
-  //       path: '/pharmacy/stocks/stock-out'
-  //     },
-  //     {
-  //       title: 'Expired Medicine',
-  //       path: '/pharmacy/stocks/expired-medicine'
-  //     }
-  //   ]
-  // },
   // {
   //   title: 'Shipment',
   //   path: '/pharmacy/shipment',
