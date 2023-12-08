@@ -265,11 +265,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   ]
 
   const handleDeliveryTypeChange = type => {
-    // setDeliveryType({
-    //   Ship: type === 'Ship',
-    //   pickUp: type === 'pickUp'
-    // })
-    console.log('typeeee', type)
     if (type === 'Ship') {
       setDeliveryType({ ...deliveryType, Ship: true, pickUp: false })
       setValue('receiver_name', '')
