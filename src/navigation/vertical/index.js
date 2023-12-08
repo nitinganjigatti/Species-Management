@@ -119,6 +119,10 @@ const pharmacyNav = [
     icon: 'mdi:settings',
     children: [
       {
+        title: 'LAB',
+        path: '/pharmacy/settings/lab'
+      },
+      {
         title: 'GST',
         path: '/pharmacy/settings/gst'
       },
