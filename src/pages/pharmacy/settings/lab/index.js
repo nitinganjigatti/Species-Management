@@ -200,7 +200,7 @@ const Lab = () => {
   }
 
   // const handleCheckBox = (sample, parent, child) => {
-  //   const sampleIndex = TestData.findIndex(data => data.sample_id === sample.sample_id)
+  //   const sampleId = TestData.findIndex(data => data.sample_id === sample.sample_id)
 
   //   if (sampleIndex === -1) {
   //     // If the sample is not in TestData, add it with the parent and child
@@ -318,6 +318,22 @@ const Lab = () => {
         )
       )
     }
+  }
+
+  const handleCloseTest = (sampleId, parentId) => {
+    // Make a shallow copy of the data to avoid directly modifying state
+    const updatedTestData = [...TestData]
+
+    if (sampleId === 0) {
+      updatedTestData.splice(sampleId, 1)
+    } else {
+      // Remove the selected test within the sample
+      updatedTestData[sampleId].tests.splice(parentId, 1)
+    }
+
+    // Update the state with the modified data
+    setTestData(updatedTestData)
+    console.log('first', updatedTestData)
   }
 
   return (
@@ -477,8 +493,8 @@ const Lab = () => {
                       </Grid>
 
                       {/* test Data */}
-                      <Grid item xs={12} md={6} sm={6}>
-                        <Card sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }} gap={2}>
+                      <Grid item xs={12} md={12} sm={6}>
+                        <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
                           <Box
                             sx={{
                               display: 'flex',
@@ -498,9 +514,39 @@ const Lab = () => {
                               Add Tests
                             </Typography>
                           </Box>
-                          <Typography variant='h6' sx={{ mt: 2 }}>
-                            No Data
-                          </Typography>
+                          {TestData.map((sample, sampleId) => (
+                            <Box sx={{ p: 1 }}>
+                              <Box>
+                                {sample.tests.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
+
+                                {sample.tests.map((parent, parentId) => (
+                                  <Card sx={{ p: 2 }}>
+                                    <Stack
+                                      direction='row'
+                                      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                                    >
+                                      <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                      <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
+                                        <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                      </IconButton>
+                                    </Stack>
+                                    <Stack>
+                                      {parent.child_tests?.map((child, childId) => (
+                                        <Stack direction='row' gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                          <Typography>{child.test_name}</Typography>
+                                        </Stack>
+                                      ))}
+                                    </Stack>
+                                  </Card>
+                                ))}
+                              </Box>
+
+                              {/* <Typography variant='h6' sx={{ mt: 2 }}>
+                                No Data
+                              </Typography> */}
+                            </Box>
+                          ))}
                         </Card>
                       </Grid>
 
