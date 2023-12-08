@@ -722,7 +722,7 @@ const IndividualReturnRequest = () => {
       ) : (
         <>
           <CommonDialogBox
-            title={'Order received'}
+            title={'Shipment Details'}
             dialogBoxStatus={orderFormDialog}
             formComponent={
               <OrderReceiveForm
@@ -793,7 +793,7 @@ const IndividualReturnRequest = () => {
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
+                      <h5 style={{ marginBottom: '0px' }}>Shipments</h5>
                     </Grid>
                   </Grid>
                 </CardContent>

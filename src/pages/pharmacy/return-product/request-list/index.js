@@ -93,9 +93,8 @@ const ReturnRequestList = () => {
     []
   )
 
-  const onRowClick = data => {
-    console.log('onRowClickData', data)
-    console.log(' row id', data.id)
+  const onRowClick = params => {
+    var data = params.row
 
     Router.push({
       pathname: '/pharmacy/return-product/individual-return/',
@@ -108,10 +107,13 @@ const ReturnRequestList = () => {
       <Button
         size='big'
         variant='contained'
-
-        // onClick={() => addEventSidebarOpen()}
+        onClick={() =>
+          Router.push({
+            pathname: '/pharmacy/return-product/add-request/'
+          })
+        }
       >
-        Add Request Form
+        Add Return Request
       </Button>
     </div>
   )
@@ -149,7 +151,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'From store',
+      headerName: 'Returned By',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}
@@ -160,7 +162,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
-      headerName: 'To store',
+      headerName: 'Returned To',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.to_store}
@@ -201,27 +203,32 @@ const ReturnRequestList = () => {
           {params.row.status}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              onRowClick(params.row)
-            }}
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           onRowClick(params.row)
+    //         }}
+    //       >
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
+
+  const handleRowClick = params => {
+    console.log(params)
+  }
 
   return (
     <>
@@ -255,6 +262,7 @@ const ReturnRequestList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
+              onRowClick={onRowClick}
             />
           </Card>
         </>
