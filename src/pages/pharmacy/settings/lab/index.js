@@ -24,7 +24,8 @@ import {
   Drawer,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  FormControlLabel
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
@@ -39,6 +40,7 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 // ** Source code imports
 import TestSample from './sample/sample'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import { addLab } from 'src/lib/api/addLab'
 
 const Lab = () => {
   const [loader, setLoader] = useState(false)
@@ -47,12 +49,19 @@ const Lab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-
+  const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   console.log('longitude', longitude.longitude)
   console.log('latitude', latitude.latitude)
   console.log('TestData', TestData)
   console.log('labType', labType)
+  console.log('markDefault', markDefault)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -70,6 +79,8 @@ const Lab = () => {
           const { latitude, longitude } = position.coords
           setLongitude({ longitude })
           setLatitude({ latitude })
+          setValue('latitude', latitude)
+          setValue('longitude', longitude)
         },
         error => {
           // Error callback
@@ -97,23 +108,23 @@ const Lab = () => {
     lab_incharge_name: '',
     lab_address: '',
     lab_incharge_phone: '',
-    latitude: '',
-    longitude: '',
+    latitude: latitude,
+    longitude: longitude,
     image: ''
   }
 
   const schema = yup.object().shape({
     lab_name: yup.string().required('Lab name is required'),
     lab_type: yup.string().required('Lab Type is required'),
-    lab_incharge_name: yup.string().required('Lab Incharge name  is required'),
+    lab_incharge_name: yup.string().required('Lab Incharge name  is required')
     // lab_incharge_phone: yup
     //   .string()
     //   .required('Lab Incharge  No is required')
     //   .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
     //   .max(10, 'Maximum of 10 digits'),
 
-    latitude: yup.string(),
-    longitude: yup.string()
+    // latitude: yup.string(),
+    // longitude: yup.string()
   })
 
   const {
@@ -149,9 +160,10 @@ const Lab = () => {
   const onSubmit = async params => {
     // setSubmitLoader(true)
 
-    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, latitude, longitude } = {
+    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests } = {
       ...params
     }
+    const { latitude, longitude } = getValues()
 
     const payload = {
       lab_name,
@@ -160,29 +172,25 @@ const Lab = () => {
       lab_address,
       lab_incharge_phone,
       latitude,
-      longitude
+      longitude,
+      tests: TestData
     }
 
     if (files.length > 0) {
       payload.image = files[0]
+      console.log('Image:', files[0])
     } else {
     }
     console.log('payload', payload)
+
+    const res = await addLabToList(payload)
+    console.log('res', res)
 
     // if (id !== undefined && action === 'edit') {
     //   console.log('payload', payload)
     //   // await updateMedicine(payload, id)
     // } else {
-    //   // await addMedicineToList(payload)
-    // }
-
-    // try {
-    //   // Perform any asynchronous operations (e.g., API call) here
-    //   console.log('Form data submitted:', params)
-    //   // Reset the form if needed
-    //   reset()
-    // } catch (error) {
-    //   console.error('Error submitting form:', error)
+    //   await addLabToList(payload)
     // }
   }
 
@@ -199,141 +207,141 @@ const Lab = () => {
     setOpen(false)
   }
 
-  // const handleCheckBox = (sample, parent, child) => {
-  //   const sampleId = TestData.findIndex(data => data.sample_id === sample.sample_id)
-
-  //   if (sampleIndex === -1) {
-  //     // If the sample is not in TestData, add it with the parent and child
-  //     setTestData(prevData => [
-  //       ...prevData,
-  //       {
-  //         sample_id: sample.sample_id,
-  //         sample_name: sample.sample_name,
-  //         tests: [
-  //           {
-  //             test_id: parent.test_id,
-  //             test_name: parent.test_name,
-  //             full_test: false,
-  //             child_tests: [
-  //               {
-  //                 test_id: child.test_id,
-  //                 test_name: child.test_name,
-  //                 value: true,
-  //                 input_type: child.input_type
-  //               }
-  //             ]
-  //           }
-  //         ]
-  //       }
-  //     ])
-  //   } else {
-  //     // If the sample is in TestData, add the child without removing others
-  //     setTestData(prevData =>
-  //       prevData.map(data =>
-  //         data.sample_id === sample.sample_id
-  //           ? {
-  //               ...data,
-  //               tests: data.tests.map(test =>
-  //                 test.test_id === parent.test_id
-  //                   ? {
-  //                       ...test,
-  //                       child_tests: [
-  //                         ...test.child_tests,
-  //                         {
-  //                           test_id: child.test_id,
-  //                           test_name: child.test_name,
-  //                           value: true,
-  //                           input_type: child.input_type
-  //                         }
-  //                       ]
-  //                     }
-  //                   : test
-  //               )
-  //             }
-  //           : data
-  //       )
-  //     )
-  //   }
-  // }
-
+  // Add Test
   const handleCheckBox = (sample, parent, child) => {
-    const sampleIndex = TestData.findIndex(data => data.sample_id === sample.sample_id)
+    setTestData(prevData => {
+      const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
-    if (sampleIndex === -1) {
-      // If the sample is not in TestData, add it with the parent and child
-      setTestData(prevData => [
-        ...prevData,
-        {
-          sample_id: sample.sample_id,
-          sample_name: sample.sample_name,
-          tests: [
-            {
-              test_id: parent.test_id,
-              test_name: parent.test_name,
-              full_test: false,
-              child_tests: [
-                {
-                  test_id: child.test_id,
-                  test_name: child.test_name,
-                  value: true,
-                  input_type: child.input_type
-                }
-              ]
-            }
-          ]
-        }
-      ])
-    } else {
-      // If the sample is in TestData, toggle the state of the checkbox
-      setTestData(prevData =>
-        prevData.map(data =>
+      if (sampleIndex === -1) {
+        // If the sample is not in TestData, add it with the parent and child
+        return [
+          ...prevData,
+          {
+            sample_id: sample.sample_id,
+            sample_name: sample.sample_name,
+            tests: [
+              {
+                test_id: parent.test_id,
+                test_name: parent.test_name,
+                full_test: true,
+                child_tests: [
+                  {
+                    test_id: child.test_id,
+                    test_name: child.test_name,
+                    value: true,
+                    input_type: child.input_type
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      } else {
+        // If the sample is in TestData, toggle the checkbox state
+        return prevData.map(data =>
           data.sample_id === sample.sample_id
             ? {
                 ...data,
-                tests: data.tests.map(test =>
-                  test.test_id === parent.test_id && test.test_name === parent.test_name
-                    ? {
-                        ...test,
-                        child_tests: test.child_tests.some(
-                          childTest => childTest.test_id === child.test_id && childTest.test_name === child.test_name
-                        )
-                          ? test.child_tests.filter(
-                              childTest =>
-                                childTest.test_id !== child.test_id || childTest.test_name !== child.test_name
-                            )
-                          : [
-                              ...test.child_tests,
-                              {
-                                test_id: child.test_id,
-                                test_name: child.test_name,
-                                value: true,
-                                input_type: child.input_type
-                              }
-                            ]
+                tests: data.tests.some(test => test.test_id === parent.test_id)
+                  ? data.tests.map(test =>
+                      test.test_id === parent.test_id
+                        ? {
+                            ...test,
+                            child_tests: test.child_tests.some(ct => ct.test_id === child.test_id)
+                              ? test.child_tests.filter(ct => ct.test_id !== child.test_id)
+                              : [
+                                  ...test.child_tests,
+                                  {
+                                    test_id: child.test_id,
+                                    test_name: child.test_name,
+                                    value: true,
+                                    input_type: child.input_type
+                                  }
+                                ]
+                          }
+                        : test
+                    )
+                  : [
+                      ...data.tests,
+                      {
+                        test_id: parent.test_id,
+                        test_name: parent.test_name,
+                        full_test: true,
+                        child_tests: [
+                          {
+                            test_id: child.test_id,
+                            test_name: child.test_name,
+                            value: true,
+                            input_type: child.input_type
+                          }
+                        ]
                       }
-                    : test
-                )
+                    ]
               }
             : data
         )
-      )
-    }
+      }
+    })
   }
 
+  //Remove Test
   const handleCloseTest = (sampleId, parentId) => {
     // Make a shallow copy of the data to avoid directly modifying state
     const updatedTestData = [...TestData]
 
-    if (sampleId === 0) {
-      updatedTestData.splice(sampleId, 1)
-    } else {
-      // Remove the selected test within the sample
-      updatedTestData[sampleId].tests.splice(parentId, 1)
+    if (sampleId >= 0 && sampleId < updatedTestData.length) {
+      // Check if sampleId is within valid range
+      const updatedSample = { ...updatedTestData[sampleId] }
+
+      if (parentId >= 0 && parentId < updatedSample.tests.length) {
+        // Check if parentId is within valid range
+        updatedSample.tests.splice(parentId, 1) // Remove the selected test within the sample
+
+        updatedTestData[sampleId] = updatedSample // Update the sample in the array
+      }
     }
 
     // Update the state with the modified data
     setTestData(updatedTestData)
     console.log('first', updatedTestData)
+  }
+
+  // Select All
+  const handleSelectAllSwitch = sampleId => {
+    // Check if the sample is already selected
+    const isSampleSelected = TestData.some(selectedSample => selectedSample.sampleId === sampleId)
+
+    if (isSampleSelected) {
+      // If the sample is selected, remove it from the selectedTests array
+      setTestData(prevSelectedTests => prevSelectedTests.filter(selectedSample => selectedSample.sampleId !== sampleId))
+    } else {
+      // If the sample is not selected, add it to the selectedTests array
+      setTestData(prevSelectedTests => [...prevSelectedTests, { sampleId, selected: true }])
+    }
+  }
+
+  const handleSwitchToggle = () => {
+    setMarkDefault(!markDefault)
+  }
+
+  // api call
+  const addLabToList = async payload => {
+    try {
+      const response = await addLab(payload)
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setSubmitLoader(true)
+        reset(defaultValues)
+        // Router.push('/pharmacy/supplier')
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
   }
 
   return (
@@ -358,7 +366,6 @@ const Lab = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
-                        {/* <div>Add Lab Basic Info</div> */}
                         <FormControl fullWidth>
                           <Controller
                             name='lab_name'
@@ -488,12 +495,15 @@ const Lab = () => {
                           sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
                         >
                           <Typography>Mark as default Lab</Typography>
-                          <Switch defaultChecked />
+                          <FormControlLabel
+                            control={<Switch checked={markDefault} onChange={handleSwitchToggle} />}
+                            // label='Required'
+                          />
                         </Stack>
                       </Grid>
 
                       {/* test Data */}
-                      <Grid item xs={12} md={12} sm={6}>
+                      <Grid item xs={12} md={12} sm={12}>
                         <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
                           <Box
                             sx={{
@@ -517,11 +527,12 @@ const Lab = () => {
                           {TestData.map((sample, sampleId) => (
                             <Box sx={{ p: 1 }}>
                               <Box>
-                                {sample.tests.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
+                                {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
 
-                                {sample.tests.map((parent, parentId) => (
-                                  <Card sx={{ p: 2 }}>
+                                {sample?.tests?.map((parent, parentId) => (
+                                  <Card sx={{ p: 2, mb: 2 }}>
                                     <Stack
+                                      gap={1}
                                       direction='row'
                                       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                                     >
@@ -581,7 +592,7 @@ const Lab = () => {
                               rules={{ required: true }}
                               render={({ field: { value, onChange } }) => (
                                 <TextField
-                                  value={value || longitude.longitude}
+                                  value={value}
                                   onChange={onChange}
                                   placeholder='Longitude'
                                   error={Boolean(errors?.longitude)}
@@ -601,7 +612,7 @@ const Lab = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
-                                    value={value || latitude.latitude}
+                                    value={value}
                                     onChange={onChange}
                                     placeholder='Latitude'
                                     error={Boolean(errors?.latitude)}
@@ -664,7 +675,7 @@ const Lab = () => {
                 <Typography variant='h6'>{sample?.sample_name}</Typography>
                 <Typography sx={{ alignItems: 'center', display: 'flex' }}>
                   Select All
-                  <Switch defaultChecked />
+                  <Switch onChange={() => handleSelectAllSwitch(sample.id)} />
                 </Typography>
               </Stack>
 
@@ -681,7 +692,7 @@ const Lab = () => {
                           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                         >
                           <Typography>Full Test</Typography>
-                          <Switch defaultChecked />
+                          <Switch onChange={() => handleSelectAllSwitch(sample.id)} />
                         </Stack>
                         {parent?.child_tests?.map((child, id) => (
                           <Stack
