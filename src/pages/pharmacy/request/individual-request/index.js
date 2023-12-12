@@ -192,7 +192,7 @@ const IndividualRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/request/addRequest/',
+      pathname: '/pharmacy/request/add-request/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -715,6 +715,13 @@ const IndividualRequest = () => {
     }
   ]
 
+  const handleRequestEdit = () => {
+    Router.push({
+      pathname: '/pharmacy/request/add-request/',
+      query: { id: id, action: 'edit' }
+    })
+  }
+
   return (
     <>
       {loader ? (
@@ -736,7 +743,23 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader title={`Request`} />
+            <CardHeader
+              title={`Request`}
+              action={
+                requestItems.status === 'request' ||
+                (requestItems.status === 'Partial Dispatched' && (
+                  <Button
+                    size='big'
+                    variant='contained'
+                    onClick={() => {
+                      handleRequestEdit()
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ))
+              }
+            />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>

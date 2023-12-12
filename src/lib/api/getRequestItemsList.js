@@ -1,10 +1,10 @@
 import { REQUEST_ITEMS, BATCH_DETAILS, DISPATCH, SHIPMENT } from '../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from './utility'
 
-export async function getRequestItemsList() {
-  const response = await axiosGet({ url: REQUEST_ITEMS })
+export async function getRequestItemsList({ params }) {
+  const response = await axiosGet({ url: REQUEST_ITEMS, params })
 
-  return response.data.data
+  return response.data
 }
 
 export async function getRequestItemsListById(id) {
