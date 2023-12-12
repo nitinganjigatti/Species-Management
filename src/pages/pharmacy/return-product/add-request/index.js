@@ -36,7 +36,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import SingleDatePicker from '../../SingleDatePicker'
+import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/getStoreList'
@@ -44,6 +44,7 @@ import { getMedicineList } from 'src/lib/api/getMedicineList'
 
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
 import Utility from 'src/utility'
+import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -85,7 +86,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddRequestForm = () => {
+const AddReturnRequest = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
@@ -99,6 +100,8 @@ const AddRequestForm = () => {
   const [duplicateMedError, setDuplicateMedError] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+
+  const [productLoading, setProductLoading] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -134,20 +137,20 @@ const AddRequestForm = () => {
 
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
-  const addItemsToTable = () => {
-    const newData = {
-      medicine_name: nestedRowMedicine.medicine_name,
-      request_item_medicine_id: nestedRowMedicine.request_item_medicine_id,
-      // id: nestedRowMedicine.id,
-      request_item_qty: nestedRowMedicine.request_item_qty,
-      // dosageForm: nestedRowMedicine.dosageForm,
-      priority_item: nestedRowMedicine.priority_item,
-      control_substance: nestedRowMedicine.control_substance,
-      control_substance_file: nestedRowMedicine.control_substance_file,
-      request_item_leaf_id: ''
-    }
+  const addItemsToTable = params => {
+    // const newData = {
+    //   medicine_name: nestedRowMedicine.medicine_name,
+    //   request_item_medicine_id: nestedRowMedicine.request_item_medicine_id,
+    //   // id: nestedRowMedicine.id,
+    //   request_item_qty: nestedRowMedicine.request_item_qty,
+    //   // dosageForm: nestedRowMedicine.dosageForm,
+    //   priority_item: nestedRowMedicine.priority_item,
+    //   control_substance: nestedRowMedicine.control_substance,
+    //   control_substance_file: nestedRowMedicine.control_substance_file,
+    //   request_item_leaf_id: ''
+    // }
 
-    const updatedNestedRows = [...editParams.request_item_details, newData]
+    const updatedNestedRows = [...editParams.request_item_details, params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -214,34 +217,37 @@ const AddRequestForm = () => {
     return errors
   }
 
-  const submitItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // || !nestedRowMedicine.control_substance
-    if (HasErrors) {
-      setItemErrors(validate(nestedRowMedicine))
+  const submitItems = params => {
+    // const HasErrors =
+    //   !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+    // // || !nestedRowMedicine.control_substance
+    // if (HasErrors) {
+    //   setItemErrors(validate(nestedRowMedicine))
 
-      return
-    }
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    //   return
+    // }
+    // if (params.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
 
-        return
-      }
-    }
+    //     return
+    //   }
+    // }
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
-      item => item.medicine_name === nestedRowMedicine.medicine_name
+      item =>
+        item.request_item_medicine_id === params.request_item_medicine_id &&
+        item.request_item_batch_no === params.request_item_batch_no
     )
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError('Medicine already exists')
+      console.log('Medicine already exists')
 
       return
     }
     setErrors({})
-    addItemsToTable()
+    addItemsToTable(params)
     closeDialog()
   }
 
@@ -326,6 +332,8 @@ const AddRequestForm = () => {
   const fetchMedicineData = async searchText => {
     if (searchText !== '') {
       try {
+        setProductLoading(true)
+
         const params = {
           sort: 'asc',
           q: searchText,
@@ -342,8 +350,10 @@ const AddRequestForm = () => {
             }))
           )
         }
+        setProductLoading(false)
       } catch (e) {
         console.log('error', e)
+        setProductLoading(false)
       }
     }
   }
@@ -480,240 +490,246 @@ const AddRequestForm = () => {
   // data posting section
   const createForm = () => {
     return (
-      <CardContent>
-        <form
-        // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-        >
-          <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  inputProps={{ tabIndex: '6' }}
-                  disablePortal
-                  id='autocomplete-controlled'
-                  options={optionsMedicineList}
-                  value={nestedRowMedicine.medicine_name}
-                  onChange={(event, newValue) => {
-                    setNestedRowMedicine({
-                      ...nestedRowMedicine,
-                      medicine_name: newValue?.label,
-                      request_item_medicine_id: newValue?.value,
-                      control_substance: newValue?.control_substance
-                    })
-                    setDuplicateMedError('')
-                    setItemErrors({})
-                  }}
-                  onKeyUp={e => {
-                    searchMedicineData(e.target.value)
-                    setItemErrors({})
-                  }}
-                  renderInput={params => (
-                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
-                  )}
-                />
-                {itemErrors.medicine_name && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-                {duplicateMedError && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {duplicateMedError}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+      <AddItemsForm
+        searchMedicineData={searchMedicineData}
+        productList={optionsMedicineList}
+        productLoading={productLoading}
+        onSubmitData={submitItems}
+      />
+      // <CardContent>
+      //   <form
+      //   // addItemsToTable={addMultipleMedicine(addItemsToTable)}
+      //   >
+      //     <Grid container spacing={5}>
+      //       <Grid item xs={12} sm={6}>
+      //         <FormControl fullWidth>
+      //           <Autocomplete
+      //             inputProps={{ tabIndex: '6' }}
+      //             disablePortal
+      //             id='autocomplete-controlled'
+      //             options={optionsMedicineList}
+      //             value={nestedRowMedicine.medicine_name}
+      //             onChange={(event, newValue) => {
+      //               setNestedRowMedicine({
+      //                 ...nestedRowMedicine,
+      //                 medicine_name: newValue?.label,
+      //                 request_item_medicine_id: newValue?.value,
+      //                 control_substance: newValue?.control_substance
+      //               })
+      //               setDuplicateMedError('')
+      //               setItemErrors({})
+      //             }}
+      //             onKeyUp={e => {
+      //               searchMedicineData(e.target.value)
+      //               setItemErrors({})
+      //             }}
+      //             renderInput={params => (
+      //               <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+      //             )}
+      //           />
+      //           {itemErrors.medicine_name && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //           {duplicateMedError && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               {duplicateMedError}
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='number'
-                  value={nestedRowMedicine.request_item_qty}
-                  error={Boolean(itemErrors.request_item_qty)}
-                  label='Quantity*'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+      //       <Grid item xs={12} sm={6}>
+      //         <FormControl fullWidth>
+      //           <TextField
+      //             type='number'
+      //             value={nestedRowMedicine.request_item_qty}
+      //             error={Boolean(itemErrors.request_item_qty)}
+      //             label='Quantity*'
+      //             onChange={event => {
+      //               setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
+      //               setItemErrors({})
+      //             }}
+      //           />
+      //           {itemErrors.request_item_qty && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ mb: 2 }}>Priority</Typography>
+      //       <Grid item xs={12} sm={6}>
+      //         <Typography sx={{ mb: 2 }}>Priority</Typography>
 
-              <FormControl fullWidth>
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.priority_item}
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
-                  }}
-                >
-                  test
-                  <ToggleButton color='error' value='high'>
-                    High
-                  </ToggleButton>
-                  <ToggleButton color='primary' value='Normal'>
-                    Normal
-                  </ToggleButton>
-                </ToggleButtonGroup>
+      //         <FormControl fullWidth>
+      //           <ToggleButtonGroup
+      //             exclusive
+      //             color='primary'
+      //             value={nestedRowMedicine.priority_item}
+      //             onChange={event => {
+      //               setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+      //             }}
+      //           >
+      //             test
+      //             <ToggleButton color='error' value='high'>
+      //               High
+      //             </ToggleButton>
+      //             <ToggleButton color='primary' value='Normal'>
+      //               Normal
+      //             </ToggleButton>
+      //           </ToggleButtonGroup>
 
-                {itemErrors.priority_item && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+      //           {itemErrors.priority_item && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
 
-            {/* // file uploader */}
-            {nestedRowMedicine.control_substance === true ? (
-              nestedRowMedicine.control_substance_file ? (
-                <Grid item xs={12} sm={6}>
-                  {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
-                    <Chip
-                      label={nestedRowMedicine.control_substance_file?.name}
-                      color='secondary'
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          // control_substance: false,
-                          control_substance_file: ''
-                        })
-                      }}
-                      deleteIcon={<Icon icon='mdi:delete-outline' />}
-                    />
-                  ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
-                    nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
-                    <>
-                      <Chip
-                        label={nestedRowMedicine.control_substance_file?.name}
-                        avatar={
-                          <Avatar
-                            alt={nestedRowMedicine.control_substance_file?.name}
-                            src={
-                              nestedRowMedicine.control_substance_file
-                                ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
-                                : ''
-                            }
-                          />
-                        }
-                        onDelete={() => {
-                          setNestedRowMedicine({
-                            ...nestedRowMedicine,
-                            // control_substance: false,
-                            control_substance_file: ''
-                          })
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <Chip
-                      label={nestedRowMedicine.control_substance_file}
-                      avatar={
-                        <Avatar
-                          alt='image'
-                          src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
-                        />
-                      }
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          // control_substance: false,
-                          control_substance_file: ''
-                        })
-                      }}
-                    />
-                  )}
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='file'
-                      accept='.pdf, .jpeg, .jpg, .png'
-                      error={Boolean(itemErrors.control_substance_file)}
-                      // label='Attach prescription'
-                      onChange={e => {
-                        const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        setItemErrors({})
-                      }}
-                    />
-                    {itemErrors.control_substance_file && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              )
-            ) : null}
-            {/* // file uploader */}
+      //       {/* // file uploader */}
+      //       {nestedRowMedicine.control_substance === true ? (
+      //         nestedRowMedicine.control_substance_file ? (
+      //           <Grid item xs={12} sm={6}>
+      //             {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
+      //               <Chip
+      //                 label={nestedRowMedicine.control_substance_file?.name}
+      //                 color='secondary'
+      //                 onDelete={() => {
+      //                   setNestedRowMedicine({
+      //                     ...nestedRowMedicine,
+      //                     // control_substance: false,
+      //                     control_substance_file: ''
+      //                   })
+      //                 }}
+      //                 deleteIcon={<Icon icon='mdi:delete-outline' />}
+      //               />
+      //             ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
+      //               nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
+      //               <>
+      //                 <Chip
+      //                   label={nestedRowMedicine.control_substance_file?.name}
+      //                   avatar={
+      //                     <Avatar
+      //                       alt={nestedRowMedicine.control_substance_file?.name}
+      //                       src={
+      //                         nestedRowMedicine.control_substance_file
+      //                           ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
+      //                           : ''
+      //                       }
+      //                     />
+      //                   }
+      //                   onDelete={() => {
+      //                     setNestedRowMedicine({
+      //                       ...nestedRowMedicine,
+      //                       // control_substance: false,
+      //                       control_substance_file: ''
+      //                     })
+      //                   }}
+      //                 />
+      //               </>
+      //             ) : (
+      //               <Chip
+      //                 label={nestedRowMedicine.control_substance_file}
+      //                 avatar={
+      //                   <Avatar
+      //                     alt='image'
+      //                     src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
+      //                   />
+      //                 }
+      //                 onDelete={() => {
+      //                   setNestedRowMedicine({
+      //                     ...nestedRowMedicine,
+      //                     // control_substance: false,
+      //                     control_substance_file: ''
+      //                   })
+      //                 }}
+      //               />
+      //             )}
+      //           </Grid>
+      //         ) : (
+      //           <Grid item xs={12} sm={6}>
+      //             <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
+      //             <FormControl fullWidth>
+      //               <TextField
+      //                 type='file'
+      //                 accept='.pdf, .jpeg, .jpg, .png'
+      //                 error={Boolean(itemErrors.control_substance_file)}
+      //                 // label='Attach prescription'
+      //                 onChange={e => {
+      //                   const file = e.target.files[0]
+      //                   setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+      //                   setItemErrors({})
+      //                 }}
+      //               />
+      //               {itemErrors.control_substance_file && (
+      //                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //                   This field is required
+      //                 </FormHelperText>
+      //               )}
+      //             </FormControl>
+      //           </Grid>
+      //         )
+      //       ) : null}
+      //       {/* // file uploader */}
 
-            <Grid item xs={12}>
-              <>
-                {medicineItemId ? (
-                  <>
-                    <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
-                      sx={{ mr: 2 }}
-                    >
-                      Done
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateFormItems()
-                        closeDialog()
-                        // submitItems()
-                      }}
-                      size='large'
-                      variant='contained'
-                    >
-                      update
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
-                      sx={{ mr: 2 }}
-                    >
-                      Done
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        // updateFormItems()
-                        submitItems()
-                      }}
-                      size='large'
-                      variant='contained'
-                    >
-                      Add
-                    </Button>
-                  </>
-                )}
-              </>
-            </Grid>
-          </Grid>
-        </form>
-      </CardContent>
+      //       <Grid item xs={12}>
+      //         <>
+      //           {medicineItemId ? (
+      //             <>
+      //               <Button
+      //                 onClick={() => {
+      //                   closeDialog()
+      //                 }}
+      //                 size='large'
+      //                 variant='outlined'
+      //                 sx={{ mr: 2 }}
+      //               >
+      //                 Done
+      //               </Button>
+      //               <Button
+      //                 onClick={() => {
+      //                   updateFormItems()
+      //                   closeDialog()
+      //                   // submitItems()
+      //                 }}
+      //                 size='large'
+      //                 variant='contained'
+      //               >
+      //                 update
+      //               </Button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               <Button
+      //                 onClick={() => {
+      //                   closeDialog()
+      //                 }}
+      //                 size='large'
+      //                 variant='outlined'
+      //                 sx={{ mr: 2 }}
+      //               >
+      //                 Done
+      //               </Button>
+      //               <Button
+      //                 onClick={() => {
+      //                   // updateFormItems()
+      //                   submitItems()
+      //                 }}
+      //                 size='large'
+      //                 variant='contained'
+      //               >
+      //                 Add
+      //               </Button>
+      //             </>
+      //           )}
+      //         </>
+      //       </Grid>
+      //     </Grid>
+      //   </form>
+      // </CardContent>
     )
   }
 
@@ -729,7 +745,7 @@ const AddRequestForm = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Add Request Item' />
+        <CardHeader title='Return Request Item' />
 
         <Button
           sx={{
@@ -738,7 +754,7 @@ const AddRequestForm = () => {
           size='big'
           variant='contained'
           onClick={() => {
-            Router.push('/pharmacy/request/request-list/')
+            Router.push('/pharmacy/return-product/request-list/')
           }}
         >
           Request Item List
@@ -761,7 +777,7 @@ const AddRequestForm = () => {
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Requested by :
+                  Returned by :
                 </Typography>
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
@@ -825,7 +841,7 @@ const AddRequestForm = () => {
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Requested to :
+                    Returned to :
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
@@ -909,7 +925,7 @@ const AddRequestForm = () => {
                     <TableRow key={index}>
                       <TableCell>
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.medicine_name}
+                          {el.product_name}
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -998,4 +1014,4 @@ const AddRequestForm = () => {
   )
 }
 
-export default AddRequestForm
+export default AddReturnRequest

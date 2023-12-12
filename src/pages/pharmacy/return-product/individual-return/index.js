@@ -38,7 +38,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const IndividualRequest = () => {
+const IndividualReturnRequest = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -715,13 +715,6 @@ const IndividualRequest = () => {
     }
   ]
 
-  const handleRequestEdit = () => {
-    Router.push({
-      pathname: '/pharmacy/request/add-request/',
-      query: { id: id, action: 'edit' }
-    })
-  }
-
   return (
     <>
       {loader ? (
@@ -729,7 +722,7 @@ const IndividualRequest = () => {
       ) : (
         <>
           <CommonDialogBox
-            title={'Order received'}
+            title={'Shipment Details'}
             dialogBoxStatus={orderFormDialog}
             formComponent={
               <OrderReceiveForm
@@ -743,23 +736,7 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader
-              title={`Request`}
-              action={
-                requestItems.status === 'request' ||
-                (requestItems.status === 'Partial Dispatched' && (
-                  <Button
-                    size='big'
-                    variant='contained'
-                    onClick={() => {
-                      handleRequestEdit()
-                    }}
-                  >
-                    Edit
-                  </Button>
-                ))
-              }
-            />
+            <CardHeader title={`Return-request`} />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -816,7 +793,7 @@ const IndividualRequest = () => {
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
+                      <h5 style={{ marginBottom: '0px' }}>Shipments</h5>
                     </Grid>
                   </Grid>
                 </CardContent>
@@ -942,4 +919,4 @@ const IndividualRequest = () => {
   )
 }
 
-export default IndividualRequest
+export default IndividualReturnRequest

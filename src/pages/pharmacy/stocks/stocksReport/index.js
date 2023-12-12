@@ -43,15 +43,24 @@ const ListOfStocks = () => {
   }
 
   const getStoresLists = async () => {
-    setLoader(true)
-    const response = await getStoreList()
-    if (response?.length > 0) {
-      // console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setStores(response)
+    const params = {
+      q: 'central',
+      column: 'type'
+    }
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params })
+      if (response?.data?.list_items?.length > 0) {
+        console.log('list', response)
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
       setLoader(false)
-    } else {
-      setLoader(false)
+      console.log('error', error)
     }
   }
 
@@ -62,17 +71,21 @@ const ListOfStocks = () => {
 
       return
     } else {
-      const result = await getStocksReportById(stockId)
-      if (result?.length > 0) {
-        // console.log('stocks', result)
+      try {
+        const result = await getStocksReportById(stockId)
+        if (result?.length > 0) {
+          // console.log('stocks', result)
 
-        // result.sort((a, b) => a.id - b.id)
-        let listWithId = result
-          ? result.map((el, i) => {
-              return { ...el, uid: i + 1 }
-            })
-          : []
-        setStockReport(listWithId)
+          // result.sort((a, b) => a.id - b.id)
+          let listWithId = result
+            ? result.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReport(listWithId)
+        }
+      } catch (error) {
+        console.log('error', error)
       }
     }
   }

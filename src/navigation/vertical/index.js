@@ -48,7 +48,47 @@ const pharmacyNav = [
     children: [
       {
         title: 'Request',
-        path: '/pharmacy/request/requestList'
+        path: '/pharmacy/request/request-list'
+      }
+    ]
+  },
+  {
+    title: 'Return',
+    icon: 'lucide:git-pull-request',
+    path: '/pharmacy/return-product/request-list',
+
+    children: [
+      {
+        title: 'Return Request List',
+        path: '/pharmacy/return-product/request-list'
+      },
+      {
+        title: 'Add Return Request',
+        path: '/pharmacy/return-product/add-request'
+      }
+    ]
+  },
+
+  {
+    title: 'Stocks',
+    path: '/pharmacy/store',
+    icon: 'bi:boxes',
+    children: [
+      {
+        title: 'Stock report',
+        path: '/pharmacy/stocks/stocksReport'
+      },
+      {
+        title: 'Stock report(Batch wise)',
+        path: '/pharmacy/stocks/stockReportByBatch'
+      },
+      {
+        title: 'Stock Out',
+        path: '/pharmacy/stocks/stock-out'
+      },
+      {
+        title: 'Expired Medicine',
+        path: '/pharmacy/stocks/expired-medicine'
       }
     ]
   },
@@ -166,30 +206,6 @@ const pharmacyNav = [
   //     }
   //   ]
   // }
-
-  // {
-  //   title: 'Stocks',
-  //   path: '/pharmacy/store',
-  //   icon: 'bi:boxes',
-  //   children: [
-  //     {
-  //       title: 'Stock report',
-  //       path: '/pharmacy/stocks/stocksReport'
-  //     },
-  //     {
-  //       title: 'Stock report(Batch wise)',
-  //       path: '/pharmacy/stocks/stockReportByBatch'
-  //     },
-  //     {
-  //       title: 'Stock Out',
-  //       path: '/pharmacy/stocks/stock-out'
-  //     },
-  //     {
-  //       title: 'Expired Medicine',
-  //       path: '/pharmacy/stocks/expired-medicine'
-  //     }
-  //   ]
-  // },
   // {
   //   title: 'Shipment',
   //   path: '/pharmacy/shipment',

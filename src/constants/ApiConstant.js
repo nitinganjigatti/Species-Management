@@ -71,3 +71,5 @@ export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/pu
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
+
+export const RETURN_REQUEST = 'return-item'
