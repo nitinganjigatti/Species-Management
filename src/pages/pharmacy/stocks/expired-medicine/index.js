@@ -45,8 +45,8 @@ const ExpiredMedicine = () => {
           setRows(loadServerRows(paginationModel.page, res?.list_items))
         })
         setLoading(false)
-      } catch (e) {
-        console.log(e)
+      } catch (error) {
+        console.log('error', error)
         setLoading(false)
       }
     },
