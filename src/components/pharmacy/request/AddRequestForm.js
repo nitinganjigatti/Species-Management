@@ -766,18 +766,18 @@ const AddRequestForm = () => {
               </Grid>
               <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
+                  <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
                   <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
+                    value={editParams.to_store_id}
+                    error={Boolean(errors.to_store_id)}
                     label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
                       filterToStocks(e.target.value)
                       setEditParams({
                         ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
+                        to_store_id: e.target.value,
+                        to_store_type: storesType[filteredStoreType(e.target.value)]
                       })
                       setErrors({})
                     }}
@@ -791,7 +791,7 @@ const AddRequestForm = () => {
                     ))}
                   </Select>
 
-                  {errors.from_store_id && (
+                  {errors.to_store_id && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -829,20 +829,20 @@ const AddRequestForm = () => {
                   </Typography>
                 </Grid>
                 <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                  <InputLabel id='state_id' error={Boolean(errors.from_store_id)}>
                     Store*
                   </InputLabel>
 
                   <Select
-                    error={Boolean(errors.to_store_id)}
-                    value={editParams.to_store_id}
+                    error={Boolean(errors.from_store_id)}
+                    value={editParams.from_store_id}
                     label='Store*'
                     disabled={id ? true : false}
                     onChange={e => {
                       setEditParams({
                         ...editParams,
-                        to_store_id: e.target.value,
-                        to_store_type: storesType[filteredStoreType(e.target.value)]
+                        from_store_id: e.target.value,
+                        from_store_type: storesType[filteredStoreType(e.target.value)]
                       })
                       setErrors({})
                     }}
@@ -856,7 +856,7 @@ const AddRequestForm = () => {
                     ))}
                   </Select>
 
-                  {errors.to_store_id && (
+                  {errors.from_store_id && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>

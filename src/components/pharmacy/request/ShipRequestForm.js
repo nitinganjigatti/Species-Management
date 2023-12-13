@@ -37,6 +37,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
+  debugger
   console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
@@ -99,7 +100,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
       const response = await shipRequestedItems(payload)
 
-      // debugger
+      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -250,18 +251,19 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           {params.row.dispatch_qty}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'dispatch_status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.dispatch_status}
-        </Typography>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'dispatch_status',
+    //   headerName: 'Status',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.dispatch_status}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   const handleDeliveryTypeChange = type => {

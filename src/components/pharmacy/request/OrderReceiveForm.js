@@ -16,7 +16,8 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById
+  getDisputeItemById,
+  updateShipmentRequest
 } from 'src/lib/api/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -241,40 +242,44 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
     const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
 
+    console.log('receivedItems: ', receivedItems)
+    console.log('notReceivedItems: ', notReceivedItems)
+
     if (receivedItems.length > 0) {
-      setSubmitLoader(true)
+      // setSubmitLoader(true)
       const finalData = { ...disputeItemDetails, item_details: receivedItems }
-      try {
-        const result = await addDispenseItems(finalData)
+      console.log(finalData)
+      // try {
+      //   const result = await updateShipmentRequest(orderId, finalData)
 
-        if (result?.success) {
-          toast.success(result?.message)
-          setSubmitLoader(false)
-        }
-      } catch (error) {
-        setSubmitLoader(false)
+      //   if (result?.success) {
+      //     toast.success(result?.message)
+      //     setSubmitLoader(false)
+      //   }
+      // } catch (error) {
+      //   setSubmitLoader(false)
 
-        toast.error(error?.message)
-      }
+      //   toast.error(error?.message)
+      // }
     }
-    if (notReceivedItems.length > 0) {
-      setSubmitLoader(true)
+    // if (notReceivedItems.length > 0) {
+    //   setSubmitLoader(true)
 
-      const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
-      try {
-        const result = await addDisputeItems(finalData)
-        if (result?.success) {
-          toast.success(result?.message)
-          setSubmitLoader(false)
-        }
-      } catch (error) {
-        setSubmitLoader(false)
+    //   const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
+    //   try {
+    //     const result = await addDisputeItems(finalData)
+    //     if (result?.success) {
+    //       toast.success(result?.message)
+    //       setSubmitLoader(false)
+    //     }
+    //   } catch (error) {
+    //     setSubmitLoader(false)
 
-        toast.error(error?.message)
-        console.log('Add dispute error', error)
-      }
-    }
-    closeOrderFormDialog()
+    //     toast.error(error?.message)
+    //     console.log('Add dispute error', error)
+    //   }
+    // }
+    // closeOrderFormDialog()
   }
 
   return (

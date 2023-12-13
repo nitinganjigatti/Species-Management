@@ -103,6 +103,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onQuantityChange = (row, qty) => {
+    debugger
     if (fulfilStockItems.length > 0) {
       const tempFulfilStockItems = fulfilStockItems.slice()
       let itemExists = false
@@ -116,11 +117,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
       if (!itemExists) {
         if (!isNaN(parseInt(qty)) && parseInt(qty) > 0) {
+          debugger
+
           const medicineRow = {
             from_store_type: row.type,
             from_store_id: row.store_id,
-            to_store_type: storeDetails.from_store_type,
-            to_store_id: storeDetails.from_store_id,
+            to_store_type: storeDetails.to_store_type,
+            to_store_id: storeDetails.to_store_id,
+
             dispatch_date: Utility.formatDate(Date()),
 
             request_item_dispatch_qty: qty,
@@ -160,8 +164,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         const medicineRow = {
           from_store_type: row.type,
           from_store_id: row.store_id,
-          to_store_type: storeDetails.from_store_type,
-          to_store_id: storeDetails.from_store_id,
+          to_store_type: storeDetails.to_store_type,
+          to_store_id: storeDetails.to_store_id,
+
           dispatch_date: Utility.formatDate(Date()),
 
           request_item_dispatch_qty: qty,
@@ -200,7 +205,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     setLoader(true)
     const data = { stock_item_id: id }
     const response = await getAvailableMedicineByMedicineId(id, data, 'central')
-
+    debugger
     if (response.success) {
       setBatchItems(response.data)
       console.log(response.data)
@@ -210,19 +215,19 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     }
   }
 
-  const getMedicineByMedicineIdLocalStore = async id => {
-    setLoader(true)
-    const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'local')
+  // const getMedicineByMedicineIdLocalStore = async id => {
+  //   setLoader(true)
+  //   const data = { stock_item_id: id }
+  //   const response = await getAvailableMedicineByMedicineId(id, data, 'local')
 
-    if (response.success) {
-      setLocalBatchItems(response.data)
-      console.log(response.data)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
+  //   if (response.success) {
+  //     setLocalBatchItems(response.data)
+  //     console.log(response.data)
+  //     setLoader(false)
+  //   } else {
+  //     setLoader(false)
+  //   }
+  // }
 
   const dispatchRequest = async data => {
     const payload = {
@@ -230,7 +235,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       dispatch_items: fulfilStockItems,
       request_number: storeDetails.id
     }
-
+    debugger
     console.log('payload', JSON.stringify(payload))
 
     try {
@@ -259,7 +264,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       console.log(storeDetails)
 
       getMedicineByMedicineId(fulfillMedicine?.stock_item_id)
-      getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
+
+      // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
   }, [fulfillMedicine, storeDetails])
 
@@ -382,7 +388,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           ) : (
             <CardContent>Medicine Not Available in central store.</CardContent>
           )}
-          <CardContent>
+          {/* <CardContent>
             <div>
               <StyledText onClick={toggleLocalTable}>Show stock in other stores</StyledText>
             </div>
@@ -429,7 +435,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 handleQuantityChange(e.target.value, row, `batch_local_${index}`)
                               }}
                             />
-                            {/* {rowErrors[`batch_local_${index}`]?.status && <span className='error'>Invalid input</span>} */}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -440,7 +445,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 <CardContent>Medicine Not Available in other stores.</CardContent>
               )}
             </>
-          ) : null}
+          ) : null} */}
 
           {fulfilStockItems.length > 0 ? (
             <CardContent>

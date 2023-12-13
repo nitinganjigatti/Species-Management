@@ -172,23 +172,23 @@ const IndividualRequest = () => {
     }
   }
 
-  const getDispenseItems = async id => {
-    try {
-      const response = await getDispenseItemList(id)
+  // const getDispenseItems = async id => {
+  //   try {
+  //     const response = await getDispenseItemList(id)
 
-      if (response.success) {
-        const mappedWithUid = response?.data?.map((item, index) => ({
-          ...item,
-          uid: index + 1
-        }))
+  //     if (response.success) {
+  //       const mappedWithUid = response?.data?.map((item, index) => ({
+  //         ...item,
+  //         uid: index + 1
+  //       }))
 
-        setDispenseItems(mappedWithUid)
-      } else {
-      }
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  //       setDispenseItems(mappedWithUid)
+  //     } else {
+  //     }
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const handleEdit = id => {
     Router.push({
@@ -216,7 +216,8 @@ const IndividualRequest = () => {
   useEffect(() => {
     if (id !== undefined && orderFormDialog === false) {
       getDisputeItems(id)
-      getDispenseItems(id)
+
+      // getDispenseItems(id)
     }
   }, [orderFormDialog])
 
@@ -746,8 +747,7 @@ const IndividualRequest = () => {
             <CardHeader
               title={`Request`}
               action={
-                requestItems.status === 'request' ||
-                (requestItems.status === 'Partial Dispatched' && (
+                requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
                   <Button
                     size='big'
                     variant='contained'
@@ -757,7 +757,9 @@ const IndividualRequest = () => {
                   >
                     Edit
                   </Button>
-                ))
+                ) : (
+                  <></>
+                )
               }
             />
             <CardContent>
@@ -765,11 +767,11 @@ const IndividualRequest = () => {
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
-                  <p>{requestItems?.from_store}</p>
+                  <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
-                  <p>{requestItems?.to_store}</p>
+                  <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Date</h5>
@@ -843,7 +845,7 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null}
-            {dispenseItems?.length > 0 ? (
+            {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -862,7 +864,7 @@ const IndividualRequest = () => {
                   show={showDispenseDialog}
                 />
               </>
-            ) : null}
+            ) : null} */}
           </Card>
           {/* Fulfill Request Dialog */}
           <CardContent>
@@ -885,7 +887,7 @@ const IndividualRequest = () => {
                       alignItems: 'center'
                     }}
                   >
-                    <CardHeader title={`Fulfill - ${fulfillMedicine.id}`} />
+                    <CardHeader title={`Fulfill`} />
                     <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
                       <Icon icon='mdi:close' />
                     </IconButton>
