@@ -45,8 +45,8 @@ const StockOut = () => {
           setRows(loadServerRows(paginationModel.page, res?.list_items))
         })
         setLoading(false)
-      } catch (error) {
-        console.log('error', error)
+      } catch (e) {
+        console.log(e)
         setLoading(false)
       }
     },
