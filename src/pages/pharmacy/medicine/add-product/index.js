@@ -529,7 +529,8 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      active
+      active,
+      url
     } = {
       ...params
     }
@@ -555,7 +556,8 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      status: active
+      status: active,
+      url
     }
     if (files.length > 0) {
       payload.image = files[0]
