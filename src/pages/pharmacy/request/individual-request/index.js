@@ -747,8 +747,7 @@ const IndividualRequest = () => {
             <CardHeader
               title={`Request`}
               action={
-                requestItems.status === 'request' ||
-                (requestItems.status === 'Partial Dispatched' && (
+                requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
                   <Button
                     size='big'
                     variant='contained'
@@ -758,7 +757,9 @@ const IndividualRequest = () => {
                   >
                     Edit
                   </Button>
-                ))
+                ) : (
+                  <></>
+                )
               }
             />
             <CardContent>

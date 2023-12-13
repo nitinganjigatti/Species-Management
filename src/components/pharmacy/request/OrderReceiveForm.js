@@ -16,7 +16,8 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById
+  getDisputeItemById,
+  updateShipmentRequest
 } from 'src/lib/api/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/getRequestItemsList'
@@ -251,52 +252,21 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     console.log('notReceivedItems: ', notReceivedItems)
 
     if (receivedItems.length > 0) {
-      const finalReceivedItems = receivedItems.map((item, index) => {
-        debugger
+      // setSubmitLoader(true)
+      const finalData = { ...disputeItemDetails, item_details: receivedItems }
+      console.log(finalData)
+      // try {
+      //   const result = await updateShipmentRequest(orderId, finalData)
 
-        return {
-          ...item,
-          from_store_id: item.from_store,
-          to_store_id: item.to_store,
-          shipment_item_id: item.id,
-          shipment_date: orderData.shipment_date,
-          person_shipping: orderData.person_shipping,
-          status: orderData.shipment_status,
-          vehicle_no: orderData.vehicle_no,
-          picked_up: orderData.picked_up,
-          request_id: requestId,
-          comments: disputeItemDetails.comments,
-          item_status: item.status
-        }
-        // "shipment_item_id": "108",
-        // "shipment_date": "2023-12-07",
-        // "person_shipping": "Test",
-        // "status": "Shipped",
-        // "vehicle_no": "KA01AB1234",
-        // "picked_up": "",
-        // "dispatch_id": "129",
-        // "dispatch_item_id": "153",
-        // "from_store_id": "14",
-        // "to_store_id": "16",
-        // "item_status": "Wrong Count",
-        // "request_id": "130",
-        // "comments": "test"
-      })
-      //setSubmitLoader(true)
-      // const finalData = { ...disputeItemDetails, item_details: receivedItems }
-      console.log('finalReceivedItems', finalReceivedItems)
-      try {
-        const result = await updateShipmentRequest(orderId, finalReceivedItems)
+      //   if (result?.success) {
+      //     toast.success(result?.message)
+      //     setSubmitLoader(false)
+      //   }
+      // } catch (error) {
+      //   setSubmitLoader(false)
 
-        if (result?.success) {
-          toast.success(result?.message)
-          setSubmitLoader(false)
-        }
-      } catch (error) {
-        setSubmitLoader(false)
-
-        toast.error(error?.message)
-      }
+      //   toast.error(error?.message)
+      // }
     }
     // if (notReceivedItems.length > 0) {
     //   setSubmitLoader(true)
