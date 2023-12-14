@@ -1,6 +1,4 @@
 /* eslint-disable react/jsx-key */
-/* eslint-disable lines-around-comment */
-/* eslint-disable newline-before-return */
 import React, { useState, useEffect, useRef } from 'react'
 
 // ** MUI Imports
@@ -37,7 +35,9 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+
 // ** Source code imports
+
 import TestSample from './sample/sample'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/addLab'
@@ -53,13 +53,12 @@ const Lab = () => {
   const [TestData, setTestData] = useState(TestSample)
   const [dataToUpdate, setDataToUpdate] = useState([])
   console.log('dataToUpdate', dataToUpdate)
-  const [checkBox, setCheckBox] = useState(false)
+
   console.log('longitude', longitude.longitude)
   console.log('latitude', latitude.latitude)
   console.log('TestData', TestData)
   console.log('labType', labType)
   console.log('markDefault', markDefault)
-  console.log('checkBox', checkBox)
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -114,18 +113,22 @@ const Lab = () => {
     lab_incharge_phone: '',
     latitude: latitude,
     longitude: longitude,
-    image: ''
+    image: '',
+    markAsDefault: ''
   }
 
   const schema = yup.object().shape({
     lab_name: yup.string().required('Lab name is required'),
     lab_type: yup.string().required('Lab Type is required'),
-    lab_incharge_name: yup.string().required('Lab Incharge name  is required')
-    // lab_incharge_phone: yup
-    //   .string()
-    //   .required('Lab Incharge  No is required')
-    //   .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-    //   .max(10, 'Maximum of 10 digits'),
+    lab_incharge_name: yup.string().required('Lab Incharge name  is required'),
+    lab_incharge_phone: yup
+      .string()
+      .required('Lab Incharge  No is required')
+
+      // .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
+
+      .max(10, 'Maximum of 10 digits'),
+    markAsDefault: yup.boolean()
 
     // latitude: yup.string(),
     // longitude: yup.string()
@@ -158,13 +161,14 @@ const Lab = () => {
     } catch (error) {
       console.error(error)
     }
+
     // handleSubmit(onSubmit)()
   }
 
   const onSubmit = async params => {
-    // setSubmitLoader(true)
+    setSubmitLoader(true)
 
-    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests } = {
+    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests, markAsDefault } = {
       ...params
     }
     const { latitude, longitude } = getValues()
@@ -177,7 +181,8 @@ const Lab = () => {
       lab_incharge_phone,
       latitude,
       longitude,
-      tests: dataToUpdate
+      tests: dataToUpdate,
+      markAsDefault: markAsDefault
     }
 
     if (files.length > 0) {
@@ -187,7 +192,11 @@ const Lab = () => {
     }
     console.log('payload', payload)
 
-    const res = await addLabToList(payload)
+    const res = await addLabToList(payload).then(res => {
+      if (res?.status === 200) {
+        setSubmitLoader(true)
+      }
+    })
     console.log('res', res)
 
     // if (id !== undefined && action === 'edit') {
@@ -293,6 +302,7 @@ const Lab = () => {
             }
           ]
         }
+
         // Handle the case when the sample is not found and isChecked is false
         return prevData
       }
@@ -347,6 +357,7 @@ const Lab = () => {
             }
           ]
         }
+
         // Handle the case when the sample is not found and isChecked is false
         return prevData
       }
@@ -403,6 +414,7 @@ const Lab = () => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
+
         // Router.push('/pharmacy/supplier')
       } else {
         setSubmitLoader(false)
@@ -415,11 +427,7 @@ const Lab = () => {
     }
   }
 
-  //- - - - -  - - - - - - - -
   // New state to keep track of data to be added or removed
-
-  // ... (existing code)
-
   useEffect(() => {
     // Logic to update data based on the value of testData
     const updatedData = TestData.reduce((acc, sample) => {
@@ -457,6 +465,26 @@ const Lab = () => {
 
     setDataToUpdate(updatedData)
   }, [TestData])
+
+  // deleing the data from ui
+  const handleCloseTest = (sampleId, parentId) => {
+    setDataToUpdate(prevData => {
+      const newData = [...prevData]
+      const sampleTests = newData[sampleId]?.tests
+
+      if (sampleTests && sampleTests[parentId]) {
+        // Remove the parent.test object
+        sampleTests.splice(parentId, 1)
+
+        // Check if tests array is empty, delete the current sample object
+        if (sampleTests.length === 0) {
+          newData.splice(sampleId, 1)
+        }
+      }
+
+      return newData
+    })
+  }
 
   return (
     <>
@@ -604,16 +632,19 @@ const Lab = () => {
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
-                        <Stack
-                          direction='row'
-                          sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
-                        >
-                          <Typography>Mark as default Lab</Typography>
-                          <FormControlLabel
-                            control={<Switch checked={markDefault} onChange={handleSwitchToggle} />}
-                            // label='Required'
-                          />
-                        </Stack>
+                        <Controller
+                          name='markAsDefault'
+                          control={control}
+                          render={({ field }) => (
+                            <Stack
+                              direction='row'
+                              sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
+                            >
+                              <Typography>Mark as default Lab</Typography>
+                              <FormControlLabel control={<Switch {...field} />} />
+                            </Stack>
+                          )}
+                        />
                       </Grid>
 
                       {/* test Data */}
@@ -653,9 +684,7 @@ const Lab = () => {
                                     >
                                       <>
                                         <Typography variant='subtitle1'>{parent.test_name}</Typography>
-                                        <IconButton
-                                        // onClick={() => handleCloseTest(sampleId, parentId)}
-                                        >
+                                        <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
                                           <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
                                         </IconButton>
                                       </>
@@ -748,7 +777,12 @@ const Lab = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} md={12} sm={6}>
-                        <LoadingButton onClick={handleSubmitData} type='submit' variant='contained'>
+                        <LoadingButton
+                          loading={submitLoader}
+                          onClick={handleSubmitData}
+                          type='submit'
+                          variant='contained'
+                        >
                           Submit
                         </LoadingButton>
                       </Grid>
