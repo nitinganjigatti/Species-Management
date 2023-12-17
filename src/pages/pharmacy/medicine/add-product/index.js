@@ -66,7 +66,6 @@ import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
 import { addManufacturer } from 'src/lib/api/manufacturer'
 import { AddButton, BackButton } from 'src/components/Buttons'
-import { useDropdownContext } from 'src/context/storeContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -891,12 +890,12 @@ const AddMedicine = () => {
                       >
                         Product List
                       </Button> */}
-                      {/* <BackButton
+                      <BackButton
                         title=' Back To Product List'
                         action={() => {
                           Router.push('/pharmacy/medicine/product-list')
                         }}
-                      /> */}
+                      />
                     </div>
                   }
                 />
