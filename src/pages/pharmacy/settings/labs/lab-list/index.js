@@ -1,7 +1,7 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getMedicineList } from 'src/lib/api/getMedicineList'
+import { getAllLabSample, getLabList } from 'src/lib/api/addLab'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 // import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
@@ -62,46 +62,47 @@ const ListOfLab = () => {
     {
       flex: 0.3,
       minWidth: 20,
-      field: 'name',
-      headerName: 'MEDICINE NAME',
+      field: 'lab_name',
+      headerName: 'LAB NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.lab_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'type',
+      headerName: 'Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <span alt={params.row.type}>{params.row.type}</span>
         </Typography>
       )
     },
 
     // {
-    //   flex: 0.2,
+    //   flex: 0.4,
     //   minWidth: 20,
-    //   field: 'stock_type',
-    //   headerName: 'Type',
+    //   field: 'package',
+    //   headerName: 'PACKAGE',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       <span alt={params.row.stock_type}>{params.row.stock_type}</span>
+    //       {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+    //       ${params.row.package_uom_label} ${params.row.product_form_label}`}
     //     </Typography>
     //   )
     // },
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'package',
-      headerName: 'PACKAGE',
+      field: 'address',
+      headerName: 'Address',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'manufacturer_name',
-      headerName: 'Manufacturer Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
+          <span alt={params.row.address}>{params.row.address}</span>
         </Typography>
       )
     },
@@ -132,7 +133,7 @@ const ListOfLab = () => {
         >
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Lab Image'
             sx={{ width: 40, height: 40 }}
             src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
           />
@@ -146,7 +147,7 @@ const ListOfLab = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
+          {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
     },
@@ -184,8 +185,10 @@ const ListOfLab = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
+  console.log('total', total)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
@@ -207,10 +210,11 @@ const ListOfLab = () => {
           limit: paginationModel.pageSize
         }
 
-        // await getMedicineList({ params: params }).then(res => {
-        //   setTotal(parseInt(res?.data?.total_count))
-        //   setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-        // })
+        await getLabList({ params: params }).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          console.log('res?.data', res?.data)
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+        })
         setLoading(false)
       } catch (e) {
         console.log(e)

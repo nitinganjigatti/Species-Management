@@ -181,7 +181,8 @@ const AddLab = () => {
       latitude,
       longitude,
       tests: dataToUpdate,
-      markAsDefault: markAsDefault
+      markAsDefault: markAsDefault,
+      user_id: '9'
     }
 
     if (files.length > 0) {
@@ -199,7 +200,6 @@ const AddLab = () => {
       }
     })
     console.log('res', res)
-    Router.push('/pharmacy/settings/labs/lab-list')
 
     // if (id !== undefined && action === 'edit') {
     //   console.log('payload', payload)
@@ -404,9 +404,9 @@ const AddLab = () => {
     })
   }
 
-  const handleSwitchToggle = () => {
-    setMarkDefault(!markDefault)
-  }
+  //   const handleSwitchToggle = () => {
+  //     setMarkDefault(!markDefault)
+  //   }
 
   // api call
   const addLabToList = async payload => {
