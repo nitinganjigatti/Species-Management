@@ -16,9 +16,10 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById,
-  updateShipmentRequest
+  getDisputeItemById
 } from 'src/lib/api/getShipmentList'
+
+import { updateShipmentRequest } from 'src/lib/api/getRequestItemsList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -61,6 +62,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, status: event.target.value } : item
       )
     }
+    debugger
     setDisputeItemDetails(updatedData)
   }
 
@@ -69,7 +71,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
-
+      console.log('getOrderDetails', response?.data)
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -84,7 +86,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
             status: el.status ? el.status : '',
-            dispatch_id: el?.dispatch_id
+            dispatch_id: el?.dispatch_id,
+            dispatch_item_id: el?.dispatch_item_id
           }
 
           return data
@@ -92,7 +95,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         setOrderData({
           ...orderData,
 
-          shipping_id: response?.data?.shipping_id,
+          shipping_id: orderId,
           shipment_id: response?.data?.shipment_id,
           shipment_date: response?.data?.shipment_date,
           person_shipping: response?.data?.person_shipping,
@@ -100,8 +103,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems
         })
+        debugger
+        console.log('orderData', orderData)
 
-        const deputesData = {
+        const disputesData = {
           shipment_id: orderId,
           store_id: response?.data?.shipment_item_details[0]?.from_store,
           // dispatch_id: response?.data?.dispatch_id,
@@ -109,7 +114,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           item_details: disputeLineItems
         }
 
-        setDisputeItemDetails(deputesData)
+        setDisputeItemDetails(disputesData)
       }
     } catch (error) {
       console.log('error', error)
@@ -246,21 +251,52 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     console.log('notReceivedItems: ', notReceivedItems)
 
     if (receivedItems.length > 0) {
-      // setSubmitLoader(true)
-      const finalData = { ...disputeItemDetails, item_details: receivedItems }
-      console.log(finalData)
-      // try {
-      //   const result = await updateShipmentRequest(orderId, finalData)
+      const finalReceivedItems = receivedItems.map((item, index) => {
+        debugger
 
-      //   if (result?.success) {
-      //     toast.success(result?.message)
-      //     setSubmitLoader(false)
-      //   }
-      // } catch (error) {
-      //   setSubmitLoader(false)
+        return {
+          ...item,
+          from_store_id: item.from_store,
+          to_store_id: item.to_store,
+          shipment_item_id: item.id,
+          shipment_date: orderData.shipment_date,
+          person_shipping: orderData.person_shipping,
+          status: orderData.shipment_status,
+          vehicle_no: orderData.vehicle_no,
+          picked_up: orderData.picked_up,
+          request_id: requestId,
+          comments: disputeItemDetails.comments,
+          item_status: item.status
+        }
+        // "shipment_item_id": "108",
+        // "shipment_date": "2023-12-07",
+        // "person_shipping": "Test",
+        // "status": "Shipped",
+        // "vehicle_no": "KA01AB1234",
+        // "picked_up": "",
+        // "dispatch_id": "129",
+        // "dispatch_item_id": "153",
+        // "from_store_id": "14",
+        // "to_store_id": "16",
+        // "item_status": "Wrong Count",
+        // "request_id": "130",
+        // "comments": "test"
+      })
+      //setSubmitLoader(true)
+      // const finalData = { ...disputeItemDetails, item_details: receivedItems }
+      console.log('finalReceivedItems', finalReceivedItems)
+      try {
+        const result = await updateShipmentRequest(orderId, finalReceivedItems)
 
-      //   toast.error(error?.message)
-      // }
+        if (result?.success) {
+          toast.success(result?.message)
+          setSubmitLoader(false)
+        }
+      } catch (error) {
+        setSubmitLoader(false)
+
+        toast.error(error?.message)
+      }
     }
     // if (notReceivedItems.length > 0) {
     //   setSubmitLoader(true)
