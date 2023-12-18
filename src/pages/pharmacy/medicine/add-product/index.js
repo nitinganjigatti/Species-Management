@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 
 // ** MUI Imports
 
@@ -66,6 +66,7 @@ import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
 import { addManufacturer } from 'src/lib/api/manufacturer'
 import { AddButton, BackButton } from 'src/components/Buttons'
+import { useDropdownContext } from 'src/context/storeContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -144,6 +145,9 @@ const AddMedicine = () => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  const storeData = useContext(useDropdownContext)
+  console.log('storeData', storeData)
 
   const router = useRouter()
   const { id, action } = router.query
@@ -691,7 +695,7 @@ const AddMedicine = () => {
             slat_id: ''
           })
         }}
-        sx={{ marginRight: '4px' }}
+        sx={{ marginRight: '4px', borderRadius: 6 }}
       >
         Add Another
       </Button>
@@ -700,35 +704,60 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
-      <Button
-        variant='outlined'
-        color='error'
-        onClick={() => {
-          var tempDefaultSalts = defaultSalts
-          tempDefaultSalts.splice(index, 1)
-          setDefaultSalts(tempDefaultSalts)
-          remove(index)
-        }}
-      >
-        Remove
-      </Button>
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts.splice(index, 1)
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+
+      // <Button
+      //   variant='outlined'
+      //   color='error'
+      //   startIcon={<Icon icon='material-symbols-light:close' />}
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts.splice(index, 1)
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //   }}
+      // >
+      //   {/* Remove */}
+      // </Button>
     )
   }
 
   const clearSaltFields = index => {
     return (
-      <Button
-        variant='outlined'
-        onClick={() => {
-          var tempDefaultSalts = defaultSalts
-          tempDefaultSalts[index] = undefined
-          setDefaultSalts(tempDefaultSalts)
-          remove(index)
-          insert(index, {})
-        }}
-      >
-        Clear
-      </Button>
+      // <Button
+      //   variant='outlined'
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts[index] = undefined
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //     insert(index, {})
+      //   }}
+      // >
+      //   Clear
+      // </Button>
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts[index] = undefined
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+            insert(index, {})
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
     )
   }
 
@@ -840,6 +869,14 @@ const AddMedicine = () => {
             <Grid item xs={12}>
               <Card>
                 <CardHeader
+                  avatar={
+                    <Icon
+                      onClick={() => {
+                        Router.push('/pharmacy/medicine/product-list')
+                      }}
+                      icon='ep:back'
+                    />
+                  }
                   title={id ? 'Edit Product' : 'Add New Product'}
                   action={
                     <div>
@@ -852,12 +889,12 @@ const AddMedicine = () => {
                       >
                         Product List
                       </Button> */}
-                      <BackButton
+                      {/* <BackButton
                         title=' Back To Product List'
                         action={() => {
                           Router.push('/pharmacy/medicine/product-list')
                         }}
-                      />
+                      /> */}
                     </div>
                   }
                 />
@@ -1292,7 +1329,19 @@ const AddMedicine = () => {
                                   </FormControl>
                                 </Grid>
 
-                                <Grid item xs={4} justifyContent='flex-end' alignSelf='center'>
+                                <Grid
+                                  item
+                                  xs={4}
+                                  // eslint-disable-next-line lines-around-comment
+                                  // justifyContent='flex-end'
+
+                                  alignSelf='center'
+                                  sx={{
+                                    display: 'flex',
+                                    justifyItems: 'center',
+                                    alignItems: 'center'
+                                  }}
+                                >
                                   {handleAddRemoveSalts(fields, index)}
                                 </Grid>
                               </Grid>
@@ -1657,15 +1706,21 @@ const AddMedicine = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12}>
-                        <LoadingButton
-                          size='large'
-                          variant='contained'
-                          loading={submitLoader}
-                          sx={{ marginRight: '8px' }}
-                          onClick={handleSubmitData}
-                        >
-                          Submit
-                        </LoadingButton>
+                        <Box sx={{ float: 'right' }}>
+                          <LoadingButton
+                            size='large'
+                            variant='contained'
+                            loading={submitLoader}
+                            sx={{ marginRight: '8px' }}
+                            onClick={handleSubmitData}
+                          >
+                            Submit
+                          </LoadingButton>
+                          <Button size='large' variant='outlined'>
+                            Reset
+                          </Button>
+                        </Box>
+
                         {/* {id === undefined && (
                           <LoadingButton
                             size='large'
