@@ -66,6 +66,7 @@ import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
 import { addManufacturer } from 'src/lib/api/manufacturer'
 import { AddButton, BackButton } from 'src/components/Buttons'
+import { useDropdownContext } from 'src/context/storeContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -145,9 +146,8 @@ const AddMedicine = () => {
     reValidateMode: 'onChange'
   })
 
-  const { selectedValue } = useDropdownContext()
-
-  console.log('selecetd store product page', selectedValue)
+  const storeData = useContext(useDropdownContext)
+  console.log('storeData', storeData)
 
   const router = useRouter()
   const { id, action } = router.query
@@ -746,7 +746,6 @@ const AddMedicine = () => {
       // >
       //   Clear
       // </Button>
-
       <Box>
         <Icon
           onClick={() => {
@@ -890,12 +889,12 @@ const AddMedicine = () => {
                       >
                         Product List
                       </Button> */}
-                      <BackButton
+                      {/* <BackButton
                         title=' Back To Product List'
                         action={() => {
                           Router.push('/pharmacy/medicine/product-list')
                         }}
-                      />
+                      /> */}
                     </div>
                   }
                 />

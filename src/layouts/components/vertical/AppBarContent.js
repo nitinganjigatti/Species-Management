@@ -9,6 +9,8 @@ import Icon from 'src/@core/components/icon'
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 import SetStore from 'src/components/SetStore'
+import { AuthContext, AuthProvider } from 'src/context/AuthContext'
+import { DropdownProvider } from 'src/context/storeContext'
 
 const AppBarContent = props => {
   // ** Props
@@ -25,7 +27,10 @@ const AppBarContent = props => {
 
         <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
 
-        <SetStore />
+        <DropdownProvider>
+          <SetStore />
+        </DropdownProvider>
+        {/* <AuthProvider>{children}</AuthProvider> */}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>

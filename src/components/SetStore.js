@@ -13,7 +13,7 @@ import Popper from '@mui/material/Popper'
 import MenuList from '@mui/material/MenuList'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
-import { readAsync, write } from 'src/lib/windows/utils'
+import { readAsync } from 'src/lib/windows/utils'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -26,11 +26,8 @@ function SetStore() {
 
   const getStoreData = async () => {
     const data = await readAsync('userDetails')
-
-    console.log('stores', data?.modules?.pharmacy_data?.pharmacy[0])
+    console.log('stores', data)
     setOptions(data?.modules?.pharmacy_data?.pharmacy)
-    setSelectedStore(data?.modules?.pharmacy_data?.pharmacy[0])
-    write('selectedStore', data?.modules?.pharmacy_data?.pharmacy[0])
   }
 
   const { selectedValue, setSelectedValue } = useDropdownContext()
@@ -42,21 +39,23 @@ function SetStore() {
     setSelectedValue(newValue)
   }
 
+  // ** Ref
   const anchorRef = useRef(null)
 
-  const handleClick = () => {}
+  const handleClick = () => {
+    // console.info(You clicked '{options[selectedIndex]}')
+  }
 
-  // console.log('context in app bar', selectedValue)
-
-  const handleMenuItemClick = id => {
+  const handleMenuItemClick = (event, id) => {
     const selected = options.filter(el => {
       return el.id == id
     })
+    console.log('event', event)
+    console.log('id', id)
+    console.log('selected', selected)
+    setSelectedStore(selected)
 
-    // console.log('selected store in dropdwon ', selected[0])
-    setSelectedStore(selected[0])
-    write('selectedStore', selected[0])
-    setSelectedValue(selected[0])
+    setSelectedValue(selected)
 
     setOpen(false)
   }
@@ -70,15 +69,14 @@ function SetStore() {
   }
   useEffect(() => {
     getStoreData()
-
-    // console.log('dataaa', authData)
+    console.log('dataaa', authData)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <Fragment>
       <ButtonGroup variant='outlined' ref={anchorRef} aria-label='split button'>
-        <Button onClick={handleClick}>{selectedStore?.name}</Button>
+        <Button onClick={handleClick}>{selectedStore ? selectedStore[0]?.name : `Select Store`}</Button>
 
         <Button
           sx={{ px: '0' }}
@@ -103,8 +101,8 @@ function SetStore() {
                   {options?.map((option, index) => (
                     <MenuItem
                       key={index}
-                      selected={selectedStore ? selectedStore?.name : null}
-                      onClick={event => handleMenuItemClick(option.id)}
+                      selected={selectedStore ? selectedStore[0]?.name : null}
+                      onClick={event => handleMenuItemClick(event, option.id)}
                     >
                       {option?.name}
                     </MenuItem>
