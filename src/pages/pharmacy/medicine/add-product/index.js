@@ -146,8 +146,9 @@ const AddMedicine = () => {
     reValidateMode: 'onChange'
   })
 
-  const storeData = useContext(useDropdownContext)
-  console.log('storeData', storeData)
+  const { selectedValue } = useDropdownContext()
+
+  console.log('selecetd store product page', selectedValue)
 
   const router = useRouter()
   const { id, action } = router.query
@@ -746,6 +747,7 @@ const AddMedicine = () => {
       // >
       //   Clear
       // </Button>
+
       <Box>
         <Icon
           onClick={() => {
