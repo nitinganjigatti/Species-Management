@@ -45,13 +45,15 @@ function SetStore() {
   const anchorRef = useRef(null)
 
   const handleClick = () => {}
-  console.log('context in app bar', selectedValue)
+
+  // console.log('context in app bar', selectedValue)
 
   const handleMenuItemClick = id => {
     const selected = options.filter(el => {
       return el.id == id
     })
-    console.log('selected store in dropdwon ', selected[0])
+
+    // console.log('selected store in dropdwon ', selected[0])
     setSelectedStore(selected[0])
     write('selectedStore', selected[0])
     setSelectedValue(selected[0])
