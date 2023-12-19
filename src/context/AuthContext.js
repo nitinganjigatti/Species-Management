@@ -75,6 +75,8 @@ const AuthProvider = ({ children }) => {
           const resData = await callRefreshToken()
           setLoading(false)
           if (resData.token) {
+            console.log('refreshed', resData)
+
             const userData = {
               email: resData.user.user_email,
               fullName: resData.user.user_first_name,
@@ -113,6 +115,7 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
+    localStorage.removeItem('selectedStore')
     setUser(null)
     setUserData(null)
     setLoading(false)
