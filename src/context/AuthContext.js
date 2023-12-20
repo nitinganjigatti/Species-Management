@@ -1,6 +1,6 @@
 // ** React Imports
 import { createContext, useEffect, useState } from 'react'
-import { read, write } from '../lib/windows/utils'
+import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
 
 // ** Next Import
@@ -75,7 +75,16 @@ const AuthProvider = ({ children }) => {
           const resData = await callRefreshToken()
           setLoading(false)
           if (resData.token) {
-            console.log('refreshed', resData)
+            // console.log('refreshed', resData?.modules?.pharmacy_data?.pharmacy)
+            const options = resData?.modules?.pharmacy_data?.pharmacy
+            const storedPharmacy = await readAsync('selectedStore')
+
+            const foundStored = () => {
+              return options.some(item => item?.id === storedPharmacy?.id)
+            }
+            if (storedPharmacy === '' || foundStored() === false) {
+              write('selectedStore', options[0])
+            }
 
             const userData = {
               email: resData.user.user_email,

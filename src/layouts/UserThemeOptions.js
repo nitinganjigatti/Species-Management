@@ -21,7 +21,8 @@ const UserThemeOptions = () => {
     } else if (skin === 'bordered' && mode === 'dark') {
       return '#30334E'
     } else if (mode === 'light') {
-      return '#EFF5F2'
+      // return '#EFF5F2'
+      return '#E8F4F2'
     } else return '#282A42'
   }
 
@@ -37,7 +38,8 @@ const UserThemeOptions = () => {
     },
     palette: {
       primary: {
-        light: '#20DE67',
+        // light: '#20DE67',
+        light: '#1F515B',
         main: '#37BD69',
         dark: '#006D35',
         contrastText: '#FFF'

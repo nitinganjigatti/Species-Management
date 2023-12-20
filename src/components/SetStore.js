@@ -24,23 +24,37 @@ function SetStore() {
   const [open, setOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState()
 
-  const getStoreData = async () => {
-    const data = await readAsync('userDetails')
-
-    console.log('stores', data?.modules?.pharmacy_data?.pharmacy[0])
-    setOptions(data?.modules?.pharmacy_data?.pharmacy)
-    setSelectedStore(data?.modules?.pharmacy_data?.pharmacy[0])
-    write('selectedStore', data?.modules?.pharmacy_data?.pharmacy[0])
-  }
-
   const { selectedValue, setSelectedValue } = useDropdownContext()
   const authData = useContext(AuthContext)
 
-  const handleSelectChange = event => {
-    const newValue = event.target.value
+  const getStoreData = async () => {
+    const data = await readAsync('userDetails')
+    const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
+    const options = data?.modules?.pharmacy_data?.pharmacy
+    console.log('stores', pharmacy)
+    setOptions(options)
+    const storedPharmacy = await readAsync('selectedStore')
 
-    setSelectedValue(newValue)
+    // console.log('storedPharmacy', storedPharmacy)
+    // console.log('options', options)
+
+    const foundStored = () => {
+      return options.some(item => item.id === storedPharmacy.id)
+    }
+    if (storedPharmacy === '' || foundStored() === false) {
+      setSelectedStore(pharmacy)
+      write('selectedStore', pharmacy)
+      setSelectedValue(pharmacy)
+    } else {
+      setSelectedStore(storedPharmacy)
+    }
   }
+
+  // const handleSelectChange = event => {
+  //   const newValue = event.target.value
+
+  //   setSelectedValue(newValue)
+  // }
 
   const anchorRef = useRef(null)
 
@@ -53,7 +67,6 @@ function SetStore() {
       return el.id == id
     })
 
-    // console.log('selected store in dropdwon ', selected[0])
     setSelectedStore(selected[0])
     write('selectedStore', selected[0])
     setSelectedValue(selected[0])
@@ -71,7 +84,6 @@ function SetStore() {
   useEffect(() => {
     getStoreData()
 
-    // console.log('dataaa', authData)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
