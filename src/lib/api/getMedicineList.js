@@ -55,7 +55,7 @@ export async function updateMedicineById(payload, id) {
 }
 
 export async function getMedicineConfig(id) {
-  const response = await axiosGet({ url: `${MEDICINE}/${id}/config` })
+  const response = await axiosGet({ url: `stock-item/${id}/config` })
 
   if (response?.status == 200 && response?.data?.success) {
     return response.data.data
@@ -66,7 +66,7 @@ export async function getMedicineConfig(id) {
 
 export async function addMedicineConfig(payload, id) {
   try {
-    const url = `${MEDICINE}/${id}/config`
+    const url = `stock-item/${id}/config`
     var data = payload
     const response = await axiosFormPost({ url, body: data })
 
@@ -84,7 +84,7 @@ export async function addMedicineConfig(payload, id) {
 }
 
 export async function deleteMedicineConfig(id) {
-  const response = await axiosGet({ url: `${MEDICINE}/config/${id}/delete` })
+  const response = await axiosGet({ url: `stock-item/config/${id}/delete` })
 
   if (response?.status == 200 && response?.data?.success) {
     return response.data
@@ -93,7 +93,7 @@ export async function deleteMedicineConfig(id) {
 
 export async function addMedicineMinQuantity(payload, id) {
   try {
-    const url = `${MEDICINE}/${id}/min-qty`
+    const url = `stock-item/${id}/min-qty`
     var data = payload
     const response = await axiosFormPost({ url, body: data })
 
@@ -112,7 +112,7 @@ export async function addMedicineMinQuantity(payload, id) {
 
 export async function updateMedicineConfig(payload, id, configId) {
   try {
-    const url = `${MEDICINE}/${id}/config/${configId}/update`
+    const url = `stock-item/${id}/config/${configId}/update`
     var data = payload
     const response = await axiosFormPost({ url, body: data })
 

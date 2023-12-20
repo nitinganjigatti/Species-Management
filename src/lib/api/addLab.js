@@ -26,8 +26,14 @@ export async function getLabList({ params }) {
   return response.data
 }
 
-export async function getAllLabSample({ params }) {
-  const response = await axiosGet({ url: `${AllLabSample}`, params })
+// export async function getAllLabSample({ params }) {
+//   const response = await axiosGet({ url: `${AllLabSample}`, params })
 
-  return response.data
+//   return response.data
+// }
+
+export async function getAllLabSample() {
+  const response = await axiosGet({ url: AllLabSample })
+
+  return response.data.data
 }

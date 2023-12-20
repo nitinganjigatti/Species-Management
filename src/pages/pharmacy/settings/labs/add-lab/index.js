@@ -27,13 +27,13 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-
+import { getAllLabSample } from 'src/lib/api/addLab'
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 
 // ** Source code imports
@@ -49,7 +49,7 @@ const AddLab = () => {
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
   const [markDefault, setMarkDefault] = useState(false)
-  const [TestData, setTestData] = useState(TestSample)
+  const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
   console.log('dataToUpdate', dataToUpdate)
 
@@ -58,6 +58,31 @@ const AddLab = () => {
   console.log('TestData', TestData)
   console.log('labType', labType)
   console.log('markDefault', markDefault)
+
+  // for handle reset form
+
+  const shouldClearFieldsRef = useRef(false)
+
+  const getAllLabsLists = async () => {
+    setLoader(true)
+    const response = await getAllLabSample()
+    if (response?.length > 0) {
+      console.log('list', response)
+
+      // let listWithId = response.map((el, i) => {
+      //   return { ...el, uid: i + 1 }
+      // })
+
+      setTestData(response)
+      setLoader(false)
+    } else {
+      setLoader(false)
+    }
+  }
+
+  useEffect(() => {
+    getAllLabsLists()
+  }, [])
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -113,7 +138,7 @@ const AddLab = () => {
     latitude: latitude,
     longitude: longitude,
     image: '',
-    markAsDefault: ''
+    markAsDefault: false
   }
 
   const schema = yup.object().shape({
@@ -817,7 +842,7 @@ const AddLab = () => {
 
         {/* drower */}
         <Stack sx={{ p: 5 }} spacing={3}>
-          {TestData.map((sample, index) => (
+          {TestData?.map((sample, index) => (
             <>
               <Stack
                 key={index}
@@ -827,12 +852,12 @@ const AddLab = () => {
                 <Typography variant='h6'>{sample?.sample_name}</Typography>
                 <Typography sx={{ alignItems: 'center', display: 'flex' }}>
                   Select All
-                  <Switch onChange={e => handleSelectAllSwitch(sample.sample_id, e.target.checked)} />
+                  <Switch onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)} />
                 </Typography>
               </Stack>
 
-              {sample.tests.map((parent, index) =>
-                parent.child_tests.length > 0 ? (
+              {sample?.tests?.map((parent, index) =>
+                parent?.child_tests?.length > 0 ? (
                   <>
                     <Card mt={2}>
                       <Accordion>
@@ -846,7 +871,7 @@ const AddLab = () => {
                           >
                             <Typography>Full Test</Typography>
                             <Switch
-                              checked={parent.full_test}
+                              checked={parent?.full_test}
                               onChange={(e, v) => {
                                 handleParentSwitch(sample, parent, v)
                               }}
@@ -859,9 +884,9 @@ const AddLab = () => {
                                 key={child?.test_id}
                                 sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
                               >
-                                <Typography>{child.test_name}</Typography>
+                                <Typography>{child?.test_name}</Typography>
                                 <Checkbox
-                                  checked={child.value}
+                                  checked={child?.value}
                                   onClick={(e, v) => {
                                     console.log('v', e.target.checked)
                                     handleCheckBox(sample, parent, child, e.target.checked)
@@ -884,7 +909,7 @@ const AddLab = () => {
                         {parent?.test_name}
                       </Typography>
                       <Checkbox
-                        checked={parent.full_test}
+                        checked={parent?.full_test}
                         onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
                       />
                     </Stack>

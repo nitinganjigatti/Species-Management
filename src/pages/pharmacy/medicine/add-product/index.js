@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 
 // ** MUI Imports
 
@@ -65,6 +65,8 @@ import { getSalts, addSalt } from 'src/lib/api/salts'
 import { getDrugClass } from 'src/lib/api/getDrugs'
 import { getStorage } from 'src/lib/api/storage'
 import { addManufacturer } from 'src/lib/api/manufacturer'
+import { AddButton, BackButton } from 'src/components/Buttons'
+import { useDropdownContext } from 'src/context/storeContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -143,6 +145,10 @@ const AddMedicine = () => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  const { selectedValue } = useDropdownContext()
+
+  console.log('selecetd store product page', selectedValue)
 
   const router = useRouter()
   const { id, action } = router.query
@@ -529,7 +535,8 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      active
+      active,
+      url
     } = {
       ...params
     }
@@ -555,7 +562,8 @@ const AddMedicine = () => {
       side_effects,
       uses,
       safety_advice,
-      status: active
+      status: active,
+      url
     }
     if (files.length > 0) {
       payload.image = files[0]
@@ -563,8 +571,12 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
+      console.log(payload)
+
       await updateMedicine(payload, id)
     } else {
+      console.log(payload)
+
       await addMedicineToList(payload)
     }
   }
@@ -684,7 +696,7 @@ const AddMedicine = () => {
             slat_id: ''
           })
         }}
-        sx={{ marginRight: '4px' }}
+        sx={{ marginRight: '4px', borderRadius: 6 }}
       >
         Add Another
       </Button>
@@ -693,35 +705,61 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
-      <Button
-        variant='outlined'
-        color='error'
-        onClick={() => {
-          var tempDefaultSalts = defaultSalts
-          tempDefaultSalts.splice(index, 1)
-          setDefaultSalts(tempDefaultSalts)
-          remove(index)
-        }}
-      >
-        Remove
-      </Button>
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts.splice(index, 1)
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+
+      // <Button
+      //   variant='outlined'
+      //   color='error'
+      //   startIcon={<Icon icon='material-symbols-light:close' />}
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts.splice(index, 1)
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //   }}
+      // >
+      //   {/* Remove */}
+      // </Button>
     )
   }
 
   const clearSaltFields = index => {
     return (
-      <Button
-        variant='outlined'
-        onClick={() => {
-          var tempDefaultSalts = defaultSalts
-          tempDefaultSalts[index] = undefined
-          setDefaultSalts(tempDefaultSalts)
-          remove(index)
-          insert(index, {})
-        }}
-      >
-        Clear
-      </Button>
+      // <Button
+      //   variant='outlined'
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts[index] = undefined
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //     insert(index, {})
+      //   }}
+      // >
+      //   Clear
+      // </Button>
+
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts[index] = undefined
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+            insert(index, {})
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
     )
   }
 
@@ -833,10 +871,18 @@ const AddMedicine = () => {
             <Grid item xs={12}>
               <Card>
                 <CardHeader
+                  avatar={
+                    <Icon
+                      onClick={() => {
+                        Router.push('/pharmacy/medicine/product-list')
+                      }}
+                      icon='ep:back'
+                    />
+                  }
                   title={id ? 'Edit Product' : 'Add New Product'}
                   action={
                     <div>
-                      <Button
+                      {/* <Button
                         size='big'
                         variant='contained'
                         onClick={() => {
@@ -844,62 +890,68 @@ const AddMedicine = () => {
                         }}
                       >
                         Product List
-                      </Button>
+                      </Button> */}
+                      {/* <BackButton
+                        title=' Back To Product List'
+                        action={() => {
+                          Router.push('/pharmacy/medicine/product-list')
+                        }}
+                      /> */}
                     </div>
                   }
                 />
                 <CardContent>
                   <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                     <Grid container spacing={5}>
-                      <Grid item xs={12}>
-                        <Grid container spacing={5}>
-                          <Grid item xs={12} sm={12}>
-                            <div>Product</div>
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth>
-                              <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
-                                Product Type*
-                              </InputLabel>
-                              <Controller
-                                name='medicine_type'
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field: { value, onChange } }) => (
-                                  <Select
-                                    name='medicine_type'
-                                    value={value}
-                                    label='Medicine Type*'
-                                    onChange={e => {
-                                      if (e.target.value === 'non_medical') {
-                                        //reset({ salts: [] }, { keepValues: true })
-                                        //setValue('salts', [])
-                                      } else {
-                                        //reset({ salts: [{}] }, { keepValues: true })
-                                        //setValue('salts', [{}])
-                                      }
-                                      onChange(e.target.value)
-                                      setMedicineType(e.target.value)
-                                    }}
-                                    error={Boolean(errors?.medicine_type)}
-                                    labelId='medicine_type'
-                                  >
-                                    <MenuItem value='allopathy'>Allopathy</MenuItem>
-                                    <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                                    <MenuItem value='unani'>Unani</MenuItem>
-                                    <MenuItem value='non_medical'>Non Medical</MenuItem>
-                                  </Select>
-                                )}
-                              />
-                              {errors?.medicine_type && (
-                                <FormHelperText sx={{ color: 'error.main' }}>
-                                  {errors?.medicine_type?.message}
-                                </FormHelperText>
-                              )}
-                            </FormControl>
-                          </Grid>
-                        </Grid>
+                      {/* <Grid item xs={12}> */}
+                      {/* <Grid container spacing={5}> */}
+                      <Grid item xs={12} sm={12}>
+                        <div>Product</div>
                       </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
+                            Product Type*
+                          </InputLabel>
+                          <Controller
+                            name='medicine_type'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name='medicine_type'
+                                value={value}
+                                label='Medicine Type*'
+                                onChange={e => {
+                                  if (e.target.value === 'non_medical') {
+                                    //reset({ salts: [] }, { keepValues: true })
+                                    //setValue('salts', [])
+                                  } else {
+                                    //reset({ salts: [{}] }, { keepValues: true })
+                                    //setValue('salts', [{}])
+                                  }
+                                  onChange(e.target.value)
+                                  setMedicineType(e.target.value)
+                                }}
+                                error={Boolean(errors?.medicine_type)}
+                                labelId='medicine_type'
+                              >
+                                <MenuItem value='allopathy'>Allopathy</MenuItem>
+                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                                <MenuItem value='unani'>Unani</MenuItem>
+                                <MenuItem value='non_medical'>Non Medical</MenuItem>
+                              </Select>
+                            )}
+                          />
+                          {errors?.medicine_type && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.medicine_type?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      {/* </Grid> */}
+                      {/* </Grid> */}
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                           <Controller
@@ -924,9 +976,9 @@ const AddMedicine = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12} sm={12}>
                         <Grid container spacing={5}>
-                          <Grid item xs={8} sm={8}>
+                          <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
                                 name='manufacturer'
@@ -976,15 +1028,21 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={4} sm={4} justifyContent='flex-end' alignSelf='center'>
+                          <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
                             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                              <IconButton
+                              <AddButton
+                                title='Add Manufacture'
+                                action={() => {
+                                  addNewManufacturer()
+                                }}
+                              />
+                              {/* <IconButton
                                 aria-label='capture screenshot'
                                 color='primary'
                                 onClick={() => addNewManufacturer()}
                               >
                                 <Icon icon='mdi:plus' />
-                              </IconButton>
+                              </IconButton> */}
                             </Box>
                             {/* <Button variant='outlined' onClick={() => addNewManufacturer()}>
                               +
@@ -1273,7 +1331,19 @@ const AddMedicine = () => {
                                   </FormControl>
                                 </Grid>
 
-                                <Grid item xs={4} justifyContent='flex-end' alignSelf='center'>
+                                <Grid
+                                  item
+                                  xs={4}
+                                  // eslint-disable-next-line lines-around-comment
+                                  // justifyContent='flex-end'
+
+                                  alignSelf='center'
+                                  sx={{
+                                    display: 'flex',
+                                    justifyItems: 'center',
+                                    alignItems: 'center'
+                                  }}
+                                >
                                   {handleAddRemoveSalts(fields, index)}
                                 </Grid>
                               </Grid>
@@ -1638,15 +1708,21 @@ const AddMedicine = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12}>
-                        <LoadingButton
-                          size='large'
-                          variant='contained'
-                          loading={submitLoader}
-                          sx={{ marginRight: '8px' }}
-                          onClick={handleSubmitData}
-                        >
-                          Submit
-                        </LoadingButton>
+                        <Box sx={{ float: 'right' }}>
+                          <LoadingButton
+                            size='large'
+                            variant='contained'
+                            loading={submitLoader}
+                            sx={{ marginRight: '8px' }}
+                            onClick={handleSubmitData}
+                          >
+                            Submit
+                          </LoadingButton>
+                          <Button size='large' variant='outlined'>
+                            Reset
+                          </Button>
+                        </Box>
+
                         {/* {id === undefined && (
                           <LoadingButton
                             size='large'

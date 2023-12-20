@@ -7,14 +7,14 @@ export async function getStocksReportById(id) {
   return response.data.data
 }
 
-export async function getStockOutItems() {
-  const response = await axiosGet({ url: STOCK_OUT })
+export async function getStockOutItems({ params }) {
+  const response = await axiosGet({ url: STOCK_OUT, params })
 
   return response.data.data
 }
 
-export async function getExpiredMedicine() {
-  const response = await axiosGet({ url: EXPIRED_MEDICINE })
+export async function getExpiredMedicine({ params }) {
+  const response = await axiosGet({ url: EXPIRED_MEDICINE, params })
 
   return response.data.data
 }

@@ -192,7 +192,7 @@ const IndividualReturnRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/request/addRequest/',
+      pathname: '/pharmacy/request/add-request/',
       query: { id: id, action: 'edit' }
     })
   }

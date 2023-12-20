@@ -48,7 +48,7 @@ const pharmacyNav = [
     children: [
       {
         title: 'Request',
-        path: '/pharmacy/request/requestList'
+        path: '/pharmacy/request/request-list'
       }
     ]
   },
