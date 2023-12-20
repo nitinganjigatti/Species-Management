@@ -27,74 +27,38 @@ function SelectPharmacy() {
   const [open, setOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState()
 
-  const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
+  const { selectedValue, setSelectedValue } = useDropdownContext()
   const authData = useContext(AuthContext)
   const router = useRouter()
 
-  // console.log('authData', authData)
-
   const getStoreData = async () => {
-    // const data = await readAsync('userDetails')
-
-    // console.log('data', data)
-    // console.log('authData1', authData?.userData?.modules?.pharmacy_data?.pharmacy[0])
-    // console.log('authData2', authData?.userData?.modules?.pharmacy_data?.pharmacy)
-
-    const pharmacy = authData?.userData?.modules?.pharmacy_data?.pharmacy[0]
-    const options = authData?.userData?.modules?.pharmacy_data?.pharmacy
-
-    // console.log('options', options)
-
-    // const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
-    // const options = data?.modules?.pharmacy_data?.pharmacy
-    // console.log('stores', pharmacy)
+    const data = await readAsync('userDetails')
+    const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
+    const options = data?.modules?.pharmacy_data?.pharmacy
+    console.log('stores', pharmacy)
     setOptions(options)
     const storedPharmacy = await readAsync('selectedStore')
 
     // console.log('storedPharmacy', storedPharmacy)
+    // console.log('options', options)
 
     const foundStored = () => {
-      if (options?.length > 0 && storedPharmacy !== undefined) {
-        return options.some(item => item.id === storedPharmacy?.id)
-      }
-
-      return false
+      return options.some(item => item.id === storedPharmacy.id)
     }
-
-    const findSelectedPharmacy = () => {
-      let foundPharmacy = ''
-      if (options?.length > 0 && storedPharmacy !== undefined) {
-        foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
-      }
-
-      const areArraysEqual = JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
-
-      // console.log('one11', pharmacy?.permission)
-      // console.log('one22', storedPharmacy?.permission)
-
-      // return areArraysEqual
-      if (areArraysEqual === false) {
-        write('selectedStore', foundPharmacy)
-
-        setSelectedPharmacy(foundPharmacy)
-      }
-
-      // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
-    }
-
-    findSelectedPharmacy()
-
     if (storedPharmacy === '' || foundStored() === false) {
-      if (pharmacy !== undefined) {
-        setSelectedStore(pharmacy)
-        write('selectedStore', pharmacy)
-        setSelectedPharmacy(pharmacy)
-      } else {
-      }
+      setSelectedStore(pharmacy)
+      write('selectedStore', pharmacy)
+      setSelectedValue(pharmacy)
     } else {
       setSelectedStore(storedPharmacy)
     }
   }
+
+  // const handleSelectChange = event => {
+  //   const newValue = event.target.value
+
+  //   setSelectedValue(newValue)
+  // }
 
   const anchorRef = useRef(null)
 
