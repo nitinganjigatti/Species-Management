@@ -1,6 +1,10 @@
 export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
 
-export const LAB = '/antz/labs/create-lab'
+export const AddLAB = '/antz/labs/create-lab'
+
+export const AllLabSample = 'antz/get-sample-tests'
+
+export const GetLab = 'antz/labs/list-labs'
 
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
 

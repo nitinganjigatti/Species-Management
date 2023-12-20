@@ -120,7 +120,7 @@ const pharmacyNav = [
     children: [
       {
         title: 'LAB',
-        path: '/pharmacy/settings/lab'
+        path: '/pharmacy/settings/labs/lab-list'
       },
       {
         title: 'GST',

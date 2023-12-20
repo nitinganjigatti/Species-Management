@@ -1,6 +1,4 @@
 /* eslint-disable react/jsx-key */
-/* eslint-disable lines-around-comment */
-/* eslint-disable newline-before-return */
 import React, { useState, useEffect, useRef } from 'react'
 
 // ** MUI Imports
@@ -37,12 +35,13 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+
 // ** Source code imports
 import TestSample from './sample/sample'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/addLab'
 
-const Lab = () => {
+const AddLab = () => {
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [longitude, setLongitude] = useState('')
@@ -50,7 +49,10 @@ const Lab = () => {
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
   const [markDefault, setMarkDefault] = useState(false)
-  const [TestData, setTestData] = useState([])
+  const [TestData, setTestData] = useState(TestSample)
+  const [dataToUpdate, setDataToUpdate] = useState([])
+  console.log('dataToUpdate', dataToUpdate)
+
   console.log('longitude', longitude.longitude)
   console.log('latitude', latitude.latitude)
   console.log('TestData', TestData)
@@ -110,18 +112,22 @@ const Lab = () => {
     lab_incharge_phone: '',
     latitude: latitude,
     longitude: longitude,
-    image: ''
+    image: '',
+    markAsDefault: ''
   }
 
   const schema = yup.object().shape({
     lab_name: yup.string().required('Lab name is required'),
     lab_type: yup.string().required('Lab Type is required'),
-    lab_incharge_name: yup.string().required('Lab Incharge name  is required')
-    // lab_incharge_phone: yup
-    //   .string()
-    //   .required('Lab Incharge  No is required')
-    //   .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-    //   .max(10, 'Maximum of 10 digits'),
+    lab_incharge_name: yup.string().required('Lab Incharge name  is required'),
+    lab_incharge_phone: yup
+      .string()
+      .required('Lab Incharge  No is required')
+
+      // .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
+
+      .max(10, 'Maximum of 10 digits'),
+    markAsDefault: yup.boolean()
 
     // latitude: yup.string(),
     // longitude: yup.string()
@@ -154,13 +160,14 @@ const Lab = () => {
     } catch (error) {
       console.error(error)
     }
+
     // handleSubmit(onSubmit)()
   }
 
   const onSubmit = async params => {
-    // setSubmitLoader(true)
+    setSubmitLoader(true)
 
-    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests } = {
+    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests, markAsDefault } = {
       ...params
     }
     const { latitude, longitude } = getValues()
@@ -173,7 +180,9 @@ const Lab = () => {
       lab_incharge_phone,
       latitude,
       longitude,
-      tests: TestData
+      tests: dataToUpdate,
+      markAsDefault: markAsDefault,
+      user_id: '9'
     }
 
     if (files.length > 0) {
@@ -183,7 +192,13 @@ const Lab = () => {
     }
     console.log('payload', payload)
 
-    const res = await addLabToList(payload)
+    const res = await addLabToList(payload).then(res => {
+      if (res?.status) {
+        setSubmitLoader(false)
+
+        // Router.push('/pharmacy/settings/labs/lab-list')
+      }
+    })
     console.log('res', res)
 
     // if (id !== undefined && action === 'edit') {
@@ -194,11 +209,6 @@ const Lab = () => {
     // }
   }
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'tests' // Use a unique name for your array field
-  })
-
   const handleOpen = () => {
     setOpen(true)
   }
@@ -208,7 +218,9 @@ const Lab = () => {
   }
 
   // Add Test
-  const handleCheckBox = (sample, parent, child) => {
+
+  const handleCheckBox = (sample, parent, child, isChecked) => {
+    console.log('isChecked', isChecked)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -219,16 +231,17 @@ const Lab = () => {
           {
             sample_id: sample.sample_id,
             sample_name: sample.sample_name,
+            value: false,
             tests: [
               {
                 test_id: parent.test_id,
                 test_name: parent.test_name,
-                full_test: true,
+                full_test: false,
                 child_tests: [
                   {
                     test_id: child.test_id,
                     test_name: child.test_name,
-                    value: true,
+                    value: isChecked,
                     input_type: child.input_type
                   }
                 ]
@@ -237,46 +250,26 @@ const Lab = () => {
           }
         ]
       } else {
-        // If the sample is in TestData, toggle the checkbox state
+        // If the sample is in TestData, update the child_tests array
         return prevData.map(data =>
           data.sample_id === sample.sample_id
             ? {
                 ...data,
-                tests: data.tests.some(test => test.test_id === parent.test_id)
-                  ? data.tests.map(test =>
-                      test.test_id === parent.test_id
-                        ? {
-                            ...test,
-                            child_tests: test.child_tests.some(ct => ct.test_id === child.test_id)
-                              ? test.child_tests.filter(ct => ct.test_id !== child.test_id)
-                              : [
-                                  ...test.child_tests,
-                                  {
-                                    test_id: child.test_id,
-                                    test_name: child.test_name,
-                                    value: true,
-                                    input_type: child.input_type
-                                  }
-                                ]
-                          }
-                        : test
-                    )
-                  : [
-                      ...data.tests,
-                      {
-                        test_id: parent.test_id,
-                        test_name: parent.test_name,
-                        full_test: true,
-                        child_tests: [
-                          {
-                            test_id: child.test_id,
-                            test_name: child.test_name,
-                            value: true,
-                            input_type: child.input_type
-                          }
-                        ]
+                tests: data.tests.map(test =>
+                  test.test_id === parent.test_id
+                    ? {
+                        ...test,
+                        child_tests: test.child_tests.map(ct =>
+                          ct.test_id === child.test_id
+                            ? {
+                                ...ct,
+                                value: isChecked
+                              }
+                            : ct
+                        )
                       }
-                    ]
+                    : test
+                )
               }
             : data
         )
@@ -284,45 +277,136 @@ const Lab = () => {
     })
   }
 
-  //Remove Test
-  const handleCloseTest = (sampleId, parentId) => {
-    // Make a shallow copy of the data to avoid directly modifying state
-    const updatedTestData = [...TestData]
-
-    if (sampleId >= 0 && sampleId < updatedTestData.length) {
-      // Check if sampleId is within valid range
-      const updatedSample = { ...updatedTestData[sampleId] }
-
-      if (parentId >= 0 && parentId < updatedSample.tests.length) {
-        // Check if parentId is within valid range
-        updatedSample.tests.splice(parentId, 1) // Remove the selected test within the sample
-
-        updatedTestData[sampleId] = updatedSample // Update the sample in the array
-      }
-    }
-
-    // Update the state with the modified data
-    setTestData(updatedTestData)
-    console.log('first', updatedTestData)
-  }
-
   // Select All
-  const handleSelectAllSwitch = sampleId => {
-    // Check if the sample is already selected
-    const isSampleSelected = TestData.some(selectedSample => selectedSample.sampleId === sampleId)
+  const handleParentSwitch = (sample, parent, isChecked) => {
+    setTestData(prevData => {
+      const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
-    if (isSampleSelected) {
-      // If the sample is selected, remove it from the selectedTests array
-      setTestData(prevSelectedTests => prevSelectedTests.filter(selectedSample => selectedSample.sampleId !== sampleId))
-    } else {
-      // If the sample is not selected, add it to the selectedTests array
-      setTestData(prevSelectedTests => [...prevSelectedTests, { sampleId, selected: true }])
-    }
+      if (sampleIndex === -1) {
+        // If the sample is not in TestData, add it with the parent and child
+        if (isChecked) {
+          return [
+            ...prevData,
+            {
+              sample_id: sample.sample_id,
+              sample_name: sample.sample_name,
+              tests: [
+                {
+                  test_id: parent.test_id,
+                  test_name: parent.test_name,
+                  full_test: isChecked,
+                  child_tests: parent.child_tests.map(childTest => ({
+                    ...childTest,
+                    value: isChecked
+                  }))
+                }
+              ]
+            }
+          ]
+        }
+
+        // Handle the case when the sample is not found and isChecked is false
+        return prevData
+      }
+
+      return prevData.map(data =>
+        data.sample_id === sample.sample_id
+          ? {
+              ...data,
+              tests: data.tests.map(test =>
+                test.test_id === parent.test_id
+                  ? {
+                      ...test,
+                      full_test: isChecked,
+                      child_tests: isChecked
+                        ? test.child_tests.map(childTest => ({
+                            ...childTest,
+                            value: isChecked
+                          }))
+                        : test.child_tests.map(childTest => ({
+                            ...childTest,
+                            value: false
+                          }))
+                    }
+                  : test
+              )
+            }
+          : data
+      )
+    })
   }
 
-  const handleSwitchToggle = () => {
-    setMarkDefault(!markDefault)
+  const handleTestFullTestSwitch = (sample, parent, isChecked) => {
+    setTestData(prevData => {
+      const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+      if (sampleIndex === -1) {
+        // If the sample is not in TestData, add it with the parent and child
+        if (isChecked) {
+          return [
+            ...prevData,
+            {
+              sample_id: sample.sample_id,
+              sample_name: sample.sample_name,
+              tests: [
+                {
+                  test_id: parent.test_id,
+                  test_name: parent.test_name,
+                  full_test: isChecked,
+                  child_tests: parent.child_tests
+                }
+              ]
+            }
+          ]
+        }
+
+        // Handle the case when the sample is not found and isChecked is false
+        return prevData
+      }
+
+      return prevData.map(data =>
+        data.sample_id === sample.sample_id
+          ? {
+              ...data,
+              tests: data.tests.map(test =>
+                test.test_id === parent.test_id
+                  ? {
+                      ...test,
+                      full_test: isChecked,
+                      child_tests: parent.child_tests
+                    }
+                  : test
+              )
+            }
+          : data
+      )
+    })
   }
+
+  const handleSelectAllSwitch = (sampleId, isChecked) => {
+    setTestData(prevData => {
+      return prevData.map(data =>
+        data.sample_id === sampleId
+          ? {
+              ...data,
+              value: isChecked,
+              tests: data.tests.map(test => ({
+                ...test,
+                full_test: isChecked,
+                child_tests: test.child_tests.map(childTest => ({
+                  ...childTest,
+                  value: isChecked
+                }))
+              }))
+            }
+          : data
+      )
+    })
+  }
+
+  //   const handleSwitchToggle = () => {
+  //     setMarkDefault(!markDefault)
+  //   }
 
   // api call
   const addLabToList = async payload => {
@@ -330,9 +414,11 @@ const Lab = () => {
       const response = await addLab(payload)
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
-        setSubmitLoader(true)
+
+        // setSubmitLoader(true)
         reset(defaultValues)
-        // Router.push('/pharmacy/supplier')
+
+        // Router.push('/pharmacy/settings/labs/lab-list')
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
@@ -342,6 +428,65 @@ const Lab = () => {
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
+  }
+
+  // New state to keep track of data to be added or removed
+  useEffect(() => {
+    // Logic to update data based on the value of testData
+    const updatedData = TestData.reduce((acc, sample) => {
+      const updatedSample = {
+        ...sample,
+        tests: sample.tests.reduce((accTests, parent) => {
+          const updatedParent = {
+            ...parent,
+            child_tests: parent.child_tests.filter(child => {
+              if (child.value === true) {
+                return true // Keep the child when the value is true
+              } else {
+                // Remove the child when the value is false
+                return false
+              }
+            })
+          }
+
+          // Only add parents with non-empty child_tests array
+          if (updatedParent.child_tests.length > 0 || updatedParent.full_test) {
+            accTests.push(updatedParent)
+          }
+
+          return accTests
+        }, [])
+      }
+
+      // Only add samples with non-empty tests array
+      if (updatedSample.tests.length > 0) {
+        acc.push(updatedSample)
+      }
+
+      return acc
+    }, [])
+
+    setDataToUpdate(updatedData)
+  }, [TestData])
+
+  // deleing the data from ui
+  const handleCloseTest = (sampleId, parentId) => {
+    setDataToUpdate(prevData => {
+      const newData = [...prevData]
+      const sampleTests = newData[sampleId]?.tests
+
+      if (sampleTests && sampleTests[parentId]) {
+        // Remove the parent.test object
+        sampleTests.splice(parentId, 1)
+
+        // Check if tests array is empty, delete the current sample object
+        if (sampleTests.length === 0) {
+          newData.splice(sampleId, 1)
+        }
+      }
+
+      return newData
+    })
   }
 
   return (
@@ -490,16 +635,19 @@ const Lab = () => {
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
-                        <Stack
-                          direction='row'
-                          sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
-                        >
-                          <Typography>Mark as default Lab</Typography>
-                          <FormControlLabel
-                            control={<Switch checked={markDefault} onChange={handleSwitchToggle} />}
-                            // label='Required'
-                          />
-                        </Stack>
+                        <Controller
+                          name='markAsDefault'
+                          control={control}
+                          render={({ field }) => (
+                            <Stack
+                              direction='row'
+                              sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
+                            >
+                              <Typography>Mark as default Lab</Typography>
+                              <FormControlLabel control={<Switch {...field} />} />
+                            </Stack>
+                          )}
+                        />
                       </Grid>
 
                       {/* test Data */}
@@ -521,41 +669,43 @@ const Lab = () => {
                               sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
                             >
                               <Icon icon='ic:baseline-add' fontSize={25} />
-                              Add Tests
+                              Add Labs
                             </Typography>
                           </Box>
-                          {TestData.map((sample, sampleId) => (
+                          {dataToUpdate.map((sample, sampleId) => (
                             <Box sx={{ p: 1 }}>
                               <Box>
                                 {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
 
                                 {sample?.tests?.map((parent, parentId) => (
                                   <Card sx={{ p: 2, mb: 2 }}>
+                                    {/* {parent.full_test === true ? ( */}
                                     <Stack
                                       gap={1}
                                       direction='row'
                                       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                                     >
-                                      <Typography variant='subtitle1'>{parent.test_name}</Typography>
-                                      <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
-                                        <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
-                                      </IconButton>
+                                      <>
+                                        <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                        <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
+                                          <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                        </IconButton>
+                                      </>
                                     </Stack>
+                                    {/* ) : null} */}
                                     <Stack>
-                                      {parent.child_tests?.map((child, childId) => (
-                                        <Stack direction='row' gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                                          <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
-                                          <Typography>{child.test_name}</Typography>
-                                        </Stack>
-                                      ))}
+                                      {parent.child_tests?.map((child, childId) =>
+                                        child.value === true ? (
+                                          <Stack direction='row' gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                            <Typography>{child.test_name}</Typography>
+                                          </Stack>
+                                        ) : null
+                                      )}
                                     </Stack>
                                   </Card>
                                 ))}
                               </Box>
-
-                              {/* <Typography variant='h6' sx={{ mt: 2 }}>
-                                No Data
-                              </Typography> */}
                             </Box>
                           ))}
                         </Card>
@@ -630,7 +780,12 @@ const Lab = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} md={12} sm={6}>
-                        <LoadingButton onClick={handleSubmitData} type='submit' variant='contained'>
+                        <LoadingButton
+                          loading={submitLoader}
+                          onClick={handleSubmitData}
+                          type='submit'
+                          variant='contained'
+                        >
                           Submit
                         </LoadingButton>
                       </Grid>
@@ -642,12 +797,7 @@ const Lab = () => {
           </Grid>
         </>
       )}
-      <Drawer
-        anchor='right'
-        open={open}
-        // ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
-      >
+      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
         <Box
           className='sidebar-header'
           sx={{
@@ -657,15 +807,17 @@ const Lab = () => {
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Typography variant='h6'>Add Tests</Typography>
+          <Typography variant='h6'>Add Labs</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
         </Box>
+
+        {/* drower */}
         <Stack sx={{ p: 5 }} spacing={3}>
-          {TestSample.map((sample, index) => (
+          {TestData.map((sample, index) => (
             <>
               <Stack
                 key={index}
@@ -675,37 +827,53 @@ const Lab = () => {
                 <Typography variant='h6'>{sample?.sample_name}</Typography>
                 <Typography sx={{ alignItems: 'center', display: 'flex' }}>
                   Select All
-                  <Switch onChange={() => handleSelectAllSwitch(sample.id)} />
+                  <Switch onChange={e => handleSelectAllSwitch(sample.sample_id, e.target.checked)} />
                 </Typography>
               </Stack>
 
-              {sample.tests.map((parent, parentId) =>
+              {sample.tests.map((parent, index) =>
                 parent.child_tests.length > 0 ? (
-                  <Card mt={2}>
-                    <Accordion>
-                      <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
-                        <Typography variant='h6'>{parent?.test_name}</Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Stack
-                          direction='row'
-                          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                        >
-                          <Typography>Full Test</Typography>
-                          <Switch onChange={() => handleSelectAllSwitch(sample.id)} />
-                        </Stack>
-                        {parent?.child_tests?.map((child, id) => (
+                  <>
+                    <Card mt={2}>
+                      <Accordion>
+                        <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                          <Typography variant='h6'>{parent?.test_name}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
                           <Stack
                             direction='row'
-                            sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           >
-                            <Typography>{child.test_name}</Typography>
-                            <Checkbox onClick={() => handleCheckBox(sample, parent, child)} />
+                            <Typography>Full Test</Typography>
+                            <Switch
+                              checked={parent.full_test}
+                              onChange={(e, v) => {
+                                handleParentSwitch(sample, parent, v)
+                              }}
+                            />
                           </Stack>
-                        ))}
-                      </AccordionDetails>
-                    </Accordion>
-                  </Card>
+                          {parent?.child_tests?.map((child, id) => {
+                            return (
+                              <Stack
+                                direction='row'
+                                key={child?.test_id}
+                                sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                              >
+                                <Typography>{child.test_name}</Typography>
+                                <Checkbox
+                                  checked={child.value}
+                                  onClick={(e, v) => {
+                                    console.log('v', e.target.checked)
+                                    handleCheckBox(sample, parent, child, e.target.checked)
+                                  }}
+                                />
+                              </Stack>
+                            )
+                          })}
+                        </AccordionDetails>
+                      </Accordion>
+                    </Card>
+                  </>
                 ) : (
                   <Card>
                     <Stack
@@ -715,7 +883,10 @@ const Lab = () => {
                       <Typography variant='h6' ml={4}>
                         {parent?.test_name}
                       </Typography>
-                      <Checkbox onClick={() => handleCheckBox(sample, parent, parent)} />
+                      <Checkbox
+                        checked={parent.full_test}
+                        onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
+                      />
                     </Stack>
                   </Card>
                 )
@@ -728,4 +899,4 @@ const Lab = () => {
   )
 }
 
-export default Lab
+export default AddLab
