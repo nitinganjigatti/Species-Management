@@ -54,12 +54,6 @@ function SelectPharmacy() {
     }
   }
 
-  // const handleSelectChange = event => {
-  //   const newValue = event.target.value
-
-  //   setSelectedValue(newValue)
-  // }
-
   const anchorRef = useRef(null)
 
   const handleClick = () => {}
