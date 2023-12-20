@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getAllLabSample, getLabList } from 'src/lib/api/addLab'
+import { getLabList } from 'src/lib/api/addLab'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 // import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
@@ -27,7 +28,7 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 
 const ListOfLab = () => {
-  const [medicineList, setMedicineList] = useState([])
+  // const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
