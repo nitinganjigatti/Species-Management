@@ -79,40 +79,15 @@ const AuthProvider = ({ children }) => {
           const resData = await callRefreshToken()
           setLoading(false)
           if (resData.token) {
-            // console.log('refreshed', resData)
+            // console.log('refreshed', resData?.modules?.pharmacy_data?.pharmacy)
             const options = resData?.modules?.pharmacy_data?.pharmacy
             const storedPharmacy = await readAsync('selectedStore')
 
             const foundStored = () => {
-              if (options?.length > 0 && storedPharmacy !== undefined) {
-                return options.some(item => item?.id === storedPharmacy?.id)
-              }
-
-              return false
+              return options.some(item => item?.id === storedPharmacy?.id)
             }
-
-            const findSelectedPharmacy = () => {
-              let foundPharmacy = ''
-              if (options?.length > 0 && storedPharmacy !== undefined) {
-                foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
-              }
-
-              const areArraysEqual =
-                JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
-
-              return areArraysEqual
-            }
-            console.log('areArraysEqual in auth context', findSelectedPharmacy())
-            if (storedPharmacy === '' || foundStored() === false || findSelectedPharmacy() === false) {
-              if (options?.length > 0) {
-                write('selectedStore', options[0])
-
-                setSelectedValue(options[0])
-              } else {
-                localStorage.removeItem('selectedStore')
-              }
-            } else {
-              setSelectedValue(storedPharmacy)
+            if (storedPharmacy === '' || foundStored() === false) {
+              write('selectedStore', options[0])
             }
 
             const userData = {
