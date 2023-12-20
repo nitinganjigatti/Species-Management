@@ -371,16 +371,24 @@ const AddPurchaseForm = () => {
       q: 'central',
       column: 'type'
     }
-    const response = await getStoreList({ params })
-    if (response?.success && response?.data?.list_items?.length > 0) {
-      setStores(response?.data?.list_items)
+    try {
+      const response = await getStoreList({ params })
+      if (response?.success && response?.data?.list_items?.length > 0) {
+        setStores(response?.data?.list_items)
+      }
+    } catch (error) {
+      console.log('store error', error)
     }
   }
 
   const getSuppliersLists = async () => {
-    const response = await getSuppliers()
-    if (response.data.data?.length > 0) {
-      setSuppliers(response.data.data)
+    try {
+      const response = await getSuppliers()
+      if (response.data.data?.length > 0) {
+        setSuppliers(response.data.data)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
     }
   }
 
@@ -430,41 +438,45 @@ const AddPurchaseForm = () => {
   )
 
   const getListOfItemsById = async id => {
-    const result = await getPurchaseListById(id)
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.purchase_detailss.map(el => {
-        return {
-          id: el?.id,
-          medicine_name: el?.stock_item_name,
-          purchase_unit_id: el?.unit_id,
-          purchase_stock_item_id: el?.stock_item_id,
-          // purchase_stock_item_id: el?.stock_item_id,
-          purchase_qty: el?.qty,
-          purchase_unit_price: el?.unit_price,
-          purchase_purchase_price: el?.purchase_price,
-          purchase_batch_no: el?.batch_no,
-          purchase_expiry_date: el?.expiry_date,
-          purchase_gst_type: el?.gst_type,
-          purchase_tax_amount: el?.tax_amount
-        }
-      })
-      setEditParams({
-        ...editParams,
-        id: result?.data?.id,
-        po_no: result?.data?.po_no,
-        po_date: result?.data?.po_date,
-        store_id: result?.data?.store_id,
-        supplier_id: result?.data?.supplier_id,
-        description: result?.data?.description,
-        type_of_store: result?.data?.type_of_store,
-        purchase_details: lineItems,
-        total_amount: result?.data?.total_amount,
-        discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
-        discount_amount: result?.data?.discount_amount,
-        discount_percentage: result?.data?.discount_percentage,
-        net_amount: result?.data?.net_amount,
-        tax_amount: result?.data?.tax_amount
-      })
+    try {
+      const result = await getPurchaseListById(id)
+      if (result.success === true && result.data !== '') {
+        const lineItems = result.data.purchase_detailss.map(el => {
+          return {
+            id: el?.id,
+            medicine_name: el?.stock_item_name,
+            purchase_unit_id: el?.unit_id,
+            purchase_stock_item_id: el?.stock_item_id,
+            // purchase_stock_item_id: el?.stock_item_id,
+            purchase_qty: el?.qty,
+            purchase_unit_price: el?.unit_price,
+            purchase_purchase_price: el?.purchase_price,
+            purchase_batch_no: el?.batch_no,
+            purchase_expiry_date: el?.expiry_date,
+            purchase_gst_type: el?.gst_type,
+            purchase_tax_amount: el?.tax_amount
+          }
+        })
+        setEditParams({
+          ...editParams,
+          id: result?.data?.id,
+          po_no: result?.data?.po_no,
+          po_date: result?.data?.po_date,
+          store_id: result?.data?.store_id,
+          supplier_id: result?.data?.supplier_id,
+          description: result?.data?.description,
+          type_of_store: result?.data?.type_of_store,
+          purchase_details: lineItems,
+          total_amount: result?.data?.total_amount,
+          discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
+          discount_amount: result?.data?.discount_amount,
+          discount_percentage: result?.data?.discount_percentage,
+          net_amount: result?.data?.net_amount,
+          tax_amount: result?.data?.tax_amount
+        })
+      }
+    } catch (error) {
+      console.log('purchase error', error)
     }
   }
 

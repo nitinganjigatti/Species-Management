@@ -17,14 +17,14 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 const defaultValues = {
   request_item: {
-    label: 'Saridon',
-    value: '350',
+    label: '',
+    value: '',
     control_substance: false
   },
-  request_item_batch_no: 'BA121',
-  request_item_qty: '10',
-  available_item_qty: '200',
-  expiry_date: '2024-01-01'
+  request_item_batch_no: '',
+  request_item_qty: '',
+  available_item_qty: '',
+  expiry_date: ''
 }
 
 const schema = yup.object().shape({
@@ -92,7 +92,9 @@ export const AddItemsForm = ({ searchMedicineData, productList, productLoading, 
                     onKeyUp={e => {
                       searchMedicineData(e.target.value)
                     }}
-                    onChange={(e, value) => setValue('request_item', value)} // Set selected value
+                    onChange={(e, value) => {
+                      setValue('request_item', value)
+                    }} // Set selected value
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (

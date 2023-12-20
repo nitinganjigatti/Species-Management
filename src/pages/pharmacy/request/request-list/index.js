@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getRequestReturnList } from 'src/lib/api/returnRequest'
+
+import { getRequestItemsList } from 'src/lib/api/getRequestItemsList'
+import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
@@ -9,16 +11,34 @@ import { debounce } from 'lodash'
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import Router from 'next/router'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import Router from 'next/router'
 
-const ReturnRequestList = () => {
+const RequestList = () => {
+  const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
+
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/request/add-request/',
+      query: { id: id, action: 'edit' }
+    })
+  }
+
+  // const onRowClick = data => {
+  //   console.log('onRowClickData', data.id)
+
+  //   Router.push({
+  //     pathname: '/pharmacy/request/individual-request/',
+  //     query: { id: data.id, request_number: data.row.request_number }
+  //   })
+  // }
 
   /***** Server side pagination */
 
@@ -47,9 +67,9 @@ const ReturnRequestList = () => {
           limit: paginationModel.pageSize
         }
 
-        await getRequestReturnList({ params: params }).then(res => {
-          console.log('response', res)
+        await getRequestItemsList({ params: params }).then(res => {
           debugger
+          console.log('response', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -98,7 +118,7 @@ const ReturnRequestList = () => {
     var data = params.row
 
     Router.push({
-      pathname: '/pharmacy/return-product/individual-return/',
+      pathname: '/pharmacy/request/individual-request/',
       query: { id: data.id, request_number: data.request_number }
     })
   }
@@ -110,11 +130,11 @@ const ReturnRequestList = () => {
         variant='contained'
         onClick={() =>
           Router.push({
-            pathname: '/pharmacy/return-product/add-request/'
+            pathname: '/pharmacy/request/add-request/'
           })
         }
       >
-        Add Return Request
+        Add Request
       </Button>
     </div>
   )
@@ -124,15 +144,19 @@ const ReturnRequestList = () => {
     searchTableData(sort, value, sortColumn)
   }
 
+  // useEffect(() => {
+  //   getRequestItemLists()
+  // }, [])
+
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'SL No',
-      renderCell: params => (
+      field: 'sl_no',
+      headerName: 'SL',
+      renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -141,7 +165,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'request_number',
-      headerName: 'Request Number',
+      headerName: 'REQUEST ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.request_number}
@@ -152,7 +176,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'Returned By',
+      headerName: 'Requested By',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}
@@ -162,73 +186,98 @@ const ReturnRequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'to_store',
-      headerName: 'Returned To',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
       field: 'request_date',
-      headerName: 'Request date',
+      headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.request_date}
         </Typography>
       )
     },
-    ,
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'to_store',
+      headerName: 'Requested To',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.to_store}
+        </Typography>
+      )
+    },
+
     {
       flex: 0.2,
       minWidth: 20,
       field: 'total_qty',
-      headerName: 'Total Qty',
+      headerName: 'TOTAL ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
         </Typography>
       )
     },
-    ,
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'total_qty',
+    //   headerName: 'TOTAL QTY',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.total_qty}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
       field: 'status',
-      headerName: 'Status',
+      headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.status}
         </Typography>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //       <IconButton
-    //         size='small'
-    //         sx={{ mr: 0.5 }}
-    //         onClick={() => {
-    //           onRowClick(params.row)
-    //         }}
-    //       >
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          {params.row.status === 'Fully Dispatched' ? (
+            <IconButton size='small' sx={{ mr: 0.5 }}>
+              <Icon icon='mdi:package-delivered' />
+            </IconButton>
+          ) : params.row.status === 'Partial Dispatched' ? (
+            <></>
+          ) : (
+            <>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='fluent-mdl2:message-friend-request' />
+              </IconButton>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() => {
+                  handleEdit(params.row.id)
+                }}
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton> */}
+            </>
+          )}
+        </Box>
+      )
+    }
   ]
 
-  const handleRowClick = params => {
-    console.log(params)
+  const handleHeaderAction = () => {
+    console.log('Handle Header Action')
   }
 
   return (
@@ -236,41 +285,38 @@ const ReturnRequestList = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <>
-          <Card>
-            <CardHeader title='Return request List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onRowClick={onRowClick}
-            />
-          </Card>
-        </>
+        <Card>
+          <CardHeader title='Request List' action={headerAction} />
+          <DataGrid
+            autoHeight
+            pagination
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[7, 10, 25, 50]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            slots={{ toolbar: ServerSideToolbar }}
+            onPaginationModelChange={setPaginationModel}
+            loading={loading}
+            slotProps={{
+              baseButton: {
+                variant: 'outlined'
+              },
+              toolbar: {
+                value: searchValue,
+                clearSearch: () => handleSearch(''),
+                onChange: event => handleSearch(event.target.value)
+              }
+            }}
+            onRowClick={onRowClick}
+          />
+        </Card>
       )}
     </>
   )
 }
 
-export default ReturnRequestList
+export default RequestList

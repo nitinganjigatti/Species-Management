@@ -1,3 +1,5 @@
+import pharmacyNavigation from 'src/components/navigation/pharmacy'
+
 const pharmacyNav = [
   // {
   //   title: 'Home',
@@ -43,12 +45,12 @@ const pharmacyNav = [
   {
     title: 'Request',
     icon: 'lucide:git-pull-request',
-    path: '/pharmacy/request',
+    path: '/pharmacy/request/request-list',
 
     children: [
       {
         title: 'Request',
-        path: '/pharmacy/request/requestList'
+        path: '/pharmacy/request/request-list'
       }
     ]
   },
@@ -280,7 +282,7 @@ const composeNavigation = () => {
   const centralStore = false
 
   if (pharmacy) {
-    navigationArray.push(...pharmacyNav)
+    navigationArray.push(...pharmacyNavigation())
   }
 
   return navigationArray

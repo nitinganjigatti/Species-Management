@@ -461,7 +461,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/request/requestList/')
+          Router.push('/pharmacy/request/request-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -476,7 +476,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/request/requestList/')
+          Router.push('/pharmacy/request/request-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)

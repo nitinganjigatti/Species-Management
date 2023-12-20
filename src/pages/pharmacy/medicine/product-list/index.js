@@ -24,6 +24,7 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfMedicine = () => {
   const [medicineList, setMedicineList] = useState([])
@@ -249,7 +250,13 @@ const ListOfMedicine = () => {
 
   const headerAction = (
     <div>
-      <Button
+      <AddButton
+        title='Add Product'
+        action={() => {
+          Router.push('/pharmacy/medicine/add-product')
+        }}
+      />
+      {/* <Button
         size='big'
         variant='contained'
         onClick={() => {
@@ -257,7 +264,7 @@ const ListOfMedicine = () => {
         }}
       >
         Add Product
-      </Button>
+      </Button> */}
     </div>
   )
 
