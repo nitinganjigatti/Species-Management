@@ -42,7 +42,13 @@ function SelectPharmacy() {
     // console.log('options', options)
 
     const foundStored = () => {
-      return options.some(item => item.id === storedPharmacy?.id)
+      if (storedPharmacy !== undefined && storedPharmacy !== null) {
+        debugger
+
+        return options.some(item => item.id === storedPharmacy.id)
+      }
+
+      return false
     }
     if (storedPharmacy === '' || foundStored() === false) {
       setSelectedStore(pharmacy)
