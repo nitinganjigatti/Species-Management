@@ -52,7 +52,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
-import { DropdownProvider } from 'src/context/storeContext'
+import { PharmacyProvider } from 'src/context/PharmacyContext'
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 
@@ -93,9 +93,9 @@ const App = props => {
   const getLayout =
     Component.getLayout ??
     (page => (
-      <DropdownProvider>
+      <PharmacyProvider>
         <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>{' '}
-      </DropdownProvider>
+      </PharmacyProvider>
     ))
   const setConfig = Component.setConfig ?? undefined
   const authGuard = Component.authGuard ?? true
