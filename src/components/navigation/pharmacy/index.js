@@ -194,7 +194,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   console.log(pharmacyNavigationArray)
-  debugger
 
   return pharmacyNavigationArray
 }
