@@ -1,18 +1,14 @@
-import { useContext } from 'react'
-import { AuthContext } from 'src/context/AuthContext'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
-import labNavigation from 'src/components/navigation/lab'
 
-// const pharmacyNav = [
-//   // {
-//   //   title: 'Home',
-//   //   path: '/home',
-//   //   icon: 'mdi:home-outline'
-//   // },
-//   {
-//     sectionTitle: 'Pharmacy'
-//   },
+const pharmacyNav = [
+  // {
+  //   title: 'Home',
+  //   path: '/home',
+  //   icon: 'mdi:home-outline'
+  // },
+  {
+    sectionTitle: 'Pharmacy'
+  },
 
 //   {
 //     title: 'Inventory',
@@ -280,17 +276,11 @@ import labNavigation from 'src/components/navigation/lab'
 //   // }
 // ]
 
-const ComposeNavigation = () => {
-  const authData = useContext(AuthContext)
-  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
-  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-  const { selectedPharmacy } = usePharmacyContext()
-
+const composeNavigation = () => {
   const navigationArray = []
 
-  if (pharmacyList?.length > 0 || pharmacyRole) {
-    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
-    navigationArray.push(...pharmacyNav)
+  if (pharmacy) {
+    navigationArray.push(...pharmacyNavigation())
   }
 
   // if (lab) {

@@ -157,7 +157,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
-    inventoryParent.children.push(productsList)
+    inventoryParent.children.push(productsList, addProduct)
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
@@ -175,7 +175,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       supplierList
     )
 
-    pharmacyNavigationArray.push(inventoryParent, PurchaseParent, requestParent, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      inventoryParent,
+      PurchaseParent,
+      requestParent,
+      returnParent,
+      stockParent,
+      settingsParent
+    )
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -187,6 +194,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   console.log(pharmacyNavigationArray)
+  debugger
 
   return pharmacyNavigationArray
 }
