@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+>>>>>>> e6d9ab6 (Changes related to Pharmacy permissions.)
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
 
 const pharmacyNav = [
@@ -276,11 +282,26 @@ const pharmacyNav = [
 //   // }
 // ]
 
+<<<<<<< HEAD
 const composeNavigation = () => {
   const navigationArray = []
 
   if (pharmacy) {
     navigationArray.push(...pharmacyNavigation())
+=======
+const ComposeNavigation = () => {
+  const authData = useContext(AuthContext)
+  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+  debugger
+  const selectedPharmacy = usePharmacyContext()
+
+  const navigationArray = []
+
+  if (pharmacyList?.length > 0 || pharmacyRole) {
+    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy })
+    navigationArray.push(...pharmacyNav)
+>>>>>>> e6d9ab6 (Changes related to Pharmacy permissions.)
   }
 
   // if (lab) {
