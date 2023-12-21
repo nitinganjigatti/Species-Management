@@ -27,6 +27,17 @@ const UserThemeOptions = () => {
   }
 
   return {
+    customColors: {
+      darkBg: '#282A42',
+      lightBg: '#EFF5F2',
+      bodyBg: '#EFF5F2',
+      trackBg: '#F2F2F4',
+      avatarBg: '#F1F1F3',
+      tooltipBg: '#262732',
+
+      // tableHeaderBg: '#F5F5F7'
+      tableHeaderBg: mode === 'light' ? '#000000' : '#000000'
+    },
     palette: {
       customColors: {
         darkBg: '#282A42',
