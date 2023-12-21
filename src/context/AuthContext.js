@@ -3,7 +3,7 @@ import { createContext, useEffect, useState } from 'react'
 import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
 
-import { usePharmacyContext } from './PharmacyContext'
+// import { usePharmacyContext } from './PharmacyContext'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -37,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
 
-  const { selectedValue, setSelectedValue } = usePharmacyContext()
+  // const { selectedValue, setSelectedValue } = usePharmacyContext()
 
   // ** Hooks
   const router = useRouter()
@@ -88,6 +88,8 @@ const AuthProvider = ({ children }) => {
             }
             if (storedPharmacy === '' || foundStored() === false) {
               write('selectedStore', options[0])
+
+              // setSelectedValue(options[0])
             }
 
             const userData = {
