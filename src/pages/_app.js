@@ -91,12 +91,7 @@ const App = props => {
   const contentHeightFixed = Component.contentHeightFixed ?? false
 
   const getLayout =
-    Component.getLayout ??
-    (page => (
-      <PharmacyProvider>
-        <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>{' '}
-      </PharmacyProvider>
-    ))
+    Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
   const setConfig = Component.setConfig ?? undefined
   const authGuard = Component.authGuard ?? true
   const guestGuard = Component.guestGuard ?? false
