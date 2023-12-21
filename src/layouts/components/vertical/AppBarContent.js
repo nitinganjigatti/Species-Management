@@ -30,8 +30,7 @@ const AppBarContent = props => {
         ) : null}
 
         <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
-
-        <SetStore />
+        {moduleName === 'pharmacy' && <SelectPharmacy />}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
