@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getRackList, addRackList, updateRackList, deleteRackItem } from 'src/lib/api/getRackList'
+import { getRackList, addRackList, updateRackList, deleteRackItem } from 'src/lib/api/pharmacy/getRackList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

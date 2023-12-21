@@ -33,11 +33,11 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-import { getMedicineList } from 'src/lib/api/getMedicineList'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { addDebit, getDebitListById, updateDebit } from 'src/lib/api/getDebitNote'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { addDebit, getDebitListById, updateDebit } from 'src/lib/api/pharmacy/getDebitNote'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'

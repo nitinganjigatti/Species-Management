@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { addCategory, getCategories, updateCategory } from 'src/lib/api/getCategories'
+import { addCategory, getCategories, updateCategory } from 'src/lib/api/pharmacy/getCategories'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

@@ -1,21 +1,21 @@
-import { DRUG_CLASS, PHARMACY_MASTER_BASE_URL } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { MANUFACTURER, PHARMACY_MASTER_BASE_URL } from 'src/constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getDrugClass({ params }) {
-  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${DRUG_CLASS}/list`, params: params })
-
-  return response.data
-}
-
-export async function getDrugById(id) {
-  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${DRUG_CLASS}/${id}` })
+export async function getManufacturers({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/list`, params: params })
 
   return response.data
 }
 
-export async function addDrug(payload) {
+export async function getManufacturerById(id) {
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/${id}` })
+
+  return response.data
+}
+
+export async function addManufacturer(payload) {
   try {
-    const url = `${PHARMACY_MASTER_BASE_URL}${DRUG_CLASS}/add`
+    const url = `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,9 +32,9 @@ export async function addDrug(payload) {
   }
 }
 
-export async function updateDrug(id, payload) {
+export async function updateManufacturer(id, payload) {
   try {
-    const url = `${PHARMACY_MASTER_BASE_URL}${DRUG_CLASS}/edit/${id}`
+    const url = `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/edit/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

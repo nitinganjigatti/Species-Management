@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/getGenerics'
+import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/getGenerics'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

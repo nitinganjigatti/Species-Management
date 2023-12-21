@@ -1,15 +1,9 @@
-import { PAYMENT_LIST } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { SUPPLIER } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getPaymentList() {
-  const response = await axiosGet({ url: PAYMENT_LIST })
-
-  return response.data.data
-}
-
-export async function addPaymentList(payload) {
+export async function addSuppliers(payload) {
   try {
-    const url = `${PAYMENT_LIST}`
+    const url = `${SUPPLIER}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

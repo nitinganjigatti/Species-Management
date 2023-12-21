@@ -1,21 +1,15 @@
-import { DEBIT_NOTE } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { UOM, PHARMACY_MASTER_BASE_URL } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getDebitNote() {
-  const response = await axiosGet({ url: DEBIT_NOTE })
-
-  return response.data.data
-}
-
-export async function getDebitListById(id) {
-  const response = await axiosGet({ url: `${DEBIT_NOTE}/${id}/show` })
+export async function getUnits({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/list`, params: params })
 
   return response.data
 }
 
-export async function addDebit(payload) {
+export async function addUnits(payload) {
   try {
-    const url = `${DEBIT_NOTE}`
+    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,15 +26,22 @@ export async function addDebit(payload) {
   }
 }
 
-export async function updateDebit(id, payload) {
+export async function getUnitsById(id) {
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/${id}` })
+
+  return response.data
+}
+
+export async function updateUnits(id, payload) {
   try {
-    const url = `${DEBIT_NOTE}/${id}/update`
+    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/edit/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })
 
     return response?.data
   } catch (error) {
+    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)

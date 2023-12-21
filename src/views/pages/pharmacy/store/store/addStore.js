@@ -21,7 +21,7 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getStoreById } from 'src/lib/api/getStoreList'
+import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
 
 // ** auth context
 

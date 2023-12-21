@@ -1,5 +1,5 @@
 import { LEAF } from 'src/constants/ApiConstant'
-import { axiosGet } from './utility'
+import { axiosGet } from '../utility'
 
 export async function getLeafs() {
   const response = await axiosGet({ url: LEAF })

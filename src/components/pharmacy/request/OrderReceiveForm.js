@@ -17,9 +17,9 @@ import {
   addDisputeItems,
   addDispenseItems,
   getDisputeItemById
-} from 'src/lib/api/getShipmentList'
+} from 'src/lib/api/pharmacy/getShipmentList'
 
-import { updateShipmentRequest } from 'src/lib/api/getRequestItemsList'
+import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />

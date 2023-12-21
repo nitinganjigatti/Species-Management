@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getDrugClass, addDrug, updateDrug } from 'src/lib/api/getDrugs'
+import { getDrugClass, addDrug, updateDrug } from 'src/lib/api/pharmacy/getDrugs'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
