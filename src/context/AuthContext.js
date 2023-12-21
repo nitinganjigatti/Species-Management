@@ -84,12 +84,20 @@ const AuthProvider = ({ children }) => {
             const storedPharmacy = await readAsync('selectedStore')
 
             const foundStored = () => {
-              return options.some(item => item?.id === storedPharmacy?.id)
+              if (options?.length > 0 && storedPharmacy !== undefined) {
+                return options.some(item => item?.id === storedPharmacy?.id)
+              }
+
+              return false
             }
             if (storedPharmacy === '' || foundStored() === false) {
-              write('selectedStore', options[0])
+              if (options?.length > 0) {
+                write('selectedStore', options[0])
 
-              setSelectedValue(options[0])
+                setSelectedValue(options[0])
+              } else {
+                localStorage.removeItem('selectedStore')
+              }
             } else {
               setSelectedValue(storedPharmacy)
             }

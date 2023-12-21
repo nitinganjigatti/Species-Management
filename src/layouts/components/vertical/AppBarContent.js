@@ -11,6 +11,7 @@ import ModeToggler from 'src/@core/layouts/components/shared-components/ModeTogg
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 import SetStore from 'src/components/SetStore'
 import { usePathname } from 'next/navigation'
+import { AuthContext } from 'src/context/AuthContext'
 
 const AppBarContent = props => {
   // ** Props
@@ -20,6 +21,8 @@ const AppBarContent = props => {
   const pathArray = pathname !== '' ? pathname?.replace(/^\//, '')?.split('/') : [] // removing first forward slash before splitting
 
   const moduleName = pathArray.length > 0 ? pathArray[0] : ''
+  const authData = useContext(AuthContext)
+  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -29,8 +32,8 @@ const AppBarContent = props => {
             <Icon icon='mdi:menu' />
           </IconButton>
         ) : null}
-        <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
-        {moduleName === 'pharmacy' && <SelectPharmacy />}
+        {/* <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
+        {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
