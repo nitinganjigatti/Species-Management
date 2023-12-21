@@ -34,7 +34,9 @@ const UserThemeOptions = () => {
       trackBg: '#F2F2F4',
       avatarBg: '#F1F1F3',
       tooltipBg: '#262732',
-      tableHeaderBg: '#F5F5F7'
+
+      // tableHeaderBg: '#F5F5F7'
+      tableHeaderBg: mode === 'light' ? '#000000' : '#000000'
     },
     palette: {
       primary: {

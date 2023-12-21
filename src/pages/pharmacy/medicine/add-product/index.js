@@ -66,7 +66,7 @@ import { getDrugClass } from 'src/lib/api/pharmacy/getDrugs'
 import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, BackButton } from 'src/components/Buttons'
-import { useDropdownContext } from 'src/context/storeContext'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -146,7 +146,7 @@ const AddMedicine = () => {
     reValidateMode: 'onChange'
   })
 
-  const { selectedValue } = useDropdownContext()
+  const { selectedValue } = usePharmacyContext()
 
   console.log('selecetd store product page', selectedValue)
 

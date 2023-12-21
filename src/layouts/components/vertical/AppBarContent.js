@@ -8,7 +8,7 @@ import Icon from 'src/@core/components/icon'
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
-import SetStore from 'src/components/SetStore'
+import SelectPharmacy from 'src/components/SelectPharmacy'
 import { usePathname } from 'next/navigation'
 
 const AppBarContent = props => {
@@ -31,7 +31,7 @@ const AppBarContent = props => {
 
         <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
 
-        {moduleName === 'pharmacy' && <SetStore />}
+        <SetStore />
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
