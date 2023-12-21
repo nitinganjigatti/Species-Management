@@ -262,7 +262,7 @@ const ListOfLab = () => {
 
   const headerAction = (
     <>
-      {storedData.roles.settings.add_lab === true ? (
+      {storedData?.roles?.settings?.add_lab === true ? (
         <div>
           <Button
             size='big'

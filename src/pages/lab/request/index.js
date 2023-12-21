@@ -2,7 +2,7 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getLabList } from 'src/lib/api/addLab'
+import { getNoOfLab, GetLabReportById } from 'src/lib/api/getLabRequest'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 // import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
@@ -30,7 +30,6 @@ import Select, { SelectChangeEvent } from '@mui/material/Select'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
-import { Label } from 'recharts'
 
 const ListOfRequest = () => {
   // const [medicineList, setMedicineList] = useState([])
@@ -38,8 +37,11 @@ const ListOfRequest = () => {
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
-  const [lab, setLab] = React.useState('')
+  const [lab, setLab] = React.useState([])
+  const [selectedLab, setSelectedLab] = useState(70)
+  console.log('selectedLab', selectedLab)
   console.log('storedData', storedData)
+  console.log('lab', lab)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -76,11 +78,11 @@ const ListOfRequest = () => {
     {
       flex: 0.3,
       minWidth: 20,
-      field: 'lab_name',
+      field: 'lab_test_id',
       headerName: 'REQUEST ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.lab_name}
+          {params.row.lab_test_id}
         </Typography>
       )
     },
@@ -88,11 +90,11 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'site',
+      field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.type}>{params.row.type}</span>
+          <span alt={params.row.site_name}>{params.row.site_name}</span>
         </Typography>
       )
     },
@@ -111,11 +113,11 @@ const ListOfRequest = () => {
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'date',
+      field: 'total_test',
       headerName: 'No. of Tests ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* <span alt={params.row.address}>{params.row.address}</span> */}
+          <span alt={params.row.total_test}>{params.row.total_test}</span>
         </Typography>
       )
     },
@@ -123,11 +125,11 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'sample',
+      field: 'sample_count',
       headerName: 'No. Of Samples',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
+          <span alt={params.row.sample_count}>{params.row.sample_count}</span>
         </Typography>
       )
     },
@@ -137,42 +139,84 @@ const ListOfRequest = () => {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'} */}
-        </Typography>
-      )
-    },
+        <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box
+            sx={{
+              bgcolor: 'red',
+              color: 'white',
+              borderRadius: '50px',
+              height: 25,
+              width: 25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {params.row.total_pending}
+          </Box>
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-
-      renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton
-              size='small'
-              onClick={() => {
-                setConfigureMedId(params.row.id)
-                showDialog()
-              }}
-            >
-              <Icon icon='grommet-icons:configure' />
-            </IconButton> */}
-          {/* <IconButton size='small'>
-              <Icon icon='mdi:eye-outline' />
-            </IconButton>
-
-            <IconButton size='small'>
-              <Icon icon='mdi:file' />
-            </IconButton> */}
-        </Box>
+          <Box
+            sx={{
+              bgcolor: '#00AEA4',
+              color: 'white',
+              borderRadius: '50px',
+              height: 25,
+              width: 25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {params.row.total_inprogress}
+          </Box>
+          <Box
+            sx={{
+              bgcolor: '#2A9D0D',
+              color: 'white',
+              borderRadius: '50px',
+              height: 25,
+              width: 25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {params.row.total_completed}
+          </Box>
+        </Stack>
       )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <Box>
+    //       <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //       {/* <IconButton
+    //           size='small'
+    //           onClick={() => {
+    //             setConfigureMedId(params.row.id)
+    //             showDialog()
+    //           }}
+    //         >
+    //           <Icon icon='grommet-icons:configure' />
+    //         </IconButton> */}
+    //       {/* <IconButton size='small'>
+    //           <Icon icon='mdi:eye-outline' />
+    //         </IconButton>
+
+    //         <IconButton size='small'>
+    //           <Icon icon='mdi:file' />
+    //         </IconButton> */}
+    //     </Box>
+    //   )
+    // }
   ]
 
   /***** Serverside pagination */
@@ -228,6 +272,75 @@ const ListOfRequest = () => {
     []
   )
 
+  useEffect(() => {
+    getNoOfLab().then(res => {
+      setLab(res?.data?.result)
+      console.log('res?.data', res?.data)
+      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+    })
+  }, [])
+
+  // const fetchReportData = useCallback(
+  //   async ({ sort, q, column }) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         // sort,
+  //         // q,
+  //         // column,
+  //         // page: paginationModel.page + 1,
+  //         // limit: paginationModel.pageSize
+  //         lab_id:68
+  //       }
+
+  //       await GetLabReportById({ params: params }).then(res => {
+  //         // setTotal(parseInt(res?.data?.total_count))
+  //         console.log('res?.data', res?.data)
+  //         // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       console.log(e)
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [ ]
+  // )
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+
+        const params = {
+          lab_id: selectedLab
+          // sort,
+          // q,
+          // column,
+          // page: paginationModel.page + 1,
+          // limit: paginationModel.pageSize
+        }
+
+        const response = await GetLabReportById({ params }).then(res => {
+          console.log('restt', res)
+          setTotal(parseInt(res?.data?.total_count))
+          console.log('res?.dataaaa', res?.data)
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+        })
+        console.log('API Response:', response?.data)
+        // Handle the response as needed, e.g., update state or perform other actions
+
+        setLoading(false)
+      } catch (error) {
+        console.error(error)
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [selectedLab])
+
   // useEffect(() => {
   //   fetchTableData({ sort, q: searchValue, column: sortColumn })
   // }, [fetchTableData])
@@ -262,12 +375,15 @@ const ListOfRequest = () => {
   //   </>
   // )
 
-  const handleLabChange = () => {}
+  const handleLabChange = event => {
+    setSelectedLab(event.target.value)
+  }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
+    id: `${row.lab_test_id}_${index}`,
     sl_no: getSlNo(index)
   }))
 
@@ -296,17 +412,20 @@ const ListOfRequest = () => {
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
                 <FormControl fullWidth size='small'>
-                  <InputLabel id='demo-simple-select-label'>Choose Lab</InputLabel>
+                  <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
                   <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={lab}
+                    labelId='lab-select-label'
+                    id='lab-select'
+                    value={selectedLab}
                     label='Choose Lab'
                     onChange={handleLabChange}
+                    // defaultValue={lab.length > 0 ? lab[1].lab_id : ''}
                   >
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem>
+                    {lab?.map((item, index) => (
+                      <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                        {item?.lab_name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
