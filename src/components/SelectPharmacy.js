@@ -4,7 +4,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
-import { useDropdownContext } from 'src/context/storeContext'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AuthContext, AuthProvider } from 'src/context/AuthContext'
 import Grow from '@mui/material/Grow'
 import Paper from '@mui/material/Paper'
@@ -18,13 +18,13 @@ import { readAsync, write } from 'src/lib/windows/utils'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-function SetStore() {
+function SelectPharmacy() {
   // ** States
   const [options, setOptions] = useState([])
   const [open, setOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState()
 
-  const { selectedValue, setSelectedValue } = useDropdownContext()
+  const { selectedValue, setSelectedValue } = usePharmacyContext()
   const authData = useContext(AuthContext)
 
   const getStoreData = async () => {
@@ -125,4 +125,4 @@ function SetStore() {
   )
 }
 
-export default SetStore
+export default SelectPharmacy
