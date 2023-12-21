@@ -1,4 +1,5 @@
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
+import labNavigation from 'src/components/navigation/lab'
 
 const pharmacyNav = [
   // {
@@ -120,10 +121,6 @@ const pharmacyNav = [
     path: '/pharmacy/settings',
     icon: 'mdi:settings',
     children: [
-      {
-        title: 'LAB',
-        path: '/pharmacy/settings/labs/lab-list'
-      },
       {
         title: 'GST',
         path: '/pharmacy/settings/gst'
@@ -280,13 +277,36 @@ const pharmacyNav = [
   // }
 ]
 
+const labNav = [
+  {
+    sectionTitle: 'Actions'
+  },
+  {
+    title: 'Lab',
+    icon: 'icon-park-outline:traditional-chinese-medicine',
+    path: '/lab/lab-list'
+
+    // children: [
+    //   {
+    //     title: 'Request',
+    //     path: '/pharmacy/request/request-list'
+    //   }
+    // ]
+  }
+]
+
 const composeNavigation = () => {
   const navigationArray = []
   const pharmacy = true
+  const lab = true
   const centralStore = false
 
   if (pharmacy) {
     navigationArray.push(...pharmacyNavigation())
+  }
+
+  if (lab) {
+    navigationArray.push(...labNavigation())
   }
 
   return navigationArray

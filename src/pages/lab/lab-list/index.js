@@ -32,6 +32,13 @@ const ListOfLab = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
+  const [storedData, setStoredData] = useState()
+  console.log('storedData', storedData)
+
+  useEffect(() => {
+    const Data = window.localStorage.getItem('userDetails')
+    setStoredData(JSON.parse(Data))
+  }, [])
 
   const closeDialog = () => {
     setShow(false)
@@ -254,17 +261,21 @@ const ListOfLab = () => {
   }
 
   const headerAction = (
-    <div>
-      <Button
-        size='big'
-        variant='contained'
-        onClick={() => {
-          Router.push('/lab/add-Lab')
-        }}
-      >
-        Add Lab
-      </Button>
-    </div>
+    <>
+      {storedData.roles.settings.add_lab === true ? (
+        <div>
+          <Button
+            size='big'
+            variant='contained'
+            onClick={() => {
+              Router.push('/lab/add-Lab')
+            }}
+          >
+            Add Lab
+          </Button>
+        </div>
+      ) : null}
+    </>
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
