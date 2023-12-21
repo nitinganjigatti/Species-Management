@@ -36,7 +36,6 @@ function SelectPharmacy() {
     const storedPharmacy = await readAsync('selectedStore')
 
     // console.log('storedPharmacy', storedPharmacy)
-    // console.log('options', options)
 
     const foundStored = () => {
       if (storedPharmacy !== undefined && storedPharmacy !== null) {
