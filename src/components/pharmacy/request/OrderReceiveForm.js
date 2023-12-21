@@ -17,13 +17,10 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById,
-  getShipmentStatusList,
-  resolveDisputeItems
+  getDisputeItemById
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />

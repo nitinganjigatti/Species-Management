@@ -42,9 +42,7 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
-
-import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
+import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 

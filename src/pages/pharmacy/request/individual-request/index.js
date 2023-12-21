@@ -4,9 +4,7 @@ import React, { forwardRef, useState, useEffect } from 'react'
 import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
-  getShippedItemsByRequestId,
-  markItemNotAvailable,
-  markItemAvailable
+  getShippedItemsByRequestId
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

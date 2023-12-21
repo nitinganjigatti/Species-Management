@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
-import TabList from '@mui/lab/TabList'
-
-import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
-import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
-
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import TableWithFilter from 'src/components/TableWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 

@@ -1,6 +1,5 @@
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 
@@ -284,12 +283,13 @@ const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-  const { selectedPharmacy } = usePharmacyContext()
+  debugger
+  const selectedPharmacy = pharmacyList[0]
 
   const navigationArray = []
 
-  if (pharmacyList?.length > 0 || pharmacyRole) {
-    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
+  if (pharmacyList.length > 0 || pharmacyRole) {
+    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy })
     navigationArray.push(...pharmacyNav)
   }
 

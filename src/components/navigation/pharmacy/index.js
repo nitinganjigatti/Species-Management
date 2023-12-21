@@ -164,22 +164,15 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/test/'
   }
 
-  const rackList = {
-    title: 'Rack list',
-    path: '/pharmacy/store/rackList'
-  }
-
   const pharmacyNavigationArray = []
   pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
-    inventoryParent.children.push(productsList)
+    inventoryParent.children.push(productsList, addProduct)
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
-    directDispatchParent.children.push(directDispatchList)
-
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -200,7 +193,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       PurchaseParent,
       requestParent,
       returnParent,
-      directDispatchParent,
       stockParent,
       settingsParent
     )
@@ -216,6 +208,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   console.log(pharmacyNavigationArray)
+  debugger
 
   return pharmacyNavigationArray
 }
