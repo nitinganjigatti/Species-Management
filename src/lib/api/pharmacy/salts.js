@@ -1,5 +1,5 @@
 import { SALTS, PHARMACY_MASTER_BASE_URL } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { axiosGet, axiosPost } from '../utility'
 
 export async function getSalts({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${SALTS}/list`, params: params })

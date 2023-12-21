@@ -25,6 +25,7 @@ const UserLayout = ({ children, contentHeightFixed }) => {
 
   // ** Vars for server side navigation
   // const { menuItems: verticalMenuItems } = ServerSideVerticalNavItems()
+
   // const { menuItems: horizontalMenuItems } = ServerSideHorizontalNavItems()
   /**
    *  The below variable will hide the current layout menu at given screen size.
@@ -50,7 +51,7 @@ const UserLayout = ({ children, contentHeightFixed }) => {
           navItems: VerticalNavItems()
 
           // Uncomment the below line when using server-side menu in vertical layout and comment the above line
-          // navItems: verticalMenuItems
+          //navItems: verticalMenuItems
         },
         appBar: {
           content: props => (
@@ -78,7 +79,6 @@ const UserLayout = ({ children, contentHeightFixed }) => {
       })}
     >
       {children}
-      
     </Layout>
   )
 }

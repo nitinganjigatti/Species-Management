@@ -1,28 +1,26 @@
-import { TAX_SLAB } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { GENERICS } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getGstList({ params }) {
-  const response = await axiosGet({ url: `${TAX_SLAB}/list`, params: params })
+export async function getGenerics() {
+  const response = await axiosGet({ url: GENERICS })
+
+  return response.data.data
+}
+
+export async function getGenericsById(id) {
+  const response = await axiosGet({ url: `${GENERICS}/${id}/show` })
 
   return response.data
 }
 
-export async function getTaxById(id) {
-  const response = await axiosGet({ url: `${TAX_SLAB}/${id}` })
-
-  return response.data
-}
-
-export async function updateTax(id, payload) {
+export async function addGenericName(payload) {
   try {
-    const url = `${TAX_SLAB}/edit/${id}`
+    const url = `${GENERICS}`
     var data = payload
-    data.id = id
     const response = await axiosPost({ url, body: data })
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -34,14 +32,16 @@ export async function updateTax(id, payload) {
   }
 }
 
-export async function addTax(payload) {
+export async function updateGenericName(id, payload) {
   try {
-    const url = `${TAX_SLAB}/add`
+    const url = `${GENERICS}/${id}/update`
     var data = payload
+    data.id = id
     const response = await axiosPost({ url, body: data })
 
     return response?.data
   } catch (error) {
+    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)

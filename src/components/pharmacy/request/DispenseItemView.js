@@ -9,7 +9,7 @@ import { Grid } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 
-import { getDispenseItemById } from 'src/lib/api/getShipmentList'
+import { getDispenseItemById } from 'src/lib/api/pharmacy/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />

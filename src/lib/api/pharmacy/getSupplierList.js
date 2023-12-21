@@ -1,5 +1,5 @@
-import { SUPPLIER } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { SUPPLIER } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
 export async function getSuppliers() {
   return await axiosGet({ url: SUPPLIER })

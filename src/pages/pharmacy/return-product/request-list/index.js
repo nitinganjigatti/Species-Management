@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getRequestReturnList } from 'src/lib/api/returnRequest'
+import { getRequestReturnList } from 'src/lib/api/pharmacy/returnRequest'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getDebitNote } from 'src/lib/api/getDebitNote'
+import { getDebitNote } from 'src/lib/api/pharmacy/getDebitNote'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

@@ -21,7 +21,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { getSaltById } from 'src/lib/api/salts'
+import { getSaltById } from 'src/lib/api/pharmacy/salts'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'

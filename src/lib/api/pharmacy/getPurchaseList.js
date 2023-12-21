@@ -1,21 +1,21 @@
-import { CATEGORIES } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { PURCHASE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getCategories() {
-  const response = await axiosGet({ url: CATEGORIES })
+export async function getPurchaseList() {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${PURCHASE}` })
 
   return response.data.data
 }
 
-export async function getCategoryById(id) {
-  const response = await axiosGet({ url: `${CATEGORIES}/${id}/show` })
+export async function getPurchaseListById(id) {
+  const response = await axiosGet({ url: `${PURCHASE}/${id}/show` })
 
   return response.data
 }
 
-export async function addCategory(payload) {
+export async function addPurchase(payload) {
   try {
-    const url = `${CATEGORIES}`
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,16 +32,15 @@ export async function addCategory(payload) {
   }
 }
 
-export async function updateCategory(id, payload) {
+export async function updatePurchase(id, payload) {
   try {
-    const url = `${CATEGORIES}/${id}/update`
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)

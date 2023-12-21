@@ -18,7 +18,7 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import Utility from 'src/utility'
-import { shipRequestedItems } from 'src/lib/api/getRequestItemsList'
+import { shipRequestedItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 // import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 

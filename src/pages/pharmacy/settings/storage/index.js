@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStorage, updateStorage } from 'src/lib/api/storage'
+import { getStorage, updateStorage } from 'src/lib/api/pharmacy/storage'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -23,7 +23,7 @@ import { debounce } from 'lodash'
 import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { addStorage } from 'src/lib/api/storage'
+import { addStorage } from 'src/lib/api/pharmacy/storage'
 
 const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])

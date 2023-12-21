@@ -9,10 +9,16 @@ import Icon from 'src/@core/components/icon'
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 import SelectPharmacy from 'src/components/SelectPharmacy'
+import { usePathname } from 'next/navigation'
 
 const AppBarContent = props => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
+
+  const pathname = usePathname()
+  const pathArray = pathname !== '' ? pathname?.replace(/^\//, '')?.split('/') : [] // removing first forward slash before splitting
+
+  const moduleName = pathArray.length > 0 ? pathArray[0] : ''
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -24,8 +30,7 @@ const AppBarContent = props => {
         ) : null}
 
         <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
-
-        <SelectPharmacy />
+        {moduleName === 'pharmacy' && <SelectPharmacy />}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>

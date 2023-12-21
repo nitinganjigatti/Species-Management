@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStockOutItems } from 'src/lib/api/getStocksReportById'
+import { getStockOutItems } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import CardHeader from '@mui/material/CardHeader'

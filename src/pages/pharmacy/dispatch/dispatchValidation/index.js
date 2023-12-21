@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getDispatchValidation } from 'src/lib/api/getDispatchValidation'
+import { getDispatchValidation } from 'src/lib/api/pharmacy/getDispatchValidation'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

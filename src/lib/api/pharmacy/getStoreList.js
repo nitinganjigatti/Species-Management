@@ -1,15 +1,21 @@
-import { UOM, PHARMACY_MASTER_BASE_URL } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { STORE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getUnits({ params }) {
-  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/list`, params: params })
+export async function getStoreList({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/list`, params: params })
 
   return response.data
 }
 
-export async function addUnits(payload) {
+export async function getStoreById(id) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/${id}` })
+
+  return response.data
+}
+
+export async function addStore(payload) {
   try {
-    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/add`
+    const url = `${PHARMACY_BASE_URL}${STORE}/add`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -26,15 +32,9 @@ export async function addUnits(payload) {
   }
 }
 
-export async function getUnitsById(id) {
-  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/${id}` })
-
-  return response.data
-}
-
-export async function updateUnits(id, payload) {
+export async function updateStore(id, payload) {
   try {
-    const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/edit/${id}`
+    const url = `${PHARMACY_BASE_URL}${STORE}/update/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })

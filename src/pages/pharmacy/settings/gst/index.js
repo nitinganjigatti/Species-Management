@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getGstList } from 'src/lib/api/getGstList'
+import { getGstList } from 'src/lib/api/pharmacy/getGstList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -22,7 +22,7 @@ import { debounce } from 'lodash'
 import Router from 'next/router'
 
 import AddGstSlabs from 'src/views/pages/pharmacy/medicine/gst/addGstSlab'
-import { addTax, updateTax } from 'src/lib/api/getGstList'
+import { addTax, updateTax } from 'src/lib/api/pharmacy/getGstList'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Utility from 'src/utility'
