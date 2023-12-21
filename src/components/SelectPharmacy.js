@@ -6,7 +6,6 @@ import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AuthContext, AuthProvider } from 'src/context/AuthContext'
 import Grow from '@mui/material/Grow'
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
@@ -27,12 +26,9 @@ function SelectPharmacy() {
   const [selectedStore, setSelectedStore] = useState()
 
   const { selectedValue, setSelectedValue } = usePharmacyContext()
-  const authData = useContext(AuthContext)
-  const router = useRouter()
 
   const getStoreData = async () => {
     const data = await readAsync('userDetails')
-    debugger
     const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
     const options = data?.modules?.pharmacy_data?.pharmacy
     console.log('stores', pharmacy)
