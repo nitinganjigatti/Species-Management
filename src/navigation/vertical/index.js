@@ -285,12 +285,12 @@ const ComposeNavigation = () => {
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   debugger
-  const selectedPharmacy = usePharmacyContext()
+  const { selectedValue } = usePharmacyContext()
 
   const navigationArray = []
 
   if (pharmacyList?.length > 0 || pharmacyRole) {
-    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy })
+    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedValue })
     navigationArray.push(...pharmacyNav)
   }
 

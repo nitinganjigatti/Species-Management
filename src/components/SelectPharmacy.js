@@ -29,6 +29,7 @@ function SelectPharmacy() {
 
   const getStoreData = async () => {
     const data = await readAsync('userDetails')
+    debugger
     const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
     const options = data?.modules?.pharmacy_data?.pharmacy
     console.log('stores', pharmacy)
@@ -38,18 +39,19 @@ function SelectPharmacy() {
     // console.log('storedPharmacy', storedPharmacy)
 
     const foundStored = () => {
-      if (storedPharmacy !== undefined && storedPharmacy !== null) {
-        debugger
-
-        return options.some(item => item.id === storedPharmacy.id)
+      if (options?.length > 0 && storedPharmacy !== undefined) {
+        return options.some(item => item.id === storedPharmacy?.id)
       }
 
       return false
     }
     if (storedPharmacy === '' || foundStored() === false) {
-      setSelectedStore(pharmacy)
-      write('selectedStore', pharmacy)
-      setSelectedValue(pharmacy)
+      if (pharmacy !== undefined) {
+        setSelectedStore(pharmacy)
+        write('selectedStore', pharmacy)
+        setSelectedValue(pharmacy)
+      } else {
+      }
     } else {
       setSelectedStore(storedPharmacy)
     }
