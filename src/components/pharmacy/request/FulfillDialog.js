@@ -31,10 +31,10 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import Icon from 'src/@core/components/icon'
 import { CardHeader } from '@mui/material'
 
-import { getAvailableMedicineByMedicineId } from 'src/lib/api/getRequestItemsList'
+import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import { addDispatch } from 'src/lib/api/getRequestItemsList'
+import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { stringify } from 'stylis'
 

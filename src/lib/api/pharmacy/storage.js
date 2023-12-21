@@ -1,5 +1,5 @@
 import { STORAGE, PHARMACY_MASTER_BASE_URL } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { axiosGet, axiosPost } from '../utility'
 
 export async function getStorage({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${STORAGE}/list`, params })

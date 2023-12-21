@@ -1,5 +1,5 @@
-import { MEDICINE, PHARMACY_BASE_URL } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost, axiosFormPost } from './utility'
+import { MEDICINE, PHARMACY_BASE_URL } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getMedicineList({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${MEDICINE}/list`, params })

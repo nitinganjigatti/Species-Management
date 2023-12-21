@@ -18,7 +18,7 @@ import { debounce } from 'lodash'
 
 import Router from 'next/router'
 
-import { getPackages, addPackages, updatePackage } from 'src/lib/api/packages'
+import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
 
 import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
 import UserSnackbar from 'src/components/utility/snackbar'

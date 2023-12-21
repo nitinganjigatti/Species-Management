@@ -1,5 +1,5 @@
-import { REQUEST_ITEMS, BATCH_DETAILS, DISPATCH, SHIPMENT } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost, axiosFormPost } from './utility'
+import { REQUEST_ITEMS, BATCH_DETAILS, DISPATCH, SHIPMENT } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getRequestItemsList({ params }) {
   const response = await axiosGet({ url: REQUEST_ITEMS, params })

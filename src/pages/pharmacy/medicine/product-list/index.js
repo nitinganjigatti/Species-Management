@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getMedicineList } from 'src/lib/api/getMedicineList'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 // import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'

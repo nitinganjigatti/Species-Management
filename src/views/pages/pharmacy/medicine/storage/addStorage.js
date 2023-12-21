@@ -22,7 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 
-import { getStorageById } from 'src/lib/api/storage'
+import { getStorageById } from 'src/lib/api/pharmacy/storage'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'

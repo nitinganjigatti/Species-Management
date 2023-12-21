@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/manufacturer'
+import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import TableWithFilter from 'src/components/TableWithFilter'
 import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 import Button from '@mui/material/Button'

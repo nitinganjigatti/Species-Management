@@ -5,13 +5,13 @@ import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId
-} from 'src/lib/api/getRequestItemsList'
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
-import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/getShipmentList'
+import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'

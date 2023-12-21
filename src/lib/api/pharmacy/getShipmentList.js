@@ -1,5 +1,5 @@
-import { SHIPMENT, DISPUTE_ITEM, DISPENSE_ITEM } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { SHIPMENT, DISPUTE_ITEM, DISPENSE_ITEM } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
 export async function getShipmentList() {
   const response = await axiosGet({ url: SHIPMENT })

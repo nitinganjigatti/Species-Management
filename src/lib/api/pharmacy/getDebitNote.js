@@ -1,21 +1,21 @@
-import { RACK } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { DEBIT_NOTE } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getRackList() {
-  const response = await axiosGet({ url: RACK })
+export async function getDebitNote() {
+  const response = await axiosGet({ url: DEBIT_NOTE })
 
   return response.data.data
 }
 
-export async function getRackListById(id) {
-  const response = await axiosGet({ url: `${RACK}/${id}/show` })
+export async function getDebitListById(id) {
+  const response = await axiosGet({ url: `${DEBIT_NOTE}/${id}/show` })
 
   return response.data
 }
 
-export async function addRackList(payload) {
+export async function addDebit(payload) {
   try {
-    const url = `${RACK}`
+    const url = `${DEBIT_NOTE}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,16 +32,15 @@ export async function addRackList(payload) {
   }
 }
 
-export async function updateRackList(id, payload) {
+export async function updateDebit(id, payload) {
   try {
-    const url = `${RACK}/${id}/update`
+    const url = `${DEBIT_NOTE}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -51,10 +50,4 @@ export async function updateRackList(id, payload) {
 
     return error
   }
-}
-
-export async function deleteRackItem(id) {
-  const response = await axiosGet({ url: `${RACK}/${id}/delete` })
-
-  return response?.data
 }

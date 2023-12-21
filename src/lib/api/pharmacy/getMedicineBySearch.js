@@ -1,6 +1,6 @@
-import { MEDICINE_SEARCH } from '../../constants/ApiConstant'
-import { axiosGet } from './utility'
-import { MEDICINE } from '../../constants/ApiConstant'
+import { MEDICINE_SEARCH } from '../../../constants/ApiConstant'
+import { axiosGet } from '../utility'
+import { MEDICINE } from '../../../constants/ApiConstant'
 
 export async function getMedicineBySearch(name) {
   const response = await axiosGet({ url: `${MEDICINE_SEARCH}${name}` })

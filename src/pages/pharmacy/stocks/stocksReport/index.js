@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getStocksReportById } from 'src/lib/api/getStocksReportById'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'

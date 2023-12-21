@@ -6,6 +6,7 @@ const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
 export const GetAPIHeader = async () => {
   const userDetails = await readAsync('userDetails')
+  const selectedPharmacy = await readAsync('selectedStore')
 
   // const header = { 'Content-Type': 'multipart/form-data' }
 

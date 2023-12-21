@@ -33,9 +33,9 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 
-import { addSuppliers } from 'src/lib/api/addSupplier'
-import { getStates } from 'src/lib/api/getStates'
-import { getSupplierById, updateSuppliersById } from 'src/lib/api/getSupplierList'
+import { addSuppliers } from 'src/lib/api/pharmacy/addSupplier'
+import { getStates } from 'src/lib/api/pharmacy/getStates'
+import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 import UserSnackbar from 'src/components/utility/snackbar'
 
 const defaultValues = {

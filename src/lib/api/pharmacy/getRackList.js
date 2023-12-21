@@ -1,21 +1,21 @@
-import { STORE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { RACK } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
-export async function getStoreList({ params }) {
-  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/list`, params: params })
+export async function getRackList() {
+  const response = await axiosGet({ url: RACK })
+
+  return response.data.data
+}
+
+export async function getRackListById(id) {
+  const response = await axiosGet({ url: `${RACK}/${id}/show` })
 
   return response.data
 }
 
-export async function getStoreById(id) {
-  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/${id}` })
-
-  return response.data
-}
-
-export async function addStore(payload) {
+export async function addRackList(payload) {
   try {
-    const url = `${PHARMACY_BASE_URL}${STORE}/add`
+    const url = `${RACK}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -32,9 +32,9 @@ export async function addStore(payload) {
   }
 }
 
-export async function updateStore(id, payload) {
+export async function updateRackList(id, payload) {
   try {
-    const url = `${PHARMACY_BASE_URL}${STORE}/update/${id}`
+    const url = `${RACK}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data })
@@ -51,4 +51,10 @@ export async function updateStore(id, payload) {
 
     return error
   }
+}
+
+export async function deleteRackItem(id) {
+  const response = await axiosGet({ url: `${RACK}/${id}/delete` })
+
+  return response?.data
 }

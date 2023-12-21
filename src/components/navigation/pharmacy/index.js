@@ -1,6 +1,6 @@
-const composePharmacyNavigation = () => {
-  const pharmacyType = 'central'
+import { getSelectedPharmacy } from 'src/lib/api/pharmacy/selectedPharmacy'
 
+const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmacy }) => {
   const pharmacyTitle = {
     sectionTitle: 'Pharmacy'
   }
@@ -147,14 +147,20 @@ const composePharmacyNavigation = () => {
     path: '/pharmacy/settings/supplier/supplier-list'
   }
 
-  const pharmacyNavigationArray = []
+  const testList = {
+    title: 'Test Module',
+    path: '/test/'
+  }
 
+  const pharmacyNavigationArray = []
+  pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
 
-  if (pharmacyType === 'central') {
+  if (selectedPharmacy?.type === 'central') {
     inventoryParent.children.push(productsList, addProduct)
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
+    returnParent.children.push(returnListing)
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -169,10 +175,17 @@ const composePharmacyNavigation = () => {
       supplierList
     )
 
-    pharmacyNavigationArray.push(inventoryParent, PurchaseParent, requestParent, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      inventoryParent,
+      PurchaseParent,
+      requestParent,
+      returnParent,
+      stockParent,
+      settingsParent
+    )
   }
 
-  if (pharmacyType === 'local') {
+  if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing, addReturnRequest)
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
@@ -180,9 +193,13 @@ const composePharmacyNavigation = () => {
     pharmacyNavigationArray.push(requestParent, returnParent, stockParent)
   }
 
+  console.log(pharmacyNavigationArray)
+  debugger
+
   return pharmacyNavigationArray
 }
 
-const pharmacyNavigation = () => composePharmacyNavigation()
+const pharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmacy }) =>
+  composePharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy })
 
 export default pharmacyNavigation
