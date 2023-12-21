@@ -735,6 +735,7 @@ const AddMedicine = () => {
 
   const clearSaltFields = index => {
     return (
+      // eslint-disable-next-line lines-around-comment
       // <Button
       //   variant='outlined'
       //   onClick={() => {

@@ -79,7 +79,7 @@ const AuthProvider = ({ children }) => {
           const resData = await callRefreshToken()
           setLoading(false)
           if (resData.token) {
-            // console.log('refreshed', resData?.modules?.pharmacy_data?.pharmacy)
+            // console.log('refreshed', resData)
             const options = resData?.modules?.pharmacy_data?.pharmacy
             const storedPharmacy = await readAsync('selectedStore')
 

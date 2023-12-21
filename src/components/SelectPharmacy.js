@@ -39,7 +39,7 @@ function SelectPharmacy() {
     // console.log('options', options)
 
     const foundStored = () => {
-      return options.some(item => item.id === storedPharmacy.id)
+      return options.some(item => item.id === storedPharmacy?.id)
     }
     if (storedPharmacy === '' || foundStored() === false) {
       setSelectedStore(pharmacy)
