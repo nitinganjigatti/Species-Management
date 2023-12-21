@@ -141,6 +141,7 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    debugger
     setUser(null)
     setUserData(null)
     setLoading(false)
@@ -209,6 +210,7 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
+    localStorage.removeItem('selectedStore')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     router.push('/login')
   }
