@@ -29,10 +29,8 @@ const AppBarContent = props => {
             <Icon icon='mdi:menu' />
           </IconButton>
         ) : null}
-
-        <ModeToggler settings={settings} saveSettings={saveSettings} />
-
-        {moduleName === 'pharmacy' && <SetStore />}
+        <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
+        {moduleName === 'pharmacy' && <SelectPharmacy />}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
