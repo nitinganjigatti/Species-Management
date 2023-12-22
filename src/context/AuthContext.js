@@ -100,10 +100,17 @@ const AuthProvider = ({ children }) => {
               const areArraysEqual =
                 JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
 
-              return areArraysEqual
+              // return areArraysEqual
+              if (areArraysEqual === false) {
+                write('selectedStore', foundPharmacy)
+
+                setSelectedValue(foundPharmacy)
+              }
+
+              // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
             }
-            console.log('areArraysEqual in auth context', findSelectedPharmacy())
-            if (storedPharmacy === '' || foundStored() === false || findSelectedPharmacy() === false) {
+            findSelectedPharmacy()
+            if (storedPharmacy === '' || foundStored() === false) {
               if (options?.length > 0) {
                 write('selectedStore', options[0])
 
