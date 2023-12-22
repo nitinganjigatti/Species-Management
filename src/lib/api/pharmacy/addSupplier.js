@@ -5,7 +5,7 @@ export async function addSuppliers(payload) {
   try {
     const url = `${SUPPLIER}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {

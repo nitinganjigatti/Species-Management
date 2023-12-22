@@ -2,13 +2,13 @@ import { RACK } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getRackList() {
-  const response = await axiosGet({ url: RACK })
+  const response = await axiosGet({ url: RACK, pharmacy: true })
 
   return response.data.data
 }
 
 export async function getRackListById(id) {
-  const response = await axiosGet({ url: `${RACK}/${id}/show` })
+  const response = await axiosGet({ url: `${RACK}/${id}/show`, pharmacy: true })
 
   return response.data
 }
@@ -17,7 +17,7 @@ export async function addRackList(payload) {
   try {
     const url = `${RACK}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
