@@ -1,14 +1,16 @@
 import { REQUEST_ITEMS, BATCH_DETAILS, DISPATCH, SHIPMENT } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
+const pharmacy = true
+
 export async function getRequestItemsList({ params }) {
-  const response = await axiosGet({ url: REQUEST_ITEMS, params })
+  const response = await axiosGet({ url: REQUEST_ITEMS, params, pharmacy })
 
   return response.data
 }
 
 export async function getRequestItemsListById(id) {
-  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show` })
+  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show`, pharmacy })
 
   return response.data
 }
@@ -16,7 +18,7 @@ export async function getRequestItemsListById(id) {
 //http://localhost:8080/api/batch-details/20
 
 export async function getAvailableMedicineByMedicineId(id, data, store) {
-  const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data })
+  const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
 
   return response.data
 }
@@ -25,7 +27,7 @@ export async function addDispatch(payload) {
   try {
     const url = `${DISPATCH}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy })
 
     return response?.data
   } catch (error) {
@@ -41,7 +43,7 @@ export async function addDispatch(payload) {
 }
 
 export async function getDispatchItemsByBatchId(id) {
-  const response = await axiosGet({ url: `${DISPATCH}/${id}/show` })
+  const response = await axiosGet({ url: `${DISPATCH}/${id}/show`, pharmacy })
 
   return response.data
 }
@@ -81,7 +83,7 @@ export async function getDispatchItemsByBatchId(id) {
 export async function addRequestItems(payload) {
   try {
     const url = `${REQUEST_ITEMS}`
-    const response = await axiosFormPost({ url, body: payload })
+    const response = await axiosFormPost({ url, body: payload, pharmacy })
 
     return response?.data
   } catch (error) {
@@ -133,8 +135,7 @@ export async function updateRequestItems(id, payload) {
     var data = payload
     data.id = id
 
-    // const response = await axiosPost({ url, body: data })
-    const response = await axiosFormPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data, pharmacy })
 
     return response?.data
   } catch (error) {
@@ -188,7 +189,7 @@ export async function shipRequestedItems(payload) {
   try {
     const url = `${SHIPMENT}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy })
 
     return response?.data
   } catch (error) {
@@ -204,7 +205,7 @@ export async function shipRequestedItems(payload) {
 }
 
 export async function getShippedItemsByRequestId(id) {
-  const response = await axiosGet({ url: `${SHIPMENT}/${id}/show` })
+  const response = await axiosGet({ url: `${SHIPMENT}/${id}/show`, pharmacy })
 
   return response.data
 }
@@ -214,7 +215,7 @@ export async function updateShipmentRequest(id, payload) {
     const url = `${SHIPMENT}/${id}/update`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy })
 
     return response?.data
   } catch (error) {
