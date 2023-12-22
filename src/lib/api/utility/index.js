@@ -18,7 +18,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   if (userDetails?.token !== '') {
     header['Authorization'] = `Bearer ${userDetails?.token}`
   }
-  debugger
+
+  // debugger
   if (pharmacy) {
     header['Selectedstore'] = selectedPharmacy?.id
   }
