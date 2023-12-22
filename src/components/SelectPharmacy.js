@@ -26,7 +26,7 @@ function SelectPharmacy() {
   const [open, setOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState()
 
-  const { selectedValue, setSelectedValue } = usePharmacyContext()
+  const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
   const router = useRouter()
 
@@ -61,7 +61,7 @@ function SelectPharmacy() {
       if (pharmacy !== undefined) {
         setSelectedStore(pharmacy)
         write('selectedStore', pharmacy)
-        setSelectedValue(pharmacy)
+        setSelectedPharmacy(pharmacy)
       } else {
       }
     } else {
@@ -82,9 +82,10 @@ function SelectPharmacy() {
 
     setSelectedStore(selected[0])
     write('selectedStore', selected[0])
-    setSelectedValue(selected[0])
+    setSelectedPharmacy(selected[0])
     setOpen(false)
-    router.reload()
+
+    // router.reload()
   }
 
   const handleToggle = () => {

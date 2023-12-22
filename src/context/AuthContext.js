@@ -37,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
 
-  const { selectedValue, setSelectedValue } = usePharmacyContext()
+  const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
 
   // ** Hooks
   const router = useRouter()
@@ -94,12 +94,12 @@ const AuthProvider = ({ children }) => {
               if (options?.length > 0) {
                 write('selectedStore', options[0])
 
-                setSelectedValue(options[0])
+                setSelectedPharmacy(options[0])
               } else {
                 localStorage.removeItem('selectedStore')
               }
             } else {
-              setSelectedValue(storedPharmacy)
+              setSelectedPharmacy(storedPharmacy)
             }
 
             const userData = {

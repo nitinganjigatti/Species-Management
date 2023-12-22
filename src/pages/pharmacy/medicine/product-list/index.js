@@ -26,11 +26,20 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
+import Error404 from 'src/pages/404'
+
 const ListOfMedicine = () => {
   const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
+
+  const { selectedPharmacy } = usePharmacyContext()
+
+  debugger
+  console.log(selectedPharmacy)
 
   const closeDialog = () => {
     setShow(false)
@@ -157,27 +166,39 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton
-            size='small'
-            onClick={() => {
-              setConfigureMedId(params.row.id)
-              showDialog()
-            }}
-          >
-            <Icon icon='grommet-icons:configure' />
-          </IconButton> */}
-          {/* <IconButton size='small'>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box>
+                <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+                {/* Other IconButton components */}
+              </Box>
+            )}
+        </>
 
-          <IconButton size='small'>
-            <Icon icon='mdi:file' />
-          </IconButton> */}
-        </Box>
+        // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
+        //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+        //     <Icon icon='mdi:pencil-outline' />
+        //   </IconButton>
+        //   {/* <IconButton
+        //     size='small'
+        //     onClick={() => {
+        //       setConfigureMedId(params.row.id)
+        //       showDialog()
+        //     }}
+        //   >
+        //     <Icon icon='grommet-icons:configure' />
+        //   </IconButton> */}
+        //   {/* <IconButton size='small'>
+        //     <Icon icon='mdi:eye-outline' />
+        //   </IconButton>
+
+        //   <IconButton size='small'>
+        //     <Icon icon='mdi:file' />
+        //   </IconButton> */}
+        // </Box>)}
       )
     }
   ]
@@ -250,12 +271,15 @@ const ListOfMedicine = () => {
 
   const headerAction = (
     <div>
-      <AddButton
-        title='Add Product'
-        action={() => {
-          Router.push('/pharmacy/medicine/add-product')
-        }}
-      />
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <AddButton
+            title='Add Product'
+            action={() => {
+              Router.push('/pharmacy/medicine/add-product')
+            }}
+          />
+        )}
       {/* <Button
         size='big'
         variant='contained'
@@ -277,50 +301,58 @@ const ListOfMedicine = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <CommonDialogBox
+                title={'Configure Medicine'}
+                dialogBoxStatus={show}
+                formComponent={<MedicineConfigure configureMedId={configureMedId} />}
+                close={closeDialog}
+                show={showDialog}
+              />
+              <Card>
+                <CardHeader title='Product List' action={headerAction} />
+                <DataGrid
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+
+                      onChange: event => {
+                        setSearchValue(event.target.value)
+
+                        return handleSearch(event.target.value)
+                      }
+                    }
+                  }}
+                />
+              </Card>
+            </>
+          )}
+        </>
       ) : (
         <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <Card>
-            <CardHeader title='Product List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
-                }
-              }}
-            />
-          </Card>
+          <Error404></Error404>
         </>
       )}
     </>
