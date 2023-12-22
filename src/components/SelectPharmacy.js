@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useContext, useState, Fragment } from 'react'
+import { useRouter } from 'next/router'
 
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -27,6 +28,7 @@ function SelectPharmacy() {
 
   const { selectedValue, setSelectedValue } = usePharmacyContext()
   const authData = useContext(AuthContext)
+  const router = useRouter()
 
   // console.log('authData', authData)
 
@@ -81,8 +83,8 @@ function SelectPharmacy() {
     setSelectedStore(selected[0])
     write('selectedStore', selected[0])
     setSelectedValue(selected[0])
-
     setOpen(false)
+    router.reload()
   }
 
   const handleToggle = () => {

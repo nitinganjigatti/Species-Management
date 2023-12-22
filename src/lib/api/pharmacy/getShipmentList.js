@@ -2,25 +2,25 @@ import { SHIPMENT, DISPUTE_ITEM, DISPENSE_ITEM } from '../../../constants/ApiCon
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getShipmentList() {
-  const response = await axiosGet({ url: SHIPMENT })
+  const response = await axiosGet({ url: SHIPMENT, pharmacy: true })
 
   return response.data.data
 }
 
 export async function getShipmentOrderDetails(id) {
-  const response = await axiosGet({ url: `${SHIPMENT}/shipped/${id}` })
+  const response = await axiosGet({ url: `${SHIPMENT}/shipped/${id}`, pharmacy: true })
 
   return response.data
 }
 
 export async function getDisputeItemList(id) {
-  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/request` })
+  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/request`, pharmacy: true })
 
   return response.data
 }
 
 export async function getDisputeItemById(id) {
-  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/show` })
+  const response = await axiosGet({ url: `${DISPUTE_ITEM}/${id}/show`, pharmacy: true })
 
   return response.data.data
 }
@@ -30,7 +30,7 @@ export async function addDisputeItems(payload) {
     const url = `${DISPUTE_ITEM}`
     var data = payload
 
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -52,7 +52,7 @@ export async function upDateDisputeItems(id, payload) {
     var data = payload
     data.id = id
 
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -73,7 +73,7 @@ export async function addDispenseItems(payload) {
     const url = `${DISPENSE_ITEM}`
     var data = payload
 
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -90,13 +90,13 @@ export async function addDispenseItems(payload) {
 }
 
 export async function getDispenseItemList(id) {
-  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/request` })
+  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/request`, pharmacy: true })
 
   return response.data
 }
 
 export async function getDispenseItemById(id) {
-  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/show` })
+  const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/show`, pharmacy: true })
 
   return response.data
 }

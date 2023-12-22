@@ -2,13 +2,13 @@ import { TAX_SLAB } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getGstList({ params }) {
-  const response = await axiosGet({ url: `${TAX_SLAB}/list`, params: params })
+  const response = await axiosGet({ url: `${TAX_SLAB}/list`, params: params, pharmacy: true })
 
   return response.data
 }
 
 export async function getTaxById(id) {
-  const response = await axiosGet({ url: `${TAX_SLAB}/${id}` })
+  const response = await axiosGet({ url: `${TAX_SLAB}/${id}`, pharmacy: true })
 
   return response.data
 }
@@ -18,7 +18,7 @@ export async function updateTax(id, payload) {
     const url = `${TAX_SLAB}/edit/${id}`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
