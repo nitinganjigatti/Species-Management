@@ -173,6 +173,7 @@ const ListOfMedicine = () => {
                 <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
                   <Icon icon='mdi:pencil-outline' />
                 </IconButton>
+                {/* Other IconButton components */}
               </Box>
             )}
         </>

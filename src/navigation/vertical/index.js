@@ -293,12 +293,12 @@ const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-  const { selectedValue } = usePharmacyContext()
+  const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
 
   if (pharmacyList?.length > 0 || pharmacyRole) {
-    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedValue })
+    const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
     navigationArray.push(...pharmacyNav)
 >>>>>>> e6d9ab6 (Changes related to Pharmacy permissions.)
   }
