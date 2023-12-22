@@ -42,6 +42,7 @@ function SelectPharmacy() {
 
     const pharmacy = authData?.userData?.modules?.pharmacy_data?.pharmacy[0]
     const options = authData?.userData?.modules?.pharmacy_data?.pharmacy
+
     // console.log('options', options)
 
     // const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
@@ -67,14 +68,23 @@ function SelectPharmacy() {
       }
 
       const areArraysEqual = JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+
       // console.log('one11', pharmacy?.permission)
       // console.log('one22', storedPharmacy?.permission)
 
-      return areArraysEqual
-    }
-    console.log('areArraysEqual in pharmacy  comp', findSelectedPharmacy())
+      // return areArraysEqual
+      if (areArraysEqual === false) {
+        write('selectedStore', foundPharmacy)
 
-    if (storedPharmacy === '' || foundStored() === false || findSelectedPharmacy() === false) {
+        setSelectedValue(foundPharmacy)
+      }
+
+      // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
+    }
+
+    findSelectedPharmacy()
+
+    if (storedPharmacy === '' || foundStored() === false) {
       if (pharmacy !== undefined) {
         setSelectedStore(pharmacy)
         write('selectedStore', pharmacy)
