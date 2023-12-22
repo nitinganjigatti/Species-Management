@@ -121,9 +121,3 @@ export async function getDispenseItemById(id) {
 
   return response.data
 }
-
-export async function getShipmentStatusList() {
-  const response = await axiosGet({ url: `${SHIPMENT}/status`, pharmacy: true })
-
-  return response.data
-}
