@@ -146,7 +146,7 @@ const AddMedicine = () => {
     reValidateMode: 'onChange'
   })
 
-  const { selectedValue } = usePharmacyContext()
+  const { selectedPharmacy } = usePharmacyContext()
 
   console.log('selecetd store product page', selectedPharmacy)
 
