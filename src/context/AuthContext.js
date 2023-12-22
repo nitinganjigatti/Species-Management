@@ -104,7 +104,7 @@ const AuthProvider = ({ children }) => {
               if (areArraysEqual === false) {
                 write('selectedStore', foundPharmacy)
 
-                setSelectedValue(foundPharmacy)
+                setSelectedPharmacy(foundPharmacy)
               }
 
               // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
