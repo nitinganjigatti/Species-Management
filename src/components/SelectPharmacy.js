@@ -42,10 +42,11 @@ function SelectPharmacy() {
 
     const pharmacy = authData?.userData?.modules?.pharmacy_data?.pharmacy[0]
     const options = authData?.userData?.modules?.pharmacy_data?.pharmacy
+    // console.log('options', options)
 
     // const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
     // const options = data?.modules?.pharmacy_data?.pharmacy
-    console.log('stores', pharmacy)
+    // console.log('stores', pharmacy)
     setOptions(options)
     const storedPharmacy = await readAsync('selectedStore')
 
@@ -58,7 +59,22 @@ function SelectPharmacy() {
 
       return false
     }
-    if (storedPharmacy === '' || foundStored() === false) {
+
+    const findSelectedPharmacy = () => {
+      let foundPharmacy = ''
+      if (options?.length > 0 && storedPharmacy !== undefined) {
+        foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+      }
+
+      const areArraysEqual = JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+      // console.log('one11', pharmacy?.permission)
+      // console.log('one22', storedPharmacy?.permission)
+
+      return areArraysEqual
+    }
+    console.log('areArraysEqual in pharmacy  comp', findSelectedPharmacy())
+
+    if (storedPharmacy === '' || foundStored() === false || findSelectedPharmacy() === false) {
       if (pharmacy !== undefined) {
         setSelectedStore(pharmacy)
         write('selectedStore', pharmacy)

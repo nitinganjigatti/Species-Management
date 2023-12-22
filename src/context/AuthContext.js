@@ -90,7 +90,20 @@ const AuthProvider = ({ children }) => {
 
               return false
             }
-            if (storedPharmacy === '' || foundStored() === false) {
+
+            const findSelectedPharmacy = () => {
+              let foundPharmacy = ''
+              if (options?.length > 0 && storedPharmacy !== undefined) {
+                foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+              }
+
+              const areArraysEqual =
+                JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+
+              return areArraysEqual
+            }
+            console.log('areArraysEqual in auth context', findSelectedPharmacy())
+            if (storedPharmacy === '' || foundStored() === false || findSelectedPharmacy() === false) {
               if (options?.length > 0) {
                 write('selectedStore', options[0])
 
