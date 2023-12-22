@@ -169,7 +169,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
-    inventoryParent.children.push(productsList, addProduct)
+    inventoryParent.children.push(productsList)
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
