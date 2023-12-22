@@ -63,6 +63,11 @@ const ListOfRequest = () => {
   //   })
   // }
 
+  const handleClickRequestId = params => {
+    const id = params.row.lab_test_id
+    Router.push(`/lab/${id}`)
+  }
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -81,7 +86,11 @@ const ListOfRequest = () => {
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          onClick={() => handleClickRequestId(params)}
+          sx={{ color: 'text.primary', cursor: 'pointer' }}
+        >
           {params.row.lab_test_id}
         </Typography>
       )

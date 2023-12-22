@@ -293,9 +293,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...pharmacyNav)
   }
 
-  if (lab) {
-    navigationArray.push(...labNavigation())
-  }
+  // if (lab) {
+  navigationArray.push(...labNavigation())
+
+  // }
 
   return navigationArray
 }
