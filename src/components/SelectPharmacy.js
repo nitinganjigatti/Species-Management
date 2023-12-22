@@ -29,6 +29,7 @@ function SelectPharmacy() {
 
   const { selectedValue, setSelectedValue } = usePharmacyContext()
   const authData = useContext(AuthContext)
+  const router = useRouter()
 
   // console.log('authData', authData)
 
