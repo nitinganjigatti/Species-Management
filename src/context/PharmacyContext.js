@@ -3,9 +3,11 @@ import React, { createContext, useContext, useState } from 'react'
 const PharmacyContext = createContext()
 
 export const PharmacyProvider = ({ children }) => {
-  const [selectedValue, setSelectedValue] = useState('initial context values')
+  const [selectedPharmacy, setSelectedPharmacy] = useState('')
 
-  return <PharmacyContext.Provider value={{ selectedValue, setSelectedValue }}>{children}</PharmacyContext.Provider>
+  return (
+    <PharmacyContext.Provider value={{ selectedPharmacy, setSelectedPharmacy }}>{children}</PharmacyContext.Provider>
+  )
 }
 
 export const usePharmacyContext = () => useContext(PharmacyContext)
