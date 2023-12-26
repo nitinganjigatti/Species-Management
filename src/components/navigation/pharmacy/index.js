@@ -139,7 +139,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const storeList = {
     title: 'Store list',
-    path: '/pharmacy/settings/storeList'
+    path: '/pharmacy/settings/store-list'
   }
 
   const supplierList = {
