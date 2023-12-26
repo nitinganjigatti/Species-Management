@@ -25,6 +25,9 @@ import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { addStorage } from 'src/lib/api/pharmacy/storage'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
+
 const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])
   const [loader, setLoader] = useState(false)
