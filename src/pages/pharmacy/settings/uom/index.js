@@ -268,39 +268,41 @@ const ListOfUOM = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {selectedPharmacy.type === 'central' ? (
         <>
-          <Card>
-            <CardHeader title='UOM (Unit of Measurement) List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-            />
-          </Card>
-          {/* <TableWithFilter
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader title='UOM (Unit of Measurement) List' action={headerAction} />
+                <DataGrid
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
+              {/* <TableWithFilter
             TableTitle={
               uomList.length > 0 ? 'UOM (Unit of Measurement) List' : 'UOM (Unit of Measurement) List is empty add UOM'
             }
@@ -314,16 +316,27 @@ const ListOfUOM = () => {
             columns={columns}
             rows={uomList}
           /> */}
-          <AddUOM
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handleSubmitData}
-            resetForm={resetForm}
-            submitLoader={submitLoader}
-            editParams={editParams}
-          />
-          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
+              <AddUOM
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              />
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
         </>
       )}
     </>
