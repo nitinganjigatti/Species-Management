@@ -52,7 +52,7 @@ const ListOfPurchase = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/purchase/addPurchase/',
+      pathname: '/pharmacy/purchase/add-purchase/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -195,7 +195,7 @@ const ListOfPurchase = () => {
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          Router.push('/pharmacy/purchase/addPurchase/')
+                          Router.push('/pharmacy/purchase/add-purchase/')
                         }}
                       >
                         Add Purchase
