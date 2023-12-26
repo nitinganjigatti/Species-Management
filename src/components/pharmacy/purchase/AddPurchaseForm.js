@@ -557,7 +557,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchaseList/')
+        Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -568,7 +568,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchaseList/')
+        Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
         console.log('response catch purchase', response)
@@ -897,7 +897,7 @@ const AddPurchaseForm = () => {
             size='big'
             variant='contained'
             onClick={() => {
-              Router.push('/pharmacy/purchase/purchaseList/')
+              Router.push('/pharmacy/purchase/purchase-list/')
             }}
           >
             Purchase List
