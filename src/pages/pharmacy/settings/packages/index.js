@@ -24,6 +24,9 @@ import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
+
 const ManufacturerList = () => {
   const [packages, setPackages] = useState([])
   const [loader, setLoader] = useState(false)
@@ -38,6 +41,8 @@ const ManufacturerList = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -112,17 +117,22 @@ const ManufacturerList = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {parseInt(params.row.zoo_id) === 0 ? null : (
-            <IconButton
-              size='small'
-              sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
-        </Box>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {parseInt(params.row.zoo_id) === 0 ? null : (
+                  <IconButton
+                    size='small'
+                    sx={{ mr: 0.5 }}
+                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                )}
+              </Box>
+            )}
+        </>
       )
     }
   ]
@@ -198,9 +208,12 @@ const ManufacturerList = () => {
 
   const headerAction = (
     <div>
-      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add Package
-      </Button>
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+            Add Package
+          </Button>
+        )}
     </div>
   )
 
@@ -239,48 +252,61 @@ const ManufacturerList = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader title='Packages' action={headerAction} />
+                <DataGrid
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
+              <AddPackages
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              />
+            </>
+          )}
+        </>
       ) : (
         <>
-          <Card>
-            <CardHeader title='Packages' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-            />
-          </Card>
-          <AddPackages
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handleSubmitData}
-            resetForm={resetForm}
-            submitLoader={submitLoader}
-            editParams={editParams}
-          />
-          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
+          <Error404></Error404>
         </>
       )}
     </>
