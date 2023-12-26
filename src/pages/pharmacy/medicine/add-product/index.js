@@ -47,6 +47,7 @@ import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
 // ** Source code imports
 import * as source from 'src/views/forms/form-elements/file-uploader/FileUploaderSourceCode'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import Error404 from 'src/pages/404'
 import { addMedicine, getMedicineById, updateMedicineById } from 'src/lib/api/pharmacy/getMedicineList'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import UserSnackbar from 'src/components/utility/snackbar'
