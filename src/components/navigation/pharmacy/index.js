@@ -175,14 +175,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       supplierList
     )
 
-    pharmacyNavigationArray.push(
-      inventoryParent,
-      PurchaseParent,
-      requestParent,
-      returnParent,
-      stockParent,
-      settingsParent
-    )
+    pharmacyNavigationArray.push(inventoryParent, PurchaseParent, requestParent, stockParent, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
