@@ -16,10 +16,15 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import Error404 from 'src/pages/404'
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ListOfPurchase = () => {
   const [purchaseList, setPurchaseList] = useState([])
   const [loader, setLoader] = useState(false)
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const getPurchaseLists = async () => {
     try {
@@ -142,23 +147,28 @@ const ListOfPurchase = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              handleEdit(params.row.id)
-            }}
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => {
+                    handleEdit(params.row.id)
+                  }}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:delete-outline' />
           </IconButton> */}
-        </Box>
+              </Box>
+            )}
+        </>
       )
     }
   ]
@@ -169,27 +179,39 @@ const ListOfPurchase = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <TableWithFilter
+              TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
+              headerActions={
+                <div>
+                  {selectedPharmacy.type === 'central' &&
+                    (selectedPharmacy.permission.key === 'allow_full_access' ||
+                      selectedPharmacy.permission.key === 'ADD') && (
+                      <Button
+                        size='big'
+                        variant='contained'
+                        onClick={() => {
+                          Router.push('/pharmacy/purchase/addPurchase/')
+                        }}
+                      >
+                        Add Purchase
+                      </Button>
+                    )}
+                </div>
+              }
+              columns={columns}
+              rows={purchaseList}
+            />
+          )}
+        </>
       ) : (
-        <TableWithFilter
-          TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
-          headerActions={
-            <div>
-              <Button
-                size='big'
-                variant='contained'
-                onClick={() => {
-                  Router.push('/pharmacy/purchase/addPurchase/')
-                }}
-              >
-                Add Purchase
-              </Button>
-            </div>
-          }
-          columns={columns}
-          rows={purchaseList}
-        />
+        <>
+          <Error404></Error404>
+        </>
       )}
     </>
   )
