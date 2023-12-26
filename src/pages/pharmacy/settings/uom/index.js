@@ -23,6 +23,8 @@ import { debounce } from 'lodash'
 
 import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
 
 const ListOfUOM = () => {
   const [uomList, setUomList] = useState([])
@@ -38,6 +40,8 @@ const ListOfUOM = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -128,27 +132,35 @@ const ListOfUOM = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {parseInt(params.row.zoo_id) === 0 ? null : (
-            <IconButton
-              size='small'
-              sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.unit_name, params.row.active)}
-              aria-label='Edit'
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
-        </Box>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {parseInt(params.row.zoo_id) === 0 ? null : (
+                  <IconButton
+                    size='small'
+                    sx={{ mr: 0.5 }}
+                    onClick={() => handleEdit(params.row.id, params.row.unit_name, params.row.active)}
+                    aria-label='Edit'
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                )}
+              </Box>
+            )}
+        </>
       )
     }
   ]
 
   const headerAction = (
     <div>
-      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add UOM
-      </Button>
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
+            Add UOM
+          </Button>
+        )}
     </div>
   )
 
