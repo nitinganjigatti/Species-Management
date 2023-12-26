@@ -195,7 +195,7 @@ const ListOfPurchase = () => {
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          Router.push('/pharmacy/purchase/addPurchase/')
+                          Router.push('/pharmacy/purchase/add-purchase/')
                         }}
                       >
                         Add Purchase
