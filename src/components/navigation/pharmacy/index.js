@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const purchaseList = {
     title: 'Purchase list',
-    path: '/pharmacy/purchase/purchaseList'
+    path: '/pharmacy/purchase/purchase-list'
   }
 
   const requestParent = {

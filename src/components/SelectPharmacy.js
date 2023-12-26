@@ -112,7 +112,7 @@ function SelectPharmacy() {
     setSelectedPharmacy(selected[0])
     setOpen(false)
 
-    // router.reload()
+    router.reload()
   }
 
   const handleToggle = () => {

@@ -20,9 +20,13 @@ import { Box } from '@mui/material'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 const RequestList = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const handleEdit = id => {
     Router.push({
@@ -125,17 +129,20 @@ const RequestList = () => {
 
   const headerAction = (
     <div>
-      <Button
-        size='big'
-        variant='contained'
-        onClick={() =>
-          Router.push({
-            pathname: '/pharmacy/request/add-request/'
-          })
-        }
-      >
-        Add Request
-      </Button>
+      {selectedPharmacy.type === 'local' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <Button
+            size='big'
+            variant='contained'
+            onClick={() =>
+              Router.push({
+                pathname: '/pharmacy/request/add-request/'
+              })
+            }
+          >
+            Add Request
+          </Button>
+        )}
     </div>
   )
 
@@ -248,16 +255,19 @@ const RequestList = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {params.row.status === 'Fully Dispatched' ? (
-            <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='mdi:package-delivered' />
-            </IconButton>
-          ) : params.row.status === 'Partial Dispatched' ? (
-            <></>
-          ) : (
-            <>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+        <>
+          {selectedPharmacy.type === 'local' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {params.row.status === 'Fully Dispatched' ? (
+                  <IconButton size='small' sx={{ mr: 0.5 }}>
+                    <Icon icon='mdi:package-delivered' />
+                  </IconButton>
+                ) : params.row.status === 'Partial Dispatched' ? (
+                  <></>
+                ) : (
+                  <>
+                    {/* <IconButton size='small' sx={{ mr: 0.5 }}>
                 <Icon icon='fluent-mdl2:message-friend-request' />
               </IconButton>
               <IconButton
@@ -269,9 +279,11 @@ const RequestList = () => {
               >
                 <Icon icon='mdi:pencil-outline' />
               </IconButton> */}
-            </>
-          )}
-        </Box>
+                  </>
+                )}
+              </Box>
+            )}
+        </>
       )
     }
   ]
