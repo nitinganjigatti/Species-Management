@@ -27,7 +27,7 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-import { getAllLabSample } from 'src/lib/api/addLab'
+import { getAllLabSample } from 'src/lib/api/lab/addLab'
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -39,7 +39,7 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 // ** Source code imports
 import TestSample from './sample/sample'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { addLab } from 'src/lib/api/addLab'
+import { addLab } from 'src/lib/api/lab/addLab'
 
 const AddLab = () => {
   const [loader, setLoader] = useState(false)

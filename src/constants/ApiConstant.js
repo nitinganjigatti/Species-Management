@@ -1,10 +1,16 @@
 export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
 
-export const GetLabNo = '/user-lab-list'
+export const GetLabNo = 'user-lab-list'
+
+export const PostTransfer = 'antz/transfer/lab-tests'
 
 export const GetLabReport = 'lab-report'
 
-export const AddLAB = '/antz/labs/create-lab'
+export const GetRequestPopUpById = 'antz/request/lab-tests'
+
+export const RequestDetails = 'antz/request/tests'
+
+export const AddLAB = 'antz/labs/create-lab'
 
 export const AllLabSample = 'antz/get-sample-tests'
 

@@ -2,10 +2,9 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getNoOfLab, GetLabReportById } from 'src/lib/api/getLabRequest'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
+import { getNoOfLab, GetLabReportById } from 'src/lib/api/lab/getLabRequest'
+// import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
@@ -23,8 +22,6 @@ import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, Stack } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import InputLabel from '@mui/material/InputLabel'
@@ -32,13 +29,13 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 
 const ListOfRequest = () => {
-  // const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
-  const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState(70)
+  const [count, setCount] = useState()
+  console.log('count', count)
   console.log('selectedLab', selectedLab)
   console.log('storedData', storedData)
   console.log('lab', lab)
@@ -47,21 +44,6 @@ const ListOfRequest = () => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(JSON.parse(Data))
   }, [])
-
-  const closeDialog = () => {
-    setShow(false)
-  }
-
-  const showDialog = () => {
-    setShow(true)
-  }
-
-  // const handleEdit = async id => {
-  //   Router.push({
-  //     pathname: '/pharmacy/settings/labs/lab-list',
-  //     query: { id: id, action: 'edit' }
-  //   })
-  // }
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
@@ -242,33 +224,6 @@ const ListOfRequest = () => {
     return data
   }
 
-  // const fetchTableData = useCallback(
-  //   async ({ sort, q, column }) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         column,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await getLabList({ params: params }).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         console.log('res?.data', res?.data)
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -289,34 +244,6 @@ const ListOfRequest = () => {
     })
   }, [])
 
-  // const fetchReportData = useCallback(
-  //   async ({ sort, q, column }) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         // sort,
-  //         // q,
-  //         // column,
-  //         // page: paginationModel.page + 1,
-  //         // limit: paginationModel.pageSize
-  //         lab_id:68
-  //       }
-
-  //       await GetLabReportById({ params: params }).then(res => {
-  //         // setTotal(parseInt(res?.data?.total_count))
-  //         console.log('res?.data', res?.data)
-  //         // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [ ]
-  // )
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -333,11 +260,13 @@ const ListOfRequest = () => {
 
         const response = await GetLabReportById({ params }).then(res => {
           console.log('restt', res)
-          setTotal(parseInt(res?.data?.total_count))
+          // setTotal(parseInt(res?.data?.total_count))
           console.log('res?.dataaaa', res?.data)
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+          setCount(res?.data?.count)
+          // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+          setRows(res?.data?.result)
         })
-        console.log('API Response:', response?.data)
+        console.log('API Response:', response)
         // Handle the response as needed, e.g., update state or perform other actions
 
         setLoading(false)
@@ -348,11 +277,7 @@ const ListOfRequest = () => {
     }
 
     fetchData()
-  }, [selectedLab])
-
-  // useEffect(() => {
-  //   fetchTableData({ sort, q: searchValue, column: sortColumn })
-  // }, [fetchTableData])
+  }, [paginationModel.page, selectedLab])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -365,24 +290,6 @@ const ListOfRequest = () => {
     setSearchValue(value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }
-
-  // const headerAction = (
-  //   <>
-  //     {storedData.roles.settings.add_lab === true ? (
-  //       <div>
-  //         <Button
-  //           size='big'
-  //           variant='contained'
-  //           onClick={() => {
-  //             Router.push('/lab/add-Lab')
-  //           }}
-  //         >
-  //           Add Lab
-  //         </Button>
-  //       </div>
-  //     ) : null}
-  //   </>
-  // )
 
   const handleLabChange = event => {
     setSelectedLab(event.target.value)
@@ -402,18 +309,8 @@ const ListOfRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
           <Card>
-            <CardHeader
-              title='Lab Requests'
-              //  action={headerAction}
-            />
+            <CardHeader title='Lab Requests' />
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}

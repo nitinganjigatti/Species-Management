@@ -9,7 +9,8 @@ import Icon from 'src/@core/components/icon'
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
-import SetStore from 'src/components/SetStore'
+
+// import SetStore from 'src/components/SetStore'
 import { usePathname } from 'next/navigation'
 import { AuthContext } from 'src/context/AuthContext'
 
@@ -33,7 +34,7 @@ const AppBarContent = props => {
           </IconButton>
         ) : null}
         {/* <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
-        {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
+        {/* {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />} */}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>

@@ -1,5 +1,5 @@
-import { AddLAB, GetLab, AllLabSample } from '../../constants/ApiConstant'
-import { axiosGet, axiosPost } from './utility'
+import { AddLAB, GetLab, AllLabSample } from '../../../constants/ApiConstant'
+import { axiosGet, axiosPost } from '../utility'
 
 export async function addLab(payload) {
   try {

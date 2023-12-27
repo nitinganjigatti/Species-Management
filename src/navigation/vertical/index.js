@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
+import labNavigation from 'src/components/navigation/lab'
 
 // const pharmacyNav = [
 //   // {
