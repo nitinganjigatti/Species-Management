@@ -37,6 +37,8 @@ import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/pro
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
@@ -369,12 +371,7 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' && (
             <Button
               size='small'
-              disabled={
-                parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
-                params.row.request_status !== 'Not Available'
-                  ? false
-                  : true
-              }
+              disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
               variant='contained'
               onClick={() => {
                 setFulfillMedicine({
