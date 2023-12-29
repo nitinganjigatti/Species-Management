@@ -89,6 +89,27 @@ export async function addDispenseItems(payload) {
   }
 }
 
+export async function resolveDisputeItems(payload) {
+  try {
+    const url = `${DISPUTE_ITEM}/resolve`
+    var data = payload
+
+    const response = await axiosPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function getDispenseItemList(id) {
   const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/request`, pharmacy: true })
 
@@ -97,6 +118,12 @@ export async function getDispenseItemList(id) {
 
 export async function getDispenseItemById(id) {
   const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/show`, pharmacy: true })
+
+  return response.data
+}
+
+export async function getShipmentStatusList() {
+  const response = await axiosGet({ url: `${SHIPMENT}/status`, pharmacy: true })
 
   return response.data
 }
