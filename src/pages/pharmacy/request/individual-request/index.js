@@ -4,7 +4,9 @@ import React, { forwardRef, useState, useEffect } from 'react'
 import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
-  getShippedItemsByRequestId
+  getShippedItemsByRequestId,
+  markItemNotAvailable,
+  markItemAvailable
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -33,6 +35,7 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
+import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -49,6 +52,7 @@ const IndividualRequest = () => {
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [showShipDialog, setShowShipDialog] = useState(false)
   const [dispenseDialog, setDispenseDialog] = useState(false)
+  const [productNotAvailableDialog, setProductNotAvailableDialog] = useState(false)
 
   const [dispatchedItems, setDispatchedItems] = useState([])
   const [shippedItems, setShippedItems] = useState([])
@@ -58,6 +62,9 @@ const IndividualRequest = () => {
   const [orderId, setOrderId] = useState('')
   const [disputeId, setDisputeId] = useState('')
   const [dispenseId, setDispenseId] = useState('')
+
+  const [notAvailableItemId, setNotAvailableItemId] = useState({})
+  const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
@@ -307,17 +314,18 @@ const IndividualRequest = () => {
         </div>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'priority',
-      headerName: 'Priority',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.priority}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.1,
+    //   minWidth: 20,
+    //   field: 'priority',
+    //   headerName: 'Priority',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.priority}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -363,7 +371,12 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' && (
             <Button
               size='small'
-              disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+              disabled={
+                parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                params.row.request_status !== 'Not Available'
+                  ? false
+                  : true
+              }
               variant='contained'
               onClick={() => {
                 setFulfillMedicine({
@@ -392,6 +405,45 @@ const IndividualRequest = () => {
             style={{ width: '60px', height: '60px' }}
           />
         ) : null
+    },
+    {
+      flex: 0.3,
+      minWidth: 20,
+      field: 'priority',
+      headerName: '',
+      renderCell: params => (
+        <>
+          {selectedPharmacy.type === 'central' &&
+            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+            params.row.request_status !== 'Not Available' && (
+              <Button
+                size='small'
+                variant='contained'
+                color='error'
+                onClick={() => {
+                  handleProductNotAvailableAction(params.row.id, false)
+                }}
+              >
+                NOT AVAILABLE
+              </Button>
+            )}
+
+          {selectedPharmacy.type === 'central' &&
+            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+            params.row.request_status === 'Not Available' && (
+              <Button
+                size='small'
+                variant='contained'
+                color='secondary'
+                onClick={() => {
+                  handleProductNotAvailableAction(params.row.id, true)
+                }}
+              >
+                Make IT AVAILABLE
+              </Button>
+            )}
+        </>
+      )
     }
   ]
 
@@ -730,6 +782,42 @@ const IndividualRequest = () => {
     })
   }
 
+  const handleProductNotAvailableAction = (id, available) => {
+    debugger
+    setNotAvailableItemId({
+      id: id,
+      available: available
+    })
+    setProductNotAvailableDialog(true)
+  }
+
+  const handleProductNotAvailable = async (status, selectedObject) => {
+    if (status) {
+      try {
+        setProductNotAvailableLoading(true)
+
+        const payload = {
+          request_item_id: selectedObject.id
+        }
+
+        const response = selectedObject?.available
+          ? await markItemAvailable(payload)
+          : await markItemNotAvailable(payload)
+        if (response?.success) {
+          setProductNotAvailableLoading(true)
+          setProductNotAvailableDialog(false)
+          Router.reload()
+        } else {
+          setProductNotAvailableLoading(true)
+        }
+      } catch (e) {
+        setProductNotAvailableLoading(true)
+      }
+    } else {
+      setProductNotAvailableDialog(false)
+    }
+  }
+
   return (
     <>
       {loader ? (
@@ -942,6 +1030,12 @@ const IndividualRequest = () => {
                     close={closeShipmentDialog}
                   />
                 </Dialog>
+                <ProductNotAvailable
+                  open={productNotAvailableDialog}
+                  onClose={handleProductNotAvailable}
+                  selectedValue={notAvailableItemId}
+                  loading={productNotAvailableLoading}
+                />
               </Card>
             </Grid>
           </CardContent>
