@@ -62,13 +62,33 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleStatusChange = (itemId, event) => {
+    console.log('eventsss', event)
+    const { name, value } = event.target
+    console.log('name', name)
+    console.log('value', value)
+
     const updatedData = {
       ...disputeItemDetails,
       item_details: disputeItemDetails.item_details.map(item =>
-        item.id === itemId ? { ...item, status: event.target.value } : item
+        // item.id === itemId ? { ...item, status: event.target.value } : item
+        item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    debugger
+    // debugger
+    console.log('updatedData', updatedData)
+    setDisputeItemDetails(updatedData)
+  }
+
+  const clearStatus = (itemId, event) => {
+    console.log('event', event)
+
+    const updatedData = {
+      ...disputeItemDetails,
+      item_details: disputeItemDetails.item_details.map(item =>
+        item.id === itemId ? { ...item, status: '', wrong_count_type: '', wrong_count_number: '' } : item
+      )
+    }
+    // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
@@ -112,7 +132,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems
         })
-        debugger
+        // debugger
         console.log('orderData', orderData)
 
         const disputesData = {
@@ -226,51 +246,76 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             <>{params.row.status}</>
           ) : (
             <>
-              {/* <Grid container>
-                <Grid xs={12} sm={12}>
-                  <FormControl fullWidth size='small'>
-                    <Select
-                      disabled={getDisableStatus(params.row.id)}
-                      fullWidth
-                      placeholder='Status'
-                      size='small'
-                      error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                      value={params?.row?.status}
-                      onChange={event => handleStatusChange(params.row.id, event)}
-                    >
-                      {options.map((item, index) => (
-                        <MenuItem key={index} value={item}>
-                          {item}
+              {params.row.status === 'Wrong count' ? (
+                <Grid container spacing={2}>
+                  <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FormControl size='small' style={{ width: '100%' }}>
+                      <Select
+                        label=''
+                        name='wrong_count_type'
+                        size='small'
+                        style={{ fontSize: '12px' }}
+                        value={params?.row?.wrong_count_type}
+                        error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
+                        onChange={event => handleStatusChange(params.row.id, event)}
+                      >
+                        <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                          Shortage
                         </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                        <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                          Excess
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={5}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                  >
+                    <TextField
+                      id='outlined-size-small'
+                      name='wrong_count_number'
+                      value={params?.row?.wrong_count_number}
+                      error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
+                      size='small'
+                      onChange={event => handleStatusChange(params.row.id, event)}
+                      inputProps={{ style: { fontSize: 12 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon
+                      onClick={event => {
+                        clearStatus(params.row.id, event)
+                      }}
+                      icon='material-symbols-light:close'
+                    />
+                  </Grid>
                 </Grid>
-              </Grid> */}
-              <Grid container spacing={2}>
-                <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FormControl size='small' style={{ width: '100%' }}>
-                    <Select label='' size='small' style={{ fontSize: '12px' }}>
-                      <MenuItem value='shortage' style={{ fontSize: '12px' }}>
-                        Shortage
-                      </MenuItem>
-                      <MenuItem value='excess' style={{ fontSize: '12px' }}>
-                        Excess
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
+              ) : (
+                <Grid container>
+                  <Grid xs={12} sm={12}>
+                    <FormControl fullWidth size='small'>
+                      <Select
+                        disabled={getDisableStatus(params.row.id)}
+                        fullWidth
+                        placeholder='Status'
+                        name='status'
+                        size='small'
+                        error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                        value={params?.row?.status}
+                        onChange={event => handleStatusChange(params.row.id, event)}
+                      >
+                        {options.map((item, index) => (
+                          <MenuItem key={index} value={item}>
+                            {item}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
                 </Grid>
-                <Grid
-                  item
-                  xs={5}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
-                >
-                  <TextField id='outlined-size-small' size='small' inputProps={{ style: { fontSize: 12 } }} />
-                </Grid>
-                <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon onClick={() => {}} icon='material-symbols-light:close' />
-                </Grid>
-              </Grid>
+              )}
             </>
           )}
         </>
@@ -286,15 +331,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
       return
     }
-    const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
-    const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
+    const receivedItems = disputeItemDetails?.item_details
+    // const notReceivedItems = disputeItemDetails?.item_details
+
+    // const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
+    // const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
 
     console.log('receivedItems: ', receivedItems)
-    console.log('notReceivedItems: ', notReceivedItems)
+    // console.log('notReceivedItems: ', notReceivedItems)
+    console.log('disputeItemDetails3: ', disputeItemDetails)
 
     if (receivedItems.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
-        debugger
+        // debugger
 
         return {
           ...item,
@@ -329,6 +378,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       console.log('finalReceivedItems', finalReceivedItems)
       try {
         const result = await updateShipmentRequest(orderId, finalReceivedItems)
+        console.log('in block', finalReceivedItems)
 
         if (result?.success) {
           toast.success(result?.message)
