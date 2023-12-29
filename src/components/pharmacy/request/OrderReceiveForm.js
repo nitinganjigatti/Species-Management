@@ -212,6 +212,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
         type: payload.wrong_count_type,
+        // type: 'Excess',
+
         action: 'accept'
       }
     }
@@ -307,13 +309,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         <>
           {selectedPharmacy.type === 'central' ? (
             <>
-              <Grid items spacing={4}>
+              <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant='p' sx={{ mx: 2 }}>
                   {params.row.status === 'Wrong Count'
                     ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
                     : params.row.status}
                 </Typography>
-                {params?.row?.dispute_status === 'Resolved' ? null : (
+                {params?.row?.dispute_status === 'Not Resolved' ? (
                   <>
                     <Button
                       size='small'
@@ -322,13 +324,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         resolveItems(params.row)
                       }}
                     >
-                      Accept {params?.row?.dispute_status}
+                      Accept
                     </Button>
                     <Button size='small' color='error' variant='contained'>
                       Deny
                     </Button>
                   </>
-                )}
+                ) : null}
               </Grid>
             </>
           ) : (
@@ -485,9 +487,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
       //setSubmitLoader(true)
       // const finalData = { ...disputeItemDetails, item_details: receivedItems }
-      console.log('finalReceivedItems', finalReceivedItems)
-      try {
-        const result = await updateShipmentRequest(orderId, finalReceivedItems)
+      const verifyCount = finalReceivedItems.some(el => {
+        if (el.item_status === 'Wrong Count') {
+          if (el.wrong_count_number === '' || el.wrong_count_type === '') {
+            console.log('hello', el.to_store_name)
+
+            return false
+          }
+        }
+
+        return true
+      })
+      console.log('finalReceivedItemssssss', finalReceivedItems)
+      console.log('verifyCount', verifyCount)
+      if (verifyCount) {
+        try {
+          const result = await updateShipmentRequest(orderId, finalReceivedItems)
+          console.log('in block', finalReceivedItems)
 
           if (result?.success) {
             toast.success(result?.msg)
@@ -496,10 +512,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           }
         } catch (error) {
           setSubmitLoader(false)
-          closeOrderFormDialog()
-        }
-      } catch (error) {
-        setSubmitLoader(false)
 
           toast.error(error?.msg)
         }
