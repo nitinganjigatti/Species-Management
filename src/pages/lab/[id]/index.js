@@ -434,16 +434,11 @@ const RequestDetails = () => {
           </Card>
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader
-              title='Test Reports'
-              //  action={headerAction}
-            />
+            <CardHeader title='Test Reports' />
 
             <DataGrid
               autoHeight
-              pagination
               rows={indexedRows === undefined ? [] : indexedRows}
-              // rowCount={total}
               columns={columns}
               sortingMode='server'
               getRowId={row => row.sample_id}
@@ -461,7 +456,6 @@ const RequestDetails = () => {
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-
                   onChange: event => {
                     setSearchValue(event.target.value)
 

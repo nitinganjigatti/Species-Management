@@ -28,7 +28,6 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 
 const ListOfLab = () => {
-  // const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -291,13 +290,13 @@ const ListOfLab = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <CommonDialogBox
+          {/* <CommonDialogBox
             title={'Configure Medicine'}
             dialogBoxStatus={show}
             formComponent={<MedicineConfigure configureMedId={configureMedId} />}
             close={closeDialog}
             show={showDialog}
-          />
+          /> */}
           <Card>
             <CardHeader title='Lab List' action={headerAction} />
             <DataGrid
