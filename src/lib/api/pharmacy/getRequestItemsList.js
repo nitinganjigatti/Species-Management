@@ -1,4 +1,11 @@
-import { REQUEST_ITEMS, BATCH_DETAILS, DISPATCH, SHIPMENT } from '../../../constants/ApiConstant'
+import {
+  REQUEST_ITEMS,
+  BATCH_DETAILS,
+  DISPATCH,
+  SHIPMENT,
+  REQUEST_ITEMS_NOT_AVAILABLE,
+  REQUEST_ITEMS_NOT_AVAILABLE_REVERT
+} from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 const pharmacy = true
@@ -117,6 +124,44 @@ export async function updateShipmentRequest(id, payload) {
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function markItemNotAvailable(payload) {
+  try {
+    const url = `${REQUEST_ITEMS_NOT_AVAILABLE}`
+    const response = await axiosPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function markItemAvailable(payload) {
+  try {
+    const url = `${REQUEST_ITEMS_NOT_AVAILABLE_REVERT}`
+    const response = await axiosPost({ url, body: payload, pharmacy })
 
     return response?.data
   } catch (error) {
