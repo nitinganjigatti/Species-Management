@@ -2,7 +2,7 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider } from '@mui/material'
+import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
@@ -17,7 +17,9 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById
+  getDisputeItemById,
+  getShipmentStatusList,
+  resolveDisputeItems
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -57,7 +59,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
-  const [resolveLoader, setResolveLoader] = useState(false)
 
   const [orderData, setOrderData] = useState([])
 
@@ -121,7 +122,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             to_store_name: el?.to_store_name,
             status: el.status ? el.status : '',
             dispatch_id: el?.dispatch_id,
-            dispatch_item_id: el?.dispatch_item_id
+            dispatch_item_id: el?.dispatch_item_id,
+            wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
+            wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
+            dispute_status: el?.dispute_status ? el?.dispute_status : ''
           }
 
           return data
@@ -198,7 +202,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         action: 'accept'
       }
     }
-    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
+    if (payload?.status === 'Wrong Count') {
       itemsToResolve = {
         from_store: payload.from_store,
         to_store: payload.to_store,
@@ -207,41 +211,16 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
-        type: 'Excess',
-        action: 'accept'
-      }
-    }
-
-    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
-      itemsToResolve = {
-        from_store: payload.from_store,
-        to_store: payload.to_store,
-        batch_no: payload.batch_no,
-        stock_id: payload.stock_id,
-        status: payload.status,
-        dispatch_item_id: payload.dispatch_item_id,
-        shortage_count: payload.wrong_count_number,
-        type: 'Shortage',
+        type: payload.wrong_count_type,
         action: 'accept'
       }
     }
 
     console.log('payload', itemsToResolve)
-    debugger
     try {
-      setResolveLoader(true)
-      const resolved = await resolveDisputeItems(itemsToResolve)
-      // debugger
-      if (resolved?.success) {
-        setResolveLoader(false)
-        toast.success(resolved?.data)
-        getOrderDetails(orderId)
-      }
-
+      const resolved = resolveDisputeItems(itemsToResolve)
       console.log('resolve response ', resolved)
     } catch (error) {
-      setResolveLoader(false)
-
       console.log('error', error)
     }
   }
@@ -327,42 +306,115 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' ? (
-            <>{params.row.status}</>
+            <>
+              <Grid items spacing={4}>
+                <Typography variant='p' sx={{ mx: 2 }}>
+                  {params.row.status === 'Wrong Count'
+                    ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
+                    : params.row.status}
+                </Typography>
+                {params?.row?.dispute_status === 'Resolved' ? null : (
+                  <>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      onClick={() => {
+                        resolveItems(params.row)
+                      }}
+                    >
+                      Accept {params?.row?.dispute_status}
+                    </Button>
+                    <Button size='small' color='error' variant='contained'>
+                      Deny
+                    </Button>
+                  </>
+                )}
+              </Grid>
+            </>
           ) : (
             <>
-              {/* <Grid container>
-                <Grid xs={12} sm={12}>
-                  <FormControl fullWidth size='small'>
-                    <Select
-                      disabled={getDisableStatus(params.row.id)}
-                      fullWidth
-                      placeholder='Status'
+              {params.row.status === 'Wrong Count' ? (
+                <Grid container spacing={2}>
+                  <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FormControl size='small' style={{ width: '100%' }}>
+                      <Select
+                        label=''
+                        // disabled={getDisableStatus(params.row.id)}
+                        name='wrong_count_type'
+                        size='small'
+                        style={{ fontSize: '12px' }}
+                        value={params?.row?.wrong_count_type}
+                        error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
+                        onChange={event => handleStatusChange(params.row.id, event)}
+                      >
+                        <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                          Shortage
+                        </MenuItem>
+                        <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                          Excess
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={5}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                  >
+                    <TextField
+                      // disabled={getDisableStatus(params.row.id)}
+                      id='outlined-size-small'
+                      name='wrong_count_number'
+                      value={params?.row?.wrong_count_number}
+                      error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
                       size='small'
                       error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
                       value={params?.row?.status}
                       onChange={event => handleStatusChange(params.row.id, event)}
+                      inputProps={{ style: { fontSize: 12 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Button
+                      sx={{ width: 2, maxWidth: 2 }}
+                      disabled={disableButton()}
+                      onClick={event => {
+                        clearStatus(params.row.id, event)
+                      }}
                     >
-                      {options.map((item, index) => (
-                        <MenuItem key={index} value={item}>
-                          {item}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      <Icon
+                        // type='button'
+                        // disabled={disableButton()}
+                        // onClick={event => {
+                        //   clearStatus(params.row.id, event)
+                        // }}
+                        icon='material-symbols-light:close'
+                      />
+                    </Button>
+                  </Grid>
                 </Grid>
-              </Grid> */}
-              <Grid container spacing={2}>
-                <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FormControl size='small' style={{ width: '100%' }}>
-                    <Select label='' size='small' style={{ fontSize: '12px' }}>
-                      <MenuItem value='shortage' style={{ fontSize: '12px' }}>
-                        Shortage
-                      </MenuItem>
-                      <MenuItem value='excess' style={{ fontSize: '12px' }}>
-                        Excess
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
+              ) : (
+                <Grid container>
+                  <Grid xs={12} sm={12}>
+                    <FormControl fullWidth size='small'>
+                      <Select
+                        // disabled={getDisableStatus(params.row.id)}
+                        fullWidth
+                        placeholder='Status'
+                        name='status'
+                        size='small'
+                        error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                        value={params?.row?.status}
+                        onChange={event => handleStatusChange(params.row.id, event)}
+                      >
+                        {statusOptions?.map((item, index) => (
+                          <MenuItem key={index} value={item?.label}>
+                            {item?.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
                 </Grid>
                 <Grid
                   item
@@ -402,8 +454,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
     if (receivedItems.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
-        debugger
-
         return {
           ...item,
           from_store_id: item.from_store,
@@ -446,6 +496,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           }
         } catch (error) {
           setSubmitLoader(false)
+          closeOrderFormDialog()
+        }
+      } catch (error) {
+        setSubmitLoader(false)
 
           toast.error(error?.msg)
         }
@@ -546,21 +600,25 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               </FormControl>
             </Grid>
           </Grid>
-          <Divider
-            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-          />
-          <LoadingButton
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            disabled={disableButton()}
-            variant='contained'
-            onClick={() => {
-              updateStatus()
-            }}
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
+          {selectedPharmacy.type === 'local' && (
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+          )}
+          {selectedPharmacy.type === 'local' && (
+            <LoadingButton
+              sx={{ float: 'right', my: 4, mx: 6 }}
+              size='large'
+              // disabled={disableButton()}
+              variant='contained'
+              onClick={() => {
+                updateStatus()
+              }}
+              loading={submitLoader}
+            >
+              Save
+            </LoadingButton>
+          )}
         </Grid>
       </Grid>
     </>

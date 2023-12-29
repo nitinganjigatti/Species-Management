@@ -98,7 +98,7 @@ export async function resolveDisputeItems(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(error)
+    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -118,6 +118,12 @@ export async function getDispenseItemList(id) {
 
 export async function getDispenseItemById(id) {
   const response = await axiosGet({ url: `${DISPENSE_ITEM}/${id}/show`, pharmacy: true })
+
+  return response.data
+}
+
+export async function getShipmentStatusList() {
+  const response = await axiosGet({ url: `${SHIPMENT}/status`, pharmacy: true })
 
   return response.data
 }
