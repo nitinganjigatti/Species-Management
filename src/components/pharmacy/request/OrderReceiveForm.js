@@ -2,7 +2,7 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box } from '@mui/material'
+import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
@@ -17,7 +17,9 @@ import {
   getShipmentOrderDetails,
   addDisputeItems,
   addDispenseItems,
-  getDisputeItemById
+  getDisputeItemById,
+  getShipmentStatusList,
+  resolveDisputeItems
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -56,6 +58,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [statusOptions, setStatusOptions] = useState([])
 
   const [orderData, setOrderData] = useState([])
 
@@ -93,7 +96,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     setDisputeItemDetails(updatedData)
   }
 
-  const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
+  // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
+
+  const getStatusList = async () => {
+    try {
+      const status = await getShipmentStatusList()
+      // console.log('status', status)
+      if (status?.success) {
+        setStatusOptions(status?.data)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const getOrderDetails = async orderId => {
     try {
@@ -116,7 +131,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             dispatch_id: el?.dispatch_id,
             dispatch_item_id: el?.dispatch_item_id,
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
-            wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : ''
+            wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
+            dispute_status: el?.dispute_status ? el?.dispute_status : ''
           }
 
           return data
@@ -140,7 +156,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           store_id: response?.data?.shipment_item_details[0]?.from_store,
           // dispatch_id: response?.data?.dispatch_id,
           request_id: requestId,
-          item_details: disputeLineItems
+          item_details: disputeLineItems,
+          comments: response?.data?.comments
         }
 
         setDisputeItemDetails(disputesData)
@@ -172,8 +189,47 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     if (orderId) {
       getOrderDetails(orderId)
     }
+    getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const resolveItems = async payload => {
+    var itemsToResolve
+    console.log('line data', payload)
+    if (payload?.status === 'Missing') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        type: 'resolve',
+        action: 'accept'
+      }
+    }
+    if (payload?.status === 'Wrong Count') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        excess_count: payload.wrong_count_number,
+        type: payload.wrong_count_type,
+        action: 'accept'
+      }
+    }
+
+    console.log('payload', itemsToResolve)
+    try {
+      const resolved = resolveDisputeItems(itemsToResolve)
+      console.log('resolve response ', resolved)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const columns = [
     // {
@@ -239,19 +295,45 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       flex: 0.4,
       minWidth: 200,
       field: 'status',
-      headerName: 'Status',
+      // headerName: 'Status',
+      headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' ? (
-            <>{params.row.status}</>
+            <>
+              <Grid items spacing={4}>
+                <Typography variant='p' sx={{ mx: 2 }}>
+                  {params.row.status === 'Wrong Count'
+                    ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
+                    : params.row.status}
+                </Typography>
+                {params?.row?.dispute_status === 'Resolved' ? null : (
+                  <>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      onClick={() => {
+                        resolveItems(params.row)
+                      }}
+                    >
+                      Accept {params?.row?.dispute_status}
+                    </Button>
+                    <Button size='small' color='error' variant='contained'>
+                      Deny
+                    </Button>
+                  </>
+                )}
+              </Grid>
+            </>
           ) : (
             <>
-              {params.row.status === 'Wrong count' ? (
+              {params.row.status === 'Wrong Count' ? (
                 <Grid container spacing={2}>
                   <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FormControl size='small' style={{ width: '100%' }}>
                       <Select
                         label=''
+                        // disabled={getDisableStatus(params.row.id)}
                         name='wrong_count_type'
                         size='small'
                         style={{ fontSize: '12px' }}
@@ -274,6 +356,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                   >
                     <TextField
+                      // disabled={getDisableStatus(params.row.id)}
                       id='outlined-size-small'
                       name='wrong_count_number'
                       value={params?.row?.wrong_count_number}
@@ -284,12 +367,22 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     />
                   </Grid>
                   <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon
+                    <Button
+                      sx={{ width: 2, maxWidth: 2 }}
+                      disabled={disableButton()}
                       onClick={event => {
                         clearStatus(params.row.id, event)
                       }}
-                      icon='material-symbols-light:close'
-                    />
+                    >
+                      <Icon
+                        // type='button'
+                        // disabled={disableButton()}
+                        // onClick={event => {
+                        //   clearStatus(params.row.id, event)
+                        // }}
+                        icon='material-symbols-light:close'
+                      />
+                    </Button>
                   </Grid>
                 </Grid>
               ) : (
@@ -297,7 +390,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   <Grid xs={12} sm={12}>
                     <FormControl fullWidth size='small'>
                       <Select
-                        disabled={getDisableStatus(params.row.id)}
+                        // disabled={getDisableStatus(params.row.id)}
                         fullWidth
                         placeholder='Status'
                         name='status'
@@ -306,9 +399,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         value={params?.row?.status}
                         onChange={event => handleStatusChange(params.row.id, event)}
                       >
-                        {options.map((item, index) => (
-                          <MenuItem key={index} value={item}>
-                            {item}
+                        {statusOptions?.map((item, index) => (
+                          <MenuItem key={index} value={item?.label}>
+                            {item?.label}
                           </MenuItem>
                         ))}
                       </Select>
@@ -343,8 +436,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
     if (receivedItems.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
-        // debugger
-
         return {
           ...item,
           from_store_id: item.from_store,
@@ -383,6 +474,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         if (result?.success) {
           toast.success(result?.message)
           setSubmitLoader(false)
+          closeOrderFormDialog()
         }
       } catch (error) {
         setSubmitLoader(false)
@@ -494,7 +586,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             <LoadingButton
               sx={{ float: 'right', my: 4, mx: 6 }}
               size='large'
-              disabled={disableButton()}
+              // disabled={disableButton()}
               variant='contained'
               onClick={() => {
                 updateStatus()
