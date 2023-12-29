@@ -4,7 +4,9 @@ import React, { forwardRef, useState, useEffect } from 'react'
 import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
-  getShippedItemsByRequestId
+  getShippedItemsByRequestId,
+  markItemNotAvailable,
+  markItemAvailable
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -34,8 +36,6 @@ import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
-
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -371,7 +371,12 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' && (
             <Button
               size='small'
-              disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+              disabled={
+                parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                params.row.request_status !== 'Not Available'
+                  ? false
+                  : true
+              }
               variant='contained'
               onClick={() => {
                 setFulfillMedicine({
