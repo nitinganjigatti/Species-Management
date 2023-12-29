@@ -34,6 +34,8 @@ import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
@@ -58,6 +60,7 @@ const IndividualRequest = () => {
   const [dispenseId, setDispenseId] = useState('')
 
   const router = useRouter()
+  const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -356,19 +359,23 @@ const IndividualRequest = () => {
       field: '',
       headerName: 'Action',
       renderCell: params => (
-        <Button
-          size='small'
-          disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
-          variant='contained'
-          onClick={() => {
-            setFulfillMedicine({
-              ...params.row
-            })
-            showDialog()
-          }}
-        >
-          Fulfill
-        </Button>
+        <>
+          {selectedPharmacy.type === 'central' && (
+            <Button
+              size='small'
+              disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+              variant='contained'
+              onClick={() => {
+                setFulfillMedicine({
+                  ...params.row
+                })
+                showDialog()
+              }}
+            >
+              Fulfill
+            </Button>
+          )}
+        </>
       )
     },
 
@@ -887,7 +894,7 @@ const IndividualRequest = () => {
                       alignItems: 'center'
                     }}
                   >
-                    <CardHeader title={`Fulfill`} />
+                    <CardHeader title={`Fulfill Request`} />
                     <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
                       <Icon icon='mdi:close' />
                     </IconButton>
