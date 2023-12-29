@@ -2,9 +2,10 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider } from '@mui/material'
+import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
+import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
 
@@ -20,6 +21,7 @@ import {
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -45,7 +47,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         to_store: '',
         from_store_name: '',
         to_store_name: '',
-        status: ''
+        status: '',
+        wrong_count_type: '',
+        wrong_count_number: ''
       }
     ]
   }
@@ -55,6 +59,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const [orderData, setOrderData] = useState([])
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const handleStatusChange = (itemId, event) => {
     const updatedData = {
       ...disputeItemDetails,
@@ -63,6 +69,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       )
     }
     debugger
+    console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
 
@@ -87,7 +94,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             to_store_name: el?.to_store_name,
             status: el.status ? el.status : '',
             dispatch_id: el?.dispatch_id,
-            dispatch_item_id: el?.dispatch_item_id
+            dispatch_item_id: el?.dispatch_item_id,
+            wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
+            wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : ''
           }
 
           return data
@@ -147,17 +156,17 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }, [])
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'uid',
-      headerName: 'Sl',
-      renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.05,
+    //   Width: 40,
+    //   field: 'uid',
+    //   headerName: 'Sl',
+    //   renderCell: (params, rowId) => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.uid}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       Width: 40,
@@ -197,7 +206,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     {
       flex: 0.2,
       minWidth: 20,
-
       field: 'to_store_name',
       headerName: 'Shipped To',
       renderCell: params => (
@@ -208,30 +216,64 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     },
 
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 200,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Grid xs={12} sm={12}>
-          <FormControl fullWidth>
-            <Select
-              disabled={getDisableStatus(params.row.id)}
-              fullWidth
-              placeholder='Status'
-              size='small'
-              error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-              value={params?.row?.status}
-              onChange={event => handleStatusChange(params.row.id, event)}
-            >
-              {options.map((item, index) => (
-                <MenuItem key={index} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+        <>
+          {selectedPharmacy.type === 'central' ? (
+            <>{params.row.status}</>
+          ) : (
+            <>
+              {/* <Grid container>
+                <Grid xs={12} sm={12}>
+                  <FormControl fullWidth size='small'>
+                    <Select
+                      disabled={getDisableStatus(params.row.id)}
+                      fullWidth
+                      placeholder='Status'
+                      size='small'
+                      error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                      value={params?.row?.status}
+                      onChange={event => handleStatusChange(params.row.id, event)}
+                    >
+                      {options.map((item, index) => (
+                        <MenuItem key={index} value={item}>
+                          {item}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid> */}
+              <Grid container spacing={2}>
+                <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FormControl size='small' style={{ width: '100%' }}>
+                    <Select label='' size='small' style={{ fontSize: '12px' }}>
+                      <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                        Shortage
+                      </MenuItem>
+                      <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                        Excess
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid
+                  item
+                  xs={5}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                >
+                  <TextField id='outlined-size-small' size='small' inputProps={{ style: { fontSize: 12 } }} />
+                </Grid>
+                <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon onClick={() => {}} icon='material-symbols-light:close' />
+                </Grid>
+              </Grid>
+            </>
+          )}
+        </>
       )
     }
   ]
@@ -377,7 +419,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
               <FormControl fullWidth>
                 <TextField
-                  disabled={disableButton()}
+                  // disabled={disableButton()}
+                  disabled={selectedPharmacy.type === 'central' ? 'disabled' : null}
                   multiline
                   rows={3}
                   type='text'
@@ -392,21 +435,25 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               </FormControl>
             </Grid>
           </Grid>
-          <Divider
-            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-          />
-          <LoadingButton
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            disabled={disableButton()}
-            variant='contained'
-            onClick={() => {
-              updateStatus()
-            }}
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
+          {selectedPharmacy.type === 'local' && (
+            <Divider
+              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+            />
+          )}
+          {selectedPharmacy.type === 'local' && (
+            <LoadingButton
+              sx={{ float: 'right', my: 4, mx: 6 }}
+              size='large'
+              disabled={disableButton()}
+              variant='contained'
+              onClick={() => {
+                updateStatus()
+              }}
+              loading={submitLoader}
+            >
+              Save
+            </LoadingButton>
+          )}
         </Grid>
       </Grid>
     </>

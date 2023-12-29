@@ -4,6 +4,10 @@ import TextField from '@mui/material/TextField'
 import TableBasic from 'src/views/table/mui/TableBasic'
 import { styled, createTheme } from '@mui/material/styles'
 import Link from 'next/link'
+import FormGroup from '@mui/material/FormGroup'
+import Autocomplete from '@mui/material/Autocomplete'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { FormControl, FormHelperText } from '@mui/material'
 
 // ** MUI Imports
 
@@ -26,6 +30,8 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import UserSnackbar from 'src/components/utility/snackbar'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -38,15 +44,53 @@ import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { stringify } from 'stylis'
 
+const defaultValues = {
+  product_batches: [
+    {
+      batch_no: '',
+      expiry_date: '',
+      qty: ''
+    }
+  ]
+}
+
+const schema = yup.object().shape({
+  product_batches: yup.array().of(
+    yup.object().shape({
+      batch_no: yup.string().required('Batch No is required'),
+      expiry_date: yup.string().required('Expiry Date is required'),
+      qty: yup.string().required('Quantity is required')
+    })
+  )
+})
+
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
+  const {
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors },
+    trigger,
+    setValue,
+    getValues
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
+
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
   const [localBatchItems, setLocalBatchItems] = useState([])
   const [fulfilStockItems, setFulfilStockItems] = useState([])
+  const [fulfilledQuantity, setFulfilledQuantity] = useState(0)
   const [totalMedicine, setTotalMedicine] = useState(0)
   const [error, setError] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [errors, setErrors] = useState({})
+
+  // const [errors, setErrors] = useState({})
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
   const [rowErrors, setRowErrors] = useState({})
 
@@ -83,6 +127,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //   console.log('rowErrors', rowErrors)
   //   onQuantityChange(row, enteredQuantity)
   // }
+
+  const { fields, append, remove, insert } = useFieldArray({
+    control,
+    name: 'product_batches'
+  })
 
   const handleQuantityChange = (enteredQuantity, row, text_id) => {
     const tempRowErrors = { ...rowErrors }
@@ -292,39 +341,181 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     display: 'inline-block'
   })
 
+  const handleAddRemoveSalts = (fields, index) => {
+    if (fields.length - 1 === index && index > 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {removeSaltButton(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length - 1 <= 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {clearSaltFields(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length > 0) {
+      return <>{clearSaltFields(index)}</>
+    } else {
+      return <>{removeSaltButton(index)}</>
+    }
+  }
+
+  const addSaltButton = () => {
+    return (
+      <Button
+        variant='outlined'
+        onClick={() => {
+          //setSalts([])
+          append({
+            batch_no: '',
+            expiry_date: '',
+            qty: ''
+          })
+        }}
+        sx={{ marginRight: '4px', borderRadius: 6 }}
+      >
+        Add Another
+      </Button>
+    )
+  }
+
+  const removeSaltButton = index => {
+    return (
+      <Box>
+        <Icon
+          onClick={() => {
+            // var tempDefaultSalts = defaultSalts
+            // tempDefaultSalts.splice(index, 1)
+            // setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+
+      // <Button
+      //   variant='outlined'
+      //   color='error'
+      //   startIcon={<Icon icon='material-symbols-light:close' />}
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts.splice(index, 1)
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //   }}
+      // >
+      //   {/* Remove */}
+      // </Button>
+    )
+  }
+
+  const clearSaltFields = index => {
+    return (
+      // eslint-disable-next-line lines-around-comment
+      // <Button
+      //   variant='outlined'
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts[index] = undefined
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //     insert(index, {})
+      //   }}
+      // >
+      //   Clear
+      // </Button>
+
+      <Box>
+        <Icon
+          onClick={() => {
+            // var tempDefaultSalts = defaultSalts
+            // tempDefaultSalts[index] = undefined
+            // setDefaultSalts(tempDefaultSalts)
+            remove(index)
+            insert(index, {})
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+    )
+  }
+
+  const getAllQuantityValues = () => {
+    const allValues = getValues()
+
+    const sum = allValues.product_batches.reduce((accumulator, batch) => {
+      return accumulator + (parseFloat(batch.qty) || 0)
+    }, 0)
+
+    setFulfilledQuantity(sum)
+  }
+
+  const getTotalMedicineQuantity = params => {
+    const sum = params.product_batches.reduce((accumulator, batch) => {
+      return accumulator + (parseFloat(batch.qty) || 0)
+    }, 0)
+
+    return sum
+  }
+
+  const onSubmit = async params => {
+    console.log(params)
+
+    const totalQuantity = getTotalMedicineQuantity(params)
+
+    if (checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0) {
+      return
+    }
+
+    const payload_list = []
+
+    params.product_batches.forEach(item => {
+      const payload_item = {}
+      payload_item['dispatch_date'] = Utility.formatDate(Date())
+      payload_item['request_item_dispatch_qty'] = item.qty
+      payload_item['request_item_stock_item_id'] = fulfillMedicine?.stock_item_id
+      payload_item['request_item_batch_no'] = item.batch_no
+      payload_item['request_item_expiry_date'] = item.expiry_date
+
+      payload_list.push(payload_item)
+    })
+
+    const payload = {
+      dispatch_date: Utility.formatDate(Date()),
+      dispatch_items: payload_list,
+      request_number: storeDetails.id
+    }
+
+    console.log(payload)
+
+    // debugger
+    // console.log('payload', JSON.stringify(payload))
+
+    try {
+      setError(false)
+      setSubmitLoader(true)
+
+      const response = await addDispatch(payload)
+      if (response?.success) {
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+        setSubmitLoader(false)
+        close()
+      } else {
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+    }
+  }
+
   return (
     <>
-      <CardContent>
-        <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-          <Grid item xs={4}>
-            <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-              Medicine Name
-            </Typography>
-
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {fulfillMedicine?.stock_name}
-            </Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-              QTY Requested
-            </Typography>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {fulfillMedicine?.requested_qty}
-            </Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-              QTY Remaining
-            </Typography>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
-            </Typography>
-          </Grid>
-        </Grid>
-      </CardContent>
-      {/* <TableBasic columns={columns} rows={rows}></TableBasic> */}
-      {/* <TableBasic /> */}
       {loader ? (
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -333,12 +524,229 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         </CardContent>
       ) : (
         <>
-          <CardContent style={{ marginBottom: '0px', paddingBottom: '0px' }}>
+          <CardContent container>
             <Typography variant='body2' style={{ fontWeight: 'bold' }} sx={{ color: 'text.primary' }}>
-              {storeDetails?.to_store}
+              <span style={{ fontWeight: 'normal' }}>Requested From -</span> {storeDetails?.to_store}
             </Typography>
           </CardContent>
-          {batchItems.length > 0 ? (
+          <CardContent>
+            <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+              <Grid item xs={4}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                  Medicine Name
+                </Typography>
+
+                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                  {fulfillMedicine?.stock_name}
+                </Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                  QTY Requested
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                  {fulfillMedicine?.requested_qty}
+                </Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                  QTY Remaining
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                  {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+
+          <CardContent>
+            <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+              <Grid container spacing={5}>
+                <Grid item xs={12} sm={12}>
+                  <FormGroup>
+                    {fields.map((field, index) => (
+                      <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
+                        <Grid item xs={3}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name={`product_batches[${index}].batch_no`}
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => {
+                                return (
+                                  <Autocomplete
+                                    disablePortal
+                                    id={`product_batches[${index}].batch_no`}
+                                    options={batchItems}
+                                    getOptionLabel={option => option?.batch_no}
+                                    isOptionEqualToValue={(option, value) =>
+                                      parseInt(option?.batch_no) === parseInt(value?.batch_no)
+                                    }
+                                    onChange={(e, val) => {
+                                      if (val === null) {
+                                        //setDefaultProductForm(undefined)
+                                        // var saltComposition = defaultSalts
+                                        // saltComposition[index] = null
+                                        // setDefaultSalts(saltComposition)
+                                        setValue(`product_batches[${index}].expiry_date`, '')
+
+                                        return onChange('')
+                                      } else {
+                                        const expiryDate = val.expiry_date
+                                        setValue(`product_batches[${index}].expiry_date`, expiryDate)
+
+                                        // var saltComposition = defaultSalts
+                                        // saltComposition[index] = { batch_no: val.batch_no }
+
+                                        // setDefaultSalts(saltComposition)
+
+                                        return onChange(val.batch_no)
+                                      }
+                                    }}
+                                    renderInput={params => {
+                                      return (
+                                        <TextField
+                                          {...params}
+                                          label='Batch No'
+                                          placeholder='Search'
+                                          error={Boolean(errors?.product_batches?.[index]?.batch_no)}
+                                        />
+                                      )
+                                    }}
+                                  />
+                                )
+                              }}
+                            />
+                            {errors?.product_batches?.[index]?.batch_no && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.product_batches?.[index]?.batch_no?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={3}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name={`product_batches[${index}].expiry_date`}
+                              control={control}
+                              rules={{ required: false }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  disabled
+                                  value={value}
+                                  label='Expiry Date'
+                                  onChange={onChange}
+                                  placeholder='Expiry Date'
+                                  error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
+                                  name={`product_batches[${index}].expiry_date`}
+                                />
+                              )}
+                            />
+                            {errors?.product_batches?.[index]?.expiry_date && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.product_batches?.[index]?.expiry_date?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={3}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name={`product_batches[${index}].qty`}
+                              control={control}
+                              rules={{ required: false }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Quantity'
+                                  onChange={onChange}
+                                  placeholder='Quantity'
+                                  error={Boolean(errors?.product_batches?.[index]?.qty)}
+                                  name={`product_batches[${index}].qty`}
+                                  onKeyUp={() => {
+                                    getAllQuantityValues()
+                                  }}
+                                />
+                              )}
+                            />
+                            {errors?.product_batches?.[index]?.qty && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.product_batches?.[index]?.qty?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+
+                        <Grid
+                          item
+                          xs={3}
+                          // eslint-disable-next-line lines-around-comment
+                          // justifyContent='flex-end'
+
+                          alignSelf='center'
+                          sx={{
+                            display: 'flex',
+                            justifyItems: 'center',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {handleAddRemoveSalts(fields, index)}
+                        </Grid>
+                      </Grid>
+                    ))}
+                  </FormGroup>
+                </Grid>
+              </Grid>
+              {fulfilledQuantity > 0 ? (
+                <>
+                  <Grid container>
+                    <Grid xs={12} style={{ textAlign: 'left', fontWeight: 'bold', marginTop: '10px' }}>
+                      <Typography variant='body2' style={{ fontWeight: 'bold' }} sx={{ color: 'text.primary' }}>
+                        <span style={{ fontWeight: 'normal' }}>Remaining Quantity - </span>
+                        {checkNumber(fulfillMedicine?.requested_qty) -
+                          checkNumber(fulfillMedicine?.dispatch_qty) -
+                          fulfilledQuantity}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </>
+              ) : null}
+
+              <>
+                {fulfilledQuantity >
+                checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) ? (
+                  <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
+                    <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
+                  </div>
+                ) : null}
+                <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                  <LoadingButton
+                    size='large'
+                    variant='contained'
+                    loading={submitLoader}
+                    type='submit'
+
+                    // onClick={() => {
+                    //   const count = Object.values(rowErrors).filter(item => item.status).length
+                    //   if (
+                    //     count <= 0 &&
+                    //     totalMedicine <=
+                    //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
+                    //   )
+                    //     dispatchRequest()
+                    // }}
+                  >
+                    Submit
+                  </LoadingButton>
+                  {openSnackbar.open ? (
+                    <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+                  ) : null}
+                </Grid>
+              </>
+            </form>
+          </CardContent>
+
+          {/* {batchItems.length > 0 ? (
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 650 }} aria-label='simple table'>
                 <TableHead>
@@ -374,11 +782,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             handleQuantityChange(e.target.value, row, `batch_central_${index}`)
                           }}
                         />
-                        {/* {rowErrors[`batch_central_${index}`]?.status && (
-                          <div>
-                            <span className='error'>Invalid input</span>
-                          </div>
-                        )} */}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -387,7 +790,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             </TableContainer>
           ) : (
             <CardContent>Medicine Not Available in central store.</CardContent>
-          )}
+          )} */}
           {/* <CardContent>
             <div>
               <StyledText onClick={toggleLocalTable}>Show stock in other stores</StyledText>
@@ -446,49 +849,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               )}
             </>
           ) : null} */}
-
-          {fulfilStockItems.length > 0 ? (
-            <CardContent>
-              <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                <Grid xs={9.5} style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                  Total
-                </Grid>
-                <Grid xs={2.5} style={{ textAlign: 'right' }}>
-                  {totalMedicine}
-                </Grid>
-              </Grid>
-            </CardContent>
-          ) : null}
-
-          <CardContent>
-            {totalMedicine >
-            checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) ? (
-              <div style={{ color: `${theme.palette.warning}` }}>
-                <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
-              </div>
-            ) : null}
-            <Grid item xs={12}>
-              <LoadingButton
-                size='large'
-                variant='contained'
-                loading={submitLoader}
-                onClick={() => {
-                  const count = Object.values(rowErrors).filter(item => item.status).length
-                  if (
-                    count <= 0 &&
-                    totalMedicine <=
-                      checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
-                  )
-                    dispatchRequest()
-                }}
-              >
-                Submit
-              </LoadingButton>
-              {openSnackbar.open ? (
-                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null}
-            </Grid>
-          </CardContent>
         </>
       )}
     </>

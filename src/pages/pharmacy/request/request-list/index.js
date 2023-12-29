@@ -64,6 +64,7 @@ const RequestList = () => {
         setLoading(true)
 
         const params = {
+          type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
           sort,
           q,
           column,
@@ -151,6 +152,10 @@ const RequestList = () => {
     searchTableData(sort, value, sortColumn)
   }
 
+  const getRequestedText = () => {
+    return selectedPharmacy === 'central' ? 'Requested By' : 'Requested To'
+  }
+
   // useEffect(() => {
   //   getRequestItemLists()
   // }, [])
@@ -183,10 +188,11 @@ const RequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'Requested By',
+      headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store}
+          {/* {params.row.from_store} */}
+          {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
     },
@@ -202,17 +208,17 @@ const RequestList = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store',
-      headerName: 'Requested To',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'to_store',
+    //   headerName: getRequestedText,
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.to_store}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,

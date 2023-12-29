@@ -44,6 +44,7 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -60,12 +61,12 @@ import { boolean } from 'yup'
 
 const editParamsInitialState = {
   from_store_type: '',
-  to_store_type: '',
+  // to_store_type: '',
 
   from_store_id: '',
-  to_store_id: '',
+  // to_store_id: '',
   from_store_type: '',
-  to_store_type: '',
+  // to_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   request_item_details: []
@@ -100,6 +101,7 @@ const AddRequestForm = () => {
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
+  const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
 
   const storesType = {
@@ -204,9 +206,9 @@ const AddRequestForm = () => {
     if (!values.from_store_id) {
       errors.from_store_id = 'This field is required'
     }
-    if (!values.to_store_id) {
-      errors.to_store_id = 'This field is required'
-    }
+    // if (!values.to_store_id) {
+    //   errors.to_store_id = 'This field is required'
+    // }
     if (!values.ro_date) {
       errors.ro_date = 'This field is required'
     }
@@ -288,7 +290,7 @@ const AddRequestForm = () => {
   }
 
   const handleSubmit = () => {
-    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
+    const formHasErrors = !editParams.from_store_id || !editParams.ro_date
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -307,7 +309,8 @@ const AddRequestForm = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({})
+      //params: { q: 'central', column: 'type' }
+      const response = await getStoreList({ params: { q: 'central', column: 'type' } })
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
@@ -382,10 +385,10 @@ const AddRequestForm = () => {
         ...editParams,
         id: result.data.id,
         from_store_id: result.data.from_store_id,
-        to_store_id: result.data.to_store_id,
+        //to_store_id: result.data.to_store_id,
         ro_date: result.data.request_date,
         from_store_type: result.data.from_store_type,
-        to_store_type: result.data.to_store_type,
+        // to_store_type: result.data.to_store_type,
         request_item_details: lineItems
       })
       // }
@@ -760,69 +763,6 @@ const AddRequestForm = () => {
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Requested by :
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.to_store_id}
-                    error={Boolean(errors.to_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        to_store_id: e.target.value,
-                        to_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.to_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <SingleDatePicker
-                    fullWidth
-                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    width={'100%'}
-                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    name={'Date*'}
-                    onChangeHandler={date => {
-                      // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, ro_date: formatDate(date) })
-                      setErrors({})
-                    }}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                  />
-                  {errors.ro_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
@@ -857,6 +797,69 @@ const AddRequestForm = () => {
                   </Select>
 
                   {errors.from_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                  &nbsp;
+                </Typography>
+              </Grid>
+              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
+                  <Select
+                    value={editParams.to_store_id}
+                    error={Boolean(errors.to_store_id)}
+                    label='Store*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      filterToStocks(e.target.value)
+                      setEditParams({
+                        ...editParams,
+                        to_store_id: e.target.value,
+                        to_store_type: storesType[filteredStoreType(e.target.value)]
+                      })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {fromStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.to_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid> */}
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <SingleDatePicker
+                    fullWidth
+                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    width={'100%'}
+                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    name={'Date*'}
+                    onChangeHandler={date => {
+                      // setStores({ ...stores, date: date })
+                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setErrors({})
+                    }}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                  />
+                  {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
