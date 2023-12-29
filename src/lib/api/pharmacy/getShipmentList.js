@@ -98,7 +98,7 @@ export async function resolveDisputeItems(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
+    console.error(error)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
