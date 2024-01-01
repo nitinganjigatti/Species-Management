@@ -211,9 +211,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
-        type: payload.wrong_count_type,
-        // type: 'Excess',
-
+        // type: payload.wrong_count_type,
+        type: 'Excess',
         action: 'accept'
       }
     }
@@ -379,7 +378,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Button
                       sx={{ width: 2, maxWidth: 2 }}
-                      disabled={disableButton()}
+                      // disabled={disableButton()}
                       onClick={event => {
                         clearStatus(params.row.id, event)
                       }}
@@ -498,7 +497,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         return true
       })
-      console.log('finalReceivedItemssssss', finalReceivedItems)
       console.log('verifyCount', verifyCount)
       if (verifyCount) {
         try {

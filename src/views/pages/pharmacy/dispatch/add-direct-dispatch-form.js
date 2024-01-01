@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
   CardContent,
@@ -55,9 +55,7 @@ export const AddItemsForm = ({
   onSubmitData,
   searchBatchData,
   batchLoading,
-  batchList,
-  nestedMedicine,
-  error
+  batchList
 }) => {
   const {
     reset,
@@ -65,9 +63,7 @@ export const AddItemsForm = ({
     handleSubmit,
     formState: { errors },
     setValue,
-    getValues,
-    setError,
-    clearErrors
+    getValues
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -75,12 +71,19 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
-  console.log('nestedMedicine', nestedMedicine)
-  console.log('productList', productList)
+  console.log(
+    'props',
+    searchMedicineData,
+    productList,
+    productLoading,
+    onSubmitData,
+    searchBatchData,
+    batchLoading,
+    batchList
+  )
 
   const onSubmit = async params => {
-    // debugger
+    debugger
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
     onSubmitData({
       request_item_batch_no: request_item_batch_no.value,
@@ -90,36 +93,8 @@ export const AddItemsForm = ({
       request_item_medicine_id: request_item.value,
       product_name: request_item.label,
       priority_item: 'Normal'
-
-      // to_store_id: '14'
     })
   }
-
-  useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      reset({
-        request_item: {
-          label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
-        },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
-        },
-        request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date
-      })
-    } else {
-    }
-
-    if (error !== '') {
-      setError('request_item_batch_no', {
-        type: 'manual',
-        message: 'Batch already exists'
-      })
-    }
-  }, [error])
 
   return (
     <>
@@ -147,10 +122,8 @@ export const AddItemsForm = ({
                     onChange={(e, value) => {
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
-                      setValue('expiry_date', '')
-                      if (value !== '' && value !== null) {
-                        searchBatchData(value.value)
-                      }
+                      debugger
+                      searchBatchData(value.value)
                     }} // Set selected value
                     loading={productLoading}
                     noOptionsText='Type to search'
@@ -185,14 +158,11 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      console.log('value', value)
-
-                      // debugger
+                      debugger
 
                       // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
-                      clearErrors('request_item_batch_no')
 
                       // seValu
                     }} // Set selected value
