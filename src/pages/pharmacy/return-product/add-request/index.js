@@ -42,7 +42,9 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
+
+import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 
@@ -367,63 +369,6 @@ const AddReturnRequest = () => {
     }
   }
 
-  const fetchBatchData = async id => {
-    debugger
-    if (id !== '') {
-      try {
-        setBatchLoading(true)
-        const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
-        debugger
-        if (searchResults?.success) {
-          debugger
-
-          if (searchResults?.data?.length > 0) {
-            debugger
-
-            // const data = searchResults?.data.map(item => ({
-            //   value: item?.batch_no,
-            //   label: item?.batch_no,
-            //   expiry_date: item?.expiry_date
-            // }))
-            // console.log('searchResults', data)
-            setOptionsBatchList(
-              searchResults?.data.map(item => ({
-                value: item?.batch_no,
-                label: item?.batch_no,
-                expiry_date: item?.expiry_date
-              }))
-            )
-          }
-          debugger
-          console.log('searchResults', optionsBatchList)
-          // setOptionsBatchList()
-
-          console.log('optionsBatchList', optionsBatchList)
-        } else {
-          setOptionsBatchList([])
-        }
-        setBatchLoading(false)
-      } catch (e) {
-        console.log('error', e)
-        setBatchLoading(false)
-        setOptionsBatchList([])
-      }
-    }
-  }
-
-  const searchBatchData = useCallback(
-    debounce(async id => {
-      debugger
-      try {
-        await fetchBatchData(id)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 500),
-    []
-  )
-
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
@@ -569,9 +514,6 @@ const AddReturnRequest = () => {
         productLoading={productLoading}
         batchLoading={batchLoading}
         onSubmitData={submitItems}
-        batchList={optionsBatchList}
-        nestedMedicine={nestedRowMedicine}
-        error={duplicateMedError}
       />
       // <CardContent>
       //   <form
@@ -856,87 +798,44 @@ const AddReturnRequest = () => {
               <Grid container spacing={5}>
                 <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Returned to :
-                      </Typography>
-                    </Grid>
+                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                      Returned by :
+                    </Typography>
+                  </Grid>
+                  <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
-                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                        Store*
-                      </InputLabel>
-
+                      <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
                       <Select
-                        error={Boolean(errors.to_store_id)}
-                        value={editParams.to_store_id}
+                        value={editParams.from_store_id}
+                        error={Boolean(errors.from_store_id)}
                         label='Store*'
                         disabled={id ? true : false}
                         onChange={e => {
+                          filterToStocks(e.target.value)
                           setEditParams({
                             ...editParams,
-                            to_store_id: e.target.value,
-                            to_store_type: storesType[filteredStoreType(e.target.value)]
+                            from_store_id: e.target.value,
+                            from_store_type: storesType[filteredStoreType(e.target.value)]
                           })
                           setErrors({})
                         }}
                         // error={Boolean(errors?.state_id)}
                         // labelId='state_id'
                       >
-                        {toStocks?.map((item, index) => (
+                        {fromStocks?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
                             {item?.name}
                           </MenuItem>
                         ))}
                       </Select>
 
-                      {errors.to_store_id && (
+                      {errors.from_store_id && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                           This field is required
                         </FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                      &nbsp;
-                    </Typography>
-                  </Grid>
-                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.from_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid> */}
                   <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
@@ -953,6 +852,47 @@ const AddReturnRequest = () => {
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
+                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                          This field is required
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                        Returned to :
+                      </Typography>
+                    </Grid>
+                    <FormControl fullWidth>
+                      <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
+                      <Select
+                        value={editParams.from_store_id}
+                        error={Boolean(errors.from_store_id)}
+                        label='Store*'
+                        disabled={id ? true : false}
+                        onChange={e => {
+                          filterToStocks(e.target.value)
+                          setEditParams({
+                            ...editParams,
+                            from_store_id: e.target.value,
+                            from_store_type: storesType[filteredStoreType(e.target.value)]
+                          })
+                          setErrors({})
+                        }}
+                        // error={Boolean(errors?.state_id)}
+                        // labelId='state_id'
+                      >
+                        {fromStocks?.map((item, index) => (
+                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                            {item?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+
+                      {errors.to_store_id && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                           This field is required
                         </FormHelperText>
