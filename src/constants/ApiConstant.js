@@ -95,3 +95,5 @@ export const RETURN_REQUEST = 'return-item'
 export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
 
 export const REQUEST_ITEMS_NOT_AVAILABLE_REVERT = 'dispatch/not-available/revert'
+
+export const DIRECT_DISPATCH = 'direct-dispatch'

@@ -66,7 +66,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchParent = {
     title: 'Direct Dispatch',
     path: '/pharmacy/direct-dispatch',
-    icon: 'iconamoon:delivery-light',
+    icon: 'bi:boxes',
     children: []
   }
 
@@ -178,6 +178,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
+    directDispatchParent.children.push(directDispatchList)
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -197,7 +198,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       inventoryParent,
       PurchaseParent,
       requestParent,
-      returnParent,
+      directDispatchParent,
       stockParent,
       settingsParent
     )

@@ -42,18 +42,9 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
-
-import {
-  addDirectDispatchItems,
-  getDirectDispatchItemsListById,
-  updateDirectDispatchItems
-} from 'src/lib/api/pharmacy/directDispatch'
+import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
-import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
-import Error404 from 'src/pages/404'
-
-import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -69,15 +60,15 @@ import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 
 const editParamsInitialState = {
-  // from_store_type: '',
+  from_store_type: '',
   to_store_type: '',
 
-  // from_store_id: '',
+  from_store_id: '',
   to_store_id: '',
-  // from_store_type: '',
+  from_store_type: '',
+  to_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
-  priority_item: 'Normal',
   request_item_details: []
 }
 
@@ -89,20 +80,18 @@ const initialNestedRowMedicine = {
   priority_item: 'Normal',
   control_substance: false,
   control_substance_file: ''
-  // to_store_id: '14'
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddReturnRequest = () => {
+const AddDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
-  const [optionsBatchList, setOptionsBatchList] = useState([])
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -113,20 +102,13 @@ const AddReturnRequest = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [productLoading, setProductLoading] = useState(false)
-  const [batchLoading, setBatchLoading] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
   const storesType = {
-    // local: 1,
-    // central: 2
-    local: 'local',
-    central: 'central'
+    local: 1,
+    central: 2
   }
-
-  const { selectedPharmacy } = usePharmacyContext()
-  console.log('permission', selectedPharmacy.type, selectedPharmacy.permission.key)
-  console.log('selectedPharmacy', selectedPharmacy)
 
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
@@ -138,7 +120,6 @@ const AddReturnRequest = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
-    setDuplicateMedError('')
   }
 
   const showDialog = () => {
@@ -157,6 +138,18 @@ const AddReturnRequest = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
+    // const newData = {
+    //   medicine_name: nestedRowMedicine.medicine_name,
+    //   request_item_medicine_id: nestedRowMedicine.request_item_medicine_id,
+    //   // id: nestedRowMedicine.id,
+    //   request_item_qty: nestedRowMedicine.request_item_qty,
+    //   // dosageForm: nestedRowMedicine.dosageForm,
+    //   priority_item: nestedRowMedicine.priority_item,
+    //   control_substance: nestedRowMedicine.control_substance,
+    //   control_substance_file: nestedRowMedicine.control_substance_file,
+    //   request_item_leaf_id: ''
+    // }
+
     const updatedNestedRows = [...editParams.request_item_details, params]
     setEditParams({
       ...editParams,
@@ -211,9 +204,9 @@ const AddReturnRequest = () => {
   const validateItems = values => {
     const errors = {}
 
-    // if (!values.from_store_id) {
-    //   errors.from_store_id = 'This field is required'
-    // }
+    if (!values.from_store_id) {
+      errors.from_store_id = 'This field is required'
+    }
     if (!values.to_store_id) {
       errors.to_store_id = 'This field is required'
     }
@@ -225,6 +218,22 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = params => {
+    // const HasErrors =
+    //   !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+    // // || !nestedRowMedicine.control_substance
+    // if (HasErrors) {
+    //   setItemErrors(validate(nestedRowMedicine))
+
+    //   return
+    // }
+    // if (params.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
+
+    //     return
+    //   }
+    // }
+
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
@@ -232,7 +241,7 @@ const AddReturnRequest = () => {
     )
 
     if (isMedicineAlreadyExists) {
-      setDuplicateMedError('Batch already exists')
+      setDuplicateMedError('Medicine already exists')
       console.log('Medicine already exists')
 
       return
@@ -285,7 +294,7 @@ const AddReturnRequest = () => {
   }
 
   const handleSubmit = () => {
-    const formHasErrors = !editParams.to_store_id || !editParams.ro_date
+    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -304,7 +313,7 @@ const AddReturnRequest = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
+      const response = await getStoreList({})
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
@@ -328,11 +337,10 @@ const AddReturnRequest = () => {
         const params = {
           sort: 'asc',
           q: searchText,
-          limit: 20
+          limit: 10
         }
 
         const searchResults = await getMedicineList({ params: params })
-        console.log('searchResults', searchResults)
         if (searchResults?.data?.list_items.length > 0) {
           setOptionsMedicineList(
             searchResults?.data?.list_items?.map(item => ({
@@ -350,63 +358,6 @@ const AddReturnRequest = () => {
     }
   }
 
-  const fetchBatchData = async id => {
-    // debugger
-    if (id !== '') {
-      try {
-        setBatchLoading(true)
-        const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
-        // debugger
-        if (searchResults?.success) {
-          // debugger
-
-          if (searchResults?.data?.length > 0) {
-            // debugger
-
-            // const data = searchResults?.data.map(item => ({
-            //   value: item?.batch_no,
-            //   label: item?.batch_no,
-            //   expiry_date: item?.expiry_date
-            // }))
-            // console.log('searchResults', data)
-            setOptionsBatchList(
-              searchResults?.data.map(item => ({
-                value: item?.batch_no,
-                label: item?.batch_no,
-                expiry_date: item?.expiry_date
-              }))
-            )
-          }
-          // debugger
-          console.log('searchResults', optionsBatchList)
-          // setOptionsBatchList()
-
-          console.log('optionsBatchList', optionsBatchList)
-        } else {
-          setOptionsBatchList([])
-        }
-        setBatchLoading(false)
-      } catch (e) {
-        console.log('error', e)
-        setOptionsBatchList([])
-        setBatchLoading(false)
-      }
-    }
-  }
-
-  const searchBatchData = useCallback(
-    debounce(async id => {
-      // debugger
-      try {
-        await fetchBatchData(id)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 500),
-    []
-  )
-
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
@@ -420,38 +371,34 @@ const AddReturnRequest = () => {
   //  ****** debounce
 
   const getListOfItemsById = async id => {
-    try {
-      const result = await getDirectDispatchItemsListById(id)
+    const result = await getRequestItemsListById(id)
 
-      if (result.success === true && result.data !== '') {
-        const lineItems = result.data.request_item_details.map(el => {
-          return {
-            request_item_medicine_id: el.stock_item_id,
-            medicine_name: el.stock_name,
-            request_item_qty: el.qty,
-            request_item_leaf_id: el.stock_item_id,
-            priority_item: el.priority,
-            control_substance: el.control_substance === '0' ? false : true,
-            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-            id: el.id,
-            request_item_detail_id: el.id
-          }
-        })
+    if (result.success === true && result.data !== '') {
+      const lineItems = result.data.request_item_details.map(el => {
+        return {
+          request_item_medicine_id: el.stock_item_id,
+          medicine_name: el.stock_name,
+          request_item_qty: el.qty,
+          request_item_leaf_id: el.stock_item_id,
+          priority_item: el.priority,
+          control_substance: el.control_substance === '0' ? false : true,
+          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
+          id: el.id,
+          request_item_detail_id: el.id
+        }
+      })
 
-        setEditParams({
-          ...editParams,
-          id: result.data.id,
-          // from_store_id: result.data.from_store_id,
-          to_store_id: result.data.to_store_id,
-          ro_date: result.data.request_date,
-          // from_store_type: result.data.from_store_type,
-          to_store_type: result.data.to_store_type,
-          request_item_details: lineItems
-        })
-        // }
-      }
-    } catch (error) {
-      console.log('error', error)
+      setEditParams({
+        ...editParams,
+        id: result.data.id,
+        from_store_id: result.data.from_store_id,
+        to_store_id: result.data.to_store_id,
+        ro_date: result.data.request_date,
+        from_store_type: result.data.from_store_type,
+        to_store_type: result.data.to_store_type,
+        request_item_details: lineItems
+      })
+      // }
     }
   }
 
@@ -467,8 +414,6 @@ const AddReturnRequest = () => {
         request_item_medicine_id: getItems[0].request_item_medicine_id,
         medicine_name: getItems[0].medicine_name,
         request_item_qty: getItems[0].request_item_qty,
-        request_item_batch_no: getItems[0].request_item_batch_no,
-        expiry_date: getItems[0].expiry_date,
         request_item_leaf_id: getItems[0].request_item_leaf_id,
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
@@ -480,14 +425,10 @@ const AddReturnRequest = () => {
         return el.request_item_medicine_id === itemId
       })
 
-      // debugger
-
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        medicine_name: getItems[0].product_name,
+        medicine_name: getItems[0].medicine_name,
         request_item_medicine_id: getItems[0].request_item_medicine_id,
-        request_item_batch_no: getItems[0].request_item_batch_no,
-        expiry_date: getItems[0].expiry_date,
         // id: getItems[0].id,
         request_item_qty: getItems[0].request_item_qty,
         control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -514,13 +455,13 @@ const AddReturnRequest = () => {
 
     if (id) {
       try {
-        const response = await updateDirectDispatchItems(id, postData)
+        const response = await updateRequestItems(id, postData)
 
         if (response?.success) {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+          Router.push('/pharmacy/request/request-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -530,13 +471,12 @@ const AddReturnRequest = () => {
       }
     } else {
       try {
-        console.log('postData', postData)
-        const response = await addDirectDispatchItems(postData)
+        const response = await addRequestItems(postData)
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+          Router.push('/pharmacy/request/request-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -551,116 +491,296 @@ const AddReturnRequest = () => {
   const createForm = () => {
     return (
       <AddItemsForm
-        searchBatchData={searchBatchData}
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}
         productLoading={productLoading}
-        batchLoading={batchLoading}
         onSubmitData={submitItems}
-        batchList={optionsBatchList}
-        nestedMedicine={nestedRowMedicine}
-        error={duplicateMedError}
       />
+      // <CardContent>
+      //   <form
+      //   // addItemsToTable={addMultipleMedicine(addItemsToTable)}
+      //   >
+      //     <Grid container spacing={5}>
+      //       <Grid item xs={12} sm={6}>
+      //         <FormControl fullWidth>
+      //           <Autocomplete
+      //             inputProps={{ tabIndex: '6' }}
+      //             disablePortal
+      //             id='autocomplete-controlled'
+      //             options={optionsMedicineList}
+      //             value={nestedRowMedicine.medicine_name}
+      //             onChange={(event, newValue) => {
+      //               setNestedRowMedicine({
+      //                 ...nestedRowMedicine,
+      //                 medicine_name: newValue?.label,
+      //                 request_item_medicine_id: newValue?.value,
+      //                 control_substance: newValue?.control_substance
+      //               })
+      //               setDuplicateMedError('')
+      //               setItemErrors({})
+      //             }}
+      //             onKeyUp={e => {
+      //               searchMedicineData(e.target.value)
+      //               setItemErrors({})
+      //             }}
+      //             renderInput={params => (
+      //               <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+      //             )}
+      //           />
+      //           {itemErrors.medicine_name && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //           {duplicateMedError && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               {duplicateMedError}
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
+
+      //       <Grid item xs={12} sm={6}>
+      //         <FormControl fullWidth>
+      //           <TextField
+      //             type='number'
+      //             value={nestedRowMedicine.request_item_qty}
+      //             error={Boolean(itemErrors.request_item_qty)}
+      //             label='Quantity*'
+      //             onChange={event => {
+      //               setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
+      //               setItemErrors({})
+      //             }}
+      //           />
+      //           {itemErrors.request_item_qty && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
+
+      //       <Grid item xs={12} sm={6}>
+      //         <Typography sx={{ mb: 2 }}>Priority</Typography>
+
+      //         <FormControl fullWidth>
+      //           <ToggleButtonGroup
+      //             exclusive
+      //             color='primary'
+      //             value={nestedRowMedicine.priority_item}
+      //             onChange={event => {
+      //               setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+      //             }}
+      //           >
+      //             test
+      //             <ToggleButton color='error' value='high'>
+      //               High
+      //             </ToggleButton>
+      //             <ToggleButton color='primary' value='Normal'>
+      //               Normal
+      //             </ToggleButton>
+      //           </ToggleButtonGroup>
+
+      //           {itemErrors.priority_item && (
+      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //               This field is required
+      //             </FormHelperText>
+      //           )}
+      //         </FormControl>
+      //       </Grid>
+
+      //       {/* // file uploader */}
+      //       {nestedRowMedicine.control_substance === true ? (
+      //         nestedRowMedicine.control_substance_file ? (
+      //           <Grid item xs={12} sm={6}>
+      //             {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
+      //               <Chip
+      //                 label={nestedRowMedicine.control_substance_file?.name}
+      //                 color='secondary'
+      //                 onDelete={() => {
+      //                   setNestedRowMedicine({
+      //                     ...nestedRowMedicine,
+      //                     // control_substance: false,
+      //                     control_substance_file: ''
+      //                   })
+      //                 }}
+      //                 deleteIcon={<Icon icon='mdi:delete-outline' />}
+      //               />
+      //             ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
+      //               nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
+      //               <>
+      //                 <Chip
+      //                   label={nestedRowMedicine.control_substance_file?.name}
+      //                   avatar={
+      //                     <Avatar
+      //                       alt={nestedRowMedicine.control_substance_file?.name}
+      //                       src={
+      //                         nestedRowMedicine.control_substance_file
+      //                           ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
+      //                           : ''
+      //                       }
+      //                     />
+      //                   }
+      //                   onDelete={() => {
+      //                     setNestedRowMedicine({
+      //                       ...nestedRowMedicine,
+      //                       // control_substance: false,
+      //                       control_substance_file: ''
+      //                     })
+      //                   }}
+      //                 />
+      //               </>
+      //             ) : (
+      //               <Chip
+      //                 label={nestedRowMedicine.control_substance_file}
+      //                 avatar={
+      //                   <Avatar
+      //                     alt='image'
+      //                     src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
+      //                   />
+      //                 }
+      //                 onDelete={() => {
+      //                   setNestedRowMedicine({
+      //                     ...nestedRowMedicine,
+      //                     // control_substance: false,
+      //                     control_substance_file: ''
+      //                   })
+      //                 }}
+      //               />
+      //             )}
+      //           </Grid>
+      //         ) : (
+      //           <Grid item xs={12} sm={6}>
+      //             <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
+      //             <FormControl fullWidth>
+      //               <TextField
+      //                 type='file'
+      //                 accept='.pdf, .jpeg, .jpg, .png'
+      //                 error={Boolean(itemErrors.control_substance_file)}
+      //                 // label='Attach prescription'
+      //                 onChange={e => {
+      //                   const file = e.target.files[0]
+      //                   setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+      //                   setItemErrors({})
+      //                 }}
+      //               />
+      //               {itemErrors.control_substance_file && (
+      //                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+      //                   This field is required
+      //                 </FormHelperText>
+      //               )}
+      //             </FormControl>
+      //           </Grid>
+      //         )
+      //       ) : null}
+      //       {/* // file uploader */}
+
+      //       <Grid item xs={12}>
+      //         <>
+      //           {medicineItemId ? (
+      //             <>
+      //               <Button
+      //                 onClick={() => {
+      //                   closeDialog()
+      //                 }}
+      //                 size='large'
+      //                 variant='outlined'
+      //                 sx={{ mr: 2 }}
+      //               >
+      //                 Done
+      //               </Button>
+      //               <Button
+      //                 onClick={() => {
+      //                   updateFormItems()
+      //                   closeDialog()
+      //                   // submitItems()
+      //                 }}
+      //                 size='large'
+      //                 variant='contained'
+      //               >
+      //                 update
+      //               </Button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               <Button
+      //                 onClick={() => {
+      //                   closeDialog()
+      //                 }}
+      //                 size='large'
+      //                 variant='outlined'
+      //                 sx={{ mr: 2 }}
+      //               >
+      //                 Done
+      //               </Button>
+      //               <Button
+      //                 onClick={() => {
+      //                   // updateFormItems()
+      //                   submitItems()
+      //                 }}
+      //                 size='large'
+      //                 variant='contained'
+      //               >
+      //                 Add
+      //               </Button>
+      //             </>
+      //           )}
+      //         </>
+      //       </Grid>
+      //     </Grid>
+      //   </form>
+      // </CardContent>
     )
   }
 
   return (
-    <>
-      {selectedPharmacy.type === 'central' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <Card>
-          <Grid
-            container
-            sm={12}
-            xs={12}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <CardHeader
-              title='Direct Dispatch Item
-'
-            />
+    <Card>
+      <Grid
+        container
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <CardHeader title='Return Request Item' />
 
-            <Button
-              sx={{
-                mx: { sm: 6, xs: 'auto' }
-              }}
-              size='big'
-              variant='contained'
-              onClick={() => {
-                Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
-              }}
-            >
-              Dispatch Item List
-            </Button>
-          </Grid>
-          <CardContent>
-            <Grid container>
-              <CommonDialogBox
-                title={'Add Dispatch Item'}
-                dialogBoxStatus={show}
-                formComponent={createForm()}
-                close={closeDialog}
-                show={showDialog}
-              />
-            </Grid>
-          </CardContent>
-          <CardContent>
-            <form>
-              <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Returned to :
-                      </Typography>
-                    </Grid>
-                    <FormControl fullWidth>
-                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                        Store*
-                      </InputLabel>
-
-                      <Select
-                        error={Boolean(errors.to_store_id)}
-                        value={editParams.to_store_id}
-                        label='Store*'
-                        disabled={id ? true : false}
-                        onChange={e => {
-                          setEditParams({
-                            ...editParams,
-                            to_store_id: e.target.value,
-                            to_store_type: storesType[filteredStoreType(e.target.value)]
-                          })
-                          setErrors({})
-                        }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
-                      >
-                        {toStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {errors.to_store_id && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                      &nbsp;
-                    </Typography>
-                  </Grid>
-                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+        <Button
+          sx={{
+            mx: { sm: 6, xs: 'auto' }
+          }}
+          size='big'
+          variant='contained'
+          onClick={() => {
+            Router.push('/pharmacy/return-product/request-list/')
+          }}
+        >
+          Request Item List
+        </Button>
+      </Grid>
+      <CardContent>
+        <Grid container>
+          <CommonDialogBox
+            title={'Add Request Item'}
+            dialogBoxStatus={show}
+            formComponent={createForm()}
+            close={closeDialog}
+            show={showDialog}
+          />
+        </Grid>
+      </CardContent>
+      <CardContent>
+        <form>
+          <Grid container spacing={5}>
+            <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                  Returned by :
+                </Typography>
+              </Grid>
+              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
                   <Select
@@ -693,184 +813,205 @@ const AddReturnRequest = () => {
                     </FormHelperText>
                   )}
                 </FormControl>
-              </Grid> */}
-                  <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                    <FormControl fullWidth>
-                      <SingleDatePicker
-                        fullWidth
-                        date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        width={'100%'}
-                        value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        name={'Date*'}
-                        onChangeHandler={date => {
-                          // setStores({ ...stores, date: date })
-                          setEditParams({ ...editParams, ro_date: formatDate(date) })
-                          setErrors({})
-                        }}
-                        customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                      />
-                      {errors.ro_date && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                </Grid>
               </Grid>
-            </form>
-          </CardContent>
-          <Grid
-            container
-            sm={12}
-            xs={12}
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              mb: 4
-            }}
-          >
-            <Button
-              sx={{
-                mx: { sm: 6, xs: 'auto' }
-              }}
-              onClick={() => {
-                handleSubmit()
-              }}
-              size='big'
-              variant='contained'
-            >
-              Add Dispatch Item
-            </Button>
-          </Grid>
-
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Expiry Date</TableCell>
-                  <TableCell>Priority</TableCell>
-                  <TableCell>Quantity</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams.request_item_details
-                  ? editParams.request_item_details.map((el, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.product_name}
-                              {console.log(el)}
-                            </Typography>
-                            {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.request_item_batch_no}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.expiry_date}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>{el.priority_item}</TableCell>
-
-                          <TableCell>{el.request_item_qty}</TableCell>
-
-                          <TableCell>
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => {
-                                setMedicineItemId(el.request_item_medicine_id)
-
-                                editTableData(el.request_item_medicine_id)
-                                showDialog()
-                                // }
-                              }}
-                            >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-                            {id && el.request_item_detail_id ? null : (
-                              <IconButton
-                                onClick={() => {
-                                  removeItemsFroTable(el.request_item_medicine_id)
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <CardContent sx={{ pt: 8 }}>
-            {totalQty ? (
-              <Grid container>
-                <Grid
-                  item
-                  xs={12}
-                  sm={2}
-                  lg={2}
-                  sx={{
-                    mb: { sm: 0, xs: 4 },
-                    order: { sm: 2, xs: 1 },
-                    marginLeft: 'auto',
-                    mr: { sm: 12, xs: 0 }
-                  }}
-                >
-                  <CalcWrapper>
-                    <Typography variant='body2'>Total Qty:</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalQty}
-                    </Typography>
-                  </CalcWrapper>
-
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <SingleDatePicker
+                    fullWidth
+                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    width={'100%'}
+                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    name={'Date*'}
+                    onChangeHandler={date => {
+                      // setStores({ ...stores, date: date })
+                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setErrors({})
                     }}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                   />
-                </Grid>
+                  {errors.ro_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
               </Grid>
-            ) : null}
-          </CardContent>
-          <LoadingButton
-            disabled={editParams.request_item_details.length > 0 ? false : true}
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            onClick={() => {
-              postItemsData()
-            }}
-            variant='contained'
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
-        </Card>
-      ) : (
-        <>
-          <Error404></Error404>
-        </>
-      )}
-    </>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                    Returned to :
+                  </Typography>
+                </Grid>
+                <FormControl fullWidth>
+                  <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                    Store*
+                  </InputLabel>
+
+                  <Select
+                    error={Boolean(errors.to_store_id)}
+                    value={editParams.to_store_id}
+                    label='Store*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        to_store_id: e.target.value,
+                        to_store_type: storesType[filteredStoreType(e.target.value)]
+                      })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {toStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.to_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Grid>
+        </form>
+      </CardContent>
+      <Grid
+        container
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          mb: 4
+        }}
+      >
+        <Button
+          sx={{
+            mx: { sm: 6, xs: 'auto' }
+          }}
+          onClick={() => {
+            handleSubmit()
+          }}
+          size='big'
+          variant='contained'
+        >
+          Add Request Item
+        </Button>
+      </Grid>
+
+      <TableContainer>
+        <Table>
+          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+            <TableRow>
+              <TableCell>Product Name</TableCell>
+              <TableCell>Priority</TableCell>
+              <TableCell>Quantity</TableCell>
+              <TableCell>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {editParams.request_item_details
+              ? editParams.request_item_details.map((el, index) => {
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.product_name}
+                        </Typography>
+                        {el.control_substance ? (
+                          <CustomChip label='CS' skin='light' color='success' size='small' />
+                        ) : null}
+                      </TableCell>
+                      <TableCell>{el.priority_item}</TableCell>
+
+                      <TableCell>{el.request_item_qty}</TableCell>
+
+                      <TableCell>
+                        <IconButton
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                          aria-label='Edit'
+                          onClick={() => {
+                            setMedicineItemId(el.request_item_medicine_id)
+
+                            editTableData(el.request_item_medicine_id)
+                            showDialog()
+                            // }
+                          }}
+                        >
+                          <Icon icon='mdi:pencil-outline' />
+                        </IconButton>
+                        {id && el.request_item_detail_id ? null : (
+                          <IconButton
+                            onClick={() => {
+                              removeItemsFroTable(el.request_item_medicine_id)
+                            }}
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                          >
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              : null}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <CardContent sx={{ pt: 8 }}>
+        {totalQty ? (
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              sm={2}
+              lg={2}
+              sx={{
+                mb: { sm: 0, xs: 4 },
+                order: { sm: 2, xs: 1 },
+                marginLeft: 'auto',
+                mr: { sm: 12, xs: 0 }
+              }}
+            >
+              <CalcWrapper>
+                <Typography variant='body2'>Total Qty:</Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                  {totalQty}
+                </Typography>
+              </CalcWrapper>
+
+              <Divider
+                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+              />
+            </Grid>
+          </Grid>
+        ) : null}
+      </CardContent>
+      <LoadingButton
+        disabled={editParams.request_item_details.length > 0 ? false : true}
+        sx={{ float: 'right', my: 4, mx: 6 }}
+        size='large'
+        onClick={() => {
+          postItemsData()
+        }}
+        variant='contained'
+        loading={submitLoader}
+      >
+        Save
+      </LoadingButton>
+    </Card>
   )
 }
 
-export default AddReturnRequest
+export default AddDispatch
