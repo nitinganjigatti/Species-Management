@@ -124,6 +124,7 @@ const AddReturnRequest = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setDuplicateMedError('')
   }
 
   const showDialog = () => {
@@ -246,7 +247,7 @@ const AddReturnRequest = () => {
     )
 
     if (isMedicineAlreadyExists) {
-      setDuplicateMedError('Medicine already exists')
+      setDuplicateMedError('Batch already exists')
       console.log('Medicine already exists')
 
       return
@@ -473,6 +474,8 @@ const AddReturnRequest = () => {
         request_item_medicine_id: getItems[0].request_item_medicine_id,
         medicine_name: getItems[0].medicine_name,
         request_item_qty: getItems[0].request_item_qty,
+        request_item_batch_no: getItems[0].request_item_batch_no,
+        expiry_date: getItems[0].expiry_date,
         request_item_leaf_id: getItems[0].request_item_leaf_id,
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
@@ -484,10 +487,14 @@ const AddReturnRequest = () => {
         return el.request_item_medicine_id === itemId
       })
 
+      debugger
+
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        medicine_name: getItems[0].medicine_name,
+        medicine_name: getItems[0].product_name,
         request_item_medicine_id: getItems[0].request_item_medicine_id,
+        request_item_batch_no: getItems[0].request_item_batch_no,
+        expiry_date: getItems[0].expiry_date,
         // id: getItems[0].id,
         request_item_qty: getItems[0].request_item_qty,
         control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -557,6 +564,8 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
+        nestedMedicine={nestedRowMedicine}
+        error={duplicateMedError}
       />
       // <CardContent>
       //   <form
@@ -975,6 +984,8 @@ const AddReturnRequest = () => {
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
               <TableCell>Product Name</TableCell>
+              <TableCell>Batch No</TableCell>
+              <TableCell>Expiry Date</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
@@ -988,10 +999,21 @@ const AddReturnRequest = () => {
                       <TableCell>
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
                           {el.product_name}
+                          {console.log(el)}
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
                         ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.request_item_batch_no}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.expiry_date}
+                        </Typography>
                       </TableCell>
                       <TableCell>{el.priority_item}</TableCell>
 
