@@ -741,11 +741,11 @@ const IndividualReturnRequest = () => {
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Returned By</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Returned To</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
@@ -753,7 +753,7 @@ const IndividualReturnRequest = () => {
                   <p>{requestItems?.request_date}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Return ID</h5>
                   <p>{requestItems?.request_number}</p>
                 </Grid>
               </Grid>
