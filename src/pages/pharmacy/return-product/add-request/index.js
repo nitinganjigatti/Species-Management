@@ -42,7 +42,9 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
+
+import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 
@@ -60,15 +62,15 @@ import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 
 const editParamsInitialState = {
-  from_store_type: '',
+  // from_store_type: '',
   to_store_type: '',
 
-  from_store_id: '',
+  // from_store_id: '',
   to_store_id: '',
-  from_store_type: '',
-  to_store_type: '',
+  // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
+  priority_item: 'Normal',
   request_item_details: []
 }
 
@@ -92,6 +94,7 @@ const AddReturnRequest = () => {
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [optionsBatchList, setOptionsBatchList] = useState([])
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -102,6 +105,7 @@ const AddReturnRequest = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [productLoading, setProductLoading] = useState(false)
+  const [batchLoading, setBatchLoading] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -204,9 +208,9 @@ const AddReturnRequest = () => {
   const validateItems = values => {
     const errors = {}
 
-    if (!values.from_store_id) {
-      errors.from_store_id = 'This field is required'
-    }
+    // if (!values.from_store_id) {
+    //   errors.from_store_id = 'This field is required'
+    // }
     if (!values.to_store_id) {
       errors.to_store_id = 'This field is required'
     }
@@ -233,6 +237,7 @@ const AddReturnRequest = () => {
     //     return
     //   }
     // }
+    debugger
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
@@ -294,7 +299,7 @@ const AddReturnRequest = () => {
   }
 
   const handleSubmit = () => {
-    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
+    const formHasErrors = !editParams.to_store_id || !editParams.ro_date
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -313,7 +318,7 @@ const AddReturnRequest = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({})
+      const response = await getStoreList({ params: { q: 'central', column: 'type' } })
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
@@ -337,7 +342,7 @@ const AddReturnRequest = () => {
         const params = {
           sort: 'asc',
           q: searchText,
-          limit: 10
+          limit: 20
         }
 
         const searchResults = await getMedicineList({ params: params })
@@ -358,6 +363,60 @@ const AddReturnRequest = () => {
     }
   }
 
+  const fetchBatchData = async id => {
+    debugger
+    if (id !== '') {
+      try {
+        setBatchLoading(true)
+        const data = { stock_item_id: id }
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
+        debugger
+        if (searchResults?.success) {
+          debugger
+
+          if (searchResults?.data?.length > 0) {
+            debugger
+
+            // const data = searchResults?.data.map(item => ({
+            //   value: item?.batch_no,
+            //   label: item?.batch_no,
+            //   expiry_date: item?.expiry_date
+            // }))
+            // console.log('searchResults', data)
+            setOptionsBatchList(
+              searchResults?.data.map(item => ({
+                value: item?.batch_no,
+                label: item?.batch_no,
+                expiry_date: item?.expiry_date
+              }))
+            )
+          }
+          debugger
+          console.log('searchResults', optionsBatchList)
+          // setOptionsBatchList()
+
+          console.log('optionsBatchList', optionsBatchList)
+        }
+        setBatchLoading(false)
+      } catch (e) {
+        console.log('error', e)
+        setBatchLoading(false)
+      }
+    }
+  }
+
+  const searchBatchData = useCallback(
+    debounce(async id => {
+      debugger
+      try {
+        await fetchBatchData(id)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
@@ -371,7 +430,7 @@ const AddReturnRequest = () => {
   //  ****** debounce
 
   const getListOfItemsById = async id => {
-    const result = await getRequestItemsListById(id)
+    const result = await getReturnItemsListById(id)
 
     if (result.success === true && result.data !== '') {
       const lineItems = result.data.request_item_details.map(el => {
@@ -391,10 +450,10 @@ const AddReturnRequest = () => {
       setEditParams({
         ...editParams,
         id: result.data.id,
-        from_store_id: result.data.from_store_id,
+        // from_store_id: result.data.from_store_id,
         to_store_id: result.data.to_store_id,
         ro_date: result.data.request_date,
-        from_store_type: result.data.from_store_type,
+        // from_store_type: result.data.from_store_type,
         to_store_type: result.data.to_store_type,
         request_item_details: lineItems
       })
@@ -455,7 +514,7 @@ const AddReturnRequest = () => {
 
     if (id) {
       try {
-        const response = await updateRequestItems(id, postData)
+        const response = await updateReturnItems(id, postData)
 
         if (response?.success) {
           toast.success(response?.message)
@@ -471,7 +530,7 @@ const AddReturnRequest = () => {
       }
     } else {
       try {
-        const response = await addRequestItems(postData)
+        const response = await addReturnItems(postData)
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
@@ -491,10 +550,13 @@ const AddReturnRequest = () => {
   const createForm = () => {
     return (
       <AddItemsForm
+        searchBatchData={searchBatchData}
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}
         productLoading={productLoading}
+        batchLoading={batchLoading}
         onSubmitData={submitItems}
+        batchList={optionsBatchList}
       />
       // <CardContent>
       //   <form
@@ -776,69 +838,6 @@ const AddReturnRequest = () => {
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Returned by :
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.from_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <SingleDatePicker
-                    fullWidth
-                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    width={'100%'}
-                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    name={'Date*'}
-                    onChangeHandler={date => {
-                      // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, ro_date: formatDate(date) })
-                      setErrors({})
-                    }}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                  />
-                  {errors.ro_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Returned to :
@@ -873,6 +872,69 @@ const AddReturnRequest = () => {
                   </Select>
 
                   {errors.to_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                  &nbsp;
+                </Typography>
+              </Grid>
+              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
+                  <Select
+                    value={editParams.from_store_id}
+                    error={Boolean(errors.from_store_id)}
+                    label='Store*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      filterToStocks(e.target.value)
+                      setEditParams({
+                        ...editParams,
+                        from_store_id: e.target.value,
+                        from_store_type: storesType[filteredStoreType(e.target.value)]
+                      })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {fromStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.from_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid> */}
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <SingleDatePicker
+                    fullWidth
+                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    width={'100%'}
+                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    name={'Date*'}
+                    onChangeHandler={date => {
+                      // setStores({ ...stores, date: date })
+                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setErrors({})
+                    }}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                  />
+                  {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
