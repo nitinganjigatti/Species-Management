@@ -55,7 +55,9 @@ export const AddItemsForm = ({
   onSubmitData,
   searchBatchData,
   batchLoading,
-  batchList
+  batchList,
+  nestedMedicine,
+  error
 }) => {
   const {
     reset,
@@ -73,6 +75,8 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  console.log('nestedMedicine', nestedMedicine)
 
   const onSubmit = async params => {
     debugger
@@ -140,8 +144,10 @@ export const AddItemsForm = ({
                     onChange={(e, value) => {
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
-                      debugger
-                      searchBatchData(value.value)
+                      setValue('expiry_date', '')
+                      if (value !== '' && value !== null) {
+                        searchBatchData(value.value)
+                      }
                     }} // Set selected value
                     loading={productLoading}
                     noOptionsText='Type to search'
@@ -181,6 +187,7 @@ export const AddItemsForm = ({
                       // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
+                      clearErrors('request_item_batch_no')
 
                       // seValu
                     }} // Set selected value

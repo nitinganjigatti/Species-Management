@@ -514,6 +514,7 @@ const AddReturnRequest = () => {
         productLoading={productLoading}
         batchLoading={batchLoading}
         onSubmitData={submitItems}
+        batchList={optionsBatchList}
       />
       // <CardContent>
       //   <form
@@ -933,8 +934,6 @@ const AddReturnRequest = () => {
               <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
                 <TableRow>
                   <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Expiry Date</TableCell>
                   <TableCell>Priority</TableCell>
                   <TableCell>Quantity</TableCell>
                   <TableCell>Action</TableCell>
@@ -948,21 +947,10 @@ const AddReturnRequest = () => {
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.product_name}
-                              {console.log(el)}
                             </Typography>
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
                             ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.request_item_batch_no}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.expiry_date}
-                            </Typography>
                           </TableCell>
                           <TableCell>{el.priority_item}</TableCell>
 
