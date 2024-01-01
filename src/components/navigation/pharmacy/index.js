@@ -63,6 +63,18 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/return-product/add-request'
   }
 
+  const directDispatchParent = {
+    title: 'Direct Dispatch',
+    path: '/pharmacy/direct-dispatch',
+    icon: 'bi:boxes',
+    children: []
+  }
+
+  const directDispatchList = {
+    title: 'Dispatch list',
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+  }
+
   const stockParent = {
     title: 'Stocks',
     path: '/pharmacy/store',
@@ -161,6 +173,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     PurchaseParent.children.push(purchaseList)
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
+    directDispatchParent.children.push(directDispatchList)
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -175,7 +188,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       supplierList
     )
 
-    pharmacyNavigationArray.push(inventoryParent, PurchaseParent, requestParent, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      inventoryParent,
+      PurchaseParent,
+      requestParent,
+      directDispatchParent,
+      stockParent,
+      settingsParent
+    )
   }
 
   if (selectedPharmacy?.type === 'local') {
