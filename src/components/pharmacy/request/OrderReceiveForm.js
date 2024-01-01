@@ -305,7 +305,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             <>
               <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant='p' sx={{ mx: 2 }}>
-                  {params.row.status === 'Wrong Count'
+                  {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved'
                     ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
                     : params.row.status}
                 </Typography>
