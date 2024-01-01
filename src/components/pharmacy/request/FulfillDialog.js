@@ -49,7 +49,7 @@ const defaultValues = {
     {
       batch_no: '',
       expiry_date: '',
-      qty: ''
+      qty: 0
     }
   ]
 }
@@ -57,9 +57,23 @@ const defaultValues = {
 const schema = yup.object().shape({
   product_batches: yup.array().of(
     yup.object().shape({
-      batch_no: yup.string().required('Batch No is required'),
+      batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
+        const { product_batches } = this.options.from[1].value
+        debugger
+        const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
+        debugger
+        const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
+        debugger
+
+        return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
+      }),
       expiry_date: yup.string().required('Expiry Date is required'),
-      qty: yup.string().required('Quantity is required')
+      qty: yup
+        .number()
+        .typeError('Quantity must be a number')
+        .positive('Quantity must be a positive number')
+        .required('Quantity is required')
+        .moreThan(0, 'Quantity must be greater than zero')
     })
   )
 })
@@ -72,7 +86,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     formState: { errors },
     trigger,
     setValue,
-    getValues
+    getValues,
+    setError
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -371,7 +386,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           append({
             batch_no: '',
             expiry_date: '',
-            qty: ''
+            qty: 0
           })
         }}
         sx={{ marginRight: '4px', borderRadius: 6 }}
@@ -494,7 +509,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     // console.log('payload', JSON.stringify(payload))
 
     try {
-      setError(false)
+      setErrors(false)
       setSubmitLoader(true)
 
       const response = await addDispatch(payload)
@@ -591,8 +606,26 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                                         return onChange('')
                                       } else {
+                                        debugger
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
+
+                                        // const allValues = getValues()
+
+                                        // const selectedBatchCount = allValues?.product_batches?.reduce(
+                                        //   (count, batch) => {
+                                        //     return count + (batch.batch_no === val.batch_no ? 1 : 0)
+                                        //   },
+                                        //   0
+                                        // )
+
+                                        // if (selectedBatchCount > 0) {
+                                        //   debugger
+                                        //   setError(`product_batches[${index}].batch_no`, {
+                                        //     type: 'manual',
+                                        //     message: 'Batch number is already selected'
+                                        //   })
+                                        // }
 
                                         // var saltComposition = defaultSalts
                                         // saltComposition[index] = { batch_no: val.batch_no }
@@ -653,9 +686,15 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             <Controller
                               name={`product_batches[${index}].qty`}
                               control={control}
-                              rules={{ required: false }}
+                              rules={{
+                                required: true,
+                                validate: {
+                                  positiveNumber: value => ParseInt(value) > 0 || 'Please enter a number greater than 0'
+                                }
+                              }}
                               render={({ field: { value, onChange } }) => (
                                 <TextField
+                                  type='number'
                                   value={value}
                                   label='Quantity'
                                   onChange={onChange}
