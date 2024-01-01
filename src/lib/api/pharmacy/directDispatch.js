@@ -29,7 +29,7 @@ export async function getAvailableMedicineByMedicineId(id, data, store) {
   return response.data
 }
 
-export async function addDirectDispatch(payload) {
+export async function addDirectDispatchItems(payload) {
   try {
     const url = `${DIRECT_DISPATCH}`
     var data = payload
