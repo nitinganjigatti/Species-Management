@@ -799,44 +799,87 @@ const AddReturnRequest = () => {
               <Grid container spacing={5}>
                 <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                      Returned by :
-                    </Typography>
-                  </Grid>
-                  <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                        Returned to :
+                      </Typography>
+                    </Grid>
                     <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
+                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                        Store*
+                      </InputLabel>
+
                       <Select
-                        value={editParams.from_store_id}
-                        error={Boolean(errors.from_store_id)}
+                        error={Boolean(errors.to_store_id)}
+                        value={editParams.to_store_id}
                         label='Store*'
                         disabled={id ? true : false}
                         onChange={e => {
-                          filterToStocks(e.target.value)
                           setEditParams({
                             ...editParams,
-                            from_store_id: e.target.value,
-                            from_store_type: storesType[filteredStoreType(e.target.value)]
+                            to_store_id: e.target.value,
+                            to_store_type: storesType[filteredStoreType(e.target.value)]
                           })
                           setErrors({})
                         }}
                         // error={Boolean(errors?.state_id)}
                         // labelId='state_id'
                       >
-                        {fromStocks?.map((item, index) => (
+                        {toStocks?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
                             {item?.name}
                           </MenuItem>
                         ))}
                       </Select>
 
-                      {errors.from_store_id && (
+                      {errors.to_store_id && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                           This field is required
                         </FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                      &nbsp;
+                    </Typography>
+                  </Grid>
+                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
+                  <Select
+                    value={editParams.from_store_id}
+                    error={Boolean(errors.from_store_id)}
+                    label='Store*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      filterToStocks(e.target.value)
+                      setEditParams({
+                        ...editParams,
+                        from_store_id: e.target.value,
+                        from_store_type: storesType[filteredStoreType(e.target.value)]
+                      })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {fromStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.from_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid> */}
                   <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
@@ -853,47 +896,6 @@ const AddReturnRequest = () => {
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Returned to :
-                      </Typography>
-                    </Grid>
-                    <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
-                      <Select
-                        value={editParams.from_store_id}
-                        error={Boolean(errors.from_store_id)}
-                        label='Store*'
-                        disabled={id ? true : false}
-                        onChange={e => {
-                          filterToStocks(e.target.value)
-                          setEditParams({
-                            ...editParams,
-                            from_store_id: e.target.value,
-                            from_store_type: storesType[filteredStoreType(e.target.value)]
-                          })
-                          setErrors({})
-                        }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
-                      >
-                        {fromStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {errors.to_store_id && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                           This field is required
                         </FormHelperText>
@@ -934,6 +936,8 @@ const AddReturnRequest = () => {
               <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
                 <TableRow>
                   <TableCell>Product Name</TableCell>
+                  <TableCell>Batch No</TableCell>
+                  <TableCell>Expiry Date</TableCell>
                   <TableCell>Priority</TableCell>
                   <TableCell>Quantity</TableCell>
                   <TableCell>Action</TableCell>
@@ -947,10 +951,21 @@ const AddReturnRequest = () => {
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.product_name}
+                              {console.log(el)}
                             </Typography>
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
                             ) : null}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.request_item_batch_no}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.expiry_date}
+                            </Typography>
                           </TableCell>
                           <TableCell>{el.priority_item}</TableCell>
 

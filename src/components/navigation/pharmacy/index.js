@@ -164,6 +164,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/test/'
   }
 
+  const rackList = {
+    title: 'Rack list',
+    path: '/pharmacy/store/rackList'
+  }
+
   const pharmacyNavigationArray = []
   pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
