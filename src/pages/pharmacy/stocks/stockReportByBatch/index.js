@@ -280,19 +280,25 @@ const ListOfStocksByBatch = () => {
     <>
       {selectedPharmacy.type === 'central' ? (
         <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <TableWithFilter
-            TableTitle={stockReport.length > 0 ? 'Stock report bach wise' : 'Stock Report is empty'}
-            inpFields={createForm()}
-            columns={columns}
-            rows={stockReport}
-          />
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <CommonDialogBox
+                title={'Configure Medicine'}
+                dialogBoxStatus={show}
+                formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                close={closeDialog}
+                show={showDialog}
+              />
+              <TableWithFilter
+                TableTitle={stockReport.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                inpFields={createForm()}
+                columns={columns}
+                rows={stockReport}
+              />
+            </>
+          )}
         </>
       ) : (
         <Error404></Error404>

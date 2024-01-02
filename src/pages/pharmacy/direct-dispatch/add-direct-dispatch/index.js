@@ -44,7 +44,6 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 
-import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
 import {
   addDirectDispatchItems,
   getDirectDispatchItemsListById,

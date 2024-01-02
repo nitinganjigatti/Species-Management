@@ -7,8 +7,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
+
 import TableWithFilter from 'src/components/TableWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
@@ -23,8 +24,9 @@ import { Box, Grid } from '@mui/material'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
-
 import ListOfStocksByBatch from '../stockReportByBatch'
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ListOfStocks = () => {
   const [stockReport, setStockReport] = useState([])
@@ -34,6 +36,9 @@ const ListOfStocks = () => {
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
   const [value, setValue] = useState('1')
+
+  const { selectedPharmacy } = usePharmacyContext()
+  console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -49,37 +54,18 @@ const ListOfStocks = () => {
 
   const getStocksReport = async id => {
     if (id) {
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getLocalStocksReportById()
-          console.log('res', result.data)
-          if (result.success === true && result.data.length > 0) {
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReport(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
-        }
-      } else {
-        try {
-          const result = await getStocksReportById(id)
-          if (result?.length > 0) {
-            // console.log('stocks', result)
+      try {
+        const result = await getStocksReportById(id)
+        if (result?.length > 0) {
+          // console.log('stocks', result)
 
-            // result.sort((a, b) => a.id - b.id)
-            let listWithId = result
-              ? result.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReport(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
+          // result.sort((a, b) => a.id - b.id)
+          let listWithId = result
+            ? result.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReport(listWithId)
         }
       }
     }
@@ -92,35 +78,18 @@ const ListOfStocks = () => {
 
       return
     } else {
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getLocalStocksReportById()
-          console.log('res', result.data)
-          if (result.success === true && result.data.length > 0) {
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
+      try {
+        const result = await getStocksByBatch(id)
+        if (result.success === true && result.data !== '') {
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReportBatch(listWithId)
         }
-      } else {
-        try {
-          const result = await getStocksByBatch(id)
-          if (result.success === true && result.data !== '') {
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
-        }
+      } catch (error) {
+        console.log('error', error)
       }
     }
   }
@@ -130,8 +99,7 @@ const ListOfStocks = () => {
       setStockId(selectedPharmacy?.id)
       getStocksReportBatchWise(selectedPharmacy?.id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy])
+  }, [])
 
   const columns = [
     {
@@ -191,6 +159,28 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.expiry_date}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
@@ -368,7 +358,7 @@ const ListOfStocks = () => {
 
   return (
     <>
-      <Box>
+      <Grid>
         <TabContext value={value}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab value='1' label='Stock Report' />
@@ -388,7 +378,6 @@ const ListOfStocks = () => {
                 />
                 <TableWithFilter
                   TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
-                  inpFields={createForm()}
                   columns={columns}
                   rows={stockReport}
                 />
@@ -396,12 +385,29 @@ const ListOfStocks = () => {
             )}
           </TabPanel>
           <TabPanel value='2'>
-            <Typography>
-              <ListOfStocksByBatch />
-            </Typography>
+            <>
+              {loader ? (
+                <FallbackSpinner />
+              ) : (
+                <>
+                  <CommonDialogBox
+                    title={'Configure Medicine'}
+                    dialogBoxStatus={show}
+                    formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                    close={closeDialog}
+                    show={showDialog}
+                  />
+                  <TableWithFilter
+                    TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                    columns={batchWiseColumn}
+                    rows={stockReportBatch}
+                  />
+                </>
+              )}
+            </>
           </TabPanel>
         </TabContext>
-      </Box>
+      </Grid>
     </>
   )
 }
