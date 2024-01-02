@@ -268,7 +268,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const getMedicineByMedicineId = async id => {
     setLoader(true)
     const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'central')
+    const response = await getAvailableMedicineByMedicineId(id, data, 'all')
     debugger
     if (response.success) {
       setBatchItems(response.data)
