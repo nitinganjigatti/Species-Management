@@ -52,7 +52,10 @@ export const DISPUTE_ITEM = 'dispute-item'
 
 export const STOCK_OUT = 'outofstock-medicine/store'
 
-export const EXPIRED_MEDICINE = 'expire-medicine/store'
+// export const EXPIRED_MEDICINE = 'expire-medicine/store'
+export const EXPIRED_MEDICINE = 'expire-medicine'
+
+// export const STOCK_OUT = 'outofstock-medicine'
 
 export const BATCH_DETAILS = 'batch-details'
 
@@ -77,3 +80,5 @@ export const RETURN_REQUEST = 'return-item'
 export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
 
 export const REQUEST_ITEMS_NOT_AVAILABLE_REVERT = 'dispatch/not-available/revert'
+
+export const DIRECT_DISPATCH = 'direct-dispatch'

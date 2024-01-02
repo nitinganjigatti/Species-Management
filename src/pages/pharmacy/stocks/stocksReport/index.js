@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react'
 
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import TabList from '@mui/lab/TabList'
+
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -25,6 +32,8 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
+import ListOfStocksByBatch from '../stockReportByBatch'
+
 const ListOfStocks = () => {
   const [stores, setStores] = useState([])
   const [stockReport, setStockReport] = useState([])
@@ -33,6 +42,11 @@ const ListOfStocks = () => {
   const [errors, setErrors] = useState('')
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
+  const [value, setValue] = useState('1')
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+  }
 
   const closeDialog = () => {
     setShow(false)
@@ -281,38 +295,40 @@ const ListOfStocks = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <TableWithFilter
-            TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
-            inpFields={createForm()}
-            headerActions={
-              <div>
-                <Button
-                  onClick={() => {
-                    Router.push('/pharmacy/stocks/stockReportByBatch')
-                  }}
-                  size='big'
-                  variant='contained'
-                >
-                  Stock report bach wise
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={stockReport}
-          />
-        </>
-      )}
+      <Box>
+        <TabContext value={value}>
+          <TabList onChange={handleChange} aria-label='simple tabs example'>
+            <Tab value='1' label='Stock Report' />
+            <Tab value='2' label='Stock Report Batch Wise' />
+          </TabList>
+          <TabPanel value='1'>
+            {loader ? (
+              <FallbackSpinner />
+            ) : (
+              <>
+                <CommonDialogBox
+                  title={'Configure Medicine'}
+                  dialogBoxStatus={show}
+                  formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                  close={closeDialog}
+                  show={showDialog}
+                />
+                <TableWithFilter
+                  TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
+                  inpFields={createForm()}
+                  columns={columns}
+                  rows={stockReport}
+                />
+              </>
+            )}
+          </TabPanel>
+          <TabPanel value='2'>
+            <Typography>
+              <ListOfStocksByBatch />
+            </Typography>
+          </TabPanel>
+        </TabContext>
+      </Box>
     </>
   )
 }

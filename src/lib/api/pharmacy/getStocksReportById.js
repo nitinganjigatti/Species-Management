@@ -14,7 +14,7 @@ export async function getStockOutItems({ params }) {
 }
 
 export async function getExpiredMedicine({ params }) {
-  const response = await axiosGet({ url: EXPIRED_MEDICINE, params, pharmacy: true })
+  const response = await axiosGet({ url: `${EXPIRED_MEDICINE}/store`, params, pharmacy: true })
 
   return response.data.data
 }
