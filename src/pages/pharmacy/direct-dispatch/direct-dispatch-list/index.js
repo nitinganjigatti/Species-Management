@@ -5,6 +5,9 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import Error404 from 'src/pages/404'
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -30,6 +33,8 @@ const DirectDispatchList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -48,10 +53,13 @@ const DirectDispatchList = () => {
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
-          console.log('response', res)
-          debugger
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          console.log('responsesss', res)
+
+          // debugger
+          if (res.success) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -233,40 +241,53 @@ const DirectDispatchList = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader
+                  title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
+                  action={headerAction}
+                />
+                {rows?.length > 0 ? (
+                  <DataGrid
+                    autoHeight
+                    pagination
+                    rows={indexedRows === undefined ? [] : indexedRows}
+                    rowCount={total}
+                    total
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onSortModelChange={handleSortModel}
+                    slots={{ toolbar: ServerSideToolbar }}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={loading}
+                    slotProps={{
+                      baseButton: {
+                        variant: 'outlined'
+                      },
+                      toolbar: {
+                        value: searchValue,
+                        clearSearch: () => handleSearch(''),
+                        onChange: event => handleSearch(event.target.value)
+                      }
+                    }}
+                    onRowClick={onRowClick}
+                  />
+                ) : null}
+              </Card>
+            </>
+          )}
+        </>
       ) : (
         <>
-          <Card>
-            <CardHeader title='Direct Dispatch List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onRowClick={onRowClick}
-            />
-          </Card>
+          <Error404></Error404>
         </>
       )}
     </>
