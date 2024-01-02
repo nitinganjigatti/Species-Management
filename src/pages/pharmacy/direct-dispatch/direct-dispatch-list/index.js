@@ -242,53 +242,45 @@ const DirectDispatchList = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
-        <>
-          {loader ? (
-            <FallbackSpinner />
-          ) : (
-            <>
-              <Card>
-                <CardHeader
-                  title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
-                  action={headerAction}
-                />
-                {rows?.length > 0 ? (
-                  <DataGrid
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    total
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onRowClick={onRowClick}
-                  />
-                ) : null}
-              </Card>
-            </>
-          )}
-        </>
+      {loader ? (
+        <FallbackSpinner />
       ) : (
         <>
-          <Error404></Error404>
+          <Card>
+            <CardHeader
+              title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
+              action={headerAction}
+            />
+            {rows?.length > 0 ? (
+              <DataGrid
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                total
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onRowClick={onRowClick}
+              />
+            ) : null}
+          </Card>
         </>
       )}
     </>
