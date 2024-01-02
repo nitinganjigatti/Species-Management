@@ -861,11 +861,11 @@ const IndividualRequest = () => {
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Dispatched To</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Dispatched By</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>

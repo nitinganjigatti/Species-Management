@@ -114,17 +114,20 @@ const DirectDispatchList = () => {
 
   const headerAction = (
     <div>
-      <Button
-        size='big'
-        variant='contained'
-        onClick={() =>
-          Router.push({
-            pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
-          })
-        }
-      >
-        Add Direct Dispatch
-      </Button>
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <Button
+            size='big'
+            variant='contained'
+            onClick={() =>
+              Router.push({
+                pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
+              })
+            }
+          >
+            Add Direct Dispatch
+          </Button>
+        )}
     </div>
   )
 
