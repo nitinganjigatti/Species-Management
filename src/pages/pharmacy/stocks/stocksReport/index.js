@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react'
 
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import TabList from '@mui/lab/TabList'
+
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -17,7 +24,7 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
-import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ListOfStocksByBatch from '../stockReportByBatch'
 
 const ListOfStocks = () => {
   const [stockReport, setStockReport] = useState([])
@@ -27,9 +34,6 @@ const ListOfStocks = () => {
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
   const [value, setValue] = useState('1')
-
-  const { selectedPharmacy } = usePharmacyContext()
-  console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -364,7 +368,7 @@ const ListOfStocks = () => {
 
   return (
     <>
-      <Grid>
+      <Box>
         <TabContext value={value}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab value='1' label='Stock Report' />
@@ -384,6 +388,7 @@ const ListOfStocks = () => {
                 />
                 <TableWithFilter
                   TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
+                  inpFields={createForm()}
                   columns={columns}
                   rows={stockReport}
                 />
@@ -391,29 +396,12 @@ const ListOfStocks = () => {
             )}
           </TabPanel>
           <TabPanel value='2'>
-            <>
-              {loader ? (
-                <FallbackSpinner />
-              ) : (
-                <>
-                  <CommonDialogBox
-                    title={'Configure Medicine'}
-                    dialogBoxStatus={show}
-                    formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-                    close={closeDialog}
-                    show={showDialog}
-                  />
-                  <TableWithFilter
-                    TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
-                    columns={batchWiseColumn}
-                    rows={stockReportBatch}
-                  />
-                </>
-              )}
-            </>
+            <Typography>
+              <ListOfStocksByBatch />
+            </Typography>
           </TabPanel>
         </TabContext>
-      </Grid>
+      </Box>
     </>
   )
 }
