@@ -174,7 +174,7 @@ const AddRack = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.state_id)} id='store_id'>
               Store
             </InputLabel>
@@ -203,7 +203,7 @@ const AddRack = props => {
             {errors?.state_id && (
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.state_id?.message}</FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='name'
