@@ -384,8 +384,9 @@ const AddPurchaseForm = () => {
   const getSuppliersLists = async () => {
     try {
       const response = await getSuppliers()
-      if (response.data.data?.length > 0) {
-        setSuppliers(response.data.data)
+      debugger
+      if (response.data.data.list_items?.length > 0) {
+        setSuppliers(response.data.data.list_items)
       }
     } catch (error) {
       console.log('supplier error', error)
