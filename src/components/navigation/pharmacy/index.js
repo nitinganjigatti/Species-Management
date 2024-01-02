@@ -88,7 +88,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const stockReportByBatch = {
-    title: 'Stock report(Batch wise)',
+    title: 'Stock report by Store ',
     path: '/pharmacy/stocks/stockReportByBatch'
   }
 
