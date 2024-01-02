@@ -24,7 +24,6 @@ import { Box, Grid } from '@mui/material'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
-import ListOfStocksByBatch from '../stockReportByBatch'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 

@@ -51,6 +51,9 @@ import {
 } from 'src/lib/api/pharmacy/directDispatch'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
+import Error404 from 'src/pages/404'
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -120,6 +123,10 @@ const AddReturnRequest = () => {
     local: 'local',
     central: 'central'
   }
+
+  const { selectedPharmacy } = usePharmacyContext()
+  console.log('permission', selectedPharmacy.type, selectedPharmacy.permission.key)
+  console.log('selectedPharmacy', selectedPharmacy)
 
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
@@ -558,99 +565,102 @@ const AddReturnRequest = () => {
   }
 
   return (
-    <Card>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          title='Direct Dispatch Item
+    <>
+      {selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+        <Card>
+          <Grid
+            container
+            sm={12}
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <CardHeader
+              title='Direct Dispatch Item
 '
-        />
+            />
 
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          size='big'
-          variant='contained'
-          onClick={() => {
-            Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
-          }}
-        >
-          Dispatch Item List
-        </Button>
-      </Grid>
-      <CardContent>
-        <Grid container>
-          <CommonDialogBox
-            title={'Add Dispatch Item'}
-            dialogBoxStatus={show}
-            formComponent={createForm()}
-            close={closeDialog}
-            show={showDialog}
-          />
-        </Grid>
-      </CardContent>
-      <CardContent>
-        <form>
-          <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Returned to :
-                  </Typography>
-                </Grid>
-                <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                    Store*
-                  </InputLabel>
-
-                  <Select
-                    error={Boolean(errors.to_store_id)}
-                    value={editParams.to_store_id}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        to_store_id: e.target.value,
-                        to_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {toStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.to_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
+            <Button
+              sx={{
+                mx: { sm: 6, xs: 'auto' }
+              }}
+              size='big'
+              variant='contained'
+              onClick={() => {
+                Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+              }}
+            >
+              Dispatch Item List
+            </Button>
+          </Grid>
+          <CardContent>
+            <Grid container>
+              <CommonDialogBox
+                title={'Add Dispatch Item'}
+                dialogBoxStatus={show}
+                formComponent={createForm()}
+                close={closeDialog}
+                show={showDialog}
+              />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  &nbsp;
-                </Typography>
-              </Grid>
-              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+          </CardContent>
+          <CardContent>
+            <form>
+              <Grid container spacing={5}>
+                <Grid item xs={12} sm={6}>
+                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                        Returned to :
+                      </Typography>
+                    </Grid>
+                    <FormControl fullWidth>
+                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                        Store*
+                      </InputLabel>
+
+                      <Select
+                        error={Boolean(errors.to_store_id)}
+                        value={editParams.to_store_id}
+                        label='Store*'
+                        disabled={id ? true : false}
+                        onChange={e => {
+                          setEditParams({
+                            ...editParams,
+                            to_store_id: e.target.value,
+                            to_store_type: storesType[filteredStoreType(e.target.value)]
+                          })
+                          setErrors({})
+                        }}
+                        // error={Boolean(errors?.state_id)}
+                        // labelId='state_id'
+                      >
+                        {toStocks?.map((item, index) => (
+                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                            {item?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+
+                      {errors.to_store_id && (
+                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                          This field is required
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                      &nbsp;
+                    </Typography>
+                  </Grid>
+                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
                   <Select
@@ -684,173 +694,182 @@ const AddReturnRequest = () => {
                   )}
                 </FormControl>
               </Grid> */}
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <SingleDatePicker
-                    fullWidth
-                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    width={'100%'}
-                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    name={'Date*'}
-                    onChangeHandler={date => {
-                      // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, ro_date: formatDate(date) })
-                      setErrors({})
-                    }}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                  />
-                  {errors.ro_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
+                  <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                    <FormControl fullWidth>
+                      <SingleDatePicker
+                        fullWidth
+                        date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                        width={'100%'}
+                        value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                        name={'Date*'}
+                        onChangeHandler={date => {
+                          // setStores({ ...stores, date: date })
+                          setEditParams({ ...editParams, ro_date: formatDate(date) })
+                          setErrors({})
+                        }}
+                        customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                      />
+                      {errors.ro_date && (
+                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                          This field is required
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
               </Grid>
-            </Grid>
-          </Grid>
-        </form>
-      </CardContent>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          mb: 4
-        }}
-      >
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          onClick={() => {
-            handleSubmit()
-          }}
-          size='big'
-          variant='contained'
-        >
-          Add Dispatch Item
-        </Button>
-      </Grid>
-
-      <TableContainer>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-            <TableRow>
-              <TableCell>Product Name</TableCell>
-              <TableCell>Batch No</TableCell>
-              <TableCell>Expiry Date</TableCell>
-              <TableCell>Priority</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.product_name}
-                          {console.log(el)}
-                        </Typography>
-                        {el.control_substance ? (
-                          <CustomChip label='CS' skin='light' color='success' size='small' />
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.request_item_batch_no}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.expiry_date}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{el.priority_item}</TableCell>
-
-                      <TableCell>{el.request_item_qty}</TableCell>
-
-                      <TableCell>
-                        <IconButton
-                          size='small'
-                          sx={{ mr: 0.5 }}
-                          aria-label='Edit'
-                          onClick={() => {
-                            setMedicineItemId(el.request_item_medicine_id)
-
-                            editTableData(el.request_item_medicine_id)
-                            showDialog()
-                            // }
-                          }}
-                        >
-                          <Icon icon='mdi:pencil-outline' />
-                        </IconButton>
-                        {id && el.request_item_detail_id ? null : (
-                          <IconButton
-                            onClick={() => {
-                              removeItemsFroTable(el.request_item_medicine_id)
-                            }}
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                          >
-                            <Icon icon='mdi:delete-outline' />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              : null}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <CardContent sx={{ pt: 8 }}>
-        {totalQty ? (
-          <Grid container>
-            <Grid
-              item
-              xs={12}
-              sm={2}
-              lg={2}
+            </form>
+          </CardContent>
+          <Grid
+            container
+            sm={12}
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              mb: 4
+            }}
+          >
+            <Button
               sx={{
-                mb: { sm: 0, xs: 4 },
-                order: { sm: 2, xs: 1 },
-                marginLeft: 'auto',
-                mr: { sm: 12, xs: 0 }
+                mx: { sm: 6, xs: 'auto' }
               }}
+              onClick={() => {
+                handleSubmit()
+              }}
+              size='big'
+              variant='contained'
             >
-              <CalcWrapper>
-                <Typography variant='body2'>Total Qty:</Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                  {totalQty}
-                </Typography>
-              </CalcWrapper>
-
-              <Divider
-                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-              />
-            </Grid>
+              Add Dispatch Item
+            </Button>
           </Grid>
-        ) : null}
-      </CardContent>
-      <LoadingButton
-        disabled={editParams.request_item_details.length > 0 ? false : true}
-        sx={{ float: 'right', my: 4, mx: 6 }}
-        size='large'
-        onClick={() => {
-          postItemsData()
-        }}
-        variant='contained'
-        loading={submitLoader}
-      >
-        Save
-      </LoadingButton>
-    </Card>
+
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+                <TableRow>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Batch No</TableCell>
+                  <TableCell>Expiry Date</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {editParams.request_item_details
+                  ? editParams.request_item_details.map((el, index) => {
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.product_name}
+                              {console.log(el)}
+                            </Typography>
+                            {el.control_substance ? (
+                              <CustomChip label='CS' skin='light' color='success' size='small' />
+                            ) : null}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.request_item_batch_no}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.expiry_date}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>{el.priority_item}</TableCell>
+
+                          <TableCell>{el.request_item_qty}</TableCell>
+
+                          <TableCell>
+                            <IconButton
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.request_item_medicine_id)
+
+                                editTableData(el.request_item_medicine_id)
+                                showDialog()
+                                // }
+                              }}
+                            >
+                              <Icon icon='mdi:pencil-outline' />
+                            </IconButton>
+                            {id && el.request_item_detail_id ? null : (
+                              <IconButton
+                                onClick={() => {
+                                  removeItemsFroTable(el.request_item_medicine_id)
+                                }}
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                              >
+                                <Icon icon='mdi:delete-outline' />
+                              </IconButton>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  : null}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <CardContent sx={{ pt: 8 }}>
+            {totalQty ? (
+              <Grid container>
+                <Grid
+                  item
+                  xs={12}
+                  sm={2}
+                  lg={2}
+                  sx={{
+                    mb: { sm: 0, xs: 4 },
+                    order: { sm: 2, xs: 1 },
+                    marginLeft: 'auto',
+                    mr: { sm: 12, xs: 0 }
+                  }}
+                >
+                  <CalcWrapper>
+                    <Typography variant='body2'>Total Qty:</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {totalQty}
+                    </Typography>
+                  </CalcWrapper>
+
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            ) : null}
+          </CardContent>
+          <LoadingButton
+            disabled={editParams.request_item_details.length > 0 ? false : true}
+            sx={{ float: 'right', my: 4, mx: 6 }}
+            size='large'
+            onClick={() => {
+              postItemsData()
+            }}
+            variant='contained'
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
+        </Card>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }
 
