@@ -52,10 +52,7 @@ export const DISPUTE_ITEM = 'dispute-item'
 
 export const STOCK_OUT = 'outofstock-medicine/store'
 
-// export const EXPIRED_MEDICINE = 'expire-medicine/store'
 export const EXPIRED_MEDICINE = 'expire-medicine'
-
-// export const STOCK_OUT = 'outofstock-medicine'
 
 export const BATCH_DETAILS = 'batch-details'
 
