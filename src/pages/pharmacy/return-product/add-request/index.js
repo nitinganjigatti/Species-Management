@@ -375,7 +375,7 @@ const AddReturnRequest = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
         debugger
         if (searchResults?.success) {
           debugger
@@ -402,11 +402,14 @@ const AddReturnRequest = () => {
           // setOptionsBatchList()
 
           console.log('optionsBatchList', optionsBatchList)
+        } else {
+          setOptionsBatchList([])
         }
         setBatchLoading(false)
       } catch (e) {
         console.log('error', e)
         setBatchLoading(false)
+        setOptionsBatchList([])
       }
     }
   }
