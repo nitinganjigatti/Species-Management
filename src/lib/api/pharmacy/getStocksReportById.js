@@ -1,4 +1,4 @@
-import { STOCK_REPORT, STOCK_OUT, EXPIRED_MEDICINE } from '../../../constants/ApiConstant'
+import { STOCK_REPORT, LOCAL_STOCK_REPORT, STOCK_OUT, EXPIRED_MEDICINE } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getStocksReportById(id) {
@@ -11,6 +11,12 @@ export async function getStockOutItems({ params }) {
   const response = await axiosGet({ url: STOCK_OUT, params, pharmacy: true })
 
   return response.data.data
+}
+
+export async function getLocalStocksReportById() {
+  const response = await axiosGet({ url: `${LOCAL_STOCK_REPORT}`, pharmacy: true })
+
+  return response.data
 }
 
 export async function getExpiredMedicine({ params }) {
