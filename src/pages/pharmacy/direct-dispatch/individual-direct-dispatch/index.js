@@ -43,7 +43,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const IndividualDirectDispatch = () => {
+const IndividualRequest = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -777,7 +777,7 @@ const IndividualDirectDispatch = () => {
 
   const handleRequestEdit = () => {
     Router.push({
-      pathname: '/pharmacy/request/add-request/',
+      pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -840,7 +840,7 @@ const IndividualDirectDispatch = () => {
           />
           <Card>
             <CardHeader
-              title={`Request`}
+              title={`Direct Dispatch Request`}
               action={
                 requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
                   <Button
@@ -1045,4 +1045,4 @@ const IndividualDirectDispatch = () => {
   )
 }
 
-export default IndividualDirectDispatch
+export default IndividualRequest

@@ -104,9 +104,10 @@ const DirectDispatchList = () => {
 
   const onRowClick = params => {
     var data = params.row
+    console.log('params.row', params.row)
 
     Router.push({
-      pathname: '/pharmacy/return-product/individual-return/',
+      pathname: '/pharmacy/direct-dispatch/individual-direct-dispatch/',
       query: { id: data.id, request_number: data.request_number }
     })
   }
