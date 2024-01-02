@@ -43,7 +43,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const IndividualRequest = () => {
+const IndividualDirectDispatch = () => {
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -777,7 +777,7 @@ const IndividualRequest = () => {
 
   const handleRequestEdit = () => {
     Router.push({
-      pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/',
+      pathname: '/pharmacy/request/add-request/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -840,7 +840,7 @@ const IndividualRequest = () => {
           />
           <Card>
             <CardHeader
-              title={`Direct Dispatch Request`}
+              title={`Request`}
               action={
                 requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
                   <Button
@@ -861,11 +861,11 @@ const IndividualRequest = () => {
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Dispatched To</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Dispatched By</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>
@@ -1045,4 +1045,4 @@ const IndividualRequest = () => {
   )
 }
 
-export default IndividualRequest
+export default IndividualDirectDispatch
