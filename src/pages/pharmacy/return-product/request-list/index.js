@@ -17,6 +17,8 @@ import Router from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 const ReturnRequestList = () => {
   const [loader, setLoader] = useState(false)
 
@@ -29,6 +31,8 @@ const ReturnRequestList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   function loadServerRows(currentPage, data) {
     return data
@@ -105,17 +109,20 @@ const ReturnRequestList = () => {
 
   const headerAction = (
     <div>
-      <Button
-        size='big'
-        variant='contained'
-        onClick={() =>
-          Router.push({
-            pathname: '/pharmacy/return-product/add-request/'
-          })
-        }
-      >
-        Add Return Request
-      </Button>
+      {selectedPharmacy.type === 'local' &&
+        (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
+          <Button
+            size='big'
+            variant='contained'
+            onClick={() =>
+              Router.push({
+                pathname: '/pharmacy/return-product/add-request/'
+              })
+            }
+          >
+            Add Return Request
+          </Button>
+        )}
     </div>
   )
 
