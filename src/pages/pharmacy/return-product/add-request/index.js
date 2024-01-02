@@ -369,6 +369,63 @@ const AddReturnRequest = () => {
     }
   }
 
+  const fetchBatchData = async id => {
+    debugger
+    if (id !== '') {
+      try {
+        setBatchLoading(true)
+        const data = { stock_item_id: id }
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
+        debugger
+        if (searchResults?.success) {
+          debugger
+
+          if (searchResults?.data?.length > 0) {
+            debugger
+
+            // const data = searchResults?.data.map(item => ({
+            //   value: item?.batch_no,
+            //   label: item?.batch_no,
+            //   expiry_date: item?.expiry_date
+            // }))
+            // console.log('searchResults', data)
+            setOptionsBatchList(
+              searchResults?.data.map(item => ({
+                value: item?.batch_no,
+                label: item?.batch_no,
+                expiry_date: item?.expiry_date
+              }))
+            )
+          }
+          debugger
+          console.log('searchResults', optionsBatchList)
+          // setOptionsBatchList()
+
+          console.log('optionsBatchList', optionsBatchList)
+        } else {
+          setOptionsBatchList([])
+        }
+        setBatchLoading(false)
+      } catch (e) {
+        console.log('error', e)
+        setBatchLoading(false)
+        setOptionsBatchList([])
+      }
+    }
+  }
+
+  const searchBatchData = useCallback(
+    debounce(async id => {
+      debugger
+      try {
+        await fetchBatchData(id)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
