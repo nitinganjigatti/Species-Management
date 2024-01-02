@@ -210,8 +210,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing, addReturnRequest)
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
+    settingsParent.children.push(rackList)
 
-    pharmacyNavigationArray.push(requestParent, returnParent, stockParent)
+    pharmacyNavigationArray.push(requestParent, returnParent, stockParent, settingsParent)
   }
 
   console.log(pharmacyNavigationArray)
