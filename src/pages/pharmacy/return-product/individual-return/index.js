@@ -12,6 +12,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -27,12 +28,13 @@ import { useRouter } from 'next/router'
 
 import Router from 'next/router'
 
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import FulfillDialog from 'src/components/pharmacy/return/FulfillDialog'
+import ShipRequest from 'src/components/pharmacy/return/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
-import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
-import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
+import OrderReceiveForm from 'src/components/pharmacy/return/OrderReceiveForm'
+
+import DisputeItemView from 'src/components/pharmacy/return/DisputeItemView'
+import DispenseItemView from 'src/components/pharmacy/return/DispenseItemView'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -62,6 +64,8 @@ const IndividualReturnRequest = () => {
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const getRequestItemLists = async id => {
     setLoader(true)
@@ -355,19 +359,23 @@ const IndividualReturnRequest = () => {
       field: '',
       headerName: 'Action',
       renderCell: params => (
-        <Button
-          size='small'
-          disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
-          variant='contained'
-          onClick={() => {
-            setFulfillMedicine({
-              ...params.row
-            })
-            showDialog()
-          }}
-        >
-          Fulfill
-        </Button>
+        <>
+          {selectedPharmacy.type === 'local' && (
+            <Button
+              size='small'
+              disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+              variant='contained'
+              onClick={() => {
+                setFulfillMedicine({
+                  ...params.row
+                })
+                showDialog()
+              }}
+            >
+              Fulfill
+            </Button>
+          )}
+        </>
       )
     },
 
@@ -770,17 +778,21 @@ const IndividualReturnRequest = () => {
                     <Grid item xs={6}>
                       <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
                     </Grid>
-                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                      <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
-                          openShipDialog()
-                        }}
-                      >
-                        Ship
-                      </Button>
-                    </Grid>
+                    {selectedPharmacy.type === 'local' &&
+                      (selectedPharmacy.permission.key === 'ADD' ||
+                        selectedPharmacy.permission.key === 'allow_full_access') && (
+                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                          <Button
+                            size='big'
+                            variant='contained'
+                            onClick={() => {
+                              openShipDialog()
+                            }}
+                          >
+                            Ship
+                          </Button>
+                        </Grid>
+                      )}
                   </Grid>
                 </CardContent>
                 <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>

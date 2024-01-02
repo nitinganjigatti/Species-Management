@@ -117,10 +117,10 @@ const AddRack = props => {
   // list the stores
   const getStoresLists = async () => {
     const response = await getStoreList({})
-    if (response?.length > 0) {
-      console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setStores(response)
+    if (response?.data?.list_items.length > 0) {
+      // console.log('list', response)
+      // response.sort((a, b) => a.id - b.id)
+      setStores(response?.data?.list_items)
     }
 
     // else {
