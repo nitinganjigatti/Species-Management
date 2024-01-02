@@ -77,6 +77,7 @@ export const AddItemsForm = ({
   })
 
   console.log('nestedMedicine', nestedMedicine)
+  console.log('productList', productList)
 
   const onSubmit = async params => {
     // debugger
@@ -184,6 +185,8 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
+                      console.log('value', value)
+
                       // debugger
 
                       // setValue('request_item', value)

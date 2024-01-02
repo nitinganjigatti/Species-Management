@@ -45,7 +45,11 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
-import { addDirectDispatchItems } from 'src/lib/api/pharmacy/directDispatch'
+import {
+  addDirectDispatchItems,
+  getDirectDispatchItemsListById,
+  updateDirectDispatchItems
+} from 'src/lib/api/pharmacy/directDispatch'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 
@@ -82,8 +86,8 @@ const initialNestedRowMedicine = {
   request_item_leaf_id: '',
   priority_item: 'Normal',
   control_substance: false,
-  control_substance_file: '',
-  to_store_id: '14'
+  control_substance_file: ''
+  // to_store_id: '14'
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -322,6 +326,7 @@ const AddReturnRequest = () => {
         }
 
         const searchResults = await getMedicineList({ params: params })
+        console.log('searchResults', searchResults)
         if (searchResults?.data?.list_items.length > 0) {
           setOptionsMedicineList(
             searchResults?.data?.list_items?.map(item => ({
@@ -372,10 +377,13 @@ const AddReturnRequest = () => {
           // setOptionsBatchList()
 
           console.log('optionsBatchList', optionsBatchList)
+        } else {
+          setOptionsBatchList([])
         }
         setBatchLoading(false)
       } catch (e) {
         console.log('error', e)
+        setOptionsBatchList([])
         setBatchLoading(false)
       }
     }
@@ -406,34 +414,38 @@ const AddReturnRequest = () => {
   //  ****** debounce
 
   const getListOfItemsById = async id => {
-    const result = await getReturnItemsListById(id)
+    try {
+      const result = await getDirectDispatchItemsListById(id)
 
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.request_item_details.map(el => {
-        return {
-          request_item_medicine_id: el.stock_item_id,
-          medicine_name: el.stock_name,
-          request_item_qty: el.qty,
-          request_item_leaf_id: el.stock_item_id,
-          priority_item: el.priority,
-          control_substance: el.control_substance === '0' ? false : true,
-          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-          id: el.id,
-          request_item_detail_id: el.id
-        }
-      })
+      if (result.success === true && result.data !== '') {
+        const lineItems = result.data.request_item_details.map(el => {
+          return {
+            request_item_medicine_id: el.stock_item_id,
+            medicine_name: el.stock_name,
+            request_item_qty: el.qty,
+            request_item_leaf_id: el.stock_item_id,
+            priority_item: el.priority,
+            control_substance: el.control_substance === '0' ? false : true,
+            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
+            id: el.id,
+            request_item_detail_id: el.id
+          }
+        })
 
-      setEditParams({
-        ...editParams,
-        id: result.data.id,
-        // from_store_id: result.data.from_store_id,
-        to_store_id: result.data.to_store_id,
-        ro_date: result.data.request_date,
-        // from_store_type: result.data.from_store_type,
-        to_store_type: result.data.to_store_type,
-        request_item_details: lineItems
-      })
-      // }
+        setEditParams({
+          ...editParams,
+          id: result.data.id,
+          // from_store_id: result.data.from_store_id,
+          to_store_id: result.data.to_store_id,
+          ro_date: result.data.request_date,
+          // from_store_type: result.data.from_store_type,
+          to_store_type: result.data.to_store_type,
+          request_item_details: lineItems
+        })
+        // }
+      }
+    } catch (error) {
+      console.log('error', error)
     }
   }
 
@@ -496,7 +508,7 @@ const AddReturnRequest = () => {
 
     if (id) {
       try {
-        const response = await updateReturnItems(id, postData)
+        const response = await updateDirectDispatchItems(id, postData)
 
         if (response?.success) {
           toast.success(response?.message)
