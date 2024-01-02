@@ -179,6 +179,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
     directDispatchParent.children.push(directDispatchList)
+
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -198,6 +199,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       inventoryParent,
       PurchaseParent,
       requestParent,
+      returnParent,
       directDispatchParent,
       stockParent,
       settingsParent
@@ -209,7 +211,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     returnParent.children.push(returnListing, addReturnRequest)
     stockParent.children.push(stockReport, stockOut, expiredMedicine)
 
-    pharmacyNavigationArray.push(requestParent, returnParent, stockParent)
+    pharmacyNavigationArray.push(requestParent, returnParent, stockParent, settingsParent)
   }
 
   console.log(pharmacyNavigationArray)
