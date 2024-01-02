@@ -64,11 +64,11 @@ import { boolean } from 'yup'
 
 const editParamsInitialState = {
   // from_store_type: '',
-  // from_store_type: '',
-  // from_store_id: '',
-
   to_store_type: '',
+
+  // from_store_id: '',
   to_store_id: '',
+  // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   priority_item: 'Normal',
@@ -82,20 +82,9 @@ const initialNestedRowMedicine = {
   request_item_leaf_id: '',
   priority_item: 'Normal',
   control_substance: false,
-  control_substance_file: ''
+  control_substance_file: '',
+  to_store_id: '14'
 }
-//  'ro_date="2023-12-12"' \
-//  'from_store_id="16"' \
-//  'to_store_id="12"' \
-//  'from_store_type="2"' \
-//  'to_store_type="1"' \
-//  'total_qty="10"' \
-//  'request_item_details[0][request_item_medicine_id]="350"' \
-
-//  'request_item_details[0][request_item_qty]="5"' \
-//  'request_item_details[0][priority_item]="Normal"' \
-//  'request_item_details[0][expiry_date]="2024-01-20"' \
-//  'request_item_details[0][request_item_batch_no]="BA112"'
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -123,8 +112,10 @@ const AddReturnRequest = () => {
   const { id, action } = router.query
 
   const storesType = {
-    local: 1,
-    central: 2
+    // local: 1,
+    // central: 2
+    local: 'local',
+    central: 'central'
   }
 
   const filteredStoreType = value => {
@@ -137,6 +128,7 @@ const AddReturnRequest = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setDuplicateMedError('')
   }
 
   const showDialog = () => {
@@ -155,18 +147,6 @@ const AddReturnRequest = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    // const newData = {
-    //   medicine_name: nestedRowMedicine.medicine_name,
-    //   request_item_medicine_id: nestedRowMedicine.request_item_medicine_id,
-    //   // id: nestedRowMedicine.id,
-    //   request_item_qty: nestedRowMedicine.request_item_qty,
-    //   // dosageForm: nestedRowMedicine.dosageForm,
-    //   priority_item: nestedRowMedicine.priority_item,
-    //   control_substance: nestedRowMedicine.control_substance,
-    //   control_substance_file: nestedRowMedicine.control_substance_file,
-    //   request_item_leaf_id: ''
-    // }
-
     const updatedNestedRows = [...editParams.request_item_details, params]
     setEditParams({
       ...editParams,
@@ -235,23 +215,6 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = params => {
-    // const HasErrors =
-    //   !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // // || !nestedRowMedicine.control_substance
-    // if (HasErrors) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
-    // if (params.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
-
-    //     return
-    //   }
-    // }
-    debugger
-
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
@@ -259,7 +222,7 @@ const AddReturnRequest = () => {
     )
 
     if (isMedicineAlreadyExists) {
-      setDuplicateMedError('Medicine already exists')
+      setDuplicateMedError('Batch already exists')
       console.log('Medicine already exists')
 
       return
@@ -377,18 +340,18 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async id => {
-    debugger
+    // debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
-        debugger
+        // debugger
         if (searchResults?.success) {
-          debugger
+          // debugger
 
           if (searchResults?.data?.length > 0) {
-            debugger
+            // debugger
 
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
@@ -404,7 +367,7 @@ const AddReturnRequest = () => {
               }))
             )
           }
-          debugger
+          // debugger
           console.log('searchResults', optionsBatchList)
           // setOptionsBatchList()
 
@@ -420,7 +383,7 @@ const AddReturnRequest = () => {
 
   const searchBatchData = useCallback(
     debounce(async id => {
-      debugger
+      // debugger
       try {
         await fetchBatchData(id)
       } catch (error) {
@@ -476,17 +439,18 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = itemId => {
-    // if (id != undefined && action === 'edit') {
-    if (itemId != undefined) {
+    if (id != undefined && action === 'edit') {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-      console.log('getItems', getItems)
+
       setNestedRowMedicine({
         ...nestedRowMedicine,
         request_item_medicine_id: getItems[0].request_item_medicine_id,
         medicine_name: getItems[0].medicine_name,
         request_item_qty: getItems[0].request_item_qty,
+        request_item_batch_no: getItems[0].request_item_batch_no,
+        expiry_date: getItems[0].expiry_date,
         request_item_leaf_id: getItems[0].request_item_leaf_id,
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
@@ -498,10 +462,14 @@ const AddReturnRequest = () => {
         return el.request_item_medicine_id === itemId
       })
 
+      // debugger
+
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        medicine_name: getItems[0].medicine_name,
+        medicine_name: getItems[0].product_name,
         request_item_medicine_id: getItems[0].request_item_medicine_id,
+        request_item_batch_no: getItems[0].request_item_batch_no,
+        expiry_date: getItems[0].expiry_date,
         // id: getItems[0].id,
         request_item_qty: getItems[0].request_item_qty,
         control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -522,10 +490,10 @@ const AddReturnRequest = () => {
   // data posting section
 
   const postItemsData = async () => {
-    // setSubmitLoader(true)
+    setSubmitLoader(true)
     const postData = editParams
     postData.total_qty = totalQty
-    console.log('post data', postData)
+
     if (id) {
       try {
         const response = await updateReturnItems(id, postData)
@@ -534,7 +502,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -544,12 +512,13 @@ const AddReturnRequest = () => {
       }
     } else {
       try {
+        console.log('postData', postData)
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -571,241 +540,9 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
+        nestedMedicine={nestedRowMedicine}
+        error={duplicateMedError}
       />
-      // <CardContent>
-      //   <form
-      //   // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-      //   >
-      //     <Grid container spacing={5}>
-      //       <Grid item xs={12} sm={6}>
-      //         <FormControl fullWidth>
-      //           <Autocomplete
-      //             inputProps={{ tabIndex: '6' }}
-      //             disablePortal
-      //             id='autocomplete-controlled'
-      //             options={optionsMedicineList}
-      //             value={nestedRowMedicine.medicine_name}
-      //             onChange={(event, newValue) => {
-      //               setNestedRowMedicine({
-      //                 ...nestedRowMedicine,
-      //                 medicine_name: newValue?.label,
-      //                 request_item_medicine_id: newValue?.value,
-      //                 control_substance: newValue?.control_substance
-      //               })
-      //               setDuplicateMedError('')
-      //               setItemErrors({})
-      //             }}
-      //             onKeyUp={e => {
-      //               searchMedicineData(e.target.value)
-      //               setItemErrors({})
-      //             }}
-      //             renderInput={params => (
-      //               <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
-      //             )}
-      //           />
-      //           {itemErrors.medicine_name && (
-      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-      //               This field is required
-      //             </FormHelperText>
-      //           )}
-      //           {duplicateMedError && (
-      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-      //               {duplicateMedError}
-      //             </FormHelperText>
-      //           )}
-      //         </FormControl>
-      //       </Grid>
-
-      //       <Grid item xs={12} sm={6}>
-      //         <FormControl fullWidth>
-      //           <TextField
-      //             type='number'
-      //             value={nestedRowMedicine.request_item_qty}
-      //             error={Boolean(itemErrors.request_item_qty)}
-      //             label='Quantity*'
-      //             onChange={event => {
-      //               setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
-      //               setItemErrors({})
-      //             }}
-      //           />
-      //           {itemErrors.request_item_qty && (
-      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-      //               This field is required
-      //             </FormHelperText>
-      //           )}
-      //         </FormControl>
-      //       </Grid>
-
-      //       <Grid item xs={12} sm={6}>
-      //         <Typography sx={{ mb: 2 }}>Priority</Typography>
-
-      //         <FormControl fullWidth>
-      //           <ToggleButtonGroup
-      //             exclusive
-      //             color='primary'
-      //             value={nestedRowMedicine.priority_item}
-      //             onChange={event => {
-      //               setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
-      //             }}
-      //           >
-      //             test
-      //             <ToggleButton color='error' value='high'>
-      //               High
-      //             </ToggleButton>
-      //             <ToggleButton color='primary' value='Normal'>
-      //               Normal
-      //             </ToggleButton>
-      //           </ToggleButtonGroup>
-
-      //           {itemErrors.priority_item && (
-      //             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-      //               This field is required
-      //             </FormHelperText>
-      //           )}
-      //         </FormControl>
-      //       </Grid>
-
-      //       {/* // file uploader */}
-      //       {nestedRowMedicine.control_substance === true ? (
-      //         nestedRowMedicine.control_substance_file ? (
-      //           <Grid item xs={12} sm={6}>
-      //             {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
-      //               <Chip
-      //                 label={nestedRowMedicine.control_substance_file?.name}
-      //                 color='secondary'
-      //                 onDelete={() => {
-      //                   setNestedRowMedicine({
-      //                     ...nestedRowMedicine,
-      //                     // control_substance: false,
-      //                     control_substance_file: ''
-      //                   })
-      //                 }}
-      //                 deleteIcon={<Icon icon='mdi:delete-outline' />}
-      //               />
-      //             ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
-      //               nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
-      //               <>
-      //                 <Chip
-      //                   label={nestedRowMedicine.control_substance_file?.name}
-      //                   avatar={
-      //                     <Avatar
-      //                       alt={nestedRowMedicine.control_substance_file?.name}
-      //                       src={
-      //                         nestedRowMedicine.control_substance_file
-      //                           ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
-      //                           : ''
-      //                       }
-      //                     />
-      //                   }
-      //                   onDelete={() => {
-      //                     setNestedRowMedicine({
-      //                       ...nestedRowMedicine,
-      //                       // control_substance: false,
-      //                       control_substance_file: ''
-      //                     })
-      //                   }}
-      //                 />
-      //               </>
-      //             ) : (
-      //               <Chip
-      //                 label={nestedRowMedicine.control_substance_file}
-      //                 avatar={
-      //                   <Avatar
-      //                     alt='image'
-      //                     src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
-      //                   />
-      //                 }
-      //                 onDelete={() => {
-      //                   setNestedRowMedicine({
-      //                     ...nestedRowMedicine,
-      //                     // control_substance: false,
-      //                     control_substance_file: ''
-      //                   })
-      //                 }}
-      //               />
-      //             )}
-      //           </Grid>
-      //         ) : (
-      //           <Grid item xs={12} sm={6}>
-      //             <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
-      //             <FormControl fullWidth>
-      //               <TextField
-      //                 type='file'
-      //                 accept='.pdf, .jpeg, .jpg, .png'
-      //                 error={Boolean(itemErrors.control_substance_file)}
-      //                 // label='Attach prescription'
-      //                 onChange={e => {
-      //                   const file = e.target.files[0]
-      //                   setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-      //                   setItemErrors({})
-      //                 }}
-      //               />
-      //               {itemErrors.control_substance_file && (
-      //                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-      //                   This field is required
-      //                 </FormHelperText>
-      //               )}
-      //             </FormControl>
-      //           </Grid>
-      //         )
-      //       ) : null}
-      //       {/* // file uploader */}
-
-      //       <Grid item xs={12}>
-      //         <>
-      //           {medicineItemId ? (
-      //             <>
-      //               <Button
-      //                 onClick={() => {
-      //                   closeDialog()
-      //                 }}
-      //                 size='large'
-      //                 variant='outlined'
-      //                 sx={{ mr: 2 }}
-      //               >
-      //                 Done
-      //               </Button>
-      //               <Button
-      //                 onClick={() => {
-      //                   updateFormItems()
-      //                   closeDialog()
-      //                   // submitItems()
-      //                 }}
-      //                 size='large'
-      //                 variant='contained'
-      //               >
-      //                 update
-      //               </Button>
-      //             </>
-      //           ) : (
-      //             <>
-      //               <Button
-      //                 onClick={() => {
-      //                   closeDialog()
-      //                 }}
-      //                 size='large'
-      //                 variant='outlined'
-      //                 sx={{ mr: 2 }}
-      //               >
-      //                 Done
-      //               </Button>
-      //               <Button
-      //                 onClick={() => {
-      //                   // updateFormItems()
-      //                   submitItems()
-      //                 }}
-      //                 size='large'
-      //                 variant='contained'
-      //               >
-      //                 Add
-      //               </Button>
-      //             </>
-      //           )}
-      //         </>
-      //       </Grid>
-      //     </Grid>
-      //   </form>
-      // </CardContent>
     )
   }
 
@@ -821,7 +558,10 @@ const AddReturnRequest = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Return Request Item' />
+        <CardHeader
+          title='Direct Dispatch Item
+'
+        />
 
         <Button
           sx={{
@@ -830,16 +570,16 @@ const AddReturnRequest = () => {
           size='big'
           variant='contained'
           onClick={() => {
-            Router.push('/pharmacy/return-product/request-list/')
+            Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
           }}
         >
-          Request Item List
+          Dispatch Item List
         </Button>
       </Grid>
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Dispatch Item'}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -980,7 +720,7 @@ const AddReturnRequest = () => {
           size='big'
           variant='contained'
         >
-          Add Request Item
+          Add Dispatch Item
         </Button>
       </Grid>
 
@@ -989,6 +729,8 @@ const AddReturnRequest = () => {
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
               <TableCell>Product Name</TableCell>
+              <TableCell>Batch No</TableCell>
+              <TableCell>Expiry Date</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
@@ -1002,10 +744,21 @@ const AddReturnRequest = () => {
                       <TableCell>
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
                           {el.product_name}
+                          {console.log(el)}
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
                         ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.request_item_batch_no}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                          {el.expiry_date}
+                        </Typography>
                       </TableCell>
                       <TableCell>{el.priority_item}</TableCell>
 
