@@ -293,19 +293,6 @@ const ListOfStocksByBatch = () => {
           <TableWithFilter
             TableTitle={stockReport.length > 0 ? 'Stock report bach wise' : 'Stock Report is empty'}
             inpFields={createForm()}
-            headerActions={
-              <div>
-                <Button
-                  onClick={() => {
-                    Router.push('/pharmacy/stocks/stocksReport')
-                  }}
-                  size='big'
-                  variant='contained'
-                >
-                  Stock report
-                </Button>
-              </div>
-            }
             columns={columns}
             rows={stockReport}
           />
