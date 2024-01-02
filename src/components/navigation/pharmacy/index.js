@@ -66,7 +66,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchParent = {
     title: 'Direct Dispatch',
     path: '/pharmacy/direct-dispatch',
-    icon: 'bi:boxes',
+    icon: 'iconamoon:delivery-light',
     children: []
   }
 
