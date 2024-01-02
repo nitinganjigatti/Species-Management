@@ -28,6 +28,8 @@ export const RACK = 'rack'
 
 export const STOCK_REPORT = 'master-stock'
 
+export const LOCAL_STOCK_REPORT = 'local-stock'
+
 export const STOCK_BY_BATCH = 'master-stock-batch-wise'
 
 export const UOM = 'uom'

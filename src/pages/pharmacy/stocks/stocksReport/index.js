@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 
-import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -53,21 +53,38 @@ const ListOfStocks = () => {
 
   const getStocksReport = async id => {
     if (id) {
-      try {
-        const result = await getStocksReportById(id)
-        if (result?.length > 0) {
-          // console.log('stocks', result)
-
-          // result.sort((a, b) => a.id - b.id)
-          let listWithId = result
-            ? result.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReport(listWithId)
+      if (selectedPharmacy?.type === 'local') {
+        try {
+          const result = await getLocalStocksReportById()
+          console.log('res', result.data)
+          if (result.success === true && result.data.length > 0) {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
         }
-      } catch (error) {
-        console.log('error', error)
+      } else {
+        try {
+          const result = await getStocksReportById(id)
+          if (result?.length > 0) {
+            // console.log('stocks', result)
+
+            // result.sort((a, b) => a.id - b.id)
+            let listWithId = result
+              ? result.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
       }
     }
   }
@@ -79,18 +96,35 @@ const ListOfStocks = () => {
 
       return
     } else {
-      try {
-        const result = await getStocksByBatch(id)
-        if (result.success === true && result.data !== '') {
-          let listWithId = result.data
-            ? result.data.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReportBatch(listWithId)
+      if (selectedPharmacy?.type === 'local') {
+        try {
+          const result = await getLocalStocksReportById()
+          console.log('res', result.data)
+          if (result.success === true && result.data.length > 0) {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
         }
-      } catch (error) {
-        console.log('error', error)
+      } else {
+        try {
+          const result = await getStocksByBatch(id)
+          if (result.success === true && result.data !== '') {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
       }
     }
   }

@@ -292,7 +292,7 @@ const ListOfStocksByBatch = () => {
                 show={showDialog}
               />
               <TableWithFilter
-                TableTitle={stockReport.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                TableTitle={stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
                 inpFields={createForm()}
                 columns={columns}
                 rows={stockReport}
