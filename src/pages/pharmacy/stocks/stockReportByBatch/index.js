@@ -18,6 +18,8 @@ import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import { Box } from '@mui/material'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -31,6 +33,7 @@ const ListOfStocksByBatch = () => {
   const [errors, setErrors] = useState('')
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
+  const { selectedPharmacy } = usePharmacyContext()
 
   const closeDialog = () => {
     setShow(false)
@@ -41,13 +44,9 @@ const ListOfStocksByBatch = () => {
   }
 
   const getStoresLists = async () => {
-    const params = {
-      q: 'central',
-      column: 'type'
-    }
     try {
       setLoader(true)
-      const response = await getStoreList({ params })
+      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
       console.log('list', response)
       if (response?.data?.list_items?.length > 0) {
         console.log('list', response)
@@ -63,15 +62,15 @@ const ListOfStocksByBatch = () => {
     }
   }
 
-  const getStocksReport = async () => {
+  const getStocksReport = async id => {
     // console.log(stockId)
-    if (stockId === '' || undefined) {
+    if (id === '' || undefined) {
       setErrors('Please select Store')
 
       return
     } else {
       try {
-        const result = await getStocksByBatch(stockId)
+        const result = await getStocksByBatch(id)
         if (result.success === true && result.data !== '') {
           let listWithId = result.data
             ? result.data.map((el, i) => {
@@ -232,11 +231,11 @@ const ListOfStocksByBatch = () => {
             <Select
               onChange={e => {
                 let id = e.target.value
-
                 setStockId(id)
                 setStockReport([])
                 setConfigureMedId('')
                 setErrors('')
+                getStocksReport(id)
               }}
               label='Stores'
               value={stockId}
@@ -261,42 +260,48 @@ const ListOfStocksByBatch = () => {
           </FormControl>
         </Grid>
 
-        <Grid item lg={2}>
+        {/* <Grid item lg={2}>
           <Button
             size='large'
             sx={{ py: 3 }}
             variant='contained'
             onClick={() => {
-              getStocksReport()
+              // getStocksReport()
             }}
           >
             Find
           </Button>
-        </Grid>
+        </Grid> */}
       </Grid>
     )
   }
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {selectedPharmacy.type === 'central' ? (
         <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <TableWithFilter
-            TableTitle={stockReport.length > 0 ? 'Stock report bach wise' : 'Stock Report is empty'}
-            inpFields={createForm()}
-            columns={columns}
-            rows={stockReport}
-          />
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <CommonDialogBox
+                title={'Configure Medicine'}
+                dialogBoxStatus={show}
+                formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                close={closeDialog}
+                show={showDialog}
+              />
+              <TableWithFilter
+                TableTitle={stockReport.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                inpFields={createForm()}
+                columns={columns}
+                rows={stockReport}
+              />
+            </>
+          )}
         </>
+      ) : (
+        <Error404></Error404>
       )}
     </>
   )
