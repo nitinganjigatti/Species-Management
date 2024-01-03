@@ -78,6 +78,7 @@ const IndividualRequest = () => {
     const response = await getRequestItemsListById(id)
     if (response.success) {
       const responseData = response.data
+      debugger
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
@@ -164,23 +165,23 @@ const IndividualRequest = () => {
     }
   }
 
-  const getDisputeItems = async id => {
-    try {
-      const response = await getDisputeItemList(id)
-      response?.data?.sort((a, b) => a.id - b.id)
+  // const getDisputeItems = async id => {
+  //   try {
+  //     const response = await getDisputeItemList(id)
+  //     response?.data?.sort((a, b) => a.id - b.id)
 
-      if (response?.success) {
-        const mappedWithUid = response?.data?.map((item, index) => ({
-          ...item,
-          uid: index + 1
-        }))
+  //     if (response?.success) {
+  //       const mappedWithUid = response?.data?.map((item, index) => ({
+  //         ...item,
+  //         uid: index + 1
+  //       }))
 
-        setDisputedItemsItems(mappedWithUid)
-      }
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  //       setDisputedItemsItems(mappedWithUid)
+  //     }
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   // const getDispenseItems = async id => {
   //   try {
@@ -224,11 +225,10 @@ const IndividualRequest = () => {
   }, [id])
 
   useEffect(() => {
-    if (id !== undefined && orderFormDialog === false) {
-      getDisputeItems(id)
-
-      // getDispenseItems(id)
-    }
+    // if (id !== undefined && orderFormDialog === false) {
+    //   getDisputeItems(id)
+    //   // getDispenseItems(id)
+    // }
   }, [orderFormDialog])
 
   const closeOrderFormDialog = () => {
@@ -615,93 +615,93 @@ const IndividualRequest = () => {
     }
   ]
 
-  const disputedItemsColumns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'uid',
-      headerName: 'SL',
-      renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      Width: 40,
-      field: 'person_shipping',
-      headerName: 'Person shipping',
-      renderCell: (params, rowId) => (
-        <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}</div>
-          </Typography>
-        </div>
-      )
-    },
+  // const disputedItemsColumns = [
+  //   {
+  //     flex: 0.05,
+  //     Width: 40,
+  //     field: 'uid',
+  //     headerName: 'SL',
+  //     renderCell: (params, rowId) => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.uid}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.2,
+  //     Width: 40,
+  //     field: 'person_shipping',
+  //     headerName: 'Person shipping',
+  //     renderCell: (params, rowId) => (
+  //       <div>
+  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //           <div>{params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}</div>
+  //         </Typography>
+  //       </div>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      Width: 40,
-      field: 'shipment_date',
-      headerName: 'Shipment Date',
-      renderCell: (params, rowId) => (
-        <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_date}</div>
-          </Typography>
-        </div>
-      )
-    },
+  //   {
+  //     flex: 0.2,
+  //     Width: 40,
+  //     field: 'shipment_date',
+  //     headerName: 'Shipment Date',
+  //     renderCell: (params, rowId) => (
+  //       <div>
+  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //           <div>{params.row.shipment_date}</div>
+  //         </Typography>
+  //       </div>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'shipment_id',
-      headerName: 'Shipment Id ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_id}
-        </Typography>
-      )
-    },
+  //   {
+  //     flex: 0.2,
+  //     minWidth: 20,
+  //     field: 'shipment_id',
+  //     headerName: 'Shipment Id ',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.shipment_id}
+  //       </Typography>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'shipment_status',
-      headerName: 'Shipment Status ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_status}
-        </Typography>
-      )
-    },
+  //   {
+  //     flex: 0.2,
+  //     minWidth: 20,
+  //     field: 'shipment_status',
+  //     headerName: 'Shipment Status ',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.shipment_status}
+  //       </Typography>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
+  //   {
+  //     flex: 0.2,
+  //     minWidth: 20,
+  //     field: 'Action',
+  //     headerName: 'Action',
 
-      renderCell: params => (
-        <Box sx={{ marginLeft: -6 }}>
-          <IconButton
-            size='small'
-            onClick={() => {
-              setDisputeId(params.row.shipping_id)
+  //     renderCell: params => (
+  //       <Box sx={{ marginLeft: -6 }}>
+  //         <IconButton
+  //           size='small'
+  //           onClick={() => {
+  //             setDisputeId(params.row.shipping_id)
 
-              showDisputeDialog()
-            }}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
-      )
-    }
-  ]
+  //             showDisputeDialog()
+  //           }}
+  //           aria-label='Edit'
+  //         >
+  //           <Icon icon='mdi:pencil-outline' />
+  //         </IconButton>
+  //       </Box>
+  //     )
+  //   }
+  // ]
 
   const dispenseItemsColumns = [
     {
@@ -920,7 +920,7 @@ const IndividualRequest = () => {
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
               </>
             ) : null}
-            {disputedItems?.length > 0 ? (
+            {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -939,7 +939,7 @@ const IndividualRequest = () => {
                   show={showDisputeDialog}
                 />
               </>
-            ) : null}
+            ) : null} */}
             {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>
