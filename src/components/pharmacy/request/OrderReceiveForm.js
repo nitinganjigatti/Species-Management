@@ -59,6 +59,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
+  const [resolveLoader, setResolveLoader] = useState(false)
 
   const [orderData, setOrderData] = useState([])
 
@@ -223,11 +224,21 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       }
     }
 
-    console.log('payload', itemsToResolve)
+    console.log('items To Resolve payload', itemsToResolve)
     try {
-      const resolved = resolveDisputeItems(itemsToResolve)
+      setResolveLoader(true)
+      const resolved = await resolveDisputeItems(itemsToResolve)
+      // debugger
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+      }
+
       console.log('resolve response ', resolved)
     } catch (error) {
+      setResolveLoader(false)
+
       console.log('error', error)
     }
   }
@@ -310,18 +321,20 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 </Typography>
                 {params?.row?.dispute_status === 'Not Resolved' ? (
                   <>
-                    <Button
+                    <LoadingButton
                       size='small'
-                      variant='contained'
                       onClick={() => {
                         resolveItems(params.row)
                       }}
+                      variant='contained'
+                      loading={resolveLoader}
                     >
                       Accept
-                    </Button>
-                    <Button size='small' color='error' variant='contained'>
+                    </LoadingButton>
+
+                    <LoadingButton size='small' color='error' variant='contained'>
                       Deny
-                    </Button>
+                    </LoadingButton>
                   </>
                 ) : null}
               </Grid>
@@ -471,8 +484,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       const verifyCount = finalReceivedItems.some(el => {
         if (el.item_status === 'Wrong Count') {
           if (el.wrong_count_number === '' || el.wrong_count_type === '') {
-            console.log('hello', el.to_store_name)
-
             return false
           }
         }
@@ -483,7 +494,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       if (verifyCount) {
         try {
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
-          console.log('in block', finalReceivedItems)
 
           if (result?.success) {
             toast.success(result?.msg)
