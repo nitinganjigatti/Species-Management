@@ -491,6 +491,7 @@ const AddRequestForm = () => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Autocomplete
+                  forcePopupIcon={false}
                   inputProps={{ tabIndex: '6' }}
                   disablePortal
                   id='autocomplete-controlled'

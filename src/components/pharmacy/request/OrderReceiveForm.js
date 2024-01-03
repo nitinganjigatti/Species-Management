@@ -161,6 +161,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         }
 
         setDisputeItemDetails(disputesData)
+        debugger
       }
     } catch (error) {
       console.log('error', error)
@@ -208,7 +209,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         action: 'accept'
       }
     }
-    if (payload?.status === 'Wrong Count') {
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
       itemsToResolve = {
         from_store: payload.from_store,
         to_store: payload.to_store,
@@ -217,13 +218,27 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
-        // type: payload.wrong_count_type,
         type: 'Excess',
         action: 'accept'
       }
     }
 
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        shortage_count: payload.wrong_count_number,
+        type: 'Shortage',
+        action: 'accept'
+      }
+    }
+
     console.log('payload', itemsToResolve)
+    debugger
     try {
       const resolved = resolveDisputeItems(itemsToResolve)
       console.log('resolve response ', resolved)
@@ -265,6 +280,18 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'count',
+      headerName: 'qty',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.count}
         </Typography>
       )
     },
