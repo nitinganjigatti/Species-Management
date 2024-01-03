@@ -59,11 +59,10 @@ const schema = yup.object().shape({
     yup.object().shape({
       batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
         const { product_batches } = this.options.from[1].value
-        debugger
+
         const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-        debugger
+
         const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
-        debugger
 
         return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
       }),
@@ -266,8 +265,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const getMedicineByMedicineId = async id => {
     setLoader(true)
     const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'all')
-    debugger
+    const response = await getAvailableMedicineByMedicineId(id, data, 'central')
+
     if (response.success) {
       setBatchItems(response?.data?.items)
       setTotalProductCount(response?.data?.total_quantity)
@@ -480,7 +479,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     const totalQuantity = getTotalMedicineQuantity(params)
 
-    if (checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0) {
+    if (
+      checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0 &&
+      totalProductCount <= checkNumber(fulfilledQuantity)
+    ) {
       return
     }
 
@@ -493,9 +495,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       payload_item['request_item_stock_item_id'] = fulfillMedicine?.stock_item_id
       payload_item['request_item_batch_no'] = item.batch_no
       payload_item['request_item_expiry_date'] = item.expiry_date
+      payload_item['from_store_id'] = storeDetails?.from_store_id
+      payload_item['from_store_type'] = storeDetails.from_store_type
+      payload_item['to_store_id'] = storeDetails?.to_store_id
+      payload_item['to_store_type'] = storeDetails.to_store_type
 
       payload_list.push(payload_item)
     })
+    debugger
 
     const payload = {
       dispatch_date: Utility.formatDate(Date()),
@@ -545,7 +552,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           </CardContent>
           <CardContent>
             <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-              <Grid item xs={4}>
+              <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   Medicine Name
                 </Typography>
@@ -554,7 +561,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   {fulfillMedicine?.stock_name}
                 </Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   QTY Requested
                 </Typography>
@@ -562,12 +569,20 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   {fulfillMedicine?.requested_qty}
                 </Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   QTY Remaining
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary' }}>
                   {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
+                </Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                  Total Qty Available
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                  {totalProductCount}
                 </Typography>
               </Grid>
             </Grid>
@@ -606,7 +621,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                                         return onChange('')
                                       } else {
-                                        debugger
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
 
@@ -755,6 +769,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
                     <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
+                  </div>
+                ) : null}
+
+                {console.log('fulfillMedicine?.dispatch_qty', checkNumber(fulfilledQuantity))}
+
+                {totalProductCount <= checkNumber(fulfilledQuantity) ? (
+                  <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
+                    <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
                   </div>
                 ) : null}
                 <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>

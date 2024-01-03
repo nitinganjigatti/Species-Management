@@ -356,7 +356,7 @@ const AddReturnRequest = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
         // debugger
         if (searchResults?.success) {
           // debugger

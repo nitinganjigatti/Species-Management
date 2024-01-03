@@ -208,28 +208,6 @@ const ListOfStocks = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'batch_no',
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
       field: 'min_qty',
       headerName: 'MIN QTY',
       renderCell: params => (
