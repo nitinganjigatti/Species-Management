@@ -208,7 +208,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         action: 'accept'
       }
     }
-    if (payload?.status === 'Wrong Count') {
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
       itemsToResolve = {
         from_store: payload.from_store,
         to_store: payload.to_store,
@@ -217,9 +217,21 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
-        type: payload.wrong_count_type,
-        // type: 'Excess',
+        type: 'Excess',
+        action: 'accept'
+      }
+    }
 
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        shortage_count: payload.wrong_count_number,
+        type: 'Shortage',
         action: 'accept'
       }
     }
