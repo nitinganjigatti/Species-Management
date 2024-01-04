@@ -134,7 +134,8 @@ const ListOfStocks = () => {
       setStockId(selectedPharmacy?.id)
       getStocksReportBatchWise(selectedPharmacy?.id)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy])
 
   const columns = [
     {
