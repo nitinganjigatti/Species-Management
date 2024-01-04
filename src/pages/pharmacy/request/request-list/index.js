@@ -21,6 +21,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 const RequestList = () => {
   const [requestItems, setRequestItems] = useState([])
@@ -136,17 +137,16 @@ const RequestList = () => {
     <div>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button
-            size='big'
-            variant='contained'
-            onClick={() =>
-              Router.push({
-                pathname: '/pharmacy/request/add-request/'
-              })
-            }
-          >
-            Add Request
-          </Button>
+          <>
+            <AddButton
+              title='Add Request'
+              action={() =>
+                Router.push({
+                  pathname: '/pharmacy/request/add-request/'
+                })
+              }
+            />
+          </>
         )}
     </div>
   )
