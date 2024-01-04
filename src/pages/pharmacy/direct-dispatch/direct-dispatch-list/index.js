@@ -53,9 +53,6 @@ const DirectDispatchList = () => {
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
-          console.log('responsesss', res)
-
-          // debugger
           if (res.success) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
