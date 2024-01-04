@@ -56,6 +56,16 @@ const UserThemeOptions = () => {
         paper: mode === 'light' ? '#FFFFFF' : '#30334E',
         default: defaultBgColor()
       }
+    },
+    components: {
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            border: 0,
+            color: '#1F415B'
+          }
+        }
+      }
     }
 
     /* breakpoints: {
