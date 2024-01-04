@@ -26,11 +26,12 @@ function BackButton({ action, title }) {
   )
 }
 
-function SwitchButton({ action, status, title }) {
+function SwitchButton({ action, status, title, style }) {
   return (
     <FormControlLabel
+      sx={style ? style : null}
       onClick={action ? action : null}
-      control={<Switch checked={status ? status : null} color='success' />}
+      control={<Switch defaultChecked={status ? status : false} color='primary' />}
       label={title ? title : null}
     />
   )
