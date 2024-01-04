@@ -65,7 +65,7 @@ import { getSalts, addSalt } from 'src/lib/api/pharmacy/salts'
 import { getDrugClass } from 'src/lib/api/pharmacy/getDrugs'
 import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
-import { AddButton, BackButton } from 'src/components/Buttons'
+import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const defaultValues = {
@@ -873,6 +873,9 @@ const AddMedicine = () => {
                     <CardHeader
                       avatar={
                         <Icon
+                          sx={{
+                            cursor: 'pointer'
+                          }}
                           onClick={() => {
                             Router.push('/pharmacy/medicine/product-list')
                           }}
@@ -900,7 +903,18 @@ const AddMedicine = () => {
                         </div>
                       }
                     />
+
                     <CardContent>
+                      {id ? (
+                        <SwitchButton
+                          style={{ float: 'right' }}
+                          title='Active'
+                          status={Number(getValues('active'))}
+                          action={() => {
+                            setValue('active', getValues('active') === 0 ? 1 : 0)
+                          }}
+                        />
+                      ) : null}
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
                           {/* <Grid item xs={12}> */}
@@ -1671,7 +1685,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
 
-                          <Grid item xs={12} sm={6}>
+                          {/* <Grid item xs={12} sm={6}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
                                 <FormLabel>Status</FormLabel>
@@ -1703,7 +1717,7 @@ const AddMedicine = () => {
                                 )}
                               </FormControl>
                             ) : null}
-                          </Grid>
+                          </Grid> */}
 
                           <Grid item xs={12}>
                             <Card>
@@ -1724,7 +1738,13 @@ const AddMedicine = () => {
                               >
                                 Submit
                               </LoadingButton>
-                              <Button size='large' variant='outlined'>
+                              <Button
+                                onClick={() => {
+                                  reset(defaultValues)
+                                }}
+                                size='large'
+                                variant='outlined'
+                              >
                                 Reset
                               </Button>
                             </Box>
