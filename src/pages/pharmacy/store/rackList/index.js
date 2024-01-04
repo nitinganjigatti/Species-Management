@@ -20,6 +20,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ListOfRacks = () => {
   const [racks, setRacks] = useState([])
@@ -43,6 +44,8 @@ const ListOfRacks = () => {
     severity: '',
     message: ''
   })
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const addEventSidebarOpen = () => {
     console.log('event clicked')
@@ -143,6 +146,10 @@ const ListOfRacks = () => {
   useEffect(() => {
     getRacksLists()
   }, [])
+
+  useEffect(() => {
+    getRacksLists()
+  }, [selectedPharmacy])
 
   const columns = [
     {

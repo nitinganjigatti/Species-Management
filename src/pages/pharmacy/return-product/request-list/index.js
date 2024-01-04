@@ -70,6 +70,11 @@ const ReturnRequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
 
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({

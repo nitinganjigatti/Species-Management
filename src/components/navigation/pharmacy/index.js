@@ -8,7 +8,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const inventoryParent = {
     title: 'Inventory',
     path: '/pharmacy/medicine/product-list',
-    icon: 'mdi:medical-bag',
+    icon: 'material-symbols:inventory-2-outline',
     children: []
   }
 
@@ -36,7 +36,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const requestParent = {
     title: 'Request',
-    icon: 'lucide:git-pull-request',
+    icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list',
     children: []
   }
@@ -48,7 +48,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const returnParent = {
     title: 'Return',
-    icon: 'lucide:git-pull-request',
+    icon: 'material-symbols:assignment-returned-outline-sharp',
     path: '/pharmacy/return-product/request-list',
     children: []
   }
@@ -105,7 +105,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const settingsParent = {
     title: 'Settings',
     path: '/pharmacy/settings',
-    icon: 'mdi:settings',
+    icon: 'uil:setting',
     children: []
   }
 

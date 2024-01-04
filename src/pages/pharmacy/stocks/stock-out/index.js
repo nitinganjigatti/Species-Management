@@ -7,8 +7,8 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
 import Typography from '@mui/material/Typography'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -26,6 +26,8 @@ const StockOut = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
@@ -56,6 +58,11 @@ const StockOut = () => {
     fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
