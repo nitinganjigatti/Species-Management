@@ -24,6 +24,7 @@ import {
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -552,7 +553,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             {orderData?.shipment_date ? (
               <Grid item md={3} sm={3} xs={6}>
                 <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-                <p>{orderData.shipment_date}</p>
+                <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
               </Grid>
             ) : null}
             {orderData?.vehicle_no ? (
