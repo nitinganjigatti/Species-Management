@@ -25,7 +25,6 @@ import Router from 'next/router'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
 
 const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
