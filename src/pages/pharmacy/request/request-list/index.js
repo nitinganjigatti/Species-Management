@@ -34,22 +34,6 @@ import Utility from 'src/utility'
 // Styled TabList component
 
 const RequestList = () => {
-  // const TabList = styled(MuiTabList)(({ theme }) => ({
-  //   '& .MuiTabs-indicator': {
-  //     display: 'none'
-  //   },
-  //   '& .Mui-selected': {
-  //     backgroundColor: theme.palette.primary.main,
-  //     color: 'white'
-  //   },
-  //   '& .MuiTab-root': {
-  //     minHeight: 38,
-  //     minWidth: 110,
-  //     borderRadius: 8,
-  //     paddingTop: theme.spacing(2),
-  //     paddingBottom: theme.spacing(2)
-  //   }
-  // }))
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
