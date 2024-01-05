@@ -7,7 +7,6 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
-
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -31,8 +30,25 @@ import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 
+// Styled TabList component
+
 const RequestList = () => {
-  const [requestItems, setRequestItems] = useState([])
+  // const TabList = styled(MuiTabList)(({ theme }) => ({
+  //   '& .MuiTabs-indicator': {
+  //     display: 'none'
+  //   },
+  //   '& .Mui-selected': {
+  //     backgroundColor: theme.palette.primary.main,
+  //     color: 'white'
+  //   },
+  //   '& .MuiTab-root': {
+  //     minHeight: 38,
+  //     minWidth: 110,
+  //     borderRadius: 8,
+  //     paddingTop: theme.spacing(2),
+  //     paddingBottom: theme.spacing(2)
+  //   }
+  // }))
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -44,15 +60,6 @@ const RequestList = () => {
     })
   }
 
-  // const onRowClick = data => {
-  //   console.log('onRowClickData', data.id)
-
-  //   Router.push({
-  //     pathname: '/pharmacy/request/individual-request/',
-  //     query: { id: data.id, request_number: data.row.request_number }
-  //   })
-  // }
-
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
@@ -62,7 +69,6 @@ const RequestList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
-  const [value, setValue] = useState('1')
   const [status, setStatus] = useState('pending')
 
   function loadServerRows(currentPage, data) {
@@ -108,12 +114,12 @@ const RequestList = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, status])
+  }, [fetchTableData, status, selectedPharmacy])
 
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy])
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
