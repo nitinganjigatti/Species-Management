@@ -35,6 +35,7 @@ import OrderReceiveForm from 'src/components/pharmacy/return/OrderReceiveForm'
 
 import DisputeItemView from 'src/components/pharmacy/return/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/return/DispenseItemView'
+import Utility from 'src/utility'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -440,7 +441,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -451,7 +452,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Fulfilled Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {dispatchedItems.dispatch_date}
+          {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
         </Typography>
       )
     },
@@ -502,7 +503,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_date}
+          {Utility.formatDisplayDate(params.row.shipment_date)}
         </Typography>
       )
     },
@@ -597,7 +598,7 @@ const IndividualReturnRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_date}</div>
+            <div>{Utility.formatDisplayDate(params.row.shipment_date)}</div>
           </Typography>
         </div>
       )
@@ -744,7 +745,7 @@ const IndividualReturnRequest = () => {
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader title={`Return-request`} />
+            <CardHeader title={`Return Request`} />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -758,7 +759,7 @@ const IndividualReturnRequest = () => {
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Date</h5>
-                  <p>{requestItems?.request_date}</p>
+                  <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Return ID</h5>
