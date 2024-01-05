@@ -875,8 +875,10 @@ const AddMedicine = () => {
                 <Grid item xs={12}>
                   <Card>
                     <CardHeader
+                      style={{ color: 'primary' }}
                       avatar={
                         <Icon
+                          style={{ cursor: 'pointer' }}
                           sx={{
                             cursor: 'pointer'
                           }}
@@ -887,25 +889,6 @@ const AddMedicine = () => {
                         />
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
-                      action={
-                        <div>
-                          {/* <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
-                          Router.push('/pharmacy/medicine/product-list')
-                        }}
-                      >
-                        Product List
-                      </Button> */}
-                          {/* <BackButton
-                        title=' Back To Product List'
-                        action={() => {
-                          Router.push('/pharmacy/medicine/product-list')
-                        }}
-                      /> */}
-                        </div>
-                      }
                     />
 
                     <CardContent>

@@ -139,6 +139,8 @@ const ListOfMedicine = () => {
             horizontal: 'right'
           }}
         >
+          {console.log('iamge', `${params.row.image}`)}
+
           <Avatar
             variant='square'
             alt='Medicine Image'
