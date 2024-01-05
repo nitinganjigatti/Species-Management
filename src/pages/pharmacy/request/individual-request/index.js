@@ -38,6 +38,7 @@ import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -492,7 +493,7 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -503,7 +504,7 @@ const IndividualRequest = () => {
       headerName: 'Fulfilled Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {dispatchedItems.dispatch_date}
+          {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
         </Typography>
       )
     },
@@ -554,7 +555,7 @@ const IndividualRequest = () => {
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_date}
+          {Utility.formatDisplayDate(params.row.shipment_date)}
         </Typography>
       )
     },
@@ -870,7 +871,7 @@ const IndividualRequest = () => {
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Date</h5>
-                  <p>{requestItems?.request_date}</p>
+                  <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                 </Grid>
                 <Grid item xs={3}>
                   <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
