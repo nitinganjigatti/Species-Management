@@ -29,6 +29,7 @@ import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Badge from '@mui/material/Badge'
+import Utility from 'src/utility'
 
 // Styled TabList component
 
@@ -239,7 +240,7 @@ const RequestList = () => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_date}
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },

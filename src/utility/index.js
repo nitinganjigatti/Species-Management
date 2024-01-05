@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 const formatDate = dateString => {
   if (dateString !== null) {
     const date = new Date(dateString)
@@ -33,10 +35,15 @@ function formattedPresentDate() {
   return formattedDate
 }
 
+function formatDisplayDate(date) {
+  return moment(date).format('DD MMM YYYY')
+}
+
 const Utility = {
   formatDate,
   formatNumber,
-  formattedPresentDate
+  formattedPresentDate,
+  formatDisplayDate
 }
 
 export default Utility
