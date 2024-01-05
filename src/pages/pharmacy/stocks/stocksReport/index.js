@@ -5,7 +5,8 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
-import TabList from '@mui/lab/TabList'
+
+// import TabList from '@mui/lab/TabList'
 
 import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
@@ -28,6 +29,25 @@ import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineC
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ListOfStocks = () => {
+  // const TabList = styled(MuiTabList)(({ theme }) => ({
+  //   '& .MuiTabs-indicator': {
+  //     display: 'none'
+  //   },
+  //   '& .Mui-selected': {
+  //     backgroundColor: theme.palette.primary.main,
+  //     color: 'white'
+
+  //     // color: theme.palette.common.white
+  //   },
+  //   '& .MuiTab-root': {
+  //     minHeight: 38,
+  //     minWidth: 110,
+  //     borderRadius: 8,
+  //     paddingTop: theme.spacing(2),
+  //     paddingBottom: theme.spacing(2)
+  //   }
+  // }))
+
   const [stockReport, setStockReport] = useState([])
   const [stockReportBatch, setStockReportBatch] = useState([])
   const [stockId, setStockId] = useState('')
