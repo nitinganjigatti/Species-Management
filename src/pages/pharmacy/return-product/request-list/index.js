@@ -264,6 +264,49 @@ const ReturnRequestList = () => {
     </div>
   )
 
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Card>
+              <CardHeader title='Return request List' action={headerAction} />
+              <DataGrid
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                total
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onRowClick={onRowClick}
+              />
+            </Card>
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
       <Grid>
@@ -284,158 +327,10 @@ const ReturnRequestList = () => {
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
 
-          <TabPanel value='pending'>
-            {loader ? (
-              <FallbackSpinner />
-            ) : (
-              <>
-                <Card>
-                  <CardHeader title='Return request List' action={headerAction} />
-                  <DataGrid
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    total
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onRowClick={onRowClick}
-                  />
-                </Card>
-              </>
-            )}
-          </TabPanel>
-          <TabPanel value='disputes'>
-            {loader ? (
-              <FallbackSpinner />
-            ) : (
-              <>
-                <Card>
-                  <CardHeader title='Return request List' action={headerAction} />
-                  <DataGrid
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    total
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onRowClick={onRowClick}
-                  />
-                </Card>
-              </>
-            )}
-          </TabPanel>
-          <TabPanel value='completed'>
-            {loader ? (
-              <FallbackSpinner />
-            ) : (
-              <>
-                <Card>
-                  <CardHeader title='Return request List' action={headerAction} />
-                  <DataGrid
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    total
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onRowClick={onRowClick}
-                  />
-                </Card>
-              </>
-            )}
-          </TabPanel>
-          <TabPanel value='all'>
-            {loader ? (
-              <FallbackSpinner />
-            ) : (
-              <>
-                <Card>
-                  <CardHeader title='Return request List' action={headerAction} />
-                  <DataGrid
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    total
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onRowClick={onRowClick}
-                  />
-                </Card>
-              </>
-            )}
-          </TabPanel>
+          <TabPanel value='pending'>{tableData()}</TabPanel>
+          <TabPanel value='disputes'>{tableData()}</TabPanel>
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
     </>
