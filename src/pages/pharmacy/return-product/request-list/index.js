@@ -27,6 +27,7 @@ import { Box } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
+import Utility from 'src/utility'
 
 const ReturnRequestList = () => {
   const [loader, setLoader] = useState(false)
@@ -183,17 +184,18 @@ const ReturnRequestList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store',
-      headerName: 'Returned To',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'to_store',
+    //   headerName: 'Returned To',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.to_store}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -201,7 +203,7 @@ const ReturnRequestList = () => {
       headerName: 'Request date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_date}
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },
