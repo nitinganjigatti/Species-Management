@@ -62,7 +62,7 @@ const ExpiredMedicine = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy])
+  }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
