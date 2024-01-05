@@ -875,13 +875,9 @@ const AddMedicine = () => {
                 <Grid item xs={12}>
                   <Card>
                     <CardHeader
-                      style={{ color: 'primary' }}
                       avatar={
                         <Icon
                           style={{ cursor: 'pointer' }}
-                          sx={{
-                            cursor: 'pointer'
-                          }}
                           onClick={() => {
                             Router.push('/pharmacy/medicine/product-list')
                           }}
@@ -892,23 +888,26 @@ const AddMedicine = () => {
                     />
 
                     <CardContent>
-                      {id ? (
-                        <SwitchButton
-                          style={{ float: 'right' }}
-                          title='Active'
-                          status={Number(getValues('active'))}
-                          action={() => {
-                            setValue('active', getValues('active') === 0 ? 1 : 0)
-                          }}
-                        />
-                      ) : null}
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
                           {/* <Grid item xs={12}> */}
                           {/* <Grid container spacing={5}> */}
-                          <Grid item xs={12} sm={12}>
+
+                          {/* <Grid item xs={12} sm={12}>
                             <div>Product</div>
-                          </Grid>
+                          </Grid> */}
+                          {id ? (
+                            <Grid item xs={12} sm={12}>
+                              <SwitchButton
+                                style={{ float: 'right' }}
+                                title='Active'
+                                status={Number(getValues('active'))}
+                                action={() => {
+                                  setValue('active', getValues('active') === 0 ? 1 : 0)
+                                }}
+                              />
+                            </Grid>
+                          ) : null}
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>

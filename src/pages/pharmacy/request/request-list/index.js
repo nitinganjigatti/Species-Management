@@ -29,6 +29,7 @@ import Router from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
+import Badge from '@mui/material/Badge'
 
 // Styled TabList component
 
@@ -340,15 +341,33 @@ const RequestList = () => {
     console.log('Handle Header Action')
   }
 
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
   return (
     <>
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab value='pending' label='Pending' />
-            <Tab value='disputes' label='Disputes' />
-            <Tab value='completed' label='Completed' />
-            <Tab value='all' label='All' />
+            <Tab
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+            />
+            <Tab
+              value='disputes'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputes' ? total : null} />}
+            />
+            <Tab
+              value='completed'
+              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            />
+            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
 
           <TabPanel value='pending'>
