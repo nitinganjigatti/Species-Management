@@ -62,7 +62,10 @@ const UserThemeOptions = () => {
         styleOverrides: {
           root: {
             border: 0,
-            color: '#1F415B'
+            color: '#1F415B',
+            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+              outline: 'none'
+            }
           }
         }
       }
