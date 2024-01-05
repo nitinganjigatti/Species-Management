@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -183,9 +184,23 @@ const RequestList = () => {
       field: 'request_number',
       headerName: 'REQUEST ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_number}
-        </Typography>
+        <>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.request_number}
+            {params.row.priority === 'high' && (
+              <Chip
+                sx={{ ml: '6px', fontSize: '12px' }}
+                size='small'
+                label='HP'
+                color='error'
+                icon={<Icon icon='mdi:arrow-up-circle' />}
+              />
+            )}
+            {params.row.control_substance === '1' && (
+              <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label='CS' color='success' />
+            )}
+          </Typography>
+        </>
       )
     },
     {
@@ -236,17 +251,13 @@ const RequestList = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'total_qty',
-    //   headerName: 'TOTAL QTY',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.total_qty}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'priority',
+      headerName: 'FULFILLED',
+      renderCell: params => <Typography variant='body2' sx={{ color: 'text.primary' }}></Typography>
+    },
     {
       flex: 0.2,
       minWidth: 20,
@@ -257,45 +268,45 @@ const RequestList = () => {
           {params.row.status}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'local' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {params.row.status === 'Fully Dispatched' ? (
-                  <IconButton size='small' sx={{ mr: 0.5 }}>
-                    <Icon icon='mdi:package-delivered' />
-                  </IconButton>
-                ) : params.row.status === 'Partial Dispatched' ? (
-                  <></>
-                ) : (
-                  <>
-                    {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-                <Icon icon='fluent-mdl2:message-friend-request' />
-              </IconButton>
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => {
-                  handleEdit(params.row.id)
-                }}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton> */}
-                  </>
-                )}
-              </Box>
-            )}
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'local' &&
+    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+    //           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //             {params.row.status === 'Fully Dispatched' ? (
+    //               <IconButton size='small' sx={{ mr: 0.5 }}>
+    //                 <Icon icon='mdi:package-delivered' />
+    //               </IconButton>
+    //             ) : params.row.status === 'Partial Dispatched' ? (
+    //               <></>
+    //             ) : (
+    //               <>
+    //                 {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+    //             <Icon icon='fluent-mdl2:message-friend-request' />
+    //           </IconButton>
+    //           <IconButton
+    //             size='small'
+    //             sx={{ mr: 0.5 }}
+    //             onClick={() => {
+    //               handleEdit(params.row.id)
+    //             }}
+    //           >
+    //             <Icon icon='mdi:pencil-outline' />
+    //           </IconButton> */}
+    //               </>
+    //             )}
+    //           </Box>
+    //         )}
+    //     </>
+    //   )
+    // }
   ]
 
   const handleHeaderAction = () => {
