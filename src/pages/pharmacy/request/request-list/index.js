@@ -271,18 +271,22 @@ const RequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'priority',
+      field: 'fulfilled_qty',
       headerName: 'FULFILLED',
-      renderCell: params => <Typography variant='body2' sx={{ color: 'text.primary' }}></Typography>
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.fulfilled_qty}
+        </Typography>
+      )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'shipped_status',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.shipped_status}
         </Typography>
       )
     }
