@@ -18,6 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 const ReturnRequestList = () => {
   const [loader, setLoader] = useState(false)
@@ -116,17 +117,14 @@ const ReturnRequestList = () => {
     <div>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
-          <Button
-            size='big'
-            variant='contained'
-            onClick={() =>
+          <AddButton
+            title='Add Return Request'
+            action={() =>
               Router.push({
                 pathname: '/pharmacy/return-product/add-request/'
               })
             }
-          >
-            Add Return Request
-          </Button>
+          />
         )}
     </div>
   )

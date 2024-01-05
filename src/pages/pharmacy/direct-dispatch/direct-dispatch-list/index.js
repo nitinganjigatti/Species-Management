@@ -8,6 +8,7 @@ import { debounce } from 'lodash'
 import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -118,17 +119,14 @@ const DirectDispatchList = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button
-            size='big'
-            variant='contained'
-            onClick={() =>
+          <AddButton
+            title='Add Direct Dispatch'
+            action={() =>
               Router.push({
                 pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
               })
             }
-          >
-            Add Direct Dispatch
-          </Button>
+          />
         )}
     </div>
   )
