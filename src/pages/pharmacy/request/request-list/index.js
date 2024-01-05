@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getRequestItemsList } from 'src/lib/api/pharmacy/getRequestItemsList'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -17,9 +16,9 @@ import TabList from '@mui/lab/TabList'
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
+import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -77,8 +76,6 @@ const RequestList = () => {
   }
 
   const handleChange = (event, newValue) => {
-    console.log('new', newValue)
-    console.log('event', event)
     setStatus(newValue)
   }
 
@@ -117,10 +114,6 @@ const RequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, status, selectedPharmacy])
 
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn, status)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
