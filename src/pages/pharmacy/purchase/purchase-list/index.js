@@ -19,6 +19,7 @@ import Router from 'next/router'
 import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfPurchase = () => {
   const [purchaseList, setPurchaseList] = useState([])
@@ -191,15 +192,12 @@ const ListOfPurchase = () => {
                   {selectedPharmacy.type === 'central' &&
                     (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
-                      <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
+                      <AddButton
+                        title='Add Purchase'
+                        action={() => {
                           Router.push('/pharmacy/purchase/add-purchase/')
                         }}
-                      >
-                        Add Purchase
-                      </Button>
+                      />
                     )}
                 </div>
               }

@@ -41,6 +41,7 @@ import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/ph
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -813,54 +814,56 @@ const AddPurchaseForm = () => {
 
             {/* // file uploader */}
             <Grid item xs={12}>
-              {medicineItemId ? (
-                <>
-                  <Button
-                    onClick={() => {
-                      closeDialog()
-                    }}
-                    size='large'
-                    variant='outlined'
-                    sx={{ mr: 2 }}
-                  >
-                    Done
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      updateFormItems()
+              <Box sx={{ float: 'right' }}>
+                {medicineItemId ? (
+                  <>
+                    <Button
+                      sx={{ mr: 2 }}
+                      onClick={() => {
+                        updateFormItems()
 
-                      // submitItems()
-                    }}
-                    size='large'
-                    variant='contained'
-                  >
-                    update
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    onClick={() => {
-                      closeDialog()
-                    }}
-                    size='large'
-                    variant='outlined'
-                    sx={{ mr: 2 }}
-                  >
-                    Done
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      // updateFormItems()
-                      submitItems()
-                    }}
-                    size='large'
-                    variant='contained'
-                  >
-                    Add
-                  </Button>
-                </>
-              )}
+                        // submitItems()
+                      }}
+                      size='large'
+                      variant='contained'
+                    >
+                      update
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Reset
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      sx={{ mr: 2 }}
+                      onClick={() => {
+                        // updateFormItems()
+                        submitItems()
+                      }}
+                      size='large'
+                      variant='contained'
+                    >
+                      save
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Reset
+                    </Button>
+                  </>
+                )}
+              </Box>
             </Grid>
           </Grid>
         </form>
@@ -880,30 +883,18 @@ const AddPurchaseForm = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Add Purchase' />
-        <Grid>
-          {/* <Button
-            size='big'
-            variant='contained'
-            onClick={() => {
-              Router.push('/pharmacy/purchase/paymentList/')
-            }}
-          >
-            Payment List
-          </Button> */}
-          <Button
-            sx={{
-              mx: { sm: 6, xs: 'auto' }
-            }}
-            size='big'
-            variant='contained'
-            onClick={() => {
-              Router.push('/pharmacy/purchase/purchase-list/')
-            }}
-          >
-            Purchase List
-          </Button>
-        </Grid>
+        <CardHeader
+          avatar={
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                Router.push('/pharmacy/purchase/purchase-list/')
+              }}
+              icon='ep:back'
+            />
+          }
+          title='Add Purchase'
+        />
       </Grid>
       <CardContent>
         <Grid container>
@@ -1062,6 +1053,7 @@ const AddPurchaseForm = () => {
       </CardContent>
       <Grid
         container
+        spacing={2}
         sm={12}
         xs={12}
         sx={{
@@ -1071,18 +1063,12 @@ const AddPurchaseForm = () => {
           mb: 4
         }}
       >
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          onClick={() => {
+        <AddButton
+          title='Add Purchase Item'
+          action={() => {
             handleSubmit()
           }}
-          size='big'
-          variant='contained'
-        >
-          Add Purchase Item
-        </Button>
+        />
       </Grid>
 
       <TableContainer>
@@ -1236,19 +1222,31 @@ const AddPurchaseForm = () => {
         </Grid>
         {/* // ) : null} */}
       </CardContent>
-
-      <LoadingButton
-        disabled={editParams.purchase_details.length > 0 ? false : true}
-        sx={{ float: 'right', my: 4, mx: 6 }}
-        size='large'
-        onClick={() => {
-          postItemsData()
-        }}
-        variant='contained'
-        loading={submitLoader}
-      >
-        Save
-      </LoadingButton>
+      <Grid item xs={12}>
+        <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          <LoadingButton
+            disabled={editParams.purchase_details.length > 0 ? false : true}
+            sx={{ marginRight: '8px' }}
+            size='large'
+            onClick={() => {
+              postItemsData()
+            }}
+            variant='contained'
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
+          <Button
+            onClick={() => {
+              setEditParams(editParamsInitialState)
+            }}
+            size='large'
+            variant='outlined'
+          >
+            Reset
+          </Button>
+        </Box>
+      </Grid>
     </Card>
   )
 }
