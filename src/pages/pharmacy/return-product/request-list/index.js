@@ -149,6 +149,10 @@ const ReturnRequestList = () => {
     searchTableData(sort, value, sortColumn)
   }
 
+  const getRequestedText = () => {
+    return selectedPharmacy.type === 'central' ? 'Returned By' : 'Returned To'
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -177,7 +181,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'Returned By',
+      headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}

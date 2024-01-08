@@ -166,7 +166,7 @@ const RequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy === 'central' ? 'Requested By' : 'Requested To'
+    return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
   }
 
   // useEffect(() => {
