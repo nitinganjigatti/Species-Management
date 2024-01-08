@@ -26,6 +26,8 @@ import Router from 'next/router'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+import Utility from 'src/utility'
+
 const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
 
@@ -200,7 +202,7 @@ const DirectDispatchList = () => {
       headerName: 'Request date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_date}
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },

@@ -24,6 +24,7 @@ import Error404 from 'src/pages/404'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
+import Utility from 'src/utility'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
@@ -111,17 +112,18 @@ const ListOfStocksByBatch = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'unit_name',
-      headerName: 'UOM',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.unit_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'unit_name',
+    //   headerName: 'UOM',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.unit_name}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -140,21 +142,22 @@ const ListOfStocksByBatch = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'leaf_name',
-      headerName: 'LEAF',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.leaf_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'leaf_name',
+    //   headerName: 'LEAF',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.leaf_name}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -167,28 +170,29 @@ const ListOfStocksByBatch = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_box_qty',
-      headerName: 'STOCK BOX',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_box_qty}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_purchase_price',
-      headerName: 'STOCK PURCHASE PRICE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_purchase_price}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'stock_box_qty',
+    //   headerName: 'STOCK BOX',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.stock_box_qty}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'stock_purchase_price',
+    //   headerName: 'STOCK PURCHASE PRICE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.stock_purchase_price}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
