@@ -57,12 +57,12 @@ const StockOut = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy.id])
 
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id])
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 

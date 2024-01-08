@@ -61,6 +61,7 @@ const RequestList = () => {
   }
 
   const handleChange = (event, newValue) => {
+    setTotal(0)
     setStatus(newValue)
   }
 
@@ -98,7 +99,7 @@ const RequestList = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, status, selectedPharmacy])
+  }, [fetchTableData, status, selectedPharmacy.id])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
