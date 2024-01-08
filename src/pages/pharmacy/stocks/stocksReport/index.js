@@ -27,6 +27,7 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const ListOfStocks = () => {
   // const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -222,7 +223,7 @@ const ListOfStocks = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -339,7 +340,7 @@ const ListOfStocks = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },

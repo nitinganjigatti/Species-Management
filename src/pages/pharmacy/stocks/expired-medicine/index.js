@@ -9,6 +9,7 @@ import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const ExpiredMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -150,7 +151,7 @@ const ExpiredMedicine = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
