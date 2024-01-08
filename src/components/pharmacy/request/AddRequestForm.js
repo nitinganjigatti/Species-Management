@@ -22,6 +22,9 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -58,6 +61,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
+import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -549,32 +553,19 @@ const AddRequestForm = () => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography sx={{ mb: 2 }}>Priority</Typography>
-
-              <FormControl fullWidth>
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.priority_item}
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
-                  }}
-                >
-                  test
-                  <ToggleButton color='error' value='high'>
-                    High
-                  </ToggleButton>
-                  <ToggleButton color='primary' value='Normal'>
-                    Normal
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {itemErrors.priority_item && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
+              <Typography>Priority</Typography>
+              <RadioGroup
+                row
+                aria-label='controlled'
+                name='controlled'
+                value={nestedRowMedicine?.priority_item}
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+                }}
+              >
+                <FormControlLabel value='high' control={<Radio />} label='High' />
+                <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
+              </RadioGroup>
             </Grid>
 
             {/* // file uploader */}
@@ -663,21 +654,13 @@ const AddRequestForm = () => {
             ) : null}
             {/* // file uploader */}
 
+            {/* <Grid item xs={12}> */}
             <Grid item xs={12}>
-              <>
+              <Box sx={{ float: 'right' }}>
                 {medicineItemId ? (
                   <>
                     <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
                       sx={{ mr: 2 }}
-                    >
-                      Done
-                    </Button>
-                    <Button
                       onClick={() => {
                         updateFormItems()
                         closeDialog()
@@ -688,20 +671,20 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                  </>
-                ) : (
-                  <>
                     <Button
                       onClick={() => {
                         closeDialog()
                       }}
                       size='large'
                       variant='outlined'
-                      sx={{ mr: 2 }}
                     >
                       Done
                     </Button>
+                  </>
+                ) : (
+                  <>
                     <Button
+                      sx={{ mr: 2 }}
                       onClick={() => {
                         // updateFormItems()
                         submitItems()
@@ -711,9 +694,18 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Done
+                    </Button>
                   </>
                 )}
-              </>
+              </Box>
             </Grid>
           </Grid>
         </form>
@@ -733,20 +725,18 @@ const AddRequestForm = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Add Request Item' />
-
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          size='big'
-          variant='contained'
-          onClick={() => {
-            Router.push('/pharmacy/request/request-list/')
-          }}
-        >
-          Request Item List
-        </Button>
+        <CardHeader
+          avatar={
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                Router.push('/pharmacy/request/request-list/')
+              }}
+              icon='ep:back'
+            />
+          }
+          title='Add Request Item'
+        />
       </Grid>
       <CardContent>
         <Grid container>
@@ -873,6 +863,7 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid
         container
+        spacing={6}
         sm={12}
         xs={12}
         sx={{
@@ -882,18 +873,12 @@ const AddRequestForm = () => {
           mb: 4
         }}
       >
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          onClick={() => {
+        <AddButton
+          title='Add Request Item'
+          action={() => {
             handleSubmit()
           }}
-          size='big'
-          variant='contained'
-        >
-          Add Request Item
-        </Button>
+        />
       </Grid>
 
       <TableContainer>
@@ -919,7 +904,9 @@ const AddRequestForm = () => {
                           <CustomChip label='CS' skin='light' color='success' size='small' />
                         ) : null}
                       </TableCell>
-                      <TableCell>{el.priority_item}</TableCell>
+                      <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
+                        {el.priority_item}
+                      </TableCell>
 
                       <TableCell>{el.request_item_qty}</TableCell>
 
@@ -973,7 +960,7 @@ const AddRequestForm = () => {
               }}
             >
               <CalcWrapper>
-                <Typography variant='body2'>Total Qty:</Typography>
+                <Typography variant='body2'>Total Quantity:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                   {totalQty}
                 </Typography>
@@ -986,18 +973,31 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent>
-      <LoadingButton
-        disabled={editParams.request_item_details.length > 0 ? false : true}
-        sx={{ float: 'right', my: 4, mx: 6 }}
-        size='large'
-        onClick={() => {
-          postItemsData()
-        }}
-        variant='contained'
-        loading={submitLoader}
-      >
-        Save
-      </LoadingButton>
+      <Grid item xs={12}>
+        <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          <LoadingButton
+            disabled={editParams.request_item_details.length > 0 ? false : true}
+            sx={{ marginRight: '8px' }}
+            size='large'
+            onClick={() => {
+              postItemsData()
+            }}
+            variant='contained'
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
+          <Button
+            onClick={() => {
+              setEditParams(editParamsInitialState)
+            }}
+            size='large'
+            variant='outlined'
+          >
+            Reset
+          </Button>
+        </Box>
+      </Grid>
     </Card>
   )
 }
