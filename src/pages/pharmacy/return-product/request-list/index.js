@@ -86,10 +86,10 @@ const ReturnRequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy, status])
 
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id])
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -323,8 +323,8 @@ const ReturnRequestList = () => {
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
             <Tab
-              value='disputes'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputes' ? total : null} />}
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
             <Tab
               value='completed'
@@ -334,7 +334,7 @@ const ReturnRequestList = () => {
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='disputes'>{tableData()}</TabPanel>
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='completed'>{tableData()}</TabPanel>
           <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
