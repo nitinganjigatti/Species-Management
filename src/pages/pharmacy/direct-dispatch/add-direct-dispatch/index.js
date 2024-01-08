@@ -67,6 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
+import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -580,22 +581,18 @@ const AddReturnRequest = () => {
             }}
           >
             <CardHeader
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                  }}
+                  icon='ep:back'
+                />
+              }
               title='Direct Dispatch Item
 '
             />
-
-            <Button
-              sx={{
-                mx: { sm: 6, xs: 'auto' }
-              }}
-              size='big'
-              variant='contained'
-              onClick={() => {
-                Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
-              }}
-            >
-              Dispatch Item List
-            </Button>
           </Grid>
           <CardContent>
             <Grid container>
@@ -722,6 +719,7 @@ const AddReturnRequest = () => {
           </CardContent>
           <Grid
             container
+            spacing={6}
             sm={12}
             xs={12}
             sx={{
@@ -731,18 +729,12 @@ const AddReturnRequest = () => {
               mb: 4
             }}
           >
-            <Button
-              sx={{
-                mx: { sm: 6, xs: 'auto' }
-              }}
-              onClick={() => {
+            <AddButton
+              title='Add Dispatch Item'
+              action={() => {
                 handleSubmit()
               }}
-              size='big'
-              variant='contained'
-            >
-              Add Dispatch Item
-            </Button>
+            />
           </Grid>
 
           <TableContainer>
@@ -851,18 +843,31 @@ const AddReturnRequest = () => {
               </Grid>
             ) : null}
           </CardContent>
-          <LoadingButton
-            disabled={editParams.request_item_details.length > 0 ? false : true}
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            onClick={() => {
-              postItemsData()
-            }}
-            variant='contained'
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
+          <Grid item xs={12}>
+            <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+              <LoadingButton
+                disabled={editParams.request_item_details.length > 0 ? false : true}
+                sx={{ marginRight: '8px' }}
+                size='large'
+                onClick={() => {
+                  postItemsData()
+                }}
+                variant='contained'
+                loading={submitLoader}
+              >
+                Save
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            </Box>
+          </Grid>
         </Card>
       ) : (
         <>

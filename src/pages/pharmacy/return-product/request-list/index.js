@@ -50,6 +50,8 @@ const ReturnRequestList = () => {
   }
 
   const handleChange = (event, newValue) => {
+    setTotal(0)
+
     setStatus(newValue)
   }
 
