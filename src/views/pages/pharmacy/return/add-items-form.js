@@ -10,10 +10,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button
+  Button,
+  Typography
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { getValue } from '@mui/system'
 
 const defaultValues = {
   request_item: {
@@ -42,7 +44,12 @@ const schema = yup.object().shape({
     value: yup.string().required('Batch no is required'),
     expiry_date: yup.string().required('Batch no is required')
   }),
-  request_item_qty: yup.string().required('Quantity is required'),
+  request_item_qty: yup
+    .number()
+    .typeError('Quantity must be a number')
+    .positive('Quantity must be a positive number')
+    .required('Quantity is required')
+    .moreThan(0, 'Quantity must be greater than zero'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
   expiry_date: yup.string().required('Expiry Date is required')
@@ -57,7 +64,9 @@ export const AddItemsForm = ({
   batchLoading,
   batchList,
   nestedMedicine,
-  error
+  error,
+  totalQuantity,
+  editParams
 }) => {
   const {
     reset,
@@ -67,7 +76,8 @@ export const AddItemsForm = ({
     setValue,
     getValues,
     setError,
-    clearErrors
+    clearErrors,
+    watch
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -75,11 +85,12 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  const [totalAvailableCount, setTotalAvailableCount] = useState(0)
 
   console.log('nestedMedicine', nestedMedicine)
+  console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    debugger
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
     onSubmitData({
       request_item_batch_no: request_item_batch_no.value,
@@ -109,6 +120,10 @@ export const AddItemsForm = ({
       })
     } else {
     }
+  }, [])
+
+  useEffect(() => {
+    // setTotalAvailableCount(totalQuantity)
 
     if (error !== '') {
       setError('request_item_batch_no', {
@@ -116,7 +131,43 @@ export const AddItemsForm = ({
         message: 'Batch already exists'
       })
     }
-  }, [error])
+    if (!batchLoading) {
+      checkTotalCount()
+    }
+  }, [error, totalQuantity, batchLoading])
+
+  const checkTotalCount = e => {
+    console.log('nestedMedicine', nestedMedicine)
+    debugger
+
+    // console.log('editParams', editParams)
+    const productId = watch('request_item')
+    const quantity = watch('request_item_qty')
+    debugger
+    var totalCount = 0
+    var enteredCount = 0
+    var nestedItemQuantity = 0
+
+    if (e?.target?.value !== undefined) {
+      enteredCount = isNaN(parseInt(e?.target?.value)) ? 0 : parseInt(e?.target?.value)
+    } else {
+      enteredCount = isNaN(parseInt(quantity)) ? 0 : parseInt(quantity)
+    }
+
+    if (productId !== undefined) {
+      const filteredList = editParams?.request_item_details?.filter(
+        item => item.request_item_medicine_id === productId?.value
+      )
+      totalCount = filteredList.reduce((acc, item) => acc + parseInt(item.request_item_qty), 0)
+    }
+
+    if (nestedMedicine.request_item_qty !== '') {
+      nestedItemQuantity = nestedMedicine?.request_item_qty
+    }
+
+    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    setTotalAvailableCount(available_qty)
+  }
 
   return (
     <>
@@ -145,9 +196,11 @@ export const AddItemsForm = ({
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
+
                       if (value !== '' && value !== null) {
                         searchBatchData(value.value)
                       }
+                      checkTotalCount()
                     }} // Set selected value
                     loading={productLoading}
                     noOptionsText='Type to search'
@@ -182,8 +235,6 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      debugger
-
                       // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
@@ -217,11 +268,15 @@ export const AddItemsForm = ({
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
+                    type='number'
                     value={value}
                     label='Quantity*'
                     name='request_item_qty'
                     error={Boolean(errors.request_item_qty)}
                     onChange={onChange}
+                    onKeyUP={checkTotalCount}
+                    onPaste={checkTotalCount}
+                    onInput={checkTotalCount}
                   />
                 )}
               >
@@ -277,6 +332,17 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid>
+
+          <Grid item xs={12} sm={12} display={'flex'}>
+            <Typography>Available Quantity - </Typography>
+            <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography>
+          </Grid>
+
+          {/* {totalAvailableCount < 0 && !batchLoading && (
+            <Grid item xs={12} sm={12} display={'flex'}>
+              <Typography color={'error.main'}>Entered quantity should be lesser than available quantity</Typography>
+            </Grid>
+          )} */}
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'}>
             <Button type='submit' variant='contained'>
               Save
