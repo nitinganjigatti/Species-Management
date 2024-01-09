@@ -25,6 +25,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfDrugs = () => {
   const [drugClass, setDrugClass] = useState([])
@@ -203,9 +204,7 @@ const ListOfDrugs = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-            Add Drug class
-          </Button>
+          <AddButton title='Add Drug class' action={() => addEventSidebarOpen()} />
         )}
     </div>
   )

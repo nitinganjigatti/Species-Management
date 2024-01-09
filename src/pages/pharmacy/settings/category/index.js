@@ -19,6 +19,7 @@ import Router from 'next/router'
 
 import AddCategory from 'src/views/pages/pharmacy/medicine/category/addCategory'
 import UserSnackbar from 'src/components/utility/snackbar'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfCategories = () => {
   const [categories, setCategories] = useState([])
@@ -199,9 +200,7 @@ const ListOfCategories = () => {
             TableTitle={categories.length > 0 ? 'Category List' : 'Category list is empty add categories'}
             headerActions={
               <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add Category
-                </Button>
+                <AddButton title='Add Category' action={() => addEventSidebarOpen()} />
               </div>
             }
             columns={columns}

@@ -27,6 +27,7 @@ import { addStorage } from 'src/lib/api/pharmacy/storage'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
 
 const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])
@@ -208,9 +209,7 @@ const StorageList = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-            Add Storage
-          </Button>
+          <AddButton title='Add Storage' action={() => addEventSidebarOpen()} />
         )}
     </div>
   )
