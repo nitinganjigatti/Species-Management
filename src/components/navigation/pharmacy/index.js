@@ -93,8 +93,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const stockOut = {
-    title: 'Stock Out',
-    path: '/pharmacy/stocks/stock-out'
+    title: 'Out of Stock',
+    path: '/pharmacy/stocks/out-of-stock'
   }
 
   const expiredMedicine = {

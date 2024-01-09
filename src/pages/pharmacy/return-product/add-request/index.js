@@ -98,6 +98,7 @@ const AddReturnRequest = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
+  const [totalBatchQuantity, setTotalBatchQuantity] = useState(0)
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -108,7 +109,7 @@ const AddReturnRequest = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [productLoading, setProductLoading] = useState(false)
-  const [batchLoading, setBatchLoading] = useState(false)
+  const [batchLoading, setBatchLoading] = useState(true)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -130,6 +131,10 @@ const AddReturnRequest = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setDuplicateMedError('')
+    // Resetting State
+    setOptionsBatchList([])
+    setOptionsMedicineList([])
+    setTotalBatchQuantity(0)
   }
 
   const showDialog = () => {
@@ -243,13 +248,14 @@ const AddReturnRequest = () => {
     //     return
     //   }
     // }
-    debugger
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
         item.request_item_batch_no === params.request_item_batch_no
     )
+
+    debugger
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError('Batch already exists')
@@ -259,6 +265,7 @@ const AddReturnRequest = () => {
     }
     setErrors({})
     addItemsToTable(params)
+
     closeDialog()
   }
 
@@ -370,19 +377,13 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async id => {
-    debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
-        debugger
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local')
         if (searchResults?.success) {
-          debugger
-
-          if (searchResults?.data?.length > 0) {
-            debugger
-
+          if (searchResults?.data?.items.length > 0) {
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
             //   label: item?.batch_no,
@@ -390,33 +391,36 @@ const AddReturnRequest = () => {
             // }))
             // console.log('searchResults', data)
             setOptionsBatchList(
-              searchResults?.data.map(item => ({
+              searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
                 label: item?.batch_no,
                 expiry_date: item?.expiry_date
               }))
             )
+            setTotalBatchQuantity(searchResults?.data?.total_quantity)
+          } else {
+            setTotalBatchQuantity(0)
           }
-          debugger
           console.log('searchResults', optionsBatchList)
           // setOptionsBatchList()
 
           console.log('optionsBatchList', optionsBatchList)
         } else {
           setOptionsBatchList([])
+          setTotalBatchQuantity(0)
         }
         setBatchLoading(false)
       } catch (e) {
         console.log('error', e)
         setBatchLoading(false)
         setOptionsBatchList([])
+        setTotalBatchQuantity(0)
       }
     }
   }
 
   const searchBatchData = useCallback(
     debounce(async id => {
-      debugger
       try {
         await fetchBatchData(id)
       } catch (error) {
@@ -471,7 +475,7 @@ const AddReturnRequest = () => {
   }
 
   // ****** edit section //////
-  const editTableData = itemId => {
+  const editTableData = async itemId => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
@@ -495,8 +499,6 @@ const AddReturnRequest = () => {
         return el.request_item_medicine_id === itemId
       })
 
-      debugger
-
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0].product_name,
@@ -510,6 +512,7 @@ const AddReturnRequest = () => {
         control_substance: getItems[0].control_substance
       })
     }
+    await searchBatchData(itemId)
   }
 
   useEffect(() => {
@@ -535,7 +538,8 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/request/request-list/')
+
+          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -550,7 +554,8 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/request/request-list/')
+          // Router.push('/pharmacy/return-product/request-list/')
+          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -572,6 +577,10 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
+        nestedMedicine={nestedRowMedicine}
+        error={duplicateMedError}
+        totalQuantity={totalBatchQuantity}
+        editParams={editParams}
       />
       // <CardContent>
       //   <form

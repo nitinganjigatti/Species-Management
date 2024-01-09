@@ -130,17 +130,18 @@ const ListOfPurchase = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'paid_amount',
-      headerName: 'PAID AMOUNT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.paid_amount}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'paid_amount',
+    //   headerName: 'PAID AMOUNT',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.paid_amount}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
