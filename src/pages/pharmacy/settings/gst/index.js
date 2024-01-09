@@ -29,6 +29,7 @@ import Utility from 'src/utility'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfGst = () => {
   const [gstList, setGstList] = useState([])
@@ -215,9 +216,7 @@ const ListOfGst = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-            Add GST
-          </Button>
+          <AddButton title='Add GST' action={() => addEventSidebarOpen()} />
         )}
     </div>
   )

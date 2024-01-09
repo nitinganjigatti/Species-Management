@@ -26,6 +26,7 @@ import { column } from 'stylis'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfStores = () => {
   const [stores, setStores] = useState([])
@@ -235,9 +236,7 @@ const ListOfStores = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-            Add Store
-          </Button>
+          <AddButton title='Add Store' action={() => addEventSidebarOpen()} />
         )}
     </div>
   )

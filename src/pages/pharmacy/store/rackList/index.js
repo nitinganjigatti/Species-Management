@@ -21,6 +21,7 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfRacks = () => {
   const [racks, setRacks] = useState([])
@@ -271,9 +272,7 @@ const ListOfRacks = () => {
             TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
             headerActions={
               <div>
-                <Button onClick={() => addEventSidebarOpen()} size='big' variant='contained'>
-                  Add Rack
-                </Button>
+                <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
               </div>
             }
             columns={columns}

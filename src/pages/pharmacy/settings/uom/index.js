@@ -25,6 +25,7 @@ import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfUOM = () => {
   const [uomList, setUomList] = useState([])
@@ -157,9 +158,7 @@ const ListOfUOM = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-            Add UOM
-          </Button>
+          <AddButton title='Add UOM' action={() => addEventSidebarOpen()} />
         )}
     </div>
   )
