@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import { debounce } from 'lodash'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -22,34 +23,81 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 
 const ListOfPurchase = () => {
-  const [purchaseList, setPurchaseList] = useState([])
+  /***** Server side pagination */
   const [loader, setLoader] = useState(false)
+
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
+
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const getPurchaseLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getPurchaseList()
-      if (response?.length > 0) {
-        console.log('list', response)
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
 
-        // response.sort((a, b) => a.id - b.id)
-        let listWithId = response
-          ? response.map((el, i) => {
-              return { ...el, uid: i + 1 }
-            })
-          : []
-        setPurchaseList(listWithId)
-        setLoader(false)
-      } else {
-        setLoader(false)
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getPurchaseList({ params: params }).then(res => {
+          console.log('getPurchaseList', res)
+          setTotal(parseInt(res?.count))
+          setRows(loadServerRows(paginationModel.page, res?.data))
+        })
+        setLoading(false)
+      } catch (error) {
+        console.log('error', error)
+        setLoading(false)
       }
-    } catch (error) {
-      console.log('error', error)
-      setLoader(false)
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTableData, selectedPharmacy.id])
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl: getSlNo(index)
+  }))
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
     }
   }
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const handleEdit = id => {
     Router.push({
@@ -57,19 +105,21 @@ const ListOfPurchase = () => {
       query: { id: id, action: 'edit' }
     })
   }
-  useEffect(() => {
-    getPurchaseLists()
-  }, [])
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl',
       headerName: 'SL ',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl}
         </Typography>
       )
     },
@@ -152,9 +202,6 @@ const ListOfPurchase = () => {
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
                 <IconButton
                   size='small'
                   sx={{ mr: 0.5 }}
@@ -164,9 +211,6 @@ const ListOfPurchase = () => {
                 >
                   <Icon icon='mdi:pencil-outline' />
                 </IconButton>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
               </Box>
             )}
         </>
@@ -178,38 +222,54 @@ const ListOfPurchase = () => {
     console.log('Handle Header Action')
   }
 
+  const headerAction = (
+    <div>
+      <AddButton title='Add Purchase' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+    </div>
+  )
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
-        <>
-          {loader ? (
-            <FallbackSpinner />
-          ) : (
-            <TableWithFilter
-              TableTitle={purchaseList.length > 0 ? 'Purchase List' : 'Purchase List is empty add Purchase List'}
-              headerActions={
-                <div>
-                  {selectedPharmacy.type === 'central' &&
-                    (selectedPharmacy.permission.key === 'allow_full_access' ||
-                      selectedPharmacy.permission.key === 'ADD') && (
-                      <AddButton
-                        title='Add Purchase'
-                        action={() => {
-                          Router.push('/pharmacy/purchase/add-purchase/')
-                        }}
-                      />
-                    )}
-                </div>
-              }
-              columns={columns}
-              rows={purchaseList}
-            />
-          )}
-        </>
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Card>
+              <CardHeader title='Purchase List' action={headerAction} />
+              <DataGrid
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                total
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+
+                // onRowClick={onRowClick}
+              />
+            </Card>
+          </>
+        )
       ) : (
-        <>
-          <Error404></Error404>
-        </>
+        <Error404 />
       )}
     </>
   )
