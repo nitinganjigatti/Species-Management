@@ -47,7 +47,15 @@ const defaultValues = {
 
 const AddStore = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    pharmacyList
+  } = props
 
   // ** States
   const [values, setValues] = useState(defaultValues)
