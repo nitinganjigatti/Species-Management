@@ -188,6 +188,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       drugClass,
       manufacturer,
       packages,
+      storeList,
       salts,
       storage,
       supplierList,
