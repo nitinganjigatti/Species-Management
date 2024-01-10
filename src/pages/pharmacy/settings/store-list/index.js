@@ -43,6 +43,7 @@ const ListOfStores = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
   debugger
 
@@ -123,10 +124,22 @@ const ListOfStores = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'logitude',
-      headerName: 'LOGITUDE',
+      headerName: 'LONGITUDE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.logitude}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'site_name',
+      headerName: 'Site Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.site_name}
         </Typography>
       )
     },
@@ -322,6 +335,7 @@ const ListOfStores = () => {
                 resetForm={resetForm}
                 submitLoader={submitLoader}
                 editParams={editParams}
+                pharmacyList={pharmacyList}
               />
               {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
