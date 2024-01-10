@@ -72,14 +72,13 @@ const AuthProvider = ({ children }) => {
       // }
       // initAuth()
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
+      const storedToken = window.localStorage.getItem(authConfig?.storageTokenKeyName)
       if (storedToken) {
         const userObj = read('userData')
         if (userObj) {
           const resData = await callRefreshToken()
           setLoading(false)
           if (resData.token) {
-            // console.log('refreshed', resData)
             const options = resData?.modules?.pharmacy_data?.pharmacy
             const storedPharmacy = await readAsync('selectedStore')
 
@@ -103,7 +102,6 @@ const AuthProvider = ({ children }) => {
               // return areArraysEqual
               if (areArraysEqual === false) {
                 write('selectedStore', foundPharmacy)
-
                 setSelectedPharmacy(foundPharmacy)
               }
 
@@ -123,16 +121,16 @@ const AuthProvider = ({ children }) => {
             }
 
             const userData = {
-              email: resData.user.user_email,
-              fullName: resData.user.user_first_name,
-              lastName: resData.user.user_last_name,
+              email: resData?.user?.user_email,
+              fullName: resData?.user?.user_first_name,
+              lastName: resData?.user?.user_last_name,
               role: 'admin',
-              id: resData.roles.role_id,
+              id: resData?.roles?.role_id,
 
               // role: resData.roles.role_name,
-              username: resData.user.user_first_name
+              username: resData?.user?.user_first_name
             }
-            write('role', resData.roles.role_name)
+            write('role', resData?.roles?.role_name)
             write('userData', userData)
 
             setUser({ ...userData })
@@ -191,25 +189,27 @@ const AuthProvider = ({ children }) => {
     axios
       .post(url, params)
       .then(async response => {
-        console.log('login response', response.data)
-        window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.token)
+        debugger
+        console.log('login response', response?.data)
+        window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
         const returnUrl = router.query.returnUrl
 
         // setUser({ ...response.data.data.providerProfile })
-        const resData = response.data
+        const resData = response?.data
         write('userDetails', resData)
 
         const userData = {
-          email: resData.user.user_email,
-          fullName: resData.user.user_first_name,
-          lastName: resData.user.user_last_name,
+          email: resData?.user?.user_email,
+          fullName: resData?.user?.user_first_name,
+          lastName: resData?.user?.user_last_name,
           role: 'admin',
-          id: resData.roles.role_id,
+          id: resData?.roles?.role_id,
 
           // role: resData.roles.role_name,
-          username: resData.user.user_first_name
+          username: resData?.user?.user_first_name
         }
-        write('role', resData.roles.role_name)
+        debugger
+        write('role', resData?.roles?.role_name)
         write('userData', userData)
         setUserData({ ...resData })
         setUser({ ...userData })
