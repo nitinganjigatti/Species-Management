@@ -584,36 +584,37 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'shipment_status',
+      field: 'status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_status}
+          {params.row.status}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-
-      renderCell: params => (
-        <Box sx={{ marginLeft: -6 }}>
-          <IconButton
-            size='small'
-            onClick={() => {
-              setOrderId(params.row.id)
-
-              showOrderFormDialog()
-            }}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <Box sx={{ marginLeft: -6 }}>
+    //       <IconButton
+    //         size='small'
+    //         onClick={() => {
+    //           setOrderId(params.row.id)
+
+    //           showOrderFormDialog()
+    //         }}
+    //         aria-label='Edit'
+    //       >
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   // const disputedItemsColumns = [
@@ -842,21 +843,22 @@ const IndividualRequest = () => {
           <Card>
             <CardHeader
               title={`Request`}
-              action={
-                requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
-                  <Button
-                    size='big'
-                    variant='contained'
-                    onClick={() => {
-                      handleRequestEdit()
-                    }}
-                  >
-                    Edit
-                  </Button>
-                ) : (
-                  <></>
-                )
-              }
+
+              // action={
+              //   requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
+              //     <Button
+              //       size='big'
+              //       variant='contained'
+              //       onClick={() => {
+              //         handleRequestEdit()
+              //       }}
+              //     >
+              //       Edit
+              //     </Button>
+              //   ) : (
+              //     <></>
+              //   )
+              // }
             />
             <CardContent>
               {/* Request Basic Info */}
@@ -918,7 +920,15 @@ const IndividualRequest = () => {
                     </Grid>
                   </Grid>
                 </CardContent>
-                <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
+                <TableBasic
+                  columns={shippedColumns}
+                  rows={shippedItems}
+                  onRowClick={e => {
+                    // console.log(e.id)
+                    setOrderId(e.id)
+                    showOrderFormDialog()
+                  }}
+                ></TableBasic>
               </>
             ) : null}
             {/* {disputedItems?.length > 0 ? (
