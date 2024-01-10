@@ -28,6 +28,9 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+
 const ListOfStores = () => {
   const [stores, setStores] = useState([])
   const [loader, setLoader] = useState(false)
@@ -38,6 +41,10 @@ const ListOfStores = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+
+  debugger
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -232,14 +239,7 @@ const ListOfStores = () => {
     searchTableData(sort, value, sortColumn)
   }
 
-  const headerAction = (
-    <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Store' action={() => addEventSidebarOpen()} />
-        )}
-    </div>
-  )
+  const headerAction = <div>{pharmacyRole && <AddButton title='Add Store' action={() => addEventSidebarOpen()} />}</div>
 
   const handleSubmitData = async payload => {
     console.log('payload', payload)
@@ -280,7 +280,7 @@ const ListOfStores = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
