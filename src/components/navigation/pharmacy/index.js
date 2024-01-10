@@ -190,7 +190,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       packages,
       salts,
       storage,
-      storeList,
       supplierList,
       rackList
     )
@@ -215,7 +214,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     pharmacyNavigationArray.push(requestParent, returnParent, directDispatchParent, stockParent, settingsParent)
   }
 
-  console.log(pharmacyNavigationArray)
+  debugger
+
+  if (pharmacyRole && selectedPharmacy === '') {
+    settingsParent.children.push(storeList)
+    pharmacyNavigationArray.push(settingsParent)
+  }
+
+  // console.log(pharmacyNavigationArray)
 
   return pharmacyNavigationArray
 }
