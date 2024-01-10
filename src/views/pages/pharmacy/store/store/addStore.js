@@ -117,10 +117,7 @@ const AddStore = props => {
     if (resetForm) {
       reset(defaultValues)
     }
-
     if (editParams?.id !== null) {
-      console.log()
-
       getDosage(editParams?.id)
     }
   }, [resetForm, editParams, reset, getDosage])
