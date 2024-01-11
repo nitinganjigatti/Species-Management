@@ -133,7 +133,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             dispatch_item_id: el?.dispatch_item_id,
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
             wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
-            dispute_status: el?.dispute_status ? el?.dispute_status : ''
+            dispute_status: el?.dispute_status ? el?.dispute_status : '',
+            request_item_id: el?.request_item_id ? el?.request_item_id : ''
           }
 
           return data
@@ -205,6 +206,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         stock_id: payload.stock_id,
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
+        request_id: requestId,
+        request_item_id: payload.request_item_id,
         type: 'resolve',
         action: 'accept'
       }
@@ -218,6 +221,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         excess_count: payload.wrong_count_number,
+        request_id: requestId,
+        request_item_id: payload.request_item_id,
         type: 'Excess',
         action: 'accept'
       }
@@ -232,6 +237,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload.status,
         dispatch_item_id: payload.dispatch_item_id,
         shortage_count: payload.wrong_count_number,
+        request_id: requestId,
+        request_item_id: payload.request_item_id,
         type: 'Shortage',
         action: 'accept'
       }
