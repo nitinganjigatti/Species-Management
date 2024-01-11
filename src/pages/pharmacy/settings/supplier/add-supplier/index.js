@@ -198,7 +198,7 @@ const AddSupplier = () => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/supplier')
+        Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -213,11 +213,12 @@ const AddSupplier = () => {
   const addSupplerToList = async payload => {
     try {
       const response = await addSuppliers(payload)
+      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/supplier')
+        Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })

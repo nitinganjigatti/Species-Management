@@ -56,6 +56,21 @@ const UserThemeOptions = () => {
       }
     },
     components: {
+      MuiCardHeader: {
+        styleOverrides: {
+          root: {},
+          title: ({ theme }) => ({
+            color: theme.palette.text.primary,
+            lineHeight: 1.6,
+            fontWeight: 500,
+            fontSize: '1.125rem',
+            letterSpacing: '0.15px',
+            '@media (min-width: 600px)': {
+              fontSize: '1.25rem'
+            }
+          })
+        }
+      },
       MuiDataGrid: {
         styleOverrides: {
           root: {
