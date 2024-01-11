@@ -102,6 +102,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/stocks/expired-medicine'
   }
 
+  const escrow = {
+    title: 'Escrow',
+    path: '/pharmacy/stocks/escrow'
+  }
+
   const settingsParent = {
     title: 'Settings',
     path: '/pharmacy/settings',
@@ -180,7 +185,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     returnParent.children.push(returnListing)
     directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
+    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
     settingsParent.children.push(
       gst,
       uom,
@@ -209,7 +214,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
-    stockParent.children.push(stockReport, stockOut, expiredMedicine)
+    stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(requestParent, returnParent, directDispatchParent, stockParent, settingsParent)

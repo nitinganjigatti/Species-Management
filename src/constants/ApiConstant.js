@@ -32,6 +32,8 @@ export const LOCAL_STOCK_REPORT = 'local-stock'
 
 export const STOCK_BY_BATCH = 'master-stock-batch-wise'
 
+export const ESCROW = 'shipment/escrowlist'
+
 export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
