@@ -127,8 +127,6 @@ function Escrow() {
   }
 
   return (
-    // <>
-    //   {selectedPharmacy.type === 'central' ? (
     <>
       {loader ? (
         <FallbackSpinner />
@@ -147,7 +145,6 @@ function Escrow() {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
-              //   slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{
@@ -159,6 +156,7 @@ function Escrow() {
                   clearSearch: () => handleSearch(''),
                   onChange: event => {
                     setSearchValue(event.target.value)
+
                     return handleSearch(event.target.value)
                   }
                 }
@@ -168,12 +166,6 @@ function Escrow() {
         </>
       )}
     </>
-    //   ) : (
-    //     <>
-    //       <Error404></Error404>
-    //     </>
-    //   )}
-    // </>
   )
 }
 
