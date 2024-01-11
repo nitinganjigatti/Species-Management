@@ -44,6 +44,7 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
+import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 
 const RequestDetails = () => {
   const [loader, setLoader] = useState(false)
@@ -62,10 +63,27 @@ const RequestDetails = () => {
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
   console.log('requestById', requestById)
-  const [storedData, setStoredData] = useState()
-  console.log('storedData', storedData)
+  // const [storedData, setStoredData] = useState()
+  // console.log('storedData', storedData)
+  const [permissions, setPermissions] = useState(null)
+  console.log('permissions', permissions)
 
+  const storedData = JSON.parse(localStorage.getItem('userDetails'))
+  console.log('storedData', storedData)
   const [status, setStatus] = React.useState()
+
+  const localLabData = storedData?.modules?.lab_data.lab
+  console.log('localLabData', localLabData)
+
+  const PrvLabId = request[0]?.lab_id // 68
+  console.log('PrvLabId', PrvLabId)
+
+  useEffect(() => {
+    const labObject = localLabData?.find(item => item.lab_id === PrvLabId)
+    if (labObject && labObject.permission) {
+      setPermissions(labObject.permission)
+    }
+  }, [PrvLabId])
 
   const handleChangeStatus = event => {
     setStatus(event.target.value)
@@ -102,8 +120,10 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = params => {
-    setOpenTransfer(true)
-    setSelectedLab(params.row)
+    if (permissions?.transfer_tests === true) {
+      setOpenTransfer(true)
+      setSelectedLab(params.row)
+    }
   }
 
   useEffect(() => {
@@ -191,21 +211,21 @@ const RequestDetails = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <>
-          {' '}
+          {}
           <Box sx={{ minWidth: 120 }}>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               <span
                 alt={params.row.status}
-                style={{
-                  color:
-                    params.row.status === 'pending'
-                      ? 'red'
-                      : params.row.status === 'completed'
-                      ? 'green'
-                      : params.row.status === 'in progress'
-                      ? 'blue'
-                      : 'black'
-                }}
+                // style={{
+                //   color:
+                //     params.row.status === 'pending'
+                //       ? 'red'
+                //       : params.row.status === 'completed'
+                //       ? 'green'
+                //       : params.row.status === 'in progress'
+                //       ? 'blue'
+                //       : 'black'
+                // }}
               >
                 {params.row.status}
               </span>
@@ -335,11 +355,6 @@ const RequestDetails = () => {
     // handleSubmit(onSubmit)()
   }
 
-  useEffect(() => {
-    const Data = window.localStorage.getItem('userDetails')
-    setStoredData(JSON.parse(Data))
-  }, [])
-
   const onSubmit = async params => {
     // setSubmitLoader(true)
     const { lab_name, transferTo, reason } = {
@@ -464,17 +479,23 @@ const RequestDetails = () => {
                 }
               }}
             />
+            {/* allow user Only if user hand upload permissions */}
+            {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
+              <Box>
+                <Box sx={{ p: 5, display: 'flex', justifyContent: 'flex-end' }}>
+                  <LoadingButton variant='contained'>UPLOAD REPORT</LoadingButton>
+                </Box>
+                <Box sx={{ p: 5 }}>
+                  <Typography variant='h6'>Reports</Typography>
+                  <Typography>Images</Typography>
+                  <Typography>Documents</Typography>
 
-            <Box>
-              <Box sx={{ p: 5, display: 'flex', justifyContent: 'flex-end' }}>
-                <LoadingButton variant='contained'>UPLOAD REPORT</LoadingButton>
+                  {/* <form onSubmit={handleUloadSubmit(onSubmit)}>
+                  <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+                </form> */}
+                </Box>
               </Box>
-              <Box sx={{ p: 5 }}>
-                <Typography variant='h6'>Reports</Typography>
-                <Typography>Images</Typography>
-                <Typography>Documents</Typography>
-              </Box>
-            </Box>
+            ) : null}
           </Card>
         </>
       )}
@@ -518,7 +539,7 @@ const RequestDetails = () => {
                     <TableHead>
                       <TableRow sx={{ bgcolor: '#F5F5F7' }}>
                         <TableCell>Test Type</TableCell>
-                        <TableCell>Name</TableCell>
+                        <TableCell>Lab Name</TableCell>
                         {/* <TableCell>Status</TableCell> */}
                       </TableRow>
                     </TableHead>

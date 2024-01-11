@@ -1,5 +1,5 @@
 const composeLabNavigation = () => {
-  const LabType = 'central'
+  // const LabType = 'central'
 
   const labTitle = {
     sectionTitle: 'Actions'
@@ -21,9 +21,10 @@ const composeLabNavigation = () => {
 
   labNavigationArray.push(labTitle)
 
-  if (LabType === 'central') {
-    labNavigationArray.push(lab, request)
-  }
+  // if (LabType === 'central') {
+  labNavigationArray.push(lab, request)
+
+  // }
 
   // if (LabType === 'local') {
   //   requestParent.children.push(requestListing)
