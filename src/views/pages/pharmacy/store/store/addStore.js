@@ -232,13 +232,15 @@ const AddStore = props => {
                   error={Boolean(errors?.gst_slab)}
                   labelId='site_id'
                 >
-                  {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                    return (
-                      <MenuItem key={index} value={item?.site_id}>
-                        {item?.site_name}
-                      </MenuItem>
-                    )
-                  })}
+                  <>
+                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      return (
+                        <MenuItem key={index} value={item?.site_id}>
+                          {item?.site_name}
+                        </MenuItem>
+                      )
+                    })}
+                  </>
                 </Select>
               )}
             />
