@@ -221,7 +221,7 @@ const AddSupplier = () => {
         Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -458,7 +458,7 @@ const AddSupplier = () => {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <FormControl fullWidth>
                       <Controller
                         name='opening_balance'
@@ -477,7 +477,7 @@ const AddSupplier = () => {
                         )}
                       />
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item xs={12}>
                     <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>

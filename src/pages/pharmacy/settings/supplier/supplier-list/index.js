@@ -105,17 +105,18 @@ const Supplier = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'opening_balance',
-      headerName: 'OPENING BALANCE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.opening_balance}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'opening_balance',
+    //   headerName: 'OPENING BALANCE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.opening_balance}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
