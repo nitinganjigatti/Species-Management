@@ -117,7 +117,10 @@ const AddStore = props => {
     if (resetForm) {
       reset(defaultValues)
     }
+
     if (editParams?.id !== null) {
+      console.log()
+
       getDosage(editParams?.id)
     }
   }, [resetForm, editParams, reset, getDosage])
@@ -229,9 +232,6 @@ const AddStore = props => {
                   error={Boolean(errors?.gst_slab)}
                   labelId='site_id'
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
                   {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                     return (
                       <MenuItem key={index} value={item?.site_id}>
