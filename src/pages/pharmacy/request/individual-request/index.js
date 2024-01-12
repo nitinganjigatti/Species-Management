@@ -845,6 +845,15 @@ const IndividualRequest = () => {
           />
           <Card>
             <CardHeader
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    Router.push('/pharmacy/request/request-list/')
+                  }}
+                  icon='ep:back'
+                />
+              }
               title={`Request`}
 
               // action={
