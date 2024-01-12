@@ -47,7 +47,7 @@ const statusObj = {
 const TableSort = () => {
   // ** States
   const [isNameSortable, setIsNameSortable] = useState(true)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const columns = [
     {

@@ -63,7 +63,7 @@ const getFullName = params =>
 const TableColumns = () => {
   // ** States
   const [hideNameColumn, setHideNameColumn] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const columns = [
     {

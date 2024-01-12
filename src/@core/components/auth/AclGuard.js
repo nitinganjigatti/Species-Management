@@ -19,7 +19,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import { useAuth } from 'src/hooks/useAuth'
 
 // ** Util Import
-import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
+// import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const AclGuard = props => {
@@ -33,7 +33,7 @@ const AclGuard = props => {
 
   const getPath = () => {
     if (selectedPharmacy) {
-      if (selectedPharmacy.type === 'local') {
+      if (selectedPharmacy?.type === 'local') {
         return '/pharmacy/request/request-list/'
       } else {
         return '/pharmacy/medicine/product-list'

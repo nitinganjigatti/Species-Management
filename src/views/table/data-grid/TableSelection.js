@@ -125,7 +125,7 @@ const columns = [
 
 const TableSelection = () => {
   // ** State
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   return (
     <Card>

@@ -98,7 +98,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const expiredMedicine = {
-    title: 'Expired Medicine',
+    title: 'Expired products',
     path: '/pharmacy/stocks/expired-medicine'
   }
 

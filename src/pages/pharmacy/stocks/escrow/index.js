@@ -13,7 +13,7 @@ function Escrow() {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [total, setTotal] = useState(0)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   function loadServerRows(currentPage, data) {
     return data

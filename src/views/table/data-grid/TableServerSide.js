@@ -133,7 +133,7 @@ const TableServerSide = ({ columns, getCall }) => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('full_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   function loadServerRows(currentPage, data) {
     debugger
 
