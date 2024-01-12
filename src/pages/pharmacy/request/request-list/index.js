@@ -274,11 +274,11 @@ const RequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'shipped_status',
+      field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipped_status}
+          {params.row.shipping_status}
         </Typography>
       )
     }
