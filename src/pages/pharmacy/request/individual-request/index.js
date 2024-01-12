@@ -398,6 +398,7 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
+      align: 'center',
       renderCell: params =>
         !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
           <img
@@ -405,7 +406,9 @@ const IndividualRequest = () => {
             alt='Medicine Image'
             style={{ width: '60px', height: '60px' }}
           />
-        ) : null
+        ) : (
+          'NA'
+        )
     },
     {
       flex: 0.3,
@@ -886,29 +889,33 @@ const IndividualRequest = () => {
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
             {/* Dispatch list */}
-            {dispatchedItems?.length > 0 ? (
+
+            {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
                       <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
                     </Grid>
-                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                      <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
-                          openShipDialog()
-                        }}
-                      >
-                        Ship
-                      </Button>
-                    </Grid>
+                    {(selectedPharmacy.permission.key === 'ADD' ||
+                      selectedPharmacy.permission.key === 'allow_full_access') && (
+                      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                        <Button
+                          size='big'
+                          variant='contained'
+                          onClick={() => {
+                            openShipDialog()
+                          }}
+                        >
+                          Ship
+                        </Button>
+                      </Grid>
+                    )}
                   </Grid>
                 </CardContent>
                 <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
               </>
-            ) : null}
+            )}
 
             {/* Shipped list        */}
             {shippedItems?.length > 0 ? (
