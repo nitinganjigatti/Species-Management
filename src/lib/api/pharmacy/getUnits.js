@@ -29,7 +29,7 @@ export async function addUnits(payload) {
 }
 
 export async function getUnitsById(id) {
-  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/${id}` })
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${UOM}/${id}`, pharmacy })
 
   return response.data
 }
@@ -39,7 +39,7 @@ export async function updateUnits(id, payload) {
     const url = `${PHARMACY_MASTER_BASE_URL}${UOM}/edit/${id}`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy })
 
     return response?.data
   } catch (error) {
