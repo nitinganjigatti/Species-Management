@@ -336,6 +336,13 @@ const AddReturnRequest = () => {
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
+        if (response?.data?.list_items?.length === 1) {
+          setEditParams({
+            ...editParams,
+            to_store_id: response?.data?.list_items[0].id,
+            to_store_type: storesType[filteredStoreType(response?.data?.list_items[0].id)]
+          })
+        }
       }
     } catch (error) {
       console.log('err', error)
