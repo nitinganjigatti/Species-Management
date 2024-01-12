@@ -118,7 +118,7 @@ const AddPurchaseForm = () => {
   const getStoreType = id => {
     const foundOStores = stores.find(item => item.id === id)
     if (foundOStores) {
-      const storeType = foundOStores.type
+      const storeType = foundOStores?.type
       setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
     }
   }
@@ -376,6 +376,13 @@ const AddPurchaseForm = () => {
       const response = await getStoreList({ params })
       if (response?.success && response?.data?.list_items?.length > 0) {
         setStores(response?.data?.list_items)
+        if (response?.data?.list_items?.length === 1) {
+          setEditParams({
+            ...editParams,
+            store_id: response?.data?.list_items[0].id,
+            type_of_store: response?.data?.list_items[0].type
+          })
+        }
       }
     } catch (error) {
       console.log('store error', error)
