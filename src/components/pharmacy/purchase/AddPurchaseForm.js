@@ -34,7 +34,7 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+// import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/pharmacy/getPurchaseList'
@@ -42,6 +42,7 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -105,6 +106,8 @@ const AddPurchaseForm = () => {
   const router = useRouter()
   const { id, action } = router.query
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
@@ -115,13 +118,13 @@ const AddPurchaseForm = () => {
     setShow(true)
   }
 
-  const getStoreType = id => {
-    const foundOStores = stores.find(item => item.id === id)
-    if (foundOStores) {
-      const storeType = foundOStores?.type
-      setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
-    }
-  }
+  // const getStoreType = id => {
+  //   const foundOStores = stores.find(item => item.id === id)
+  //   if (foundOStores) {
+  //     const storeType = foundOStores?.type
+  //     setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
+  //   }
+  // }
 
   // local nested items delete
   const removeItemsFroTable = itemId => {
@@ -368,25 +371,32 @@ const AddPurchaseForm = () => {
   }
 
   const getStoresLists = async () => {
-    const params = {
-      q: 'central',
-      column: 'type'
+    if (selectedPharmacy) {
+      setEditParams({
+        ...editParams,
+        store_id: selectedPharmacy.id,
+        type_of_store: selectedPharmacy.type
+      })
     }
-    try {
-      const response = await getStoreList({ params })
-      if (response?.success && response?.data?.list_items?.length > 0) {
-        setStores(response?.data?.list_items)
-        if (response?.data?.list_items?.length === 1) {
-          setEditParams({
-            ...editParams,
-            store_id: response?.data?.list_items[0].id,
-            type_of_store: response?.data?.list_items[0].type
-          })
-        }
-      }
-    } catch (error) {
-      console.log('store error', error)
-    }
+    // const params = {
+    //   q: 'central',
+    //   column: 'type'
+    // }
+    // try {
+    //   const response = await getStoreList({ params })
+    //   if (response?.success && response?.data?.list_items?.length > 0) {
+    //     setStores(response?.data?.list_items)
+    //     if (response?.data?.list_items?.length === 1) {
+    //       setEditParams({
+    //         ...editParams,
+    //         store_id: response?.data?.list_items[0].id,
+    //         type_of_store: response?.data?.list_items[0].type
+    //       })
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.log('store error', error)
+    // }
   }
 
   const getSuppliersLists = async () => {
@@ -976,31 +986,9 @@ const AddPurchaseForm = () => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    value={editParams.description}
-                    error={Boolean(errors.description)}
-                    label='Comments'
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        description: e.target.value
-                      })
-                      setErrors({})
-                    }}
-                  />
-                  {errors.description && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              {/* <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Store:
@@ -1032,8 +1020,8 @@ const AddPurchaseForm = () => {
                     </FormHelperText>
                   )}
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              </Grid> */}
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mt: 10, mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     fullWidth
@@ -1048,6 +1036,28 @@ const AddPurchaseForm = () => {
                     customInput={<CustomInput label='Date' error={Boolean(errors.po_date)} />}
                   />
                   {errors.po_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    type='text'
+                    value={editParams.description}
+                    error={Boolean(errors.description)}
+                    label='Comments'
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        description: e.target.value
+                      })
+                      setErrors({})
+                    }}
+                  />
+                  {errors.description && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
