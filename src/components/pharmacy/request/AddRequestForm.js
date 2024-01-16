@@ -313,7 +313,7 @@ const AddRequestForm = () => {
     try {
       //params: { q: 'central', column: 'type' }
       const response = await getStoreList({ params: { q: 'central', column: 'type' } })
-
+      console.log('stores', response?.data?.list_items[0])
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
@@ -321,7 +321,7 @@ const AddRequestForm = () => {
           setEditParams({
             ...editParams,
             from_store_id: response?.data?.list_items[0].id,
-            from_store_type: storesType[filteredStoreType(response?.data?.list_items[0].id)]
+            from_store_type: response?.data?.list_items[0].type
           })
         }
       }
