@@ -85,22 +85,55 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
+  const [quantityError, setQuantityError] = useState(false)
 
   console.log('nestedMedicine', nestedMedicine)
   console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
-    onSubmitData({
-      request_item_batch_no: request_item_batch_no.value,
-      request_item_qty,
-      available_item_qty,
-      expiry_date,
-      request_item_medicine_id: request_item.value,
-      product_name: request_item.label,
-      priority_item: 'Normal'
-    })
+    const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
+
+    const isMedicineAlreadyExists = editParams.request_item_details.some(
+      item =>
+        item.request_item_medicine_id === request_item.value &&
+        item.request_item_batch_no === request_item_batch_no.value &&
+        nestedMedicine?.uuid !== item.uuid
+    )
+
+    if (isMedicineAlreadyExists) {
+      setBatchError(true)
+      setError('request_item_batch_no', {
+        type: 'manual',
+        message: 'Batch already exists'
+      })
+      console.log('Medicine already exists')
+
+      return
+    }
+
+    clearErrors('request_item_batch_no')
+
+    if (totalAvailableCount < 0) {
+      setQuantityError(true)
+
+      return
+    }
+    onSubmitData(
+      {
+        request_item_batch_no: request_item_batch_no.value,
+        request_item_qty,
+        available_item_qty,
+        expiry_date,
+        request_item_medicine_id: request_item.value,
+        product_name: request_item.label,
+        priority_item: 'Normal',
+        uuid: nestedMedicine?.uuid
+      },
+      type
+    )
   }
 
   useEffect(() => {
@@ -118,22 +151,25 @@ export const AddItemsForm = ({
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date
       })
+      async function searchMedicine() {
+        await searchMedicineData(nestedMedicine?.request_item_medicine_id)
+      }
+
+      async function searchBatch() {
+        await searchBatchData(nestedMedicine?.request_item_medicine_id)
+      }
+
+      searchMedicine()
+      searchBatch()
+
+      checkTotalCount()
     } else {
     }
+    checkTotalCount()
   }, [])
 
   useEffect(() => {
-    // setTotalAvailableCount(totalQuantity)
-
-    if (error !== '') {
-      setError('request_item_batch_no', {
-        type: 'manual',
-        message: 'Batch already exists'
-      })
-    }
-    if (!batchLoading) {
-      checkTotalCount()
-    }
+    checkTotalCount()
   }, [error, totalQuantity, batchLoading])
 
   const checkTotalCount = e => {
@@ -334,15 +370,15 @@ export const AddItemsForm = ({
           </Grid>
 
           <Grid item xs={12} sm={12} display={'flex'}>
-            <Typography>Available Quantity - </Typography>
+            <Typography>Available Quantity: </Typography>
             <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography>
           </Grid>
 
-          {/* {totalAvailableCount < 0 && !batchLoading && (
-            <Grid item xs={12} sm={12} display={'flex'}>
-              <Typography color={'error.main'}>Entered quantity should be lesser than available quantity</Typography>
+          {quantityError && (
+            <Grid item xs={12}>
+              <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
-          )} */}
+          )}
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'}>
             <Button type='submit' variant='contained'>
               Save

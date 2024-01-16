@@ -282,7 +282,7 @@ const AddReturnRequest = () => {
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
     } else {
-      console.error('updateTableItems error')
+      console.error('updateTable Items error')
     }
   }
 
@@ -488,6 +488,8 @@ const AddReturnRequest = () => {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
+
+      debugger
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
