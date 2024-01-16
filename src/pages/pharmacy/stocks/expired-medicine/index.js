@@ -115,7 +115,7 @@ const ExpiredMedicine = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_item_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_item_name}
@@ -130,17 +130,6 @@ const ExpiredMedicine = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.generic_name}
         </Typography>
       )
     },
