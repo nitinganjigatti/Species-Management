@@ -65,6 +65,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
+import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -331,7 +332,6 @@ const AddReturnRequest = () => {
     // setLoader(true)
     try {
       const response = await getStoreList({ params: { q: 'central', column: 'type' } })
-
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
@@ -339,7 +339,7 @@ const AddReturnRequest = () => {
           setEditParams({
             ...editParams,
             to_store_id: response?.data?.list_items[0].id,
-            to_store_type: storesType[filteredStoreType(response?.data?.list_items[0].id)]
+            to_store_type: response?.data?.list_items[0].type
           })
         }
       }
@@ -846,20 +846,18 @@ const AddReturnRequest = () => {
               alignItems: 'center'
             }}
           >
-            <CardHeader title='Return Request Item' />
-
-            <Button
-              sx={{
-                mx: { sm: 6, xs: 'auto' }
-              }}
-              size='big'
-              variant='contained'
-              onClick={() => {
-                Router.push('/pharmacy/return-product/request-list/')
-              }}
-            >
-              Request Item List
-            </Button>
+            <CardHeader
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    Router.push('/pharmacy/return-product/request-list/')
+                  }}
+                  icon='ep:back'
+                />
+              }
+              title='Return Request Item'
+            />
           </Grid>
           <CardContent>
             <Grid container>
@@ -986,6 +984,7 @@ const AddReturnRequest = () => {
           </CardContent>
           <Grid
             container
+            spacing={6}
             sm={12}
             xs={12}
             sx={{
@@ -995,7 +994,13 @@ const AddReturnRequest = () => {
               mb: 4
             }}
           >
-            <Button
+            <AddButton
+              title='Add Request Item'
+              action={() => {
+                handleSubmit()
+              }}
+            />
+            {/* <Button
               sx={{
                 mx: { sm: 6, xs: 'auto' }
               }}
@@ -1006,7 +1011,7 @@ const AddReturnRequest = () => {
               variant='contained'
             >
               Add Request Item
-            </Button>
+            </Button> */}
           </Grid>
 
           <TableContainer>
@@ -1115,18 +1120,32 @@ const AddReturnRequest = () => {
               </Grid>
             ) : null}
           </CardContent>
-          <LoadingButton
-            disabled={editParams.request_item_details.length > 0 ? false : true}
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            onClick={() => {
-              postItemsData()
-            }}
-            variant='contained'
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
+
+          <Grid item xs={12}>
+            <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+              <LoadingButton
+                disabled={editParams.request_item_details.length > 0 ? false : true}
+                sx={{ marginRight: '8px' }}
+                size='large'
+                onClick={() => {
+                  postItemsData()
+                }}
+                variant='contained'
+                loading={submitLoader}
+              >
+                Save
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            </Box>
+          </Grid>
         </Card>
       ) : (
         <>
