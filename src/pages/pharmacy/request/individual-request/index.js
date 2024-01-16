@@ -294,7 +294,13 @@ const IndividualRequest = () => {
       field: 'uid',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {params.row.uid}
         </Typography>
       )
@@ -306,7 +312,13 @@ const IndividualRequest = () => {
       headerName: 'Medicine Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            }}
+          >
             {params.row.stock_name}
           </Typography>
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
@@ -334,7 +346,13 @@ const IndividualRequest = () => {
       field: 'requested_qty',
       headerName: 'Requested QTY',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {params.row.requested_qty}
         </Typography>
       )
@@ -345,7 +363,13 @@ const IndividualRequest = () => {
       field: 'dispatch_qty',
       headerName: 'Fulfilled',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {params.row.dispatch_qty}
         </Typography>
       )
@@ -357,7 +381,13 @@ const IndividualRequest = () => {
       field: 'remaining',
       headerName: 'Remaining',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
         </Typography>
       )
@@ -414,7 +444,7 @@ const IndividualRequest = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'priority',
-      headerName: '',
+      headerName: 'Availability',
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' &&
@@ -446,6 +476,17 @@ const IndividualRequest = () => {
                 Make IT AVAILABLE
               </Button>
             )}
+
+          {selectedPharmacy.type === 'local' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              Not Available
+            </Typography>
+          )}
         </>
       )
     }
