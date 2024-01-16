@@ -377,7 +377,7 @@ export const AddItemsForm = ({
             </FormControl>
           </Grid>
           <Grid item xs={12}>
-            Total Quantity: {totalAvailableCount}
+            Available Quantity: {totalAvailableCount}
           </Grid>
           {quantityError && (
             <Grid item xs={12}>
