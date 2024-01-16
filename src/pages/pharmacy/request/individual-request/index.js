@@ -419,6 +419,17 @@ const IndividualRequest = () => {
               Fulfill
             </Button>
           )}
+
+          {selectedPharmacy.type === 'local' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              NA
+            </Typography>
+          )}
         </>
       )
     },
@@ -431,11 +442,17 @@ const IndividualRequest = () => {
       align: 'center',
       renderCell: params =>
         !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <img
-            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
-            alt='Medicine Image'
-            style={{ width: '60px', height: '60px' }}
-          />
+          <>
+            <IconButton
+              size='small'
+              onClick={() => {
+                window.open(`${base_url}${base_image_url}${params?.row?.control_substance_file}`, '_blank')
+              }}
+              aria-label='Attachment'
+            >
+              <Icon icon='mdi:link' />
+            </IconButton>
+          </>
         ) : (
           'NA'
         )
@@ -477,7 +494,7 @@ const IndividualRequest = () => {
               </Button>
             )}
 
-          {selectedPharmacy.type === 'local' && (
+          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
             <Typography
               variant='body2'
               sx={{
@@ -896,22 +913,21 @@ const IndividualRequest = () => {
                 />
               }
               title={`Request`}
-
-              // action={
-              //   requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
-              //     <Button
-              //       size='big'
-              //       variant='contained'
-              //       onClick={() => {
-              //         handleRequestEdit()
-              //       }}
-              //     >
-              //       Edit
-              //     </Button>
-              //   ) : (
-              //     <></>
-              //   )
-              // }
+              action={
+                selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                  <Button
+                    size='big'
+                    variant='contained'
+                    onClick={() => {
+                      handleRequestEdit()
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : (
+                  <></>
+                )
+              }
             />
             <CardContent>
               {/* Request Basic Info */}
