@@ -35,6 +35,8 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CustomChip from 'src/@core/components/mui/chip'
 
+import { v4 as uuidv4 } from 'uuid'
+
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
@@ -89,7 +91,8 @@ const initialNestedRowMedicine = {
   request_item_leaf_id: '',
   priority_item: 'Normal',
   control_substance: false,
-  control_substance_file: ''
+  control_substance_file: '',
+  uuid: ''
   // to_store_id: '14'
 }
 
@@ -104,12 +107,13 @@ const AddReturnRequest = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
+  const [totalBatchQuantity, setTotalBatchQuantity] = useState(0)
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [duplicateMedError, setDuplicateMedError] = useState('')
+  const [duplicateMedError, setDuplicateMedError] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
@@ -139,7 +143,11 @@ const AddReturnRequest = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
-    setDuplicateMedError('')
+    setDuplicateMedError(false)
+    // Resetting State
+    setOptionsBatchList([])
+    setOptionsMedicineList([])
+    setTotalBatchQuantity(0)
   }
 
   const showDialog = () => {
@@ -149,7 +157,7 @@ const AddReturnRequest = () => {
   // local nested items delete
   const removeItemsFroTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
-      return el.request_item_medicine_id != itemId
+      return el.uuid != itemId
     })
     setEditParams({ ...editParams, request_item_details: updatedItems })
     setMedicineItemId('')
@@ -225,35 +233,48 @@ const AddReturnRequest = () => {
     return errors
   }
 
-  const submitItems = params => {
+  const submitItems = (params, type) => {
+    debugger
+    setDuplicateMedError(false)
+
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
-        item.request_item_batch_no === params.request_item_batch_no
+        item.request_item_batch_no === params.request_item_batch_no &&
+        params.uuid !== item.uuid
     )
 
     if (isMedicineAlreadyExists) {
-      setDuplicateMedError('Batch already exists')
+      setDuplicateMedError(true)
       console.log('Medicine already exists')
 
       return
     }
+
     setErrors({})
-    addItemsToTable(params)
+    var tempParams = params
+    if (tempParams?.uuid === '') {
+      tempParams.uuid = uuidv4()
+      addItemsToTable(tempParams)
+    } else {
+      updateFormItems(params)
+    }
+
     closeDialog()
   }
 
-  const updateTableItems = () => {
+  const updateTableItems = params => {
+    debugger
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
-    const updatedIndex = updatedState.request_item_details.findIndex(row => row.request_item_medicine_id === itemId)
+    const updatedIndex = updatedState.request_item_details.findIndex(row => row.uuid === params.uuid)
 
     if (updatedIndex !== -1) {
       const updatedNestedRows = [...updatedState.request_item_details]
       updatedNestedRows[updatedIndex] = {
         ...updatedNestedRows[updatedIndex],
-        ...nestedRowMedicine
+        ...params
       }
       updatedState.request_item_details = updatedNestedRows
 
@@ -265,24 +286,23 @@ const AddReturnRequest = () => {
     }
   }
 
-  const updateFormItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+  const updateFormItems = params => {
+    const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
     // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
-      setItemErrors(validate(nestedRowMedicine))
+      setItemErrors(validate(params))
 
       return
     }
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    if (params.control_substance === true) {
+      if (params.control_substance_file.length === 0) {
+        setItemErrors(validate(params))
 
         return
       }
     }
     setErrors({})
-    updateTableItems()
+    updateTableItems(params)
   }
 
   const handleSubmit = () => {
@@ -357,13 +377,13 @@ const AddReturnRequest = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'all')
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
         // debugger
         if (searchResults?.success) {
           // debugger
 
-          if (searchResults?.data?.length > 0) {
-            // debugger
+          if (searchResults?.data?.items.length > 0) {
+            debugger
 
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
@@ -372,12 +392,15 @@ const AddReturnRequest = () => {
             // }))
             // console.log('searchResults', data)
             setOptionsBatchList(
-              searchResults?.data.map(item => ({
+              searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
                 label: item?.batch_no,
                 expiry_date: item?.expiry_date
               }))
             )
+            setTotalBatchQuantity(searchResults?.data?.total_quantity)
+          } else {
+            setTotalBatchQuantity(0)
           }
           // debugger
           console.log('searchResults', optionsBatchList)
@@ -392,6 +415,8 @@ const AddReturnRequest = () => {
         console.log('error', e)
         setOptionsBatchList([])
         setBatchLoading(false)
+        setOptionsBatchList([])
+        setTotalBatchQuantity(0)
       }
     }
   }
@@ -458,6 +483,7 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = itemId => {
+    debugger
     if (id != undefined && action === 'edit') {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
@@ -474,14 +500,15 @@ const AddReturnRequest = () => {
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
         control_substance_file: getItems[0].control_substance_file,
-        id: getItems[0].id
+        id: getItems[0].id,
+        uuid: getItems[0].uuid
       })
     } else {
       const getItems = editParams.request_item_details.filter(el => {
-        return el.request_item_medicine_id === itemId
+        return el.uuid === itemId
       })
 
-      // debugger
+      debugger
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -493,7 +520,8 @@ const AddReturnRequest = () => {
         request_item_qty: getItems[0].request_item_qty,
         control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
         priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance
+        control_substance: getItems[0].control_substance,
+        uuid: getItems[0].uuid
       })
     }
   }
@@ -549,21 +577,25 @@ const AddReturnRequest = () => {
   }
 
   // data posting section
-  const createForm = () => {
-    return (
-      <AddItemsForm
-        searchBatchData={searchBatchData}
-        searchMedicineData={searchMedicineData}
-        productList={optionsMedicineList}
-        productLoading={productLoading}
-        batchLoading={batchLoading}
-        onSubmitData={submitItems}
-        batchList={optionsBatchList}
-        nestedMedicine={nestedRowMedicine}
-        error={duplicateMedError}
-      />
-    )
-  }
+  // const createForm = () => {
+  //   debugger
+
+  //   return (
+  //     <AddItemsForm
+  //       searchBatchData={searchBatchData}
+  //       searchMedicineData={searchMedicineData}
+  //       productList={optionsMedicineList}
+  //       productLoading={productLoading}
+  //       batchLoading={batchLoading}
+  //       onSubmitData={submitItems}
+  //       batchList={optionsBatchList}
+  //       nestedMedicine={nestedRowMedicine}
+  //       error={duplicateMedError}
+  //       totalQuantity={totalBatchQuantity}
+  //       editParams={editParams}
+  //     />
+  //   )
+  // }
 
   return (
     <>
@@ -599,7 +631,21 @@ const AddReturnRequest = () => {
               <CommonDialogBox
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
-                formComponent={createForm()}
+                formComponent={
+                  <AddItemsForm
+                    searchBatchData={searchBatchData}
+                    searchMedicineData={searchMedicineData}
+                    productList={optionsMedicineList}
+                    productLoading={productLoading}
+                    batchLoading={batchLoading}
+                    onSubmitData={submitItems}
+                    batchList={optionsBatchList}
+                    nestedMedicine={nestedRowMedicine}
+                    error={duplicateMedError}
+                    totalQuantity={totalBatchQuantity}
+                    editParams={editParams}
+                  />
+                }
                 close={closeDialog}
                 show={showDialog}
               />
@@ -783,9 +829,10 @@ const AddReturnRequest = () => {
                               sx={{ mr: 0.5 }}
                               aria-label='Edit'
                               onClick={() => {
+                                debugger
                                 setMedicineItemId(el.request_item_medicine_id)
 
-                                editTableData(el.request_item_medicine_id)
+                                editTableData(el.uuid)
                                 showDialog()
                                 // }
                               }}
@@ -795,7 +842,8 @@ const AddReturnRequest = () => {
                             {id && el.request_item_detail_id ? null : (
                               <IconButton
                                 onClick={() => {
-                                  removeItemsFroTable(el.request_item_medicine_id)
+                                  debugger
+                                  removeItemsFroTable(el.uuid)
                                 }}
                                 size='small'
                                 sx={{ mr: 0.5 }}
