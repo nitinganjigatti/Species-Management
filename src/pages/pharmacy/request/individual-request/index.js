@@ -591,7 +591,7 @@ const IndividualRequest = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.request_status}
         </Typography>
       )
     }

@@ -536,7 +536,8 @@ const IndividualReturnRequest = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_status}
+          {/* {params.row.shipment_status} */}
+          {params.row?.request_status}
         </Typography>
       )
     },
@@ -745,7 +746,18 @@ const IndividualReturnRequest = () => {
             show={showOrderFormDialog}
           />
           <Card>
-            <CardHeader title={`Return Request`} />
+            <CardHeader
+              title={`Return Request`}
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    Router.push('/pharmacy/return-product/request-list/')
+                  }}
+                  icon='ep:back'
+                />
+              }
+            />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
