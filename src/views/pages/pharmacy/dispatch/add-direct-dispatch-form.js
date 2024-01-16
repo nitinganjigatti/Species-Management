@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
   CardContent,
@@ -10,7 +10,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button
+  Button,
+  Typography
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -57,7 +58,9 @@ export const AddItemsForm = ({
   batchLoading,
   batchList,
   nestedMedicine,
-  error
+  error,
+  totalQuantity,
+  editParams
 }) => {
   const {
     reset,
@@ -67,7 +70,8 @@ export const AddItemsForm = ({
     setValue,
     getValues,
     setError,
-    clearErrors
+    clearErrors,
+    watch
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -78,25 +82,104 @@ export const AddItemsForm = ({
 
   console.log('nestedMedicine', nestedMedicine)
   console.log('productList', productList)
+  console.log('batchList', batchList)
+
+  const [batchError, setBatchError] = useState(false)
+  const [totalAvailableCount, setTotalAvailableCount] = useState(0)
+  const [quantityError, setQuantityError] = useState(false)
+
+  debugger
 
   const onSubmit = async params => {
-    // debugger
+    setBatchError(false)
+    debugger
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
-    onSubmitData({
-      request_item_batch_no: request_item_batch_no.value,
-      request_item_qty,
-      available_item_qty,
-      expiry_date,
-      request_item_medicine_id: request_item.value,
-      product_name: request_item.label,
-      priority_item: 'Normal'
+    const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
-      // to_store_id: '14'
-    })
+    const isMedicineAlreadyExists = editParams.request_item_details.some(
+      item =>
+        item.request_item_medicine_id === request_item.value &&
+        item.request_item_batch_no === request_item_batch_no.value &&
+        nestedMedicine?.uuid !== item.uuid
+    )
+
+    if (isMedicineAlreadyExists) {
+      setBatchError(true)
+      setError('request_item_batch_no', {
+        type: 'manual',
+        message: 'Batch already exists'
+      })
+      console.log('Medicine already exists')
+
+      return
+    }
+
+    clearErrors('request_item_batch_no')
+
+    if (totalAvailableCount < 0) {
+      setQuantityError(true)
+
+      return
+    }
+
+    onSubmitData(
+      {
+        request_item_batch_no: request_item_batch_no.value,
+        request_item_qty,
+        available_item_qty,
+        expiry_date,
+        request_item_medicine_id: request_item.value,
+        product_name: request_item.label,
+        priority_item: 'Normal',
+        uuid: nestedMedicine?.uuid
+
+        // to_store_id: '14'
+      },
+      type
+    )
+  }
+
+  const checkTotalCount = e => {
+    console.log('nestedMedicine', nestedMedicine)
+    debugger
+
+    // console.log('editParams', editParams)
+    const productId = watch('request_item')
+    const quantity = watch('request_item_qty')
+    debugger
+    var totalCount = 0
+    var enteredCount = 0
+    var nestedItemQuantity = 0
+
+    if (e?.target?.value !== undefined) {
+      enteredCount = isNaN(parseInt(e?.target?.value)) ? 0 : parseInt(e?.target?.value)
+    } else {
+      enteredCount = isNaN(parseInt(quantity)) ? 0 : parseInt(quantity)
+    }
+
+    if (productId !== undefined) {
+      const filteredList = editParams?.request_item_details?.filter(
+        item => item.request_item_medicine_id === productId?.value
+      )
+      totalCount = filteredList.reduce((acc, item) => acc + parseInt(item.request_item_qty), 0)
+    }
+
+    if (nestedMedicine.request_item_qty !== '') {
+      nestedItemQuantity = nestedMedicine?.request_item_qty
+    }
+
+    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    debugger
+    setTotalAvailableCount(available_qty)
   }
 
   useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+    checkTotalCount()
+  }, [totalQuantity])
+
+  useEffect(() => {
+    debugger
+    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -110,16 +193,22 @@ export const AddItemsForm = ({
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date
       })
+      async function searchMedicine() {
+        await searchMedicineData(nestedMedicine?.request_item_medicine_id)
+      }
+
+      async function searchBatch() {
+        await searchBatchData(nestedMedicine?.request_item_medicine_id)
+      }
+
+      searchMedicine()
+      searchBatch()
+
+      checkTotalCount()
     } else {
     }
-
-    if (error !== '') {
-      setError('request_item_batch_no', {
-        type: 'manual',
-        message: 'Batch already exists'
-      })
-    }
-  }, [error])
+    checkTotalCount()
+  }, [])
 
   return (
     <>
@@ -151,6 +240,7 @@ export const AddItemsForm = ({
                       if (value !== '' && value !== null) {
                         searchBatchData(value.value)
                       }
+                      checkTotalCount()
                     }} // Set selected value
                     loading={productLoading}
                     noOptionsText='Type to search'
@@ -193,6 +283,7 @@ export const AddItemsForm = ({
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       clearErrors('request_item_batch_no')
+                      checkTotalCount()
 
                       // seValu
                     }} // Set selected value
@@ -227,6 +318,9 @@ export const AddItemsForm = ({
                     name='request_item_qty'
                     error={Boolean(errors.request_item_qty)}
                     onChange={onChange}
+                    onKeyDown={checkTotalCount}
+                    onPaste={checkTotalCount}
+                    onInput={checkTotalCount}
                   />
                 )}
               >
@@ -282,6 +376,14 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid>
+          <Grid item xs={12}>
+            Total Quantity: {totalAvailableCount}
+          </Grid>
+          {quantityError && (
+            <Grid item xs={12}>
+              <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+            </Grid>
+          )}
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'}>
             <Button type='submit' variant='contained'>
               Save
