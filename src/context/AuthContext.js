@@ -190,32 +190,36 @@ const AuthProvider = ({ children }) => {
       .post(url, params)
       .then(async response => {
         debugger
-        console.log('login response', response?.data)
-        window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
-        const returnUrl = router.query.returnUrl
+        if (response?.data?.message !== 'Invalid Username/Email or Password') {
+          console.log('login response', response?.data)
+          window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
+          const returnUrl = router.query.returnUrl
 
-        // setUser({ ...response.data.data.providerProfile })
-        const resData = response?.data
-        write('userDetails', resData)
+          // setUser({ ...response.data.data.providerProfile })
+          const resData = response?.data
+          write('userDetails', resData)
 
-        const userData = {
-          email: resData?.user?.user_email,
-          fullName: resData?.user?.user_first_name,
-          lastName: resData?.user?.user_last_name,
-          role: 'admin',
-          id: resData?.roles?.role_id,
+          const userData = {
+            email: resData?.user?.user_email,
+            fullName: resData?.user?.user_first_name,
+            lastName: resData?.user?.user_last_name,
+            role: 'admin',
+            id: resData?.roles?.role_id,
 
-          // role: resData.roles.role_name,
-          username: resData?.user?.user_first_name
+            // role: resData.roles.role_name,
+            username: resData?.user?.user_first_name
+          }
+          debugger
+          write('role', resData?.roles?.role_name)
+          write('userData', userData)
+          setUserData({ ...resData })
+          setUser({ ...userData })
+
+          const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+          router.replace(redirectURL)
+        } else {
+          if (errorCallback) errorCallback(err)
         }
-        debugger
-        write('role', resData?.roles?.role_name)
-        write('userData', userData)
-        setUserData({ ...resData })
-        setUser({ ...userData })
-
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-        router.replace(redirectURL)
       })
       .catch(err => {
         if (errorCallback) errorCallback(err)
