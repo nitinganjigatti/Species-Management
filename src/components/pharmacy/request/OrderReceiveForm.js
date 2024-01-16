@@ -425,9 +425,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 </Grid>
               ) : (
                 <Grid container>
-                  {/* dispute_status params.row.status */}
-                  {params.row.status === 'Missing' ||
-                  (params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved') ? (
+                  {((params.row.status === 'Missing' || params.row.status === 'Wrong Count') &&
+                    params?.row?.dispute_status === 'Not Resolved') ||
+                  (params.row.status === '' && params.row.id !== '') ? (
                     <Grid xs={12} sm={12}>
                       <FormControl fullWidth size='small'>
                         <Select
