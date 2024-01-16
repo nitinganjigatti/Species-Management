@@ -174,7 +174,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
@@ -314,7 +314,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}

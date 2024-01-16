@@ -114,7 +114,7 @@ const StockOut = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_item_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_item_name}
