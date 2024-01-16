@@ -414,7 +414,7 @@ const IndividualRequest = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'priority',
-      headerName: '',
+      headerName: 'Medicine Availability',
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' &&

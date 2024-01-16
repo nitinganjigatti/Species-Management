@@ -269,7 +269,7 @@ const ListOfRacks = () => {
       ) : (
         <>
           <TableWithFilter
-            TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
+            TableTitle='Rack List'
             headerActions={
               <div>
                 <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />

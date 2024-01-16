@@ -37,7 +37,8 @@ export const ProductNotAvailable = props => {
           onClick={() => handleClose(true)}
           loading={loading}
         >
-          {selectedValue?.available ? `Available` : `Not available`}
+          {/* {selectedValue?.available ? `Available` : `Not available`} */}
+          Confirm
         </LoadingButton>
       </DialogActions>
     </Dialog>
