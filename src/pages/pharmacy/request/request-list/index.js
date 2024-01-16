@@ -278,7 +278,15 @@ const RequestList = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipping_status}
+          {params.row.shipping_status === 'Shipped' ? (
+            <Box sx={{ color: 'success.main' }}>
+              <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+            </Box>
+          ) : (
+            <Box sx={{ color: 'warning.main' }}>
+              <Icon icon={'material-symbols:deployed-code-history'} style={{ color: 'primary.warning' }}></Icon>
+            </Box>
+          )}
         </Typography>
       )
     }
