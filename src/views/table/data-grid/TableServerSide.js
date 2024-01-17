@@ -195,6 +195,15 @@ const TableServerSide = ({ columns, getCall }) => {
     <Card>
       <CardHeader title='Server Side' />
       <DataGrid
+        sx={{
+          '.MuiDataGrid-cell:focus': {
+            outline: 'none'
+          },
+
+          '& .MuiDataGrid-row:hover': {
+            cursor: 'pointer'
+          }
+        }}
         hideFooterSelectedRowCount
         disableColumnSelector={true}
         autoHeight

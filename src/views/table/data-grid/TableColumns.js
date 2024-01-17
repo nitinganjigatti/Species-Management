@@ -171,6 +171,15 @@ const TableColumns = () => {
         }
       />
       <DataGrid
+        sx={{
+          '.MuiDataGrid-cell:focus': {
+            outline: 'none'
+          },
+
+          '& .MuiDataGrid-row:hover': {
+            cursor: 'pointer'
+          }
+        }}
         hideFooterSelectedRowCount
         disableColumnSelector={true}
         autoHeight

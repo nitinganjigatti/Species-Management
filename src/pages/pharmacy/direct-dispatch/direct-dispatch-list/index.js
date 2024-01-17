@@ -289,11 +289,21 @@ const DirectDispatchList = () => {
                 title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
                 action={headerAction}
               />
+
               <DataGrid
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
                 autoHeight
                 pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 total
