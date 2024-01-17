@@ -291,10 +291,19 @@ const ReturnRequestList = () => {
             <Card>
               <CardHeader title='Return request List' action={headerAction} />
               <DataGrid
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
                 autoHeight
                 pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 total

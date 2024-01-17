@@ -178,6 +178,15 @@ const ExpiredMedicine = () => {
           <Card>
             <CardHeader title='Expired products' />
             <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               autoHeight

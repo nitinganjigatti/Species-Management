@@ -50,6 +50,15 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
       {inpFields ? inpFields : null}
       {rows?.length > 0 ? (
         <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
           autoHeight
           hideFooterSelectedRowCount
           disableColumnSelector={true}
