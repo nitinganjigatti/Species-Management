@@ -352,6 +352,8 @@ const RequestList = () => {
           <Card>
             <CardHeader title='Request List' action={headerAction} />
             <DataGrid
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}

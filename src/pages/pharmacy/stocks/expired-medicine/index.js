@@ -178,6 +178,8 @@ const ExpiredMedicine = () => {
           <Card>
             <CardHeader title='Expired products' />
             <DataGrid
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}

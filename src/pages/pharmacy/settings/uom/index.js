@@ -278,6 +278,8 @@ const ListOfUOM = () => {
                 <DataGrid
                   autoHeight
                   pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
                   columns={columns}

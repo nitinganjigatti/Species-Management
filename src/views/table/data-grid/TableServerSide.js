@@ -137,8 +137,6 @@ const TableServerSide = ({ columns, getCall }) => {
   function loadServerRows(currentPage, data) {
     debugger
 
-    // console.log(data?.slice(currentPage * paginationModel.pageSize, (currentPage + 1) * paginationModel.pageSize))
-
     return data
   }
 
@@ -197,6 +195,8 @@ const TableServerSide = ({ columns, getCall }) => {
     <Card>
       <CardHeader title='Server Side' />
       <DataGrid
+        hideFooterSelectedRowCount
+        disableColumnSelector={true}
         autoHeight
         pagination
         rows={rows}

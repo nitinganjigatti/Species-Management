@@ -291,6 +291,8 @@ const ReturnRequestList = () => {
             <Card>
               <CardHeader title='Return request List' action={headerAction} />
               <DataGrid
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 autoHeight
                 pagination
                 rows={indexedRows === undefined ? [] : indexedRows}
