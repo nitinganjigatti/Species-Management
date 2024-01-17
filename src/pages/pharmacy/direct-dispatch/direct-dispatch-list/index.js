@@ -215,6 +215,8 @@ const DirectDispatchList = () => {
       minWidth: 20,
       field: 'total_qty',
       headerName: 'Total Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
