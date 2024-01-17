@@ -72,7 +72,7 @@ const ListOfMedicine = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'PRODUCT NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
