@@ -76,66 +76,74 @@ const AuthProvider = ({ children }) => {
       if (storedToken) {
         const userObj = read('userData')
         if (userObj) {
-          const resData = await callRefreshToken()
-          setLoading(false)
-          if (resData.token) {
-            const options = resData?.modules?.pharmacy_data?.pharmacy
-            const storedPharmacy = await readAsync('selectedStore')
+          debugger
+          try {
+            const resData = await callRefreshToken()
+            debugger
+            setLoading(false)
+            if (resData.token) {
+              const options = resData?.modules?.pharmacy_data?.pharmacy
+              const storedPharmacy = await readAsync('selectedStore')
 
-            const foundStored = () => {
-              if (options?.length > 0 && storedPharmacy !== undefined) {
-                return options.some(item => item?.id === storedPharmacy?.id)
+              const foundStored = () => {
+                if (options?.length > 0 && storedPharmacy !== undefined) {
+                  return options.some(item => item?.id === storedPharmacy?.id)
+                }
+
+                return false
               }
 
-              return false
-            }
+              const findSelectedPharmacy = () => {
+                let foundPharmacy = ''
+                if (options?.length > 0 && storedPharmacy !== undefined) {
+                  foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+                }
 
-            const findSelectedPharmacy = () => {
-              let foundPharmacy = ''
-              if (options?.length > 0 && storedPharmacy !== undefined) {
-                foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+                const areArraysEqual =
+                  JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+
+                // return areArraysEqual
+                if (areArraysEqual === false) {
+                  write('selectedStore', foundPharmacy)
+                  setSelectedPharmacy(foundPharmacy)
+                }
+
+                // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
               }
+              findSelectedPharmacy()
+              if (storedPharmacy === '' || foundStored() === false) {
+                if (options?.length > 0) {
+                  write('selectedStore', options[0])
 
-              const areArraysEqual =
-                JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
-
-              // return areArraysEqual
-              if (areArraysEqual === false) {
-                write('selectedStore', foundPharmacy)
-                setSelectedPharmacy(foundPharmacy)
-              }
-
-              // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
-            }
-            findSelectedPharmacy()
-            if (storedPharmacy === '' || foundStored() === false) {
-              if (options?.length > 0) {
-                write('selectedStore', options[0])
-
-                setSelectedPharmacy(options[0])
+                  setSelectedPharmacy(options[0])
+                } else {
+                  localStorage.removeItem('selectedStore')
+                }
               } else {
-                localStorage.removeItem('selectedStore')
+                setSelectedPharmacy(storedPharmacy)
               }
+
+              const userData = {
+                email: resData?.user?.user_email,
+                fullName: resData?.user?.user_first_name,
+                lastName: resData?.user?.user_last_name,
+                role: 'admin',
+                id: resData?.roles?.role_id,
+
+                // role: resData.roles.role_name,
+                username: resData?.user?.user_first_name
+              }
+              write('role', resData?.roles?.role_name)
+              write('userData', userData)
+
+              setUser({ ...userData })
+              setUserData({ ...resData })
             } else {
-              setSelectedPharmacy(storedPharmacy)
+              logOutUser()
+              router.replace('/login')
             }
-
-            const userData = {
-              email: resData?.user?.user_email,
-              fullName: resData?.user?.user_first_name,
-              lastName: resData?.user?.user_last_name,
-              role: 'admin',
-              id: resData?.roles?.role_id,
-
-              // role: resData.roles.role_name,
-              username: resData?.user?.user_first_name
-            }
-            write('role', resData?.roles?.role_name)
-            write('userData', userData)
-
-            setUser({ ...userData })
-            setUserData({ ...resData })
-          } else {
+          } catch (e) {
+            console.log(e)
             logOutUser()
             router.replace('/login')
           }
