@@ -21,6 +21,7 @@ import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
+import Utility from 'src/utility'
 
 const ListOfPurchase = () => {
   /***** Server side pagination */
@@ -151,6 +152,8 @@ const ListOfPurchase = () => {
       minWidth: 20,
       field: 'total_amount',
       headerName: 'TOTAL AMOUNT',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_amount}
@@ -162,6 +165,8 @@ const ListOfPurchase = () => {
       minWidth: 20,
       field: 'tax_amount',
       headerName: 'TAX AMOUNT',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.tax_amount}
@@ -174,6 +179,8 @@ const ListOfPurchase = () => {
       minWidth: 20,
       field: 'discount_amount',
       headerName: 'DISCOUNT AMOUNT',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.discount_amount}
@@ -181,17 +188,17 @@ const ListOfPurchase = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'paid_amount',
-    //   headerName: 'PAID AMOUNT',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.paid_amount}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'po_date',
+      headerName: 'Purchase Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.po_date)}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,

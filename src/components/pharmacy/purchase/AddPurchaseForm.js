@@ -1092,13 +1092,13 @@ const AddPurchaseForm = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
-              <TableCell>Product Name</TableCell>
-              <TableCell>Batch</TableCell>
+              <TableCell width='30%'>Product Name</TableCell>
+              <TableCell width='10%'>Batch</TableCell>
               <TableCell>Expiry Date</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Supplier Rate</TableCell>
-              <TableCell>Total Purchase price</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell align='right'>Quantity</TableCell>
+              <TableCell align='right'>Rate</TableCell>
+              <TableCell align='right'>Price</TableCell>
+              <TableCell align='right'>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1108,12 +1108,12 @@ const AddPurchaseForm = () => {
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
                       <TableCell>{el.purchase_batch_no}</TableCell>
-                      <TableCell>{el.purchase_expiry_date}</TableCell>
-                      <TableCell>{el.purchase_qty}</TableCell>
-                      <TableCell>{el.purchase_unit_price}</TableCell>
-                      <TableCell>{el.purchase_purchase_price}</TableCell>
+                      <TableCell>{Utility.formatDisplayDate(el.purchase_expiry_date)}</TableCell>
+                      <TableCell align='right'>{el.purchase_qty}</TableCell>
+                      <TableCell align='right'>{el.purchase_unit_price}</TableCell>
+                      <TableCell align='right'>{el.purchase_purchase_price}</TableCell>
 
-                      <TableCell>
+                      <TableCell align='center'>
                         <IconButton
                           size='small'
                           sx={{ mr: 0.5 }}
@@ -1146,99 +1146,106 @@ const AddPurchaseForm = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      <CardContent sx={{ pt: 8 }}>
+      <Grid item xs={6}>
         {/* {totalQty ? ( */}
         <Grid container>
           <Grid
             item
             xs={12}
-            sm={3}
-            lg={3}
+            sm={4}
+            lg={4}
             sx={{
               mb: { sm: 0, xs: 4 },
+              mt: { xs: 4 },
               order: { sm: 2, xs: 1 },
               marginLeft: 'auto',
               mr: { sm: 12, xs: 0 }
             }}
           >
-            <CalcWrapper>
-              <Typography variant='body2'>Sub Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>GST :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <InputLabel>Discount</InputLabel>
-                    <Select
-                      label='Discount'
-                      value={editParams.discount_type}
-                      onChange={event => {
-                        setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
-                        setErrors({})
-                      }}
-                    >
-                      <MenuItem value='P'>%</MenuItem>
-                      <MenuItem value='F'>₹</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='text'
-                      value={
-                        editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount
-                      }
-                      label='Discount'
-                      onChange={event => {
-                        const val = event.target.value
+            <Card>
+              <CardContent sx={{ pt: 8 }}>
+                <CalcWrapper>
+                  <Typography variant='body2'>Sub Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>GST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Discount</InputLabel>
+                        <Select
+                          label='Discount'
+                          value={editParams.discount_type}
+                          onChange={event => {
+                            setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
+                            setErrors({})
+                          }}
+                        >
+                          <MenuItem value='P'>%</MenuItem>
+                          <MenuItem value='F'>₹</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <TextField
+                          type='text'
+                          value={
+                            editParams.discount_type === 'P'
+                              ? editParams.discount_percentage
+                              : editParams.discount_amount
+                          }
+                          label='Discount'
+                          onChange={event => {
+                            const val = event.target.value
 
-                        calculateFinalAmount(val)
-                        setErrors({})
-                        setValidateDiscount('')
-                      }}
-                    />
-                  </FormControl>
-                  {validateDiscount && (
-                    <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
-                      This is required
-                    </FormHelperText>
-                  )}
-                </Grid>
-              </Grid>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>Grand Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
-              </Typography>
-            </CalcWrapper>
+                            calculateFinalAmount(val)
+                            setErrors({})
+                            setValidateDiscount('')
+                          }}
+                        />
+                      </FormControl>
+                      {validateDiscount && (
+                        <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
+                          This is required
+                        </FormHelperText>
+                      )}
+                    </Grid>
+                  </Grid>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>Grand Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
+                  </Typography>
+                </CalcWrapper>
 
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
         {/* // ) : null} */}
-      </CardContent>
+      </Grid>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           <LoadingButton

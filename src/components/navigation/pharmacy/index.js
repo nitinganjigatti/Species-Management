@@ -232,8 +232,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
   }
 
-  debugger
-
   if (pharmacyRole && selectedPharmacy === '') {
     settingsParent.children.push(storeList)
     pharmacyNavigationArray.push(settingsParent)

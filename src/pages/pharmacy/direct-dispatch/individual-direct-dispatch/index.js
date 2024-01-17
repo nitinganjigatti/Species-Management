@@ -921,7 +921,7 @@ const IndividualRequest = () => {
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
               </>
             ) : null}
-            {disputedItems?.length > 0 ? (
+            {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -940,7 +940,7 @@ const IndividualRequest = () => {
                   show={showDisputeDialog}
                 />
               </>
-            ) : null}
+            ) : null} */}
             {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>

@@ -208,6 +208,11 @@ const RequestList = () => {
             {params.row.control_substance === '1' && (
               <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label='CS' color='success' />
             )}
+            {params.row.dispute !== null && (
+              <IconButton alignSelf='center' color='error'>
+                <Icon icon='material-symbols:error-outline' fontSize={20} style={{ color: 'primary.warning' }} />
+              </IconButton>
+            )}
           </Typography>
         </>
       )
