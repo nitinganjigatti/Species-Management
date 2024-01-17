@@ -309,7 +309,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography
@@ -345,6 +345,8 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'requested_qty',
       headerName: 'Requested QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -361,7 +363,9 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled',
+      headerName: 'Packed/Shipped',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -375,28 +379,31 @@ const IndividualRequest = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'remaining',
-      headerName: 'Remaining',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
-          }}
-        >
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'remaining',
+    //   headerName: 'Remaining',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: 'text.primary',
+    //         textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+    //       }}
+    //     >
+    //       {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
       field: '',
       headerName: 'Action',
+      align: 'right',
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' && (
@@ -416,7 +423,7 @@ const IndividualRequest = () => {
                 showDialog()
               }}
             >
-              Fulfill
+              Pack & Ship
             </Button>
           )}
 
@@ -475,7 +482,7 @@ const IndividualRequest = () => {
                   handleProductNotAvailableAction(params.row.id, false)
                 }}
               >
-                NOT AVAILABLE
+                MAKE IT NOT AVAILABLE
               </Button>
             )}
 
@@ -490,7 +497,7 @@ const IndividualRequest = () => {
                   handleProductNotAvailableAction(params.row.id, true)
                 }}
               >
-                Make IT AVAILABLE
+                MAKE IT AVAILABLE
               </Button>
             )}
 
@@ -526,7 +533,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -562,7 +569,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilledDate',
-      headerName: 'Fulfilled Date',
+      headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
@@ -574,7 +581,9 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled QTY',
+      headerName: 'Packed QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -912,7 +921,7 @@ const IndividualRequest = () => {
                   icon='ep:back'
                 />
               }
-              title={`Request`}
+              title={`Request - ${requestItems?.request_number}`}
               action={
                 selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
                   <Button
@@ -932,15 +941,15 @@ const IndividualRequest = () => {
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                <Grid item xs={3}>
+                <Grid item xs={3} alignItems={'center'}>
                   <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={3} alignItems={'center'}>
                   <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={3} alignItems={'center'}>
                   <h5 style={{ marginBottom: '0px' }}>Date</h5>
                   <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                 </Grid>
@@ -961,7 +970,7 @@ const IndividualRequest = () => {
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
+                      <h5 style={{ marginBottom: '0px' }}>Ready to Ship</h5>
                     </Grid>
                     {(selectedPharmacy.permission.key === 'ADD' ||
                       selectedPharmacy.permission.key === 'allow_full_access') && (
@@ -1066,7 +1075,7 @@ const IndividualRequest = () => {
                       alignItems: 'center'
                     }}
                   >
-                    <CardHeader title={`Fulfill Request`} />
+                    <CardHeader title={`Fulfillment`} />
                     <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
                       <Icon icon='mdi:close' />
                     </IconButton>

@@ -69,9 +69,9 @@ const schema = yup.object().shape({
       expiry_date: yup.string().required('Expiry Date is required'),
       qty: yup
         .number()
-        .typeError('Quantity must be a number')
-        .positive('Quantity must be a positive number')
         .required('Quantity is required')
+        .typeError('Quantity should be a number')
+        .positive('Quantity must be a positive number')
         .moreThan(0, 'Quantity must be greater than zero')
     })
   )
@@ -478,10 +478,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     console.log(params)
 
     const totalQuantity = getTotalMedicineQuantity(params)
-
+    debugger
     if (
       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0 &&
-      totalProductCount <= checkNumber(fulfilledQuantity)
+      checkNumber(fulfilledQuantity) <= totalProductCount
     ) {
       return
     }
@@ -708,7 +708,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               }}
                               render={({ field: { value, onChange } }) => (
                                 <TextField
-                                  type='number'
+                                  type='text'
                                   value={value}
                                   label='Quantity'
                                   onChange={onChange}
@@ -749,7 +749,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   </FormGroup>
                 </Grid>
               </Grid>
-              {fulfilledQuantity > 0 ? (
+              {/* {fulfilledQuantity > 0 ? (
                 <>
                   <Grid container>
                     <Grid xs={12} style={{ textAlign: 'left', fontWeight: 'bold', marginTop: '10px' }}>
@@ -762,17 +762,15 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     </Grid>
                   </Grid>
                 </>
-              ) : null}
+              ) : null} */}
 
               <>
                 {fulfilledQuantity >
                 checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
-                    <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
+                    <StyledErrorText>The selected quantity is greater than the quantity requested</StyledErrorText>
                   </div>
                 ) : null}
-
-                {console.log('fulfillMedicine?.dispatch_qty', checkNumber(fulfilledQuantity))}
 
                 {totalProductCount <= checkNumber(fulfilledQuantity) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>

@@ -259,6 +259,8 @@ const RequestList = () => {
       minWidth: 20,
       field: 'total_qty',
       headerName: 'TOTAL ITEMS',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
@@ -270,7 +272,11 @@ const RequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilled_qty',
-      headerName: 'FULFILLED',
+
+      // headerName: 'FULFILLED',
+      headerName: 'PACKED/SHIPPED',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.fulfilled_qty}
