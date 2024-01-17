@@ -137,8 +137,6 @@ const TableServerSide = ({ columns, getCall }) => {
   function loadServerRows(currentPage, data) {
     debugger
 
-    // console.log(data?.slice(currentPage * paginationModel.pageSize, (currentPage + 1) * paginationModel.pageSize))
-
     return data
   }
 
