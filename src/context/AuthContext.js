@@ -76,10 +76,8 @@ const AuthProvider = ({ children }) => {
       if (storedToken) {
         const userObj = read('userData')
         if (userObj) {
-          debugger
           try {
             const resData = await callRefreshToken()
-            debugger
             setLoading(false)
             if (resData.token) {
               const options = resData?.modules?.pharmacy_data?.pharmacy
@@ -167,7 +165,6 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
-    debugger
     setUser(null)
     setUserData(null)
     setLoading(false)
@@ -197,7 +194,6 @@ const AuthProvider = ({ children }) => {
     axios
       .post(url, params)
       .then(async response => {
-        debugger
         if (response?.data?.message !== 'Invalid Username/Email or Password') {
           console.log('login response', response?.data)
           window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
@@ -217,7 +213,6 @@ const AuthProvider = ({ children }) => {
             // role: resData.roles.role_name,
             username: resData?.user?.user_first_name
           }
-          debugger
           write('role', resData?.roles?.role_name)
           write('userData', userData)
           setUserData({ ...resData })

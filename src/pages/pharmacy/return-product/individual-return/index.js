@@ -218,12 +218,12 @@ const IndividualReturnRequest = () => {
     }
   }, [id])
 
-  useEffect(() => {
-    if (id !== undefined && orderFormDialog === false) {
-      getDisputeItems(id)
-      getDispenseItems(id)
-    }
-  }, [orderFormDialog])
+  // useEffect(() => {
+  //   if (id !== undefined && orderFormDialog === false) {
+  //     getDisputeItems(id)
+  //     getDispenseItems(id)
+  //   }
+  // }, [orderFormDialog])
 
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
@@ -825,7 +825,7 @@ const IndividualReturnRequest = () => {
                 <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
               </>
             ) : null}
-            {disputedItems?.length > 0 ? (
+            {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -864,7 +864,7 @@ const IndividualReturnRequest = () => {
                   show={showDispenseDialog}
                 />
               </>
-            ) : null}
+            ) : null} */}
           </Card>
           {/* Fulfill Request Dialog */}
           <CardContent>
