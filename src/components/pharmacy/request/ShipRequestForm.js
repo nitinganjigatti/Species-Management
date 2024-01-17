@@ -62,14 +62,24 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
         // delivery_mode: yup.string().required('Delivery Mode is required'),
         vehicle_no: yup.string().required('Vehicle Number is required'),
-        phone_number: yup.number().required('Mobile Number is required')
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
     : yup.object().shape({
         receiver_name: yup.string().required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
 
         // delivery_mode: yup.string().required('Delivery Mode is required'),
-        phone_number: yup.number().required('Mobile Number is required')
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
 
   const {
