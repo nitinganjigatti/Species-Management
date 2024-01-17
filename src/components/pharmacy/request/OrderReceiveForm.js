@@ -2,7 +2,7 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
+import { Grid, FormControl, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
@@ -15,9 +15,6 @@ import toast from 'react-hot-toast'
 
 import {
   getShipmentOrderDetails,
-  addDisputeItems,
-  addDispenseItems,
-  getDisputeItemById,
   getShipmentStatusList,
   resolveDisputeItems
 } from 'src/lib/api/pharmacy/getShipmentList'
@@ -425,9 +422,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 </Grid>
               ) : (
                 <Grid container>
-                  {((params.row.status === 'Missing' || params.row.status === 'Wrong Count') &&
+                  {((params.row.status === 'Missing' ||
+                    params.row.status === 'Wrong Count' ||
+                    params.row.status === '') &&
                     params?.row?.dispute_status === 'Not Resolved') ||
-                  (params.row.status === '' && params.row.id !== '') ? (
+                  !params?.row?.dispute_status ? (
                     <Grid xs={12} sm={12}>
                       <FormControl fullWidth size='small'>
                         <Select
