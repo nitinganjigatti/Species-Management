@@ -239,6 +239,8 @@ const ListOfPurchase = () => {
             <Card>
               <CardHeader title='Purchase List' action={headerAction} />
               <DataGrid
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 autoHeight
                 pagination
                 rows={indexedRows === undefined ? [] : indexedRows}

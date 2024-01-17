@@ -197,6 +197,8 @@ const TableServerSide = ({ columns, getCall }) => {
     <Card>
       <CardHeader title='Server Side' />
       <DataGrid
+        hideFooterSelectedRowCount
+        disableColumnSelector={true}
         autoHeight
         pagination
         rows={rows}

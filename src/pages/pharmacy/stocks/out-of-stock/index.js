@@ -188,6 +188,8 @@ const StockOut = () => {
           <Card>
             <CardHeader title='Out of Stock' />
             <DataGrid
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}

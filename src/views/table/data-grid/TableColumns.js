@@ -171,6 +171,8 @@ const TableColumns = () => {
         }
       />
       <DataGrid
+        hideFooterSelectedRowCount
+        disableColumnSelector={true}
         autoHeight
         rows={rows}
         columns={columns}

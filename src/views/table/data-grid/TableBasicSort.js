@@ -147,6 +147,8 @@ const TableSort = () => {
         }
       />
       <DataGrid
+        hideFooterSelectedRowCount
+        disableColumnSelector={true}
         autoHeight
         rows={rows}
         columns={columns}

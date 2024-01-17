@@ -51,6 +51,8 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
       {rows?.length > 0 ? (
         <DataGrid
           autoHeight
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
           columns={columns}
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
