@@ -296,7 +296,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -308,23 +308,26 @@ const IndividualReturnRequest = () => {
         </div>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'priority',
-      headerName: 'Priority',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.priority}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'priority',
+    //   headerName: 'Priority',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.priority}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_qty',
-      headerName: 'Requested QTY',
+      headerName: 'return QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -335,7 +338,9 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled',
+      headerName: 'Packed/Shipped',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -343,17 +348,17 @@ const IndividualReturnRequest = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'remaining',
-      headerName: 'Remaining',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'remaining',
+    //   headerName: 'Remaining',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -373,27 +378,27 @@ const IndividualReturnRequest = () => {
                 showDialog()
               }}
             >
-              Fulfill
+              Pack & Ship
             </Button>
           )}
         </>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'attachment',
-      headerName: 'Attachment',
-      renderCell: params =>
-        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <img
-            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
-            alt='Medicine Image'
-            style={{ width: '60px', height: '60px' }}
-          />
-        ) : null
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'attachment',
+    //   headerName: 'Attachment',
+    //   renderCell: params =>
+    //     !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+    //       <img
+    //         src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
+    //         alt='Medicine Image'
+    //         style={{ width: '60px', height: '60px' }}
+    //       />
+    //     ) : null
+    // }
   ]
 
   const fulfillColumns = [
@@ -413,7 +418,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -449,7 +454,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilledDate',
-      headerName: 'Fulfilled Date',
+      headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
@@ -461,7 +466,9 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled QTY',
+      headerName: 'Packed QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -789,7 +796,7 @@ const IndividualReturnRequest = () => {
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
+                      <h5 style={{ marginBottom: '0px' }}>Ready to Ship</h5>
                     </Grid>
                     {selectedPharmacy.type === 'local' &&
                       (selectedPharmacy.permission.key === 'ADD' ||
