@@ -12,6 +12,7 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -194,9 +195,9 @@ const RequestList = () => {
       headerName: 'REQUEST ID',
       renderCell: params => (
         <>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: params.row.priority === 'high' ? 'error.main' : 'text.primary' }}>
             {params.row.request_number}
-            {params.row.priority === 'high' && (
+            {/* {params.row.priority === 'high' && (
               <Chip
                 sx={{ ml: '6px', fontSize: '12px' }}
                 size='small'
@@ -204,9 +205,9 @@ const RequestList = () => {
                 color='error'
                 icon={<Icon icon='mdi:arrow-up-circle' />}
               />
-            )}
+            )} */}
             {params.row.control_substance === '1' && (
-              <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label='CS' color='success' />
+              <CustomChip label='CS' skin='light' color='success' size='small' sx={{ ml: '6px', fontSize: '12px' }} />
             )}
             {params.row.dispute !== null && (
               <IconButton alignSelf='center' color='error'>
