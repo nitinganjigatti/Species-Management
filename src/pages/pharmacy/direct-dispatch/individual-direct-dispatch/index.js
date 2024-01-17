@@ -884,7 +884,7 @@ const IndividualRequest = () => {
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
             {/* Dispatch list */}
-            {dispatchedItems?.length > 0 ? (
+            {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
