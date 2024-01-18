@@ -1,3 +1,4 @@
+/* eslint-disable padding-line-between-statements */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
@@ -7,7 +8,6 @@ import { getNoOfLab, GetLabReportById } from 'src/lib/api/lab/getLabRequest'
 
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -34,8 +34,7 @@ const ListOfRequest = () => {
   const [storedData, setStoredData] = useState()
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState(70)
-  const [count, setCount] = useState()
-  console.log('count', count)
+
   console.log('selectedLab', selectedLab)
   console.log('storedData', storedData)
   console.log('lab', lab)
@@ -51,17 +50,17 @@ const ListOfRequest = () => {
   }
 
   const columns = [
-    // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'id',
-    //   headerName: 'SL ',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {parseInt(params.row.sl_no)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'SL ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.sl_no)}
+        </Typography>
+      )
+    },
     {
       flex: 0.3,
       minWidth: 20,
@@ -176,38 +175,23 @@ const ListOfRequest = () => {
           </Box>
         </Stack>
       )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
+          <Icon icon='et:attachments' fontSize={15} />
+          <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
+            <span alt={params.row.sample_count}>{params.row.sample_count}</span>
+          </Typography>
+        </Box>
+      )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <Box>
-    //       <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //       {/* <IconButton
-    //           size='small'
-    //           onClick={() => {
-    //             setConfigureMedId(params.row.id)
-    //             showDialog()
-    //           }}
-    //         >
-    //           <Icon icon='grommet-icons:configure' />
-    //         </IconButton> */}
-    //       {/* <IconButton size='small'>
-    //           <Icon icon='mdi:eye-outline' />
-    //         </IconButton>
-
-    //         <IconButton size='small'>
-    //           <Icon icon='mdi:file' />
-    //         </IconButton> */}
-    //     </Box>
-    //   )
-    // }
   ]
 
   /***** Serverside pagination */
@@ -215,6 +199,8 @@ const ListOfRequest = () => {
   console.log('total', total)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  const [status, setStatus] = useState()
+  console.log('status', status)
   console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -229,7 +215,7 @@ const ListOfRequest = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchData({ sort, q, column })
       } catch (error) {
         console.error(error)
       }
@@ -241,44 +227,8 @@ const ListOfRequest = () => {
     getNoOfLab().then(res => {
       setLab(res?.data?.result)
       console.log('res?.data', res?.data)
-      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
     })
   }, [])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-
-        const params = {
-          lab_id: selectedLab
-          // sort,
-          // q,
-          // column,
-          // page: paginationModel.page + 1,
-          // limit: paginationModel.pageSize
-        }
-
-        const response = await GetLabReportById({ params }).then(res => {
-          console.log('restt', res)
-          // setTotal(parseInt(res?.data?.total_count))
-          console.log('res?.dataaaa', res?.data)
-          setCount(res?.data?.count)
-          // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-          setRows(res?.data?.result)
-        })
-        console.log('API Response:', response)
-        // Handle the response as needed, e.g., update state or perform other actions
-
-        setLoading(false)
-      } catch (error) {
-        console.error(error)
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [paginationModel.page, selectedLab])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -287,22 +237,86 @@ const ListOfRequest = () => {
     }
   }
 
+  const fetchData = async params => {
+    try {
+      setLoading(true)
+
+      const response = await GetLabReportById({ params })
+      setTotal(parseInt(response?.data?.total_count))
+      setRows(loadServerRows(paginationModel.page, response?.data?.result))
+      setStatus(response?.data?.stats)
+
+      setLoading(false)
+    } catch (error) {
+      console.error(error)
+      setLoading(false)
+    }
+  }
+
+  const handleLabChange = async event => {
+    setSelectedLab(event.target.value)
+
+    const params = {
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      lab_id: event.target.value
+    }
+    await fetchData(params)
+  }
+
+  const handlePaginationModelChange = async newModel => {
+    setPaginationModel(newModel)
+    console.log('newModel', newModel)
+
+    const params = {
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      lab_id: selectedLab
+    }
+    await fetchData(params)
+  }
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    console.log('value', value)
+
+    const params = {
+      sort,
+      q: value,
+      column: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      lab_id: selectedLab
+    }
+
+    await fetchData(params)
   }
 
-  const handleLabChange = event => {
-    setSelectedLab(event.target.value)
-  }
+  const getSlNo = (index, labTestId) => {
+    if (labTestId !== null) {
+      return labTestId + '_' + index
+    }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+    return 'no_lab_test_id_' + index
+  }
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: `${row.lab_test_id}_${index}`,
-    sl_no: getSlNo(index)
+    id: getSlNo(index, row.lab_test_id),
+    sl_no: index + 1
   }))
+
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  // const indexedRows = rows?.map((row, index) => ({
+  //   ...row,
+  //   sl_no: getSlNo(index)
+  // }))
 
   return (
     <>
@@ -379,22 +393,23 @@ const ListOfRequest = () => {
                 sx={{ display: 'flex', alignItems: 'center' }}
               >
                 <Typography>
-                  Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>123</span>
+                  Total Requests -{' '}
+                  <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{status?.total_requests}</span>
                 </Typography>
 
                 <Box sx={{ border: '1px solid', borderColor: 'red', borderRadius: '10px', p: 1 }}>
                   <Typography sx={{ color: 'red', fontSize: '12px', fontWeight: 'bold' }}>
-                    Pending Test - 123
+                    Pending Test - {status?.total_tests_pending}
                   </Typography>
                 </Box>
                 <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '10px', p: 1 }}>
                   <Typography sx={{ color: '#00AEA4', fontSize: '12px', fontWeight: 'bold' }}>
-                    Test in Progress - 123
+                    Test in Progress - {status?.total_tests_inprogress}
                   </Typography>
                 </Box>
                 <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '10px', p: 1 }}>
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px', fontWeight: 'bold' }}>
-                    Completed Test - 123
+                    Completed Test - {status?.total_tests_completed}
                   </Typography>
                 </Box>
               </Stack>
@@ -407,12 +422,11 @@ const ListOfRequest = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -421,12 +435,7 @@ const ListOfRequest = () => {
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
+                  onChange: event => handleSearch(event.target.value)
                 }
               }}
             />

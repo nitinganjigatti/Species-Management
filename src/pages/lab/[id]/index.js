@@ -2,7 +2,7 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { GetRequestDetails, GetRequestPopUp, transferLab } from 'src/lib/api/lab/getLabRequest'
+import { GetRequestDetails, GetRequestPopUp, transferLab, getNoOfLab } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import * as yup from 'yup'
@@ -41,8 +41,6 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 
@@ -70,13 +68,25 @@ const RequestDetails = () => {
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
   console.log('storedData', storedData)
-  const [status, setStatus] = React.useState()
+  const [status, setStatus] = React.useState({})
 
   const localLabData = storedData?.modules?.lab_data.lab
   console.log('localLabData', localLabData)
 
   const PrvLabId = request[0]?.lab_id // 68
   console.log('PrvLabId', PrvLabId)
+  const [lab, setLab] = React.useState([])
+
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  console.log('total', total)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  console.log('rows', rows)
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item.lab_id === PrvLabId)
@@ -109,15 +119,28 @@ const RequestDetails = () => {
   const fetchRequestDetails = async () => {
     try {
       // Make your API call here
+      setLoading(true)
+
       const response = await GetRequestDetails(id).then(res => {
-        setRequest(res?.data?.request[0])
-        console.log('nih', res?.data?.request[0][0]?.test_reports)
-        setRows(res?.data?.request[0][0]?.test_reports)
+        setRequest(res?.data?.result)
+        console.log('nih', res?.data?.result)
+        setRows(res?.data?.result[0].test_reports)
+        setTotal(parseInt(res?.data?.total_count))
+        setLoading(false)
       })
     } catch (error) {
       console.error('Error fetching data:', error)
+      setLoading(false)
     }
   }
+
+  useEffect(() => {
+    getNoOfLab().then(res => {
+      setLab(res?.data?.result)
+      console.log('res?.data', res?.data)
+      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+    })
+  }, [])
 
   const handleOpenTransfer = params => {
     if (permissions?.transfer_tests === true) {
@@ -129,17 +152,6 @@ const RequestDetails = () => {
   useEffect(() => {
     fetchRequestDetails()
   }, [id])
-
-  /***** Serverside pagination */
-  const [total, setTotal] = useState(0)
-  console.log('total', total)
-  const [sort, setSort] = useState('asc')
-  const [rows, setRows] = useState([])
-  console.log('rows', rows)
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
-  const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -213,40 +225,60 @@ const RequestDetails = () => {
         <>
           {}
           <Box sx={{ minWidth: 120 }}>
+            {/* {permissions?.transfer_tests === true ? (
+              <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
+                <InputLabel id='demo-simple-select-label'>Status</InputLabel>
+                <Select
+                  size='small'
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  value={status}
+                  label='Age'
+                  onChange={handleChangeStatus}
+                  defaultValue={'Pending'}
+                >
+                  <MenuItem value={10}>Pending</MenuItem>
+                  <MenuItem value={20}>Completed</MenuItem>
+                  <MenuItem value={30}>In Progress</MenuItem>
+                </Select>
+              </FormControl>
+            ) : (
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <span
+                  alt={params.row.status}
+                  style={{
+                    color:
+                      params.row.status === 'pending'
+                        ? 'red'
+                        : params.row.status === 'completed'
+                        ? 'green'
+                        : params.row.status === 'in progress'
+                        ? 'blue'
+                        : 'black'
+                  }}
+                >
+                  {params.row.status}
+                </span>
+              </Typography>
+            )} */}
+
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               <span
                 alt={params.row.status}
-                // style={{
-                //   color:
-                //     params.row.status === 'pending'
-                //       ? 'red'
-                //       : params.row.status === 'completed'
-                //       ? 'green'
-                //       : params.row.status === 'in progress'
-                //       ? 'blue'
-                //       : 'black'
-                // }}
+                style={{
+                  color:
+                    params.row.status === 'pending'
+                      ? 'red'
+                      : params.row.status === 'completed'
+                      ? 'green'
+                      : params.row.status === 'in progress'
+                      ? 'blue'
+                      : 'black'
+                }}
               >
                 {params.row.status}
               </span>
             </Typography>
-
-            {/* <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
-              <InputLabel id='demo-simple-select-label'>Status</InputLabel>
-              <Select
-                size='small'
-                labelId='demo-simple-select-label'
-                id='demo-simple-select'
-                value={status}
-                label='Age'
-                onChange={handleChangeStatus}
-                defaultValue={'Pending'}
-              >
-                <MenuItem value={10}>Pending</MenuItem>
-                <MenuItem value={20}>Completed</MenuItem>
-                <MenuItem value={30}>In Progress</MenuItem>
-              </Select>
-            </FormControl> */}
           </Box>
         </>
       )
@@ -266,22 +298,6 @@ const RequestDetails = () => {
           >
             <Icon icon='charm:menu-kebab' />
           </IconButton>
-          {/* <IconButton
-              size='small'
-              onClick={() => {
-                setConfigureMedId(params.row.id)
-                showDialog()
-              }}
-            >
-              <Icon icon='grommet-icons:configure' />
-            </IconButton> */}
-          {/* <IconButton size='small'>
-              <Icon icon='mdi:eye-outline' />
-            </IconButton>
-
-            <IconButton size='small'>
-              <Icon icon='mdi:file' />
-            </IconButton> */}
         </Box>
       )
     }
@@ -303,7 +319,8 @@ const RequestDetails = () => {
     setOpenTransfer(false)
   }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
@@ -313,7 +330,7 @@ const RequestDetails = () => {
   // form
 
   const defaultValues = {
-    lab_name: request[0]?.lab_id,
+    lab_name: request?.lab_id,
     transferTo: '',
     reason: ''
   }
@@ -433,10 +450,11 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
                   <Stack direction='row' gap={3}>
                     <Typography>
-                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>10</span>
+                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
                     <Typography>
-                      No. of Samples : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>10</span>
+                      No. of Samples :{' '}
+                      <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_sample}</span>
                     </Typography>
                   </Stack>
 
@@ -453,11 +471,12 @@ const RequestDetails = () => {
 
             <DataGrid
               autoHeight
+              pagination
               rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
               columns={columns}
               sortingMode='server'
-              getRowId={row => row.sample_id}
-              paginationMode='server'
+              getRowId={row => row?.sample_id}
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
@@ -540,7 +559,7 @@ const RequestDetails = () => {
                       <TableRow sx={{ bgcolor: '#F5F5F7' }}>
                         <TableCell>Test Type</TableCell>
                         <TableCell>Lab Name</TableCell>
-                        {/* <TableCell>Status</TableCell> */}
+                        <TableCell>Status</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -548,7 +567,21 @@ const RequestDetails = () => {
                         <TableRow key={dataID}>
                           <TableCell>{data?.test_name}</TableCell>
                           <TableCell>{data?.lab_name}</TableCell>
-                          {/* <TableCell>{data?.}</TableCell> */}
+                          <TableCell>
+                            {' '}
+                            <span
+                              style={{
+                                color:
+                                  data?.status === 'pending'
+                                    ? 'red'
+                                    : data?.status === 'complete'
+                                    ? '#2a9d0d'
+                                    : '#00aea4'
+                              }}
+                            >
+                              {data?.status}
+                            </span>{' '}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -578,10 +611,10 @@ const RequestDetails = () => {
                   Test name - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{selectedLab?.test_name}</span>
                 </Typography>
                 <Typography>
-                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
+                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request?.request_id}</span>
                 </Typography>
                 <Typography>
-                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.site_name}</span>
+                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request?.site_name}</span>
                 </Typography>
               </Box>
 
@@ -634,8 +667,11 @@ const RequestDetails = () => {
                           error={Boolean(errors?.transferTo)}
                           labelId='transferTo'
                         >
-                          <MenuItem value='internal_lab'>Internal Lab</MenuItem>
-                          {/* <MenuItem value='external_lab'>External Lab</MenuItem> */}
+                          {lab?.map(item => (
+                            <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                              {item?.lab_name}
+                            </MenuItem>
+                          ))}
                         </Select>
                       )}
                     />

@@ -221,7 +221,7 @@ const AddLab = () => {
       if (res?.status) {
         setSubmitLoader(false)
 
-        // Router.push('/pharmacy/settings/labs/lab-list')
+        // Router.push('/lab/lab-list')
       }
     })
     console.log('res', res)
