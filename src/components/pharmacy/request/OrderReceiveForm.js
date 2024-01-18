@@ -362,7 +362,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             </>
           ) : (
             <>
-              {params.row.status === 'Wrong Count' ? (
+              {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved' ? (
                 <Grid container spacing={2}>
                   <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FormControl size='small' style={{ width: '100%' }}>
