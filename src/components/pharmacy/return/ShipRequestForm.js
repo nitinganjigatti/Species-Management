@@ -197,7 +197,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -256,6 +256,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       minWidth: 20,
       field: 'dispatch_qty',
       headerName: 'Dispatch qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
