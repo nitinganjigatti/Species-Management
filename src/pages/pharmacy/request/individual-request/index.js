@@ -363,7 +363,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Packed/Shipped',
+      headerName: 'Fulfilled',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -403,7 +403,6 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: '',
       headerName: 'Action',
-      align: 'right',
       renderCell: params => (
         <>
           {selectedPharmacy.type === 'central' && (
@@ -423,7 +422,7 @@ const IndividualRequest = () => {
                 showDialog()
               }}
             >
-              Pack & Ship
+              Fulfill
             </Button>
           )}
 
@@ -446,7 +445,6 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
-      align: 'center',
       renderCell: params =>
         !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
           <>
@@ -910,7 +908,7 @@ const IndividualRequest = () => {
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
-          <Card>
+          <Card sx={{ mb: 6 }}>
             <CardHeader
               avatar={
                 <Icon
@@ -938,23 +936,24 @@ const IndividualRequest = () => {
                 )
               }
             />
+
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3} alignItems={'center'}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested By</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3} alignItems={'center'}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3} alignItems={'center'}>
-                  <h5 style={{ marginBottom: '0px' }}>Date</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
                   <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
                   <p>{requestItems?.request_number}</p>
                 </Grid>
               </Grid>
@@ -963,16 +962,16 @@ const IndividualRequest = () => {
             {requestItems?.request_item_details?.length > 0 ? (
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
-            {/* Dispatch list */}
+          </Card>
+          {/* Dispatch list */}
 
-            {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-              <>
-                <CardContent>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Ready to Ship</h5>
-                    </Grid>
-                    {(selectedPharmacy.permission.key === 'ADD' ||
+          {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
+            <>
+              <Card sx={{ mb: 6 }}>
+                <CardHeader
+                  title={`Fulfillment`}
+                  action={
+                    (selectedPharmacy.permission.key === 'ADD' ||
                       selectedPharmacy.permission.key === 'allow_full_access') && (
                       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
                         <Button
@@ -985,23 +984,19 @@ const IndividualRequest = () => {
                           Ship
                         </Button>
                       </Grid>
-                    )}
-                  </Grid>
-                </CardContent>
+                    )
+                  }
+                ></CardHeader>
                 <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-              </>
-            )}
+              </Card>
+            </>
+          )}
 
-            {/* Shipped list        */}
-            {shippedItems?.length > 0 ? (
-              <>
-                <CardContent>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
-                    </Grid>
-                  </Grid>
-                </CardContent>
+          {/* Shipped list        */}
+          {shippedItems?.length > 0 ? (
+            <>
+              <Card sx={{ mb: 6 }}>
+                <CardHeader title={`Shipments`}></CardHeader>
                 <TableBasic
                   columns={shippedColumns}
                   rows={shippedItems}
@@ -1011,9 +1006,11 @@ const IndividualRequest = () => {
                     showOrderFormDialog()
                   }}
                 ></TableBasic>
-              </>
-            ) : null}
-            {/* {disputedItems?.length > 0 ? (
+              </Card>
+            </>
+          ) : null}
+
+          {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1033,7 +1030,7 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-            {/* {dispenseItems?.length > 0 ? (
+          {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1053,85 +1050,68 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-          </Card>
+
           {/* Fulfill Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={show}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeDialog()}
-                >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Fulfillment`} />
-                    <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
 
-                  <FulfillDialog
-                    fulfillMedicine={fulfillMedicine}
-                    storeDetails={requestItems}
-                    close={closeFulfillDialog}
-                  />
-                </Dialog>
-              </Card>
+          <Dialog
+            fullWidth
+            open={show}
+            maxWidth='md'
+            scroll='body'
+            onClose={() => closeDialog()}
+            TransitionComponent={Transition}
+            onBackdropClick={() => closeDialog()}
+          >
+            <Grid
+              container
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <CardHeader title={`Fulfillment`} />
+              <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
             </Grid>
-          </CardContent>
+
+            <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} close={closeFulfillDialog} />
+          </Dialog>
+
           {/* Ship Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={showShipDialog}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeShipDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeShipDialog()}
-                >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Shipment`} />
-                    <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
 
-                  <ShipRequest
-                    dispatchedItems={dispatchedItems}
-                    storeDetails={requestItems}
-                    close={closeShipmentDialog}
-                  />
-                </Dialog>
-                <ProductNotAvailable
-                  open={productNotAvailableDialog}
-                  onClose={handleProductNotAvailable}
-                  selectedValue={notAvailableItemId}
-                  loading={productNotAvailableLoading}
-                />
-              </Card>
+          <Dialog
+            fullWidth
+            open={showShipDialog}
+            maxWidth='md'
+            scroll='body'
+            onClose={() => closeShipDialog()}
+            TransitionComponent={Transition}
+            onBackdropClick={() => closeShipDialog()}
+          >
+            <Grid
+              container
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <CardHeader title={`Shipment`} />
+              <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
             </Grid>
-          </CardContent>
+
+            <ShipRequest dispatchedItems={dispatchedItems} storeDetails={requestItems} close={closeShipmentDialog} />
+          </Dialog>
+          <ProductNotAvailable
+            open={productNotAvailableDialog}
+            onClose={handleProductNotAvailable}
+            selectedValue={notAvailableItemId}
+            loading={productNotAvailableLoading}
+          />
         </>
       )}
     </>

@@ -59,7 +59,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     ? yup.object().shape({
         person_shipping: yup.string().required('Person Shipping Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
-        vehicle_no: yup.string().required('Vehicle Number is required'),
+
+        // vehicle_no: yup.string().required('Vehicle Number is required'),
         phone_number: yup
           .number()
           .required('Mobile Number is required')
@@ -361,7 +362,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           render={({ field: { value, onChange } }) => (
                             <TextField
                               value={value}
-                              label='Vehicle Number*'
+                              label='Vehicle Number'
                               onChange={onChange}
                               placeholder=''
                               error={Boolean(errors.vehicle_no)}

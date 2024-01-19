@@ -290,7 +290,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
