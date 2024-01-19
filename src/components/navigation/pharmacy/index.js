@@ -13,8 +13,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const productsList = {
-    title: 'Products',
-    icon: 'material-symbols:inventory-2-outline',
+    title: 'Product List',
     path: '/pharmacy/medicine/product-list'
   }
 
@@ -31,9 +30,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase',
-    icon: 'raphael:cart',
+    title: 'Purchase list',
     path: '/pharmacy/purchase/purchase-list'
+  }
+
+  const report = {
+    title: 'Report',
+    path: '/pharmacy/purchase/report'
   }
 
   const requestParent = {
@@ -45,7 +48,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const requestListing = {
     title: 'Request',
-    icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list'
   }
 
@@ -57,8 +59,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const returnListing = {
-    title: 'Return',
-    icon: 'material-symbols:assignment-returned-outline-sharp',
+    title: 'Return Request List',
     path: '/pharmacy/return-product/request-list'
   }
 
@@ -75,8 +76,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchList = {
-    title: 'Direct Dispatch',
-    icon: 'iconamoon:delivery-light',
+    title: 'Dispatch list',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
@@ -103,7 +103,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const expiredMedicine = {
-    title: 'Expired products',
+    title: 'Expired Medicine',
     path: '/pharmacy/stocks/expired-medicine'
   }
 
@@ -184,11 +184,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
-    // inventoryParent.children.push(productsList)
-    // PurchaseParent.children.push(purchaseList)
-    // requestParent.children.push(requestListing)
-    // returnParent.children.push(returnListing)
-    // directDispatchParent.children.push(directDispatchList)
+    inventoryParent.children.push(productsList)
+    PurchaseParent.children.push(purchaseList, report)
+    requestParent.children.push(requestListing)
+    returnParent.children.push(returnListing)
+    directDispatchParent.children.push(directDispatchList)
 
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
     settingsParent.children.push(
@@ -206,31 +206,26 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
-      purchaseList,
-      requestListing,
-      returnListing,
-      directDispatchList,
-
-      // inventoryParent,
-      // PurchaseParent,
-      // requestParent,
-      // returnParent,
-      // directDispatchParent,
+      inventoryParent,
+      PurchaseParent,
+      requestParent,
+      returnParent,
+      directDispatchParent,
       stockParent,
-      settingsParent,
-      productsList
+      settingsParent
     )
   }
 
   if (selectedPharmacy?.type === 'local') {
-    // requestParent.children.push(requestListing)
-    // returnParent.children.push(returnListing)
+    requestParent.children.push(requestListing)
+    returnParent.children.push(returnListing)
     stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
-
-    // directDispatchParent.children.push(directDispatchList)
+    directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
+    pharmacyNavigationArray.push(requestParent, returnParent, directDispatchParent, stockParent, settingsParent)
   }
+
+  // debugger
 
   if (pharmacyRole && selectedPharmacy === '') {
     settingsParent.children.push(storeList)
