@@ -349,7 +349,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             </>
           ) : (
             <>
-              {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved' ? (
+              {params.row.status === 'Wrong Count' ? (
                 <Grid container spacing={2}>
                   <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FormControl size='small' style={{ width: '100%' }}>
@@ -408,28 +408,62 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   </Grid>
                 </Grid>
               ) : (
+                // : (
+                //   <Grid container>
+                //     <Grid xs={12} sm={12}>
+                //       <FormControl fullWidth size='small'>
+                //         {console.log('line item', params?.row?.status)}
+                //         <Select
+                //           // disabled={getDisableStatus(params.row.id)}
+                //           fullWidth
+                //           placeholder='Status'
+                //           name='status'
+                //           size='small'
+                //           error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                //           value={params?.row?.status}
+                //           onChange={event => handleStatusChange(params.row.id, event)}
+                //         >
+                //           {statusOptions?.map((item, index) => (
+                //             <MenuItem key={index} value={item?.label}>
+                //               {item?.label}
+                //             </MenuItem>
+                //           ))}
+                //         </Select>
+                //       </FormControl>
+                //     </Grid>
+                //   </Grid>
+                // )
                 <Grid container>
-                  <Grid xs={12} sm={12}>
-                    <FormControl fullWidth size='small'>
-                      {console.log('line item', params?.row?.status)}
-                      <Select
-                        // disabled={getDisableStatus(params.row.id)}
-                        fullWidth
-                        placeholder='Status'
-                        name='status'
-                        size='small'
-                        error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                        value={params?.row?.status}
-                        onChange={event => handleStatusChange(params.row.id, event)}
-                      >
-                        {statusOptions?.map((item, index) => (
-                          <MenuItem key={index} value={item?.label}>
-                            {item?.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                  {((params.row.status === 'Missing' ||
+                    params.row.status === 'Wrong Count' ||
+                    params.row.status === '') &&
+                    params?.row?.dispute_status === 'Not Resolved') ||
+                  !params?.row?.dispute_status ? (
+                    <Grid xs={12} sm={12}>
+                      <FormControl fullWidth size='small'>
+                        <Select
+                          // disabled={getDisableStatus(params.row.id)}
+                          fullWidth
+                          placeholder='Status'
+                          name='status'
+                          size='small'
+                          error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                          value={params?.row?.status}
+                          onChange={event => handleStatusChange(params.row.id, event)}
+                        >
+                          {statusOptions?.map((item, index) => (
+                            <MenuItem key={index} value={item?.label}>
+                              {item?.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  ) : (
+                    <Typography variant='p' sx={{ mx: 2 }}>
+                      {params.row.status}
+                    </Typography>
+                  )}
                 </Grid>
               )}
             </>

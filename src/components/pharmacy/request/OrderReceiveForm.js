@@ -55,6 +55,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
   const [resolveLoader, setResolveLoader] = useState(false)
@@ -78,6 +79,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
+    // setTempDisputeItemDetails(updatedData)
   }
 
   const clearStatus = (itemId, event) => {
@@ -92,6 +94,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
+    // setTempDisputeItemDetails(updatedData)
   }
 
   // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
@@ -160,7 +163,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         }
 
         setDisputeItemDetails(disputesData)
-        debugger
+        setTempDisputeItemDetails(disputesData)
+        // debugger
       }
     } catch (error) {
       console.log('error', error)
@@ -194,7 +198,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }, [])
 
   const resolveItems = async payload => {
-    debugger
+    // debugger
     var itemsToResolve
     console.log('line data', payload)
     if (payload?.status === 'Missing') {
@@ -244,7 +248,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
 
     console.log('payload', itemsToResolve)
-    debugger
+    // debugger
     try {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(itemsToResolve)
@@ -261,6 +265,24 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
       console.log('error', error)
     }
+  }
+
+  const verifyStatusInTemp = id => {
+    // console.log('id', id)
+    // console.log('disputeItemDetails?.item_details', disputeItemDetails?.item_details)
+
+    const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
+    // console.log('verified', verified.id)
+
+    // console.log('tempDisputeItemDetails?.item_details', tempDisputeItemDetails?.item_details)
+
+    const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
+    // console.log('verifyInTempData', verifyInTempData)
+    // console.log('verifyInTempData', verifyInTempData?.status)
+
+    const result = verified?.status === verifyInTempData?.status
+
+    return result
   }
 
   const columns = [
@@ -330,137 +352,148 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       field: 'status',
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'central' ? (
-            <>
-              <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant='p' sx={{ mx: 2 }}>
-                  {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved'
-                    ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
-                    : params.row.status}
-                </Typography>
-                {params?.row?.dispute_status === 'Not Resolved' ? (
-                  <>
-                    <LoadingButton
-                      size='small'
-                      onClick={() => {
-                        resolveItems(params.row)
-                      }}
-                      variant='contained'
-                      loading={resolveLoader}
-                    >
-                      Accept
-                    </LoadingButton>
+      renderCell: params => {
+        // console.log('verifyStatusInTemp function', verifyStatusInTemp(params.row.id))
 
-                    <LoadingButton size='small' color='error' variant='contained'>
-                      Deny
-                    </LoadingButton>
-                  </>
-                ) : null}
-              </Grid>
-            </>
-          ) : (
-            <>
-              {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved' ? (
-                <Grid container spacing={2}>
-                  <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FormControl size='small' style={{ width: '100%' }}>
-                      <Select
-                        label=''
-                        // disabled={getDisableStatus(params.row.id)}
-                        name='wrong_count_type'
+        return (
+          <>
+            {selectedPharmacy.type === 'central' ? (
+              <>
+                <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant='p' sx={{ mx: 2 }}>
+                    {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved'
+                      ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
+                      : params.row.status}
+                  </Typography>
+                  {params?.row?.dispute_status === 'Not Resolved' ? (
+                    <>
+                      <LoadingButton
                         size='small'
-                        style={{ fontSize: '12px' }}
-                        value={params?.row?.wrong_count_type}
-                        error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
-                        onChange={event => handleStatusChange(params.row.id, event)}
+                        onClick={() => {
+                          resolveItems(params.row)
+                        }}
+                        variant='contained'
+                        loading={resolveLoader}
                       >
-                        <MenuItem value='shortage' style={{ fontSize: '12px' }}>
-                          Shortage
-                        </MenuItem>
-                        <MenuItem value='excess' style={{ fontSize: '12px' }}>
-                          Excess
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid
-                    item
-                    xs={5}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
-                  >
-                    <TextField
-                      // disabled={getDisableStatus(params.row.id)}
-                      id='outlined-size-small'
-                      name='wrong_count_number'
-                      value={params?.row?.wrong_count_number}
-                      error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
-                      size='small'
-                      onChange={event => handleStatusChange(params.row.id, event)}
-                      inputProps={{ style: { fontSize: 12 } }}
-                    />
-                  </Grid>
-                  <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Button
-                      sx={{ width: 2, maxWidth: 2 }}
-                      // disabled={disableButton()}
-                      onClick={event => {
-                        clearStatus(params.row.id, event)
-                      }}
-                    >
-                      <Icon
-                        // type='button'
-                        // disabled={disableButton()}
-                        // onClick={event => {
-                        //   clearStatus(params.row.id, event)
-                        // }}
-                        icon='material-symbols-light:close'
-                      />
-                    </Button>
-                  </Grid>
+                        Accept
+                      </LoadingButton>
+
+                      <LoadingButton size='small' color='error' variant='contained'>
+                        Deny
+                      </LoadingButton>
+                    </>
+                  ) : null}
                 </Grid>
-              ) : (
-                <Grid container>
-                  {((params.row.status === 'Missing' ||
-                    params.row.status === 'Wrong Count' ||
-                    params.row.status === '') &&
-                    params?.row?.dispute_status === 'Not Resolved') ||
-                  !params?.row?.dispute_status ? (
-                    <Grid xs={12} sm={12}>
-                      <FormControl fullWidth size='small'>
+              </>
+            ) : (
+              <>
+                {params.row.status === 'Wrong Count' &&
+                (params?.row?.dispute_status === '' ||
+                  params?.row?.dispute_status === undefined ||
+                  params?.row?.dispute_status === 'Not Resolved') ? (
+                  <Grid container spacing={2}>
+                    <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FormControl size='small' style={{ width: '100%' }}>
                         <Select
+                          label=''
                           // disabled={getDisableStatus(params.row.id)}
-                          fullWidth
-                          placeholder='Status'
-                          name='status'
+                          name='wrong_count_type'
                           size='small'
-                          error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                          value={params?.row?.status}
+                          style={{ fontSize: '12px' }}
+                          value={params?.row?.wrong_count_type}
+                          error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
                           onChange={event => handleStatusChange(params.row.id, event)}
                         >
-                          {statusOptions?.map((item, index) => (
-                            <MenuItem key={index} value={item?.label}>
-                              {item?.label}
-                            </MenuItem>
-                          ))}
+                          <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                            Shortage
+                          </MenuItem>
+                          <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                            Excess
+                          </MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
-                  ) : (
-                    <Typography variant='p' sx={{ mx: 2 }}>
-                      {params.row.status}
-                    </Typography>
-                  )}
-                </Grid>
-              )}
-            </>
-          )}
-        </>
-      )
+                    <Grid
+                      item
+                      xs={5}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                    >
+                      <TextField
+                        // disabled={getDisableStatus(params.row.id)}
+                        id='outlined-size-small'
+                        name='wrong_count_number'
+                        value={params?.row?.wrong_count_number}
+                        error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
+                        size='small'
+                        onChange={event => handleStatusChange(params.row.id, event)}
+                        inputProps={{ style: { fontSize: 12 } }}
+                      />
+                    </Grid>
+                    <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Button
+                        sx={{ width: 2, maxWidth: 2 }}
+                        // disabled={disableButton()}
+                        onClick={event => {
+                          clearStatus(params.row.id, event)
+                        }}
+                      >
+                        <Icon
+                          // type='button'
+                          // disabled={disableButton()}
+                          // onClick={event => {
+                          //   clearStatus(params.row.id, event)
+                          // }}
+                          icon='material-symbols-light:close'
+                        />
+                      </Button>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  <Grid container>
+                    {(params.row.status === 'Missing' ||
+                      params.row.status === 'Wrong Count' ||
+                      verifyStatusInTemp(params.row.id) === false ||
+                      params.row.status === '') &&
+                    (params?.row?.dispute_status === 'Not Resolved' ||
+                      params?.row?.dispute_status === '' ||
+                      params?.row?.dispute_status === undefined) ? (
+                      <Grid xs={12} sm={12}>
+                        <FormControl fullWidth size='small'>
+                          <Select
+                            // disabled={getDisableStatus(params.row.id)}
+                            fullWidth
+                            placeholder='Status'
+                            name='status'
+                            size='small'
+                            error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                            value={params?.row?.status}
+                            onChange={event => handleStatusChange(params.row.id, event)}
+                          >
+                            {statusOptions?.map((item, index) => (
+                              <MenuItem key={index} value={item?.label}>
+                                {item?.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    ) : (
+                      <Typography variant='p' sx={{ mx: 2 }}>
+                        {params.row.status}
+                      </Typography>
+                    )}
+                  </Grid>
+                )}
+              </>
+            )}
+          </>
+        )
+      }
     }
   ]
 
+  console.log('temp', tempDisputeItemDetails)
+  console.log('original', disputeItemDetails)
   async function updateStatus() {
     const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
 
