@@ -22,6 +22,7 @@ import {
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -64,10 +65,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleStatusChange = (itemId, event) => {
-    console.log('eventsss', event)
     const { name, value } = event.target
-    console.log('name', name)
-    console.log('value', value)
 
     const updatedData = {
       ...disputeItemDetails,
@@ -76,10 +74,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
-    // setTempDisputeItemDetails(updatedData)
   }
 
   const clearStatus = (itemId, event) => {
@@ -94,7 +90,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
-    // setTempDisputeItemDetails(updatedData)
   }
 
   // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
@@ -257,6 +252,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         setResolveLoader(false)
         toast.success(resolved?.data)
         getOrderDetails(orderId)
+      } else {
+        setResolveLoader(false)
       }
 
       console.log('resolve response ', resolved)
@@ -268,18 +265,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const verifyStatusInTemp = id => {
-    // console.log('id', id)
-    // console.log('disputeItemDetails?.item_details', disputeItemDetails?.item_details)
-
     const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
-    // console.log('verified', verified.id)
-
-    // console.log('tempDisputeItemDetails?.item_details', tempDisputeItemDetails?.item_details)
-
     const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
-    // console.log('verifyInTempData', verifyInTempData)
-    // console.log('verifyInTempData', verifyInTempData?.status)
-
     const result = verified?.status === verifyInTempData?.status
 
     return result
@@ -353,8 +340,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
       renderCell: params => {
-        // console.log('verifyStatusInTemp function', verifyStatusInTemp(params.row.id))
-
         return (
           <>
             {selectedPharmacy.type === 'central' ? (
@@ -365,7 +350,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
                       : params.row.status}
                   </Typography>
-                  {params?.row?.dispute_status === 'Not Resolved' ? (
+                  {params?.row?.dispute_status === 'Not Resolved' ||
+                  params?.row?.dispute_status === 'Dispute Pending' ? (
                     <>
                       <LoadingButton
                         size='small'
@@ -390,7 +376,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 {params.row.status === 'Wrong Count' &&
                 (params?.row?.dispute_status === '' ||
                   params?.row?.dispute_status === undefined ||
-                  params?.row?.dispute_status === 'Not Resolved') ? (
+                  params?.row?.dispute_status === 'Not Resolved' ||
+                  params?.row?.dispute_status === 'Dispute Pending') ? (
                   <Grid container spacing={2}>
                     <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FormControl size='small' style={{ width: '100%' }}>
@@ -456,7 +443,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       params.row.status === '') &&
                     (params?.row?.dispute_status === 'Not Resolved' ||
                       params?.row?.dispute_status === '' ||
-                      params?.row?.dispute_status === undefined) ? (
+                      params?.row?.dispute_status === undefined ||
+                      params?.row?.dispute_status === 'Dispute Pending') ? (
                       <Grid xs={12} sm={12}>
                         <FormControl fullWidth size='small'>
                           <Select
@@ -593,100 +581,104 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   return (
     <>
-      <Grid container xs={12} sx={{ mx: 'auto' }}>
-        <Grid item xs={12}>
-          <Grid container xs={12}>
-            {orderData?.shipment_id ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-                <p>{orderData.shipment_id}</p>
-              </Grid>
-            ) : null}
-            {orderData?.from_store_name ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>From Store </h5>
-                <p>{orderData.from_store_name}</p>
-              </Grid>
-            ) : null}
-            {orderData?.shipment_date ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-                <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
-              </Grid>
-            ) : null}
-            {orderData?.vehicle_no ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-                <p>{orderData.vehicle_no}</p>
-              </Grid>
-            ) : null}
-            {orderData?.to_store_name ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-                <p>{orderData.to_store_name}</p>
-              </Grid>
+      {disputeItemDetails?.item_details?.length > 0 ? (
+        <Grid container xs={12} sx={{ mx: 'auto' }}>
+          <Grid item xs={12}>
+            <Grid container xs={12}>
+              {orderData?.shipment_id ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
+                  <p>{orderData.shipment_id}</p>
+                </Grid>
+              ) : null}
+              {orderData?.from_store_name ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>From Store </h5>
+                  <p>{orderData.from_store_name}</p>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_date ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
+                  <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
+                </Grid>
+              ) : null}
+              {orderData?.vehicle_no ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
+                  <p>{orderData.vehicle_no}</p>
+                </Grid>
+              ) : null}
+              {orderData?.to_store_name ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>To Store </h5>
+                  <p>{orderData.to_store_name}</p>
+                </Grid>
+              ) : null}
+
+              {orderData?.person_shipping ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                  <p>{orderData.person_shipping}</p>
+                </Grid>
+              ) : null}
+            </Grid>
+
+            {disputeItemDetails?.item_details?.length > 0 ? (
+              <>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                  <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+                </Grid>
+              </>
             ) : null}
 
-            {orderData?.person_shipping ? (
-              <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-                <p>{orderData.person_shipping}</p>
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    // disabled={disableButton()}
+                    disabled={selectedPharmacy.type === 'central' ? 'disabled' : null}
+                    multiline
+                    rows={3}
+                    type='text'
+                    label='Comment'
+                    value={disputeItemDetails?.comments}
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder='comment'
+                    name='comments'
+                  />
+                </FormControl>
               </Grid>
-            ) : null}
-          </Grid>
-
-          {disputeItemDetails?.item_details?.length > 0 ? (
-            <>
+            </Grid>
+            {selectedPharmacy.type === 'local' && (
               <Divider
                 sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
               />
-              <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-                <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
-              </Grid>
-            </>
-          ) : null}
-
-          <Grid container items>
-            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-              <FormControl fullWidth>
-                <TextField
-                  // disabled={disableButton()}
-                  disabled={selectedPharmacy.type === 'central' ? 'disabled' : null}
-                  multiline
-                  rows={3}
-                  type='text'
-                  label='Comment'
-                  value={disputeItemDetails?.comments}
-                  onChange={e => {
-                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                  }}
-                  placeholder='comment'
-                  name='comments'
-                />
-              </FormControl>
-            </Grid>
+            )}
+            {selectedPharmacy.type === 'local' && (
+              <LoadingButton
+                sx={{ float: 'right', my: 4, mx: 6 }}
+                size='large'
+                // disabled={disableButton()}
+                variant='contained'
+                onClick={() => {
+                  updateStatus()
+                }}
+                loading={submitLoader}
+              >
+                Save
+              </LoadingButton>
+            )}
           </Grid>
-          {selectedPharmacy.type === 'local' && (
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-          )}
-          {selectedPharmacy.type === 'local' && (
-            <LoadingButton
-              sx={{ float: 'right', my: 4, mx: 6 }}
-              size='large'
-              // disabled={disableButton()}
-              variant='contained'
-              onClick={() => {
-                updateStatus()
-              }}
-              loading={submitLoader}
-            >
-              Save
-            </LoadingButton>
-          )}
         </Grid>
-      </Grid>
+      ) : (
+        <FallbackSpinner />
+      )}
     </>
   )
 }

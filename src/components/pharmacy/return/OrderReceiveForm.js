@@ -58,8 +58,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
+  const [resolveLoader, setResolveLoader] = useState(false)
 
   const [orderData, setOrderData] = useState([])
 
@@ -163,6 +165,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         }
 
         setDisputeItemDetails(disputesData)
+        setTempDisputeItemDetails(disputesData)
       }
     } catch (error) {
       console.log('error', error)
@@ -246,25 +249,34 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
     console.log('payload', itemsToResolve)
     try {
-      const resolved = resolveDisputeItems(itemsToResolve)
+      setResolveLoader(true)
+
+      const resolved = await resolveDisputeItems(itemsToResolve)
       console.log('resolve response ', resolved)
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+      } else {
+        setResolveLoader(false)
+      }
     } catch (error) {
+      setResolveLoader(false)
+
       console.log('error', error)
     }
   }
 
+  const verifyStatusInTemp = id => {
+    const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
+    const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
+
+    const result = verified?.status === verifyInTempData?.status
+
+    return result
+  }
+
   const columns = [
-    // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'uid',
-    //   headerName: 'Sl',
-    //   renderCell: (params, rowId) => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.uid}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.2,
       Width: 40,
@@ -329,27 +341,32 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
                     : params.row.status}
                 </Typography>
-                {params?.row?.dispute_status === 'Not Resolved' ? (
+                {params?.row?.dispute_status === 'Not Resolved' || params?.row?.dispute_status === 'Dispute Pending' ? (
                   <>
-                    <Button
+                    <LoadingButton
                       size='small'
                       variant='contained'
+                      loading={resolveLoader}
                       onClick={() => {
                         resolveItems(params.row)
                       }}
                     >
                       Accept
-                    </Button>
-                    <Button size='small' color='error' variant='contained'>
+                    </LoadingButton>
+                    <LoadingButton size='small' color='error' variant='contained'>
                       Deny
-                    </Button>
+                    </LoadingButton>
                   </>
                 ) : null}
               </Grid>
             </>
           ) : (
             <>
-              {params.row.status === 'Wrong Count' ? (
+              {params.row.status === 'Wrong Count' &&
+              (params?.row?.dispute_status === '' ||
+                params?.row?.dispute_status === undefined ||
+                params?.row?.dispute_status === 'Not Resolved' ||
+                params?.row?.dispute_status === 'Dispute Pending') ? (
                 <Grid container spacing={2}>
                   <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <FormControl size='small' style={{ width: '100%' }}>
@@ -391,7 +408,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Button
                       sx={{ width: 2, maxWidth: 2 }}
-                      disabled={disableButton()}
+                      // disabled={disableButton()}
                       onClick={event => {
                         clearStatus(params.row.id, event)
                       }}
@@ -434,11 +451,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 //   </Grid>
                 // )
                 <Grid container>
-                  {((params.row.status === 'Missing' ||
+                  {(params.row.status === 'Missing' ||
                     params.row.status === 'Wrong Count' ||
+                    verifyStatusInTemp(params.row.id) === false ||
                     params.row.status === '') &&
-                    params?.row?.dispute_status === 'Not Resolved') ||
-                  !params?.row?.dispute_status ? (
+                  (params?.row?.dispute_status === 'Not Resolved' ||
+                    params?.row?.dispute_status === '' ||
+                    params?.row?.dispute_status === undefined ||
+                    params?.row?.dispute_status === 'Dispute Pending') ? (
                     <Grid xs={12} sm={12}>
                       <FormControl fullWidth size='small'>
                         <Select
