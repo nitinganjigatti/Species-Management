@@ -179,11 +179,11 @@ const DirectDispatchList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'from_store',
-      headerName: 'Dispatched By',
+      field: 'request_date',
+      headerName: 'Dispatched date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store}
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },
@@ -198,18 +198,18 @@ const DirectDispatchList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Request date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
-    ,
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'from_store',
+    //   headerName: 'Dispatched By',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.from_store}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
