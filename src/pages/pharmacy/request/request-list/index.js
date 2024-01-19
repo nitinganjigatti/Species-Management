@@ -181,6 +181,7 @@ const RequestList = () => {
       Width: 40,
       field: 'sl_no',
       headerName: 'SL',
+
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no}
@@ -373,6 +374,9 @@ const RequestList = () => {
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
               }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
