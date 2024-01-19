@@ -51,7 +51,6 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
           }
         />
 
-        {/* </Grid> */}
         <CardContent
 
         // sx={{
@@ -64,9 +63,10 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
         // pt: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
         // }}
         >
-          <Grid container spacing={6}>
-            {formComponent ? formComponent : null}
-          </Grid>
+          {/* <Grid container spacing={6}> */}
+          <>{formComponent ? formComponent : null}</>
+          {/* </Grid> */}
+          {/* </Grid> */}
         </CardContent>
       </Card>
     </Dialog>
