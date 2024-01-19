@@ -992,32 +992,33 @@ const IndividualRequest = () => {
                 <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
               </>
             )}
+          </Card>
 
-            {/* Shipped list        */}
-            {shippedItems?.length > 0 ? (
-              <>
-                <Card>
-                  <CardContent>
-                    <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                      <Grid item xs={6}>
-                        <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
-                      </Grid>
+          {/* Shipped list        */}
+          {shippedItems?.length > 0 ? (
+            <>
+              <Card sx={{ my: 4 }}>
+                <CardContent>
+                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                    <Grid item xs={6}>
+                      <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
                     </Grid>
-                  </CardContent>
-                  <TableBasic
-                    columns={shippedColumns}
-                    rows={shippedItems}
-                    onRowClick={e => {
-                      // console.log(e.id)
-                      setOrderId(e.id)
-                      showOrderFormDialog()
-                    }}
-                  />
-                </Card>
-              </>
-            ) : null}
+                  </Grid>
+                </CardContent>
+                <TableBasic
+                  columns={shippedColumns}
+                  rows={shippedItems}
+                  onRowClick={e => {
+                    // console.log(e.id)
+                    setOrderId(e.id)
+                    showOrderFormDialog()
+                  }}
+                />
+              </Card>
+            </>
+          ) : null}
 
-            {/* {disputedItems?.length > 0 ? (
+          {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1037,7 +1038,7 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-            {/* {dispenseItems?.length > 0 ? (
+          {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1057,7 +1058,6 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-          </Card>
           {/* Fulfill Request Dialog */}
           <CardContent>
             <Grid container>
