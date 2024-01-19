@@ -255,6 +255,9 @@ const ListOfPurchase = () => {
                     cursor: 'pointer'
                   }
                 }}
+                columnVisibilityModel={{
+                  sl: false
+                }}
                 autoHeight
                 pagination
                 hideFooterSelectedRowCount

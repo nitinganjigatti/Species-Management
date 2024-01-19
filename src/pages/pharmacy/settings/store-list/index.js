@@ -302,6 +302,9 @@ const ListOfStores = () => {
               <Card>
                 <CardHeader title='Storage' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
                   autoHeight
                   pagination
                   hideFooterSelectedRowCount

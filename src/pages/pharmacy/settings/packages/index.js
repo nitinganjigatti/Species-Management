@@ -260,6 +260,9 @@ const ManufacturerList = () => {
               <Card>
                 <CardHeader title='Packages' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
                   hideFooterSelectedRowCount

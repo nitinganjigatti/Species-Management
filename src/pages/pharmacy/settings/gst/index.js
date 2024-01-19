@@ -268,6 +268,9 @@ const ListOfGst = () => {
               <Card>
                 <CardHeader title='GST' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   hideFooterSelectedRowCount
                   disableColumnSelector={true}
                   autoHeight

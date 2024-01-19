@@ -302,6 +302,9 @@ const DirectDispatchList = () => {
                     cursor: 'pointer'
                   }
                 }}
+                columnVisibilityModel={{
+                  id: false
+                }}
                 autoHeight
                 pagination
                 hideFooterSelectedRowCount

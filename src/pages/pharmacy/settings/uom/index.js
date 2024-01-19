@@ -276,6 +276,9 @@ const ListOfUOM = () => {
               <Card>
                 <CardHeader title='UOM (Unit of Measurement) List' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
                   hideFooterSelectedRowCount

@@ -187,6 +187,9 @@ const ExpiredMedicine = () => {
                   cursor: 'pointer'
                 }
               }}
+              columnVisibilityModel={{
+                id: false
+              }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               autoHeight

@@ -258,6 +258,9 @@ const Salts = () => {
               <Card>
                 <CardHeader title='Salts' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
                   hideFooterSelectedRowCount

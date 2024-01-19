@@ -257,6 +257,9 @@ const ListOfDosageForms = () => {
               <Card>
                 <CardHeader title='Product Form List' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
                   hideFooterSelectedRowCount

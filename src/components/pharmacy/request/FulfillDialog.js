@@ -553,16 +553,16 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           <CardContent>
             <Grid container spacing={2} sx={{ flexGrow: 1 }}>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-                  Medicine Name
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                  Product Name
                 </Typography>
 
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', marginTop: '0px' }}>
                   {fulfillMedicine?.stock_name}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
                   QTY Requested
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -570,7 +570,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
                   QTY Remaining
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -578,7 +578,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
                   Total Qty Available
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary' }}>

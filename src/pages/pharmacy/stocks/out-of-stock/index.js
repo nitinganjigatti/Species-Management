@@ -197,6 +197,9 @@ const StockOut = () => {
                   cursor: 'pointer'
                 }
               }}
+              columnVisibilityModel={{
+                id: false
+              }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               autoHeight

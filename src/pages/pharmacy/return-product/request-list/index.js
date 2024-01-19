@@ -302,6 +302,9 @@ const ReturnRequestList = () => {
                     cursor: 'pointer'
                   }
                 }}
+                columnVisibilityModel={{
+                  id: false
+                }}
                 autoHeight
                 pagination
                 hideFooterSelectedRowCount
