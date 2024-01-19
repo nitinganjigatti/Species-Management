@@ -277,17 +277,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const columns = [
-    // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'uid',
-    //   headerName: 'Sl',
-    //   renderCell: (params, rowId) => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.uid}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.2,
       Width: 40,
