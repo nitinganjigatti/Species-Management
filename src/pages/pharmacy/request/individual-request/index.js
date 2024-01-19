@@ -39,6 +39,7 @@ import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/pro
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import MenuWithDots from 'src/components/MenuWithDots'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -472,31 +473,46 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
             params.row.request_status !== 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='error'
-                onClick={() => {
-                  handleProductNotAvailableAction(params.row.id, false)
-                }}
-              >
-                MAKE IT NOT AVAILABLE
-              </Button>
+              <>
+                {/* <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    handleProductNotAvailableAction(params.row.id, false)
+                  }}
+                >
+                  MAKE IT NOT AVAILABLE
+                </Button> */}
+                <MenuWithDots
+                  option='MAKE IT NOT AVAILABLE'
+                  action={() => {
+                    handleProductNotAvailableAction(params.row.id, false)
+                  }}
+                />
+              </>
             )}
 
           {selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
             params.row.request_status === 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='secondary'
-                onClick={() => {
+              // eslint-disable-next-line lines-around-comment
+              // <Button
+              //   size='small'
+              //   variant='contained'
+              //   color='secondary'
+              //   onClick={() => {
+              //     handleProductNotAvailableAction(params.row.id, true)
+              //   }}
+              // >
+              //   MAKE IT AVAILABLE
+              // </Button>
+              <MenuWithDots
+                option='MAKE IT AVAILABLE'
+                action={() => {
                   handleProductNotAvailableAction(params.row.id, true)
                 }}
-              >
-                MAKE IT AVAILABLE
-              </Button>
+              />
             )}
 
           {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
