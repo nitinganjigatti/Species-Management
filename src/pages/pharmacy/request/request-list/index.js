@@ -189,13 +189,32 @@ const RequestList = () => {
     },
 
     {
+      flex: 0.05,
+      Width: 40,
+      field: 'priority',
+      headerName: '',
+      type: 'number',
+      align: 'left',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.priority !== null ? (
+            <Box sx={{ color: 'error.main' }}>
+              <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
+            </Box>
+          ) : null}
+        </Typography>
+      )
+    },
+
+    {
       flex: 0.2,
       minWidth: 20,
       field: 'request_number',
       headerName: 'REQUEST ID',
+      hide: true,
       renderCell: params => (
         <>
-          <Typography variant='body2' sx={{ color: params.row.priority === 'high' ? 'error.main' : 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.request_number}
             {/* {params.row.priority === 'high' && (
               <Chip
@@ -206,14 +225,9 @@ const RequestList = () => {
                 icon={<Icon icon='mdi:arrow-up-circle' />}
               />
             )} */}
-            {params.row.control_substance === '1' && (
+            {/* {params.row.control_substance === '1' && (
               <CustomChip label='CS' skin='light' color='success' size='small' sx={{ ml: '6px', fontSize: '12px' }} />
-            )}
-            {params.row.dispute !== null && (
-              <IconButton alignSelf='center' color='error'>
-                <Icon icon='material-symbols:error-outline' fontSize={20} style={{ color: 'primary.warning' }} />
-              </IconButton>
-            )}
+            )} */}
           </Typography>
         </>
       )
@@ -290,15 +304,22 @@ const RequestList = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipping_status === 'Shipped' ? (
-            <Box sx={{ color: 'success.main' }}>
-              <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
-            </Box>
-          ) : (
-            <Box sx={{ color: 'warning.main' }}>
-              <Icon icon={'material-symbols:deployed-code-history'} style={{ color: 'primary.warning' }}></Icon>
-            </Box>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.shipping_status === 'Shipped' ? (
+              <Box sx={{ color: 'success.main' }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+              </Box>
+            ) : (
+              <Box sx={{ color: 'warning.main' }}>
+                <Icon icon={'material-symbols:deployed-code-history'} style={{ color: 'primary.warning' }}></Icon>
+              </Box>
+            )}
+            {params.row.dispute !== null && (
+              <IconButton alignSelf='center' color='error'>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.warning' }} />
+              </IconButton>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -373,6 +394,9 @@ const RequestList = () => {
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
               }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}

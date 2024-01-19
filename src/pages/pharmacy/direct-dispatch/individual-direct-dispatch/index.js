@@ -303,7 +303,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -332,7 +332,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_qty',
-      headerName: 'Requested QTY',
+      headerName: 'Dispatch QTY',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -343,7 +343,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled',
+      headerName: 'Packed/Shipped',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -351,17 +351,17 @@ const IndividualRequest = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'remaining',
-      headerName: 'Remaining',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'remaining',
+    //   headerName: 'Remaining',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -391,61 +391,61 @@ const IndividualRequest = () => {
           )}
         </>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'attachment',
-      headerName: 'Attachment',
-      renderCell: params =>
-        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <img
-            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
-            alt='Medicine Image'
-            style={{ width: '60px', height: '60px' }}
-          />
-        ) : null
-    },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'priority',
-      headerName: '',
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'central' &&
-            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status !== 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='error'
-                onClick={() => {
-                  handleProductNotAvailableAction(params.row.id, false)
-                }}
-              >
-                NOT AVAILABLE
-              </Button>
-            )}
-
-          {selectedPharmacy.type === 'central' &&
-            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status === 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='secondary'
-                onClick={() => {
-                  handleProductNotAvailableAction(params.row.id, true)
-                }}
-              >
-                Make IT AVAILABLE
-              </Button>
-            )}
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'attachment',
+    //   headerName: 'Attachment',
+    //   renderCell: params =>
+    //     !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+    //       <img
+    //         src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
+    //         alt='Medicine Image'
+    //         style={{ width: '60px', height: '60px' }}
+    //       />
+    //     ) : null
+    // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'priority',
+    //   headerName: '',
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'central' &&
+    //         parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+    //         params.row.request_status !== 'Not Available' && (
+    //           <Button
+    //             size='small'
+    //             variant='contained'
+    //             color='error'
+    //             onClick={() => {
+    //               handleProductNotAvailableAction(params.row.id, false)
+    //             }}
+    //           >
+    //             NOT AVAILABLE
+    //           </Button>
+    //         )}
+
+    //       {selectedPharmacy.type === 'central' &&
+    //         parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+    //         params.row.request_status === 'Not Available' && (
+    //           <Button
+    //             size='small'
+    //             variant='contained'
+    //             color='secondary'
+    //             onClick={() => {
+    //               handleProductNotAvailableAction(params.row.id, true)
+    //             }}
+    //           >
+    //             Make IT AVAILABLE
+    //           </Button>
+    //         )}
+    //     </>
+    //   )
+    // }
   ]
 
   const fulfillColumns = [
