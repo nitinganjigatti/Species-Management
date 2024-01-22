@@ -571,7 +571,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </Grid>
               <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
-                  QTY Remaining
+                  Balance
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary' }}>
                   {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}

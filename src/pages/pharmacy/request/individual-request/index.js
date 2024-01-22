@@ -88,6 +88,7 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
+      debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -106,6 +107,7 @@ const IndividualRequest = () => {
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
           sl_no: index + 1,
+          id: index + 1,
           dispatch_id: el.dispatch_id,
           dispatch_item_id: el.dispatch_item_id,
           stock_item_id: el.stock_item_id,
@@ -135,6 +137,7 @@ const IndividualRequest = () => {
       })
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
+      debugger
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -302,7 +305,7 @@ const IndividualRequest = () => {
             textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
           }}
         >
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -535,10 +538,10 @@ const IndividualRequest = () => {
       flex: 0.05,
       Width: 40,
       field: 'sl_no',
-      headerName: 'Id',
+      headerName: 'SL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -614,7 +617,7 @@ const IndividualRequest = () => {
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -668,11 +671,27 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'shipment_status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -797,7 +816,7 @@ const IndividualRequest = () => {
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },

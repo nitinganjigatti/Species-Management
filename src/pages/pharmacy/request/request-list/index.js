@@ -288,8 +288,7 @@ const RequestList = () => {
       minWidth: 20,
       field: 'fulfilled_qty',
 
-      // headerName: 'FULFILLED',
-      headerName: 'PACKED/SHIPPED',
+      headerName: 'FULFILLED',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -306,19 +305,30 @@ const RequestList = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.shipping_status === 'Shipped' ? (
-              <Box sx={{ color: 'success.main' }}>
+            {params.row.shipping_status === 'Fully Shipped' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
               </Box>
-            ) : (
-              <Box sx={{ color: 'warning.main' }}>
-                <Icon icon={'material-symbols:deployed-code-history'} style={{ color: 'primary.warning' }}></Icon>
+            )}
+            {params.row.shipping_status === 'Partially Shipped' && (
+              <Box sx={{ color: 'warning.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
               </Box>
             )}
-            {params.row.dispute !== null && (
-              <IconButton alignSelf='center' color='error'>
-                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.warning' }} />
-              </IconButton>
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
             )}
           </div>
         </Typography>

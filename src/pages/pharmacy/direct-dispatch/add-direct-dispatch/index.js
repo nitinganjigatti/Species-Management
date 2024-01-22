@@ -551,7 +551,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+          Router.push(`/pharmacy/direct-dispatch/individual-direct-dispatch/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -567,7 +567,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+          Router.push(`/pharmacy/direct-dispatch/individual-direct-dispatch/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)

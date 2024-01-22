@@ -24,7 +24,8 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
             }
           }}
           columnVisibilityModel={{
-            sl_no: false
+            sl_no: false,
+            id: false
           }}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
