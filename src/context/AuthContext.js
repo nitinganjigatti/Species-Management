@@ -100,13 +100,10 @@ const AuthProvider = ({ children }) => {
                 const areArraysEqual =
                   JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
 
-                // return areArraysEqual
                 if (areArraysEqual === false) {
                   write('selectedStore', foundPharmacy)
                   setSelectedPharmacy(foundPharmacy)
                 }
-
-                // console.log('areArraysEqual in pharmacy  comp', foundPharmacy)
               }
               findSelectedPharmacy()
               if (storedPharmacy === '' || foundStored() === false) {
@@ -217,6 +214,47 @@ const AuthProvider = ({ children }) => {
           write('userData', userData)
           setUserData({ ...resData })
           setUser({ ...userData })
+
+          // ******** Pharmcy
+          const options = resData?.modules?.pharmacy_data?.pharmacy
+          const storedPharmacy = await readAsync('selectedStore')
+
+          const foundStored = () => {
+            if (options?.length > 0 && storedPharmacy !== undefined) {
+              return options.some(item => item?.id === storedPharmacy?.id)
+            }
+
+            return false
+          }
+
+          const findSelectedPharmacy = () => {
+            let foundPharmacy = ''
+            if (options?.length > 0 && storedPharmacy !== undefined) {
+              foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+            }
+
+            const areArraysEqual =
+              JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+
+            if (areArraysEqual === false) {
+              write('selectedStore', foundPharmacy)
+              setSelectedPharmacy(foundPharmacy)
+            }
+          }
+          findSelectedPharmacy()
+          if (storedPharmacy === '' || foundStored() === false) {
+            if (options?.length > 0) {
+              write('selectedStore', options[0])
+
+              setSelectedPharmacy(options[0])
+            } else {
+              localStorage.removeItem('selectedStore')
+            }
+          } else {
+            setSelectedPharmacy(storedPharmacy)
+          }
+
+          /*********pharmacy */
 
           const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
           router.replace(redirectURL)
