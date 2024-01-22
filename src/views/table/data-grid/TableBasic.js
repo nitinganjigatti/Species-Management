@@ -23,6 +23,9 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
               cursor: 'pointer'
             }
           }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
           autoHeight

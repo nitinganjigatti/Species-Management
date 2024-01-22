@@ -82,7 +82,7 @@ const IndividualRequest = () => {
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
-        uid: index + 1
+        sl_no: index + 1
       }))
 
       responseData['request_item_details'] = mappedWithUid
@@ -103,7 +103,7 @@ const IndividualRequest = () => {
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
-          id: index + 1,
+          sl_no: index + 1,
           dispatch_id: el.dispatch_id,
           dispatch_item_id: el.dispatch_item_id,
           stock_item_id: el.stock_item_id,
@@ -151,7 +151,7 @@ const IndividualRequest = () => {
 
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setShippedItems(mappedWithUid)
@@ -173,7 +173,7 @@ const IndividualRequest = () => {
       if (response?.success) {
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setDisputedItemsItems(mappedWithUid)
@@ -291,7 +291,7 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -452,7 +452,7 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'Id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -526,7 +526,7 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -620,7 +620,7 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -708,7 +708,7 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
