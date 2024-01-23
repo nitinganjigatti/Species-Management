@@ -124,6 +124,17 @@ const ListOfPurchase = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'po_date',
+      headerName: 'Purchase Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.po_date)}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,
@@ -151,7 +162,7 @@ const ListOfPurchase = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'total_amount',
-      headerName: 'TOTAL AMOUNT',
+      headerName: 'Purchase Amount',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -159,71 +170,60 @@ const ListOfPurchase = () => {
           {params.row.total_amount}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'tax_amount',
-      headerName: 'TAX AMOUNT',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.tax_amount}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'discount_amount',
-      headerName: 'DISCOUNT AMOUNT',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.discount_amount}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'po_date',
-      headerName: 'Purchase Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.po_date)}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                <IconButton
-                  size='small'
-                  sx={{ mr: 0.5 }}
-                  onClick={() => {
-                    handleEdit(params.row.id)
-                  }}
-                >
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-              </Box>
-            )}
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'tax_amount',
+    //   headerName: 'TAX AMOUNT',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.tax_amount}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'discount_amount',
+    //   headerName: 'DISCOUNT AMOUNT',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.discount_amount}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'central' &&
+    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+    //           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //             <IconButton
+    //               size='small'
+    //               sx={{ mr: 0.5 }}
+    //               onClick={() => {
+    //                 handleEdit(params.row.id)
+    //               }}
+    //             >
+    //               <Icon icon='mdi:pencil-outline' />
+    //             </IconButton>
+    //           </Box>
+    //         )}
+    //     </>
+    //   )
+    // }
   ]
 
   const handleHeaderAction = () => {
@@ -235,6 +235,15 @@ const ListOfPurchase = () => {
       <AddButton title='Add Purchase' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
     </div>
   )
+
+  const onRowClick = params => {
+    if (
+      selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
+    ) {
+      handleEdit(params.row.id)
+    }
+  }
 
   return (
     <>
@@ -284,8 +293,7 @@ const ListOfPurchase = () => {
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-
-                // onRowClick={onRowClick}
+                onRowClick={onRowClick}
               />
             </Card>
           </>
