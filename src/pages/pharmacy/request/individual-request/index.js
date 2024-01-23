@@ -387,7 +387,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'remaining',
-      headerName: 'Remaining',
+      headerName: selectedPharmacy.type === 'local' ? 'Shipped Qty' : 'Remaining',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -398,7 +398,9 @@ const IndividualRequest = () => {
             textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
           }}
         >
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+          {selectedPharmacy.type === 'local'
+            ? params.row.shipped_qty
+            : parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
         </Typography>
       )
     },
