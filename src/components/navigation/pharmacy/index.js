@@ -80,7 +80,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchList = {
-    title: 'Dispatch list',
+    title: 'Dispatch',
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
@@ -211,10 +211,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
-      purchaseList,
       requestListing,
       returnListing,
       directDispatchList,
+      purchaseList,
       stockParent,
       productsList,
       settingsParent

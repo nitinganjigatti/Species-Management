@@ -459,7 +459,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           >
                             {statusOptions?.map((item, index) => (
                               <MenuItem key={index} value={item?.label}>
-                                {item?.label}
+                                {item?.label === 'Broken' || item?.label === 'Expired'
+                                  ? `Received (${item?.label})`
+                                  : item?.label === 'Missing'
+                                  ? `Dispute (${item?.label})`
+                                  : item?.label === 'Wrong Count'
+                                  ? `Dispute (Wrong Qty)`
+                                  : item?.label}
                               </MenuItem>
                             ))}
                           </Select>

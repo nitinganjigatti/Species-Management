@@ -288,12 +288,12 @@ const RequestList = () => {
       minWidth: 20,
       field: 'fulfilled_qty',
 
-      headerName: 'FULFILLED',
+      headerName: 'Balance',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.fulfilled_qty}
+          {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
         </Typography>
       )
     },
