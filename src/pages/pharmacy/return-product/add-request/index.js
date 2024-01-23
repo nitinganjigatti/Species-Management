@@ -527,7 +527,6 @@ const AddReturnRequest = () => {
       return el.uuid === itemId
     })
 
-    // debugger
     console.log('getItems', getItems)
     setNestedRowMedicine({
       ...nestedRowMedicine,
