@@ -521,10 +521,6 @@ const AddReturnRequest = () => {
           setSubmitLoader(false)
           getListOfItemsById(id)
 
-          // Router.push({
-          //   pathname: '/pharmacy/return-product/individual-return/',
-          //   query: { id: response.data, action: 'edit' }
-          // })
           Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
         } else {
           setSubmitLoader(false)
