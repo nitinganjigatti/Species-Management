@@ -383,25 +383,25 @@ const IndividualRequest = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'remaining',
-    //   headerName: 'Remaining',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: 'text.primary',
-    //         textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
-    //       }}
-    //     >
-    //       {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'remaining',
+      headerName: 'Remaining',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
+          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
