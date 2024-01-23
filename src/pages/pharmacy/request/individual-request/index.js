@@ -475,6 +475,30 @@ const IndividualRequest = () => {
       headerName: 'Availability',
       renderCell: params => (
         <>
+          {params.row.request_status === 'Not Available' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
+              </Box>
+            </Typography>
+          )}
+
+          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              Not Available
+            </Typography>
+          )}
+
           {selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
             params.row.request_status !== 'Not Available' && (
@@ -519,17 +543,6 @@ const IndividualRequest = () => {
                 }}
               />
             )}
-
-          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary'
-              }}
-            >
-              Not Available
-            </Typography>
-          )}
         </>
       )
     }
