@@ -197,7 +197,7 @@ const IndividualReturnRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/request/add-request/',
+      pathname: '/pharmacy/return-product/add-request',
       query: { id: id, action: 'edit' }
     })
   }
@@ -763,6 +763,17 @@ const IndividualReturnRequest = () => {
                   }}
                   icon='ep:back'
                 />
+              }
+              action={
+                <Button
+                  size='large'
+                  variant='contained'
+                  onClick={() => {
+                    handleEdit(id)
+                  }}
+                >
+                  Edit
+                </Button>
               }
             />
             <CardContent>
