@@ -130,8 +130,6 @@ const AddReturnRequest = () => {
   }
 
   const { selectedPharmacy } = usePharmacyContext()
-  console.log('permission', selectedPharmacy.type, selectedPharmacy.permission.key)
-  console.log('selectedPharmacy', selectedPharmacy)
 
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
@@ -234,7 +232,7 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = (params, type) => {
-    debugger
+    // debugger
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -264,7 +262,7 @@ const AddReturnRequest = () => {
   }
 
   const updateTableItems = params => {
-    debugger
+    // debugger
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -383,7 +381,7 @@ const AddReturnRequest = () => {
           // debugger
 
           if (searchResults?.data?.items.length > 0) {
-            debugger
+            // debugger
 
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
@@ -448,25 +446,33 @@ const AddReturnRequest = () => {
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
+      console.log('direct dispatch items id ', result)
+      // debugger
 
       if (result.success === true && result.data !== '') {
-        const lineItems = result.data.request_item_details.map(el => {
+        const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el.stock_item_id,
-            medicine_name: el.stock_name,
+            // medicine_name: el.stock_name,
+            product_name: el.stock_name,
+
             request_item_qty: el.qty,
             request_item_leaf_id: el.stock_item_id,
             priority_item: el.priority,
             control_substance: el.control_substance === '0' ? false : true,
             control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
             id: el.id,
-            request_item_detail_id: el.id
+            request_item_detail_id: el.id,
+            request_item_batch_no: el.dispatch_batch_no,
+            expiry_date: el.dispatch_expiry_date,
+            uuid: uuidv4()
           }
         })
 
         setEditParams({
           ...editParams,
           id: result.data.id,
+          dispatch_id: result?.data?.dispatch_id,
           // from_store_id: result.data.from_store_id,
           to_store_id: result.data.to_store_id,
           ro_date: result.data.request_date,
@@ -478,58 +484,60 @@ const AddReturnRequest = () => {
       }
     } catch (error) {
       console.log('error', error)
+      console.log('direct dispatch items update', error)
     }
   }
 
   // ****** edit section //////
   const editTableData = itemId => {
-    debugger
-    if (id != undefined && action === 'edit') {
-      const getItems = editParams.request_item_details.filter(el => {
-        return el.request_item_medicine_id === itemId
-      })
+    // debugger
+    // if (id != undefined && action === 'edit') {
+    //   const getItems = editParams.request_item_details.filter(el => {
+    //     return el.request_item_medicine_id === itemId
+    //   })
 
-      debugger
+    //   debugger
 
-      setNestedRowMedicine({
-        ...nestedRowMedicine,
-        request_item_medicine_id: getItems[0].request_item_medicine_id,
-        medicine_name: getItems[0].medicine_name,
-        request_item_qty: getItems[0].request_item_qty,
-        request_item_batch_no: getItems[0].request_item_batch_no,
-        expiry_date: getItems[0].expiry_date,
-        request_item_leaf_id: getItems[0].request_item_leaf_id,
-        priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance,
-        control_substance_file: getItems[0].control_substance_file,
-        id: getItems[0].id,
-        uuid: getItems[0].uuid
-      })
-    } else {
-      const getItems = editParams.request_item_details.filter(el => {
-        return el.uuid === itemId
-      })
+    //   setNestedRowMedicine({
+    //     ...nestedRowMedicine,
+    //     request_item_medicine_id: getItems[0].request_item_medicine_id,
+    //     medicine_name: getItems[0].medicine_name,
+    //     request_item_qty: getItems[0].request_item_qty,
+    //     request_item_batch_no: getItems[0].request_item_batch_no,
+    //     expiry_date: getItems[0].expiry_date,
+    //     request_item_leaf_id: getItems[0].request_item_leaf_id,
+    //     priority_item: getItems[0].priority_item,
+    //     control_substance: getItems[0].control_substance,
+    //     control_substance_file: getItems[0].control_substance_file,
+    //     id: getItems[0].id,
+    //     uuid: getItems[0].uuid
+    //   })
+    // } else {
+    const getItems = editParams.request_item_details.filter(el => {
+      return el.uuid === itemId
+    })
 
-      debugger
+    // debugger
 
-      setNestedRowMedicine({
-        ...nestedRowMedicine,
-        medicine_name: getItems[0].product_name,
-        request_item_medicine_id: getItems[0].request_item_medicine_id,
-        request_item_batch_no: getItems[0].request_item_batch_no,
-        expiry_date: getItems[0].expiry_date,
-        // id: getItems[0].id,
-        request_item_qty: getItems[0].request_item_qty,
-        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
-        priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance,
-        uuid: getItems[0].uuid
-      })
-    }
+    setNestedRowMedicine({
+      ...nestedRowMedicine,
+      medicine_name: getItems[0].product_name,
+      request_item_medicine_id: getItems[0].request_item_medicine_id,
+      request_item_batch_no: getItems[0].request_item_batch_no,
+      expiry_date: getItems[0].expiry_date,
+      // id: getItems[0].id,
+      request_item_qty: getItems[0].request_item_qty,
+      control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
+      priority_item: getItems[0].priority_item,
+      control_substance: getItems[0].control_substance,
+      uuid: getItems[0].uuid
+    })
+    // }
   }
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
+      // debugger
       getListOfItemsById(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -831,7 +839,7 @@ const AddReturnRequest = () => {
                               sx={{ mr: 0.5 }}
                               aria-label='Edit'
                               onClick={() => {
-                                debugger
+                                // debugger
                                 setMedicineItemId(el.request_item_medicine_id)
 
                                 editTableData(el.uuid)
@@ -844,7 +852,7 @@ const AddReturnRequest = () => {
                             {id && el.request_item_detail_id ? null : (
                               <IconButton
                                 onClick={() => {
-                                  debugger
+                                  // debugger
                                   removeItemsFroTable(el.uuid)
                                 }}
                                 size='small'

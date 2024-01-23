@@ -70,6 +70,13 @@ const IndividualRequest = () => {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
+  console.log('first', selectedPharmacy)
+  {
+    console.log(
+      'pharmacy',
+      selectedPharmacy.type === 'central' && selectedPharmacy.permission.key === 'allow_full_access'
+    ) || selectedPharmacy.permission.key === 'ADD'
+  }
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
@@ -204,7 +211,7 @@ const IndividualRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/request/add-request/',
+      pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -874,6 +881,20 @@ const IndividualRequest = () => {
                   }}
                   icon='ep:back'
                 />
+              }
+              action={
+                (selectedPharmacy?.type === 'central' && selectedPharmacy?.permission.key === 'allow_full_access') ||
+                selectedPharmacy?.permission.key === 'ADD' ? (
+                  <Button
+                    size='large'
+                    variant='contained'
+                    onClick={() => {
+                      handleEdit(id)
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : null
               }
 
               // action={
