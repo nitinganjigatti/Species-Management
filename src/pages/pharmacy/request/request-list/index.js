@@ -49,7 +49,7 @@ const RequestList = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
@@ -73,7 +73,8 @@ const RequestList = () => {
         setLoading(true)
 
         const params = {
-          type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          type: 'request',
           sort,
           q,
           column,
@@ -94,19 +95,11 @@ const RequestList = () => {
         setLoading(false)
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, status, selectedPharmacy.id])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn, status)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -118,7 +111,7 @@ const RequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -127,7 +120,7 @@ const RequestList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -170,10 +163,6 @@ const RequestList = () => {
   const getRequestedText = () => {
     return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
   }
-
-  // useEffect(() => {
-  //   getRequestItemLists()
-  // }, [])
 
   const columns = [
     {
@@ -452,16 +441,15 @@ const RequestList = () => {
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
             <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
             />
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
-
           <TabPanel value='pending'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='completed'>{tableData()}</TabPanel>

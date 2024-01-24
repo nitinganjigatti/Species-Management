@@ -2,7 +2,19 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, InputLabel, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
+import {
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Divider,
+  Box,
+  Button,
+  IconButton,
+  CircularProgress
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
@@ -57,7 +69,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     ]
   }
 
-  const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [disputeItemDetails, setDisputeItemDetails] = useState({})
   const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
@@ -371,14 +383,41 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           {selectedPharmacy.type === 'local' ? (
             <>
               <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant='p' sx={{ mx: 2 }}>
-                  {params.row.status === 'Wrong Count'
+                <Typography variant='p' sx={{ mx: 2, textTransform: 'capitalize' }}>
+                  {/* {params.row.status === 'Wrong Count'
                     ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
+                    : params.row.status} */}
+
+                  {params.row.status === 'Wrong Count' ||
+                  params.row.status === 'Shortage - Accepted' ||
+                  params.row.status === 'Excess - Accepted'
+                    ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                        params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                      }`
                     : params.row.status}
                 </Typography>
                 {params?.row?.dispute_status === 'Not Resolved' || params?.row?.dispute_status === 'Dispute Pending' ? (
                   <>
-                    <LoadingButton
+                    {resolveLoader ? (
+                      <CircularProgress size={40} />
+                    ) : (
+                      <IconButton
+                        size='large'
+                        aria-label='Accept'
+                        onClick={() => {
+                          resolveItems(params.row)
+                        }}
+                        sx={{ padding: 0 }}
+                        color='success'
+                      >
+                        <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
+                      </IconButton>
+                    )}
+
+                    <IconButton aria-label='Deny' sx={{ padding: 0 }} size='large' color='error'>
+                      <Icon icon='ion:close-circle' />
+                    </IconButton>
+                    {/* <LoadingButton
                       size='small'
                       variant='contained'
                       loading={resolveLoader}
@@ -390,7 +429,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     </LoadingButton>
                     <LoadingButton size='small' color='error' variant='contained'>
                       Deny
-                    </LoadingButton>
+                    </LoadingButton> */}
                   </>
                 ) : null}
               </Grid>
@@ -521,8 +560,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       </FormControl>
                     </Grid>
                   ) : (
-                    <Typography variant='p' sx={{ mx: 2 }}>
-                      {params.row.status}
+                    <Typography variant='p' sx={{ mx: 2, textTransform: 'capitalize' }}>
+                      {/* {params.row.status} */}
+                      {params.row.status === 'Wrong Count' ||
+                      params.row.status === 'Shortage - Accepted' ||
+                      params.row.status === 'Excess - Accepted'
+                        ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                            params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                          }`
+                        : params.row.status}
                     </Typography>
                   )}
                 </Grid>

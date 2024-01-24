@@ -169,7 +169,7 @@ const ListOfStocksByBatch = () => {
           {params.row.stock_qty}
         </Typography>
       )
-    },
+    }
 
     // {
     //   flex: 0.2,
@@ -194,26 +194,26 @@ const ListOfStocksByBatch = () => {
     //   )
     // },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              setConfigureMedId(params.row.stock_item_id)
-              showDialog()
-            }}
-          >
-            <Icon icon='grommet-icons:configure' />
-          </IconButton>
-        </Box>
-      )
-    }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           setConfigureMedId(params.row.stock_item_id)
+    //           showDialog()
+    //         }}
+    //       >
+    //         <Icon icon='grommet-icons:configure' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const createForm = () => {
