@@ -49,7 +49,7 @@ const RequestList = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
@@ -73,7 +73,8 @@ const RequestList = () => {
         setLoading(true)
 
         const params = {
-          type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          type: 'request',
           sort,
           q,
           column,
