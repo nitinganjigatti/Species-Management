@@ -94,19 +94,11 @@ const RequestList = () => {
         setLoading(false)
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, status, selectedPharmacy.id])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn, status)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -118,7 +110,7 @@ const RequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -127,7 +119,7 @@ const RequestList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -170,10 +162,6 @@ const RequestList = () => {
   const getRequestedText = () => {
     return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
   }
-
-  // useEffect(() => {
-  //   getRequestItemLists()
-  // }, [])
 
   const columns = [
     {

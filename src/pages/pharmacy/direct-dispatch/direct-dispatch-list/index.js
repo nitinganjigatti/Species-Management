@@ -56,7 +56,7 @@ const DirectDispatchList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column) => {
       try {
         setLoading(true)
 

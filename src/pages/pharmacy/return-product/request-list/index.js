@@ -56,7 +56,7 @@ const ReturnRequestList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column) => {
       try {
         setLoading(true)
 
@@ -113,7 +113,7 @@ const ReturnRequestList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
