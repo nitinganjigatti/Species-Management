@@ -2,10 +2,11 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, Select, MenuItem, TextField, Divider, Box, Button } from '@mui/material'
+import { Grid, FormControl, Select, MenuItem, TextField, Divider, Box, Button, IconButton } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // ** MUI Imports
 
@@ -55,7 +56,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     ]
   }
 
-  const [disputeItemDetails, setDisputeItemDetails] = useState(defaultValues)
+  const [disputeItemDetails, setDisputeItemDetails] = useState({})
   const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
@@ -110,7 +111,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     try {
       const response = await getShipmentOrderDetails(orderId)
       console.log('getOrderDetails', response?.data)
-      if (response?.success === true && response?.data !== '') {
+      if (response?.success && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
             uid: index + 1,
@@ -159,9 +160,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         setDisputeItemDetails(disputesData)
         setTempDisputeItemDetails(disputesData)
-        // debugger
+        debugger
+      } else {
+        debugger
       }
     } catch (error) {
+      console.log(disputeItemDetails)
+      debugger
       console.log('error', error)
     }
   }
@@ -344,29 +349,65 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           <>
             {selectedPharmacy.type === 'central' ? (
               <>
-                <Grid sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
+                <Grid
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    textTransform: 'capitalize'
+                  }}
+                >
                   <Typography variant='p' sx={{ mx: 2 }}>
-                    {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Not Resolved'
-                      ? `${params?.row?.wrong_count_type}  ${params?.row?.wrong_count_number}`
+                    {/* {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Dispute Pending' ? */}
+                    {params.row.status === 'Wrong Count' ||
+                    params.row.status === 'Shortage - Accepted' ||
+                    params.row.status === 'Excess - Accepted'
+                      ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                          params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                        }`
                       : params.row.status}
+                    {/* : params.row.status} */}
                   </Typography>
                   {params?.row?.dispute_status === 'Not Resolved' ||
                   params?.row?.dispute_status === 'Dispute Pending' ? (
                     <>
-                      <LoadingButton
+                      {resolveLoader ? (
+                        <CircularProgress size={40} />
+                      ) : (
+                        <IconButton
+                          size='large'
+                          aria-label='Accept'
+                          onClick={() => {
+                            resolveItems(params.row)
+                          }}
+                          sx={{ padding: 0 }}
+                          color='success'
+                        >
+                          <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
+                        </IconButton>
+                      )}
+
+                      <IconButton aria-label='Deny' sx={{ padding: 0 }} size='large' color='error'>
+                        <Icon icon='ion:close-circle' />
+                      </IconButton>
+
+                      {/* <IconButton aria-label='Deny' size='small' color='error' variant='contained'></IconButton> */}
+                      {/* <LoadingButton
                         size='small'
                         onClick={() => {
                           resolveItems(params.row)
                         }}
                         variant='contained'
                         loading={resolveLoader}
+                        startIcon={<Icon icon={'ion:checkmark-circle'}></Icon>}
                       >
                         Accept
                       </LoadingButton>
 
                       <LoadingButton size='small' color='error' variant='contained'>
                         Deny
-                      </LoadingButton>
+                      </LoadingButton> */}
                     </>
                   ) : null}
                 </Grid>
@@ -473,7 +514,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
-                        {params.row.status}
+                        {/* {params.row.status} */}
+                        {params.row.status === 'Wrong Count' ||
+                        params.row.status === 'Shortage - Accepted' ||
+                        params.row.status === 'Excess - Accepted'
+                          ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                              params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                            }`
+                          : params.row.status}
                       </Typography>
                     )}
                   </Grid>
@@ -683,7 +731,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           </Grid>
         </Grid>
       ) : (
-        <FallbackSpinner />
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
       )}
     </>
   )
