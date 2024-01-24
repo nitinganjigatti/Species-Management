@@ -366,13 +366,14 @@ const DirectDispatchList = () => {
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
+
             <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            />
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
