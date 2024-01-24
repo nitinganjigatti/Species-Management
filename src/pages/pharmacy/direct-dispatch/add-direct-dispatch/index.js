@@ -449,7 +449,7 @@ const AddReturnRequest = () => {
       console.log('direct dispatch items id ', result)
       // debugger
 
-      if (result.success === true && result.data !== '') {
+      if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el.stock_item_id,

@@ -769,6 +769,7 @@ const IndividualReturnRequest = () => {
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
+
           <Card sx={{ mb: 6 }}>
             <CardHeader
               title={`Return - ${requestItems?.request_number}`}
@@ -782,15 +783,19 @@ const IndividualReturnRequest = () => {
                 />
               }
               action={
-                <Button
-                  size='large'
-                  variant='contained'
-                  onClick={() => {
-                    handleEdit(id)
-                  }}
-                >
-                  Edit
-                </Button>
+                selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                  <Button
+                    size='large'
+                    variant='contained'
+                    onClick={() => {
+                      handleEdit(id)
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : (
+                  <></>
+                )
               }
             />
             <CardContent>
@@ -820,6 +825,7 @@ const IndividualReturnRequest = () => {
             ) : null}
           </Card>
           {/* Dispatch list */}
+
           {dispatchedItems?.length > 0 && selectedPharmacy.type === 'local' ? (
             <>
               <Card sx={{ mb: 6 }}>

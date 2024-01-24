@@ -109,7 +109,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
-      console.log('getOrderDetails', response?.data)
+
+      console.log('getOrderDetails', response)
+      debugger
+
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -147,6 +150,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         })
         // debugger
         console.log('orderData', orderData)
+        console.log('response delevery statsu', response.data?.delivery_status)
 
         const disputesData = {
           shipment_id: orderId,
@@ -154,7 +158,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           // dispatch_id: response?.data?.dispatch_id,
           request_id: requestId,
           item_details: disputeLineItems,
-          comments: response?.data?.comments
+          comments: response?.data?.comments,
+          delivery_status: response?.data?.delivery_status
         }
 
         setDisputeItemDetails(disputesData)
@@ -178,8 +183,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
   function disableButton() {
-    if (orderData?.item_details) {
-      const allReceived = orderData?.item_details.every(item => item.status !== '')
+    if (disputeItemDetails?.item_details) {
+      const allReceived = disputeItemDetails?.item_details.every(item => item.status === '')
 
       return allReceived
     }
@@ -191,6 +196,35 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const bulkStatusUpdate = async () => {
+    const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+      // if (item.status === '' || item.status === 'Expired' || item.status === 'Broken') {
+      //   return {
+      //     ...item,
+      //     status: 'Received'
+      //   }
+      // } else {
+      //   return item
+      // }
+
+      return {
+        ...item,
+        status: 'Received'
+      }
+    })
+
+    // setDisputeItemDetails(prevState => ({
+    //   ...prevState,
+    //   item_details: updatedItemDetails
+    // }))
+    const items = disputeItemDetails
+    items['item_details'] = updatedItemDetails
+    setDisputeItemDetails({ ...disputeItemDetails, items })
+    console.log('after update', disputeItemDetails)
+    // debugger
+    updateStatus()
+  }
 
   const resolveItems = async payload => {
     // debugger
@@ -486,10 +520,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   ]
 
-  console.log('temp', tempDisputeItemDetails)
-  console.log('original', disputeItemDetails)
   async function updateStatus() {
-    const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
+    const isStatusEmpty = disputeItemDetails?.item_details?.some(item => item.status.trim() === '')
 
     if (isStatusEmpty) {
       console.error('Please fill in all status fields.')
@@ -497,13 +529,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       return
     }
     const receivedItems = disputeItemDetails?.item_details
-    // const notReceivedItems = disputeItemDetails?.item_details
-
-    // const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
-    // const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
 
     console.log('receivedItems: ', receivedItems)
-    // console.log('notReceivedItems: ', notReceivedItems)
     console.log('disputeItemDetails3: ', disputeItemDetails)
 
     if (receivedItems.length > 0) {
@@ -522,23 +549,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           comments: disputeItemDetails.comments,
           item_status: item.status
         }
-        // "shipment_item_id": "108",
-        // "shipment_date": "2023-12-07",
-        // "person_shipping": "Test",
-        // "status": "Shipped",
-        // "vehicle_no": "KA01AB1234",
-        // "picked_up": "",
-        // "dispatch_id": "129",
-        // "dispatch_item_id": "153",
-        // "from_store_id": "14",
-        // "to_store_id": "16",
-        // "item_status": "Wrong Count",
-        // "request_id": "130",
-        // "comments": "test"
       })
 
-      //setSubmitLoader(true)
-      // const finalData = { ...disputeItemDetails, item_details: receivedItems }
       const verifyCount = finalReceivedItems.some(el => {
         if (el.item_status === 'Wrong Count') {
           if (el.wrong_count_number === '' || el.wrong_count_type === '') {
@@ -565,24 +577,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         }
       }
     }
-    // if (notReceivedItems.length > 0) {
-    //   setSubmitLoader(true)
-
-    //   const finalData = { ...disputeItemDetails, item_details: notReceivedItems }
-    //   try {
-    //     const result = await addDisputeItems(finalData)
-    //     if (result?.success) {
-    //       toast.success(result?.message)
-    //       setSubmitLoader(false)
-    //     }
-    //   } catch (error) {
-    //     setSubmitLoader(false)
-
-    //     toast.error(error?.message)
-    //     console.log('Add dispute error', error)
-    //   }
-    // }
-    // closeOrderFormDialog()
   }
 
   return (
@@ -666,20 +660,35 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
               />
             )}
-            {selectedPharmacy.type === 'local' && (
-              <LoadingButton
-                sx={{ float: 'right', my: 4, mx: 6 }}
-                size='large'
-                // disabled={disableButton()}
-                variant='contained'
-                onClick={() => {
-                  updateStatus()
-                }}
-                loading={submitLoader}
-              >
-                Save
-              </LoadingButton>
-            )}
+            {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
+            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+              <>
+                <LoadingButton
+                  sx={{ float: 'right', my: 4, mx: 2 }}
+                  size='large'
+                  disabled={disableButton()}
+                  variant='contained'
+                  onClick={() => {
+                    updateStatus()
+                  }}
+                  loading={submitLoader}
+                >
+                  Save
+                </LoadingButton>
+                <LoadingButton
+                  sx={{ float: 'right', my: 4, mx: 6 }}
+                  size='large'
+                  // disabled={disableButton()}
+                  variant='contained'
+                  onClick={() => {
+                    bulkStatusUpdate()
+                  }}
+                  loading={submitLoader}
+                >
+                  Mark all as Received & Save
+                </LoadingButton>
+              </>
+            ) : null}
           </Grid>
         </Grid>
       ) : (

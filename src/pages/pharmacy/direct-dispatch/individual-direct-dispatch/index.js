@@ -871,6 +871,7 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card sx={{ mb: 6 }}>
+            {console.log('requestItems.status', requestItems)}
             <CardHeader
               title={`Direct Dispatch - ${requestItems?.request_number}`}
               avatar={
@@ -883,7 +884,9 @@ const IndividualRequest = () => {
                 />
               }
               action={
-                (selectedPharmacy?.type === 'central' && selectedPharmacy?.permission.key === 'allow_full_access') ||
+                (selectedPharmacy?.type === 'central' &&
+                  requestItems.status === 'request' &&
+                  selectedPharmacy?.permission.key === 'allow_full_access') ||
                 selectedPharmacy?.permission.key === 'ADD' ? (
                   <Button
                     size='large'

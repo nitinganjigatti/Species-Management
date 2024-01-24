@@ -426,6 +426,14 @@ const AddReturnRequest = () => {
     []
   )
 
+  useEffect(() => {
+    if (id != undefined && action === 'edit') {
+      console.log('id', id, action)
+      getListOfItemsById(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, action])
+
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
@@ -439,40 +447,42 @@ const AddReturnRequest = () => {
   //  ****** debounce
 
   const getListOfItemsById = async id => {
-    const result = await getReturnItemsListById(id)
+    try {
+      const result = await getReturnItemsListById(id)
 
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.request_item_details.map(el => {
-        return {
-          request_item_medicine_id: el.stock_item_id,
-          // medicine_name: el.stock_name,
-          product_name: el.stock_name,
-          request_item_qty: el.qty,
-          request_item_leaf_id: el.stock_item_id,
-          priority_item: el.priority,
-          control_substance: el.control_substance === '0' ? false : true,
-          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-          id: el.id,
-          request_item_detail_id: el.id,
-          request_item_batch_no: el.dispatch_batch_no,
-          expiry_date: el.dispatch_expiry_date,
-          uuid: uuidv4()
-        }
-      })
+      if (result?.success === true && result?.data?.request_item_details?.length > 0) {
+        const lineItems = result?.data?.request_item_details.map(el => {
+          return {
+            request_item_medicine_id: el.stock_item_id,
+            // medicine_name: el.stock_name,
+            product_name: el.stock_name,
+            request_item_qty: el.qty,
+            request_item_leaf_id: el.stock_item_id,
+            priority_item: el.priority,
+            control_substance: el.control_substance === '0' ? false : true,
+            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
+            id: el.id,
+            request_item_detail_id: el.id,
+            request_item_batch_no: el.dispatch_batch_no,
+            expiry_date: el.dispatch_expiry_date,
+            uuid: uuidv4()
+          }
+        })
 
-      setEditParams({
-        ...editParams,
-        id: result?.data?.id,
-        dispatch_id: result?.data?.dispatch_id,
-        // from_store_id: result?.data?.from_store_id,
-        to_store_id: result?.data?.to_store_id,
-        ro_date: result?.data?.request_date,
-        // from_store_type: result?.data?.from_store_type,
-        to_store_type: result?.data?.to_store_type,
-        request_item_details: lineItems
-      })
-      // }
-    }
+        setEditParams({
+          ...editParams,
+          id: result?.data?.id,
+          dispatch_id: result?.data?.dispatch_id,
+          // from_store_id: result?.data?.from_store_id,
+          to_store_id: result?.data?.to_store_id,
+          ro_date: result?.data?.request_date,
+          // from_store_type: result?.data?.from_store_type,
+          to_store_type: result?.data?.to_store_type,
+          request_item_details: lineItems
+        })
+        // }
+      }
+    } catch (error) {}
   }
 
   // ****** edit section //////
@@ -497,13 +507,6 @@ const AddReturnRequest = () => {
     // }
     // await searchBatchData(itemId)
   }
-
-  useEffect(() => {
-    if (id != undefined && action === 'edit') {
-      getListOfItemsById(id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, action])
 
   // ****** edit section //////
   // data posting section

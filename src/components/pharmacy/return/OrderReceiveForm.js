@@ -161,7 +161,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           // dispatch_id: response?.data?.dispatch_id,
           request_id: requestId,
           item_details: disputeLineItems,
-          comments: response?.data?.comments
+          comments: response?.data?.comments,
+          delivery_status: response?.data?.delivery_status
         }
 
         setDisputeItemDetails(disputesData)
@@ -197,6 +198,30 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const bulkStatusUpdate = async () => {
+    const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+      // if (item.status === '' || item.status === 'Expired' || item.status === 'Broken') {
+      return {
+        ...item,
+        status: 'Received'
+      }
+      // } else {
+      //   return item
+      // }
+    })
+
+    // setDisputeItemDetails(prevState => ({
+    //   ...prevState,
+    //   item_details: updatedItemDetails
+    // }))
+    const items = disputeItemDetails
+    items['item_details'] = updatedItemDetails
+    setDisputeItemDetails({ ...disputeItemDetails, items })
+    console.log('after update', disputeItemDetails)
+    // debugger
+    updateStatus()
+  }
 
   const resolveItems = async payload => {
     var itemsToResolve
@@ -690,20 +715,37 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
           )}
-          {selectedPharmacy.type === 'central' && (
-            <LoadingButton
-              sx={{ float: 'right', my: 4, mx: 6 }}
-              size='large'
-              // disabled={disableButton()}
-              variant='contained'
-              onClick={() => {
-                updateStatus()
-              }}
-              loading={submitLoader}
-            >
-              Save
-            </LoadingButton>
-          )}
+          {console.log('disputeItemDetails?.delivery_status ', disputeItemDetails?.delivery_status)}
+          {disputeItemDetails?.delivery_status !== 'Delivered'
+            ? selectedPharmacy.type === 'central' && (
+                <>
+                  <LoadingButton
+                    sx={{ float: 'right', my: 4, mx: 2 }}
+                    size='large'
+                    disabled={disableButton()}
+                    variant='contained'
+                    onClick={() => {
+                      updateStatus()
+                    }}
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                  <LoadingButton
+                    sx={{ float: 'right', my: 4, mx: 6 }}
+                    size='large'
+                    // disabled={disableButton()}
+                    variant='contained'
+                    onClick={() => {
+                      bulkStatusUpdate()
+                    }}
+                    loading={submitLoader}
+                  >
+                    Mark all as Received & Save
+                  </LoadingButton>
+                </>
+              )
+            : null}
         </Grid>
       </Grid>
     </>
