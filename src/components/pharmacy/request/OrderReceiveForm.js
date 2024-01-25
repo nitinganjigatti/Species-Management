@@ -717,7 +717,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
                       {/* <IconButton aria-label='Deny' size='small' color='error' variant='contained'></IconButton> */}
                       {/* <LoadingButton
-                        size='small'
                         onClick={() => {
                           resolveItems(params.row)
                         }}
