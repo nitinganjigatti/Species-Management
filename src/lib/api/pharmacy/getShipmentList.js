@@ -1,4 +1,4 @@
-import { SHIPMENT, DISPUTE_ITEM, DISPENSE_ITEM } from '../../../constants/ApiConstant'
+import { SHIPMENT, DISPUTE_ITEM, DENIED_COMMENTS, DISPENSE_ITEM } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getShipmentList() {
@@ -108,6 +108,12 @@ export async function resolveDisputeItems(payload) {
 
     return error
   }
+}
+
+export async function getCommentsList(id) {
+  const response = await axiosGet({ url: `${DENIED_COMMENTS}?dispatch_id=${id}`, pharmacy: true })
+
+  return response.data
 }
 
 export async function getDispenseItemList(id) {

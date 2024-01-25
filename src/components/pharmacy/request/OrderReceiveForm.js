@@ -2,7 +2,18 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid, FormControl, Select, MenuItem, TextField, Divider, Box, Button, IconButton } from '@mui/material'
+import {
+  Grid,
+  FormControl,
+  Select,
+  MenuItem,
+  TextField,
+  Divider,
+  Box,
+  Button,
+  IconButton,
+  CardContent
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
@@ -11,6 +22,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import Card from '@mui/material/Card'
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -20,7 +32,8 @@ import toast from 'react-hot-toast'
 import {
   getShipmentOrderDetails,
   getShipmentStatusList,
-  resolveDisputeItems
+  resolveDisputeItems,
+  getCommentsList
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -80,8 +93,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [statusOptions, setStatusOptions] = useState([])
   const [resolveLoader, setResolveLoader] = useState(false)
   const [disputeDialog, setDisputeDialog] = useState(false)
+  const [commentDialog, setCommentDialog] = useState(false)
   const [rejectItemsPayload, setRejectItemsPayload] = useState(initialRejectPayload)
   const [rejectItemsError, setRejectItemsError] = useState(null)
+  const [listComments, setListComments] = useState([])
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
@@ -94,6 +109,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const openDisputeDialog = () => {
     setDisputeDialog(true)
+  }
+
+  const closeCommentDialog = () => {
+    setCommentDialog(false)
+    setListComments([])
+  }
+
+  const openCommentDialog = () => {
+    setCommentDialog(true)
   }
 
   const handleStatusChange = (itemId, event) => {
@@ -165,7 +189,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
             dispute_status: el?.dispute_status ? el?.dispute_status : '',
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
-            dispute_id: el?.dispute_id
+            dispute_id: el?.dispute_id,
+            shipment_id: el?.shipment_id
           }
 
           return data
@@ -442,12 +467,68 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
 
+  const getRejectedCommentsList = async id => {
+    try {
+      const comments = await getCommentsList(id)
+      // setListComments()
+      if (comments.data.length > 0 && comments.success === true) {
+        setListComments(comments)
+        openCommentDialog()
+      }
+      console.log('comments', comments)
+    } catch (error) {
+      console.log('comments error', error)
+    }
+  }
+
   const verifyStatusInTemp = id => {
     const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
     const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
     const result = verified?.status === verifyInTempData?.status
 
     return result
+  }
+
+  const commentDialogBox = () => {
+    return (
+      <ConfirmDialogBox
+        open={commentDialog}
+        closeDialog={() => {
+          closeCommentDialog()
+        }}
+        action={
+          <Box sx={{ m: 6 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, my: 2 }}>
+              {listComments?.data?.length > 0 ? (
+                listComments?.data?.map((el, index) => {
+                  return (
+                    <Card key={index} sx={{ mx: 2 }}>
+                      <CardContent>Shipped From:{el.from_store}</CardContent>
+                      <CardContent> Date:{Utility.formatDisplayDate(el.created_at)}</CardContent>
+                      <CardContent>Comment:{el.comment}</CardContent>
+                    </Card>
+                  )
+                })
+              ) : (
+                <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
+              )}
+            </Box>
+            <DialogActions className='dialog-actions-dense'>
+              <Button
+                variant='contained'
+                color='error'
+                size='small'
+                onClick={() => {
+                  closeCommentDialog()
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Box>
+        }
+      />
+    )
   }
 
   const columns = [
@@ -535,15 +616,18 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     {/* {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Dispute Pending' ? */}
                     {params.row.status === 'Wrong Count' ||
                     params.row.status === 'Shortage - Accepted' ||
-                    params.row.status === 'Excess - Accepted'
+                    params.row.status === 'Excess - Accepted' ||
+                    params?.row?.status === 'Wrong Count - Deny Closed'
                       ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
                           params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
                         }`
                       : params.row.status}
                     {/* : params.row.status} */}
                   </Typography>
-                  {params?.row?.dispute_status === 'Not Resolved' ||
-                  params?.row?.dispute_status === 'Dispute Pending' ? (
+                  {((params?.row?.dispute_status === 'Not Resolved' ||
+                    params?.row?.dispute_status === 'Dispute Pending') &&
+                    params?.row?.status !== 'Wrong Count - Deny Closed') ||
+                  params?.row?.status === 'Wrong Count - Deny Open' ? (
                     <>
                       {resolveLoader ? (
                         <CircularProgress size={40} />
@@ -573,56 +657,60 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         <Icon icon='ion:close-circle' />
                       </IconButton>
                       <ConfirmDialogBox
-                        disputeDialog={disputeDialog}
-                        closeDisputeDialog={() => {
+                        open={disputeDialog}
+                        closeDialog={() => {
                           closeDisputeDialog()
                         }}
                         action={
                           <Box sx={{ m: 4 }}>
                             {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
-                            <DialogContent>
-                              <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
-                              <TextField
-                                id='name'
-                                autoFocus
-                                fullWidth
-                                value={rejectItemsPayload?.comment}
-                                type='text'
-                                error={Boolean(rejectItemsError ? rejectItemsError : null)}
-                                onChange={e => {
-                                  setRejectItemsPayload({
-                                    ...rejectItemsPayload,
-                                    comment: e.target.value
-                                  })
-                                  setRejectItemsError(null)
-                                }}
-                                label='Comment'
-                              />
-                            </DialogContent>
-                            <DialogActions className='dialog-actions-dense'>
-                              <Button
-                                variant='contained'
-                                color='error'
-                                size='small'
-                                onClick={() => {
-                                  closeDisputeDialog()
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                size='small'
-                                variant='contained'
-                                color='primary'
-                                onClick={() => {
-                                  // action()
-                                  console.log('rejectItemsPayload', rejectItemsPayload)
-                                  submitRejectItems()
-                                }}
-                              >
-                                Save
-                              </Button>
-                            </DialogActions>
+                            {/* {rejectItemsPayload.length > 0 ? ( */}
+                            <>
+                              <DialogContent>
+                                <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
+                                <TextField
+                                  id='name'
+                                  autoFocus
+                                  fullWidth
+                                  value={rejectItemsPayload?.comment}
+                                  type='text'
+                                  error={Boolean(rejectItemsError ? rejectItemsError : null)}
+                                  onChange={e => {
+                                    setRejectItemsPayload({
+                                      ...rejectItemsPayload,
+                                      comment: e.target.value
+                                    })
+                                    setRejectItemsError(null)
+                                  }}
+                                  label='Comment'
+                                />
+                              </DialogContent>
+                              <DialogActions className='dialog-actions-dense'>
+                                <Button
+                                  variant='contained'
+                                  color='error'
+                                  size='small'
+                                  onClick={() => {
+                                    closeDisputeDialog()
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size='small'
+                                  variant='contained'
+                                  color='primary'
+                                  onClick={() => {
+                                    // action()
+                                    console.log('rejectItemsPayload', rejectItemsPayload)
+                                    submitRejectItems()
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                              </DialogActions>
+                            </>
+                            {/* ) : null} */}
                           </Box>
                         }
                       />
@@ -650,7 +738,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             ) : (
               <>
                 {params.row.status === 'Wrong Count' &&
-                (params?.row?.dispute_status === '' ||
+                (params.row.status === 'Wrong Count - Deny Closed' ||
+                  params?.row?.dispute_status === '' ||
                   params?.row?.dispute_status === undefined ||
                   params?.row?.dispute_status === 'Not Resolved' ||
                   params?.row?.dispute_status === 'Dispute Pending') ? (
@@ -715,13 +804,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   <Grid container>
                     {(params.row.status === 'Missing' ||
                       params.row.status === 'Wrong Count' ||
+                      params.row.status === 'Wrong Count - Deny Closed' ||
                       verifyStatusInTemp(params.row.id) === false ||
                       params.row.status === '') &&
                     (params?.row?.dispute_status === 'Not Resolved' ||
                       params?.row?.dispute_status === '' ||
                       params?.row?.dispute_status === undefined ||
                       params?.row?.dispute_status === 'Dispute Pending') ? (
-                      <Grid xs={12} sm={12}>
+                      <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                         <FormControl fullWidth size='small'>
                           <Select
                             // disabled={getDisableStatus(params.row.id)}
@@ -746,6 +836,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                             ))}
                           </Select>
                         </FormControl>
+                        <IconButton
+                          aria-label=''
+                          onClick={() => {
+                            getRejectedCommentsList(params?.row?.dispatch_item_id)
+                          }}
+                          sx={{ padding: 0, mx: 2 }}
+                          size='large'
+                          color=''
+                        >
+                          <Icon icon='iconamoon:comment' />
+                        </IconButton>
+                        {commentDialogBox()}
+                        {listComments?.count}
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>

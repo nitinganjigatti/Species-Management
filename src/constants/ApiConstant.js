@@ -83,3 +83,5 @@ export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
 export const REQUEST_ITEMS_NOT_AVAILABLE_REVERT = 'dispatch/not-available/revert'
 
 export const DIRECT_DISPATCH = 'direct-dispatch'
+
+export const DENIED_COMMENTS = 'deny-comments'
