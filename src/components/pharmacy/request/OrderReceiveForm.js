@@ -425,7 +425,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(rejectItemsPayload)
       console.log('rejected response', resolved)
-      // debugger
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
