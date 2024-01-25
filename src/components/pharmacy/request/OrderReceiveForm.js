@@ -7,7 +7,10 @@ import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
 import CircularProgress from '@mui/material/CircularProgress'
-
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -24,6 +27,7 @@ import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -56,14 +60,41 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     ]
   }
 
+  const initialRejectPayload = {
+    from_store: '',
+    to_store: '',
+    batch_no: '',
+    stock_id: '',
+    status: '',
+    dispatch_item_id: '',
+    request_id: '',
+    request_item_id: '',
+    type: '',
+    action: '',
+    comment: '',
+    dispute_id: ''
+  }
   const [disputeItemDetails, setDisputeItemDetails] = useState({})
   const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
   const [resolveLoader, setResolveLoader] = useState(false)
+  const [disputeDialog, setDisputeDialog] = useState(false)
+  const [rejectItemsPayload, setRejectItemsPayload] = useState(initialRejectPayload)
+  const [rejectItemsError, setRejectItemsError] = useState(null)
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
+
+  const closeDisputeDialog = () => {
+    setDisputeDialog(false)
+    setRejectItemsPayload(initialRejectPayload)
+    setRejectItemsError(null)
+  }
+
+  const openDisputeDialog = () => {
+    setDisputeDialog(true)
+  }
 
   const handleStatusChange = (itemId, event) => {
     const { name, value } = event.target
@@ -133,7 +164,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
             wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
             dispute_status: el?.dispute_status ? el?.dispute_status : '',
-            request_item_id: el?.request_item_id ? el?.request_item_id : ''
+            request_item_id: el?.request_item_id ? el?.request_item_id : '',
+            dispute_id: el?.dispute_id
           }
 
           return data
@@ -151,7 +183,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         })
         // debugger
         console.log('orderData', orderData)
-        console.log('response delevery statsu', response.data?.delivery_status)
+        console.log('dispute items response', response)
 
         const disputesData = {
           shipment_id: orderId,
@@ -303,6 +335,114 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
 
+  const rejectItems = async payload => {
+    if (payload?.status === 'Missing') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'resolve',
+        action: 'deny'
+      })
+    }
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        excess_count: payload.wrong_count_number,
+        request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Excess',
+        action: 'deny'
+      })
+    }
+
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        shortage_count: payload.wrong_count_number,
+        request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Shortage',
+        action: 'deny'
+      })
+    }
+
+    console.log('params', payload)
+    // console.log('reject payload', rejectedItems)
+    openDisputeDialog()
+
+    // try {
+    //   setResolveLoader(true)
+    //   const resolved = await resolveDisputeItems(rejectedItems)
+    //   console.log('rejected response', resolved)
+    //   debugger
+    //   if (resolved?.success) {
+    //     setResolveLoader(false)
+    //     toast.success(resolved?.data)
+    //     getOrderDetails(orderId)
+    //   } else {
+    //     setResolveLoader(false)
+    //   }
+
+    //   console.log('resolve response ', resolved)
+    // } catch (error) {
+    //   setResolveLoader(false)
+
+    //   console.log('error', error)
+    // }
+  }
+
+  const submitRejectItems = async () => {
+    for (let key in rejectItemsPayload) {
+      if (rejectItemsPayload[key] === '' || rejectItemsPayload[key] === null || rejectItemsPayload[key] === undefined) {
+        setRejectItemsError(`The key '${key}' has an empty value.`)
+
+        return
+      }
+    }
+    try {
+      setResolveLoader(true)
+      const resolved = await resolveDisputeItems(rejectItemsPayload)
+      console.log('rejected response', resolved)
+      // debugger
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+        closeDisputeDialog()
+      } else {
+        setResolveLoader(false)
+      }
+
+      console.log('resolve response ', resolved)
+    } catch (error) {
+      setResolveLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
   const verifyStatusInTemp = id => {
     const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
     const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
@@ -422,9 +562,71 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         </IconButton>
                       )}
 
-                      <IconButton aria-label='Deny' sx={{ padding: 0 }} size='large' color='error'>
+                      <IconButton
+                        aria-label='Deny'
+                        onClick={() => {
+                          rejectItems(params.row)
+                        }}
+                        sx={{ padding: 0 }}
+                        size='large'
+                        color='error'
+                      >
                         <Icon icon='ion:close-circle' />
                       </IconButton>
+                      <ConfirmDialogBox
+                        disputeDialog={disputeDialog}
+                        closeDisputeDialog={() => {
+                          closeDisputeDialog()
+                        }}
+                        action={
+                          <Box sx={{ m: 4 }}>
+                            {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
+                            <DialogContent>
+                              <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
+                              <TextField
+                                id='name'
+                                autoFocus
+                                fullWidth
+                                value={rejectItemsPayload?.comment}
+                                type='text'
+                                error={Boolean(rejectItemsError ? rejectItemsError : null)}
+                                onChange={e => {
+                                  setRejectItemsPayload({
+                                    ...rejectItemsPayload,
+                                    comment: e.target.value
+                                  })
+                                  setRejectItemsError(null)
+                                }}
+                                label='Comment'
+                              />
+                            </DialogContent>
+                            <DialogActions className='dialog-actions-dense'>
+                              <Button
+                                variant='contained'
+                                color='error'
+                                size='small'
+                                onClick={() => {
+                                  closeDisputeDialog()
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size='small'
+                                variant='contained'
+                                color='primary'
+                                onClick={() => {
+                                  // action()
+                                  console.log('rejectItemsPayload', rejectItemsPayload)
+                                  submitRejectItems()
+                                }}
+                              >
+                                Save
+                              </Button>
+                            </DialogActions>
+                          </Box>
+                        }
+                      />
 
                       {/* <IconButton aria-label='Deny' size='small' color='error' variant='contained'></IconButton> */}
                       {/* <LoadingButton
