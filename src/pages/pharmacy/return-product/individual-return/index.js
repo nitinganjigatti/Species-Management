@@ -142,8 +142,6 @@ const IndividualReturnRequest = () => {
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
           sl_no: index + 1
