@@ -56,7 +56,7 @@ const ReturnRequestList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, status) => {
       try {
         setLoading(true)
 
@@ -71,7 +71,6 @@ const ReturnRequestList = () => {
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -104,13 +103,13 @@ const ReturnRequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status)
@@ -148,7 +147,7 @@ const ReturnRequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
   }
 
   const getRequestedText = () => {

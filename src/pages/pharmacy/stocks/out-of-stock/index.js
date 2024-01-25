@@ -9,6 +9,11 @@ import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Grid from '@mui/material/Grid'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -22,6 +27,7 @@ const StockOut = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('out_of_stock')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -30,16 +36,18 @@ const StockOut = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, status) => {
       try {
         setLoading(true)
+        debugger
 
         const params = {
           sort,
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          is_low_stock: status === 'out_of_stock' ? 'no' : 'yes'
         }
 
         await getStockOutItems({ params: params }).then(res => {
@@ -55,9 +63,9 @@ const StockOut = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+  }, [fetchTableData, selectedPharmacy.id, status])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn)
@@ -121,39 +129,41 @@ const StockOut = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'batch_no',
-      headerName: 'Batch',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.generic_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'Expiry Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'batch_no',
+    //   headerName: 'Batch',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.batch_no}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'generic_name',
+    //   headerName: 'GENERIC NAME',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.generic_name}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'expiry_date',
+    //   headerName: 'Expiry Date',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.expiry_date}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -175,16 +185,21 @@ const StockOut = () => {
     return <FallbackSpinner />
   }
 
+  const handleChange = (event, newValue) => {
+    debugger
+    setStatus(newValue)
+  }
+
   // if (isError) {
   //   return <h1>{error.message}</h1>
   // }
 
-  return (
-    <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
           <Card>
             <CardHeader title='Out of Stock' />
             <DataGrid
@@ -230,8 +245,23 @@ const StockOut = () => {
               // onRowClick={onRowClick}
             />
           </Card>
-        </>
-      )}
+        )}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Grid>
+        <TabContext value={status}>
+          <TabList onChange={handleChange}>
+            <Tab value='out_of_stock' label='Out of Stock' />
+            <Tab value='low_stock' label='Low Stock' />
+          </TabList>
+          <TabPanel value='out_of_stock'>{tableData()}</TabPanel>
+          <TabPanel value='low_stock'>{tableData()}</TabPanel>
+        </TabContext>
+      </Grid>
     </>
   )
 }

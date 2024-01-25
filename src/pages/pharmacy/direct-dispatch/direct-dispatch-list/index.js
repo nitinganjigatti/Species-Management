@@ -56,7 +56,7 @@ const DirectDispatchList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, status) => {
       try {
         setLoading(true)
 
@@ -104,16 +104,16 @@ const DirectDispatchList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -149,7 +149,7 @@ const DirectDispatchList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
   }
 
   const columns = [
