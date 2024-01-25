@@ -85,6 +85,7 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
+      console.log('request items', response)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -153,7 +154,7 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
-
+      console.log('shpped items', response)
       if (response.success) {
         // debugger
 
@@ -871,7 +872,7 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card sx={{ mb: 6 }}>
-            {console.log('requestItems.status', requestItems)}
+            {console.log('requestItems.status', shippedItems.length > 0)}
             <CardHeader
               title={`Direct Dispatch - ${requestItems?.request_number}`}
               avatar={
@@ -885,7 +886,7 @@ const IndividualRequest = () => {
               }
               action={
                 (selectedPharmacy?.type === 'central' &&
-                  requestItems.status === 'request' &&
+                  shippedItems.length === 0 &&
                   selectedPharmacy?.permission.key === 'allow_full_access') ||
                 selectedPharmacy?.permission.key === 'ADD' ? (
                   <Button
