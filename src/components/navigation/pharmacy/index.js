@@ -185,7 +185,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const pharmacyNavigationArray = []
-  pharmacyNavigationArray.push(testList)
+
+  // pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
