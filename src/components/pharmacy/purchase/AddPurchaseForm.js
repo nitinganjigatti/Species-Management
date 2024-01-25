@@ -112,6 +112,9 @@ const AddPurchaseForm = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setErrors({})
+    setDuplicateMedError('')
+    setOptionsMedicineList([])
   }
 
   const showDialog = () => {
@@ -243,13 +246,14 @@ const AddPurchaseForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!values.purchase_qty) {
+    if (!isNaN(parseInt(values.purchase_qty)) && parseInt(values.purchase_qty) <= 0) {
       itemErrors.purchase_qty = 'This field is required'
       if (values.purchase_qty === 0 || values.purchase_qty < 0) {
         itemErrors.purchase_qty = 'Enter valid Quantity'
       }
     }
-    if (!values.purchase_unit_price) {
+    if (!isNaN(parseInt(values.purchase_unit_price)) && parseInt(values.purchase_unit_price) <= 0) {
+      debugger
       itemErrors.purchase_unit_price = 'This field is required'
       if (values.purchase_unit_price === 0 || values.purchase_unit_price < 0) {
         itemErrors.purchase_unit_price = 'Enter valid price'
@@ -261,6 +265,8 @@ const AddPurchaseForm = () => {
     if (!values.purchase_expiry_date) {
       itemErrors.purchase_expiry_date = 'This field is required'
     }
+
+    debugger
 
     return itemErrors
   }
@@ -285,12 +291,20 @@ const AddPurchaseForm = () => {
   }
 
   const submitItems = () => {
+    debugger
+
     const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_expiry_date
-    if (HasErrors) {
+      nestedRowMedicine.medicine_name !== '' &&
+      nestedRowMedicine.purchase_qty !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
+      parseInt(nestedRowMedicine.purchase_qty) > 0 &&
+      nestedRowMedicine.purchase_unit_price !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
+      parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
+      nestedRowMedicine.purchase_batch_no !== '' &&
+      nestedRowMedicine.purchase_expiry_date !== ''
+    if (HasErrors === false) {
+      debugger
       setItemErrors(validate(nestedRowMedicine))
 
       return
@@ -653,6 +667,25 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_batch_no}
+                  error={Boolean(itemErrors.purchase_batch_no)}
+                  label='Batch*'
+                  onChange={event => {
+                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
+                    setItemErrors({})
+                  }}
+                />
+                {itemErrors.purchase_batch_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               {/* purchase_expiry_date */}
               <FormControl fullWidth>
                 <SingleDatePicker
@@ -688,11 +721,11 @@ const AddPurchaseForm = () => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <TextField
-                  type='number'
+                  type='Number'
+                  label='Supplier rate*'
                   // disabled={true}
                   value={nestedRowMedicine.purchase_unit_price}
                   error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate*'
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
@@ -764,26 +797,6 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  value={nestedRowMedicine.purchase_batch_no}
-                  error={Boolean(itemErrors.purchase_batch_no)}
-                  label='Batch*'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_batch_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
             {nestedRowMedicine.purchase_gst_type ? (
               <>
                 <Grid item xs={12} sm={6}>
@@ -828,6 +841,8 @@ const AddPurchaseForm = () => {
                 </Grid>
               </>
             ) : null}
+
+            <Box sx={{ height: '150px' }}></Box>
 
             {/* // file uploader */}
             <Grid item xs={12}>
