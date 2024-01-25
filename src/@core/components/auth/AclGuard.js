@@ -32,6 +32,7 @@ const AclGuard = props => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const getPath = () => {
+    debugger
     if (selectedPharmacy) {
       if (selectedPharmacy?.type === 'local') {
         return '/pharmacy/request/request-list/'
@@ -46,8 +47,15 @@ const AclGuard = props => {
   useEffect(() => {
     if (auth.user && auth.user.role && !guestGuard && router.route === '/') {
       // const homeRoute = getHomeRoute(auth.user.role)
+      debugger
       const homeRoute = getPath()
-      router.replace(homeRoute)
+      router?.replace(
+        !homeRoute
+          ? auth?.userData?.roles?.settings?.add_pharmacy
+            ? '/pharmacy/settings/store-list/'
+            : '/Error'
+          : homeRoute
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user, guestGuard, router])

@@ -722,10 +722,10 @@ const AddPurchaseForm = () => {
               <FormControl fullWidth>
                 <TextField
                   type='Number'
-                  label='Supplier rate*'
                   // disabled={true}
                   value={nestedRowMedicine.purchase_unit_price}
                   error={Boolean(itemErrors.purchase_unit_price)}
+                  label='Supplier rate*'
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
@@ -747,6 +747,7 @@ const AddPurchaseForm = () => {
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
+                {console.log('nestedRowMedicine.purchase_qty', nestedRowMedicine.purchase_qty)}
                 <TextField
                   type='number'
                   value={nestedRowMedicine.purchase_qty}
@@ -985,7 +986,7 @@ const AddPurchaseForm = () => {
                     disabled={id ? true : false}
                     value={editParams.po_no}
                     error={Boolean(errors.po_no)}
-                    label='Purchase No*'
+                    label='Purchase Invoice Number*'
                     onChange={e => {
                       setEditParams({
                         ...editParams,

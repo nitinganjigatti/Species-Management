@@ -31,7 +31,8 @@ import { AuthContext } from 'src/context/AuthContext'
 
 const schema = yup.object().shape({
   name: yup.string().required('Dosage Form is Required'),
-  type: yup.string().required('Type is Required'),
+
+  // type: yup.string().required('Type is Required'),
   site_id: yup.string().nullable(),
   status: yup.string().required('Status is Required')
 })
@@ -54,17 +55,14 @@ const AddStore = props => {
     resetForm,
     submitLoader,
     editParams,
-    pharmacyList
+    pharmacyList,
+    totalStores
   } = props
 
   // ** States
   const [values, setValues] = useState(defaultValues)
 
   const authData = useContext(AuthContext)
-
-  debugger
-
-  console.log(authData)
 
   // const router = useRouter()
   // const { id, action } = router.query
@@ -185,7 +183,7 @@ const AddStore = props => {
             />
             {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
             <FormLabel>Type</FormLabel>
             <Controller
               name='type'
@@ -213,7 +211,7 @@ const AddStore = props => {
                 {errors?.type?.message}
               </FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
@@ -232,15 +230,13 @@ const AddStore = props => {
                   error={Boolean(errors?.gst_slab)}
                   labelId='site_id'
                 >
-                  <>
-                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                      return (
-                        <MenuItem key={index} value={item?.site_id}>
-                          {item?.site_name}
-                        </MenuItem>
-                      )
-                    })}
-                  </>
+                  {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                    return (
+                      <MenuItem key={index} value={item?.site_id}>
+                        {item?.site_name}
+                      </MenuItem>
+                    )
+                  })}
                 </Select>
               )}
             />

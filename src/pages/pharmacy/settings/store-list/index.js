@@ -262,6 +262,7 @@ const ListOfStores = () => {
       if (editParams?.id !== null) {
         response = await updateStore(editParams?.id, payload)
       } else {
+        payload.type = parseInt(total) > 0 ? 'local' : 'central'
         response = await addStore(payload)
       }
 
@@ -341,6 +342,7 @@ const ListOfStores = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
                 pharmacyList={pharmacyList}
+                totalStores={total}
               />
               {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
