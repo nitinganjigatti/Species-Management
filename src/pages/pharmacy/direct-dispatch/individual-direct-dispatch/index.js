@@ -872,7 +872,7 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card sx={{ mb: 6 }}>
-            {console.log('requestItems.status', shippedItems.length > 0)}
+            {/* {console.log('requestItems.status', shippedItems.length > 0)} */}
             <CardHeader
               title={`Direct Dispatch - ${requestItems?.request_number}`}
               avatar={

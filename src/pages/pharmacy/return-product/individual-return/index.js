@@ -783,7 +783,7 @@ const IndividualReturnRequest = () => {
                 />
               }
               action={
-                selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                selectedPharmacy.type === 'local' && shippedItems.length === 0 ? (
                   <Button
                     size='large'
                     variant='contained'
