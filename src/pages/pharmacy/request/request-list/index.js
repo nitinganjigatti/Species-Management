@@ -117,7 +117,7 @@ const RequestList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status)
@@ -157,7 +157,7 @@ const RequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
   }
 
   const getRequestedText = () => {
@@ -435,7 +435,7 @@ const RequestList = () => {
     <>
       <Grid>
         <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
+          <TabList onChange={handleChange}>
             <Tab
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
