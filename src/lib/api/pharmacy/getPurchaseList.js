@@ -1,4 +1,4 @@
-import { PURCHASE, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
+import { PURCHASE, CHECK_BATCH, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getPurchaseList({ params }) {
@@ -50,4 +50,11 @@ export async function updatePurchase(id, payload) {
 
     return error
   }
+}
+
+export async function getBatchExpiry(params) {
+  debugger
+  const response = await axiosGet({ url: `${CHECK_BATCH}`, params, pharmacy: true })
+
+  return response.data
 }
