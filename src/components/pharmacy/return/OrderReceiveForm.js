@@ -13,11 +13,17 @@ import {
   Box,
   Button,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  CardContent
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import Card from '@mui/material/Card'
 
 // ** MUI Imports
 
@@ -31,12 +37,14 @@ import {
   addDispenseItems,
   getDisputeItemById,
   getShipmentStatusList,
-  resolveDisputeItems
+  resolveDisputeItems,
+  getCommentsList
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -69,15 +77,54 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     ]
   }
 
+  const initialRejectPayload = {
+    from_store: '',
+    to_store: '',
+    batch_no: '',
+    stock_id: '',
+    status: '',
+    dispatch_item_id: '',
+    request_id: '',
+    // request_item_id: '',
+    type: '',
+    action: '',
+    comment: '',
+    dispute_id: ''
+  }
+
   const [disputeItemDetails, setDisputeItemDetails] = useState({})
   const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [statusOptions, setStatusOptions] = useState([])
   const [resolveLoader, setResolveLoader] = useState(false)
+  const [disputeDialog, setDisputeDialog] = useState(false)
 
+  const [commentDialog, setCommentDialog] = useState(false)
+  const [rejectItemsPayload, setRejectItemsPayload] = useState(initialRejectPayload)
+  const [rejectItemsError, setRejectItemsError] = useState(null)
+  const [listComments, setListComments] = useState([])
   const [orderData, setOrderData] = useState([])
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  const closeDisputeDialog = () => {
+    setDisputeDialog(false)
+    setRejectItemsPayload(initialRejectPayload)
+    setRejectItemsError(null)
+  }
+
+  const openDisputeDialog = () => {
+    setDisputeDialog(true)
+  }
+
+  const closeCommentDialog = () => {
+    setCommentDialog(false)
+    setListComments([])
+  }
+
+  const openCommentDialog = () => {
+    setCommentDialog(true)
+  }
 
   const handleStatusChange = (itemId, event) => {
     console.log('eventsss', event)
@@ -148,7 +195,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
             wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
             dispute_status: el?.dispute_status ? el?.dispute_status : '',
-            request_item_id: el?.request_item_id ? el?.request_item_id : ''
+            request_item_id: el?.request_item_id ? el?.request_item_id : '',
+            dispute_id: el?.dispute_id
           }
 
           return data
@@ -165,7 +213,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           item_details: disputeLineItems
         })
         // debugger
-        console.log('orderData', orderData)
+        console.log('orderData datta', orderData)
 
         const disputesData = {
           shipment_id: orderId,
@@ -197,8 +245,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
   function disableButton() {
-    if (orderData?.item_details) {
-      const allReceived = orderData?.item_details.every(item => item.status !== '')
+    console.log('buttons', orderData?.item_details)
+    if (disputeItemDetails?.item_details) {
+      const allReceived = disputeItemDetails?.item_details.every(item => item.status === '')
 
       return allReceived
     }
@@ -304,6 +353,107 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
 
+  const rejectItems = async payload => {
+    console.log('row datta', payload)
+    if (payload?.status === 'Missing') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'resolve',
+        action: 'deny'
+      })
+    }
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        excess_count: payload.wrong_count_number,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Excess',
+        action: 'deny'
+      })
+    }
+
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        shortage_count: payload.wrong_count_number,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Shortage',
+        action: 'deny'
+      })
+    }
+
+    console.log('params', payload)
+    openDisputeDialog()
+  }
+
+  const submitRejectItems = async () => {
+    for (let key in rejectItemsPayload) {
+      if (rejectItemsPayload[key] === '' || rejectItemsPayload[key] === null || rejectItemsPayload[key] === undefined) {
+        setRejectItemsError(`The key '${key}' has an empty value.`)
+
+        return
+      }
+    }
+    try {
+      setResolveLoader(true)
+      const resolved = await resolveDisputeItems(rejectItemsPayload)
+      console.log('rejected response', resolved)
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+        closeDisputeDialog()
+      } else {
+        setResolveLoader(false)
+      }
+
+      console.log('resolve response ', resolved)
+    } catch (error) {
+      setResolveLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
+  const getRejectedCommentsList = async id => {
+    try {
+      const comments = await getCommentsList(id)
+      // setListComments()
+      if (comments.data.length > 0 && comments.success === true) {
+        setListComments(comments)
+        openCommentDialog()
+      }
+      console.log('comments', comments)
+    } catch (error) {
+      console.log('comments error', error)
+    }
+  }
+
   const verifyStatusInTemp = id => {
     const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
     const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
@@ -311,6 +461,57 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     const result = verified?.status === verifyInTempData?.status
 
     return result
+  }
+
+  const commentDialogBox = () => {
+    return (
+      <ConfirmDialogBox
+        open={commentDialog}
+        closeDialog={() => {
+          closeCommentDialog()
+        }}
+        action={
+          <Box sx={{ m: 6 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, my: 2 }}>
+              {listComments?.data?.length > 0 ? (
+                listComments?.data?.map((el, index) => {
+                  return (
+                    <Card key={index} sx={{ mx: 2 }}>
+                      <CardContent>
+                        <strong>Shipped From:</strong>
+                        {el?.from_store}
+                      </CardContent>
+                      <CardContent>
+                        <strong>Date:</strong>
+                        {Utility.formatDisplayDate(el?.created_at)}
+                      </CardContent>
+                      <CardContent>
+                        <strong>Comment:</strong>
+                        {el?.comment}
+                      </CardContent>
+                    </Card>
+                  )
+                })
+              ) : (
+                <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
+              )}
+            </Box>
+            <DialogActions className='dialog-actions-dense'>
+              <Button
+                variant='contained'
+                color='error'
+                size='small'
+                onClick={() => {
+                  closeCommentDialog()
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Box>
+        }
+      />
+    )
   }
 
   const columns = [
@@ -390,13 +591,17 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
                   {params.row.status === 'Wrong Count' ||
                   params.row.status === 'Shortage - Accepted' ||
-                  params.row.status === 'Excess - Accepted'
+                  params.row.status === 'Excess - Accepted' ||
+                  params?.row?.status === 'Wrong Count - Deny Closed'
                     ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
                         params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
                       }`
                     : params.row.status}
                 </Typography>
-                {params?.row?.dispute_status === 'Not Resolved' || params?.row?.dispute_status === 'Dispute Pending' ? (
+                {params?.row?.dispute_status === 'Not Resolved' ||
+                (params?.row?.dispute_status === 'Dispute Pending' &&
+                  (params?.row?.status !== 'Wrong Count - Deny Closed' ||
+                    params?.row?.status === 'Wrong Count - Deny Open')) ? (
                   <>
                     {resolveLoader ? (
                       <CircularProgress size={40} />
@@ -414,22 +619,81 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       </IconButton>
                     )}
 
-                    <IconButton aria-label='Deny' sx={{ padding: 0 }} size='large' color='error'>
+                    <IconButton
+                      aria-label='Deny'
+                      onClick={() => {
+                        rejectItems(params.row)
+                      }}
+                      sx={{ padding: 0 }}
+                      size='large'
+                      color='error'
+                    >
                       <Icon icon='ion:close-circle' />
                     </IconButton>
-                    {/* <LoadingButton
-                      size='small'
-                      variant='contained'
-                      loading={resolveLoader}
-                      onClick={() => {
-                        resolveItems(params.row)
+                    <ConfirmDialogBox
+                      open={disputeDialog}
+                      closeDialog={() => {
+                        closeDisputeDialog()
                       }}
-                    >
-                      Accept
-                    </LoadingButton>
-                    <LoadingButton size='small' color='error' variant='contained'>
-                      Deny
-                    </LoadingButton> */}
+                      action={
+                        <Box sx={{ m: 4 }}>
+                          {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
+                          {/* {rejectItemsPayload.length > 0 ? ( */}
+                          <>
+                            <DialogContent>
+                              <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
+                              <FormControl fullWidth>
+                                <TextField
+                                  id='name'
+                                  autoFocus
+                                  fullWidth
+                                  value={rejectItemsPayload?.comment}
+                                  type='text'
+                                  error={Boolean(rejectItemsError ? rejectItemsError : null)}
+                                  onChange={e => {
+                                    setRejectItemsPayload({
+                                      ...rejectItemsPayload,
+                                      comment: e.target.value
+                                    })
+                                    setRejectItemsError(null)
+                                  }}
+                                  label='Comment'
+                                />
+
+                                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                                  {rejectItemsError}
+                                </FormHelperText>
+                              </FormControl>
+                            </DialogContent>
+                            <DialogActions className='dialog-actions-dense'>
+                              <Button
+                                variant='contained'
+                                color='error'
+                                size='small'
+                                onClick={() => {
+                                  closeDisputeDialog()
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size='small'
+                                variant='contained'
+                                color='primary'
+                                onClick={() => {
+                                  // action()
+                                  console.log('rejectItemsPayload', rejectItemsPayload)
+                                  submitRejectItems()
+                                }}
+                              >
+                                Save
+                              </Button>
+                            </DialogActions>
+                          </>
+                          {/* ) : null} */}
+                        </Box>
+                      }
+                    />
                   </>
                 ) : null}
               </Grid>
@@ -437,7 +701,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           ) : (
             <>
               {params.row.status === 'Wrong Count' &&
-              (params?.row?.dispute_status === '' ||
+              (params.row.status === 'Wrong Count - Deny Closed' ||
+                params?.row?.dispute_status === '' ||
                 params?.row?.dispute_status === undefined ||
                 params?.row?.dispute_status === 'Not Resolved' ||
                 params?.row?.dispute_status === 'Dispute Pending') ? (
@@ -527,13 +792,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 <Grid container>
                   {(params.row.status === 'Missing' ||
                     params.row.status === 'Wrong Count' ||
+                    params.row.status === 'Wrong Count - Deny Closed' ||
                     verifyStatusInTemp(params.row.id) === false ||
                     params.row.status === '') &&
                   (params?.row?.dispute_status === 'Not Resolved' ||
                     params?.row?.dispute_status === '' ||
                     params?.row?.dispute_status === undefined ||
                     params?.row?.dispute_status === 'Dispute Pending') ? (
-                    <Grid xs={12} sm={12}>
+                    <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
                       <FormControl fullWidth size='small'>
                         <Select
                           // disabled={getDisableStatus(params.row.id)}
@@ -558,6 +824,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           ))}
                         </Select>
                       </FormControl>
+                      <IconButton
+                        aria-label=''
+                        onClick={() => {
+                          getRejectedCommentsList(params?.row?.dispatch_item_id)
+                        }}
+                        sx={{ padding: 0, mx: 2 }}
+                        size='large'
+                        color=''
+                      >
+                        <Icon icon='iconamoon:comment' />
+                      </IconButton>
+                      {commentDialogBox()}
+                      {/* {listComments?.count} */}
                     </Grid>
                   ) : (
                     <Typography variant='p' sx={{ mx: 2, textTransform: 'capitalize' }}>
@@ -565,7 +844,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       {params.row.status === 'Wrong Count' ||
                       params.row.status === 'Shortage - Accepted' ||
                       params.row.status === 'Excess - Accepted'
-                        ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                        ? // ||params.row.status === 'Wrong Count - Deny Closed'
+                          `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
                             params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
                           }`
                         : params.row.status}
