@@ -608,14 +608,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     params.row.status === 'Excess - Accepted' ||
                     params?.row?.status === 'Wrong Count - Deny Closed'
                       ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
-                          params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                          params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : '- Denied'
                         }`
-                      : params.row.status}
+                      : params.row.status === 'Missing - Deny Closed'
+                      ? `${
+                          params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
+                        }`
+                      : params?.row?.status}
                     {/* : params.row.status} */}
                   </Typography>
                   {((params?.row?.dispute_status === 'Not Resolved' ||
                     params?.row?.dispute_status === 'Dispute Pending') &&
-                    params?.row?.status !== 'Wrong Count - Deny Closed') ||
+                    params?.row?.status !== 'Wrong Count - Deny Closed' &&
+                    params?.row?.status !== 'Missing - Deny Closed') ||
                   params?.row?.status === 'Wrong Count - Deny Open' ? (
                     <>
                       {resolveLoader ? (
@@ -799,6 +804,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     {(params.row.status === 'Missing' ||
                       params.row.status === 'Wrong Count' ||
                       params.row.status === 'Wrong Count - Deny Closed' ||
+                      params?.row?.status === 'Missing - Deny Closed' ||
                       verifyStatusInTemp(params.row.id) === false ||
                       params.row.status === '') &&
                     (params?.row?.dispute_status === 'Not Resolved' ||
@@ -830,19 +836,25 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                             ))}
                           </Select>
                         </FormControl>
-                        <IconButton
-                          aria-label=''
-                          onClick={() => {
-                            getRejectedCommentsList(params?.row?.dispatch_item_id)
-                          }}
-                          sx={{ padding: 0, mx: 2 }}
-                          size='large'
-                          color=''
-                        >
-                          <Icon icon='iconamoon:comment' />
-                        </IconButton>
-                        {commentDialogBox()}
-                        {/* {listComments?.count} */}
+                        {params.row.status === 'Wrong Count - Deny Closed' ||
+                        params?.row?.status === 'Missing - Deny Closed' ||
+                        params?.row?.status === 'Missing - Deny Open' ||
+                        params.row.status === 'Wrong Count - Deny Open' ? (
+                          <>
+                            <IconButton
+                              aria-label=''
+                              onClick={() => {
+                                getRejectedCommentsList(params?.row?.dispatch_item_id)
+                              }}
+                              sx={{ padding: 0, mx: 2 }}
+                              size='large'
+                              color=''
+                            >
+                              <Icon icon='iconamoon:comment' />
+                            </IconButton>
+                            {commentDialogBox()}
+                          </>
+                        ) : null}
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
@@ -851,9 +863,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         params.row.status === 'Shortage - Accepted' ||
                         params.row.status === 'Excess - Accepted'
                           ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
-                              params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                              params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : '- Denied'
                             }`
-                          : params.row.status}
+                          : params.row.status === 'Missing - Deny Closed'
+                          ? `${
+                              params?.row?.dispute_status === 'Dispute Resolved'
+                                ? 'Missing - Accepted'
+                                : 'Missing - Denied'
+                            }`
+                          : params?.row?.status}
                       </Typography>
                     )}
                   </Grid>
@@ -906,7 +924,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         return true
       })
-      console.log('verifyCount', verifyCount)
+      console.log('final payload', finalReceivedItems)
       if (verifyCount) {
         try {
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
