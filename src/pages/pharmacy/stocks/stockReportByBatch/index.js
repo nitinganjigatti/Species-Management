@@ -168,7 +168,7 @@ const ListOfStocksByBatch = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_qty}
+          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
     }

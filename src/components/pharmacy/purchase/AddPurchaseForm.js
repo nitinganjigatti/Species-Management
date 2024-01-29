@@ -101,7 +101,7 @@ const AddPurchaseForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [validateDiscount, setValidateDiscount] = useState('')
-  const [expiryDateLoader, setExpiryDateLoader] = useState(true)
+  const [expiryDateLoader, setExpiryDateLoader] = useState(false)
   const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
@@ -703,10 +703,10 @@ const AddPurchaseForm = () => {
                   renderInput={params => (
                     <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
                   )}
-                  onBlur={e => {
-                    debugger
-                    checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, nestedRowMedicine.purchase_batch_no)
-                  }}
+                  // onBlur={e => {
+                  //   debugger
+                  //   checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, nestedRowMedicine.purchase_batch_no)
+                  // }}
                 />
                 {itemErrors.medicine_name && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -747,7 +747,7 @@ const AddPurchaseForm = () => {
               <FormControl fullWidth>
                 <SingleDatePicker
                   fullWidth
-                  disabled={expiryDateLoader}
+                  // disabled={expiryDateLoader}
                   date={
                     nestedRowMedicine.purchase_expiry_date
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
