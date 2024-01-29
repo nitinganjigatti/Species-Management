@@ -113,6 +113,7 @@ const AddPurchaseForm = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setErrors({})
+    setItemErrors({})
     setDuplicateMedError('')
     setOptionsMedicineList([])
   }
@@ -246,19 +247,21 @@ const AddPurchaseForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!isNaN(parseInt(values.purchase_qty)) && parseInt(values.purchase_qty) <= 0) {
+    if (isNaN(parseInt(values.purchase_unit_price)) || parseInt(values.purchase_unit_price) <= 0) {
+      debugger
+      itemErrors.purchase_unit_price = 'This field is required'
+      if (parseInt(values.purchase_unit_price) === 0 || parseInt(values.purchase_unit_price) < 0) {
+        itemErrors.purchase_unit_price = 'Enter valid Price'
+      }
+    }
+    if (isNaN(parseInt(values.purchase_qty)) || parseInt(values.purchase_qty) <= 0) {
+      debugger
       itemErrors.purchase_qty = 'This field is required'
-      if (values.purchase_qty === 0 || values.purchase_qty < 0) {
+      if (parseInt(values.purchase_qty) === 0 || parseInt(values.purchase_qty) < 0) {
         itemErrors.purchase_qty = 'Enter valid Quantity'
       }
     }
-    if (!isNaN(parseInt(values.purchase_unit_price)) && parseInt(values.purchase_unit_price) <= 0) {
-      debugger
-      itemErrors.purchase_unit_price = 'This field is required'
-      if (values.purchase_unit_price === 0 || values.purchase_unit_price < 0) {
-        itemErrors.purchase_unit_price = 'Enter valid price'
-      }
-    }
+
     if (!values.purchase_batch_no) {
       itemErrors.purchase_batch_no = 'This field is required'
     }
@@ -347,16 +350,29 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_unit_id ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_unit_price ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_purchase_price ||
-      !nestedRowMedicine.purchase_expiry_date
+    // const HasErrors =
+    //   !nestedRowMedicine.medicine_name ||
+    //   !nestedRowMedicine.purchase_unit_id ||
+    //   !nestedRowMedicine.purchase_qty ||
+    //   !nestedRowMedicine.purchase_unit_price ||
+    //   !nestedRowMedicine.purchase_batch_no ||
+    //   !nestedRowMedicine.purchase_purchase_price ||
+    //   !nestedRowMedicine.purchase_expiry_date
 
-    if (HasErrors) {
+    const HasErrors =
+      nestedRowMedicine.medicine_name !== '' &&
+      nestedRowMedicine.purchase_qty !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
+      parseInt(nestedRowMedicine.purchase_qty) > 0 &&
+      nestedRowMedicine.purchase_unit_price !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
+      parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
+      nestedRowMedicine.purchase_batch_no !== '' &&
+      nestedRowMedicine.purchase_expiry_date !== ''
+
+    debugger
+
+    if (HasErrors === false) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
@@ -725,7 +741,7 @@ const AddPurchaseForm = () => {
                   // disabled={true}
                   value={nestedRowMedicine.purchase_unit_price}
                   error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate*'
+                  label='Supplier Rate*'
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
@@ -739,7 +755,7 @@ const AddPurchaseForm = () => {
                 />
                 {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {itemErrors.purchase_unit_price}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -769,7 +785,7 @@ const AddPurchaseForm = () => {
                 />
                 {itemErrors.purchase_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {itemErrors.purchase_qty}
                   </FormHelperText>
                 )}
               </FormControl>
