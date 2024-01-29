@@ -608,7 +608,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     params.row.status === 'Excess - Accepted' ||
                     params?.row?.status === 'Wrong Count - Deny Closed'
                       ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
-                          params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : '- Denied'
+                          params?.row?.dispute_status === 'Dispute Resolved'
+                            ? '- Accepted'
+                            : params?.row?.status === 'Wrong Count - Deny Closed'
+                            ? '- Denied'
+                            : ''
                         }`
                       : params.row.status === 'Missing - Deny Closed'
                       ? `${
@@ -863,7 +867,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         params.row.status === 'Shortage - Accepted' ||
                         params.row.status === 'Excess - Accepted'
                           ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
-                              params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : '- Denied'
+                              params?.row?.dispute_status === 'Dispute Resolved'
+                                ? '- Accepted'
+                                : params?.row?.status === 'Wrong Count - Deny Closed'
+                                ? '- Denied'
+                                : ''
                             }`
                           : params.row.status === 'Missing - Deny Closed'
                           ? `${
