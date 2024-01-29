@@ -24,6 +24,8 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Card from '@mui/material/Card'
+import Chip from '@mui/material/Chip'
+import Avatar from '@mui/material/Avatar'
 
 // ** MUI Imports
 
@@ -196,7 +198,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
             dispute_status: el?.dispute_status ? el?.dispute_status : '',
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
-            dispute_id: el?.dispute_id
+            dispute_id: el?.dispute_id,
+            total_deny_comments: el?.total_deny_comments
           }
 
           return data
@@ -222,7 +225,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           request_id: requestId,
           item_details: disputeLineItems,
           comments: response?.data?.comments,
-          delivery_status: response?.data?.delivery_status
+          delivery_status: response?.data?.delivery_status,
+          dispute_status: response?.data?.dispute_status
         }
 
         setDisputeItemDetails(disputesData)
@@ -594,14 +598,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   params.row.status === 'Excess - Accepted' ||
                   params?.row?.status === 'Wrong Count - Deny Closed'
                     ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
-                        params?.row?.dispute_status === 'Dispute Resolved' ? '- Accepted' : ''
+                        params?.row?.dispute_status === 'Dispute Resolved'
+                          ? '- Accepted'
+                          : params?.row?.status === 'Wrong Count - Deny Closed'
+                          ? '- Denied'
+                          : ''
                       }`
-                    : params.row.status}
+                    : params.row.status === 'Missing - Deny Closed'
+                    ? `${
+                        params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
+                      }`
+                    : params?.row?.status}
                 </Typography>
-                {params?.row?.dispute_status === 'Not Resolved' ||
-                (params?.row?.dispute_status === 'Dispute Pending' &&
-                  (params?.row?.status !== 'Wrong Count - Deny Closed' ||
-                    params?.row?.status === 'Wrong Count - Deny Open')) ? (
+                {((params?.row?.dispute_status === 'Not Resolved' ||
+                  params?.row?.dispute_status === 'Dispute Pending') &&
+                  params?.row?.status !== 'Wrong Count - Deny Closed' &&
+                  params?.row?.status !== 'Missing - Deny Closed') ||
+                params?.row?.status === 'Wrong Count - Deny Open' ? (
                   <>
                     {resolveLoader ? (
                       <CircularProgress size={40} />
@@ -793,6 +806,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   {(params.row.status === 'Missing' ||
                     params.row.status === 'Wrong Count' ||
                     params.row.status === 'Wrong Count - Deny Closed' ||
+                    params?.row?.status === 'Missing - Deny Closed' ||
                     verifyStatusInTemp(params.row.id) === false ||
                     params.row.status === '') &&
                   (params?.row?.dispute_status === 'Not Resolved' ||
@@ -824,18 +838,37 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           ))}
                         </Select>
                       </FormControl>
-                      <IconButton
-                        aria-label=''
-                        onClick={() => {
-                          getRejectedCommentsList(params?.row?.dispatch_item_id)
-                        }}
-                        sx={{ padding: 0, mx: 2 }}
-                        size='large'
-                        color=''
-                      >
-                        <Icon icon='iconamoon:comment' />
-                      </IconButton>
-                      {commentDialogBox()}
+                      {params.row.status === 'Wrong Count - Deny Closed' ||
+                      params?.row?.status === 'Missing - Deny Closed' ||
+                      params?.row?.status === 'Missing - Deny Open' ||
+                      params.row.status === 'Wrong Count - Deny Open' ? (
+                        <>
+                          <Chip
+                            label={params.row.total_deny_comments}
+                            avatar={
+                              <Avatar>
+                                <Icon icon='iconamoon:comment' />
+                              </Avatar>
+                            }
+                            onClick={() => {
+                              getRejectedCommentsList(params?.row?.dispatch_item_id)
+                            }}
+                            sx={{ padding: 0, mx: 2, alignSelf: 'center' }}
+                          />
+                          {/* <IconButton
+                            aria-label=''
+                            onClick={() => {
+                              getRejectedCommentsList(params?.row?.dispatch_item_id)
+                            }}
+                            sx={{ padding: 0, mx: 2 }}
+                            size='large'
+                            color=''
+                          >
+                            <Icon icon='iconamoon:comment' />
+                          </IconButton> */}
+                          {commentDialogBox()}
+                        </>
+                      ) : null}
                       {/* {listComments?.count} */}
                     </Grid>
                   ) : (
@@ -1057,18 +1090,20 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   >
                     Save
                   </LoadingButton>
-                  <LoadingButton
-                    sx={{ float: 'right', my: 4, mx: 6 }}
-                    size='large'
-                    // disabled={disableButton()}
-                    variant='contained'
-                    onClick={() => {
-                      bulkStatusUpdate()
-                    }}
-                    loading={submitLoader}
-                  >
-                    Mark all as Received & Save
-                  </LoadingButton>
+                  {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                    <LoadingButton
+                      sx={{ float: 'right', my: 4, mx: 6 }}
+                      size='large'
+                      // disabled={disableButton()}
+                      variant='contained'
+                      onClick={() => {
+                        bulkStatusUpdate()
+                      }}
+                      loading={submitLoader}
+                    >
+                      Mark all as Received & Save
+                    </LoadingButton>
+                  )}
                 </>
               )
             : null}

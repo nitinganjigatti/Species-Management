@@ -23,6 +23,8 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Card from '@mui/material/Card'
+import Chip from '@mui/material/Chip'
+import Avatar from '@mui/material/Avatar'
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -190,7 +192,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             dispute_status: el?.dispute_status ? el?.dispute_status : '',
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
             dispute_id: el?.dispute_id,
-            shipment_id: el?.shipment_id
+            shipment_id: el?.shipment_id,
+            total_deny_comments: el?.total_deny_comments
           }
 
           return data
@@ -217,7 +220,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           request_id: requestId,
           item_details: disputeLineItems,
           comments: response?.data?.comments,
-          delivery_status: response?.data?.delivery_status
+          delivery_status: response?.data?.delivery_status,
+          dispute_status: response?.data?.dispute_status
         }
 
         setDisputeItemDetails(disputesData)
@@ -845,7 +849,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         params?.row?.status === 'Missing - Deny Open' ||
                         params.row.status === 'Wrong Count - Deny Open' ? (
                           <>
-                            <IconButton
+                            <Chip
+                              label={params.row.total_deny_comments}
+                              avatar={
+                                <Avatar>
+                                  <Icon icon='iconamoon:comment' />
+                                </Avatar>
+                              }
+                              onClick={() => {
+                                getRejectedCommentsList(params?.row?.dispatch_item_id)
+                              }}
+                              sx={{ padding: 0, mx: 2, alignSelf: 'center' }}
+                            />
+                            {/* <IconButton
                               aria-label=''
                               onClick={() => {
                                 getRejectedCommentsList(params?.row?.dispatch_item_id)
@@ -855,7 +871,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               color=''
                             >
                               <Icon icon='iconamoon:comment' />
-                            </IconButton>
+                            </IconButton> */}
                             {commentDialogBox()}
                           </>
                         ) : null}
@@ -1047,18 +1063,21 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 >
                   Save
                 </LoadingButton>
-                <LoadingButton
-                  sx={{ float: 'right', my: 4, mx: 6 }}
-                  size='large'
-                  // disabled={disableButton()}
-                  variant='contained'
-                  onClick={() => {
-                    bulkStatusUpdate()
-                  }}
-                  loading={submitLoader}
-                >
-                  Mark all as Received & Save
-                </LoadingButton>
+                {console.log('disputeItemDetails', disputeItemDetails)}
+                {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                  <LoadingButton
+                    sx={{ float: 'right', my: 4, mx: 6 }}
+                    size='large'
+                    // disabled={disableButton()}
+                    variant='contained'
+                    onClick={() => {
+                      bulkStatusUpdate()
+                    }}
+                    loading={submitLoader}
+                  >
+                    Mark all as Received & Save
+                  </LoadingButton>
+                )}
               </>
             ) : null}
           </Grid>
