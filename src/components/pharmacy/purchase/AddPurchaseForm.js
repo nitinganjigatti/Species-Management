@@ -508,7 +508,7 @@ const AddPurchaseForm = () => {
 
   const checkMedicineExpiryDate = useCallback(
     debounce(async (id, batch) => {
-      if (id.trim() !== '' && batch.trim() !== '') {
+      if (id?.trim() !== '' && batch?.trim() !== '') {
         debugger
         try {
           await getMedicineExpiryDate(id, batch)
