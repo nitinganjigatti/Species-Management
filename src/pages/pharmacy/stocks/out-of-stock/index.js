@@ -170,6 +170,8 @@ const StockOut = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}

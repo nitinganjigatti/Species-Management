@@ -164,6 +164,8 @@ const ListOfStocksByBatch = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}

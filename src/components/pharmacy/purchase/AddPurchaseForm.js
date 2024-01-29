@@ -101,7 +101,7 @@ const AddPurchaseForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [validateDiscount, setValidateDiscount] = useState('')
-  const [expiryDateLoader, setExpiryDateLoader] = useState(false)
+  const [expiryDateLoader, setExpiryDateLoader] = useState(true)
   const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
@@ -676,8 +676,6 @@ const AddPurchaseForm = () => {
         >
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
-              {nestedRowMedicine.purchase_expiry_date}
-              {console.log('nestedRowMedicine.purchase_expiry_date 222', nestedRowMedicine.purchase_expiry_date)}
               <FormControl fullWidth>
                 <Autocomplete
                   inputProps={{ tabIndex: '6' }}

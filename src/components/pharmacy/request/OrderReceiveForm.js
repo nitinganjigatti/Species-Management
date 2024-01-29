@@ -481,24 +481,29 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           closeCommentDialog()
         }}
         action={
-          <Box sx={{ m: 6 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, my: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
+            <Box sx={{}}>
               {listComments?.data?.length > 0 ? (
                 listComments?.data?.map((el, index) => {
                   return (
                     <Card key={index} sx={{ mx: 2 }}>
                       <CardContent>
-                        <strong>Shipped From:</strong>
-                        {el?.from_store}
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography style={{ fontSize: '12px' }}>
+                              {Utility.formatDisplayDate(el?.created_at)}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography>{el?.comment}</Typography>
+                          </Grid>
+                        </Grid>
+                        {/* <strong>Shipped From:</strong> */}
                       </CardContent>
-                      <CardContent>
-                        <strong>Date:</strong>
-                        {Utility.formatDisplayDate(el?.created_at)}
-                      </CardContent>
-                      <CardContent>
-                        <strong>Comment:</strong>
-                        {el?.comment}
-                      </CardContent>
+                      {/* <CardContent>{el?.comment}</CardContent> */}
                     </Card>
                   )
                 })
@@ -515,7 +520,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   closeCommentDialog()
                 }}
               >
-                Cancel
+                Close
               </Button>
             </DialogActions>
           </Box>
