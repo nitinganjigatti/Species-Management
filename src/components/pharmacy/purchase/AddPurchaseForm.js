@@ -480,14 +480,12 @@ const AddPurchaseForm = () => {
     try {
       setExpiryDateLoader(true)
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
-      debugger
       console.log(parseFormattedDate(response.data.expiry_date))
-      if (response.status && response.data !== null) {
-        setNestedRowMedicine({
-          ...nestedRowMedicine,
+      if (response.success && response.data !== null) {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
           purchase_expiry_date: response.data.expiry_date
-        })
-        // setProductExpiryDate(response.data.expiry_date)
+        }))
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -734,7 +732,6 @@ const AddPurchaseForm = () => {
                     setItemErrors({})
                   }}
                   onBlur={e => {
-                    debugger
                     checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, e.target.value)
                   }}
                 />
