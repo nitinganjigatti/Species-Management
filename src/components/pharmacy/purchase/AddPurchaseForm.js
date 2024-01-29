@@ -37,7 +37,7 @@ import Icon from 'src/@core/components/icon'
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/pharmacy/getPurchaseList'
+import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
@@ -101,6 +101,8 @@ const AddPurchaseForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [validateDiscount, setValidateDiscount] = useState('')
+  const [expiryDateLoader, setExpiryDateLoader] = useState(false)
+  const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
@@ -474,6 +476,26 @@ const AddPurchaseForm = () => {
     }
   }
 
+  const getMedicineExpiryDate = async (product_id, batch) => {
+    try {
+      setExpiryDateLoader(true)
+      const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+      debugger
+      console.log(parseFormattedDate(response.data.expiry_date))
+      if (response.status && response.data !== null) {
+        setNestedRowMedicine({
+          ...nestedRowMedicine,
+          purchase_expiry_date: response.data.expiry_date
+        })
+        // setProductExpiryDate(response.data.expiry_date)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
+    } finally {
+      setExpiryDateLoader(false)
+    }
+  }
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
@@ -483,6 +505,20 @@ const AddPurchaseForm = () => {
         console.error(error)
       }
     }, 1000),
+    []
+  )
+
+  const checkMedicineExpiryDate = useCallback(
+    debounce(async (id, batch) => {
+      if (id.trim() !== '' && batch.trim() !== '') {
+        debugger
+        try {
+          await getMedicineExpiryDate(id, batch)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }, 500),
     []
   )
 
@@ -640,6 +676,8 @@ const AddPurchaseForm = () => {
         >
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
+              {nestedRowMedicine.purchase_expiry_date}
+              {console.log('nestedRowMedicine.purchase_expiry_date 222', nestedRowMedicine.purchase_expiry_date)}
               <FormControl fullWidth>
                 <Autocomplete
                   inputProps={{ tabIndex: '6' }}
@@ -669,6 +707,10 @@ const AddPurchaseForm = () => {
                   renderInput={params => (
                     <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
                   )}
+                  onBlur={e => {
+                    debugger
+                    checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, nestedRowMedicine.purchase_batch_no)
+                  }}
                 />
                 {itemErrors.medicine_name && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -693,6 +735,10 @@ const AddPurchaseForm = () => {
                     setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
                     setItemErrors({})
                   }}
+                  onBlur={e => {
+                    debugger
+                    checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, e.target.value)
+                  }}
                 />
                 {itemErrors.purchase_batch_no && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -706,6 +752,7 @@ const AddPurchaseForm = () => {
               <FormControl fullWidth>
                 <SingleDatePicker
                   fullWidth
+                  disabled={expiryDateLoader}
                   date={
                     nestedRowMedicine.purchase_expiry_date
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
@@ -717,7 +764,7 @@ const AddPurchaseForm = () => {
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
                       : null
                   }
-                  name={'Expiry date*'}
+                  name={'Expiry Date*'}
                   onChangeHandler={date => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
