@@ -81,7 +81,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     status: '',
     dispatch_item_id: '',
     request_id: '',
-    request_item_id: '',
+    // request_item_id: '',
     type: '',
     action: '',
     comment: '',
@@ -361,6 +361,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const rejectItems = async payload => {
+    console.log('row datta', payload)
     if (payload?.status === 'Missing') {
       setRejectItemsPayload({
         ...rejectItemsPayload,
@@ -371,7 +372,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         status: payload?.status,
         dispatch_item_id: payload?.dispatch_item_id,
         request_id: requestId,
-        request_item_id: payload?.request_item_id,
+        // request_item_id: payload?.request_item_id,
         dispute_id: payload?.dispute_id,
         type: 'resolve',
         action: 'deny'
@@ -388,7 +389,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         dispatch_item_id: payload?.dispatch_item_id,
         request_id: requestId,
         excess_count: payload.wrong_count_number,
-        request_item_id: payload?.request_item_id,
+        // request_item_id: payload?.request_item_id,
         dispute_id: payload?.dispute_id,
         type: 'Excess',
         action: 'deny'
@@ -406,7 +407,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         dispatch_item_id: payload?.dispatch_item_id,
         request_id: requestId,
         shortage_count: payload.wrong_count_number,
-        request_item_id: payload?.request_item_id,
+        // request_item_id: payload?.request_item_id,
         dispute_id: payload?.dispute_id,
         type: 'Shortage',
         action: 'deny'
@@ -414,28 +415,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
 
     console.log('params', payload)
-    // console.log('reject payload', rejectedItems)
     openDisputeDialog()
-
-    // try {
-    //   setResolveLoader(true)
-    //   const resolved = await resolveDisputeItems(rejectedItems)
-    //   console.log('rejected response', resolved)
-    //   debugger
-    //   if (resolved?.success) {
-    //     setResolveLoader(false)
-    //     toast.success(resolved?.data)
-    //     getOrderDetails(orderId)
-    //   } else {
-    //     setResolveLoader(false)
-    //   }
-
-    //   console.log('resolve response ', resolved)
-    // } catch (error) {
-    //   setResolveLoader(false)
-
-    //   console.log('error', error)
-    // }
   }
 
   const submitRejectItems = async () => {
@@ -503,9 +483,18 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 listComments?.data?.map((el, index) => {
                   return (
                     <Card key={index} sx={{ mx: 2 }}>
-                      <CardContent>Shipped From:{el.from_store}</CardContent>
-                      <CardContent> Date:{Utility.formatDisplayDate(el.created_at)}</CardContent>
-                      <CardContent>Comment:{el.comment}</CardContent>
+                      <CardContent>
+                        <strong>Shipped From:</strong>
+                        {el?.from_store}
+                      </CardContent>
+                      <CardContent>
+                        <strong>Date:</strong>
+                        {Utility.formatDisplayDate(el?.created_at)}
+                      </CardContent>
+                      <CardContent>
+                        <strong>Comment:</strong>
+                        {el?.comment}
+                      </CardContent>
                     </Card>
                   )
                 })
@@ -668,22 +657,28 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                             <>
                               <DialogContent>
                                 <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
-                                <TextField
-                                  id='name'
-                                  autoFocus
-                                  fullWidth
-                                  value={rejectItemsPayload?.comment}
-                                  type='text'
-                                  error={Boolean(rejectItemsError ? rejectItemsError : null)}
-                                  onChange={e => {
-                                    setRejectItemsPayload({
-                                      ...rejectItemsPayload,
-                                      comment: e.target.value
-                                    })
-                                    setRejectItemsError(null)
-                                  }}
-                                  label='Comment'
-                                />
+                                <FormControl fullWidth>
+                                  <TextField
+                                    id='name'
+                                    autoFocus
+                                    fullWidth
+                                    value={rejectItemsPayload?.comment}
+                                    type='text'
+                                    error={Boolean(rejectItemsError ? rejectItemsError : null)}
+                                    onChange={e => {
+                                      setRejectItemsPayload({
+                                        ...rejectItemsPayload,
+                                        comment: e.target.value
+                                      })
+                                      setRejectItemsError(null)
+                                    }}
+                                    label='Comment'
+                                  />
+
+                                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                                    {rejectItemsError}
+                                  </FormHelperText>
+                                </FormControl>
                               </DialogContent>
                               <DialogActions className='dialog-actions-dense'>
                                 <Button
@@ -847,7 +842,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           <Icon icon='iconamoon:comment' />
                         </IconButton>
                         {commentDialogBox()}
-                        {listComments?.count}
+                        {/* {listComments?.count} */}
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
