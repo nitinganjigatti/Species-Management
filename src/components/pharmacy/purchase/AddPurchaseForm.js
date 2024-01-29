@@ -691,7 +691,8 @@ const AddPurchaseForm = () => {
                       purchase_qty: 0,
                       purchase_purchase_price: 0,
                       purchase_gst_type: newValue?.tax_type,
-                      purchase_tax_amount: 0
+                      purchase_tax_amount: 0,
+                      purchase_expiry_date: ''
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -728,7 +729,11 @@ const AddPurchaseForm = () => {
                   error={Boolean(itemErrors.purchase_batch_no)}
                   label='Batch*'
                   onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_batch_no: event.target.value,
+                      purchase_expiry_date: ''
+                    })
                     setItemErrors({})
                   }}
                   onBlur={e => {
