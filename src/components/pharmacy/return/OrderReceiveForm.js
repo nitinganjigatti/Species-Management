@@ -14,7 +14,8 @@ import {
   Button,
   IconButton,
   CircularProgress,
-  CardContent
+  CardContent,
+  CardHeader
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -474,24 +475,25 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         closeDialog={() => {
           closeCommentDialog()
         }}
-        action={
-          <Box sx={{ m: 6 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
+        action={closeCommentDialog}
+        content={
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
+            <Box>
               {listComments?.data?.length > 0 ? (
                 listComments?.data?.map((el, index) => {
                   return (
-                    <Card key={index} sx={{ mx: 2 }}>
+                    <Card key={index} sx={{ mx: 2, mb: 2 }}>
                       <CardContent>
                         <Grid container spacing={2}>
                           <Grid item xs={6}>
                             <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
                           </Grid>
-                          <Grid item xs={6}>
+                          <Grid item xs={6} sx={{ alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
                             <Typography style={{ fontSize: '12px' }}>
                               {Utility.formatDisplayDate(el?.created_at)}
                             </Typography>
                           </Grid>
-                          <Grid item xs={6}>
+                          <Grid item>
                             <Typography>{el?.comment}</Typography>
                           </Grid>
                         </Grid>
@@ -505,7 +507,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
               )}
             </Box>
-            <DialogActions className='dialog-actions-dense'>
+            {/* <DialogActions className='dialog-actions-dense'>
               <Button
                 variant='contained'
                 color='error'
@@ -516,7 +518,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               >
                 Cancel
               </Button>
-            </DialogActions>
+            </DialogActions> */}
           </Box>
         }
       />
@@ -653,8 +655,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       closeDialog={() => {
                         closeDisputeDialog()
                       }}
-                      action={
-                        <Box sx={{ m: 4 }}>
+                      action={closeDisputeDialog}
+                      content={
+                        <Box sx={{ m: 0 }}>
                           {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
                           {/* {rejectItemsPayload.length > 0 ? ( */}
                           <>

@@ -349,20 +349,21 @@ const IndividualRequest = () => {
           {params.row.requested_qty}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'dispatch_qty',
-      headerName: 'Fulfilled',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.dispatch_qty}
-        </Typography>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'dispatch_qty',
+    //   headerName: 'Fulfilled',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.dispatch_qty}
+    //     </Typography>
+    //   )
+    // }
 
     // {
     //   flex: 0.2,
