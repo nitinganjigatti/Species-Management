@@ -24,41 +24,6 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
     header['Selectedstore'] = selectedPharmacy?.id
   }
 
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
-  // debugger
-  if (pharmacy) {
-    header['Selectedstore'] = selectedPharmacy?.id
-  }
-
   return header
 }
 

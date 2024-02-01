@@ -48,6 +48,8 @@ export const LOCAL_STOCK_REPORT = 'local-stock'
 
 export const STOCK_BY_BATCH = 'master-stock-batch-wise'
 
+export const ESCROW = 'shipment/escrowlist'
+
 export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
@@ -97,3 +99,7 @@ export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
 export const REQUEST_ITEMS_NOT_AVAILABLE_REVERT = 'dispatch/not-available/revert'
 
 export const DIRECT_DISPATCH = 'direct-dispatch'
+
+export const DENIED_COMMENTS = 'deny-comments'
+
+export const CHECK_BATCH = 'check-batch'

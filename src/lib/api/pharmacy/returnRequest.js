@@ -1,4 +1,4 @@
-import { RETURN_REQUEST } from 'src/constants/ApiConstant'
+import { RETURN_REQUEST, REQUEST_ITEMS } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 const pharmacy = true
@@ -10,7 +10,7 @@ export async function getRequestReturnList({ params }) {
 }
 
 export async function getReturnItemsListById(id) {
-  const response = await axiosGet({ url: `${RETURN_REQUEST}/${id}/show`, pharmacy })
+  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show`, pharmacy })
 
   return response.data
 }
@@ -35,7 +35,7 @@ export async function addReturnItems(payload) {
 
 export async function updateReturnItems(id, payload) {
   try {
-    const url = `${REQUEST_ITEMS}/${id}/update`
+    const url = `${RETURN_REQUEST}/${id}/update`
     var data = payload
     data.id = id
 

@@ -21,6 +21,8 @@ import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -39,6 +41,7 @@ import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/pro
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import MenuWithDots from 'src/components/MenuWithDots'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -66,6 +69,7 @@ const IndividualRequest = () => {
 
   const [notAvailableItemId, setNotAvailableItemId] = useState({})
   const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
+  const [permissionView, setPermissionView] = useState(false)
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
@@ -83,16 +87,19 @@ const IndividualRequest = () => {
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
-        uid: index + 1
+        sl_no: index + 1
       }))
 
       responseData['request_item_details'] = mappedWithUid
+      debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
       setLoader(false)
+      setPermissionView(true)
     } else {
       setLoader(false)
+      setPermissionView(false)
     }
   }
 
@@ -104,6 +111,7 @@ const IndividualRequest = () => {
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
+          sl_no: index + 1,
           id: index + 1,
           dispatch_id: el.dispatch_id,
           dispatch_item_id: el.dispatch_item_id,
@@ -134,6 +142,7 @@ const IndividualRequest = () => {
       })
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
+      debugger
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -152,7 +161,7 @@ const IndividualRequest = () => {
 
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setShippedItems(mappedWithUid)
@@ -223,7 +232,7 @@ const IndividualRequest = () => {
     if (id !== undefined) {
       init(id)
     }
-  }, [id])
+  }, [id, selectedPharmacy.id])
 
   useEffect(() => {
     // if (id !== undefined && orderFormDialog === false) {
@@ -291,11 +300,17 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -303,10 +318,16 @@ const IndividualRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            }}
+          >
             {params.row.stock_name}
           </Typography>
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
@@ -333,8 +354,16 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'requested_qty',
       headerName: 'Requested QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {params.row.requested_qty}
         </Typography>
       )
@@ -344,8 +373,16 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'dispatch_qty',
       headerName: 'Fulfilled',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
           {params.row.dispatch_qty}
         </Typography>
       )
@@ -355,10 +392,20 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'remaining',
-      headerName: 'Remaining',
+      headerName: selectedPharmacy.type === 'local' ? 'Shipped Qty' : 'Remaining',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+          }}
+        >
+          {selectedPharmacy.type === 'local'
+            ? params.row.shipped_qty
+            : parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
         </Typography>
       )
     },
@@ -389,6 +436,17 @@ const IndividualRequest = () => {
               Fulfill
             </Button>
           )}
+
+          {selectedPharmacy.type === 'local' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              NA
+            </Typography>
+          )}
         </>
       )
     },
@@ -400,48 +458,95 @@ const IndividualRequest = () => {
       headerName: 'Attachment',
       renderCell: params =>
         !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <img
-            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
-            alt='Medicine Image'
-            style={{ width: '60px', height: '60px' }}
-          />
-        ) : null
+          <>
+            <IconButton
+              size='small'
+              onClick={() => {
+                window.open(`${base_url}${base_image_url}${params?.row?.control_substance_file}`, '_blank')
+              }}
+              aria-label='Attachment'
+            >
+              <Icon icon='mdi:link' />
+            </IconButton>
+          </>
+        ) : (
+          'NA'
+        )
     },
     {
       flex: 0.3,
       minWidth: 20,
       field: 'priority',
-      headerName: '',
+      headerName: 'Availability',
       renderCell: params => (
         <>
+          {params.row.request_status === 'Not Available' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
+              </Box>
+            </Typography>
+          )}
+
+          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary'
+              }}
+            >
+              Not Available
+            </Typography>
+          )}
+
           {selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
             params.row.request_status !== 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='error'
-                onClick={() => {
-                  handleProductNotAvailableAction(params.row.id, false)
-                }}
-              >
-                NOT AVAILABLE
-              </Button>
+              <>
+                {/* <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    handleProductNotAvailableAction(params.row.id, false)
+                  }}
+                >
+                  MAKE IT NOT AVAILABLE
+                </Button> */}
+                <MenuWithDots
+                  option='MAKE IT NOT AVAILABLE'
+                  action={() => {
+                    handleProductNotAvailableAction(params.row.id, false)
+                  }}
+                />
+              </>
             )}
 
           {selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
             params.row.request_status === 'Not Available' && (
-              <Button
-                size='small'
-                variant='contained'
-                color='secondary'
-                onClick={() => {
+              // eslint-disable-next-line lines-around-comment
+              // <Button
+              //   size='small'
+              //   variant='contained'
+              //   color='secondary'
+              //   onClick={() => {
+              //     handleProductNotAvailableAction(params.row.id, true)
+              //   }}
+              // >
+              //   MAKE IT AVAILABLE
+              // </Button>
+              <MenuWithDots
+                option='MAKE IT AVAILABLE'
+                action={() => {
                   handleProductNotAvailableAction(params.row.id, true)
                 }}
-              >
-                Make IT AVAILABLE
-              </Button>
+              />
             )}
         </>
       )
@@ -452,11 +557,11 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'Id',
+      field: 'sl_no',
+      headerName: 'SL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -465,7 +570,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -501,7 +606,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilledDate',
-      headerName: 'Fulfilled Date',
+      headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
@@ -513,7 +618,9 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled QTY',
+      headerName: 'Packed QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -526,11 +633,11 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -588,7 +695,23 @@ const IndividualRequest = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -709,11 +832,11 @@ const IndividualRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -826,112 +949,122 @@ const IndividualRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <CommonDialogBox
-            title={'Order received'}
-            dialogBoxStatus={orderFormDialog}
-            formComponent={
-              <OrderReceiveForm
-                orderId={orderId}
-                requestId={id}
-                disputeId={disputeId}
-                closeOrderFormDialog={closeOrderFormDialog}
+          {permissionView ? (
+            <>
+              <CommonDialogBox
+                title={'Order received'}
+                dialogBoxStatus={orderFormDialog}
+                formComponent={
+                  <OrderReceiveForm
+                    orderId={orderId}
+                    requestId={id}
+                    disputeId={disputeId}
+                    closeOrderFormDialog={closeOrderFormDialog}
+                  />
+                }
+                close={closeOrderFormDialog}
+                show={showOrderFormDialog}
               />
-            }
-            close={closeOrderFormDialog}
-            show={showOrderFormDialog}
-          />
-          <Card>
-            <CardHeader
-              title={`Request`}
-
-              // action={
-              //   requestItems.status === 'request' || requestItems.status === 'Partial Dispatched' ? (
-              //     <Button
-              //       size='big'
-              //       variant='contained'
-              //       onClick={() => {
-              //         handleRequestEdit()
-              //       }}
-              //     >
-              //       Edit
-              //     </Button>
-              //   ) : (
-              //     <></>
-              //   )
-              // }
-            />
-            <CardContent>
-              {/* Request Basic Info */}
-              <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
-                  <p>{requestItems?.to_store}</p>
-                </Grid>
-                <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
-                  <p>{requestItems?.from_store}</p>
-                </Grid>
-                <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Date</h5>
-                  <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                </Grid>
-                <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
-                  <p>{requestItems?.request_number}</p>
-                </Grid>
-              </Grid>
-              {/* Medicine Listing */}
-            </CardContent>
-            {requestItems?.request_item_details?.length > 0 ? (
-              <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-            ) : null}
-            {/* Dispatch list */}
-            {dispatchedItems?.length > 0 ? (
-              <>
-                <CardContent>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
-                    </Grid>
-                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+              <Card sx={{ mb: 6 }}>
+                <CardHeader
+                  avatar={
+                    <Icon
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        Router.push('/pharmacy/request/request-list/')
+                      }}
+                      icon='ep:back'
+                    />
+                  }
+                  title={`Request - ${requestItems?.request_number}`}
+                  action={
+                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
                       <Button
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          openShipDialog()
+                          handleRequestEdit()
                         }}
                       >
-                        Ship
+                        Edit
                       </Button>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-                <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-              </>
-            ) : null}
+                    ) : (
+                      <></>
+                    )
+                  }
+                />
 
-            {/* Shipped list        */}
-            {shippedItems?.length > 0 ? (
-              <>
                 <CardContent>
+                  {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Shipped Items</h5>
+                    <Grid item xs={3} alignItems={'center'}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested By</h5>
+                      <p>{requestItems?.to_store}</p>
+                    </Grid>
+                    <Grid item xs={3} alignItems={'center'}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
+                      <p>{requestItems?.from_store}</p>
+                    </Grid>
+                    <Grid item xs={3} alignItems={'center'}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
+                      <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
+                      <p>{requestItems?.request_number}</p>
                     </Grid>
                   </Grid>
+                  {/* Medicine Listing */}
                 </CardContent>
-                <TableBasic
-                  columns={shippedColumns}
-                  rows={shippedItems}
-                  onRowClick={e => {
-                    // console.log(e.id)
-                    setOrderId(e.id)
-                    showOrderFormDialog()
-                  }}
-                ></TableBasic>
-              </>
-            ) : null}
-            {/* {disputedItems?.length > 0 ? (
+                {requestItems?.request_item_details?.length > 0 ? (
+                  <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                ) : null}
+              </Card>
+              {/* Dispatch list */}
+              {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
+                <>
+                  <Card sx={{ mb: 6 }}>
+                    <CardHeader
+                      title={`Fulfillment`}
+                      action={
+                        (selectedPharmacy.permission.key === 'ADD' ||
+                          selectedPharmacy.permission.key === 'allow_full_access') && (
+                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                            <Button
+                              size='big'
+                              variant='contained'
+                              onClick={() => {
+                                openShipDialog()
+                              }}
+                            >
+                              Ship
+                            </Button>
+                          </Grid>
+                        )
+                      }
+                    ></CardHeader>
+                    <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                  </Card>
+                </>
+              )}
+              {/* Shipped list        */}
+              {shippedItems?.length > 0 ? (
+                <>
+                  <Card sx={{ mb: 6 }}>
+                    <CardHeader title={`Shipments`}></CardHeader>
+                    <TableBasic
+                      columns={shippedColumns}
+                      rows={shippedItems}
+                      onRowClick={e => {
+                        // console.log(e.id)
+                        setOrderId(e.id)
+                        showOrderFormDialog()
+                      }}
+                    ></TableBasic>
+                  </Card>
+                </>
+              ) : null}
+              {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -951,7 +1084,7 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-            {/* {dispenseItems?.length > 0 ? (
+              {/* {dispenseItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -971,85 +1104,90 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
-          </Card>
-          {/* Fulfill Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={show}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeDialog()}
+              {/* Fulfill Request Dialog */}
+              <Dialog
+                fullWidth
+                open={show}
+                maxWidth='md'
+                scroll='body'
+                onClose={() => closeDialog()}
+                TransitionComponent={Transition}
+                onBackdropClick={() => closeDialog()}
+              >
+                <Grid
+                  container
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
                 >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Fulfill Request`} />
-                    <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
+                  <CardHeader title={`Fulfillment`} />
+                  <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
+                    <Icon icon='mdi:close' />
+                  </IconButton>
+                </Grid>
 
-                  <FulfillDialog
-                    fulfillMedicine={fulfillMedicine}
-                    storeDetails={requestItems}
-                    close={closeFulfillDialog}
-                  />
-                </Dialog>
-              </Card>
-            </Grid>
-          </CardContent>
-          {/* Ship Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={showShipDialog}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeShipDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeShipDialog()}
-                >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Shipment`} />
-                    <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
-
-                  <ShipRequest
-                    dispatchedItems={dispatchedItems}
-                    storeDetails={requestItems}
-                    close={closeShipmentDialog}
-                  />
-                </Dialog>
-                <ProductNotAvailable
-                  open={productNotAvailableDialog}
-                  onClose={handleProductNotAvailable}
-                  selectedValue={notAvailableItemId}
-                  loading={productNotAvailableLoading}
+                <FulfillDialog
+                  fulfillMedicine={fulfillMedicine}
+                  storeDetails={requestItems}
+                  close={closeFulfillDialog}
                 />
-              </Card>
-            </Grid>
-          </CardContent>
+              </Dialog>
+              {/* Ship Request Dialog */}
+              <Dialog
+                fullWidth
+                open={showShipDialog}
+                maxWidth='md'
+                scroll='body'
+                onClose={() => closeShipDialog()}
+                TransitionComponent={Transition}
+                onBackdropClick={() => closeShipDialog()}
+              >
+                <Grid
+                  container
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <CardHeader title={`Shipment`} />
+                  <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
+                    <Icon icon='mdi:close' />
+                  </IconButton>
+                </Grid>
+
+                <ShipRequest
+                  dispatchedItems={dispatchedItems}
+                  storeDetails={requestItems}
+                  close={closeShipmentDialog}
+                />
+              </Dialog>
+              <ProductNotAvailable
+                open={productNotAvailableDialog}
+                onClose={handleProductNotAvailable}
+                selectedValue={notAvailableItemId}
+                loading={productNotAvailableLoading}
+              />{' '}
+            </>
+          ) : (
+            <Alert severity='warning'>
+              <AlertTitle>Warning</AlertTitle>
+              You don't have an access to view this request
+              <Button
+                onClick={() => {
+                  router.push('/pharmacy/request/request-list/')
+                }}
+                variant='contained'
+                size='small'
+                sx={{ mx: 4 }}
+              >
+                Back to list
+              </Button>
+              {/* <strong>check it out!</strong> */}
+            </Alert>
+          )}
         </>
       )}
     </>

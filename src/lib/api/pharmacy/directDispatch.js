@@ -1,4 +1,4 @@
-import { DIRECT_DISPATCH } from '../../../constants/ApiConstant'
+import { DIRECT_DISPATCH, REQUEST_ITEMS } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 const pharmacy = true
@@ -10,7 +10,7 @@ export async function getDirectDispatchItemsList({ params }) {
 }
 
 export async function getDirectDispatchItemsListById(id) {
-  const response = await axiosGet({ url: `${DIRECT_DISPATCH}/${id}/show`, pharmacy })
+  const response = await axiosGet({ url: `${REQUEST_ITEMS}/${id}/show`, pharmacy })
 
   return response.data
 }

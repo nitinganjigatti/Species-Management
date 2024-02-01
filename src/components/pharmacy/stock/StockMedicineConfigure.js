@@ -130,7 +130,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     if (shouldGetShelf && selectedRacks.length > 0) {
       const id = selectedRacks[0].id
       getShelfFromRacks(id)
-      setShouldGetShelf(false) // Reset the flag
+      setShouldGetShelf(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldGetShelf, selectedRacks])
@@ -140,6 +140,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
       const filteredShelf = selectedRacks?.filter(el => el.id === id)
 
       // console.log('get filtered shelfs', filteredShelf)
+
       setSelectedShelf(filteredShelf[0]?.shelf_config || [])
     }
   }

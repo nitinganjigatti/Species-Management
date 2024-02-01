@@ -35,11 +35,11 @@ const ReturnRequestList = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
 
@@ -71,7 +71,6 @@ const ReturnRequestList = () => {
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -104,16 +103,16 @@ const ReturnRequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -148,7 +147,7 @@ const ReturnRequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
   }
 
   const getRequestedText = () => {
@@ -219,6 +218,8 @@ const ReturnRequestList = () => {
       minWidth: 20,
       field: 'total_qty',
       headerName: 'Total Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
@@ -229,11 +230,37 @@ const ReturnRequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.shipping_status === 'Fully Shipped' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+              </Box>
+            )}
+            {params.row.shipping_status === 'Partially Shipped' && (
+              <Box sx={{ color: 'warning.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -282,8 +309,22 @@ const ReturnRequestList = () => {
             <Card>
               <CardHeader title='Return request List' action={headerAction} />
               <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  id: false
+                }}
                 autoHeight
                 pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 total
@@ -325,12 +366,12 @@ const ReturnRequestList = () => {
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
             <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            />
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>

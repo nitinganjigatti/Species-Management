@@ -19,7 +19,7 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
   const [data, setData] = useState([])
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const handleSearch = searchValue => {
     setSearchText(searchValue)
@@ -50,7 +50,18 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
       {inpFields ? inpFields : null}
       {rows?.length > 0 ? (
         <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
           autoHeight
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
           columns={columns}
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}

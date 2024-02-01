@@ -313,10 +313,17 @@ const AddRequestForm = () => {
     try {
       //params: { q: 'central', column: 'type' }
       const response = await getStoreList({ params: { q: 'central', column: 'type' } })
-
-      if (response?.data?.list_items?.length > 0) {
+      console.log('stores', response?.data?.list_items[0])
+      if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
+        if (response?.data?.list_items?.length === 1) {
+          setEditParams({
+            ...editParams,
+            from_store_id: response?.data?.list_items[0].id,
+            from_store_type: response?.data?.list_items[0].type
+          })
+        }
       }
     } catch (error) {
       console.log('err', error)
@@ -456,7 +463,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -471,7 +478,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)

@@ -191,7 +191,7 @@ const ListOfStores = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -262,6 +262,7 @@ const ListOfStores = () => {
       if (editParams?.id !== null) {
         response = await updateStore(editParams?.id, payload)
       } else {
+        payload.type = parseInt(total) > 0 ? 'local' : 'central'
         response = await addStore(payload)
       }
 
@@ -302,8 +303,13 @@ const ListOfStores = () => {
               <Card>
                 <CardHeader title='Storage' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
                   autoHeight
                   pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
                   columns={columns}
@@ -336,6 +342,7 @@ const ListOfStores = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
                 pharmacyList={pharmacyList}
+                totalStores={total}
               />
               {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />

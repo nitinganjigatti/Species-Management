@@ -21,7 +21,7 @@ const ExpiredMedicine = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -115,7 +115,7 @@ const ExpiredMedicine = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_item_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_item_name}
@@ -136,17 +136,6 @@ const ExpiredMedicine = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.generic_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -161,6 +150,8 @@ const ExpiredMedicine = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -187,8 +178,22 @@ const ExpiredMedicine = () => {
       ) : (
         <>
           <Card>
-            <CardHeader title='Expired Medicine' />
+            <CardHeader title='Expired products' />
             <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                id: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}

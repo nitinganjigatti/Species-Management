@@ -12,6 +12,7 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -48,11 +49,11 @@ const RequestList = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
 
@@ -72,7 +73,8 @@ const RequestList = () => {
         setLoading(true)
 
         const params = {
-          type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
+          type: 'request',
           sort,
           q,
           column,
@@ -98,14 +100,7 @@ const RequestList = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, status, selectedPharmacy.id])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn, status)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -117,16 +112,16 @@ const RequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -163,16 +158,12 @@ const RequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
   }
 
   const getRequestedText = () => {
     return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
   }
-
-  // useEffect(() => {
-  //   getRequestItemLists()
-  // }, [])
 
   const columns = [
     {
@@ -180,9 +171,28 @@ const RequestList = () => {
       Width: 40,
       field: 'sl_no',
       headerName: 'SL',
+
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'priority',
+      headerName: '',
+      type: 'number',
+      align: 'left',
+      renderCell: (params, rowId) => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.priority !== null ? (
+            <Box sx={{ color: 'error.main' }}>
+              <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
+            </Box>
+          ) : null}
         </Typography>
       )
     },
@@ -192,11 +202,12 @@ const RequestList = () => {
       minWidth: 20,
       field: 'request_number',
       headerName: 'REQUEST ID',
+      hide: true,
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.request_number}
-            {params.row.priority === 'high' && (
+            {/* {params.row.priority === 'high' && (
               <Chip
                 sx={{ ml: '6px', fontSize: '12px' }}
                 size='small'
@@ -204,10 +215,10 @@ const RequestList = () => {
                 color='error'
                 icon={<Icon icon='mdi:arrow-up-circle' />}
               />
-            )}
-            {params.row.control_substance === '1' && (
-              <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label='CS' color='success' />
-            )}
+            )} */}
+            {/* {params.row.control_substance === '1' && (
+              <CustomChip label='CS' skin='light' color='success' size='small' sx={{ ml: '6px', fontSize: '12px' }} />
+            )} */}
           </Typography>
         </>
       )
@@ -253,6 +264,8 @@ const RequestList = () => {
       minWidth: 20,
       field: 'total_qty',
       headerName: 'TOTAL ITEMS',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
@@ -264,21 +277,50 @@ const RequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilled_qty',
-      headerName: 'FULFILLED',
+
+      headerName: 'Balance',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.fulfilled_qty}
+          {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'shipped_status',
+      field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipped_status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.shipping_status === 'Fully Shipped' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+              </Box>
+            )}
+            {params.row.shipping_status === 'Partially Shipped' && (
+              <Box sx={{ color: 'warning.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -343,7 +385,22 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader title='Request List' action={headerAction} />
+
             <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
@@ -379,22 +436,21 @@ const RequestList = () => {
     <>
       <Grid>
         <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
+          <TabList onChange={handleChange}>
             <Tab
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
             <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
             />
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
-
           <TabPanel value='pending'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='completed'>{tableData()}</TabPanel>

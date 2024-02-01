@@ -174,7 +174,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
@@ -232,6 +232,8 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'min_qty',
       headerName: 'MIN QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.min_qty}
@@ -244,6 +246,8 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -266,6 +270,8 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'purchase_price',
       headerName: 'STOCK PURCHASE PRICE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.purchase_price}
@@ -314,7 +320,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
@@ -350,9 +356,12 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_qty}
+          {/* {params.row.stock_qty} */}
+          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
     },
@@ -362,6 +371,8 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'purchase_price',
       headerName: 'STOCK PURCHASE PRICE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.purchase_price}

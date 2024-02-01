@@ -34,14 +34,15 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+// import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/pharmacy/getPurchaseList'
+import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -100,28 +101,36 @@ const AddPurchaseForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [validateDiscount, setValidateDiscount] = useState('')
+  const [expiryDateLoader, setExpiryDateLoader] = useState(false)
+  const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
   const { id, action } = router.query
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setErrors({})
+    setItemErrors({})
+    setDuplicateMedError('')
+    setOptionsMedicineList([])
   }
 
   const showDialog = () => {
     setShow(true)
   }
 
-  const getStoreType = id => {
-    const foundOStores = stores.find(item => item.id === id)
-    if (foundOStores) {
-      const storeType = foundOStores.type
-      setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
-    }
-  }
+  // const getStoreType = id => {
+  //   const foundOStores = stores.find(item => item.id === id)
+  //   if (foundOStores) {
+  //     const storeType = foundOStores?.type
+  //     setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
+  //   }
+  // }
 
   // local nested items delete
   const removeItemsFroTable = itemId => {
@@ -240,24 +249,29 @@ const AddPurchaseForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!values.purchase_qty) {
+    if (isNaN(parseInt(values.purchase_unit_price)) || parseInt(values.purchase_unit_price) <= 0) {
+      debugger
+      itemErrors.purchase_unit_price = 'This field is required'
+      if (parseInt(values.purchase_unit_price) === 0 || parseInt(values.purchase_unit_price) < 0) {
+        itemErrors.purchase_unit_price = 'Enter valid Price'
+      }
+    }
+    if (isNaN(parseInt(values.purchase_qty)) || parseInt(values.purchase_qty) <= 0) {
+      debugger
       itemErrors.purchase_qty = 'This field is required'
-      if (values.purchase_qty === 0 || values.purchase_qty < 0) {
+      if (parseInt(values.purchase_qty) === 0 || parseInt(values.purchase_qty) < 0) {
         itemErrors.purchase_qty = 'Enter valid Quantity'
       }
     }
-    if (!values.purchase_unit_price) {
-      itemErrors.purchase_unit_price = 'This field is required'
-      if (values.purchase_unit_price === 0 || values.purchase_unit_price < 0) {
-        itemErrors.purchase_unit_price = 'Enter valid price'
-      }
-    }
+
     if (!values.purchase_batch_no) {
       itemErrors.purchase_batch_no = 'This field is required'
     }
     if (!values.purchase_expiry_date) {
       itemErrors.purchase_expiry_date = 'This field is required'
     }
+
+    debugger
 
     return itemErrors
   }
@@ -282,12 +296,20 @@ const AddPurchaseForm = () => {
   }
 
   const submitItems = () => {
+    debugger
+
     const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_expiry_date
-    if (HasErrors) {
+      nestedRowMedicine.medicine_name !== '' &&
+      nestedRowMedicine.purchase_qty !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
+      parseInt(nestedRowMedicine.purchase_qty) > 0 &&
+      nestedRowMedicine.purchase_unit_price !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
+      parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
+      nestedRowMedicine.purchase_batch_no !== '' &&
+      nestedRowMedicine.purchase_expiry_date !== ''
+    if (HasErrors === false) {
+      debugger
       setItemErrors(validate(nestedRowMedicine))
 
       return
@@ -330,16 +352,29 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_unit_id ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_unit_price ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_purchase_price ||
-      !nestedRowMedicine.purchase_expiry_date
+    // const HasErrors =
+    //   !nestedRowMedicine.medicine_name ||
+    //   !nestedRowMedicine.purchase_unit_id ||
+    //   !nestedRowMedicine.purchase_qty ||
+    //   !nestedRowMedicine.purchase_unit_price ||
+    //   !nestedRowMedicine.purchase_batch_no ||
+    //   !nestedRowMedicine.purchase_purchase_price ||
+    //   !nestedRowMedicine.purchase_expiry_date
 
-    if (HasErrors) {
+    const HasErrors =
+      nestedRowMedicine.medicine_name !== '' &&
+      nestedRowMedicine.purchase_qty !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
+      parseInt(nestedRowMedicine.purchase_qty) > 0 &&
+      nestedRowMedicine.purchase_unit_price !== '' &&
+      !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
+      parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
+      nestedRowMedicine.purchase_batch_no !== '' &&
+      nestedRowMedicine.purchase_expiry_date !== ''
+
+    debugger
+
+    if (HasErrors === false) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
@@ -368,18 +403,32 @@ const AddPurchaseForm = () => {
   }
 
   const getStoresLists = async () => {
-    const params = {
-      q: 'central',
-      column: 'type'
+    if (selectedPharmacy) {
+      setEditParams({
+        ...editParams,
+        store_id: selectedPharmacy.id,
+        type_of_store: selectedPharmacy.type
+      })
     }
-    try {
-      const response = await getStoreList({ params })
-      if (response?.success && response?.data?.list_items?.length > 0) {
-        setStores(response?.data?.list_items)
-      }
-    } catch (error) {
-      console.log('store error', error)
-    }
+    // const params = {
+    //   q: 'central',
+    //   column: 'type'
+    // }
+    // try {
+    //   const response = await getStoreList({ params })
+    //   if (response?.success && response?.data?.list_items?.length > 0) {
+    //     setStores(response?.data?.list_items)
+    //     if (response?.data?.list_items?.length === 1) {
+    //       setEditParams({
+    //         ...editParams,
+    //         store_id: response?.data?.list_items[0].id,
+    //         type_of_store: response?.data?.list_items[0].type
+    //       })
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.log('store error', error)
+    // }
   }
 
   const getSuppliersLists = async () => {
@@ -427,6 +476,24 @@ const AddPurchaseForm = () => {
     }
   }
 
+  const getMedicineExpiryDate = async (product_id, batch) => {
+    try {
+      setExpiryDateLoader(true)
+      const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+      console.log(parseFormattedDate(response.data.expiry_date))
+      if (response.success && response.data !== null) {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: response.data.expiry_date
+        }))
+      }
+    } catch (error) {
+      console.log('supplier error', error)
+    } finally {
+      setExpiryDateLoader(false)
+    }
+  }
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
@@ -436,6 +503,20 @@ const AddPurchaseForm = () => {
         console.error(error)
       }
     }, 1000),
+    []
+  )
+
+  const checkMedicineExpiryDate = useCallback(
+    debounce(async (id, batch) => {
+      if (id?.trim() !== '' && batch?.trim() !== '') {
+        debugger
+        try {
+          await getMedicineExpiryDate(id, batch)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }, 500),
     []
   )
 
@@ -610,7 +691,8 @@ const AddPurchaseForm = () => {
                       purchase_qty: 0,
                       purchase_purchase_price: 0,
                       purchase_gst_type: newValue?.tax_type,
-                      purchase_tax_amount: 0
+                      purchase_tax_amount: 0,
+                      purchase_expiry_date: ''
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -622,6 +704,10 @@ const AddPurchaseForm = () => {
                   renderInput={params => (
                     <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
                   )}
+                  // onBlur={e => {
+                  //   debugger
+                  //   checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, nestedRowMedicine.purchase_batch_no)
+                  // }}
                 />
                 {itemErrors.medicine_name && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -636,10 +722,37 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <TextField
+                  type='text'
+                  value={nestedRowMedicine.purchase_batch_no}
+                  error={Boolean(itemErrors.purchase_batch_no)}
+                  label='Batch*'
+                  onChange={event => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      purchase_batch_no: event.target.value,
+                      purchase_expiry_date: ''
+                    })
+                    setItemErrors({})
+                  }}
+                  onBlur={e => {
+                    checkMedicineExpiryDate(nestedRowMedicine.purchase_unit_id, e.target.value)
+                  }}
+                />
+                {itemErrors.purchase_batch_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               {/* purchase_expiry_date */}
               <FormControl fullWidth>
                 <SingleDatePicker
                   fullWidth
+                  // disabled={expiryDateLoader}
                   date={
                     nestedRowMedicine.purchase_expiry_date
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
@@ -651,7 +764,7 @@ const AddPurchaseForm = () => {
                       ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
                       : null
                   }
-                  name={'Expiry date*'}
+                  name={'Expiry Date*'}
                   onChangeHandler={date => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
@@ -671,11 +784,11 @@ const AddPurchaseForm = () => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <TextField
-                  type='number'
+                  type='Number'
                   // disabled={true}
                   value={nestedRowMedicine.purchase_unit_price}
                   error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate*'
+                  label='Supplier Rate*'
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
@@ -689,7 +802,7 @@ const AddPurchaseForm = () => {
                 />
                 {itemErrors.purchase_unit_price && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {itemErrors.purchase_unit_price}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -697,6 +810,7 @@ const AddPurchaseForm = () => {
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
+                {console.log('nestedRowMedicine.purchase_qty', nestedRowMedicine.purchase_qty)}
                 <TextField
                   type='number'
                   value={nestedRowMedicine.purchase_qty}
@@ -718,7 +832,7 @@ const AddPurchaseForm = () => {
                 />
                 {itemErrors.purchase_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {itemErrors.purchase_qty}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -740,26 +854,6 @@ const AddPurchaseForm = () => {
                   }}
                 />
                 {itemErrors.purchase_purchase_price && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  value={nestedRowMedicine.purchase_batch_no}
-                  error={Boolean(itemErrors.purchase_batch_no)}
-                  label='Batch*'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_batch_no && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     This field is required
                   </FormHelperText>
@@ -811,6 +905,8 @@ const AddPurchaseForm = () => {
                 </Grid>
               </>
             ) : null}
+
+            <Box sx={{ height: '150px' }}></Box>
 
             {/* // file uploader */}
             <Grid item xs={12}>
@@ -953,7 +1049,7 @@ const AddPurchaseForm = () => {
                     disabled={id ? true : false}
                     value={editParams.po_no}
                     error={Boolean(errors.po_no)}
-                    label='Purchase No*'
+                    label='Purchase Invoice Number*'
                     onChange={e => {
                       setEditParams({
                         ...editParams,
@@ -969,31 +1065,9 @@ const AddPurchaseForm = () => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    value={editParams.description}
-                    error={Boolean(errors.description)}
-                    label='Comments'
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        description: e.target.value
-                      })
-                      setErrors({})
-                    }}
-                  />
-                  {errors.description && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              {/* <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Store:
@@ -1025,8 +1099,8 @@ const AddPurchaseForm = () => {
                     </FormHelperText>
                   )}
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              </Grid> */}
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mt: 10, mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     fullWidth
@@ -1041,6 +1115,28 @@ const AddPurchaseForm = () => {
                     customInput={<CustomInput label='Date' error={Boolean(errors.po_date)} />}
                   />
                   {errors.po_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    type='text'
+                    value={editParams.description}
+                    error={Boolean(errors.description)}
+                    label='Comments'
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        description: e.target.value
+                      })
+                      setErrors({})
+                    }}
+                  />
+                  {errors.description && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       This field is required
                     </FormHelperText>
@@ -1075,13 +1171,13 @@ const AddPurchaseForm = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
-              <TableCell>Product Name</TableCell>
-              <TableCell>Batch</TableCell>
+              <TableCell width='30%'>Product Name</TableCell>
+              <TableCell width='10%'>Batch</TableCell>
               <TableCell>Expiry Date</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Supplier Rate</TableCell>
-              <TableCell>Total Purchase price</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell align='right'>Quantity</TableCell>
+              <TableCell align='right'>Rate</TableCell>
+              <TableCell align='right'>Price</TableCell>
+              <TableCell align='right'>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1091,12 +1187,12 @@ const AddPurchaseForm = () => {
                     <TableRow key={index}>
                       <TableCell>{el.medicine_name}</TableCell>
                       <TableCell>{el.purchase_batch_no}</TableCell>
-                      <TableCell>{el.purchase_expiry_date}</TableCell>
-                      <TableCell>{el.purchase_qty}</TableCell>
-                      <TableCell>{el.purchase_unit_price}</TableCell>
-                      <TableCell>{el.purchase_purchase_price}</TableCell>
+                      <TableCell>{Utility.formatDisplayDate(el.purchase_expiry_date)}</TableCell>
+                      <TableCell align='right'>{el.purchase_qty}</TableCell>
+                      <TableCell align='right'>{el.purchase_unit_price}</TableCell>
+                      <TableCell align='right'>{el.purchase_purchase_price}</TableCell>
 
-                      <TableCell>
+                      <TableCell align='center'>
                         <IconButton
                           size='small'
                           sx={{ mr: 0.5 }}
@@ -1129,99 +1225,106 @@ const AddPurchaseForm = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      <CardContent sx={{ pt: 8 }}>
+      <Grid item xs={6}>
         {/* {totalQty ? ( */}
         <Grid container>
           <Grid
             item
             xs={12}
-            sm={3}
-            lg={3}
+            sm={4}
+            lg={4}
             sx={{
               mb: { sm: 0, xs: 4 },
+              mt: { xs: 4 },
               order: { sm: 2, xs: 1 },
               marginLeft: 'auto',
               mr: { sm: 12, xs: 0 }
             }}
           >
-            <CalcWrapper>
-              <Typography variant='body2'>Sub Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>GST :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <InputLabel>Discount</InputLabel>
-                    <Select
-                      label='Discount'
-                      value={editParams.discount_type}
-                      onChange={event => {
-                        setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
-                        setErrors({})
-                      }}
-                    >
-                      <MenuItem value='P'>%</MenuItem>
-                      <MenuItem value='F'>₹</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='text'
-                      value={
-                        editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount
-                      }
-                      label='Discount'
-                      onChange={event => {
-                        const val = event.target.value
+            <Card>
+              <CardContent sx={{ pt: 8 }}>
+                <CalcWrapper>
+                  <Typography variant='body2'>Sub Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>GST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Discount</InputLabel>
+                        <Select
+                          label='Discount'
+                          value={editParams.discount_type}
+                          onChange={event => {
+                            setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
+                            setErrors({})
+                          }}
+                        >
+                          <MenuItem value='P'>%</MenuItem>
+                          <MenuItem value='F'>₹</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <TextField
+                          type='text'
+                          value={
+                            editParams.discount_type === 'P'
+                              ? editParams.discount_percentage
+                              : editParams.discount_amount
+                          }
+                          label='Discount'
+                          onChange={event => {
+                            const val = event.target.value
 
-                        calculateFinalAmount(val)
-                        setErrors({})
-                        setValidateDiscount('')
-                      }}
-                    />
-                  </FormControl>
-                  {validateDiscount && (
-                    <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
-                      This is required
-                    </FormHelperText>
-                  )}
-                </Grid>
-              </Grid>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>Grand Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
-              </Typography>
-            </CalcWrapper>
+                            calculateFinalAmount(val)
+                            setErrors({})
+                            setValidateDiscount('')
+                          }}
+                        />
+                      </FormControl>
+                      {validateDiscount && (
+                        <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
+                          This is required
+                        </FormHelperText>
+                      )}
+                    </Grid>
+                  </Grid>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>Grand Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
+                  </Typography>
+                </CalcWrapper>
 
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
         {/* // ) : null} */}
-      </CardContent>
+      </Grid>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           <LoadingButton

@@ -13,7 +13,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const productsList = {
-    title: 'Product List',
+    title: 'Products',
+    icon: 'material-symbols:inventory-2-outline',
     path: '/pharmacy/medicine/product-list'
   }
 
@@ -30,8 +31,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase list',
+    title: 'Purchase',
+    icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
+  }
+
+  const report = {
+    title: 'Report',
+    path: '/pharmacy/purchase/report'
   }
 
   const requestParent = {
@@ -43,6 +50,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const requestListing = {
     title: 'Request',
+    icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list'
   }
 
@@ -54,7 +62,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const returnListing = {
-    title: 'Return Request List',
+    title: 'Returns',
+    icon: 'material-symbols:assignment-returned-outline-sharp',
     path: '/pharmacy/return-product/request-list'
   }
 
@@ -71,7 +80,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchList = {
-    title: 'Dispatch list',
+    title: 'Dispatch',
+    icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
@@ -100,6 +110,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const expiredMedicine = {
     title: 'Expired Medicine',
     path: '/pharmacy/stocks/expired-medicine'
+  }
+
+  const escrow = {
+    title: 'Escrow',
+    path: '/pharmacy/stocks/escrow'
   }
 
   const settingsParent = {
@@ -170,15 +185,16 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const pharmacyNavigationArray = []
-  pharmacyNavigationArray.push(testList)
+
+  // pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
 
   if (selectedPharmacy?.type === 'central') {
-    inventoryParent.children.push(productsList)
-    PurchaseParent.children.push(purchaseList)
-    requestParent.children.push(requestListing)
-    returnParent.children.push(returnListing)
-    directDispatchParent.children.push(directDispatchList)
+    // inventoryParent.children.push(productsList)
+    // PurchaseParent.children.push(purchaseList)
+    // requestParent.children.push(requestListing)
+    // returnParent.children.push(returnListing)
+    // directDispatchParent.children.push(directDispatchList)
 
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
@@ -196,12 +212,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
-      inventoryParent,
-      PurchaseParent,
-      requestParent,
-      returnParent,
-      directDispatchParent,
+      requestListing,
+      returnListing,
+      directDispatchList,
+      purchaseList,
       stockParent,
+      productsList,
       settingsParent
     )
   }
@@ -209,13 +225,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
-    stockParent.children.push(stockReport, stockOut, expiredMedicine)
+    stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestParent, returnParent, directDispatchParent, stockParent, settingsParent)
+    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
   }
 
-  debugger
+  // debugger
 
   if (pharmacyRole && selectedPharmacy === '') {
     settingsParent.children.push(storeList)

@@ -72,7 +72,7 @@ const ListOfMedicine = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'PRODUCT NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
@@ -208,7 +208,7 @@ const ListOfMedicine = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -316,8 +316,13 @@ const ListOfMedicine = () => {
               <Card>
                 <CardHeader title='Product List' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
                   columns={columns}

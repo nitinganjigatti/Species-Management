@@ -11,10 +11,11 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name }) => {
+const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name, disabled = false }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
+        disabled={disabled ? disabled : null}
         showIcon
         selected={date}
         id='form-layouts-separator-date'

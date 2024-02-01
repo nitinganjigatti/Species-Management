@@ -21,6 +21,7 @@ import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
+import Utility from 'src/utility'
 
 const ListOfPurchase = () => {
   /***** Server side pagination */
@@ -31,7 +32,7 @@ const ListOfPurchase = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -123,6 +124,17 @@ const ListOfPurchase = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'po_date',
+      headerName: 'Purchase Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.po_date)}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,
@@ -150,73 +162,68 @@ const ListOfPurchase = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'total_amount',
-      headerName: 'TOTAL AMOUNT',
+      headerName: 'Purchase Amount',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_amount}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'tax_amount',
-      headerName: 'TAX AMOUNT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.tax_amount}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'discount_amount',
-      headerName: 'DISCOUNT AMOUNT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.discount_amount}
-        </Typography>
-      )
-    },
+    }
 
     // {
     //   flex: 0.2,
     //   minWidth: 20,
-    //   field: 'paid_amount',
-    //   headerName: 'PAID AMOUNT',
+    //   field: 'tax_amount',
+    //   headerName: 'TAX AMOUNT',
+    //   type: 'number',
+    //   align: 'right',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.paid_amount}
+    //       {params.row.tax_amount}
     //     </Typography>
     //   )
     // },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                <IconButton
-                  size='small'
-                  sx={{ mr: 0.5 }}
-                  onClick={() => {
-                    handleEdit(params.row.id)
-                  }}
-                >
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-              </Box>
-            )}
-        </>
-      )
-    }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'discount_amount',
+    //   headerName: 'DISCOUNT AMOUNT',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.discount_amount}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'central' &&
+    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+    //           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //             <IconButton
+    //               size='small'
+    //               sx={{ mr: 0.5 }}
+    //               onClick={() => {
+    //                 handleEdit(params.row.id)
+    //               }}
+    //             >
+    //               <Icon icon='mdi:pencil-outline' />
+    //             </IconButton>
+    //           </Box>
+    //         )}
+    //     </>
+    //   )
+    // }
   ]
 
   const handleHeaderAction = () => {
@@ -229,6 +236,15 @@ const ListOfPurchase = () => {
     </div>
   )
 
+  const onRowClick = params => {
+    if (
+      selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
+    ) {
+      handleEdit(params.row.id)
+    }
+  }
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -239,8 +255,22 @@ const ListOfPurchase = () => {
             <Card>
               <CardHeader title='Purchase List' action={headerAction} />
               <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl: false
+                }}
                 autoHeight
                 pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 total
@@ -263,8 +293,7 @@ const ListOfPurchase = () => {
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-
-                // onRowClick={onRowClick}
+                onRowClick={onRowClick}
               />
             </Card>
           </>

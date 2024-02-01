@@ -62,14 +62,22 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
         // delivery_mode: yup.string().required('Delivery Mode is required'),
         vehicle_no: yup.string().required('Vehicle Number is required'),
-        phone_number: yup.number().required('Mobile Number is required')
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
     : yup.object().shape({
         receiver_name: yup.string().required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
-
-        // delivery_mode: yup.string().required('Delivery Mode is required'),
-        phone_number: yup.number().required('Mobile Number is required')
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
 
   const {
@@ -189,7 +197,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -248,6 +256,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       minWidth: 20,
       field: 'dispatch_qty',
       headerName: 'Dispatch qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}

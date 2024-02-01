@@ -141,7 +141,7 @@ const ListOfDosageForms = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -257,8 +257,13 @@ const ListOfDosageForms = () => {
               <Card>
                 <CardHeader title='Product Form List' action={headerAction} />
                 <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
                   autoHeight
                   pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
                   columns={columns}
