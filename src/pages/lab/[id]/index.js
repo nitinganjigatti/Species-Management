@@ -2,7 +2,13 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { GetRequestDetails, GetRequestPopUp, transferLab, getNoOfLab } from 'src/lib/api/lab/getLabRequest'
+import {
+  GetRequestDetails,
+  GetRequestPopUp,
+  transferLab,
+  getNoOfLab,
+  UpdateStatus
+} from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import * as yup from 'yup'
@@ -52,7 +58,9 @@ const RequestDetails = () => {
 
   const { id } = Router.query
 
-  const requestId = id
+  const [medicineId, setMedicineId] = useState()
+  console.log('medicineId', medicineId)
+
   // console.log('id', id)
   const [request, setRequest] = useState([])
   // console.log('request', request)
@@ -67,7 +75,8 @@ const RequestDetails = () => {
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
   // console.log('storedData', storedData)
-  const [status, setStatus] = React.useState({})
+  const [status, setStatus] = React.useState()
+  console.log('status', status)
 
   const localLabData = storedData?.modules?.lab_data.lab
   // console.log('localLabData', localLabData)
@@ -94,8 +103,15 @@ const RequestDetails = () => {
     }
   }, [PrvLabId])
 
-  const handleChangeStatus = event => {
+  const handleChangeStatus = async event => {
     setStatus(event.target.value)
+    const id = medicineId
+    const payload = event.target.value
+
+    const response = await UpdateStatus(id, payload).then(res => {
+      console.log('res', res)
+    })
+    console.log('response', response)
   }
 
   const handleClickOpen = async item => {
@@ -121,6 +137,7 @@ const RequestDetails = () => {
       setLoading(true)
 
       const response = await GetRequestDetails(id).then(res => {
+        setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
         console.log('nih', res?.data?.result)
         setRows(res?.data?.result[0].test_reports)
@@ -224,21 +241,22 @@ const RequestDetails = () => {
         <>
           {}
           <Box sx={{ minWidth: 120 }}>
-            {/* {permissions?.transfer_tests === true ? (
+            {permissions?.transfer_tests === true ? (
               <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
                 <InputLabel id='demo-simple-select-label'>Status</InputLabel>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  value={status}
-                  label='Age'
+                  defaultValue={params.row.status}
+                  value={status} // Assuming params.row.status contains the current status value
+                  label='Status'
                   onChange={handleChangeStatus}
-                  defaultValue={'Pending'}
+                  sx={{ color: 'red' }}
                 >
-                  <MenuItem value={10}>Pending</MenuItem>
-                  <MenuItem value={20}>Completed</MenuItem>
-                  <MenuItem value={30}>In Progress</MenuItem>
+                  <MenuItem value='pending'>Pending</MenuItem>
+                  <MenuItem value='completed'>Completed</MenuItem>
+                  <MenuItem value='inProgress'>In Progress</MenuItem>
                 </Select>
               </FormControl>
             ) : (
@@ -259,9 +277,9 @@ const RequestDetails = () => {
                   {params.row.status}
                 </span>
               </Typography>
-            )} */}
+            )}
 
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
               <span
                 alt={params.row.status}
                 style={{
@@ -277,7 +295,7 @@ const RequestDetails = () => {
               >
                 {params.row.status}
               </span>
-            </Typography>
+            </Typography> */}
           </Box>
         </>
       )

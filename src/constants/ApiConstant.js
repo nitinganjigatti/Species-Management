@@ -4,6 +4,8 @@ export const GetLabNo = 'user-lab-list'
 
 export const PostTransfer = 'antz/transfer/lab-tests'
 
+export const updateStatus = '/antz/update/lab-tests-status'
+
 export const GetLabReport = 'lab-report'
 
 export const GetRequestPopUpById = 'antz/request/lab-tests'
