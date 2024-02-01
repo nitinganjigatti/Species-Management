@@ -47,49 +47,48 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 const RequestDetails = () => {
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
-  console.log('selectedLab', selectedLab)
+  // console.log('selectedLab', selectedLab)
   const [popUpRow, setPopUpRow] = useState([])
 
   const { id } = Router.query
 
   const requestId = id
-
-  console.log('id', id)
+  // console.log('id', id)
   const [request, setRequest] = useState([])
-  console.log('request', request)
+  // console.log('request', request)
   const [openTransfer, setOpenTransfer] = useState(false)
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
-  console.log('requestById', requestById)
+  // console.log('requestById', requestById)
   // const [storedData, setStoredData] = useState()
   // console.log('storedData', storedData)
   const [permissions, setPermissions] = useState(null)
-  console.log('permissions', permissions)
+  // console.log('permissions', permissions)
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
-  console.log('storedData', storedData)
+  // console.log('storedData', storedData)
   const [status, setStatus] = React.useState({})
 
   const localLabData = storedData?.modules?.lab_data.lab
-  console.log('localLabData', localLabData)
+  // console.log('localLabData', localLabData)
 
   const PrvLabId = request[0]?.lab_id // 68
-  console.log('PrvLabId', PrvLabId)
+  // console.log('PrvLabId', PrvLabId)
   const [lab, setLab] = React.useState([])
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  console.log('total', total)
+  // console.log('total', total)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  console.log('rows', rows)
+  // console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const labObject = localLabData?.find(item => item.lab_id === PrvLabId)
+    const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -151,7 +150,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     fetchRequestDetails()
-  }, [id])
+  }, [id, paginationModel])
 
   function loadServerRows(currentPage, data) {
     return data

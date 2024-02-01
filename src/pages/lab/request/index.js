@@ -231,7 +231,7 @@ const ListOfRequest = () => {
   }, [])
 
   const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
+    if (  newModel.length > 0) {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
@@ -328,7 +328,7 @@ const ListOfRequest = () => {
             <CardHeader title='Lab Requests' />
 
             <Stack
-              direction={{ md: 'row', sm: 'row', sx: 'column' }}
+              direction={{ md: 'row', sm: 'row', sx: 'column' }}                                                                                           
               sx={{ display: 'flex', justifyContent: 'space-between', mr: 5, alignItems: 'center' }}
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
