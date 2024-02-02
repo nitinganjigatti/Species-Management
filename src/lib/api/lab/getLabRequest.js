@@ -4,7 +4,8 @@ import {
   RequestDetails,
   GetRequestPopUpById,
   PostTransfer,
-  updateStatus
+  updateStatus,
+  uploadLabReports
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -32,9 +33,9 @@ export async function GetRequestPopUp(id) {
   return response.data
 }
 
-export async function transferLab(payload) {
+export async function transferLab(id, payload) {
   try {
-    const url = `${PostTransfer}`
+    const url = `${PostTransfer}/${id}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 
@@ -54,6 +55,25 @@ export async function transferLab(payload) {
 export async function UpdateStatus(id, payload) {
   try {
     const url = `${updateStatus}/${id}`
+    var data = payload
+    const response = await axiosPost({ url, body: data })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function UploadLabReports(payload) {
+  try {
+    const url = `${uploadLabReports}`
     var data = payload
     const response = await axiosPost({ url, body: data })
 

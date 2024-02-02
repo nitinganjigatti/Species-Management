@@ -51,13 +51,6 @@ const AddLab = () => {
   const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
-  console.log('dataToUpdate', dataToUpdate)
-
-  console.log('longitude', longitude.longitude)
-  console.log('latitude', latitude.latitude)
-  console.log('TestData', TestData)
-  console.log('labType', labType)
-  console.log('markDefault', markDefault)
 
   // for handle reset form
 
@@ -67,8 +60,6 @@ const AddLab = () => {
     setLoader(true)
     const response = await getAllLabSample()
     if (response?.length > 0) {
-      console.log('list', response)
-
       // let listWithId = response.map((el, i) => {
       //   return { ...el, uid: i + 1 }
       // })
@@ -212,10 +203,8 @@ const AddLab = () => {
 
     if (files.length > 0) {
       payload.image = files[0]
-      console.log('Image:', files[0])
     } else {
     }
-    console.log('payload', payload)
 
     const res = await addLabToList(payload).then(res => {
       if (res?.status) {
@@ -224,7 +213,6 @@ const AddLab = () => {
         // Router.push('/lab/lab-list')
       }
     })
-    console.log('res', res)
 
     // if (id !== undefined && action === 'edit') {
     //   console.log('payload', payload)
@@ -245,7 +233,6 @@ const AddLab = () => {
   // Add Test
 
   const handleCheckBox = (sample, parent, child, isChecked) => {
-    console.log('isChecked', isChecked)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -888,7 +875,6 @@ const AddLab = () => {
                                 <Checkbox
                                   checked={child?.value}
                                   onClick={(e, v) => {
-                                    console.log('v', e.target.checked)
                                     handleCheckBox(sample, parent, child, e.target.checked)
                                   }}
                                 />

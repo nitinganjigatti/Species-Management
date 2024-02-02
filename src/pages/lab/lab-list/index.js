@@ -32,7 +32,6 @@ const ListOfLab = () => {
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
-  console.log('storedData', storedData)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -192,10 +191,10 @@ const ListOfLab = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  console.log('total', total)
+
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  console.log('rows', rows)
+
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
@@ -219,7 +218,7 @@ const ListOfLab = () => {
 
         await getLabList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
-          console.log('res?.data', res?.data)
+
           setRows(loadServerRows(paginationModel.page, res?.data?.result))
         })
         setLoading(false)

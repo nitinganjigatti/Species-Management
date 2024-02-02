@@ -49,48 +49,45 @@ import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import Utility from 'src/utility'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+import UploadReports from 'src/components/lab/request/UploadReports'
 
 const RequestDetails = () => {
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
-  // console.log('selectedLab', selectedLab)
+
   const [popUpRow, setPopUpRow] = useState([])
 
   const { id } = Router.query
 
   const [medicineId, setMedicineId] = useState()
-  console.log('medicineId', medicineId)
 
-  // console.log('id', id)
+  const [LabRequestId, setLabRequestId] = useState()
+  const [animanlId, setAnimalId] = useState()
+
   const [request, setRequest] = useState([])
-  // console.log('request', request)
+
   const [openTransfer, setOpenTransfer] = useState(false)
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
-  // console.log('requestById', requestById)
-  // const [storedData, setStoredData] = useState()
-  // console.log('storedData', storedData)
+
   const [permissions, setPermissions] = useState(null)
-  // console.log('permissions', permissions)
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
-  // console.log('storedData', storedData)
+
   const [status, setStatus] = React.useState()
-  console.log('status', status)
 
   const localLabData = storedData?.modules?.lab_data.lab
-  // console.log('localLabData', localLabData)
 
-  const PrvLabId = request[0]?.lab_id // 68
-  // console.log('PrvLabId', PrvLabId)
+  const PrvLabId = request[0]?.lab_id
+
   const [lab, setLab] = React.useState([])
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  // console.log('total', total)
+
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  // console.log('rows', rows)
+
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
@@ -108,10 +105,7 @@ const RequestDetails = () => {
     const id = medicineId
     const payload = event.target.value
 
-    const response = await UpdateStatus(id, payload).then(res => {
-      console.log('res', res)
-    })
-    console.log('response', response)
+    const response = await UpdateStatus(id, payload).then(res => {})
   }
 
   const handleClickOpen = async item => {
@@ -137,9 +131,11 @@ const RequestDetails = () => {
       setLoading(true)
 
       const response = await GetRequestDetails(id).then(res => {
+        setAnimalId(res?.data?.result[0]?.animal_id)
+        setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
-        console.log('nih', res?.data?.result)
+
         setRows(res?.data?.result[0].test_reports)
         setTotal(parseInt(res?.data?.total_count))
         setLoading(false)
@@ -153,7 +149,7 @@ const RequestDetails = () => {
   useEffect(() => {
     getNoOfLab().then(res => {
       setLab(res?.data?.result)
-      console.log('res?.data', res?.data)
+
       // setRows(loadServerRows(paginationModel.page, res?.data?.result))
     })
   }, [])
@@ -348,14 +344,14 @@ const RequestDetails = () => {
 
   const defaultValues = {
     lab_name: request?.lab_id,
-    transferTo: '',
-    reason: ''
+    replaced_lab_id: '',
+    transfer_reason: ''
   }
 
   const schema = yup.object().shape({
     lab_name: yup.string(),
-    transferTo: yup.string().required(' is required'),
-    reason: yup.string().required('  is required')
+    replaced_lab_id: yup.string().required(' is required'),
+    transfer_reason: yup.string().required('  is required')
   })
 
   const {
@@ -391,25 +387,24 @@ const RequestDetails = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
-    const { lab_name, transferTo, reason } = {
+    const { lab_name, replaced_lab_id, transfer_reason } = {
       ...params
     }
+    const id = medicineId
 
     const payload = {
       // lab_name: request[0]?.lab_id,
-      transferTo,
-      reason
+      replaced_lab_id,
+      transfer_reason
     }
 
-    console.log('payload', payload)
-
-    const res = await transferLab(payload).then(res => {
+    const res = await transferLab(id, payload).then(res => {
       if (res?.status) {
         setSubmitLoader(false)
         handleCloseTransfer()
       }
     })
-    console.log('res', res)
+
     // if (id !== undefined && action === 'edit') {
     //   console.log('payload', payload)
     //   // await updateMedicine(payload, id)
@@ -516,21 +511,9 @@ const RequestDetails = () => {
               }}
             />
             {/* allow user Only if user hand upload permissions */}
-            {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
-              <Box>
-                <Box sx={{ p: 5, display: 'flex', justifyContent: 'flex-end' }}>
-                  <LoadingButton variant='contained'>UPLOAD REPORT</LoadingButton>
-                </Box>
-                <Box sx={{ p: 5 }}>
-                  <Typography variant='h6'>Reports</Typography>
-                  <Typography>Images</Typography>
-                  <Typography>Documents</Typography>
 
-                  {/* <form onSubmit={handleUloadSubmit(onSubmit)}>
-                  <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
-                </form> */}
-                </Box>
-              </Box>
+            {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
+              <UploadReports animalID={animanlId} labTestId={LabRequestId} medicalRecordId={medicineId} />
             ) : null}
           </Card>
         </>
@@ -669,20 +652,20 @@ const RequestDetails = () => {
                       Transfer To
                     </InputLabel>
                     <Controller
-                      name='transferTo'
+                      name='replaced_lab_id'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Select
-                          name='transferTo'
+                          name='replaced_lab_id'
                           value={value}
                           label='Transfer To*'
                           onChange={e => {
                             onChange(e.target.value)
                             // setLabType(e.target.value)
                           }}
-                          error={Boolean(errors?.transferTo)}
-                          labelId='transferTo'
+                          error={Boolean(errors?.replaced_lab_id)}
+                          labelId='replaced_lab_id'
                         >
                           {lab?.map(item => (
                             <MenuItem key={item?.lab_id} value={item?.lab_id}>
@@ -692,30 +675,30 @@ const RequestDetails = () => {
                         </Select>
                       )}
                     />
-                    {errors?.transferTo && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.transferTo?.message}</FormHelperText>
+                    {errors?.replaced_lab_id && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.replaced_lab_id?.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
                   <FormControl fullWidth mt={2}>
                     <Controller
-                      name='reason'
+                      name='transfer_reason'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
                           value={value}
-                          label='Reason'
-                          name='reason'
+                          label='transfer_reason'
+                          name='transfer_reason'
                           error={Boolean(errors.lab_name)}
                           onChange={onChange}
-                          placeholder='Add Reason'
+                          placeholder='Add transfer reason'
                         />
                       )}
                     />
-                    {errors.reason && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.reason?.message}</FormHelperText>
+                    {errors.transfer_reason && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.transfer_reason?.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>

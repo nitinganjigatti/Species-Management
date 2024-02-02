@@ -35,10 +35,6 @@ const ListOfRequest = () => {
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState(70)
 
-  console.log('selectedLab', selectedLab)
-  console.log('storedData', storedData)
-  console.log('lab', lab)
-
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(JSON.parse(Data))
@@ -196,12 +192,11 @@ const ListOfRequest = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  console.log('total', total)
+
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [status, setStatus] = useState()
-  console.log('status', status)
-  console.log('rows', rows)
+
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
@@ -226,12 +221,11 @@ const ListOfRequest = () => {
   useEffect(() => {
     getNoOfLab().then(res => {
       setLab(res?.data?.result)
-      console.log('res?.data', res?.data)
     })
   }, [])
 
   const handleSortModel = async newModel => {
-    if (  newModel.length > 0) {
+    if (newModel.length > 0) {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
@@ -269,7 +263,6 @@ const ListOfRequest = () => {
 
   const handlePaginationModelChange = async newModel => {
     setPaginationModel(newModel)
-    console.log('newModel', newModel)
 
     const params = {
       sort,
@@ -283,7 +276,6 @@ const ListOfRequest = () => {
   }
   const handleSearch = async value => {
     setSearchValue(value)
-    console.log('value', value)
 
     const params = {
       sort,
@@ -328,7 +320,7 @@ const ListOfRequest = () => {
             <CardHeader title='Lab Requests' />
 
             <Stack
-              direction={{ md: 'row', sm: 'row', sx: 'column' }}                                                                                           
+              direction={{ md: 'row', sm: 'row', sx: 'column' }}
               sx={{ display: 'flex', justifyContent: 'space-between', mr: 5, alignItems: 'center' }}
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
