@@ -506,14 +506,6 @@ const AddLab = () => {
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid container spacing={5}>
-                      <Grid item xs={12} sm={12}>
-                        <Card>
-                          <CardHeader title='Upload LAB Picture' />
-                          <CardContent>
-                            <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
-                          </CardContent>
-                        </Card>
-                      </Grid>
                       <Grid item xs={12} md={6} sm={6}>
                         <FormControl fullWidth>
                           <Controller
@@ -659,6 +651,7 @@ const AddLab = () => {
                         <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
                           <Box
                             sx={{
+                              cursor: 'pointer',
                               display: 'flex',
                               justifyContent: 'center',
                               bgcolor: '#20de67',
@@ -673,7 +666,7 @@ const AddLab = () => {
                               sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
                             >
                               <Icon icon='ic:baseline-add' fontSize={25} />
-                              Add Labs
+                              Add Lab Tests
                             </Typography>
                           </Box>
                           {dataToUpdate.map((sample, sampleId) => (
@@ -784,12 +777,20 @@ const AddLab = () => {
                           </Box>
                         </Card>
                       </Grid>
+                      <Grid item xs={12} md={6} sm={6}>
+                        <Card>
+                          <CardHeader title='Upload LAB Picture' />
+                          <CardContent>
+                            <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+                          </CardContent>
+                        </Card>
+                      </Grid>
                       <Grid item xs={12} md={12} sm={6}>
                         <LoadingButton
                           loading={submitLoader}
                           onClick={handleSubmitData}
                           type='submit'
-                          variant='contained'
+                          variant='outlined'
                         >
                           Submit
                         </LoadingButton>

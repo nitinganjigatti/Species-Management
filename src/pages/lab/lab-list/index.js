@@ -264,7 +264,7 @@ const ListOfLab = () => {
         <div>
           <Button
             size='big'
-            variant='contained'
+            variant='outlined'
             onClick={() => {
               Router.push('/lab/add-Lab')
             }}
