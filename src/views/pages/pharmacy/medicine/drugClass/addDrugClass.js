@@ -21,7 +21,7 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getDrugById } from 'src/lib/api/getDrugs'
+import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
 
 // ** Styled Components
 

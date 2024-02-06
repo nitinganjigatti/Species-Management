@@ -5,13 +5,14 @@ import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId
-} from 'src/lib/api/getRequestItemsList'
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
-import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/getShipmentList'
+import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -27,12 +28,14 @@ import { useRouter } from 'next/router'
 
 import Router from 'next/router'
 
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import FulfillDialog from 'src/components/pharmacy/return/FulfillDialog'
+import ShipRequest from 'src/components/pharmacy/return/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
-import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
-import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
+import OrderReceiveForm from 'src/components/pharmacy/return/OrderReceiveForm'
+
+import DisputeItemView from 'src/components/pharmacy/return/DisputeItemView'
+import DispenseItemView from 'src/components/pharmacy/return/DispenseItemView'
+import Utility from 'src/utility'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -63,6 +66,8 @@ const IndividualReturnRequest = () => {
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const getRequestItemLists = async id => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
@@ -71,7 +76,7 @@ const IndividualReturnRequest = () => {
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
-        uid: index + 1
+        sl_no: index + 1
       }))
 
       responseData['request_item_details'] = mappedWithUid
@@ -92,6 +97,7 @@ const IndividualReturnRequest = () => {
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
+          sl_no: index + 1,
           id: index + 1,
           dispatch_id: el.dispatch_id,
           dispatch_item_id: el.dispatch_item_id,
@@ -136,11 +142,9 @@ const IndividualReturnRequest = () => {
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setShippedItems(mappedWithUid)
@@ -162,7 +166,7 @@ const IndividualReturnRequest = () => {
       if (response?.success) {
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setDisputedItemsItems(mappedWithUid)
@@ -179,7 +183,7 @@ const IndividualReturnRequest = () => {
       if (response.success) {
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
-          uid: index + 1
+          sl_no: index + 1
         }))
 
         setDispenseItems(mappedWithUid)
@@ -192,7 +196,7 @@ const IndividualReturnRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/request/add-request/',
+      pathname: '/pharmacy/return-product/add-request',
       query: { id: id, action: 'edit' }
     })
   }
@@ -213,12 +217,12 @@ const IndividualReturnRequest = () => {
     }
   }, [id])
 
-  useEffect(() => {
-    if (id !== undefined && orderFormDialog === false) {
-      getDisputeItems(id)
-      getDispenseItems(id)
-    }
-  }, [orderFormDialog])
+  // useEffect(() => {
+  //   if (id !== undefined && orderFormDialog === false) {
+  //     getDisputeItems(id)
+  //     getDispenseItems(id)
+  //   }
+  // }, [orderFormDialog])
 
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
@@ -279,7 +283,7 @@ const IndividualReturnRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -291,7 +295,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -303,95 +307,105 @@ const IndividualReturnRequest = () => {
         </div>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'priority',
-      headerName: 'Priority',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.priority}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'priority',
+    //   headerName: 'Priority',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.priority}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_qty',
-      headerName: 'Requested QTY',
+      headerName: 'return QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'dispatch_qty',
-      headerName: 'Fulfilled',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.dispatch_qty}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'remaining',
-      headerName: 'Remaining',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: '',
-      headerName: 'Action',
-      renderCell: params => (
-        <Button
-          size='small'
-          disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
-          variant='contained'
-          onClick={() => {
-            setFulfillMedicine({
-              ...params.row
-            })
-            showDialog()
-          }}
-        >
-          Fulfill
-        </Button>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'attachment',
-      headerName: 'Attachment',
-      renderCell: params =>
-        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <img
-            src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
-            alt='Medicine Image'
-            style={{ width: '60px', height: '60px' }}
-          />
-        ) : null
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'dispatch_qty',
+    //   headerName: 'Fulfilled',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.dispatch_qty}
+    //     </Typography>
+    //   )
+    // }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'remaining',
+    //   headerName: 'Remaining',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: '',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'local' && (
+    //         <Button
+    //           size='small'
+    //           disabled={parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 ? false : true}
+    //           variant='contained'
+    //           onClick={() => {
+    //             setFulfillMedicine({
+    //               ...params.row
+    //             })
+    //             showDialog()
+    //           }}
+    //         >
+    //           Fulfill
+    //         </Button>
+    //       )}
+    //     </>
+    //   )
+    // }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'attachment',
+    //   headerName: 'Attachment',
+    //   renderCell: params =>
+    //     !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+    //       <img
+    //         src={`${base_url}${base_image_url}${params?.row?.control_substance_file}`}
+    //         alt='Medicine Image'
+    //         style={{ width: '60px', height: '60px' }}
+    //       />
+    //     ) : null
+    // }
   ]
 
   const fulfillColumns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'Id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -404,7 +418,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -432,7 +446,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -440,10 +454,10 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'fulfilledDate',
-      headerName: 'Fulfilled Date',
+      headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {dispatchedItems.dispatch_date}
+          {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
         </Typography>
       )
     },
@@ -452,7 +466,9 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'dispatch_qty',
-      headerName: 'Fulfilled QTY',
+      headerName: 'Packed QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -465,7 +481,7 @@ const IndividualReturnRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -494,7 +510,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_date}
+          {Utility.formatDisplayDate(params.row.shipment_date)}
         </Typography>
       )
     },
@@ -527,39 +543,56 @@ const IndividualReturnRequest = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.shipment_status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-
-      renderCell: params => (
-        <Box sx={{ marginLeft: -6 }}>
-          <IconButton
-            size='small'
-            onClick={() => {
-              setOrderId(params.row.id)
-
-              showOrderFormDialog()
-            }}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <Box sx={{ marginLeft: -6 }}>
+    //       <IconButton
+    //         size='small'
+    //         onClick={() => {
+    //           setOrderId(params.row.id)
+
+    //           showOrderFormDialog()
+    //         }}
+    //         aria-label='Edit'
+    //       >
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const disputedItemsColumns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -589,7 +622,7 @@ const IndividualReturnRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_date}</div>
+            <div>{Utility.formatDisplayDate(params.row.shipment_date)}</div>
           </Typography>
         </div>
       )
@@ -647,7 +680,7 @@ const IndividualReturnRequest = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'SL',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -735,25 +768,52 @@ const IndividualReturnRequest = () => {
             close={closeOrderFormDialog}
             show={showOrderFormDialog}
           />
-          <Card>
-            <CardHeader title={`Return-request`} />
+
+          <Card sx={{ mb: 6 }}>
+            <CardHeader
+              title={`Return - ${requestItems?.request_number}`}
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    Router.push('/pharmacy/return-product/request-list/')
+                  }}
+                  icon='ep:back'
+                />
+              }
+              action={
+                selectedPharmacy.type === 'local' && shippedItems.length === 0 ? (
+                  <Button
+                    size='large'
+                    variant='contained'
+                    onClick={() => {
+                      handleEdit(id)
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : (
+                  <></>
+                )
+              }
+            />
             <CardContent>
               {/* Request Basic Info */}
               <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested By</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
                   <p>{requestItems?.from_store}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Requested To</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned To</h5>
                   <p>{requestItems?.to_store}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Date</h5>
-                  <p>{requestItems?.request_date}</p>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
+                  <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                 </Grid>
                 <Grid item xs={3}>
-                  <h5 style={{ marginBottom: '0px' }}>Request ID</h5>
+                  <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Return ID</h5>
                   <p>{requestItems?.request_number}</p>
                 </Grid>
               </Grid>
@@ -762,45 +822,84 @@ const IndividualReturnRequest = () => {
             {requestItems?.request_item_details?.length > 0 ? (
               <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
             ) : null}
-            {/* Dispatch list */}
-            {dispatchedItems?.length > 0 ? (
-              <>
-                <CardContent>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Fulfillment</h5>
-                    </Grid>
-                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                      <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
-                          openShipDialog()
-                        }}
-                      >
-                        Ship
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-                <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-              </>
-            ) : null}
+          </Card>
+          {/* Dispatch list */}
 
-            {/* Shipped list        */}
-            {shippedItems?.length > 0 ? (
-              <>
-                <CardContent>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+          {dispatchedItems?.length > 0 && selectedPharmacy.type === 'local' ? (
+            <>
+              <Card sx={{ mb: 6 }}>
+                <CardHeader
+                  title='Fulfillment'
+                  action={
+                    selectedPharmacy.type === 'local' &&
+                    (selectedPharmacy.permission.key === 'ADD' ||
+                      selectedPharmacy.permission.key === 'allow_full_access') && (
+                      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                        <Button
+                          size='big'
+                          variant='contained'
+                          onClick={() => {
+                            openShipDialog()
+                          }}
+                        >
+                          Ship
+                        </Button>
+                      </Grid>
+                    )
+                  }
+                ></CardHeader>
+                {/* <CardContent> */}
+                {/* <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                    <Grid item xs={6}>
+                      <h5 style={{ marginBottom: '0px' }}>Ready to Ship</h5>
+                    </Grid> */}
+                {/* {selectedPharmacy.type === 'local' &&
+                      (selectedPharmacy.permission.key === 'ADD' ||
+                        selectedPharmacy.permission.key === 'allow_full_access') && (
+                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                          <Button
+                            size='big'
+                            variant='contained'
+                            onClick={() => {
+                              openShipDialog()
+                            }}
+                          >
+                            Ship
+                          </Button>
+                        </Grid>
+                      )}
+                  </Grid> */}
+                {/* </CardContent> */}
+                <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+              </Card>
+            </>
+          ) : null}
+
+          {/* Shipped list        */}
+          {shippedItems?.length > 0 ? (
+            <>
+              <Card sx={{ mb: 6 }}>
+                <CardHeader title='Shipment'></CardHeader>
+                {/* <CardContent> */}
+                {/* <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={6}>
                       <h5 style={{ marginBottom: '0px' }}>Shipments</h5>
                     </Grid>
-                  </Grid>
-                </CardContent>
-                <TableBasic columns={shippedColumns} rows={shippedItems}></TableBasic>
-              </>
-            ) : null}
-            {disputedItems?.length > 0 ? (
+                  </Grid> */}
+                {/* </CardContent> */}
+                <TableBasic
+                  columns={shippedColumns}
+                  rows={shippedItems}
+                  onRowClick={e => {
+                    // console.log(e.id)
+                    setOrderId(e.id)
+                    showOrderFormDialog()
+                  }}
+                ></TableBasic>
+              </Card>
+            </>
+          ) : null}
+          {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -839,80 +938,62 @@ const IndividualReturnRequest = () => {
                   show={showDispenseDialog}
                 />
               </>
-            ) : null}
-          </Card>
+            ) : null} */}
           {/* Fulfill Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={show}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeDialog()}
-                >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Fulfill - ${fulfillMedicine.id}`} />
-                    <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
 
-                  <FulfillDialog
-                    fulfillMedicine={fulfillMedicine}
-                    storeDetails={requestItems}
-                    close={closeFulfillDialog}
-                  />
-                </Dialog>
-              </Card>
+          <Dialog
+            fullWidth
+            open={show}
+            maxWidth='md'
+            scroll='body'
+            onClose={() => closeDialog()}
+            TransitionComponent={Transition}
+            onBackdropClick={() => closeDialog()}
+          >
+            <Grid
+              container
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <CardHeader title={`Fulfill - ${fulfillMedicine.id}`} />
+              <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
             </Grid>
-          </CardContent>
+
+            <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} close={closeFulfillDialog} />
+          </Dialog>
+
           {/* Ship Request Dialog */}
-          <CardContent>
-            <Grid container>
-              <Card>
-                <Dialog
-                  fullWidth
-                  open={showShipDialog}
-                  maxWidth='md'
-                  scroll='body'
-                  onClose={() => closeShipDialog()}
-                  TransitionComponent={Transition}
-                  onBackdropClick={() => closeShipDialog()}
-                >
-                  <Grid
-                    container
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <CardHeader title={`Shipment`} />
-                    <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
-                      <Icon icon='mdi:close' />
-                    </IconButton>
-                  </Grid>
 
-                  <ShipRequest
-                    dispatchedItems={dispatchedItems}
-                    storeDetails={requestItems}
-                    close={closeShipmentDialog}
-                  />
-                </Dialog>
-              </Card>
+          <Dialog
+            fullWidth
+            open={showShipDialog}
+            maxWidth='md'
+            scroll='body'
+            onClose={() => closeShipDialog()}
+            TransitionComponent={Transition}
+            onBackdropClick={() => closeShipDialog()}
+          >
+            <Grid
+              container
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <CardHeader title={`Shipment`} />
+              <IconButton size='small' onClick={() => closeShipDialog()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
             </Grid>
-          </CardContent>
+
+            <ShipRequest dispatchedItems={dispatchedItems} storeDetails={requestItems} close={closeShipmentDialog} />
+          </Dialog>
         </>
       )}
     </>

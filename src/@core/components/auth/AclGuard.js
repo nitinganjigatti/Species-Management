@@ -19,7 +19,8 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import { useAuth } from 'src/hooks/useAuth'
 
 // ** Util Import
-import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
+// import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const AclGuard = props => {
   // ** Props
@@ -28,14 +29,35 @@ const AclGuard = props => {
   // ** Hooks
   const auth = useAuth()
   const router = useRouter()
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const getPath = () => {
+    debugger
+    if (selectedPharmacy) {
+      if (selectedPharmacy?.type === 'local') {
+        return '/pharmacy/request/request-list/'
+      } else {
+        return '/pharmacy/medicine/product-list'
+      }
+    }
+  }
 
   // ** Vars
   let ability
   useEffect(() => {
     if (auth.user && auth.user.role && !guestGuard && router.route === '/') {
-      const homeRoute = getHomeRoute(auth.user.role)
-      router.replace(homeRoute)
+      // const homeRoute = getHomeRoute(auth.user.role)
+      debugger
+      const homeRoute = getPath()
+      router?.replace(
+        !homeRoute
+          ? auth?.userData?.roles?.settings?.add_pharmacy
+            ? '/pharmacy/settings/store-list/'
+            : '/Error'
+          : homeRoute
+      )
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user, guestGuard, router])
 
   // User is logged in, build ability for the user based on his role

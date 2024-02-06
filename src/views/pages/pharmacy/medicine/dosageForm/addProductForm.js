@@ -16,14 +16,14 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
-import { getProductFormById } from 'src/lib/api/productForms'
+import { getProductFormById } from 'src/lib/api/pharmacy/productForms'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getDosageFormById } from 'src/lib/api/productForms'
+import { getDosageFormById } from 'src/lib/api/pharmacy/productForms'
 
 // ** Styled Components
 

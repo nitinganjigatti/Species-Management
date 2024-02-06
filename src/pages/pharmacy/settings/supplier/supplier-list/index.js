@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getSuppliers } from 'src/lib/api/getSupplierList'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import TableWithFilter from '../../../../../components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner'
@@ -14,32 +14,27 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
-
 import Router from 'next/router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { AddButton } from 'src/components/Buttons'
 
 const Supplier = () => {
-  const queryClient = useQueryClient()
-
   const [supplierList, setSupplierList] = useState([])
 
   const getSupplierList = async () => {
-    const response = await getSuppliers()
+    try {
+      const response = await getSuppliers()
 
-    return response
-  }
+      console.log('response', response)
 
-  const { supplierData, isLoading, isError, error } = useQuery(['suppliers'], getSupplierList, {
-    onSuccess: supplierData => {
-      let listWithId = supplierData.data.data
-        ? supplierData.data.data.map((el, i) => {
+      let listWithId = response?.data?.data?.list_items
+        ? response?.data?.data?.list_items.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
         : []
+
       setSupplierList(listWithId)
-    }
-  })
-  console.log(supplierData)
+    } catch (error) {}
+  }
 
   const handleEdit = id => {
     Router.push({
@@ -47,6 +42,10 @@ const Supplier = () => {
       query: { id: id, action: 'edit' }
     })
   }
+
+  useEffect(() => {
+    getSupplierList()
+  }, [])
 
   const columns = [
     {
@@ -106,17 +105,18 @@ const Supplier = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'opening_balance',
-      headerName: 'OPENING BALANCE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.opening_balance}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'opening_balance',
+    //   headerName: 'OPENING BALANCE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.opening_balance}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -141,12 +141,6 @@ const Supplier = () => {
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
-  if (isLoading) {
-    return <FallbackSpinner />
-  }
-  if (isError) {
-    return <h1>{error.message}</h1>
-  }
 
   return (
     <>
@@ -154,15 +148,12 @@ const Supplier = () => {
         TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
         headerActions={
           <div>
-            <Button
-              size='big'
-              variant='contained'
-              onClick={() => {
+            <AddButton
+              title='Add Supplier'
+              action={() => {
                 Router.push('/pharmacy/settings/supplier/add-supplier')
               }}
-            >
-              Add Supplier
-            </Button>
+            />
           </div>
         }
         columns={columns}

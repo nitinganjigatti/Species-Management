@@ -15,7 +15,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
-import { getGenericsById } from 'src/lib/api/getGenerics'
+import { getGenericsById } from 'src/lib/api/pharmacy/getGenerics'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'

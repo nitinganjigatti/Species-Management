@@ -33,9 +33,9 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 
-import { addSuppliers } from 'src/lib/api/addSupplier'
-import { getStates } from 'src/lib/api/getStates'
-import { getSupplierById, updateSuppliersById } from 'src/lib/api/getSupplierList'
+import { addSuppliers } from 'src/lib/api/pharmacy/addSupplier'
+import { getStates } from 'src/lib/api/pharmacy/getStates'
+import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 import UserSnackbar from 'src/components/utility/snackbar'
 
 const defaultValues = {
@@ -198,7 +198,7 @@ const AddSupplier = () => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/supplier')
+        Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -213,14 +213,15 @@ const AddSupplier = () => {
   const addSupplerToList = async payload => {
     try {
       const response = await addSuppliers(payload)
+      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/supplier')
+        Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -457,7 +458,7 @@ const AddSupplier = () => {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <FormControl fullWidth>
                       <Controller
                         name='opening_balance'
@@ -476,7 +477,7 @@ const AddSupplier = () => {
                         )}
                       />
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item xs={12}>
                     <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>

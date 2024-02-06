@@ -21,7 +21,7 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getStoreById } from 'src/lib/api/getStoreList'
+import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
 
 // ** auth context
 
@@ -31,7 +31,8 @@ import { AuthContext } from 'src/context/AuthContext'
 
 const schema = yup.object().shape({
   name: yup.string().required('Dosage Form is Required'),
-  type: yup.string().required('Type is Required'),
+
+  // type: yup.string().required('Type is Required'),
   site_id: yup.string().nullable(),
   status: yup.string().required('Status is Required')
 })
@@ -47,16 +48,21 @@ const defaultValues = {
 
 const AddStore = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    pharmacyList,
+    totalStores
+  } = props
 
   // ** States
   const [values, setValues] = useState(defaultValues)
 
   const authData = useContext(AuthContext)
-
-  debugger
-
-  console.log(authData)
 
   // const router = useRouter()
   // const { id, action } = router.query
@@ -177,7 +183,7 @@ const AddStore = props => {
             />
             {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
             <FormLabel>Type</FormLabel>
             <Controller
               name='type'
@@ -205,7 +211,7 @@ const AddStore = props => {
                 {errors?.type?.message}
               </FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
@@ -224,9 +230,6 @@ const AddStore = props => {
                   error={Boolean(errors?.gst_slab)}
                   labelId='site_id'
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
                   {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                     return (
                       <MenuItem key={index} value={item?.site_id}>

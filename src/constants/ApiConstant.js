@@ -28,7 +28,11 @@ export const RACK = 'rack'
 
 export const STOCK_REPORT = 'master-stock'
 
+export const LOCAL_STOCK_REPORT = 'local-stock'
+
 export const STOCK_BY_BATCH = 'master-stock-batch-wise'
+
+export const ESCROW = 'shipment/escrowlist'
 
 export const UOM = 'uom'
 
@@ -52,7 +56,7 @@ export const DISPUTE_ITEM = 'dispute-item'
 
 export const STOCK_OUT = 'outofstock-medicine/store'
 
-export const EXPIRED_MEDICINE = 'expire-medicine/store'
+export const EXPIRED_MEDICINE = 'expire-medicine'
 
 export const BATCH_DETAILS = 'batch-details'
 
@@ -73,3 +77,13 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
 export const RETURN_REQUEST = 'return-item'
+
+export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
+
+export const REQUEST_ITEMS_NOT_AVAILABLE_REVERT = 'dispatch/not-available/revert'
+
+export const DIRECT_DISPATCH = 'direct-dispatch'
+
+export const DENIED_COMMENTS = 'deny-comments'
+
+export const CHECK_BATCH = 'check-batch'

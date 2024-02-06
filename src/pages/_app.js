@@ -52,7 +52,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
-import { DropdownProvider } from 'src/context/storeContext'
+import { PharmacyProvider } from 'src/context/PharmacyContext'
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 
@@ -91,12 +91,7 @@ const App = props => {
   const contentHeightFixed = Component.contentHeightFixed ?? false
 
   const getLayout =
-    Component.getLayout ??
-    (page => (
-      <DropdownProvider>
-        <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>{' '}
-      </DropdownProvider>
-    ))
+    Component.getLayout ?? (page => <UserLayout contentHeightFixed={contentHeightFixed}>{page}</UserLayout>)
   const setConfig = Component.setConfig ?? undefined
   const authGuard = Component.authGuard ?? true
   const guestGuard = Component.guestGuard ?? false
@@ -109,31 +104,32 @@ const App = props => {
         <meta name='description' content={`${themeConfig.templateName}`} />
         <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
-
-      <AuthProvider>
-        <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-          <SettingsConsumer>
-            {({ settings }) => {
-              return (
-                <ThemeComponent settings={settings}>
-                  <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                    <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                      {getLayout(
-                        <QueryClientProvider client={queryClient}>
-                          <Component {...pageProps} />
-                        </QueryClientProvider>
-                      )}
-                    </AclGuard>
-                  </Guard>
-                  <ReactHotToast>
-                    <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                  </ReactHotToast>
-                </ThemeComponent>
-              )
-            }}
-          </SettingsConsumer>
-        </SettingsProvider>
-      </AuthProvider>
+      <PharmacyProvider>
+        <AuthProvider>
+          <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+            <SettingsConsumer>
+              {({ settings }) => {
+                return (
+                  <ThemeComponent settings={settings}>
+                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                      <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                        {getLayout(
+                          <QueryClientProvider client={queryClient}>
+                            <Component {...pageProps} />
+                          </QueryClientProvider>
+                        )}
+                      </AclGuard>
+                    </Guard>
+                    <ReactHotToast>
+                      <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
+                    </ReactHotToast>
+                  </ThemeComponent>
+                )
+              }}
+            </SettingsConsumer>
+          </SettingsProvider>
+        </AuthProvider>
+      </PharmacyProvider>
     </CacheProvider>
   )
 }

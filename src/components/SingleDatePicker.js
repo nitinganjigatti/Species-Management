@@ -7,16 +7,34 @@ import CustomInput from './PickersCustomInput'
 // ** Styled Component
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
-const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name }) => {
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import InputAdornment from '@mui/material/InputAdornment'
+
+const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name, disabled = false }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
+        disabled={disabled ? disabled : null}
+        showIcon
         selected={date}
         id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
-        placeholderText='Click to select a date'
-        customInput={<CustomInput label={name} width='auto' />}
+        placeholderText='select a date'
+        customInput={
+          <CustomInput
+            label={name}
+            width='auto'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mdi:calendar-month-outline' />
+                </InputAdornment>
+              )
+            }}
+          />
+        }
       />
     </DatePickerWrapper>
   )

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
-import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getSupplierLedger } from 'src/lib/api/getSupplierLedger'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getSupplierLedger } from 'src/lib/api/pharmacy/getSupplierLedger'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner'

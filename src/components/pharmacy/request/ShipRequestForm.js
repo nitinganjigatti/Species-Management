@@ -18,7 +18,7 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import Utility from 'src/utility'
-import { shipRequestedItems } from 'src/lib/api/getRequestItemsList'
+import { shipRequestedItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 // import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
@@ -28,7 +28,7 @@ const defaultValues = {
   delivery_mode: 'Shipped',
   vehicle_no: null,
   receiver_name: null,
-  mobile_no: null
+  phone_number: null
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -59,15 +59,24 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     ? yup.object().shape({
         person_shipping: yup.string().required('Person Shipping Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
-        delivery_mode: yup.string().required('Delivery Mode is required'),
-        vehicle_no: yup.string().required('Vehicle Number is required'),
-        mobile_no: yup.number().required('Mobile Number is required')
+
+        // vehicle_no: yup.string().required('Vehicle Number is required'),
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
     : yup.object().shape({
         receiver_name: yup.string().required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
-        delivery_mode: yup.string().required('Delivery Mode is required'),
-        mobile_no: yup.number().required('Mobile Number is required')
+        phone_number: yup
+          .number()
+          .required('Mobile Number is required')
+          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+            return /^\d{10}$/.test(value)
+          })
       })
 
   const {
@@ -127,7 +136,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { person_shipping, delivery_mode, vehicle_no, receiver_name, mobile_no } = {
+    const { person_shipping, vehicle_no, receiver_name, phone_number } = {
       ...params
     }
 
@@ -144,11 +153,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.shipment_date = shipmentDate
       payloadItem.person_shipping = person_shipping
       payloadItem.receiver_name = receiver_name
-      payloadItem.status = delivery_mode
+      payloadItem.status = deliveryType.Ship ? 'Shipped' : 'PickedUp'
       payloadItem.to_store_id = storeDetails.to_store_id
       payloadItem.from_store_id = storeDetails.from_store_id
       payloadItem.vehicle_no = vehicle_no
-      payloadItem.mobile_no = mobile_no
+      payloadItem.phone_number = phone_number
 
       payload.push(payloadItem)
     })
@@ -187,7 +196,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       flex: 0.2,
       Width: 40,
       field: 'medicin_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -237,7 +246,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       headerName: 'Expiry date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -246,6 +255,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       minWidth: 20,
       field: 'dispatch_qty',
       headerName: 'Dispatch qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -351,7 +362,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           render={({ field: { value, onChange } }) => (
                             <TextField
                               value={value}
-                              label='Vehicle Number*'
+                              label='Vehicle Number'
                               onChange={onChange}
                               placeholder=''
                               error={Boolean(errors.vehicle_no)}
@@ -413,7 +424,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   </Grid>
                 )}
 
-                <Grid item xs={12} sm={6}>
+                {/* <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
                       name='delivery_mode'
@@ -434,12 +445,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.delivery_mode.message}</FormHelperText>
                     )}
                   </FormControl>
-                </Grid>
+                </Grid> */}
 
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
-                      name='mobile_no'
+                      name='phone_number'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
@@ -448,13 +459,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           label='Mobile number*'
                           onChange={onChange}
                           placeholder=''
-                          error={Boolean(errors.mobile_no)}
-                          name='mobile_no'
+                          error={Boolean(errors.phone_number)}
+                          name='phone_number'
                         />
                       )}
                     />
-                    {errors.mobile_no && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.mobile_no.message}</FormHelperText>
+                    {errors.phone_number && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.phone_number.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
