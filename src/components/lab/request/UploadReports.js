@@ -120,7 +120,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
 
           <Grid item md={4} xs={12} sm={12}>
             <Card>
-              <CardHeader title='Document Uplade' />
+              <CardHeader title='Document Upload' />
               <CardContent>
                 <Typography variant='h5' gutterBottom>
                   Drop file here or click to upload

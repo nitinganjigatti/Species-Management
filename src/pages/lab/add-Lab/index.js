@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 /* eslint-disable react/jsx-key */
 import React, { useState, useEffect, useRef } from 'react'
 
@@ -122,28 +123,28 @@ const AddLab = () => {
 
   const defaultValues = {
     lab_name: '',
-    lab_type: '',
-    lab_incharge_name: '',
+    type: '',
+    incharge_name: '',
     lab_address: '',
-    lab_incharge_phone: '',
+    lab_contact_number: '',
     latitude: latitude,
     longitude: longitude,
     image: '',
-    markAsDefault: false
+    is_default: false
   }
 
   const schema = yup.object().shape({
     lab_name: yup.string().required('Lab name is required'),
-    lab_type: yup.string().required('Lab Type is required'),
-    lab_incharge_name: yup.string().required('Lab Incharge name  is required'),
-    lab_incharge_phone: yup
+    type: yup.string().required('Lab Type is required'),
+    incharge_name: yup.string().required('Lab Incharge name  is required'),
+    lab_contact_number: yup
       .string()
       .required('Lab Incharge  No is required')
 
       // .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
 
       .max(10, 'Maximum of 10 digits'),
-    markAsDefault: yup.boolean()
+    is_default: yup.boolean()
 
     // latitude: yup.string(),
     // longitude: yup.string()
@@ -183,22 +184,22 @@ const AddLab = () => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { lab_name, lab_type, lab_incharge_name, lab_address, lab_incharge_phone, tests, markAsDefault } = {
+    const { lab_name, type, incharge_name, lab_address, lab_contact_number, tests, is_default } = {
       ...params
     }
     const { latitude, longitude } = getValues()
 
     const payload = {
       lab_name,
-      lab_type,
-      lab_incharge_name,
+      type,
+      incharge_name,
       lab_address,
-      lab_incharge_phone,
+      lab_contact_number,
       latitude,
       longitude,
       tests: dataToUpdate,
-      markAsDefault: markAsDefault,
-      user_id: '9'
+      is_default,
+      user_id: '58'
     }
 
     if (files.length > 0) {
@@ -206,20 +207,14 @@ const AddLab = () => {
     } else {
     }
 
+    console.log('payload', payload)
+
     const res = await addLabToList(payload).then(res => {
       if (res?.status) {
         setSubmitLoader(false)
-
-        // Router.push('/lab/lab-list')
+        Router.push('/lab/lab-list')
       }
     })
-
-    // if (id !== undefined && action === 'edit') {
-    //   console.log('payload', payload)
-    //   // await updateMedicine(payload, id)
-    // } else {
-    //   await addLabToList(payload)
-    // }
   }
 
   const handleOpen = () => {
@@ -427,10 +422,7 @@ const AddLab = () => {
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
 
-        // setSubmitLoader(true)
         reset(defaultValues)
-
-        // Router.push('/pharmacy/settings/labs/lab-list')
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
@@ -546,55 +538,55 @@ const AddLab = () => {
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
                         <FormControl fullWidth mt={2}>
-                          <InputLabel error={Boolean(errors?.lab_type)} id='lab_type'>
+                          <InputLabel error={Boolean(errors?.type)} id='type'>
                             Lab Type*
                           </InputLabel>
                           <Controller
-                            name='lab_type'
+                            name='type'
                             control={control}
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <Select
-                                name='lab_type'
+                                name='type'
                                 value={value}
                                 label='Lab Type*'
                                 onChange={e => {
                                   onChange(e.target.value)
                                   setLabType(e.target.value)
                                 }}
-                                error={Boolean(errors?.lab_type)}
-                                labelId='lab_type'
+                                error={Boolean(errors?.type)}
+                                labelId='type'
                               >
                                 <MenuItem value='internal_lab'>Internal Lab</MenuItem>
                                 <MenuItem value='external_lab'>External Lab</MenuItem>
                               </Select>
                             )}
                           />
-                          {errors?.lab_type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.lab_type?.message}</FormHelperText>
+                          {errors?.type && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.type?.message}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
                         <FormControl fullWidth>
                           <Controller
-                            name='lab_incharge_name'
+                            name='incharge_name'
                             control={control}
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 value={value}
                                 label='Lab Incharge Name*'
-                                name='lab_incharge_name'
-                                error={Boolean(errors.lab_incharge_name)}
+                                name='incharge_name'
+                                error={Boolean(errors.incharge_name)}
                                 onChange={onChange}
                                 placeholder=''
                               />
                             )}
                           />
-                          {errors.lab_incharge_name && (
+                          {errors.incharge_name && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.lab_incharge_name?.message}
+                              {errors?.incharge_name?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -625,7 +617,7 @@ const AddLab = () => {
                       <Grid item xs={12} md={6} sm={6}>
                         <FormControl fullWidth>
                           <Controller
-                            name='lab_incharge_phone'
+                            name='lab_contact_number'
                             control={control}
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
@@ -634,21 +626,21 @@ const AddLab = () => {
                                 label='Lab Incharge Mobile Number'
                                 onChange={onChange}
                                 placeholder=''
-                                error={Boolean(errors?.lab_incharge_phone)}
-                                name='lab_incharge_phone'
+                                error={Boolean(errors?.lab_contact_number)}
+                                name='lab_contact_number'
                               />
                             )}
                           />
                           {errors?.phone && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.lab_incharge_phone?.message}
+                              {errors?.lab_contact_number?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} md={6} sm={6}>
                         <Controller
-                          name='markAsDefault'
+                          name='is_default'
                           control={control}
                           render={({ field }) => (
                             <Stack
@@ -741,7 +733,8 @@ const AddLab = () => {
                                 color: 'white',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'space-between'
+                                justifyContent: 'space-between',
+                                cursor: 'pointer'
                               }}
                             >
                               Set Current Location <Icon icon='ic:baseline-my-location' fontSize={25} />

@@ -1,11 +1,11 @@
 import { AddLAB, GetLab, AllLabSample } from '../../../constants/ApiConstant'
-import { axiosGet, axiosPost } from '../utility'
+import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function addLab(payload) {
   try {
     const url = `${AddLAB}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {
