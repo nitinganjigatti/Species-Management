@@ -26,8 +26,8 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getRackListById } from 'src/lib/api/getRackList'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getRackListById } from 'src/lib/api/pharmacy/getRackList'
 
 // ** Styled Components
 
@@ -117,10 +117,10 @@ const AddRack = props => {
   // list the stores
   const getStoresLists = async () => {
     const response = await getStoreList({})
-    if (response?.length > 0) {
-      console.log('list', response)
-      response.sort((a, b) => a.id - b.id)
-      setStores(response)
+    if (response?.data?.list_items.length > 0) {
+      // console.log('list', response)
+      // response.sort((a, b) => a.id - b.id)
+      setStores(response?.data?.list_items)
     }
 
     // else {
@@ -174,7 +174,7 @@ const AddRack = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.state_id)} id='store_id'>
               Store
             </InputLabel>
@@ -203,7 +203,7 @@ const AddRack = props => {
             {errors?.state_id && (
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.state_id?.message}</FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='name'

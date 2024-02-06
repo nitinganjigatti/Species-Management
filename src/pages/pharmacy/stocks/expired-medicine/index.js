@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getExpiredMedicine } from 'src/lib/api/getStocksReportById'
+import { getExpiredMedicine } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
 import Typography from '@mui/material/Typography'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const ExpiredMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -20,12 +21,14 @@ const ExpiredMedicine = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
@@ -55,7 +58,12 @@ const ExpiredMedicine = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy.id])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -107,7 +115,7 @@ const ExpiredMedicine = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_item_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_item_name}
@@ -128,22 +136,11 @@ const ExpiredMedicine = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.generic_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -153,6 +150,8 @@ const ExpiredMedicine = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -179,8 +178,22 @@ const ExpiredMedicine = () => {
       ) : (
         <>
           <Card>
-            <CardHeader title='Expired Medicine' />
+            <CardHeader title='Expired products' />
             <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                id: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}

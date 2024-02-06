@@ -1,6 +1,6 @@
-const composePharmacyNavigation = () => {
-  const pharmacyType = 'central'
+import { getSelectedPharmacy } from 'src/lib/api/pharmacy/selectedPharmacy'
 
+const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmacy }) => {
   const pharmacyTitle = {
     sectionTitle: 'Pharmacy'
   }
@@ -8,12 +8,13 @@ const composePharmacyNavigation = () => {
   const inventoryParent = {
     title: 'Inventory',
     path: '/pharmacy/medicine/product-list',
-    icon: 'mdi:medical-bag',
+    icon: 'material-symbols:inventory-2-outline',
     children: []
   }
 
   const productsList = {
-    title: 'Product List',
+    title: 'Products',
+    icon: 'material-symbols:inventory-2-outline',
     path: '/pharmacy/medicine/product-list'
   }
 
@@ -30,37 +31,58 @@ const composePharmacyNavigation = () => {
   }
 
   const purchaseList = {
-    title: 'Purchase list',
-    path: '/pharmacy/purchase/purchaseList'
+    title: 'Purchase',
+    icon: 'raphael:cart',
+    path: '/pharmacy/purchase/purchase-list'
+  }
+
+  const report = {
+    title: 'Report',
+    path: '/pharmacy/purchase/report'
   }
 
   const requestParent = {
     title: 'Request',
-    icon: 'lucide:git-pull-request',
+    icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list',
     children: []
   }
 
   const requestListing = {
     title: 'Request',
+    icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list'
   }
 
   const returnParent = {
     title: 'Return',
-    icon: 'lucide:git-pull-request',
+    icon: 'material-symbols:assignment-returned-outline-sharp',
     path: '/pharmacy/return-product/request-list',
     children: []
   }
 
   const returnListing = {
-    title: 'Return Request List',
+    title: 'Returns',
+    icon: 'material-symbols:assignment-returned-outline-sharp',
     path: '/pharmacy/return-product/request-list'
   }
 
   const addReturnRequest = {
     title: 'Add Return Request',
     path: '/pharmacy/return-product/add-request'
+  }
+
+  const directDispatchParent = {
+    title: 'Direct Dispatch',
+    path: '/pharmacy/direct-dispatch',
+    icon: 'iconamoon:delivery-light',
+    children: []
+  }
+
+  const directDispatchList = {
+    title: 'Dispatch',
+    icon: 'iconamoon:delivery-light',
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
   const stockParent = {
@@ -76,13 +98,13 @@ const composePharmacyNavigation = () => {
   }
 
   const stockReportByBatch = {
-    title: 'Stock report(Batch wise)',
+    title: 'Stock report by Store ',
     path: '/pharmacy/stocks/stockReportByBatch'
   }
 
   const stockOut = {
-    title: 'Stock Out',
-    path: '/pharmacy/stocks/stock-out'
+    title: 'Out of Stock',
+    path: '/pharmacy/stocks/out-of-stock'
   }
 
   const expiredMedicine = {
@@ -90,10 +112,15 @@ const composePharmacyNavigation = () => {
     path: '/pharmacy/stocks/expired-medicine'
   }
 
+  const escrow = {
+    title: 'Escrow',
+    path: '/pharmacy/stocks/escrow'
+  }
+
   const settingsParent = {
     title: 'Settings',
     path: '/pharmacy/settings',
-    icon: 'mdi:settings',
+    icon: 'uil:setting',
     children: []
   }
 
@@ -139,7 +166,7 @@ const composePharmacyNavigation = () => {
 
   const storeList = {
     title: 'Store list',
-    path: '/pharmacy/settings/storeList'
+    path: '/pharmacy/settings/store-list'
   }
 
   const supplierList = {
@@ -147,14 +174,28 @@ const composePharmacyNavigation = () => {
     path: '/pharmacy/settings/supplier/supplier-list'
   }
 
+  const testList = {
+    title: 'Test Module',
+    path: '/test/'
+  }
+
+  const rackList = {
+    title: 'Rack list',
+    path: '/pharmacy/store/rackList'
+  }
+
   const pharmacyNavigationArray = []
 
+  // pharmacyNavigationArray.push(testList)
   pharmacyNavigationArray.push(pharmacyTitle)
 
-  if (pharmacyType === 'central') {
-    inventoryParent.children.push(productsList, addProduct)
-    PurchaseParent.children.push(purchaseList)
-    requestParent.children.push(requestListing)
+  if (selectedPharmacy?.type === 'central') {
+    // inventoryParent.children.push(productsList)
+    // PurchaseParent.children.push(purchaseList)
+    // requestParent.children.push(requestListing)
+    // returnParent.children.push(returnListing)
+    // directDispatchParent.children.push(directDispatchList)
+
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
     settingsParent.children.push(
       gst,
@@ -163,26 +204,46 @@ const composePharmacyNavigation = () => {
       drugClass,
       manufacturer,
       packages,
+      storeList,
       salts,
       storage,
-      storeList,
-      supplierList
+      supplierList,
+      rackList
     )
 
-    pharmacyNavigationArray.push(inventoryParent, PurchaseParent, requestParent, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      requestListing,
+      returnListing,
+      directDispatchList,
+      purchaseList,
+      stockParent,
+      productsList,
+      settingsParent
+    )
   }
 
-  if (pharmacyType === 'local') {
+  if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
-    returnParent.children.push(returnListing, addReturnRequest)
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
-
-    pharmacyNavigationArray.push(requestParent, returnParent, stockParent)
+    returnParent.children.push(returnListing)
+    stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
+    directDispatchParent.children.push(directDispatchList)
+    settingsParent.children.push(rackList)
+    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
   }
+
+  // debugger
+
+  if (pharmacyRole && selectedPharmacy === '') {
+    settingsParent.children.push(storeList)
+    pharmacyNavigationArray.push(settingsParent)
+  }
+
+  // console.log(pharmacyNavigationArray)
 
   return pharmacyNavigationArray
 }
 
-const pharmacyNavigation = () => composePharmacyNavigation()
+const pharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmacy }) =>
+  composePharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy })
 
 export default pharmacyNavigation

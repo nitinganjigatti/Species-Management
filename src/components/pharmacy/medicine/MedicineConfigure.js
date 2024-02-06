@@ -25,15 +25,15 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import Avatar from '@mui/material/Avatar'
 import Icon from 'src/@core/components/icon'
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getRackList } from 'src/lib/api/getRackList'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getRackList } from 'src/lib/api/pharmacy/getRackList'
 import {
   getMedicineConfig,
   addMedicineConfig,
   addMedicineMinQuantity,
   deleteMedicineConfig,
   updateMedicineConfig
-} from 'src/lib/api/getMedicineList'
+} from 'src/lib/api/pharmacy/getMedicineList'
 import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 
 const MedicineConfigure = ({ configureMedId }) => {

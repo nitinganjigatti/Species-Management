@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getDrugClass, addDrug, updateDrug } from 'src/lib/api/getDrugs'
+import { getDrugClass, addDrug, updateDrug } from 'src/lib/api/pharmacy/getDrugs'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -23,6 +23,10 @@ import AddDrugClass from 'src/views/pages/pharmacy/medicine/drugClass/addDrugCla
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
+import { AddButton } from 'src/components/Buttons'
+
 const ListOfDrugs = () => {
   const [drugClass, setDrugClass] = useState([])
   const [loader, setLoader] = useState(false)
@@ -37,6 +41,8 @@ const ListOfDrugs = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -108,17 +114,22 @@ const ListOfDrugs = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {parseInt(params.row.zoo_id) === 0 ? null : (
-            <IconButton
-              size='small'
-              sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
-        </Box>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {parseInt(params.row.zoo_id) === 0 ? null : (
+                  <IconButton
+                    size='small'
+                    sx={{ mr: 0.5 }}
+                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                )}
+              </Box>
+            )}
+        </>
       )
     }
   ]
@@ -129,7 +140,7 @@ const ListOfDrugs = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -191,9 +202,10 @@ const ListOfDrugs = () => {
 
   const headerAction = (
     <div>
-      <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-        Add Drug class
-      </Button>
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <AddButton title='Add Drug class' action={() => addEventSidebarOpen()} />
+        )}
     </div>
   )
 
@@ -235,48 +247,66 @@ const ListOfDrugs = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader title='Drug Class' action={headerAction} />
+                <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
+                  autoHeight
+                  pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
+              <AddDrugClass
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              />
+            </>
+          )}
+        </>
       ) : (
         <>
-          <Card>
-            <CardHeader title='Drug Class' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-            />
-          </Card>
-          <AddDrugClass
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handleSubmitData}
-            resetForm={resetForm}
-            submitLoader={submitLoader}
-            editParams={editParams}
-          />
-          <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
+          <Error404></Error404>
         </>
       )}
     </>

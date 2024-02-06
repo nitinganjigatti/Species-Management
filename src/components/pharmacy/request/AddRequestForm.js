@@ -22,6 +22,9 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -31,19 +34,18 @@ import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import { debounce } from 'lodash'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getMedicineList } from 'src/lib/api/getMedicineList'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/getRequestItemsList'
+import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -57,15 +59,16 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
+import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
-  to_store_type: '',
+  // to_store_type: '',
 
   from_store_id: '',
-  to_store_id: '',
+  // to_store_id: '',
   from_store_type: '',
-  to_store_type: '',
+  // to_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   request_item_details: []
@@ -100,6 +103,7 @@ const AddRequestForm = () => {
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const router = useRouter()
+  const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
 
   const storesType = {
@@ -204,9 +208,9 @@ const AddRequestForm = () => {
     if (!values.from_store_id) {
       errors.from_store_id = 'This field is required'
     }
-    if (!values.to_store_id) {
-      errors.to_store_id = 'This field is required'
-    }
+    // if (!values.to_store_id) {
+    //   errors.to_store_id = 'This field is required'
+    // }
     if (!values.ro_date) {
       errors.ro_date = 'This field is required'
     }
@@ -288,7 +292,7 @@ const AddRequestForm = () => {
   }
 
   const handleSubmit = () => {
-    const formHasErrors = !editParams.from_store_id || !editParams.to_store_id || !editParams.ro_date
+    const formHasErrors = !editParams.from_store_id || !editParams.ro_date
     if (formHasErrors) {
       setErrors(validateItems(editParams))
 
@@ -307,11 +311,19 @@ const AddRequestForm = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({})
-
-      if (response?.data?.list_items?.length > 0) {
+      //params: { q: 'central', column: 'type' }
+      const response = await getStoreList({ params: { q: 'central', column: 'type' } })
+      console.log('stores', response?.data?.list_items[0])
+      if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
+        if (response?.data?.list_items?.length === 1) {
+          setEditParams({
+            ...editParams,
+            from_store_id: response?.data?.list_items[0].id,
+            from_store_type: response?.data?.list_items[0].type
+          })
+        }
       }
     } catch (error) {
       console.log('err', error)
@@ -382,10 +394,10 @@ const AddRequestForm = () => {
         ...editParams,
         id: result.data.id,
         from_store_id: result.data.from_store_id,
-        to_store_id: result.data.to_store_id,
+        //to_store_id: result.data.to_store_id,
         ro_date: result.data.request_date,
         from_store_type: result.data.from_store_type,
-        to_store_type: result.data.to_store_type,
+        // to_store_type: result.data.to_store_type,
         request_item_details: lineItems
       })
       // }
@@ -451,7 +463,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -466,7 +478,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/request/request-list/')
+          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -488,6 +500,7 @@ const AddRequestForm = () => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Autocomplete
+                  forcePopupIcon={false}
                   inputProps={{ tabIndex: '6' }}
                   disablePortal
                   id='autocomplete-controlled'
@@ -545,32 +558,19 @@ const AddRequestForm = () => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Typography sx={{ mb: 2 }}>Priority</Typography>
-
-              <FormControl fullWidth>
-                <ToggleButtonGroup
-                  exclusive
-                  color='primary'
-                  value={nestedRowMedicine.priority_item}
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
-                  }}
-                >
-                  test
-                  <ToggleButton color='error' value='high'>
-                    High
-                  </ToggleButton>
-                  <ToggleButton color='primary' value='Normal'>
-                    Normal
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {itemErrors.priority_item && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
+              <Typography>Priority</Typography>
+              <RadioGroup
+                row
+                aria-label='controlled'
+                name='controlled'
+                value={nestedRowMedicine?.priority_item}
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+                }}
+              >
+                <FormControlLabel value='high' control={<Radio />} label='High' />
+                <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
+              </RadioGroup>
             </Grid>
 
             {/* // file uploader */}
@@ -659,21 +659,13 @@ const AddRequestForm = () => {
             ) : null}
             {/* // file uploader */}
 
+            {/* <Grid item xs={12}> */}
             <Grid item xs={12}>
-              <>
+              <Box sx={{ float: 'right' }}>
                 {medicineItemId ? (
                   <>
                     <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
                       sx={{ mr: 2 }}
-                    >
-                      Done
-                    </Button>
-                    <Button
                       onClick={() => {
                         updateFormItems()
                         closeDialog()
@@ -684,20 +676,20 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                  </>
-                ) : (
-                  <>
                     <Button
                       onClick={() => {
                         closeDialog()
                       }}
                       size='large'
                       variant='outlined'
-                      sx={{ mr: 2 }}
                     >
                       Done
                     </Button>
+                  </>
+                ) : (
+                  <>
                     <Button
+                      sx={{ mr: 2 }}
                       onClick={() => {
                         // updateFormItems()
                         submitItems()
@@ -707,9 +699,18 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
+                    <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Done
+                    </Button>
                   </>
                 )}
-              </>
+              </Box>
             </Grid>
           </Grid>
         </form>
@@ -729,20 +730,18 @@ const AddRequestForm = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Add Request Item' />
-
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          size='big'
-          variant='contained'
-          onClick={() => {
-            Router.push('/pharmacy/request/request-list/')
-          }}
-        >
-          Request Item List
-        </Button>
+        <CardHeader
+          avatar={
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                Router.push('/pharmacy/request/request-list/')
+              }}
+              icon='ep:back'
+            />
+          }
+          title='Add Request Item'
+        />
       </Grid>
       <CardContent>
         <Grid container>
@@ -758,69 +757,6 @@ const AddRequestForm = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Requested by :
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.to_store_id}
-                    error={Boolean(errors.to_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        to_store_id: e.target.value,
-                        to_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.to_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <SingleDatePicker
-                    fullWidth
-                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    width={'100%'}
-                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                    name={'Date*'}
-                    onChangeHandler={date => {
-                      // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, ro_date: formatDate(date) })
-                      setErrors({})
-                    }}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                  />
-                  {errors.ro_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
             <Grid item xs={12} sm={6}>
               <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                 <Grid xs={12} sm={12} sx={{ mb: 5 }}>
@@ -864,11 +800,75 @@ const AddRequestForm = () => {
                 </FormControl>
               </Grid>
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                  &nbsp;
+                </Typography>
+              </Grid>
+              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
+                  <Select
+                    value={editParams.to_store_id}
+                    error={Boolean(errors.to_store_id)}
+                    label='Store*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      filterToStocks(e.target.value)
+                      setEditParams({
+                        ...editParams,
+                        to_store_id: e.target.value,
+                        to_store_type: storesType[filteredStoreType(e.target.value)]
+                      })
+                      setErrors({})
+                    }}
+                    // error={Boolean(errors?.state_id)}
+                    // labelId='state_id'
+                  >
+                    {fromStocks?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.to_store_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid> */}
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <FormControl fullWidth>
+                  <SingleDatePicker
+                    fullWidth
+                    date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    width={'100%'}
+                    value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                    name={'Date*'}
+                    onChangeHandler={date => {
+                      // setStores({ ...stores, date: date })
+                      setEditParams({ ...editParams, ro_date: formatDate(date) })
+                      setErrors({})
+                    }}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                  />
+                  {errors.ro_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
           </Grid>
         </form>
       </CardContent>
       <Grid
         container
+        spacing={6}
         sm={12}
         xs={12}
         sx={{
@@ -878,18 +878,12 @@ const AddRequestForm = () => {
           mb: 4
         }}
       >
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
-          }}
-          onClick={() => {
+        <AddButton
+          title='Add Request Item'
+          action={() => {
             handleSubmit()
           }}
-          size='big'
-          variant='contained'
-        >
-          Add Request Item
-        </Button>
+        />
       </Grid>
 
       <TableContainer>
@@ -915,7 +909,9 @@ const AddRequestForm = () => {
                           <CustomChip label='CS' skin='light' color='success' size='small' />
                         ) : null}
                       </TableCell>
-                      <TableCell>{el.priority_item}</TableCell>
+                      <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
+                        {el.priority_item}
+                      </TableCell>
 
                       <TableCell>{el.request_item_qty}</TableCell>
 
@@ -969,7 +965,7 @@ const AddRequestForm = () => {
               }}
             >
               <CalcWrapper>
-                <Typography variant='body2'>Total Qty:</Typography>
+                <Typography variant='body2'>Total Quantity:</Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                   {totalQty}
                 </Typography>
@@ -982,18 +978,31 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent>
-      <LoadingButton
-        disabled={editParams.request_item_details.length > 0 ? false : true}
-        sx={{ float: 'right', my: 4, mx: 6 }}
-        size='large'
-        onClick={() => {
-          postItemsData()
-        }}
-        variant='contained'
-        loading={submitLoader}
-      >
-        Save
-      </LoadingButton>
+      <Grid item xs={12}>
+        <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          <LoadingButton
+            disabled={editParams.request_item_details.length > 0 ? false : true}
+            sx={{ marginRight: '8px' }}
+            size='large'
+            onClick={() => {
+              postItemsData()
+            }}
+            variant='contained'
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
+          <Button
+            onClick={() => {
+              setEditParams(editParamsInitialState)
+            }}
+            size='large'
+            variant='outlined'
+          >
+            Reset
+          </Button>
+        </Box>
+      </Grid>
     </Card>
   )
 }

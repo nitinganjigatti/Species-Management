@@ -133,11 +133,9 @@ const TableServerSide = ({ columns, getCall }) => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('full_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   function loadServerRows(currentPage, data) {
     debugger
-
-    // console.log(data?.slice(currentPage * paginationModel.pageSize, (currentPage + 1) * paginationModel.pageSize))
 
     return data
   }
@@ -197,6 +195,17 @@ const TableServerSide = ({ columns, getCall }) => {
     <Card>
       <CardHeader title='Server Side' />
       <DataGrid
+        sx={{
+          '.MuiDataGrid-cell:focus': {
+            outline: 'none'
+          },
+
+          '& .MuiDataGrid-row:hover': {
+            cursor: 'pointer'
+          }
+        }}
+        hideFooterSelectedRowCount
+        disableColumnSelector={true}
         autoHeight
         pagination
         rows={rows}

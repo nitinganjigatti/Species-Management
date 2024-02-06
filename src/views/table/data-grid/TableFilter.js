@@ -133,7 +133,7 @@ const TableColumns = () => {
   const [data] = useState(rows)
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const handleSearch = searchValue => {
     setSearchText(searchValue)

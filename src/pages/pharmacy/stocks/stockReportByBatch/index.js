@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getStocksByBatch } from 'src/lib/api/getStocksByBatch'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -18,10 +18,13 @@ import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import { Box } from '@mui/material'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
+import Utility from 'src/utility'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
@@ -31,6 +34,7 @@ const ListOfStocksByBatch = () => {
   const [errors, setErrors] = useState('')
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
+  const { selectedPharmacy } = usePharmacyContext()
 
   const closeDialog = () => {
     setShow(false)
@@ -41,13 +45,9 @@ const ListOfStocksByBatch = () => {
   }
 
   const getStoresLists = async () => {
-    const params = {
-      q: 'central',
-      column: 'type'
-    }
     try {
       setLoader(true)
-      const response = await getStoreList({ params })
+      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
       console.log('list', response)
       if (response?.data?.list_items?.length > 0) {
         console.log('list', response)
@@ -63,15 +63,15 @@ const ListOfStocksByBatch = () => {
     }
   }
 
-  const getStocksReport = async () => {
+  const getStocksReport = async id => {
     // console.log(stockId)
-    if (stockId === '' || undefined) {
+    if (id === '' || undefined) {
       setErrors('Please select Store')
 
       return
     } else {
       try {
-        const result = await getStocksByBatch(stockId)
+        const result = await getStocksByBatch(id)
         if (result.success === true && result.data !== '') {
           let listWithId = result.data
             ? result.data.map((el, i) => {
@@ -112,17 +112,18 @@ const ListOfStocksByBatch = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'unit_name',
-      headerName: 'UOM',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.unit_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'unit_name',
+    //   headerName: 'UOM',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.unit_name}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -141,76 +142,80 @@ const ListOfStocksByBatch = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'leaf_name',
-      headerName: 'LEAF',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.leaf_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'leaf_name',
+    //   headerName: 'LEAF',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.leaf_name}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_qty}
+          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_box_qty',
-      headerName: 'STOCK BOX',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_box_qty}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_purchase_price',
-      headerName: 'STOCK PURCHASE PRICE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_purchase_price}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              setConfigureMedId(params.row.stock_item_id)
-              showDialog()
-            }}
-          >
-            <Icon icon='grommet-icons:configure' />
-          </IconButton>
-        </Box>
       )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'stock_box_qty',
+    //   headerName: 'STOCK BOX',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.stock_box_qty}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'stock_purchase_price',
+    //   headerName: 'STOCK PURCHASE PRICE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.stock_purchase_price}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           setConfigureMedId(params.row.stock_item_id)
+    //           showDialog()
+    //         }}
+    //       >
+    //         <Icon icon='grommet-icons:configure' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const createForm = () => {
@@ -232,11 +237,11 @@ const ListOfStocksByBatch = () => {
             <Select
               onChange={e => {
                 let id = e.target.value
-
                 setStockId(id)
                 setStockReport([])
                 setConfigureMedId('')
                 setErrors('')
+                getStocksReport(id)
               }}
               label='Stores'
               value={stockId}
@@ -261,55 +266,48 @@ const ListOfStocksByBatch = () => {
           </FormControl>
         </Grid>
 
-        <Grid item lg={2}>
+        {/* <Grid item lg={2}>
           <Button
             size='large'
             sx={{ py: 3 }}
             variant='contained'
             onClick={() => {
-              getStocksReport()
+              // getStocksReport()
             }}
           >
             Find
           </Button>
-        </Grid>
+        </Grid> */}
       </Grid>
     )
   }
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {selectedPharmacy.type === 'central' ? (
         <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <TableWithFilter
-            TableTitle={stockReport.length > 0 ? 'Stock report bach wise' : 'Stock Report is empty'}
-            inpFields={createForm()}
-            headerActions={
-              <div>
-                <Button
-                  onClick={() => {
-                    Router.push('/pharmacy/stocks/stocksReport')
-                  }}
-                  size='big'
-                  variant='contained'
-                >
-                  Stock report
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={stockReport}
-          />
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <CommonDialogBox
+                title={'Configure Medicine'}
+                dialogBoxStatus={show}
+                formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                close={closeDialog}
+                show={showDialog}
+              />
+              <TableWithFilter
+                TableTitle={stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
+                inpFields={createForm()}
+                columns={columns}
+                rows={stockReport}
+              />
+            </>
+          )}
         </>
+      ) : (
+        <Error404></Error404>
       )}
     </>
   )

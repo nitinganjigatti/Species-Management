@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getRequestReturnList } from 'src/lib/api/returnRequest'
+import { getRequestReturnList } from 'src/lib/api/pharmacy/returnRequest'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import TabList from '@mui/lab/TabList'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import Chip from '@mui/material/Chip'
+import Grid from '@mui/material/Grid'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -17,25 +25,38 @@ import Router from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
+import Utility from 'src/utility'
+
 const ReturnRequestList = () => {
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('pending')
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
+  const handleChange = (event, newValue) => {
+    setTotal(0)
+
+    setStatus(newValue)
+  }
+
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, status) => {
       try {
         setLoading(true)
 
@@ -44,12 +65,12 @@ const ReturnRequestList = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          status
         }
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -62,9 +83,14 @@ const ReturnRequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy, status])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -77,16 +103,16 @@ const ReturnRequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -105,23 +131,27 @@ const ReturnRequestList = () => {
 
   const headerAction = (
     <div>
-      <Button
-        size='big'
-        variant='contained'
-        onClick={() =>
-          Router.push({
-            pathname: '/pharmacy/return-product/add-request/'
-          })
-        }
-      >
-        Add Return Request
-      </Button>
+      {selectedPharmacy.type === 'local' &&
+        (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
+          <AddButton
+            title='Add Return Request'
+            action={() =>
+              Router.push({
+                pathname: '/pharmacy/return-product/add-request/'
+              })
+            }
+          />
+        )}
     </div>
   )
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, 'request_number', status)
+  }
+
+  const getRequestedText = () => {
+    return selectedPharmacy.type === 'central' ? 'Returned By' : 'Returned To'
   }
 
   const columns = [
@@ -152,24 +182,25 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'from_store',
-      headerName: 'Returned By',
+      headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.from_store}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'to_store',
-      headerName: 'Returned To',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'to_store',
+    //   headerName: 'Returned To',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.to_store}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -177,7 +208,7 @@ const ReturnRequestList = () => {
       headerName: 'Request date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_date}
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },
@@ -187,6 +218,8 @@ const ReturnRequestList = () => {
       minWidth: 20,
       field: 'total_qty',
       headerName: 'Total Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
@@ -197,11 +230,37 @@ const ReturnRequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.shipping_status === 'Fully Shipped' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+              </Box>
+            )}
+            {params.row.shipping_status === 'Partially Shipped' && (
+              <Box sx={{ color: 'warning.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+          </div>
         </Typography>
       )
     }
@@ -231,44 +290,98 @@ const ReturnRequestList = () => {
     console.log(params)
   }
 
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Card>
+              <CardHeader title='Return request List' action={headerAction} />
+              <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  id: false
+                }}
+                autoHeight
+                pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                total
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onRowClick={onRowClick}
+              />
+            </Card>
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
-          <Card>
-            <CardHeader title='Return request List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onRowClick={onRowClick}
+      <Grid>
+        <TabContext value={status}>
+          <TabList onChange={handleChange} aria-label='simple tabs example'>
+            <Tab
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-          </Card>
-        </>
-      )}
+            <Tab
+              value='completed'
+              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            />
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+            />
+            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
+          </TabList>
+
+          <TabPanel value='pending'>{tableData()}</TabPanel>
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        </TabContext>
+      </Grid>
     </>
   )
 }

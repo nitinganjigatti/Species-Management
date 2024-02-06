@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/getGenerics'
+import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/getGenerics'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -19,6 +19,7 @@ import { Box, Drawer } from '@mui/material'
 import Router from 'next/router'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import UserSnackbar from 'src/components/utility/snackbar'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfGenerics = () => {
   const [generics, setGenerics] = useState([])
@@ -190,9 +191,7 @@ const ListOfGenerics = () => {
             TableTitle={generics.length > 0 ? 'Generic List' : 'Generic list is empty add generics'}
             headerActions={
               <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add Generic
-                </Button>
+                <AddButton title='Add Generic' action={() => addEventSidebarOpen()} />
               </div>
             }
             columns={columns}

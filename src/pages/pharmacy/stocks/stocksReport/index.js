@@ -1,38 +1,68 @@
 import React, { useState, useEffect } from 'react'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getStocksReportById } from 'src/lib/api/getStocksReportById'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+
+import TabList from '@mui/lab/TabList'
+
+import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
+
 import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
+
 const ListOfStocks = () => {
-  const [stores, setStores] = useState([])
+  // const TabList = styled(MuiTabList)(({ theme }) => ({
+  //   '& .MuiTabs-indicator': {
+  //     display: 'none'
+  //   },
+  //   '& .Mui-selected': {
+  //     backgroundColor: theme.palette.primary.main,
+  //     color: 'white'
+
+  //     // color: theme.palette.common.white
+  //   },
+  //   '& .MuiTab-root': {
+  //     minHeight: 38,
+  //     minWidth: 110,
+  //     borderRadius: 8,
+  //     paddingTop: theme.spacing(2),
+  //     paddingBottom: theme.spacing(2)
+  //   }
+  // }))
+
   const [stockReport, setStockReport] = useState([])
+  const [stockReportBatch, setStockReportBatch] = useState([])
   const [stockId, setStockId] = useState('')
   const [loader, setLoader] = useState(false)
-  const [errors, setErrors] = useState('')
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
+  const [value, setValue] = useState('1')
+
+  const { selectedPharmacy } = usePharmacyContext()
+  console.log('selectedPharmacy', selectedPharmacy)
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+  }
 
   const closeDialog = () => {
     setShow(false)
@@ -42,56 +72,91 @@ const ListOfStocks = () => {
     setShow(true)
   }
 
-  const getStoresLists = async () => {
-    const params = {
-      q: 'central',
-      column: 'type'
-    }
-    try {
-      setLoader(true)
-      const response = await getStoreList({ params })
-      if (response?.data?.list_items?.length > 0) {
-        console.log('list', response)
-        response?.data?.list_items?.sort((a, b) => a.id - b.id)
-        setStores(response?.data?.list_items)
-        setLoader(false)
+  const getStocksReport = async id => {
+    if (id) {
+      if (selectedPharmacy?.type === 'local') {
+        try {
+          const result = await getLocalStocksReportById()
+          console.log('res', result.data)
+          if (result.success === true && result.data.length > 0) {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
       } else {
-        setLoader(false)
+        try {
+          const result = await getStocksReportById(id)
+          if (result?.length > 0) {
+            // console.log('stocks', result)
+
+            // result.sort((a, b) => a.id - b.id)
+            let listWithId = result
+              ? result.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
       }
-    } catch (error) {
-      setLoader(false)
-      console.log('error', error)
     }
   }
 
-  const getStocksReport = async () => {
+  const getStocksReportBatchWise = async id => {
     // console.log(stockId)
-    if (stockId === '' || undefined) {
+    if (id === '' || undefined) {
       setErrors('Please select Store')
 
       return
     } else {
-      try {
-        const result = await getStocksReportById(stockId)
-        if (result?.length > 0) {
-          // console.log('stocks', result)
-
-          // result.sort((a, b) => a.id - b.id)
-          let listWithId = result
-            ? result.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReport(listWithId)
+      if (selectedPharmacy?.type === 'local') {
+        try {
+          const result = await getLocalStocksReportById()
+          console.log('res', result.data)
+          if (result.success === true && result.data.length > 0) {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
         }
-      } catch (error) {
-        console.log('error', error)
+      } else {
+        try {
+          const result = await getStocksByBatch(id)
+          if (result.success === true && result.data !== '') {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(listWithId)
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
       }
     }
   }
   useEffect(() => {
-    getStoresLists()
-  }, [])
+    if (selectedPharmacy?.id !== '' || undefined) {
+      getStocksReport(selectedPharmacy?.id)
+      setStockId(selectedPharmacy?.id)
+      getStocksReportBatchWise(selectedPharmacy?.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id])
 
   const columns = [
     {
@@ -109,24 +174,25 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'unit_name',
-      headerName: 'UOM',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.unit_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'unit_name',
+    //   headerName: 'UOM',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.unit_name}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -139,11 +205,35 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'batch_no',
+    //   headerName: 'BATCH NUMBER',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.batch_no}
+    //     </Typography>
+    //   )
+    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
       field: 'min_qty',
       headerName: 'MIN QTY',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.min_qty}
@@ -156,6 +246,8 @@ const ListOfStocks = () => {
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -165,22 +257,24 @@ const ListOfStocks = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'stock_box_qty',
-      headerName: 'STOCK BOX',
+      field: 'store_name',
+      headerName: 'Store Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_box_qty}
+          {params.row.store_name}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'stock_purchase_price',
+      field: 'purchase_price',
       headerName: 'STOCK PURCHASE PRICE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_purchase_price}
+          {params.row.purchase_price}
         </Typography>
       )
     },
@@ -201,118 +295,165 @@ const ListOfStocks = () => {
             onClick={() => {
               setConfigureMedId(params.row.stock_item_id)
               showDialog()
-
-              // console.log('line items', params.row)
-              // console.log('line itemsb id', params.row.stock_item_id)
-              // console.log('storrrrr', stockId)
             }}
           >
             <Icon icon='grommet-icons:configure' />
           </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
         </Box>
       )
     }
   ]
 
-  const createForm = () => {
-    return (
-      <Grid
-        container
-        gap={3}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyItems: 'center',
-          mx: 6,
-          my: 4
-        }}
-      >
-        <Grid item lg={2}>
-          <FormControl sx={{ width: '100%' }}>
-            <InputLabel id='controlled-select-label'>Stores</InputLabel>
-            <Select
-              onChange={e => {
-                let id = e.target.value
-                setStockId(id)
-                setStockReport([])
-                setConfigureMedId('')
-              }}
-              label='Stores'
-              value={stockId}
-              id='controlled-select'
-              labelId='controlled-select-label'
-              sx={{ width: '100%' }}
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              {stores.length > 0
-                ? stores.map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name}
-                      </MenuItem>
-                    )
-                  })
-                : null}
-            </Select>
-            <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-          </FormControl>
-        </Grid>
+  const batchWiseColumn = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.uid}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_items_name',
+      headerName: 'Product Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_items_name}
+        </Typography>
+      )
+    },
 
-        <Grid item lg={2}>
-          <Button
-            size='large'
-            sx={{ py: 3 }}
-            variant='contained'
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_qty',
+      headerName: 'QTY.IN STORE',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* {params.row.stock_qty} */}
+          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'STOCK PURCHASE PRICE',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
             onClick={() => {
-              getStocksReport()
+              setConfigureMedId(params.row.stock_item_id)
+              showDialog()
             }}
           >
-            Find
-          </Button>
-        </Grid>
-      </Grid>
-    )
-  }
+            <Icon icon='grommet-icons:configure' />
+          </IconButton>
+        </Box>
+      )
+    }
+  ]
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
-          <CommonDialogBox
-            title={'Configure Medicine'}
-            dialogBoxStatus={show}
-            formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-            close={closeDialog}
-            show={showDialog}
-          />
-          <TableWithFilter
-            TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
-            inpFields={createForm()}
-            headerActions={
-              <div>
-                <Button
-                  onClick={() => {
-                    Router.push('/pharmacy/stocks/stockReportByBatch')
-                  }}
-                  size='big'
-                  variant='contained'
-                >
-                  Stock report bach wise
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={stockReport}
-          />
-        </>
-      )}
+      <Grid>
+        <TabContext value={value}>
+          <TabList onChange={handleChange} aria-label='simple tabs example'>
+            <Tab value='1' label='Stock Report' />
+            <Tab value='2' label='Stock Report Batch Wise' />
+          </TabList>
+          <TabPanel value='1'>
+            {loader ? (
+              <FallbackSpinner />
+            ) : (
+              <>
+                <CommonDialogBox
+                  title={'Configure Medicine'}
+                  dialogBoxStatus={show}
+                  formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                  close={closeDialog}
+                  show={showDialog}
+                />
+                <TableWithFilter
+                  TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
+                  columns={columns}
+                  rows={stockReport}
+                />
+              </>
+            )}
+          </TabPanel>
+          <TabPanel value='2'>
+            <>
+              {loader ? (
+                <FallbackSpinner />
+              ) : (
+                <>
+                  <CommonDialogBox
+                    title={'Configure Medicine'}
+                    dialogBoxStatus={show}
+                    formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                    close={closeDialog}
+                    show={showDialog}
+                  />
+                  <TableWithFilter
+                    TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                    columns={batchWiseColumn}
+                    rows={stockReportBatch}
+                  />
+                </>
+              )}
+            </>
+          </TabPanel>
+        </TabContext>
+      </Grid>
     </>
   )
 }
