@@ -19,7 +19,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Stack } from '@mui/material'
+import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import Utility from 'src/utility'
@@ -33,7 +33,7 @@ const ListOfRequest = () => {
   const [show, setShow] = useState(false)
   const [storedData, setStoredData] = useState()
   const [lab, setLab] = React.useState([])
-  const [selectedLab, setSelectedLab] = useState(70)
+  const [selectedLab, setSelectedLab] = useState(null)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -219,8 +219,11 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
+    setLoading(true)
     getNoOfLab().then(res => {
+      setLoading(false)
       setLab(res?.data?.result)
+      setSelectedLab(res?.data?.result[0]?.lab_id)
     })
   }, [])
 
@@ -324,23 +327,26 @@ const ListOfRequest = () => {
               sx={{ display: 'flex', justifyContent: 'space-between', mr: 5, alignItems: 'center' }}
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
-                <FormControl fullWidth size='small'>
-                  <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
-                  <Select
-                    labelId='lab-select-label'
-                    id='lab-select'
-                    value={selectedLab}
-                    label='Choose Lab'
-                    onChange={handleLabChange}
-                    // defaultValue={lab.length > 0 ? lab[1].lab_id : ''}
-                  >
-                    {lab?.map((item, index) => (
-                      <MenuItem key={item?.lab_id} value={item?.lab_id}>
-                        {item?.lab_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                {loading ? (
+                  <CircularProgress color='success' />
+                ) : (
+                  <FormControl fullWidth size='small'>
+                    <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
+                    <Select
+                      labelId='lab-select-label'
+                      id='lab-select'
+                      value={selectedLab}
+                      label='Choose Lab'
+                      onChange={handleLabChange}
+                    >
+                      {lab?.map((item, index) => (
+                        <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                          {item?.lab_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
               </Box>
 
               <Stack
