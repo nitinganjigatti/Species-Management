@@ -1,138 +1,95 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
-import { getGenerics, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/getGenerics'
+import { getGenerics, getGenericsById, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/genericNames'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
-
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer } from '@mui/material'
+import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import { debounce } from 'lodash'
+
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import UserSnackbar from 'src/components/utility/snackbar'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
-const ListOfGenerics = () => {
-  const [generics, setGenerics] = useState([])
+const GenericNamesList = () => {
+  const [genericNames, setGenericNames] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
+
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
-  const handleSubmitData = async payload => {
-    console.log('payload', payload)
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        response = await updateGenericName(editParams?.id, payload)
-      } else {
-        console.log(JSON.stringify(payload))
-        debugger
-        response = await addGenericName(payload)
-        debugger
-        console.log(response)
-      }
-
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await getGenericsLists()
-      } else {
-        setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
-
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
-
-  /***** Drawer  */
-
-  const getGenericsLists = async () => {
-    setLoader(true)
-    const response = await getGenerics()
-    if (response?.length > 0) {
-      console.log('list', response)
-
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-
-      // response.sort((a, b) => a.id - b.id)
-      setGenerics(listWithId)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
-
-  useEffect(() => {
-    getGenericsLists()
-  }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
+      field: 'id',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
       field: 'name',
-      headerName: 'GENERIC NAME',
+      headerName: 'NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
@@ -143,11 +100,11 @@ const ListOfGenerics = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
@@ -157,62 +114,205 @@ const ListOfGenerics = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
-        </Box>
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                {parseInt(params.row.zoo_id) === 0 ? null : (
+                  <IconButton
+                    size='small'
+                    sx={{ mr: 0.5 }}
+                    onClick={() => handleEdit(params.row.id, params.row.name, params.row.active)}
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                )}
+              </Box>
+            )}
+        </>
       )
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
   }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getGenerics({ params: params }).then(res => {
+          debugger
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <AddButton title='Add Generic Name' action={() => addEventSidebarOpen()} />
+        )}
+    </div>
+  )
+
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateGenericName(editParams?.id, payload)
+      } else {
+        response = await addGenericName(payload)
+      }
+
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        debugger
+        setSubmitLoader(false)
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader title='Generic Names' action={headerAction} />
+                <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
+                  autoHeight
+                  pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
+              <AddGenericName
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              />
+            </>
+          )}
+        </>
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={generics.length > 0 ? 'Generic List' : 'Generic list is empty add generics'}
-            headerActions={
-              <div>
-                <AddButton title='Add Generic' action={() => addEventSidebarOpen()} />
-              </div>
-            }
-            columns={columns}
-            rows={generics}
-          />
-          <AddGenericName
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handleSubmitData}
-            resetForm={resetForm}
-            submitLoader={submitLoader}
-            editParams={editParams}
-          />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <Error404></Error404>
         </>
       )}
     </>
   )
 }
 
-export default ListOfGenerics
+export default GenericNamesList

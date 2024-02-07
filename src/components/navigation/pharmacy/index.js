@@ -174,6 +174,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/settings/supplier/supplier-list'
   }
 
+  const genericNamesList = {
+    title: 'Generic',
+    path: '/pharmacy/settings/generic'
+  }
+
   const testList = {
     title: 'Test Module',
     path: '/test/'
@@ -201,6 +206,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       gst,
       uom,
       productForm,
+      genericNamesList,
       drugClass,
       manufacturer,
       packages,

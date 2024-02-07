@@ -51,7 +51,7 @@ import Error404 from 'src/pages/404'
 import { addMedicine, getMedicineById, updateMedicineById } from 'src/lib/api/pharmacy/getMedicineList'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import UserSnackbar from 'src/components/utility/snackbar'
-import { getGenerics } from 'src/lib/api/pharmacy/getGenerics'
+import { getGenerics } from 'src/lib/api/pharmacy/genericNames'
 import { getDosageFormList } from 'src/lib/api/pharmacy/productForms'
 import { getUnits } from 'src/lib/api/pharmacy/getUnits'
 import { getDrugs } from 'src/lib/api/pharmacy/getDrugs'
@@ -71,6 +71,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
+  generic_name_id: '',
   manufacturer: '',
   package_type: '',
   package_qty: '',
@@ -104,6 +105,12 @@ const schema = yup.object().shape({
     .transform(value => (value ? value.trim() : value))
     .required('Product name is required'),
   manufacturer: yup.string().required('Manufacturer name is required'),
+
+  generic_name_id: yup.string().when('medicine_type', {
+    is: val => val !== 'non_medical',
+    then: schema => schema.required('Generic Name Required'),
+    otherwise: schema => schema.optional()
+  }),
   package_type: yup.string().required('Package is required'),
   package_qty: yup.number().typeError('This should be a number').required('Package Quantity is required'),
   package_uom: yup.string().nullable(),
@@ -115,7 +122,6 @@ const schema = yup.object().shape({
       salt_id: yup.string().nullable()
     })
   ),
-  gst_slab: yup.number().typeError('GST slab is required').required('GST slab is required'),
   drug_class: yup.string().nullable(),
   storage: yup.string().nullable(),
   prescription_required: yup.string().required('Prescription is required'),
@@ -165,6 +171,7 @@ const AddMedicine = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
 
   const [manufacturer, setManufacturers] = useState([])
+  const [genericName, setGenericList] = useState([])
   const [packages, setPackages] = useState([])
   const [productForm, setProductForm] = useState([])
   const [saltsList, setSalts] = useState([])
@@ -177,6 +184,7 @@ const AddMedicine = () => {
   //Default preSelected values on Edit
 
   const [defaultManufacturer, setDefaultManufacturer] = useState(null)
+  const [defaultGenericName, setDefaultGenericName] = useState(null)
   const [defaultPackage, setDefaultPackage] = useState(null)
   const [defaultUom, setDefaultUom] = useState(null)
   const [defaultProductForm, setDefaultProductForm] = useState(null)
@@ -209,6 +217,22 @@ const AddMedicine = () => {
       }
       await getManufacturers({ params: params }).then(res => {
         setManufacturers(res?.data?.list_items)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getGenericNames = async ({ key, page, limit }) => {
+    try {
+      const params = {
+        q: key,
+        active: 1,
+        page,
+        limit
+      }
+      await getGenerics({ params: params }).then(res => {
+        setGenericList(res?.data?.list_items)
       })
     } catch (e) {
       console.log(e)
@@ -354,8 +378,15 @@ const AddMedicine = () => {
             tempSalts.push(tempSalt)
           })
         }
-
+        debugger
         setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
+
+        setGenericList([
+          {
+            id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
+            name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
+          }
+        ])
         setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
         setUom([{ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label }])
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
@@ -365,6 +396,10 @@ const AddMedicine = () => {
         setPackageQuantity(response?.data?.package_qty)
 
         setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
+        setDefaultGenericName({
+          id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
+          name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
+        })
         setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
         setDefaultUom({ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label })
         setDefaultProductForm({ id: response?.data?.product_form, label: response?.data?.product_form_label })
@@ -419,6 +454,14 @@ const AddMedicine = () => {
     setSnackbarMessage(message)
     setSeverity(severity)
   }
+
+  const genericSearch = debounce(async value => {
+    try {
+      await getGenericNames({ key: value, active: 1, page: 1, limit: 10 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
 
   const manufacturerSearch = debounce(async value => {
     try {
@@ -492,9 +535,11 @@ const AddMedicine = () => {
       setDefaultSalts([])
       setShouldClearFields(null)
       setDefaultManufacturer(null)
+      setDefaultGenericName(null)
       setPackageQuantity('')
 
       setManufacturers([])
+      setGenericList([])
       setPackages([])
       setProductForm([])
       setSalts([])
@@ -521,6 +566,7 @@ const AddMedicine = () => {
       medicine_type,
       medicine_name,
       manufacturer,
+      generic_name_id,
       package_type,
       package_qty,
       package_uom,
@@ -543,11 +589,13 @@ const AddMedicine = () => {
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
+    debugger
 
     const payload = {
       medicine_type,
       medicine_name,
       manufacturer,
+      generic_name_id: medicine_type !== 'non_medical' ? generic_name_id : '',
       package_type,
       package_qty,
       package_uom,
@@ -639,6 +687,7 @@ const AddMedicine = () => {
         if (shouldClearFieldsRef.current) {
           shouldClearFieldsRef.current = false
           setDefaultManufacturer(null)
+          setDefaultGenericName(null)
           setDefaultPackage(null)
           setDefaultUom(null)
           setDefaultProductForm(null)
@@ -972,6 +1021,58 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
+                          {medicineType !== 'non_medical' && (
+                            <Grid item xs={12} sm={6}>
+                              <FormControl fullWidth>
+                                <Controller
+                                  name='generic_name_id'
+                                  control={control}
+                                  rules={{ required: true }}
+                                  render={({ field: { value, onChange } }) => (
+                                    <Autocomplete
+                                      disablePortal
+                                      id='generic_name_id'
+                                      value={defaultGenericName}
+                                      options={genericName}
+                                      getOptionLabel={option => option.name}
+                                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                      onChange={(e, val) => {
+                                        // setDefaultManufacturer(val)
+                                        debugger
+                                        if (val === null) {
+                                          setDefaultGenericName(val)
+
+                                          return onChange('')
+                                        } else {
+                                          setDefaultGenericName(val)
+
+                                          return onChange(val.id)
+                                        }
+                                      }}
+                                      onKeyUp={e => {
+                                        genericSearch(e.target.value)
+
+                                        // getManufacturersList({ key: e.target.value })
+                                      }}
+                                      renderInput={params => (
+                                        <TextField
+                                          {...params}
+                                          label='Generic Name*'
+                                          placeholder='Search & Select'
+                                          error={Boolean(errors.generic_name_id)}
+                                        />
+                                      )}
+                                    />
+                                  )}
+                                />
+                                {errors?.generic_name_id && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>
+                                    {errors?.generic_name_id?.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            </Grid>
+                          )}
                           <Grid item xs={12} sm={12}>
                             <Grid container spacing={5}>
                               <Grid item xs={12} sm={6}>
@@ -1010,7 +1111,7 @@ const AddMedicine = () => {
                                           <TextField
                                             {...params}
                                             label='Manufacturer*'
-                                            placeholder='Search'
+                                            placeholder='Search & Select'
                                             error={Boolean(errors.manufacturer)}
                                           />
                                         )}
@@ -1084,7 +1185,7 @@ const AddMedicine = () => {
                                       <TextField
                                         {...params}
                                         label='Package*'
-                                        placeholder='Search'
+                                        placeholder='Search & Select'
                                         error={Boolean(errors.package_type)}
                                       />
                                     )}
@@ -1107,10 +1208,10 @@ const AddMedicine = () => {
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
-                                    label='Quantity*'
+                                    label='Presentation*'
                                     onChange={onChange}
                                     onKeyUp={e => setPackageQuantity(e.target.value)}
-                                    placeholder='Quantity*'
+                                    placeholder='Presentation*'
                                     error={Boolean(errors.package_qty)}
                                     name='package_qty'
                                   />
@@ -1202,7 +1303,7 @@ const AddMedicine = () => {
                                       <TextField
                                         {...params}
                                         label='Product Form*'
-                                        placeholder='Search'
+                                        placeholder='Search & Select'
                                         error={Boolean(errors.product_form)}
                                       />
                                     )}
@@ -1290,7 +1391,7 @@ const AddMedicine = () => {
                                                     <TextField
                                                       {...params}
                                                       label='Salt Name'
-                                                      placeholder='Search'
+                                                      placeholder='Search & Select'
                                                       error={Boolean(errors?.salts?.[index]?.salt_id)}
                                                     />
                                                   )
@@ -1315,9 +1416,9 @@ const AddMedicine = () => {
                                           render={({ field: { value, onChange } }) => (
                                             <TextField
                                               value={value}
-                                              label='Salt Quantity'
+                                              label='Strength'
                                               onChange={onChange}
-                                              placeholder='Salt Quantity'
+                                              placeholder='Strength'
                                               error={Boolean(errors?.salts?.[index]?.salt_qty)}
                                               name={`salts[${index}].salt_qty`}
                                             />
@@ -1357,7 +1458,7 @@ const AddMedicine = () => {
                           <Grid item xs={12} sm={12}>
                             <div>Others</div>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          {/* <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.gst_slab)} id='gst_slab'>
                                 GST*
@@ -1391,7 +1492,7 @@ const AddMedicine = () => {
                                 </FormHelperText>
                               )}
                             </FormControl>
-                          </Grid>
+                          </Grid> */}
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1425,7 +1526,7 @@ const AddMedicine = () => {
                                       <TextField
                                         {...params}
                                         label='Drug Class'
-                                        placeholder='Search'
+                                        placeholder='Search & Select'
                                         error={Boolean(errors.drug_class)}
                                       />
                                     )}
@@ -1467,7 +1568,7 @@ const AddMedicine = () => {
                                       <TextField
                                         {...params}
                                         label='Storage'
-                                        placeholder='Search'
+                                        placeholder='Search & Select'
                                         error={Boolean(errors.storage)}
                                       />
                                     )}
@@ -1540,7 +1641,8 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+
+                          {/* <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
                                 Part Out of Stock
@@ -1569,7 +1671,7 @@ const AddMedicine = () => {
                                 </FormHelperText>
                               )}
                             </FormControl>
-                          </Grid>
+                          </Grid> */}
 
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
@@ -1645,6 +1747,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
+
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
