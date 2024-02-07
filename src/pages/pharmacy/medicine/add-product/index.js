@@ -72,6 +72,7 @@ import GenericNamesList from '../../settings/generic'
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
+  generic_name_id: '',
   manufacturer: '',
   generic_name_id: '',
   package_type: '',
@@ -109,7 +110,7 @@ const schema = yup.object().shape({
 
   generic_name_id: yup.string().when('medicine_type', {
     is: val => val !== 'non_medical',
-    then: schema => schema.required('Generic name is required'),
+    then: schema => schema.required('Generic Name Required'),
     otherwise: schema => schema.optional()
   }),
   package_type: yup.string().required('Package is required'),
@@ -170,7 +171,7 @@ const AddMedicine = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
 
   const [manufacturer, setManufacturers] = useState([])
-  const [genericNameList, setGenericNameList] = useState([])
+  const [genericName, setGenericList] = useState([])
   const [packages, setPackages] = useState([])
   const [productForm, setProductForm] = useState([])
   const [saltsList, setSalts] = useState([])
@@ -231,7 +232,7 @@ const AddMedicine = () => {
         limit
       }
       await getGenerics({ params: params }).then(res => {
-        setGenericNameList(res?.data?.list_items)
+        setGenericList(res?.data?.list_items)
       })
     } catch (e) {
       console.log(e)
@@ -377,14 +378,15 @@ const AddMedicine = () => {
             tempSalts.push(tempSalt)
           })
         }
-        setGenericNameList([
+        debugger
+        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
+
+        setGenericList([
           {
             id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
             name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
           }
         ])
-        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
-
         setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
         setUom([{ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label }])
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
@@ -398,6 +400,10 @@ const AddMedicine = () => {
           name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
         })
         setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
+        setDefaultGenericName({
+          id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
+          name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
+        })
         setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
         setDefaultUom({ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label })
         setDefaultProductForm({ id: response?.data?.product_form, label: response?.data?.product_form_label })
@@ -535,10 +541,11 @@ const AddMedicine = () => {
       setShouldClearFields(null)
       setDefaultManufacturer(null)
       setDefaultGenericName(null)
+      setDefaultGenericName(null)
       setPackageQuantity('')
 
       setManufacturers([])
-      setGenericNameList([])
+      setGenericList([])
       setPackages([])
       setProductForm([])
       setSalts([])
@@ -588,6 +595,7 @@ const AddMedicine = () => {
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
+    debugger
 
     const payload = {
       medicine_type,
@@ -1023,7 +1031,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={6}>
                               <FormControl fullWidth>
@@ -1036,12 +1043,12 @@ const AddMedicine = () => {
                                       disablePortal
                                       id='generic_name_id'
                                       value={defaultGenericName}
-                                      options={genericNameList}
+                                      options={genericName}
                                       getOptionLabel={option => option.name}
                                       isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                       onChange={(e, val) => {
                                         // setDefaultManufacturer(val)
-
+                                        debugger
                                         if (val === null) {
                                           setDefaultGenericName(val)
 
@@ -1076,7 +1083,6 @@ const AddMedicine = () => {
                               </FormControl>
                             </Grid>
                           )}
-
                           <Grid item xs={12} sm={12}>
                             <Grid container spacing={5}>
                               <Grid item xs={12} sm={6}>

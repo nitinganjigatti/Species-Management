@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
+import { getGenerics, getGenericsById, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/genericNames'
 import { getGenerics, getGenericsById, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/genericNames'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
@@ -101,10 +103,11 @@ const GenericNamesList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {params.row.status}
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
