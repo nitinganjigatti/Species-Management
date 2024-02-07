@@ -377,7 +377,6 @@ const AddMedicine = () => {
             tempSalts.push(tempSalt)
           })
         }
-        debugger
         setGenericNameList([
           {
             id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
@@ -590,7 +589,6 @@ const AddMedicine = () => {
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
-    debugger
 
     const payload = {
       medicine_type,
@@ -632,12 +630,10 @@ const AddMedicine = () => {
 
   const handleSubmitData = async () => {
     try {
-      debugger
       const errors = await trigger()
       if (errors) {
         handleSubmit(onSubmit)()
       } else {
-        debugger
         scrollToTop()
       }
     } catch (error) {
