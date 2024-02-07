@@ -67,12 +67,13 @@ import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import GenericNamesList from '../../settings/generic'
 
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
-  generic_name_id: '',
   manufacturer: '',
+  generic_name_id: '',
   package_type: '',
   package_qty: '',
   package_uom: '',
@@ -108,7 +109,7 @@ const schema = yup.object().shape({
 
   generic_name_id: yup.string().when('medicine_type', {
     is: val => val !== 'non_medical',
-    then: schema => schema.required('Generic Name Required'),
+    then: schema => schema.required('Generic name is required'),
     otherwise: schema => schema.optional()
   }),
   package_type: yup.string().required('Package is required'),
@@ -171,7 +172,7 @@ const AddMedicine = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
 
   const [manufacturer, setManufacturers] = useState([])
-  const [genericName, setGenericList] = useState([])
+  const [genericNameList, setGenericNameList] = useState([])
   const [packages, setPackages] = useState([])
   const [productForm, setProductForm] = useState([])
   const [saltsList, setSalts] = useState([])
@@ -232,7 +233,7 @@ const AddMedicine = () => {
         limit
       }
       await getGenerics({ params: params }).then(res => {
-        setGenericList(res?.data?.list_items)
+        setGenericNameList(res?.data?.list_items)
       })
     } catch (e) {
       console.log(e)
@@ -379,14 +380,14 @@ const AddMedicine = () => {
           })
         }
         debugger
-        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
-
-        setGenericList([
+        setGenericNameList([
           {
             id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
             name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
           }
         ])
+        setManufacturers([{ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name }])
+
         setPackages([{ id: response?.data?.package_type, label: response?.data?.package }])
         setUom([{ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label }])
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
@@ -395,11 +396,11 @@ const AddMedicine = () => {
 
         setPackageQuantity(response?.data?.package_qty)
 
-        setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
         setDefaultGenericName({
           id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
           name: response?.data?.generic_name === null ? '' : response?.data?.generic_name
         })
+        setDefaultManufacturer({ id: response?.data?.manufacturer, label: response?.data?.manufacturer_name })
         setDefaultPackage({ id: response?.data?.package_type, label: response?.data?.package })
         setDefaultUom({ id: response?.data?.package_uom, unit_name: response?.data?.package_uom_label })
         setDefaultProductForm({ id: response?.data?.product_form, label: response?.data?.product_form_label })
@@ -421,6 +422,7 @@ const AddMedicine = () => {
           ...response.data,
           medicine_type: response.data.stock_type,
           medicine_name: response.data.name,
+          generic_name_id: response?.data?.generic_id,
           salts:
             salts !== null && salts.length > 0
               ? salts
@@ -539,7 +541,7 @@ const AddMedicine = () => {
       setPackageQuantity('')
 
       setManufacturers([])
-      setGenericList([])
+      setGenericNameList([])
       setPackages([])
       setProductForm([])
       setSalts([])
@@ -631,10 +633,12 @@ const AddMedicine = () => {
 
   const handleSubmitData = async () => {
     try {
+      debugger
       const errors = await trigger()
       if (errors) {
         handleSubmit(onSubmit)()
       } else {
+        debugger
         scrollToTop()
       }
     } catch (error) {
@@ -1025,6 +1029,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
+
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={6}>
                               <FormControl fullWidth>
@@ -1037,12 +1042,12 @@ const AddMedicine = () => {
                                       disablePortal
                                       id='generic_name_id'
                                       value={defaultGenericName}
-                                      options={genericName}
+                                      options={genericNameList}
                                       getOptionLabel={option => option.name}
                                       isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                       onChange={(e, val) => {
                                         // setDefaultManufacturer(val)
-                                        debugger
+
                                         if (val === null) {
                                           setDefaultGenericName(val)
 
@@ -1077,6 +1082,7 @@ const AddMedicine = () => {
                               </FormControl>
                             </Grid>
                           )}
+
                           <Grid item xs={12} sm={12}>
                             <Grid container spacing={5}>
                               <Grid item xs={12} sm={6}>
