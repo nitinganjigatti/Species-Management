@@ -175,7 +175,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const genericNamesList = {
-    title: 'Generic Names',
+    title: 'Generic',
     path: '/pharmacy/settings/generic'
   }
 
