@@ -49,7 +49,7 @@ sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 rm -f .env;
 if [ $ENV_TO_LOAD == 'development' ]
 then
-  cp -r .env.development .env
+  cp -r .env.jn .env
 elif [ $ENV_TO_LOAD == 'staging' ]
 then
   cp -r .env.staging .env
