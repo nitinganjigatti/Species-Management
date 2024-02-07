@@ -104,7 +104,7 @@ const GenericNamesList = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
+          {params.row.status}
         </Typography>
       )
     },
