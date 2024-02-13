@@ -190,7 +190,7 @@ const ListOfRequest = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
           <Icon icon='et:attachments' fontSize={15} />
           <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
-            <span alt={params.row.sample_count}>{params.row.sample_count}</span>
+            <span alt={params.row.total_attachments}>{params.row.total_attachments}</span>
           </Typography>
         </Box>
       )

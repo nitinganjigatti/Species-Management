@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
@@ -56,7 +57,8 @@ const RequestDetails = () => {
   const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
-
+  const [image, setImage] = useState()
+  const [document, setDocument] = useState()
   const [popUpRow, setPopUpRow] = useState([])
 
   const { id } = Router.query
@@ -142,6 +144,8 @@ const RequestDetails = () => {
 
         setRows(res?.data?.result[0].test_reports)
         setTotal(parseInt(res?.data?.total_count))
+        setImage(res?.data?.result[0]?.files?.images)
+        setDocument(res?.data?.result[0]?.files?.files)
         setLoading(false)
       })
     } catch (error) {
@@ -442,7 +446,7 @@ const RequestDetails = () => {
 
             {request?.map((item, index) => (
               <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <Box>
                     <Typography variant='h6'>
                       Request -{' '}
@@ -475,7 +479,7 @@ const RequestDetails = () => {
                     </Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6, flexWrap: 'wrap' }}>
                   <Stack direction='row' gap={3}>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
@@ -527,53 +531,79 @@ const RequestDetails = () => {
               }}
             />
             {/* image or Doc View */}
-            <Box sx={{ px: 5 }}>
-              <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
-              <Box>
-                <Typography sx={{ fontSize: '18px' }}>Images</Typography>
-                <Card sx={{ width: 200, height: 150, bgcolor: '#B1B1B1', mt: 3, display: 'flex', alignItems: 'end' }}>
-                  <Box
-                    sx={{
-                      flex: 1,
-                      bgcolor: 'white',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      p: 2,
-                      maxHeight: 40,
-                      bgcolor: '#EFF5F2'
-                    }}
-                  >
-                    image.jpg{' '}
-                    <IconButton onClick={handleDeleteImg}>
-                      <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                    </IconButton>
+            {image || document ? (
+              <Box sx={{ px: 5 }}>
+                <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+                {image ? (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px' }}>Images</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      {image?.map(item => (
+                        <Card
+                          sx={{
+                            width: 200,
+                            height: 150,
+                            bgcolor: '#B1B1B1',
+                            mt: 3,
+                            display: 'flex',
+                            alignItems: 'end'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              flex: 1,
+                              bgcolor: 'white',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              p: 2,
+                              maxHeight: 40,
+                              bgcolor: '#EFF5F2'
+                            }}
+                          >
+                            {item?.file_original_name}{' '}
+                            <IconButton onClick={handleDeleteImg}>
+                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                            </IconButton>
+                          </Box>
+                        </Card>
+                      ))}
+                    </Box>
                   </Box>
-                </Card>
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                <Box
-                  sx={{
-                    bgcolor: '#EFF5F2',
-                    maxWidth: 250,
-                    p: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderRadius: '10px'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {' '}
-                    <Icon icon='jam:document' fontSize={25} /> document{' '}
-                  </Box>
+                ) : null}
 
-                  <IconButton onClick={handleDeleteImg}>
-                    <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                  </IconButton>
-                </Box>
+                {document ? (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      {document?.map(item => (
+                        <Box
+                          key={item?.file}
+                          sx={{
+                            bgcolor: '#EFF5F2',
+                            maxWidth: 250,
+                            p: 2,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            borderRadius: '10px'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {' '}
+                            <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
+                          </Box>
+
+                          <IconButton onClick={handleDeleteImg}>
+                            <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                ) : null}
               </Box>
-            </Box>
+            ) : null}
+
             {/* allow user Only if user hand upload permissions */}
 
             {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (

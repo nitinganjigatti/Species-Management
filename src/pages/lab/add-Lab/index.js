@@ -210,8 +210,9 @@ const AddLab = () => {
     console.log('payload', payload)
 
     const res = await addLabToList(payload).then(res => {
-      if (res?.status) {
+      if (res) {
         setSubmitLoader(false)
+        reset(defaultValues)
         Router.push('/lab/lab-list')
       }
     })
