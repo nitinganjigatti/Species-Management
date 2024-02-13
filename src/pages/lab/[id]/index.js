@@ -50,8 +50,10 @@ import Router from 'next/router'
 import Utility from 'src/utility'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UploadReports from 'src/components/lab/request/UploadReports'
+import { useRouter } from 'next/navigation'
 
 const RequestDetails = () => {
+  const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
 
@@ -81,7 +83,8 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
-
+  const [labId, setLabId] = useState(null)
+  console.log('labId', labId)
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -135,6 +138,7 @@ const RequestDetails = () => {
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
+        setLabId(res?.data?.result[0]?.lab_id)
 
         setRows(res?.data?.result[0].test_reports)
         setTotal(parseInt(res?.data?.total_count))
@@ -197,7 +201,7 @@ const RequestDetails = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'test_name',
-      headerName: 'Test Type',
+      headerName: 'Test Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.test_name}
@@ -209,7 +213,7 @@ const RequestDetails = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'sample_name',
-      headerName: 'Sample Type',
+      headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
@@ -217,17 +221,17 @@ const RequestDetails = () => {
       )
     },
 
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'sample_id',
-      headerName: 'Sample id',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.sample_id}>{params.row.sample_id}</span>
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'sample_id',
+    //   headerName: 'Sample id',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <span alt={params.row.sample_id}>{params.row.sample_id}</span>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -413,6 +417,10 @@ const RequestDetails = () => {
     // }
   }
 
+  const handleDeleteImg = () => {
+    console.log('Delete')
+  }
+
   return (
     <>
       {loader ? (
@@ -420,7 +428,15 @@ const RequestDetails = () => {
       ) : (
         <>
           <Card sx={{ p: 5 }}>
-            <IconButton sx={{ mr: 1 }} onClick={() => Router.back()}>
+            <IconButton
+              sx={{ mr: 1 }}
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/request',
+                  query: { id: labId }
+                })
+              }
+            >
               <Icon icon='ep:back' fontSize={25} color={'#37BD69'} />
             </IconButton>
 
@@ -510,6 +526,54 @@ const RequestDetails = () => {
                 }
               }}
             />
+            {/* image or Doc View */}
+            <Box sx={{ px: 5 }}>
+              <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+              <Box>
+                <Typography sx={{ fontSize: '18px' }}>Images</Typography>
+                <Card sx={{ width: 200, height: 150, bgcolor: '#B1B1B1', mt: 3, display: 'flex', alignItems: 'end' }}>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      bgcolor: 'white',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      p: 2,
+                      maxHeight: 40,
+                      bgcolor: '#EFF5F2'
+                    }}
+                  >
+                    image.jpg{' '}
+                    <IconButton onClick={handleDeleteImg}>
+                      <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                    </IconButton>
+                  </Box>
+                </Card>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                <Box
+                  sx={{
+                    bgcolor: '#EFF5F2',
+                    maxWidth: 250,
+                    p: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    borderRadius: '10px'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {' '}
+                    <Icon icon='jam:document' fontSize={25} /> document{' '}
+                  </Box>
+
+                  <IconButton onClick={handleDeleteImg}>
+                    <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                  </IconButton>
+                </Box>
+              </Box>
+            </Box>
             {/* allow user Only if user hand upload permissions */}
 
             {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
@@ -557,7 +621,7 @@ const RequestDetails = () => {
                   <Table>
                     <TableHead>
                       <TableRow sx={{ bgcolor: '#F5F5F7' }}>
-                        <TableCell>Test Type</TableCell>
+                        <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
                       </TableRow>

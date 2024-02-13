@@ -21,28 +21,35 @@ import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
+// import Router from 'next/router'
 import Utility from 'src/utility'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
+import { useRouter } from 'next/router'
 
 const ListOfRequest = () => {
+  const router = useRouter()
+  const { id } = router.query
+  console.log('id', id)
   const [loader, setLoader] = useState(false)
+  const [selectLoader, setSelectLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [storedData, setStoredData] = useState()
   const [lab, setLab] = React.useState([])
-  const [selectedLab, setSelectedLab] = useState(null)
+  const [selectedLab, setSelectedLab] = useState()
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
+
     setStoredData(JSON.parse(Data))
   }, [])
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-    Router.push(`/lab/${id}`)
+
+    router.push(`/lab/${id}`)
   }
 
   const columns = [
@@ -219,12 +226,31 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
-    setLoading(true)
+    setSelectLoader(true)
+
     getNoOfLab().then(res => {
-      setLoading(false)
+      setSelectLoader(false)
       setLab(res?.data?.result)
-      setSelectedLab(res?.data?.result[0]?.lab_id)
+      if (id) {
+        setSelectedLab(id)
+      } else {
+        setSelectedLab(res?.data?.result[0]?.lab_id)
+      }
     })
+  }, [])
+
+  useEffect(() => {
+    if (id) {
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        lab_id: id
+      }
+      fetchData(params)
+    }
   }, [])
 
   const handleSortModel = async newModel => {
@@ -259,7 +285,7 @@ const ListOfRequest = () => {
       column: sortColumn,
       page: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      lab_id: event.target.value
+      lab_id: selectedLab
     }
     await fetchData(params)
   }
@@ -327,7 +353,7 @@ const ListOfRequest = () => {
               sx={{ display: 'flex', justifyContent: 'space-between', mr: 5, alignItems: 'center' }}
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
-                {loading ? (
+                {selectLoader ? (
                   <CircularProgress color='success' />
                 ) : (
                   <FormControl fullWidth size='small'>
