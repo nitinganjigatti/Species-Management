@@ -232,7 +232,7 @@ const ListOfPurchase = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Purchase' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
     </div>
   )
 
@@ -253,7 +253,7 @@ const ListOfPurchase = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Purchase List' action={headerAction} />
+              <CardHeader title='Inventory List' action={headerAction} />
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
