@@ -229,7 +229,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
-      dispense,
       requestListing,
       returnListing,
       directDispatchList,
@@ -247,10 +246,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
-      dispense,
       requestListing,
       returnListing,
       directDispatchList,
+      dispense,
       stockParent,
       settingsParent
     )
