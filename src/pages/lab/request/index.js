@@ -1,7 +1,7 @@
 /* eslint-disable padding-line-between-statements */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getNoOfLab, GetLabReportById } from 'src/lib/api/lab/getLabRequest'
 // import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
@@ -28,17 +28,21 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import { useRouter } from 'next/router'
+import { AuthContext } from 'src/context/AuthContext'
+import { readAsync, write, remove } from 'src/lib/windows/utils'
+import { jsx } from '@emotion/react'
 
 const ListOfRequest = () => {
   const router = useRouter()
-  const { id } = router.query
-  console.log('id', id)
+
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
-  const [show, setShow] = useState(false)
-  const [storedData, setStoredData] = useState()
+  const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState()
+  console.log('selectedLab clo', selectedLab)
+  const [storedData, setStoredData] = useState()
+  const authData = useContext(AuthContext)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -48,7 +52,7 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-
+    write('selectedLAB', labSelected)
     router.push(`/lab/${id}`)
   }
 
@@ -115,17 +119,17 @@ const ListOfRequest = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'sample_count',
-      headerName: 'No. Of Samples',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.sample_count}>{params.row.sample_count}</span>
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'sample_count',
+    //   headerName: 'No. Of Samples',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <span alt={params.row.sample_count}>{params.row.sample_count}</span>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -226,31 +230,49 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
-    setSelectLoader(true)
-
-    getNoOfLab().then(res => {
-      setSelectLoader(false)
-      setLab(res?.data?.result)
-      if (id) {
-        setSelectedLab(id)
-      } else {
-        setSelectedLab(res?.data?.result[0]?.lab_id)
-      }
-    })
+    const options = authData?.userData?.modules?.lab_data?.lab
+    setLab(options)
+    console.log('options', options)
   }, [])
 
-  useEffect(() => {
-    if (id) {
+  const oldstoredData = async () => {
+    const Data = await readAsync('selectedLAB')
+    console.log('local data', Data)
+    setLabSelected(Data)
+    if (Data) {
+      setSelectedLab(Data)
+      console.log('labSelected if ', Data)
+
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        lab_id: id
+        lab_id: Data
       }
       fetchData(params)
+      setSelectLoader(false)
+    } else {
+      const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
+      console.log('lab[0]?.lab_id', data)
+      setSelectedLab(data)
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        lab_id: data
+      }
+      fetchData(params)
+      setSelectLoader(false)
     }
+  }
+
+  useEffect(() => {
+    oldstoredData()
+    // setSelectLoader(true)
   }, [])
 
   const handleSortModel = async newModel => {
@@ -277,7 +299,16 @@ const ListOfRequest = () => {
   }
 
   const handleLabChange = async event => {
-    setSelectedLab(event.target.value)
+    // setSelectedLab(event.target.value)
+    setLabSelected(event.target.value)
+    const storedLabData = await readAsync('selectedLAB')
+    if (storedLabData) {
+      console.log('storedLabData', storedLabData)
+      setSelectedLab(event.target.value)
+      remove('selectedLAB')
+    } else {
+      setSelectedLab(event.target.value)
+    }
 
     const params = {
       sort,
@@ -285,7 +316,7 @@ const ListOfRequest = () => {
       column: sortColumn,
       page: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      lab_id: selectedLab
+      lab_id: event.target.value
     }
     await fetchData(params)
   }
@@ -345,7 +376,7 @@ const ListOfRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card key={selectedLab}>
             <CardHeader title='Lab Requests' />
 
             <Stack

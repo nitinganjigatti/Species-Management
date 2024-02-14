@@ -425,6 +425,10 @@ const RequestDetails = () => {
     console.log('Delete')
   }
 
+  const openFileInNewTab = imageUrl => {
+    window.open(imageUrl, '_blank')
+  }
+
   return (
     <>
       {loader ? (
@@ -436,8 +440,7 @@ const RequestDetails = () => {
               sx={{ mr: 1 }}
               onClick={() =>
                 router.push({
-                  pathname: '/lab/request',
-                  query: { id: labId }
+                  pathname: '/lab/request'
                 })
               }
             >
@@ -539,33 +542,40 @@ const RequestDetails = () => {
                     <Typography sx={{ fontSize: '18px' }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {image?.map(item => (
-                        <Card
-                          sx={{
-                            width: 200,
-                            height: 150,
-                            bgcolor: '#B1B1B1',
-                            mt: 3,
-                            display: 'flex',
-                            alignItems: 'end'
-                          }}
+                        <a
+                          // href={item.file}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          style={{ textDecoration: 'none' }}
                         >
-                          <Box
+                          <Card
                             sx={{
-                              flex: 1,
-                              bgcolor: 'white',
+                              width: 200,
+                              height: 150,
+                              bgcolor: '#B1B1B1',
+                              mt: 3,
                               display: 'flex',
-                              justifyContent: 'space-between',
-                              p: 2,
-                              maxHeight: 40,
-                              bgcolor: '#EFF5F2'
+                              alignItems: 'end'
                             }}
                           >
-                            {item?.file_original_name}{' '}
-                            <IconButton onClick={handleDeleteImg}>
-                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                            </IconButton>
-                          </Box>
-                        </Card>
+                            <Box
+                              sx={{
+                                flex: 1,
+                                bgcolor: 'white',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                p: 2,
+                                maxHeight: 40,
+                                bgcolor: '#EFF5F2'
+                              }}
+                            >
+                              {item?.file_original_name}{' '}
+                              <IconButton onClick={handleDeleteImg}>
+                                <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                              </IconButton>
+                            </Box>
+                          </Card>
+                        </a>
                       ))}
                     </Box>
                   </Box>
@@ -576,27 +586,34 @@ const RequestDetails = () => {
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {document?.map(item => (
-                        <Box
-                          key={item?.file}
-                          sx={{
-                            bgcolor: '#EFF5F2',
-                            maxWidth: 250,
-                            p: 2,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            borderRadius: '10px'
-                          }}
+                        <a
+                          // href={item.file}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          style={{ textDecoration: 'none' }}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {' '}
-                            <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
-                          </Box>
+                          <Box
+                            key={item?.file}
+                            sx={{
+                              bgcolor: '#EFF5F2',
+                              maxWidth: 250,
+                              p: 2,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderRadius: '10px'
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {' '}
+                              <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
+                            </Box>
 
-                          <IconButton onClick={handleDeleteImg}>
-                            <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                          </IconButton>
-                        </Box>
+                            <IconButton onClick={handleDeleteImg}>
+                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                            </IconButton>
+                          </Box>
+                        </a>
                       ))}
                     </Box>
                   </Box>
