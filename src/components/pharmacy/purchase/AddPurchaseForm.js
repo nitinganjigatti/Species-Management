@@ -31,6 +31,9 @@ import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm, Controller } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
@@ -137,7 +140,7 @@ const AddPurchaseForm = () => {
     trigger
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
-    defaultValues,
+    // defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
@@ -845,7 +848,17 @@ const AddPurchaseForm = () => {
           title='Add Inventory'
         />
       </Grid>
-
+      <CardContent>
+        <Grid container>
+          <CommonDialogBox
+            title={'Add Purchase Item'}
+            dialogBoxStatus={show}
+            formComponent={createForm()}
+            close={closeDialog}
+            show={showDialog}
+          />
+        </Grid>
+      </CardContent>
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
           <Grid container spacing={5}>
@@ -1017,7 +1030,7 @@ const AddPurchaseForm = () => {
           }}
         >
           <AddButton
-            title='Add Inventory Item'
+            title='Add Purchase Item'
             action={() => {
               handlePurchaseSubmit()
             }}
@@ -1188,6 +1201,7 @@ const AddPurchaseForm = () => {
                   </CalcWrapper>
 
                   {/* <Divider
+                  {/* <Divider
                   sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
                 /> */}
                 </CardContent>
@@ -1223,17 +1237,6 @@ const AddPurchaseForm = () => {
           </Box>
         </Grid>
       </form>
-      <CardContent>
-        <Grid container>
-          <CommonDialogBox
-            title={'Add Inventory Item'}
-            dialogBoxStatus={show}
-            formComponent={createForm()}
-            close={closeDialog}
-            show={showDialog}
-          />
-        </Grid>
-      </CardContent>
     </Card>
   )
 }
