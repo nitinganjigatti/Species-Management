@@ -140,7 +140,7 @@ const AddPurchaseForm = () => {
     trigger
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
-    // defaultValues,
+    defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
@@ -848,17 +848,7 @@ const AddPurchaseForm = () => {
           title='Add Inventory'
         />
       </Grid>
-      <CardContent>
-        <Grid container>
-          <CommonDialogBox
-            title={'Add Purchase Item'}
-            dialogBoxStatus={show}
-            formComponent={createForm()}
-            close={closeDialog}
-            show={showDialog}
-          />
-        </Grid>
-      </CardContent>
+
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
           <Grid container spacing={5}>
@@ -1030,7 +1020,7 @@ const AddPurchaseForm = () => {
           }}
         >
           <AddButton
-            title='Add Purchase Item'
+            title='Add Inventory Item'
             action={() => {
               handlePurchaseSubmit()
             }}
@@ -1237,6 +1227,17 @@ const AddPurchaseForm = () => {
           </Box>
         </Grid>
       </form>
+      <CardContent>
+        <Grid container>
+          <CommonDialogBox
+            title={'Add Inventory Item'}
+            dialogBoxStatus={show}
+            formComponent={createForm()}
+            close={closeDialog}
+            show={showDialog}
+          />
+        </Grid>
+      </CardContent>
     </Card>
   )
 }
