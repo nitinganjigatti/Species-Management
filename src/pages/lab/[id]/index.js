@@ -543,7 +543,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {image?.map(item => (
                         <a
-                          // href={item.file}
+                          href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none' }}
@@ -587,7 +587,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {document?.map(item => (
                         <a
-                          // href={item.file}
+                          href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none' }}

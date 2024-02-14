@@ -234,6 +234,11 @@ const ListOfRequest = () => {
     setLab(options)
     console.log('options', options)
   }, [])
+  // useEffect(() => {
+  //   return () => {
+  //     remove('selectedLAB')
+  //   }
+  // })
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')

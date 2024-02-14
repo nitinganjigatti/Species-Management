@@ -305,7 +305,6 @@ const ListOfLab = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
