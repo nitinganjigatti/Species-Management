@@ -28,7 +28,7 @@ const ListOfPurchase = () => {
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
