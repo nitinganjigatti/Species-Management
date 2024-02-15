@@ -28,7 +28,7 @@ export const SUPPLIER_LEDGER = 'supplier-ledger'
 
 export const TAX_SLAB = 'v1/master/taxslab'
 
-export const GENERICS = 'generic-name'
+export const GENERICS = 'genericName'
 
 export const CATEGORIES = 'categories'
 

@@ -1,7 +1,7 @@
 /* eslint-disable padding-line-between-statements */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getNoOfLab, GetLabReportById } from 'src/lib/api/lab/getLabRequest'
 // import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
@@ -19,30 +19,41 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Stack } from '@mui/material'
+import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
+// import Router from 'next/router'
 import Utility from 'src/utility'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
+import { useRouter } from 'next/router'
+import { AuthContext } from 'src/context/AuthContext'
+import { readAsync, write, remove } from 'src/lib/windows/utils'
+import { jsx } from '@emotion/react'
 
 const ListOfRequest = () => {
+  const router = useRouter()
+
   const [loader, setLoader] = useState(false)
-  const [show, setShow] = useState(false)
-  const [storedData, setStoredData] = useState()
+  const [selectLoader, setSelectLoader] = useState(false)
+  const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = React.useState([])
-  const [selectedLab, setSelectedLab] = useState(70)
+  const [selectedLab, setSelectedLab] = useState()
+  console.log('selectedLab clo', selectedLab)
+  const [storedData, setStoredData] = useState()
+  const authData = useContext(AuthContext)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
+
     setStoredData(JSON.parse(Data))
   }, [])
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-    Router.push(`/lab/${id}`)
+    write('selectedLAB', labSelected)
+    router.push(`/lab/${id}`)
   }
 
   const columns = [
@@ -108,17 +119,17 @@ const ListOfRequest = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'sample_count',
-      headerName: 'No. Of Samples',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.sample_count}>{params.row.sample_count}</span>
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'sample_count',
+    //   headerName: 'No. Of Samples',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <span alt={params.row.sample_count}>{params.row.sample_count}</span>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -183,7 +194,7 @@ const ListOfRequest = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
           <Icon icon='et:attachments' fontSize={15} />
           <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
-            <span alt={params.row.sample_count}>{params.row.sample_count}</span>
+            <span alt={params.row.total_attachments}>{params.row.total_attachments}</span>
           </Typography>
         </Box>
       )
@@ -219,9 +230,54 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
-    getNoOfLab().then(res => {
-      setLab(res?.data?.result)
-    })
+    const options = authData?.userData?.modules?.lab_data?.lab
+    setLab(options)
+    console.log('options', options)
+  }, [])
+  // useEffect(() => {
+  //   return () => {
+  //     remove('selectedLAB')
+  //   }
+  // })
+
+  const oldstoredData = async () => {
+    const Data = await readAsync('selectedLAB')
+    console.log('local data', Data)
+    setLabSelected(Data)
+    if (Data) {
+      setSelectedLab(Data)
+      console.log('labSelected if ', Data)
+
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        lab_id: Data
+      }
+      fetchData(params)
+      setSelectLoader(false)
+    } else {
+      const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
+      console.log('lab[0]?.lab_id', data)
+      setSelectedLab(data)
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        lab_id: data
+      }
+      fetchData(params)
+      setSelectLoader(false)
+    }
+  }
+
+  useEffect(() => {
+    oldstoredData()
+    // setSelectLoader(true)
   }, [])
 
   const handleSortModel = async newModel => {
@@ -248,7 +304,16 @@ const ListOfRequest = () => {
   }
 
   const handleLabChange = async event => {
-    setSelectedLab(event.target.value)
+    // setSelectedLab(event.target.value)
+    setLabSelected(event.target.value)
+    const storedLabData = await readAsync('selectedLAB')
+    if (storedLabData) {
+      console.log('storedLabData', storedLabData)
+      setSelectedLab(event.target.value)
+      remove('selectedLAB')
+    } else {
+      setSelectedLab(event.target.value)
+    }
 
     const params = {
       sort,
@@ -316,7 +381,7 @@ const ListOfRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card key={selectedLab}>
             <CardHeader title='Lab Requests' />
 
             <Stack
@@ -324,23 +389,26 @@ const ListOfRequest = () => {
               sx={{ display: 'flex', justifyContent: 'space-between', mr: 5, alignItems: 'center' }}
             >
               <Box sx={{ minWidth: 250, maxWidth: 300, ml: 5 }}>
-                <FormControl fullWidth size='small'>
-                  <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
-                  <Select
-                    labelId='lab-select-label'
-                    id='lab-select'
-                    value={selectedLab}
-                    label='Choose Lab'
-                    onChange={handleLabChange}
-                    // defaultValue={lab.length > 0 ? lab[1].lab_id : ''}
-                  >
-                    {lab?.map((item, index) => (
-                      <MenuItem key={item?.lab_id} value={item?.lab_id}>
-                        {item?.lab_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                {selectLoader ? (
+                  <CircularProgress color='success' />
+                ) : (
+                  <FormControl fullWidth size='small'>
+                    <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
+                    <Select
+                      labelId='lab-select-label'
+                      id='lab-select'
+                      value={selectedLab}
+                      label='Choose Lab'
+                      onChange={handleLabChange}
+                    >
+                      {lab?.map((item, index) => (
+                        <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                          {item?.lab_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
               </Box>
 
               <Stack

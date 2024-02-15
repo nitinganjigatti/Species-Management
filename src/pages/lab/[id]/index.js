@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
@@ -50,11 +51,14 @@ import Router from 'next/router'
 import Utility from 'src/utility'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UploadReports from 'src/components/lab/request/UploadReports'
+import { useRouter } from 'next/navigation'
 
 const RequestDetails = () => {
+  const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
-
+  const [image, setImage] = useState()
+  const [document, setDocument] = useState()
   const [popUpRow, setPopUpRow] = useState([])
 
   const { id } = Router.query
@@ -81,7 +85,8 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
-
+  const [labId, setLabId] = useState(null)
+  console.log('labId', labId)
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -135,9 +140,12 @@ const RequestDetails = () => {
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
+        setLabId(res?.data?.result[0]?.lab_id)
 
         setRows(res?.data?.result[0].test_reports)
         setTotal(parseInt(res?.data?.total_count))
+        setImage(res?.data?.result[0]?.files?.images)
+        setDocument(res?.data?.result[0]?.files?.files)
         setLoading(false)
       })
     } catch (error) {
@@ -197,7 +205,7 @@ const RequestDetails = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'test_name',
-      headerName: 'Test Type',
+      headerName: 'Test Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.test_name}
@@ -209,7 +217,7 @@ const RequestDetails = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'sample_name',
-      headerName: 'Sample Type',
+      headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
@@ -217,17 +225,17 @@ const RequestDetails = () => {
       )
     },
 
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'sample_id',
-      headerName: 'Sample id',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.sample_id}>{params.row.sample_id}</span>
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'sample_id',
+    //   headerName: 'Sample id',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <span alt={params.row.sample_id}>{params.row.sample_id}</span>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -413,6 +421,14 @@ const RequestDetails = () => {
     // }
   }
 
+  const handleDeleteImg = () => {
+    console.log('Delete')
+  }
+
+  const openFileInNewTab = imageUrl => {
+    window.open(imageUrl, '_blank')
+  }
+
   return (
     <>
       {loader ? (
@@ -420,13 +436,20 @@ const RequestDetails = () => {
       ) : (
         <>
           <Card sx={{ p: 5 }}>
-            <IconButton sx={{ mr: 1 }} onClick={() => Router.back()}>
+            <IconButton
+              sx={{ mr: 1 }}
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/request'
+                })
+              }
+            >
               <Icon icon='ep:back' fontSize={25} color={'#37BD69'} />
             </IconButton>
 
             {request?.map((item, index) => (
               <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <Box>
                     <Typography variant='h6'>
                       Request -{' '}
@@ -459,7 +482,7 @@ const RequestDetails = () => {
                     </Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6, flexWrap: 'wrap' }}>
                   <Stack direction='row' gap={3}>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
@@ -510,6 +533,94 @@ const RequestDetails = () => {
                 }
               }}
             />
+            {/* image or Doc View */}
+            {image || document ? (
+              <Box sx={{ px: 5 }}>
+                <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+                {image ? (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px' }}>Images</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      {image?.map(item => (
+                        <a
+                          href={item.file}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <Card
+                            sx={{
+                              width: 200,
+                              height: 150,
+                              bgcolor: '#B1B1B1',
+                              mt: 3,
+                              display: 'flex',
+                              alignItems: 'end'
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                flex: 1,
+                                bgcolor: 'white',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                p: 2,
+                                maxHeight: 40,
+                                bgcolor: '#EFF5F2'
+                              }}
+                            >
+                              {item?.file_original_name}{' '}
+                              <IconButton onClick={handleDeleteImg}>
+                                <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                              </IconButton>
+                            </Box>
+                          </Card>
+                        </a>
+                      ))}
+                    </Box>
+                  </Box>
+                ) : null}
+
+                {document ? (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      {document?.map(item => (
+                        <a
+                          href={item.file}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <Box
+                            key={item?.file}
+                            sx={{
+                              bgcolor: '#EFF5F2',
+                              maxWidth: 250,
+                              p: 2,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderRadius: '10px'
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {' '}
+                              <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
+                            </Box>
+
+                            <IconButton onClick={handleDeleteImg}>
+                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
+                            </IconButton>
+                          </Box>
+                        </a>
+                      ))}
+                    </Box>
+                  </Box>
+                ) : null}
+              </Box>
+            ) : null}
+
             {/* allow user Only if user hand upload permissions */}
 
             {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
@@ -557,7 +668,7 @@ const RequestDetails = () => {
                   <Table>
                     <TableHead>
                       <TableRow sx={{ bgcolor: '#F5F5F7' }}>
-                        <TableCell>Test Type</TableCell>
+                        <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
                       </TableRow>
