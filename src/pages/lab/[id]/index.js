@@ -44,7 +44,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText
+  FormHelperText,
+  Popover
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -71,6 +72,7 @@ const RequestDetails = () => {
   const [request, setRequest] = useState([])
 
   const [openTransfer, setOpenTransfer] = useState(false)
+  const [openUploader, setOpenUploader] = useState(false)
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
 
@@ -85,8 +87,6 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
-  const [labId, setLabId] = useState(null)
-  console.log('labId', labId)
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -140,9 +140,8 @@ const RequestDetails = () => {
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
-        setLabId(res?.data?.result[0]?.lab_id)
 
-        setRows(res?.data?.result[0].test_reports)
+        setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
         setTotal(parseInt(res?.data?.total_count))
         setImage(res?.data?.result[0]?.files?.images)
         setDocument(res?.data?.result[0]?.files?.files)
@@ -188,6 +187,22 @@ const RequestDetails = () => {
     }, 1000),
     []
   )
+
+  const [anchorEl, setAnchorEl] = useState(null)
+
+  const handleOpenPopOver = event => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClosePopover = () => {
+    setAnchorEl(null)
+  }
+
+  const openPopover = Boolean(anchorEl)
+
+  const handleOpenUploader = () => {
+    setOpenUploader(true)
+  }
 
   const columns = [
     // {
@@ -282,24 +297,6 @@ const RequestDetails = () => {
                 </span>
               </Typography>
             )}
-
-            {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              <span
-                alt={params.row.status}
-                style={{
-                  color:
-                    params.row.status === 'pending'
-                      ? 'red'
-                      : params.row.status === 'completed'
-                      ? 'green'
-                      : params.row.status === 'in progress'
-                      ? 'blue'
-                      : 'black'
-                }}
-              >
-                {params.row.status}
-              </span>
-            </Typography> */}
           </Box>
         </>
       )
@@ -312,13 +309,32 @@ const RequestDetails = () => {
 
       renderCell: params => (
         <Box>
-          <IconButton
-            size='small'
-            onClick={() => handleOpenTransfer(params)}
-            //  aria-label='Edit'
-          >
+          <IconButton size='small' onClick={e => handleOpenPopOver(e)}>
             <Icon icon='charm:menu-kebab' />
           </IconButton>
+
+          <Popover
+            sx={{
+              '& .MuiPaper-root': {
+                minWidth: 140,
+                borderRadius: '5px'
+              }
+            }}
+            open={openPopover}
+            anchorEl={anchorEl}
+            onClose={handleClosePopover}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right'
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right'
+            }}
+          >
+            <MenuItem onClick={handleOpenTransfer}>Transfer</MenuItem>
+            <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+          </Popover>
         </Box>
       )
     }
@@ -338,6 +354,7 @@ const RequestDetails = () => {
 
   const handleCloseTransfer = () => {
     setOpenTransfer(false)
+    handleClosePopover()
   }
 
   // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -511,6 +528,7 @@ const RequestDetails = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
+              paginationMode='server'
               getRowId={row => row?.sample_id}
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
@@ -826,6 +844,18 @@ const RequestDetails = () => {
                 </Box>
               </form>
             </Box>
+          </Card>
+        </Dialog>
+      </>
+      <>
+        <Dialog open={openUploader} onClose={() => setOpenUploader(false)}>
+          <Card>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <IconButton onClick={() => setOpenUploader(false)}>
+                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+              </IconButton>
+            </Box>
+            <UploadReports />
           </Card>
         </Dialog>
       </>

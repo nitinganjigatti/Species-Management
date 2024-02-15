@@ -139,7 +139,7 @@ const ListOfRequest = () => {
         <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <Box
             sx={{
-              bgcolor: 'red',
+              bgcolor: '#E93353',
               color: 'white',
               borderRadius: '50px',
               height: 25,
@@ -187,8 +187,8 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
+      // field: 'Action',
+      // headerName: 'Action',
 
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
@@ -234,11 +234,6 @@ const ListOfRequest = () => {
     setLab(options)
     console.log('options', options)
   }, [])
-  // useEffect(() => {
-  //   return () => {
-  //     remove('selectedLAB')
-  //   }
-  // })
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
@@ -261,14 +256,14 @@ const ListOfRequest = () => {
     } else {
       const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
       console.log('lab[0]?.lab_id', data)
-      setSelectedLab(data)
+      // setSelectedLab(data)
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
         page: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        lab_id: data
+        limit: paginationModel.pageSize
+        // lab_id: data
       }
       fetchData(params)
       setSelectLoader(false)
@@ -393,13 +388,14 @@ const ListOfRequest = () => {
                   <CircularProgress color='success' />
                 ) : (
                   <FormControl fullWidth size='small'>
-                    <InputLabel id='lab-select-label'>Choose Lab</InputLabel>
+                    <InputLabel id='lab-select-label'>All Labs</InputLabel>
                     <Select
                       labelId='lab-select-label'
                       id='lab-select'
                       value={selectedLab}
-                      label='Choose Lab'
+                      label='All Labs'
                       onChange={handleLabChange}
+                      sx={{ fontWeight: 'bold', borderRadius: '5px' }}
                     >
                       {lab?.map((item, index) => (
                         <MenuItem key={item?.lab_id} value={item?.lab_id}>
@@ -410,29 +406,6 @@ const ListOfRequest = () => {
                   </FormControl>
                 )}
               </Box>
-
-              <Stack
-                direction={{ md: 'row', sm: 'row', sx: 'column' }}
-                spacing={4}
-                gap={2}
-                sx={{ alignItems: 'center' }}
-              >
-                <>
-                  <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
-                </>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'red'} />
-                  <Typography variant='subtitle1'>Pending</Typography>
-                </Box>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
-                  <Typography variant='subtitle1'>In Progress</Typography>
-                </Box>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
-                  <Typography variant='subtitle1'>Completed</Typography>
-                </Box>
-              </Stack>
             </Stack>
 
             <Box
@@ -457,20 +430,45 @@ const ListOfRequest = () => {
                   <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{status?.total_requests}</span>
                 </Typography>
 
-                <Box sx={{ border: '1px solid', borderColor: 'red', borderRadius: '10px', p: 1 }}>
-                  <Typography sx={{ color: 'red', fontSize: '12px', fontWeight: 'bold' }}>
+                <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
                     Pending Test - {status?.total_tests_pending}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '10px', p: 1 }}>
-                  <Typography sx={{ color: '#00AEA4', fontSize: '12px', fontWeight: 'bold' }}>
+                <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#00AEA4', fontSize: '12px' }}>
                     Test in Progress - {status?.total_tests_inprogress}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '10px', p: 1 }}>
-                  <Typography sx={{ color: '#2A9D0D', fontSize: '12px', fontWeight: 'bold' }}>
+                <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
                     Completed Test - {status?.total_tests_completed}
                   </Typography>
+                </Box>
+              </Stack>
+            </Box>
+            {/* Status */}
+            <Box>
+              <Stack
+                direction={{ md: 'row', sm: 'row', sx: 'column' }}
+                spacing={4}
+                gap={2}
+                sx={{ alignItems: 'center', justifyContent: 'flex-end', m: 5 }}
+              >
+                <>
+                  <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
+                </>
+                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#E93353'} />
+                  <Typography variant='subtitle1'>Pending</Typography>
+                </Box>
+                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
+                  <Typography variant='subtitle1'>In Progress</Typography>
+                </Box>
+                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
+                  <Typography variant='subtitle1'>Completed</Typography>
                 </Box>
               </Stack>
             </Box>
@@ -485,19 +483,19 @@ const ListOfRequest = () => {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
+              // slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
+              // slotProps={{
+              //   baseButton: {
+              //     variant: 'outlined'
+              //   },
+              //   toolbar: {
+              //     value: searchValue,
+              //     clearSearch: () => handleSearch(''),
+              //     onChange: event => handleSearch(event.target.value)
+              //   }
+              // }}
             />
           </Card>
         </>

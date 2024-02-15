@@ -109,7 +109,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
           </LoadingButton>
         </div>
         <Grid container spacing={5} style={{ margin: '20px' }}>
-          <Grid item md={4} xs={12} sm={12}>
+          <Grid item md={6} xs={12} sm={12}>
             <Card>
               <CardHeader title='Upload Image' />
               <CardContent>
@@ -118,7 +118,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
             </Card>
           </Grid>
 
-          <Grid item md={4} xs={12} sm={12}>
+          {/* <Grid item md={4} xs={12} sm={12}>
             <Card>
               <CardHeader title='Document Upload' />
               <CardContent>
@@ -152,7 +152,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
                 )}
               </CardContent>
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </form>
     </div>
