@@ -189,6 +189,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/store/rackList'
   }
 
+  const nonExistingProductRequestList = {
+    title: 'New Product Request',
+    path: '/pharmacy/new-product-request/'
+  }
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -234,7 +239,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      requestListing,
+      returnListing,
+      directDispatchList,
+      nonExistingProductRequestList,
+      stockParent,
+      settingsParent
+    )
   }
 
   // debugger
