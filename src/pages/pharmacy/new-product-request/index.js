@@ -9,7 +9,8 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import DeleteIcon from '@mui/icons-material/Delete'
+
+// import DeleteIcon from '@mui/icons-material/Delete'
 
 import { Box, Button } from '@mui/material'
 
@@ -50,6 +51,7 @@ export default function NewProductList() {
         console.log('deleted Successfully', res)
       })
       .catch(err => console.log('err', err))
+
     return response
   }
 
@@ -129,7 +131,7 @@ export default function NewProductList() {
               handleDelete(params.row.id)
             }}
           >
-            <DeleteIcon />
+            {/* <DeleteIcon /> */}
           </IconButton>
         </Box>
       )

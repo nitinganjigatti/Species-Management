@@ -47,7 +47,8 @@ import { useRouter } from 'next/router'
 import { parseJSON } from 'date-fns'
 import { AddButton } from 'src/components/Buttons'
 import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/FileUploaderMultiple'
-import CardSnippet from 'src/components/card-snippet'
+
+// import CardSnippet from 'src/components/card-snippet'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
@@ -100,6 +101,7 @@ export default function AddProduct() {
   const handleFileChange = event => {
     debugger
     console.log('event ???', event)
+
     const newImages = Array.from(event).map(file => ({
       file
     }))
@@ -152,6 +154,7 @@ export default function AddProduct() {
 
       if (response) {
         setSuccessFulModal(true)
+
         // router.push('/pharmacy/new-product-request/')
         reset()
       } else {
@@ -159,6 +162,7 @@ export default function AddProduct() {
       }
     } catch (error) {
       setSuccessFulModal(false)
+
       // Handle the error as needed
       console.error('An error occurred:', error)
     }
@@ -239,7 +243,11 @@ export default function AddProduct() {
                       render={({ field }) => (
                         <Select {...field} label='Select From Store'>
                           {storeList?.list_items?.map(item => {
-                            return <MenuItem value={item.id}>{item.name}</MenuItem>
+                            return (
+                              <MenuItem key={item.id} value={item.id}>
+                                {item.name}
+                              </MenuItem>
+                            )
                           })}
                         </Select>
                       )}
@@ -260,9 +268,9 @@ export default function AddProduct() {
                         <TextField
                           {...field}
                           label='Comment'
-                          // name='comment'
                           multiline
                           rows={1}
+
                           // error={Boolean(errors.medicine_name)}
                         />
                       )}
@@ -307,7 +315,7 @@ export default function AddProduct() {
                     <TableBody>
                       {dataChildValues.map((item, index) => {
                         return (
-                          <TableRow>
+                          <TableRow key={index}>
                             <TableCell>
                               {item?.product_type && (
                                 <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -332,7 +340,7 @@ export default function AddProduct() {
                             <TableCell>
                               {JSON.parse(item?.salts)?.map((item, index) => {
                                 return (
-                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                  <Typography key={index} variant='body2' sx={{ color: 'text.primary' }}>
                                     {item.salt_id}
                                   </Typography>
                                 )
@@ -341,7 +349,7 @@ export default function AddProduct() {
                             <TableCell>
                               {JSON.parse(item?.salts)?.map((item, index) => {
                                 return (
-                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                  <Typography key={index} variant='body2' sx={{ color: 'text.primary' }}>
                                     {item.salt_qty}
                                   </Typography>
                                 )
