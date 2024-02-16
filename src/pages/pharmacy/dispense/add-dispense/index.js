@@ -35,6 +35,7 @@ function AddDispense() {
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
     const day = String(today.getDate()).padStart(2, '0')
+
     return `${year}-${month}-${day}`
   })
   const [users, setUsers] = useState([])
@@ -152,6 +153,7 @@ function AddDispense() {
   const showDialog = () => {
     setShowProductFormDialog(true)
   }
+
   const closeDialog = () => {
     setShowProductFormDialog(false)
     setEditMode(false)
@@ -170,6 +172,7 @@ function AddDispense() {
 
     if (rowData) {
       setEditMode(true)
+
       // Print or use the rowData as needed
       setDataForEditRow(rowData)
     } else {
@@ -181,9 +184,11 @@ function AddDispense() {
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
+
     // Remove the element at the specified index
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
+
     // Update the state with the modified array
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)
@@ -214,6 +219,7 @@ function AddDispense() {
       }
     })
   }
+
   return (
     <>
       <Card>

@@ -3,6 +3,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton } from 'src/components/Buttons'
@@ -45,6 +46,7 @@ function Dispense() {
         </Typography>
       )
     },
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -84,6 +86,7 @@ function Dispense() {
     async ({ sort, q, column }) => {
       try {
         setLoading(true)
+
         const params = {
           sort,
           q,
@@ -95,6 +98,7 @@ function Dispense() {
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
+
         // console.log('row', rows)
         setLoading(false)
       } catch (e) {
@@ -169,7 +173,6 @@ function Dispense() {
             paginationMode='server'
             pageSizeOptions={[7, 10, 25, 50]}
             paginationModel={paginationModel}
-            // onSortModelChange={handleSortModel}
             onPaginationModelChange={setPaginationModel}
             loading={loading}
             slotProps={{

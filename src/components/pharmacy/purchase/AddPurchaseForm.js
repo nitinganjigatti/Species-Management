@@ -470,6 +470,13 @@ const AddPurchaseForm = () => {
     }
   }
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
   const handlePurchaseSubmit = async () => {
     try {
       const errors = await trigger()
@@ -848,180 +855,140 @@ const AddPurchaseForm = () => {
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
-          <Grid container spacing={5}>
+          <Grid container spacing={6}>
+            {/* <Grid item xs={12} sm={6}> */}
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Supplier :
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
-                  <Controller
-                    name='supplier_id'
-                    control={control}
-                    rules={{ required: true }}
-                    defaultValue=''
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        // name='supplier_id'
-                        // value={value}
-                        // onChange={(e, val) => {
-                        //   onChange(e.target.value)
-                        // }}
-                        label='Supplier*'
-                        disabled={!!id}
-                        error={Boolean(errors.supplier_id)}
-                      >
-                        {suppliers?.map(item => (
-                          <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                            {item.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='po_no'
-                    control={control}
-                    rules={{ required: true }}
-                    defaultValue=''
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        type='text'
-                        name='po_no'
-                        disabled={id ? true : false}
-                        error={Boolean(errors.po_no)}
-                        label='Purchase Invoice Number*'
-                      />
-                    )}
-                  />
-                  {errors.po_no && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
+                <Controller
+                  name='supplier_id'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      // name='supplier_id'
+                      // value={value}
+                      // onChange={(e, val) => {
+                      //   onChange(e.target.value)
+                      // }}
+                      label='Supplier*'
+                      disabled={!!id}
+                      error={Boolean(errors.supplier_id)}
+                    >
+                      {suppliers?.map(item => (
+                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
+                          {item.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
                   )}
-                </FormControl>
-              </Grid>
+                />
+                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
+              </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              {/* <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Store:
-                  </Typography>
-                </Grid>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.store_id)}>Stores*</InputLabel>
-
-                  <Select
-                    error={Boolean(errors.store_id)}
-                    value={editParams.store_id}
-                    label='Select'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      getStoreType(e.target.value)
-                      setErrors({})
-                    }}
-                  >
-                    {stores?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='po_date'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <SingleDatePicker
+                      name='Purchase Date*'
+                      fullWidth
+                      date={value ? parseFormattedDate(value) : null}
+                      width={'100%'}
+                      onChangeHandler={date => {
+                        let formatted = formatDate(date)
+                        onChange(formatted)
+                      }}
+                      customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
+                    />
                   )}
-                </FormControl>
-              </Grid> */}
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mt: 10, mb: 5 }}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='po_date'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { onChange, value } }) => (
-                      <SingleDatePicker
-                        name='Purchase Date*'
-                        fullWidth
-                        date={value ? parseFormattedDate(value) : null}
-                        width={'100%'}
-                        onChangeHandler={date => {
-                          let formatted = formatDate(date)
-                          onChange(formatted)
-                        }}
-                        customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
-                      />
-                    )}
-                  />
-                  {errors.po_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      {errors.po_date.message}
-                    </FormHelperText>
+                />
+                {errors.po_date && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {errors.po_date.message}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='po_no'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='po_no'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.po_no)}
+                      label='Purchase Invoice Number*'
+                    />
                   )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='description'
-                    control={control}
-                    defaultValue=''
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label='Comment'
-                        // onChange={e => {
-                        //   setEditParams({
-                        //     ...editParams,
-                        //     description: e.target.value
-                        //   })
-                        //   setErrors({})
-                        // }}
-                      />
-                    )}
-                  />
-                  {errors.description && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
+                />
+                {errors.po_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {errors.po_no.message}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto', mb: 5 }}>
+              <FormControl fullWidth>
+                <Controller
+                  name='description'
+                  control={control}
+                  defaultValue=''
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label='Comment'
+                      // onChange={e => {
+                      //   setEditParams({
+                      //     ...editParams,
+                      //     description: e.target.value
+                      //   })
+                      //   setErrors({})
+                      // }}
+                    />
                   )}
-                </FormControl>
-              </Grid>
+                />
+                {errors.description && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
             </Grid>
           </Grid>
         </CardContent>
-        <Grid
-          container
-          spacing={2}
-          sm={12}
-          xs={12}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            mb: 4
-          }}
-        >
-          <AddButton
-            title='Add Inventory Item'
-            action={() => {
-              handlePurchaseSubmit()
+        <Grid container spacing={6} sm={12} xs={12}>
+          <Grid
+            item
+            sm={12}
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              mb: 4
             }}
-          />
+          >
+            <AddButton
+              title='Add Inventory Item'
+              action={() => {
+                handlePurchaseSubmit()
+              }}
+            />
+          </Grid>
         </Grid>
 
         <TableContainer>

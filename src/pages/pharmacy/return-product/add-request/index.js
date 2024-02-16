@@ -596,13 +596,13 @@ const AddReturnRequest = () => {
                   icon='ep:back'
                 />
               }
-              title='Return Request Item'
+              title='Add Return Request'
             />
           </Grid>
           <CardContent>
             <Grid container>
               <CommonDialogBox
-                title={'Add Request Item'}
+                title={'Add Return Item'}
                 dialogBoxStatus={show}
                 formComponent={createForm()}
                 close={closeDialog}
@@ -702,7 +702,7 @@ const AddReturnRequest = () => {
             }}
           >
             <AddButton
-              title='Add Request Item'
+              title='Add Return Item'
               action={() => {
                 handleSubmit()
               }}

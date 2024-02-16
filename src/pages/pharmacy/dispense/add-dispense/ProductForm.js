@@ -57,6 +57,7 @@ function ProductForm({
               const duplicate = productArray.some(
                 item => item.batch_no === value && item?.stock_id === watch('stock_id')?.value
               )
+
               return !duplicate
             })
             .required('batch No. is required')
@@ -66,6 +67,7 @@ function ProductForm({
                 (item, index) =>
                   index !== selectedIndex && item.batch_no === value && item.stock_id === watch('stock_id')?.value
               )
+
               return !duplicate
             })
             .required('batch No. is required')
@@ -79,12 +81,16 @@ function ProductForm({
             const { batch_no } = this.parent // Accessing form values
             // Find all rows in productArray with matching batch_no
             const matchingRows = productArrayUi.filter(item => item.batch_no?.value === batch_no?.value)
+
             // Calculate the sum of quantities in matching rows
             const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+
             // // Calculate the remaining quantity
             const remainingQuantity = totalProductQty - sumOfQuantities
+
             // Check if the current value exceeds the remaining quantity
             setAddedProductQty(remainingQuantity)
+
             return value <= remainingQuantity
           })
       : Yup.number()
@@ -95,12 +101,16 @@ function ProductForm({
             const { batch_no } = this.parent // Accessing form values
             // Find all rows in productArray with matching batch_no
             const matchingRows = productArrayUi.filter(item => item.batch_no?.value === batch_no?.value)
+
             // Calculate the sum of quantities in matching rows
             const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+
             // // Calculate the remaining quantity
             const remainingQuantity = totalProductQty - sumOfQuantities + productArrayUi[selectedIndex].qty
+
             // Check if the current value exceeds the remaining quantity
             setAddedProductQty(remainingQuantity)
+
             return value <= remainingQuantity
           })
   })
@@ -142,6 +152,7 @@ function ProductForm({
         qty: data.product_quantity
       }
     ])
+
     // Close the dialog or reset the form
     setTotalProductQty(0)
     reset(defaultProductDetails)
@@ -164,6 +175,7 @@ function ProductForm({
         batch_no: data.batch_no?.value,
         qty: data.product_quantity
       }
+
       // Update the data at the found index
       updatedProductArrayUi[indexToReplace] = {
         stock_id: data.stock_id,
@@ -296,7 +308,9 @@ function ProductForm({
                       value={field?.value}
                       options={batches_s}
                       getOptionLabel={option => option?.label || ''}
-                      renderInput={params => <TextField {...params} label='Bathes*' error={Boolean(errors.batch_no)} />}
+                      renderInput={params => (
+                        <TextField {...params} label='Batch No*' error={Boolean(errors.batch_no)} />
+                      )}
                       onChange={(event, newValue) => {
                         field.onChange(newValue)
                         setTotalProductQty(newValue?.qty)
