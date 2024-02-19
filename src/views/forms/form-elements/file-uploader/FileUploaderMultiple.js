@@ -92,17 +92,18 @@ const FileUploaderMultiple = () => {
     <Fragment>
       <div {...getRootProps({ className: 'dropzone' })}>
         <input {...getInputProps()} />
-
-        <Img width={300} alt='Upload img' src='/images/misc/upload.png' />
-        <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
-          <HeadingTypography variant='h5'>Drop files here or click to upload.</HeadingTypography>
-          <Typography color='textSecondary' sx={{ '& a': { color: 'primary.main', textDecoration: 'none' } }}>
-            Drop files here or click{' '}
-            <Link href='/' onClick={e => e.preventDefault()}>
-              browse
-            </Link>{' '}
-            thorough your machine
-          </Typography>
+        <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
+          <Img width={300} alt='Upload img' src='/images/misc/upload.png' />
+          <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
+            <HeadingTypography variant='h5'>Drop files here or click to upload.</HeadingTypography>
+            <Typography color='textSecondary' sx={{ '& a': { color: 'primary.main', textDecoration: 'none' } }}>
+              Drop files here or click{' '}
+              <Link href='/' onClick={e => e.preventDefault()}>
+                browse
+              </Link>{' '}
+              thorough your machine
+            </Typography>
+          </Box>
         </Box>
       </div>
       {files.length ? (

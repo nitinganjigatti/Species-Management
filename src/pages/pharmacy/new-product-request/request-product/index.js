@@ -48,7 +48,8 @@ import { parseJSON } from 'date-fns'
 import { AddButton } from 'src/components/Buttons'
 import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/FileUploaderMultiple'
 
-// import CardSnippet from 'src/components/card-snippet'
+// ** Styled Component
+import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
@@ -389,7 +390,9 @@ export default function AddProduct() {
                 <Card>
                   <CardHeader title='Upload Product Picture' />
                   <CardContent>
-                    <FileUploaderMultiple />
+                    <DropzoneWrapper>
+                      <FileUploaderMultiple />
+                    </DropzoneWrapper>
                     {/* <Box>
                       <Icon icon='material-symbols-light:close' onClick={() => removeselectedImage(index)}>
                         {' '}
@@ -483,7 +486,6 @@ export default function AddProduct() {
               </Grid>
             </CardContent>
           )}
-          <FileUploaderMultiple />
         </Card>
       </Grid>
     </Grid>
