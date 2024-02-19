@@ -6,7 +6,7 @@ on:
       - dev-release
       # - prod-release
       - staging-release
-      - release/vantara
+      # - release/vantara
 env:
   SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
   DEPLOY_SERVER_DEV: ${{vars.DEPLOY_SERVER_DEV}}

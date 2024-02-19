@@ -54,9 +54,9 @@ then
 elif [ $ENV_TO_LOAD == 'staging' ]
 then
   cp -r env.staging .env
-elif [ $ENV_TO_LOAD == 'vantara-prod' ]
-then
-  cp -r env.jn .env
+# elif [ $ENV_TO_LOAD == 'vantara-prod' ]
+# then
+#   cp -r env.jn .env
 elif [ $ENV_TO_LOAD == 'production' ]
 then
   cp -r env.production .env
