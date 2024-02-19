@@ -504,10 +504,10 @@ const RequestDetails = () => {
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
-                    <Typography>
+                    {/* <Typography>
                       No. of Samples :{' '}
                       <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_sample}</span>
-                    </Typography>
+                    </Typography> */}
                   </Stack>
 
                   <Typography>
