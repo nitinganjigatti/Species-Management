@@ -1,16 +1,16 @@
 const composeLabNavigation = () => {
   const labTitle = {
-    sectionTitle: 'Actions'
+    sectionTitle: 'Lab'
   }
 
   const lab = {
-    title: 'Lab',
+    title: 'My Lab',
     path: '/lab/lab-list',
     icon: 'icon-park-outline:traditional-chinese-medicine'
   }
 
   const request = {
-    title: 'Request',
+    title: 'Lab Request',
     path: '/lab/request',
     icon: 'solar:clipboard-list-line-duotone'
   }

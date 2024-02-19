@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase',
+    title: 'Inventory',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
@@ -189,6 +189,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/store/rackList'
   }
 
+  const dispense = {
+    title: 'Dispense',
+    path: '/pharmacy/dispense',
+    icon: 'bi:boxes'
+  }
+
+  const addDispense = {
+    title: 'Dispense List',
+    path: '/pharmacy/dispense/add-dispense'
+  }
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -218,10 +229,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      purchaseList,
       requestListing,
       returnListing,
       directDispatchList,
-      purchaseList,
       stockParent,
       productsList,
       settingsParent
@@ -234,7 +245,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      requestListing,
+      returnListing,
+      directDispatchList,
+      dispense,
+      stockParent,
+      settingsParent
+    )
   }
 
   // debugger
