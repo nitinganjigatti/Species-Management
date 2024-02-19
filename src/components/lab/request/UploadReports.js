@@ -21,7 +21,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
   const defaultValues = {}
 
   const schema = yup.object().shape({
-    document: yup.mixed().required('Please upload a document')
+    // document: yup.mixed().required('Please upload a document')
   })
 
   const {
@@ -103,13 +103,8 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={{ textAlign: 'right', margin: '10px' }}>
-          <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
-            Upload Reports
-          </LoadingButton>
-        </div>
-        <Grid container spacing={5} style={{ margin: '20px' }}>
-          <Grid item md={6} xs={12} sm={12}>
+        <Grid container>
+          <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
             <Card>
               <CardHeader title='Upload Image' />
               <CardContent>
@@ -154,6 +149,14 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
             </Card>
           </Grid> */}
         </Grid>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px', gap: 10, marginRight: 15 }}>
+          <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
+            Upload
+          </LoadingButton>
+          <LoadingButton onClick={() => setFiles([])} type='submit' variant='outlined'>
+            Reset
+          </LoadingButton>
+        </div>
       </form>
     </div>
   )

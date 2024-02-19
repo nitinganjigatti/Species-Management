@@ -256,7 +256,7 @@ const ListOfRequest = () => {
     } else {
       const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
       console.log('lab[0]?.lab_id', data)
-      // setSelectedLab(data)
+      setSelectedLab(data)
       const params = {
         sort,
         q: searchValue,
