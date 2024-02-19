@@ -181,9 +181,11 @@ function AddDispense() {
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
+
     // Remove the element at the specified index
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
+
     // Update the state with the modified array
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)

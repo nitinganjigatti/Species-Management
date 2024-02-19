@@ -771,8 +771,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>The selected quantity is greater than the quantity requested</StyledErrorText>
                   </div>
                 ) : null}
-
-                {totalProductCount <= checkNumber(fulfilledQuantity) ? (
+                {console.log('totalProductCount', totalProductCount)}
+                {totalProductCount < checkNumber(fulfilledQuantity) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
                   </div>

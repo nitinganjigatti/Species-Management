@@ -535,7 +535,6 @@ const AddMedicine = () => {
       setShouldClearFields(null)
       setDefaultManufacturer(null)
       setDefaultGenericName(null)
-      setDefaultGenericName(null)
       setPackageQuantity('')
 
       setManufacturers([])

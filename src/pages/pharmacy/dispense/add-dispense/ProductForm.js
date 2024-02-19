@@ -79,12 +79,16 @@ function ProductForm({
             const { batch_no } = this.parent // Accessing form values
             // Find all rows in productArray with matching batch_no
             const matchingRows = productArrayUi.filter(item => item.batch_no?.value === batch_no?.value)
+
             // Calculate the sum of quantities in matching rows
             const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+
             // // Calculate the remaining quantity
             const remainingQuantity = totalProductQty - sumOfQuantities
+
             // Check if the current value exceeds the remaining quantity
             setAddedProductQty(remainingQuantity)
+
             return value <= remainingQuantity
           })
       : Yup.number()
@@ -95,12 +99,16 @@ function ProductForm({
             const { batch_no } = this.parent // Accessing form values
             // Find all rows in productArray with matching batch_no
             const matchingRows = productArrayUi.filter(item => item.batch_no?.value === batch_no?.value)
+
             // Calculate the sum of quantities in matching rows
             const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+
             // // Calculate the remaining quantity
             const remainingQuantity = totalProductQty - sumOfQuantities + productArrayUi[selectedIndex].qty
+
             // Check if the current value exceeds the remaining quantity
             setAddedProductQty(remainingQuantity)
+
             return value <= remainingQuantity
           })
   })
@@ -296,7 +304,9 @@ function ProductForm({
                       value={field?.value}
                       options={batches_s}
                       getOptionLabel={option => option?.label || ''}
-                      renderInput={params => <TextField {...params} label='Bathes*' error={Boolean(errors.batch_no)} />}
+                      renderInput={params => (
+                        <TextField {...params} label='Batch No*' error={Boolean(errors.batch_no)} />
+                      )}
                       onChange={(event, newValue) => {
                         field.onChange(newValue)
                         setTotalProductQty(newValue?.qty)
