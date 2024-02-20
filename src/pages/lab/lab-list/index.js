@@ -46,11 +46,12 @@ const ListOfLab = () => {
     setShow(true)
   }
 
-  const handleEdit = async id => {
-    Router.push({
-      pathname: '/pharmacy/settings/labs/lab-list',
-      query: { id: id, action: 'edit' }
-    })
+  const handleEdit = async params => {
+    console.log('params Lab', params)
+    // Router.push({
+    //   pathname: '/lab/add-Lab',
+    //   query: { id: id, action: 'edit' }
+    // })
   }
 
   const columns = [
@@ -71,7 +72,7 @@ const ListOfLab = () => {
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {params.row.lab_name}
         </Typography>
       )
@@ -83,7 +84,7 @@ const ListOfLab = () => {
       field: 'type',
       headerName: 'Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           <span alt={params.row.type}>{params.row.type}</span>
         </Typography>
       )
@@ -124,35 +125,35 @@ const ListOfLab = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Lab Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'image',
+    //   headerName: 'IMAGE',
+    //   renderCell: params => (
+    //     <Badge
+    //       sx={{ ml: 2, cursor: 'pointer' }}
+    //       anchorOrigin={{
+    //         vertical: 'bottom',
+    //         horizontal: 'right'
+    //       }}
+    //     >
+    //       <Avatar
+    //         variant='square'
+    //         alt='Lab Image'
+    //         sx={{ width: 40, height: 40 }}
+    //         src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+    //       />
+    //     </Badge>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
@@ -165,7 +166,7 @@ const ListOfLab = () => {
 
       renderCell: params => (
         <Box>
-          <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+          <IconButton size='small' onClick={() => handleEdit(params)} aria-label='Edit'>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
           {/* <IconButton
@@ -255,6 +256,7 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    console.log('SearchValue', value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 

@@ -6,7 +6,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const inventoryParent = {
-    title: 'Inventory',
+    title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
     icon: 'material-symbols:inventory-2-outline',
     children: []
@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Inventory',
+    title: 'Purchase Invoice',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
@@ -229,11 +229,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      stockParent,
       purchaseList,
       requestListing,
       returnListing,
       directDispatchList,
-      stockParent,
+
       productsList,
       settingsParent
     )
