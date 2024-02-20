@@ -92,6 +92,7 @@ const RequestDetails = () => {
 
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  console.log('rows', rows)
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -224,6 +225,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.test_name}
+          {console.log('params?.row?.test_name', params)}
         </Typography>
       )
     },
@@ -357,8 +359,7 @@ const RequestDetails = () => {
     handleClosePopover()
   }
 
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-  const getSlNo = index => index + 1
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
@@ -453,30 +454,33 @@ const RequestDetails = () => {
       ) : (
         <>
           <Card sx={{ p: 5 }}>
-            <IconButton
-              sx={{ mr: 1 }}
-              onClick={() =>
-                router.push({
-                  pathname: '/lab/request'
-                })
-              }
-            >
-              <Icon icon='ep:back' fontSize={25} color={'#37BD69'} />
-            </IconButton>
-
             {request?.map((item, index) => (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <Box>
-                    <Typography variant='h6'>
-                      Request -{' '}
-                      <span
-                        onClick={() => handleClickOpen(item)}
-                        style={{ color: '#37BD69', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {' '}
+                      <IconButton
+                        sx={{ mr: 1 }}
+                        onClick={() =>
+                          router.push({
+                            pathname: '/lab/request'
+                          })
+                        }
                       >
-                        {item?.request_id}
-                      </span>
-                    </Typography>
+                        <Icon icon='ep:back' fontSize={25} />
+                      </IconButton>
+                      <Typography variant='h6'>
+                        Request -{' '}
+                        <span
+                          onClick={() => handleClickOpen(item)}
+                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          {item?.request_id}
+                        </span>
+                      </Typography>
+                    </Box>
+
                     <Typography> {Utility.formatDate(item?.created_at)}</Typography>
                   </Box>
                   <Box gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -528,8 +532,8 @@ const RequestDetails = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              paginationMode='server'
-              getRowId={row => row?.sample_id}
+              // paginationMode='server'
+              getRowId={row => row?.test_id}
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}

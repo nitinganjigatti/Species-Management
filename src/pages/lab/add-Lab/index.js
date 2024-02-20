@@ -24,7 +24,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  FormControlLabel
+  FormControlLabel,
+  Button
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
@@ -52,6 +53,7 @@ const AddLab = () => {
   const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
+  const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
 
   // for handle reset form
 
@@ -125,7 +127,7 @@ const AddLab = () => {
     lab_name: '',
     type: '',
     incharge_name: '',
-    lab_address: '',
+    address: '',
     lab_contact_number: '',
     latitude: latitude,
     longitude: longitude,
@@ -169,8 +171,16 @@ const AddLab = () => {
   const handleSubmitData = async () => {
     try {
       const errors = await trigger()
-      if (errors) {
+      const isLabTestsEmpty = dataToUpdate.every(sample => sample.tests.length === 0)
+
+      if (errors || isLabTestsEmpty) {
         handleSubmit(onSubmit)()
+        if (isLabTestsEmpty) {
+          setLabTestsEmpty(true)
+          console.error('Lab tests are required')
+        } else {
+          setLabTestsEmpty(false)
+        }
       } else {
         scrollToTop()
       }
@@ -182,9 +192,9 @@ const AddLab = () => {
   }
 
   const onSubmit = async params => {
-    setSubmitLoader(true)
+    // setSubmitLoader(true)
 
-    const { lab_name, type, incharge_name, lab_address, lab_contact_number, tests, is_default } = {
+    const { lab_name, type, incharge_name, address, lab_contact_number, tests, is_default } = {
       ...params
     }
     const { latitude, longitude } = getValues()
@@ -193,11 +203,11 @@ const AddLab = () => {
       lab_name,
       type,
       incharge_name,
-      lab_address,
+      address,
       lab_contact_number,
-      latitude,
-      longitude,
-      tests: dataToUpdate,
+      latitudes: latitude,
+      longitudes: longitude,
+      lab: dataToUpdate,
       is_default,
       user_id: '58'
     }
@@ -209,13 +219,11 @@ const AddLab = () => {
 
     console.log('payload', payload)
 
-    const res = await addLabToList(payload).then(res => {
-      if (res) {
-        setSubmitLoader(false)
-        reset(defaultValues)
-        Router.push('/lab/lab-list')
-      }
-    })
+    // const res = await addLabToList(payload).then(res => {
+    //   setSubmitLoader(false)
+    //   reset(defaultValues)
+    //   Router.push('/lab/lab-list')
+    // })
   }
 
   const handleOpen = () => {
@@ -472,6 +480,7 @@ const AddLab = () => {
     }, [])
 
     setDataToUpdate(updatedData)
+    setLabTestsEmpty(false)
   }, [TestData])
 
   // deleing the data from ui
@@ -588,22 +597,22 @@ const AddLab = () => {
                       <Grid item xs={12} md={6} sm={6}>
                         <FormControl fullWidth>
                           <Controller
-                            name='lab_address'
+                            name='address'
                             control={control}
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 value={value}
                                 label='Lab Address*'
-                                name='lab_address'
-                                error={Boolean(errors.lab_address)}
+                                name='address'
+                                error={Boolean(errors.address)}
                                 onChange={onChange}
                                 placeholder=''
                               />
                             )}
                           />
-                          {errors.lab_address && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.lab_address?.message}</FormHelperText>
+                          {errors.address && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.address?.message}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -706,6 +715,11 @@ const AddLab = () => {
                               </Box>
                             </Box>
                           ))}
+                          {labTestsEmpty ? (
+                            <Typography variant='subtitle1' sx={{ color: 'red', m: 2 }}>
+                              Lab test is
+                            </Typography>
+                          ) : null}
                         </Card>
                       </Grid>
 
@@ -805,101 +819,118 @@ const AddLab = () => {
         </>
       )}
       <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
+        <div>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              backgroundColor: 'background.default',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255)
+            }}
+          >
+            <Typography variant='h6'>Add Labs</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            </Box>
+          </Box>
+
+          {/* drower */}
+          <Stack sx={{ p: 5 }} spacing={3}>
+            {TestData?.map((sample, index) => (
+              <>
+                <Stack
+                  key={index}
+                  direction='row'
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <Typography variant='h6'>{sample?.sample_name}</Typography>
+                  <Typography sx={{ alignItems: 'center', display: 'flex' }}>
+                    Select All
+                    <Switch onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)} />
+                  </Typography>
+                </Stack>
+
+                {sample?.tests?.map((parent, index) =>
+                  parent?.child_tests?.length > 0 ? (
+                    <>
+                      <Card mt={2}>
+                        <Accordion>
+                          <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                            <Typography variant='h6'>{parent?.test_name}</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <Stack
+                              direction='row'
+                              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            >
+                              <Typography>Full Test</Typography>
+                              <Switch
+                                checked={parent?.full_test}
+                                onChange={(e, v) => {
+                                  handleParentSwitch(sample, parent, v)
+                                }}
+                              />
+                            </Stack>
+                            {parent?.child_tests?.map((child, id) => {
+                              return (
+                                <Stack
+                                  direction='row'
+                                  key={child?.test_id}
+                                  sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                                >
+                                  <Typography>{child?.test_name}</Typography>
+                                  <Checkbox
+                                    checked={child?.value}
+                                    onClick={(e, v) => {
+                                      handleCheckBox(sample, parent, child, e.target.checked)
+                                    }}
+                                  />
+                                </Stack>
+                              )
+                            })}
+                          </AccordionDetails>
+                        </Accordion>
+                      </Card>
+                    </>
+                  ) : (
+                    <Card>
+                      <Stack
+                        direction='row'
+                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
+                      >
+                        <Typography variant='h6' ml={4}>
+                          {parent?.test_name}
+                        </Typography>
+                        <Checkbox
+                          checked={parent?.full_test}
+                          onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
+                        />
+                      </Stack>
+                    </Card>
+                  )
+                )}
+              </>
+            ))}
+          </Stack>
+        </div>
         <Box
-          className='sidebar-header'
           sx={{
+            position: 'fixed',
+            bottom: 16,
+            left: '80%',
+            transform: 'translateX(-50%)',
             display: 'flex',
-            justifyContent: 'space-between',
-            backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+            justifyContent: 'center',
+            textAlign: 'center'
           }}
         >
-          <Typography variant='h6'>Add Labs</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Box>
+          <Button variant='contained' color='primary' onClick={handleClose}>
+            Add Lab Tests
+          </Button>
         </Box>
-
-        {/* drower */}
-        <Stack sx={{ p: 5 }} spacing={3}>
-          {TestData?.map((sample, index) => (
-            <>
-              <Stack
-                key={index}
-                direction='row'
-                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <Typography variant='h6'>{sample?.sample_name}</Typography>
-                <Typography sx={{ alignItems: 'center', display: 'flex' }}>
-                  Select All
-                  <Switch onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)} />
-                </Typography>
-              </Stack>
-
-              {sample?.tests?.map((parent, index) =>
-                parent?.child_tests?.length > 0 ? (
-                  <>
-                    <Card mt={2}>
-                      <Accordion>
-                        <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
-                          <Typography variant='h6'>{parent?.test_name}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                          <Stack
-                            direction='row'
-                            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                          >
-                            <Typography>Full Test</Typography>
-                            <Switch
-                              checked={parent?.full_test}
-                              onChange={(e, v) => {
-                                handleParentSwitch(sample, parent, v)
-                              }}
-                            />
-                          </Stack>
-                          {parent?.child_tests?.map((child, id) => {
-                            return (
-                              <Stack
-                                direction='row'
-                                key={child?.test_id}
-                                sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
-                              >
-                                <Typography>{child?.test_name}</Typography>
-                                <Checkbox
-                                  checked={child?.value}
-                                  onClick={(e, v) => {
-                                    handleCheckBox(sample, parent, child, e.target.checked)
-                                  }}
-                                />
-                              </Stack>
-                            )
-                          })}
-                        </AccordionDetails>
-                      </Accordion>
-                    </Card>
-                  </>
-                ) : (
-                  <Card>
-                    <Stack
-                      direction='row'
-                      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
-                    >
-                      <Typography variant='h6' ml={4}>
-                        {parent?.test_name}
-                      </Typography>
-                      <Checkbox
-                        checked={parent?.full_test}
-                        onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
-                      />
-                    </Stack>
-                  </Card>
-                )
-              )}
-            </>
-          ))}
-        </Stack>
       </Drawer>
     </>
   )
