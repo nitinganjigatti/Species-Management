@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -43,6 +43,7 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 const FileUploaderMultiple = () => {
   // ** State
   const [files, setFiles] = useState([])
+  const [openBox, setOpenBox] = useState(false)
 
   // ** Hooks
   const { getRootProps, getInputProps } = useDropzone({
@@ -52,7 +53,7 @@ const FileUploaderMultiple = () => {
   })
 
   const renderFilePreview = file => {
-    if (file.type.startsWith('image')) {
+    if (file?.type?.startsWith('image')) {
       return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
     } else {
       return <Icon icon='mdi:file-document-outline' />
@@ -88,10 +89,25 @@ const FileUploaderMultiple = () => {
     setFiles([])
   }
 
+  const openFileDialog = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleMultipleFiles = file => {
+    debugger
+    const { files } = file.target
+    console.log('files??', files)
+    // setFiles(acceptedFiles.map(file => Object.assign(file)))
+    setFiles([...files, files])
+  }
+  const fileInputRef = useRef(null)
   return (
     <Fragment>
       <div {...getRootProps({ className: 'dropzone' })}>
         <input {...getInputProps()} />
+
         <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
             <HeadingTypography variant='h5'>Drop files here or click to upload.</HeadingTypography>
@@ -104,7 +120,16 @@ const FileUploaderMultiple = () => {
             </Typography>
           </Box>
         </Box>
+
+        <input
+          type='file'
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          multiple
+          onChange={e => handleMultipleFiles(e)}
+        />
       </div>
+
       {files.length ? (
         <Fragment>
           <List>{fileList}</List>
@@ -112,7 +137,9 @@ const FileUploaderMultiple = () => {
             <Button color='error' variant='outlined' onClick={handleRemoveAllFiles}>
               Remove All
             </Button>
-            <Button variant='contained'>Upload Files</Button>
+            <Button variant='contained' onClick={openFileDialog}>
+              Upload Files
+            </Button>
           </div>
         </Fragment>
       ) : null}
