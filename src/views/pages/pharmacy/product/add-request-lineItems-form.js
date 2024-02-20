@@ -38,11 +38,14 @@ const defaultValues = {
   status: 'Pending'
 }
 
+const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+
 const schema = yup.object().shape({
   product_type: yup.string().required('select product type'),
   product_name: yup.string().required('product name is required'),
   generic_name: yup.string().required('generic name is required'),
   quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
+
   // salts: yup.array().of(
   //   yup.object().shape({
   //     salt_id: yup.string().required('salt name is required'),
@@ -92,6 +95,7 @@ export const AddRequestLineItemsForm = ({
   const onSubmit = data => {
     console.log('data Values??', data)
     const saltValues = data.salts
+
     const filterSaltValues = saltValues?.map(item => ({
       salt_id: item.salt_id,
       salt_qty: item.salt_qty
@@ -104,26 +108,32 @@ export const AddRequestLineItemsForm = ({
   }
 
   useEffect(() => {
-    reset({
-      product_type: editValues.product_type,
-      product_name: editValues.product_name,
-      generic_name: editValues.generic_name,
-      priority: editValues.priority,
-      quantity: editValues.quantity,
-      product_image: editValues?.product_image,
-      salts: editValues?.salts ? JSON.parse(editValues?.salts) : null
-    })
-  }, [editValues])
+    debugger
+    if (editValues) {
+      reset({
+        product_type: editValues.product_type,
+        product_name: editValues.product_name,
+        generic_name: editValues.generic_name,
+        priority: editValues.priority,
+        quantity: editValues.quantity,
+        product_image:
+          editValues?.product_image !== '' && typeof editValues?.product_image === 'string'
+            ? `${base_url}${imgBaseUrl}${editValues?.product_image}`
+            : editValues?.product_image,
+        salts: editValues?.salts ? JSON.parse(editValues?.salts) : null
+      })
 
-  useEffect(() => {
-    let constructedPath = ''
-    if (imgBaseUrl) {
-      constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
+      // let constructedPath = ''
+      // if (imgBaseUrl) {
+      //   constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
+      // }
+      setImgSrc(
+        editValues?.product_image !== '' && typeof editValues?.product_image === 'string'
+          ? `${base_url}${imgBaseUrl}${editValues?.product_image}`
+          : editValues?.product_image
+      )
     }
-    setImgSrc(constructedPath)
-  }, [imgBaseUrl])
-
-  console.log('img RC ????', imgSrc)
+  }, [])
 
   const handleInputImageChange = file => {
     const reader = new FileReader()
@@ -216,13 +226,14 @@ export const AddRequestLineItemsForm = ({
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
   }
+
   const removeselectedImage = index => {
     setImgSrc('')
-    setResponseImage('')
-    SetImgBaseUrl('')
+    setValue('product_image', '')
   }
 
   const fileInputRef = useRef(null)
+
   return (
     <>
       {/* <CardContent> */}
@@ -312,7 +323,6 @@ export const AddRequestLineItemsForm = ({
                     label='Quantity'
                     name='quantity'
                     type='number'
-                    // error={Boolean(errors.medicine_name)}
                     onChange={onChange}
                     placeholder='quantity'
                   />
@@ -365,7 +375,7 @@ export const AddRequestLineItemsForm = ({
               name='product_image'
               ref={fileInputRef}
             />
-            {!imgSrc && (
+            {imgSrc === '' && (
               <Button
                 sx={{ width: '50px', height: '50px', borderRadius: '10px' }}
                 fullWidth
@@ -377,19 +387,17 @@ export const AddRequestLineItemsForm = ({
               </Button>
             )}
 
-            {/* {imgSrc && (
+            {console.log('type of', typeof imgSrc)}
+
+            {imgSrc !== '' && (
               <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                 <Box>
                   <img
                     width={60}
                     height={60}
-                    src={
-                      typeof imgSrc === 'string' ? (
-                        <img src={`https://app.antzsystems.com${imgBaseUrl}/${responseImage}`} />
-                      ) : (
-                        <img src={imgSrc} />
-                      )
-                    }
+                    alt='
+                    Uploaded image'
+                    src={typeof imgSrc === 'string' ? imgSrc : URL.createObjectURL(imgSrc)}
                   />
                 </Box>
                 <Box>
@@ -398,7 +406,7 @@ export const AddRequestLineItemsForm = ({
                   </Icon>
                 </Box>
               </Box>
-            )} */}
+            )}
 
             {/* </Box> */}
           </Grid>
@@ -482,6 +490,7 @@ export const AddRequestLineItemsForm = ({
               <Button
                 type='submit'
                 variant='contained'
+
                 // onClick={() => {
                 //   handleUpdate(editValues, editIndex)
                 // }}

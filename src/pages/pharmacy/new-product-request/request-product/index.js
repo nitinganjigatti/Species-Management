@@ -475,7 +475,7 @@ export default function AddProduct() {
             <CardContent>
               <Grid container>
                 <CommonDialogBox
-                  title={'Add Request LineItems'}
+                  title={'Add Request Item'}
                   dialogBoxStatus={show}
                   formComponent={
                     <AddRequestLineItemsForm

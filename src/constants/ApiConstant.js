@@ -38,7 +38,7 @@ export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
 
-export const MEDICINE_STOCK = 'nonexisting-stock'
+export const MEDICINES_STOCK = 'nonexisting-stock'
 
 export const SHIPMENT = 'shipment'
 
