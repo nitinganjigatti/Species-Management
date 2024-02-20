@@ -53,6 +53,7 @@ const AddLab = () => {
   const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
+  const [showLabTests, setShowLabTests] = useState()
   // console.log('dataToUpdate', dataToUpdate)
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
 
@@ -234,6 +235,7 @@ const AddLab = () => {
 
   const handleClose = () => {
     setOpen(false)
+    setShowLabTests([])
   }
 
   // Add Test
@@ -505,6 +507,12 @@ const AddLab = () => {
     })
   }
 
+  // showing test on click add lab button
+  const hanldeAddLabTests = () => {
+    setOpen(false)
+    setShowLabTests(dataToUpdate)
+  }
+
   return (
     <>
       {loader ? (
@@ -683,10 +691,12 @@ const AddLab = () => {
                               </Typography>
                             </Box>
 
-                            {dataToUpdate.map((sample, sampleId) => (
-                              <Box sx={{ p: 1 }}>
+                            {showLabTests?.map((sample, sampleId) => (
+                              <Box sx={{ p: 1, mt: 2 }}>
                                 <Box>
-                                  {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
+                                  {sample?.tests?.length > 0 ? (
+                                    <Typography sx={{ mb: 1 }}>{sample?.sample_name}</Typography>
+                                  ) : null}
 
                                   {sample?.tests?.map((parent, parentId) => (
                                     <Card sx={{ p: 2, mb: 2 }}>
@@ -929,16 +939,18 @@ const AddLab = () => {
         </div>
         <Box
           sx={{
-            position: 'fixed',
-            bottom: 16,
-            left: '85%',
-            transform: 'translateX(-50%)',
+            position: 'sticky',
+            bottom: 10,
+            // right: ,
+            // left: '85%',
+            transform: 'translateX(6%)',
             display: 'flex',
             justifyContent: 'center',
-            textAlign: 'center'
+            textAlign: 'center',
+            width: 345
           }}
         >
-          <Button variant='contained' color='primary' onClick={handleClose}>
+          <Button variant='contained' color='primary' onClick={hanldeAddLabTests} fullWidth sx={{ p: 3 }}>
             Add Lab Tests
           </Button>
         </Box>
