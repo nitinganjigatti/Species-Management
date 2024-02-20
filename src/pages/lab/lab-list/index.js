@@ -55,17 +55,17 @@ const ListOfLab = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.05,
+    //   Width: 40,
+    //   field: 'id',
+    //   headerName: 'SL ',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.sl_no)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -198,7 +198,7 @@ const ListOfLab = () => {
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
