@@ -53,6 +53,7 @@ const AddLab = () => {
   const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
+  // console.log('dataToUpdate', dataToUpdate)
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
 
   // for handle reset form
@@ -177,7 +178,7 @@ const AddLab = () => {
         handleSubmit(onSubmit)()
         if (isLabTestsEmpty) {
           setLabTestsEmpty(true)
-          console.error('Lab tests are required')
+          // console.error('Lab tests are required')
         } else {
           setLabTestsEmpty(false)
         }
@@ -192,7 +193,7 @@ const AddLab = () => {
   }
 
   const onSubmit = async params => {
-    // setSubmitLoader(true)
+    setSubmitLoader(true)
 
     const { lab_name, type, incharge_name, address, lab_contact_number, tests, is_default } = {
       ...params
@@ -217,13 +218,14 @@ const AddLab = () => {
     } else {
     }
 
-    console.log('payload', payload)
+    // console.log('payload', payload)
 
-    // const res = await addLabToList(payload).then(res => {
-    //   setSubmitLoader(false)
-    //   reset(defaultValues)
-    //   Router.push('/lab/lab-list')
-    // })
+    const res = await addLabToList(payload).then(res => {
+      setSubmitLoader(false)
+      reset(defaultValues)
+      // setDataToUpdate([])
+      Router.push('/lab/lab-list')
+    })
   }
 
   const handleOpen = () => {
@@ -659,65 +661,72 @@ const AddLab = () => {
                       {/* test Data */}
                       <Grid item xs={12} md={12} sm={12}>
                         <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
-                          <Box
-                            sx={{
-                              cursor: 'pointer',
-                              display: 'flex',
-                              justifyContent: 'center',
-                              bgcolor: '#20de67',
-                              borderRadius: '8px',
-                              p: 2,
-                              width: '100%'
-                            }}
-                            onClick={() => handleOpen()}
-                          >
-                            <Typography
-                              variant='h6'
-                              sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
+                          <div>
+                            <Box
+                              sx={{
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                bgcolor: '#20de67',
+                                borderRadius: '8px',
+                                p: 2,
+                                width: '100%'
+                              }}
+                              onClick={() => handleOpen()}
                             >
-                              <Icon icon='ic:baseline-add' fontSize={25} />
-                              Add Lab Tests
-                            </Typography>
-                          </Box>
-                          {dataToUpdate.map((sample, sampleId) => (
-                            <Box sx={{ p: 1 }}>
-                              <Box>
-                                {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
-
-                                {sample?.tests?.map((parent, parentId) => (
-                                  <Card sx={{ p: 2, mb: 2 }}>
-                                    {/* {parent.full_test === true ? ( */}
-                                    <Stack
-                                      gap={1}
-                                      direction='row'
-                                      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                                    >
-                                      <>
-                                        <Typography variant='subtitle1'>{parent.test_name}</Typography>
-                                        <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
-                                          <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
-                                        </IconButton>
-                                      </>
-                                    </Stack>
-                                    {/* ) : null} */}
-                                    <Stack>
-                                      {parent.child_tests?.map((child, childId) =>
-                                        child.value === true ? (
-                                          <Stack direction='row' gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
-                                            <Typography>{child.test_name}</Typography>
-                                          </Stack>
-                                        ) : null
-                                      )}
-                                    </Stack>
-                                  </Card>
-                                ))}
-                              </Box>
+                              <Typography
+                                variant='h6'
+                                sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
+                              >
+                                <Icon icon='ic:baseline-add' fontSize={25} />
+                                Add Lab Tests
+                              </Typography>
                             </Box>
-                          ))}
+
+                            {dataToUpdate.map((sample, sampleId) => (
+                              <Box sx={{ p: 1 }}>
+                                <Box>
+                                  {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
+
+                                  {sample?.tests?.map((parent, parentId) => (
+                                    <Card sx={{ p: 2, mb: 2 }}>
+                                      {/* {parent.full_test === true ? ( */}
+                                      <Stack
+                                        gap={1}
+                                        direction='row'
+                                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                                      >
+                                        <>
+                                          <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                          <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
+                                            <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                          </IconButton>
+                                        </>
+                                      </Stack>
+                                      {/* ) : null} */}
+                                      <Stack>
+                                        {parent.child_tests?.map((child, childId) =>
+                                          child.value === true ? (
+                                            <Stack
+                                              direction='row'
+                                              gap={2}
+                                              sx={{ display: 'flex', alignItems: 'center' }}
+                                            >
+                                              <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                              <Typography>{child.test_name}</Typography>
+                                            </Stack>
+                                          ) : null
+                                        )}
+                                      </Stack>
+                                    </Card>
+                                  ))}
+                                </Box>
+                              </Box>
+                            ))}
+                          </div>
                           {labTestsEmpty ? (
                             <Typography variant='subtitle1' sx={{ color: 'red', m: 2 }}>
-                              Lab test is
+                              Lab test is required
                             </Typography>
                           ) : null}
                         </Card>
@@ -801,14 +810,16 @@ const AddLab = () => {
                         </Card>
                       </Grid>
                       <Grid item xs={12} md={12} sm={6}>
-                        <LoadingButton
-                          loading={submitLoader}
-                          onClick={handleSubmitData}
-                          type='submit'
-                          variant='outlined'
-                        >
-                          Submit
-                        </LoadingButton>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <LoadingButton
+                            loading={submitLoader}
+                            onClick={handleSubmitData}
+                            type='submit'
+                            variant='outlined'
+                          >
+                            Submit
+                          </LoadingButton>
+                        </Box>
                       </Grid>
                     </Grid>
                   </form>
@@ -920,7 +931,7 @@ const AddLab = () => {
           sx={{
             position: 'fixed',
             bottom: 16,
-            left: '80%',
+            left: '85%',
             transform: 'translateX(-50%)',
             display: 'flex',
             justifyContent: 'center',
