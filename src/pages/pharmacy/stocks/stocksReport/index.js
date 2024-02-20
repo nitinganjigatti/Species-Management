@@ -28,6 +28,7 @@ import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineC
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfStocks = () => {
   // const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -402,6 +403,12 @@ const ListOfStocks = () => {
     }
   ]
 
+  const headerAction = (
+    <div>
+      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+    </div>
+  )
+
   return (
     <>
       <Grid>
@@ -426,6 +433,7 @@ const ListOfStocks = () => {
                   TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
                   columns={columns}
                   rows={stockReport}
+                  headerActions={headerAction}
                 />
               </>
             )}
@@ -447,6 +455,7 @@ const ListOfStocks = () => {
                     TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
                     columns={batchWiseColumn}
                     rows={stockReportBatch}
+                    headerActions={headerAction}
                   />
                 </>
               )}

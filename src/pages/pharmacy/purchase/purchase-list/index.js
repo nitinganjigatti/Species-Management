@@ -140,7 +140,7 @@ const ListOfPurchase = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'po_no',
-      headerName: 'PURCHASE NO',
+      headerName: 'Invoice NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.po_no}
