@@ -4,21 +4,17 @@ import {
   CardContent,
   Grid,
   FormControl,
-  Autocomplete,
   TextField,
   FormHelperText,
   InputLabel,
   Select,
   MenuItem,
   Button,
-  Typography,
   FormGroup,
-  IconButton,
   RadioGroup,
   FormControlLabel,
   Radio,
-  FormLabel,
-  debounce
+  FormLabel
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -47,26 +43,30 @@ const schema = yup.object().shape({
   product_name: yup.string().required('product name is required'),
   generic_name: yup.string().required('generic name is required'),
   quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
-  // salt_id: yup.string().when('salt_qty', {
-  //   is: salt_qty => salt_qty && salt_qty.trim() !== '', // Check if saltQty is not empty
-  //   then: yup.string().required('Salt name is required when salt quantity is provided'),
-  //   otherwise: yup.string() // No additional validation when saltQty is empty
-  // })
-  // salt_qty: yup.number().typeError('Salt quantity must be a number').nullable()
+  // salts: yup.array().of(
+  //   yup.object().shape({
+  //     salt_id: yup.string().required('salt name is required'),
+  //     salt_quantity: yup.string().when('salt_id', {
+  //       is: salt_id => salt_id && salt_id.trim().length > 0,
+  //       then: yup.string().required('Salt quantity is required when Salt Id is filled'),
+  //       otherwise: yup.string()
+  //     })
+  //   })
+  // )
 })
 
 export const AddRequestLineItemsForm = ({
   handleCallback,
   setShow,
   editValues,
-  editIndex,
-  dataChildValues,
-  setDataChildValues,
-  handleUpdate
+  imgBaseUrl,
+  responseImage,
+  setResponseImage,
+  SetImgBaseUrl
 }) => {
-  const [imgSrc, setImgSrc] = useState('')
   const [saltsList, setSalts] = useState([])
   const [defaultSalts, setDefaultSalts] = useState([])
+  const [imgSrc, setImgSrc] = useState('')
 
   const {
     control,
@@ -82,6 +82,8 @@ export const AddRequestLineItemsForm = ({
     reValidateMode: 'onChange'
   })
 
+  console.log('edit Product Values ?????', editValues?.product_image)
+
   const { fields, append, remove, insert } = useFieldArray({
     control,
     name: 'salts'
@@ -94,7 +96,6 @@ export const AddRequestLineItemsForm = ({
       salt_id: item.salt_id,
       salt_qty: item.salt_qty
     }))
-
     data.salts = JSON.stringify(filterSaltValues)
     data.status = editValues ? editValues.status : 'Pending'
 
@@ -109,22 +110,33 @@ export const AddRequestLineItemsForm = ({
       generic_name: editValues.generic_name,
       priority: editValues.priority,
       quantity: editValues.quantity,
-      product_image: editValues.product_image,
+      product_image: editValues?.product_image,
       salts: editValues?.salts ? JSON.parse(editValues?.salts) : null
     })
   }, [editValues])
+
+  useEffect(() => {
+    let constructedPath = ''
+    if (imgBaseUrl) {
+      constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
+    }
+    setImgSrc(constructedPath)
+  }, [imgBaseUrl])
+
+  console.log('img RC ????', imgSrc)
 
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      console.log('file', files)
+      if (files[0] !== imgBaseUrl) {
+        reader.onload = () => {
+          setImgSrc(reader?.result)
+        }
+      }
+
       setValue('product_image', files[0])
       reader.readAsDataURL(files[0])
-      if (reader.result !== null) {
-        setInputValue(reader.result)
-      }
     }
   }
 
@@ -206,6 +218,8 @@ export const AddRequestLineItemsForm = ({
   }
   const removeselectedImage = index => {
     setImgSrc('')
+    setResponseImage('')
+    SetImgBaseUrl('')
   }
 
   const fileInputRef = useRef(null)
@@ -296,7 +310,7 @@ export const AddRequestLineItemsForm = ({
                   <TextField
                     value={value}
                     label='Quantity'
-                    name='comment'
+                    name='quantity'
                     type='number'
                     // error={Boolean(errors.medicine_name)}
                     onChange={onChange}
@@ -363,10 +377,20 @@ export const AddRequestLineItemsForm = ({
               </Button>
             )}
 
-            {imgSrc && (
+            {/* {imgSrc && (
               <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                 <Box>
-                  <img width={60} height={60} src={imgSrc} />
+                  <img
+                    width={60}
+                    height={60}
+                    src={
+                      typeof imgSrc === 'string' ? (
+                        <img src={`https://app.antzsystems.com${imgBaseUrl}/${responseImage}`} />
+                      ) : (
+                        <img src={imgSrc} />
+                      )
+                    }
+                  />
                 </Box>
                 <Box>
                   <Icon icon='material-symbols-light:close' onClick={() => removeselectedImage()}>
@@ -374,7 +398,7 @@ export const AddRequestLineItemsForm = ({
                   </Icon>
                 </Box>
               </Box>
-            )}
+            )} */}
 
             {/* </Box> */}
           </Grid>
@@ -407,12 +431,6 @@ export const AddRequestLineItemsForm = ({
                           />
                         )}
                       />
-
-                      {/* {errors?.salts?.[index]?.salt_id && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors?.salts?.[index]?.salt_id?.message}
-                        </FormHelperText>
-                      )} */}
                     </FormControl>
                   </Grid>
                   <Grid item xs={4}>
@@ -432,11 +450,6 @@ export const AddRequestLineItemsForm = ({
                           />
                         )}
                       />
-                      {/* {errors?.salts?.[index]?.salt_qty && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors?.salts?.[index]?.salt_qty?.message}
-                        </FormHelperText>
-                      )} */}
                     </FormControl>
                   </Grid>
 

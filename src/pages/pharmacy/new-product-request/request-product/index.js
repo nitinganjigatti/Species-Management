@@ -44,7 +44,6 @@ import {
   updateNonExistingProduct
 } from 'src/lib/api/pharmacy/newMedicine'
 import { useRouter } from 'next/router'
-import { parseJSON } from 'date-fns'
 import { AddButton } from 'src/components/Buttons'
 import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/FileUploaderMultiple'
 
@@ -57,10 +56,12 @@ export default function AddProduct() {
   const [storeList, setStoreList] = useState([])
   const [dataChildValues, setDataChildValues] = useState([])
   const [editValues, setEditValues] = useState(dataChildValues)
-  const [updatedVal, setUpdatedVal] = useState()
   const [editIndex, setEditIndex] = useState(null)
   const [successFulModal, setSuccessFulModal] = useState(false)
+  const [imgBaseUrl, SetImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
+
+  const [responseImage, setResponseImage] = useState()
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
@@ -100,7 +101,6 @@ export default function AddProduct() {
   })
 
   const handleFileChange = event => {
-    debugger
     console.log('event ???', event)
 
     const newImages = Array.from(event).map(file => ({
@@ -121,7 +121,6 @@ export default function AddProduct() {
   }
 
   const removeselectedImage = selectedindex => {
-    debugger
     const list = [...fields]
     const filterList = list.filter((item, index) => selectedindex !== index)
     setValue('prescription_images', filterList)
@@ -170,6 +169,8 @@ export default function AddProduct() {
   }
 
   const handleUpdate = (item, itemIndex, dataFromChild) => {
+    debugger
+    console.log(dataChildValues, 'daraa')
     const updatedItems = [...dataChildValues]
     let dataUpdate = dataFromChild
     if (item?.request_item_detail_id) {
@@ -178,6 +179,8 @@ export default function AddProduct() {
     updatedItems[itemIndex] = dataUpdate
     setDataChildValues(updatedItems)
   }
+
+  console.log('updatedChild Comp????', dataChildValues)
 
   const handleCallback = dataFromChild => {
     if (editValues || editValues.request_item_detail_id) {
@@ -197,9 +200,12 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
-      console.log('res???', res)
+      SetImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
+
+      res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
+
       reset({
         comment: res?.data?.comments,
         from_store: res?.data?.from_store
@@ -212,6 +218,8 @@ export default function AddProduct() {
       getSpecificProductList(id)
     }
   }, [id])
+
+  // console.log('Show APi ', getDetails?.base_path)
 
   return (
     <Grid container spacing={6}>
@@ -473,6 +481,10 @@ export default function AddProduct() {
                     <AddRequestLineItemsForm
                       handleCallback={handleCallback}
                       setShow={setShow}
+                      imgBaseUrl={imgBaseUrl}
+                      SetImgBaseUrl={SetImgBaseUrl}
+                      responseImage={responseImage}
+                      setResponseImage={setResponseImage}
                       dataChildValues={dataChildValues}
                       setDataChildValues={setDataChildValues}
                       editValues={editValues}
