@@ -394,11 +394,11 @@ export default function AddProduct() {
                   </Table>
                 </TableContainer>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sx={{ mt: 6 }}>
                 <Card>
-                  <CardHeader title='Upload Product Picture' />
+                  <CardHeader title='Upload Prescription' />
                   <CardContent>
-                    <DropzoneWrapper>
+                    <DropzoneWrapper sx={{ minHeight: '100px' }}>
                       <FileUploaderMultiple />
                     </DropzoneWrapper>
                     {/* <Box>

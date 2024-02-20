@@ -227,7 +227,7 @@ export const AddRequestLineItemsForm = ({
     fileInputRef.current.click()
   }
 
-  const removeselectedImage = index => {
+  const removeSelectedImage = index => {
     setImgSrc('')
     setValue('product_image', '')
   }
@@ -401,7 +401,7 @@ export const AddRequestLineItemsForm = ({
                   />
                 </Box>
                 <Box>
-                  <Icon icon='material-symbols-light:close' onClick={() => removeselectedImage()}>
+                  <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
                     {' '}
                   </Icon>
                 </Box>
