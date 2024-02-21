@@ -191,12 +191,12 @@ const AddPurchaseForm = () => {
   )
 
   const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
+    (acc, row) => acc + parseFloat(row.purchase_net_amount),
     0
   )
 
-  const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
+  const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
     0
   )
 
@@ -210,30 +210,20 @@ const AddPurchaseForm = () => {
     0
   )
 
-  const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_taxable_amount),
+  const calculate_cgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_cgst_amount ? row.purchase_cgst_amount : 0),
     0
   )
 
-  // const calculate_cgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_cgst ? row.purchase_cgst : 0),
-  //   0
-  // )
+  const calculate_sgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_sgst_amount ? row.purchase_sgst_amount : 0),
+    0
+  )
 
-  // const calculate_sgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_sgst ? row.purchase_sgst : 0),
-  //   0
-  // )
-
-  // const calculate_lineItem_discount_percentage = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_discount ? row.purchase_discount : 0),
-  //   0
-  // )
-
-  // function calculateTaxAmount(gst_name, totalAmount) {
-  //   if (!gst_name || !totalAmount) {
-  //     return 0
-  //   }
+  function calculateTaxAmount(gst_name, totalAmount) {
+    if (!gst_name || !totalAmount) {
+      return 0
+    }
 
   //   const gstPercentage = parseFloat(gst_name)
 
@@ -243,47 +233,47 @@ const AddPurchaseForm = () => {
   //   return taxAmount
   // }
 
-  // const calculateFinalAmount = useCallback(
-  //   discountValue => {
-  //     debugger
-  //     let finalAmount = totalLineItemsPurchase
-  //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
-  //     let netAmount = 0
-  //     setEditParams({
-  //       ...editParams,
-  //       total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-  //       net_amount: netAmountWithGST ? netAmountWithGST : 0,
-  //       tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-  //     })
-  //     if (editParams.discount_type === 'P') {
-  //       netAmount = (netAmountWithGST * discountValue) / 100
-  //       const discountValueAmount = netAmount
-  //       const netValueAfterDiscount = netAmountWithGST - netAmount
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_percentage: discountValue,
-  //         discount_amount: discountValueAmount,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     } else if (editParams.discount_type === 'F') {
-  //       const netValueAfterDiscount = netAmountWithGST - discountValue
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_amount: discountValue,
-  //         discount_percentage: 0,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     }
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [totalLineItemsPurchase, editParams]
-  // )
-  // useEffect(() => {
-  // calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [totalLineItemsPurchase])
+  const calculateFinalAmount = useCallback(
+    discountValue => {
+      debugger
+      let finalAmount = totalLineItemsPurchase
+      let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
+      let netAmount = 0
+      setEditParams({
+        ...editParams,
+        total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
+        net_amount: netAmountWithGST ? netAmountWithGST : 0,
+        tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
+      })
+      if (editParams.discount_type === 'P') {
+        netAmount = (netAmountWithGST * discountValue) / 100
+        const discountValueAmount = netAmount
+        const netValueAfterDiscount = netAmountWithGST - netAmount
+        setEditParams({
+          ...editParams,
+          discount_percentage: discountValue,
+          discount_amount: discountValueAmount,
+          net_amount: netValueAfterDiscount,
+          tax_amount: calculateTotalTaxAmount
+        })
+      } else if (editParams.discount_type === 'F') {
+        const netValueAfterDiscount = netAmountWithGST - discountValue
+        setEditParams({
+          ...editParams,
+          discount_amount: discountValue,
+          discount_percentage: 0,
+          net_amount: netValueAfterDiscount,
+          tax_amount: calculateTotalTaxAmount
+        })
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [totalLineItemsPurchase, editParams]
+  )
+  useEffect(() => {
+    calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalLineItemsPurchase])
 
   const addItemsToTable = payload => {
     // const newData = {
@@ -1143,7 +1133,7 @@ const AddPurchaseForm = () => {
                     <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
+                      {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.net_amount}
                     </Typography>
                   </CalcWrapper>
                   <Divider
