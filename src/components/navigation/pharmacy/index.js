@@ -191,6 +191,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const nonExistingProductRequestList = {
     title: 'New Product Request',
+    icon: 'tabler:report-medical',
     path: '/pharmacy/new-product-request/'
   }
 

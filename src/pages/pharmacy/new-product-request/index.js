@@ -17,6 +17,7 @@ import { Box, Button } from '@mui/material'
 import { deleteNonExistingProduct, getNonExistingProductList } from 'src/lib/api/pharmacy/newMedicine'
 import { useRouter } from 'next/router'
 import { AddButton } from 'src/components/Buttons'
+import Utility from 'src/utility'
 
 export default function NewProductList() {
   const router = useRouter()
@@ -109,7 +110,7 @@ export default function NewProductList() {
       headerName: 'Created DateTime',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.created_at}
+          {Utility.formatDisplayDate(params.row.created_at)}
         </Typography>
       )
     },

@@ -469,6 +469,7 @@ export default function AddProduct() {
               <Grid
                 sm={12}
                 spacing={6}
+                mt={4}
                 item
                 sx={{
                   display: 'flex',

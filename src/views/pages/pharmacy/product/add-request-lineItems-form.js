@@ -386,8 +386,6 @@ export const AddRequestLineItemsForm = ({
               </Button>
             )}
 
-            {console.log('type of', typeof imgSrc)}
-
             {imgSrc !== '' && (
               <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                 <Box>

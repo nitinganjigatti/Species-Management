@@ -19,6 +19,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
+import { width } from '@mui/system'
 
 // Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
@@ -122,7 +123,7 @@ const FileUploaderMultiple = props => {
   const fileInputRef = useRef(null)
   return (
     <Fragment>
-      <div {...getRootProps({ className: 'dropzone' })}>
+      <div style={{ minHeight: '10%' }} {...getRootProps({ className: 'dropzone' })}>
         <input {...getInputProps()} />
 
         <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
