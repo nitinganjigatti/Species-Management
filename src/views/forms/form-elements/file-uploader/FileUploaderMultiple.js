@@ -46,8 +46,6 @@ const FileUploaderMultiple = props => {
   const [files, setFiles] = useState([])
   const [prescribedFiles, setPrescribedFiles] = useState([])
 
-  const router = useRouter()
-
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
   // ** Hooks
@@ -114,10 +112,12 @@ const FileUploaderMultiple = props => {
   }
 
   const handleMultipleFiles = file => {
+    debugger
     const { files } = file.target
-    console.log('files??', files)
-    // setFiles(acceptedFiles.map(file => Object.assign(file)))
-    setFiles([...files, files])
+    const totalFiles = [...files]
+
+    // Append the new files to the existing ones
+    setFiles(prevFiles => [...prevFiles, ...totalFiles])
   }
   const fileInputRef = useRef(null)
   return (

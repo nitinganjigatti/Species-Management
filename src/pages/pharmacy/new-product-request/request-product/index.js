@@ -133,8 +133,8 @@ export default function AddProduct() {
     const { from_store, comment, prescription_images } = data
 
     const listImages = []
-    prescription_images.map(file => {
-      return listImages.push(file.file)
+    prescription_images?.map(file => {
+      return listImages?.push(file.file)
     })
 
     const payload = {
@@ -172,7 +172,6 @@ export default function AddProduct() {
   }
 
   const handleUpdate = (item, itemIndex, dataFromChild) => {
-    debugger
     const updatedItems = [...dataChildValues]
     let dataUpdate = dataFromChild
     if (item?.request_item_detail_id) {
