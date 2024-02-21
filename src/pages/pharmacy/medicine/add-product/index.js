@@ -110,7 +110,7 @@ const schema = yup.object().shape({
   generic_name_id: yup.string().when('medicine_type', {
     is: val => val !== 'non_medical',
     then: schema => schema.required('Generic name is required'),
-    otherwise: schema => schema.optional()
+    otherwise: schema => schema.optional().nullable()
   }),
   package_type: yup.string().required('Package is required'),
   package_qty: yup.number().typeError('This should be a number').required('Package Quantity is required'),
@@ -390,6 +390,12 @@ const AddMedicine = () => {
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
         setMedicineType(response.data.stock_type)
+        debugger
+        setDrugsClass(
+          response?.data?.drug_class
+            ? [{ id: response?.data?.drug_class, label: response?.data?.drug_class_label }]
+            : []
+        )
 
         setPackageQuantity(response?.data?.package_qty)
 
@@ -519,7 +525,7 @@ const AddMedicine = () => {
   }, 500)
 
   useEffect(() => {
-    getGSTList()
+    // getGSTList()
 
     if (id != undefined && action === 'edit') {
       getMedicine(id)
@@ -561,6 +567,7 @@ const AddMedicine = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
+    debugger
 
     const {
       medicine_type,
@@ -627,6 +634,7 @@ const AddMedicine = () => {
   const handleSubmitData = async () => {
     try {
       const errors = await trigger()
+      const values = getValues()
       if (errors) {
         handleSubmit(onSubmit)()
       } else {
@@ -1506,8 +1514,8 @@ const AddMedicine = () => {
                                     disablePortal
                                     id='drug_class'
                                     options={drugsClassList}
-                                    getOptionLabel={option => option.label}
-                                    isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                    getOptionLabel={option => option?.label}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultDrugClass(null)
