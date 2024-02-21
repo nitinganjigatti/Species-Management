@@ -7,7 +7,9 @@ import {
   CardHeader,
   FormControl,
   FormControlLabel,
+  FormGroup,
   FormHelperText,
+  FormLabel,
   Grid,
   IconButton,
   InputLabel,
@@ -61,6 +63,9 @@ export default function AddProduct() {
   const [imgBaseUrl, SetImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
   const [prescriptionField, setPrescriptionField] = useState([])
+  const [defaultSalts, setDefaultSalts] = useState([])
+  const [saltsList, setSalts] = useState([])
+  const [imgSrc, setImgSrc] = useState('')
 
   const [responseImage, setResponseImage] = useState()
 
@@ -73,14 +78,32 @@ export default function AddProduct() {
   console.log('storeList??', storeList)
 
   const schema = yup.object().shape({
-    from_store: yup.string().required('Select the From Store')
+    from_store: yup.string().required('Select the From Store'),
+    product_type: yup.string().required('select product type'),
+    product_name: yup.string().required('product name is required'),
+    generic_name: yup.string().required('generic name is required'),
+    quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
   })
 
   const defaultValues = {
     from_store: '',
     comment: '',
     quantity: 0,
-    prescription_images: []
+    prescription_images: [],
+    product_type: '',
+    product_name: '',
+    generic_name: '',
+    product_image: '',
+    quantity: '1',
+    priority: 'Normal',
+    salts: [
+      {
+        label: '',
+        salt_id: '',
+        salt_qty: ''
+      }
+    ],
+    status: 'Pending'
   }
 
   const {
@@ -96,12 +119,17 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  const { fields } = useFieldArray({
+  // const { fields } = useFieldArray({
+  //   control,
+  //   name: 'prescription_images'
+  // })
+
+  const { fields, append, remove, insert } = useFieldArray({
     control,
-    name: 'prescription_images'
+    name: 'salts'
   })
 
-  console.log('fiellds>>>>>', fields)
+  console.log('salts????', fields)
 
   const handleFileChange = event => {
     console.log('event ???', event)
@@ -111,6 +139,8 @@ export default function AddProduct() {
     }))
     setValue('prescription_images', newImages)
   }
+
+  console.log('dataChildValuesdataChildValues>>>>>>>>>>>>>>>>>', dataChildValues)
 
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
@@ -130,7 +160,26 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
-    const { from_store, comment, prescription_images } = data
+    console.log('data?????', data)
+    const saltValues = data.salts
+
+    const filterSaltValues = saltValues?.map(item => ({
+      salt_id: item.salt_id,
+      salt_qty: item.salt_qty
+    }))
+    data.salts = JSON.stringify(filterSaltValues)
+    const {
+      from_store,
+      comment,
+      prescription_images,
+      product_type,
+      priority,
+      product_name,
+      generic_name,
+      quantity,
+      salts,
+      product_image
+    } = data
 
     const listImages = []
     prescription_images?.map(file => {
@@ -141,7 +190,7 @@ export default function AddProduct() {
       from_store: from_store,
       comments: comment,
       prescription_images: listImages,
-      request_item_details: dataChildValues
+      request_item_details: [{ product_type, product_name, generic_name, priority, quantity, product_image, salts }]
     }
 
     let response
@@ -183,11 +232,85 @@ export default function AddProduct() {
 
   console.log('updatedChild Comp????', dataChildValues)
 
+  const clearSaltFields = index => {
+    return (
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts[index] = undefined
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+            insert(index, {})
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+    )
+  }
+
   const handleCallback = dataFromChild => {
+    debugger
     if (editValues || editValues.request_item_detail_id) {
       handleUpdate(editValues, editIndex, dataFromChild)
     } else {
       setDataChildValues([...dataChildValues, dataFromChild])
+    }
+  }
+
+  const addSaltButton = () => {
+    return (
+      <Button
+        variant='outlined'
+        onClick={() => {
+          setSalts([])
+          append({
+            salt_qty: '',
+            slat_id: ''
+          })
+        }}
+        sx={{ marginRight: '4px', borderRadius: 6 }}
+      >
+        Add Another
+      </Button>
+    )
+  }
+
+  const removeSaltButton = index => {
+    return (
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts.splice(index, 1)
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+    )
+  }
+
+  const handleAddRemoveSalts = (fields, index) => {
+    if (fields.length - 1 === index && index > 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {removeSaltButton(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length - 1 <= 0) {
+      return (
+        <>
+          {addSaltButton()}
+          {clearSaltFields(index)}
+        </>
+      )
+    } else if (index <= 0 && fields.length > 0) {
+      return <>{clearSaltFields(index)}</>
+    } else {
+      return <>{removeSaltButton(index)}</>
     }
   }
 
@@ -196,9 +319,29 @@ export default function AddProduct() {
   //   prescriptionField.map(item => console.log('item???', item))
   // )
 
+  const handleInputImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    if (files && files.length !== 0) {
+      if (files[0] !== imgBaseUrl) {
+        reader.onload = () => {
+          setImgSrc(reader?.result)
+        }
+      }
+
+      setValue('product_image', files[0])
+      reader.readAsDataURL(files[0])
+    }
+  }
+
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
     setEditIndex(index)
+  }
+
+  const removeSelectedImage = index => {
+    setImgSrc('')
+    setValue('product_image', '')
   }
 
   const router = useRouter()
@@ -293,28 +436,241 @@ export default function AddProduct() {
                   </FormControl>
                 </Grid>
               </Grid>
-              <Grid container sm={12} xs={12}>
-                <Grid
-                  item
-                  sm={12}
-                  xs={12}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    my: '10px',
-                    alignItems: 'center'
-                  }}
-                >
-                  <AddButton
-                    title='Add Request Item'
-                    action={() => {
-                      setShow(true)
-                      setEditValues('')
-                    }}
-                  />
+              <Grid container sm={12} mt={4} xs={12}>
+                <Grid container spacing={6} xs={12}>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Product Type</InputLabel>
+                      <Controller
+                        name='product_type'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='product_type'
+                            value={value}
+                            label='Select Product Type'
+                            onChange={onChange}
+                            error={Boolean(errors?.product_type)}
+                          >
+                            <MenuItem value='allopathy'>Allopathy</MenuItem>
+                            <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                            <MenuItem value='unani'>Unani</MenuItem>
+                            <MenuItem value='non_medical'>Non Medical</MenuItem>
+                          </Select>
+                        )}
+                      />
+                      {errors?.product_type && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_type?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='product_name'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            label='Product Name'
+                            name='product_name'
+                            error={Boolean(errors.product_name)}
+                            onChange={onChange}
+                            placeholder='Product Name'
+                          />
+                        )}
+                      />
+                      {errors?.product_name && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='generic_name'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            label='Generic Name'
+                            name='generic_name'
+                            error={Boolean(errors.generic_name)}
+                            onChange={onChange}
+                            placeholder='Generic Name'
+                          />
+                        )}
+                      />
+                      {errors?.generic_name && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='quantity'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            label='Quantity'
+                            name='quantity'
+                            type='number'
+                            onChange={onChange}
+                            placeholder='quantity'
+                          />
+                        )}
+                      />
+                      {errors?.quantity && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+                      <FormLabel>Priority</FormLabel>
+                      <Controller
+                        name='priority'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
+                            <FormControlLabel
+                              value='High'
+                              label='High'
+                              sx={errors.status ? { color: 'error.main' } : null}
+                              control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                            />
+                            <FormControlLabel
+                              value='Normal'
+                              label='Normal'
+                              sx={errors.status ? { color: 'error.main' } : null}
+                              control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                            />
+                          </RadioGroup>
+                        )}
+                      />
+                      {errors.radio && (
+                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
+                          This field is required
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={6}>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={handleInputImageChange}
+                      style={{ display: 'none' }}
+                      name='product_image'
+                      ref={fileInputRef}
+                    />
+
+                    {/* {imgSrc === '' && ( */}
+                    {!imgSrc && <AddButton title=' Add Image' action={handleAddGalleryClick} />}
+
+                    {imgSrc !== '' && (
+                      <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
+                        <Box>
+                          <img
+                            width={60}
+                            height={60}
+                            alt='
+                    Uploaded image'
+                            src={typeof imgSrc === 'string' ? imgSrc : URL.createObjectURL(imgSrc)}
+                          />
+                        </Box>
+                        <Box>
+                          <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
+                            {' '}
+                          </Icon>
+                        </Box>
+                      </Box>
+                    )}
+                  </Grid>
+
+                  {/* salt composition */}
+
+                  <Grid item xs={12} sm={12}>
+                    <FormGroup>
+                      <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
+                        <Grid item xs={6}>
+                          <span style={{ marginRight: '10px' }}>Salt Composition</span>
+                        </Grid>
+                      </Grid>
+                      {fields.map((field, index) => (
+                        <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
+                          <Grid item xs={4}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name={`salts[${index}].salt_id`}
+                                control={control}
+                                rules={{ required: false }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    value={value}
+                                    label='Salt Name'
+                                    onChange={onChange}
+                                    placeholder='Salt Name'
+                                    error={Boolean(errors?.salts?.[index]?.salt_id)}
+                                    name={`salts[${index}].salt_id`}
+                                  />
+                                )}
+                              />
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name={`salts[${index}].salt_qty`}
+                                control={control}
+                                rules={{ required: false }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    value={value}
+                                    label='Strength'
+                                    onChange={onChange}
+                                    placeholder='Strength'
+                                    error={Boolean(errors?.salts?.[index]?.salt_qty)}
+                                    name={`salts[${index}].salt_qty`}
+                                  />
+                                )}
+                              />
+                            </FormControl>
+                          </Grid>
+
+                          <Grid
+                            item
+                            xs={4}
+                            // eslint-disable-next-line lines-around-comment
+                            // justifyContent='flex-end'
+
+                            alignSelf='center'
+                            sx={{
+                              display: 'flex',
+                              justifyItems: 'center',
+                              alignItems: 'center'
+                            }}
+                          >
+                            {handleAddRemoveSalts(fields, index)}
+                          </Grid>
+                        </Grid>
+                      ))}
+                    </FormGroup>
+                  </Grid>
                 </Grid>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              {/* <Grid item xs={12} sm={12}>
                 <TableContainer>
                   <Table>
                     <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -399,7 +755,7 @@ export default function AddProduct() {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Grid>
+              </Grid> */}
               <Grid item xs={12} sx={{ mt: 6 }}>
                 <Card>
                   <CardHeader title='Upload Prescription' />
