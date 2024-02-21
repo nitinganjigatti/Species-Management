@@ -229,6 +229,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      stockParent,
       purchaseList,
       requestListing,
       returnListing,
