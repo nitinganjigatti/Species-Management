@@ -47,11 +47,11 @@ const ListOfLab = () => {
   }
 
   const handleEdit = async params => {
-    console.log('params Lab', params)
-    // Router.push({
-    //   pathname: '/lab/add-Lab',
-    //   query: { id: id, action: 'edit' }
-    // })
+    console.log('params Lab', params.row.id)
+    Router.push({
+      pathname: '/lab/add-Lab',
+      query: { id: params.row.id, action: 'edit' }
+    })
   }
 
   const columns = [

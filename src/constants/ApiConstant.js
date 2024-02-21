@@ -20,6 +20,8 @@ export const AllLabSample = 'antz/get-sample-tests'
 
 export const GetLab = 'antz/labs/list-labs'
 
+export const LabEditGetById = 'antz/labs/show-lab/'
+
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
