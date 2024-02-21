@@ -84,7 +84,12 @@ const initialNestedRowMedicine = {
   purchase_expiry_date: '',
   purchase_stock_item_id: '',
   purchase_gst_type: '',
-  purchase_tax_amount: 0
+  purchase_cgst: 0,
+  purchase_sgst: 0,
+  purchase_igst: 0,
+  purchase_cgst_amount: 0,
+  purchase_sgst_amount: 0,
+  purchase_igst_amount: 0
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -176,7 +181,12 @@ const AddPurchaseForm = () => {
   }
 
   const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_taxable_amount),
+    (acc, row) => acc + parseFloat(row.purchase_net_amount),
+    0
+  )
+
+  const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
     0
   )
 
@@ -184,6 +194,17 @@ const AddPurchaseForm = () => {
     (acc, row) => acc + parseFloat(row.purchase_tax_amount ? row.purchase_tax_amount : 0),
     0
   )
+
+  const calculate_cgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_cgst_amount ? row.purchase_cgst_amount : 0),
+    0
+  )
+
+  const calculate_sgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_sgst_amount ? row.purchase_sgst_amount : 0),
+    0
+  )
+
   function calculateTaxAmount(gst_name, totalAmount) {
     if (!gst_name || !totalAmount) {
       return 0
@@ -199,6 +220,7 @@ const AddPurchaseForm = () => {
 
   const calculateFinalAmount = useCallback(
     discountValue => {
+      debugger
       let finalAmount = totalLineItemsPurchase
       let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
       let netAmount = 0
@@ -539,31 +561,31 @@ const AddPurchaseForm = () => {
 
   //  ******
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 10
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              purchase_unit_price: item?.price,
-              tax_type: item.gst_value ? item.gst_value : '',
-              stock_type: item.stock_type
-              // supplier_price: item.supplier_price
-            }))
-          )
-        }
-      } catch (e) {
-        console.log('error', e)
+    // if (searchText !== '') {
+    try {
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            purchase_unit_price: item?.price,
+            tax_type: item.gst_value ? item.gst_value : '',
+            stock_type: item.stock_type
+            // supplier_price: item.supplier_price
+          }))
+        )
+      }
+    } catch (e) {
+      console.log('error', e)
     }
+    // }
   }
 
   const getMedicineExpiryDate = async (product_id, batch) => {
@@ -588,6 +610,7 @@ const AddPurchaseForm = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
+      debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {
@@ -705,8 +728,12 @@ const AddPurchaseForm = () => {
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
         purchase_discount: getItems[0].purchase_discount,
-        purchase_gst: getItems[0].purchase_gst,
-        purchase_tax_amount: getItems[0].purchase_tax_amount,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
+        purchase_igst_amount: getItems[0].purchase_igst_amount,
         purchase_gross_amount: getItems[0].purchase_gross_amount,
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
@@ -739,8 +766,12 @@ const AddPurchaseForm = () => {
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
         purchase_discount: getItems[0].purchase_discount,
-        purchase_gst: getItems[0].purchase_gst,
-        purchase_tax_amount: getItems[0].purchase_tax_amount,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
+        purchase_igst_amount: getItems[0].purchase_igst_amount,
         purchase_gross_amount: getItems[0].purchase_gross_amount,
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
@@ -1077,7 +1108,7 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>Sub Total :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
+                      {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.net_amount}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1087,9 +1118,9 @@ const AddPurchaseForm = () => {
                     }}
                   />
                   <CalcWrapper>
-                    <Typography variant='body2'>GST :</Typography>
+                    <Typography variant='body2'>Discount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
+                      {totalLineItemsDiscount}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1098,6 +1129,25 @@ const AddPurchaseForm = () => {
                       mb: theme => `${theme.spacing(3)} !important`
                     }}
                   />
+                  <CalcWrapper>
+                    <Typography variant='body2'>CGST :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {calculate_cgst_tax_amount}
+                    </Typography>
+                  </CalcWrapper>
+                  <CalcWrapper>
+                    <Typography variant='body2'>SGST :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {calculate_sgst_tax_amount}
+                    </Typography>
+                  </CalcWrapper>
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+
                   {/* <CalcWrapper>
                   <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
                     <Grid item xs={12} sm={6}>
