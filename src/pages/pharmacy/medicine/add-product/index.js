@@ -456,7 +456,7 @@ const AddMedicine = () => {
 
   const genericSearch = debounce(async value => {
     try {
-      await getGenericNames({ key: value, active: 1, page: 1, limit: 10 })
+      await getGenericNames({ key: value, active: 1, page: 1, limit: 20 })
     } catch (error) {
       console.error(error)
     }
@@ -464,7 +464,7 @@ const AddMedicine = () => {
 
   const manufacturerSearch = debounce(async value => {
     try {
-      await getManufacturersList({ key: value, active: 1, page: 1, limit: 10 })
+      await getManufacturersList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (error) {
       console.error(error)
     }
@@ -472,7 +472,7 @@ const AddMedicine = () => {
 
   const packageSearch = debounce(async value => {
     try {
-      await getPackagesList({ key: value, active: 1, page: 1, limit: 10 })
+      await getPackagesList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -480,7 +480,7 @@ const AddMedicine = () => {
 
   const unitListSearch = debounce(async value => {
     try {
-      await getUnitsList({ key: value, active: 1, page: 1, limit: 10 })
+      await getUnitsList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -488,7 +488,7 @@ const AddMedicine = () => {
 
   const productFormSearch = debounce(async value => {
     try {
-      await getProductForm({ key: value, active: 1, page: 1, limit: 10 })
+      await getProductForm({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -496,7 +496,7 @@ const AddMedicine = () => {
 
   const saltsListSearch = debounce(async value => {
     try {
-      await getSaltsList({ key: value, active: 1, page: 1, limit: 10 })
+      await getSaltsList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -504,7 +504,7 @@ const AddMedicine = () => {
 
   const drugClassListSearch = debounce(async value => {
     try {
-      await getDrugsClassList({ key: value, active: 1, page: 1, limit: 10 })
+      await getDrugsClassList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -512,7 +512,7 @@ const AddMedicine = () => {
 
   const storageListSearch = debounce(async value => {
     try {
-      await getStorageList({ key: value, active: 1, page: 1, limit: 10 })
+      await getStorageList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -546,13 +546,14 @@ const AddMedicine = () => {
       setUom([])
       setStorageList([])
 
-      // getManufacturersList({ page: 1, limit: 10 })
-      // getPackagesList({ page: 1, limit: 10 })
-      // getUnitsList({ page: 1, limit: 10 })
-      // getProductForm({ page: 1, limit: 10 })
-      // getSaltsList({ page: 1, limit: 10 })
-      // getDrugsClassList({ page: 1, limit: 10 })
-      // getStorageList({ page: 1, limit: 10 })
+      genericSearch('')
+      manufacturerSearch('')
+      packageSearch('')
+      unitListSearch('')
+      productFormSearch('')
+      saltsListSearch('')
+      drugClassListSearch('')
+      storageListSearch('')
     }
   }, [id, action])
 
