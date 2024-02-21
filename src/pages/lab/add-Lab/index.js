@@ -29,7 +29,7 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-import { getAllLabSample } from 'src/lib/api/lab/addLab'
+import { getAllLabSample, getLabDeatilsById } from 'src/lib/api/lab/addLab'
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -53,12 +53,57 @@ const AddLab = () => {
   const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [dataToUpdate, setDataToUpdate] = useState([])
+  const [showLabTests, setShowLabTests] = useState()
   // console.log('dataToUpdate', dataToUpdate)
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
-
+  //image upload
+  const [uploadedImage, setUploadedImage] = useState()
+  const [files, setFiles] = useState([])
   // for handle reset form
 
   const shouldClearFieldsRef = useRef(false)
+  // id for edit
+  const router = useRouter()
+  const {
+    // id,
+    action
+  } = router.query
+  const id = 128
+  // console.log('id', id, action)
+
+  // edit call
+
+  const labDeatilsById = async id => {
+    try {
+      const res = await getLabDeatilsById(id)
+      if (res) {
+        console.log('res', res.data)
+        setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
+        setValue('lab_name', res?.data[0]?.lab_name)
+        setValue('type', res?.data[0]?.type)
+        setValue('incharge_name', res?.data[0]?.incharge_name)
+        setValue('address', 'not gettin address')
+        setValue('lab_contact_number', res?.data[0]?.lab_contact_number)
+
+        // setValue('is_default', 'true')
+        setValue('latitude', res?.data[0]?.latitudes)
+        setValue('longitude', res?.data[0]?.longitudes)
+
+        // latitude: latitude,
+        // longitude: longitude,
+        // image: '',
+        // is_default: false
+      }
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (id != undefined && action === 'edit') {
+      labDeatilsById(id)
+    }
+  }, [id, action])
+
+  // ------------------------
 
   const getAllLabsLists = async () => {
     setLoader(true)
@@ -113,10 +158,6 @@ const AddLab = () => {
       console.error('Geolocation is not supported by your browser')
     }
   }
-
-  //image upload
-  const [uploadedImage, setUploadedImage] = useState()
-  const [files, setFiles] = useState([])
 
   const onImageUpload = async imageData => {
     setFiles(imageData)
@@ -234,6 +275,7 @@ const AddLab = () => {
 
   const handleClose = () => {
     setOpen(false)
+    setShowLabTests([])
   }
 
   // Add Test
@@ -505,6 +547,12 @@ const AddLab = () => {
     })
   }
 
+  // showing test on click add lab button
+  const hanldeAddLabTests = () => {
+    setOpen(false)
+    setShowLabTests(dataToUpdate)
+  }
+
   return (
     <>
       {loader ? (
@@ -561,8 +609,8 @@ const AddLab = () => {
                                 error={Boolean(errors?.type)}
                                 labelId='type'
                               >
-                                <MenuItem value='internal_lab'>Internal Lab</MenuItem>
-                                <MenuItem value='external_lab'>External Lab</MenuItem>
+                                <MenuItem value='internal'>Internal Lab</MenuItem>
+                                <MenuItem value='external'>External Lab</MenuItem>
                               </Select>
                             )}
                           />
@@ -683,10 +731,12 @@ const AddLab = () => {
                               </Typography>
                             </Box>
 
-                            {dataToUpdate.map((sample, sampleId) => (
-                              <Box sx={{ p: 1 }}>
+                            {showLabTests?.map((sample, sampleId) => (
+                              <Box sx={{ p: 1, mt: 2 }}>
                                 <Box>
-                                  {sample?.tests?.length > 0 ? <Typography>{sample?.sample_name}</Typography> : null}
+                                  {sample?.tests?.length > 0 ? (
+                                    <Typography sx={{ mb: 1 }}>{sample?.sample_name}</Typography>
+                                  ) : null}
 
                                   {sample?.tests?.map((parent, parentId) => (
                                     <Card sx={{ p: 2, mb: 2 }}>
@@ -801,7 +851,7 @@ const AddLab = () => {
                           </Box>
                         </Card>
                       </Grid>
-                      <Grid item xs={12} md={6} sm={6}>
+                      <Grid item xs={12} md={12} sm={12}>
                         <Card>
                           <CardHeader title='Upload LAB Picture' />
                           <CardContent>
@@ -929,16 +979,18 @@ const AddLab = () => {
         </div>
         <Box
           sx={{
-            position: 'fixed',
-            bottom: 16,
-            left: '85%',
-            transform: 'translateX(-50%)',
+            position: 'sticky',
+            bottom: 10,
+            // right: ,
+            // left: '85%',
+            transform: 'translateX(6%)',
             display: 'flex',
             justifyContent: 'center',
-            textAlign: 'center'
+            textAlign: 'center',
+            width: 345
           }}
         >
-          <Button variant='contained' color='primary' onClick={handleClose}>
+          <Button variant='contained' color='primary' onClick={hanldeAddLabTests} fullWidth sx={{ p: 3 }}>
             Add Lab Tests
           </Button>
         </Box>

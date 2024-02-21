@@ -1,4 +1,4 @@
-import { AddLAB, GetLab, AllLabSample } from '../../../constants/ApiConstant'
+import { AddLAB, GetLab, AllLabSample, LabEditGetById } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function addLab(payload) {
@@ -36,4 +36,9 @@ export async function getAllLabSample() {
   const response = await axiosGet({ url: AllLabSample })
 
   return response.data.data
+}
+export async function getLabDeatilsById(id) {
+  const response = await axiosGet({ url: `${LabEditGetById}${id}` })
+
+  return response.data
 }
