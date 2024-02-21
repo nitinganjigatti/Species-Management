@@ -60,6 +60,7 @@ export default function AddProduct() {
   const [successFulModal, setSuccessFulModal] = useState(false)
   const [imgBaseUrl, SetImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
+  const [prescriptionField, setPrescriptionField] = useState([])
 
   const [responseImage, setResponseImage] = useState()
 
@@ -99,6 +100,8 @@ export default function AddProduct() {
     control,
     name: 'prescription_images'
   })
+
+  console.log('fiellds>>>>>', fields)
 
   const handleFileChange = event => {
     console.log('event ???', event)
@@ -155,7 +158,7 @@ export default function AddProduct() {
       if (response) {
         setSuccessFulModal(true)
 
-        // router.push('/pharmacy/new-product-request/')
+        router.push('/pharmacy/new-product-request/')
         reset()
       } else {
         setSuccessFulModal(false)
@@ -170,7 +173,6 @@ export default function AddProduct() {
 
   const handleUpdate = (item, itemIndex, dataFromChild) => {
     debugger
-    console.log(dataChildValues, 'daraa')
     const updatedItems = [...dataChildValues]
     let dataUpdate = dataFromChild
     if (item?.request_item_detail_id) {
@@ -190,6 +192,11 @@ export default function AddProduct() {
     }
   }
 
+  // console.log(
+  //   'presx???',
+  //   prescriptionField.map(item => console.log('item???', item))
+  // )
+
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
     setEditIndex(index)
@@ -203,6 +210,8 @@ export default function AddProduct() {
       SetImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
+      console.log('prescription???', res.data?.prescription_images)
+      setPrescriptionField(res.data?.prescription_images)
 
       res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
 
@@ -218,8 +227,6 @@ export default function AddProduct() {
       getSpecificProductList(id)
     }
   }, [id])
-
-  // console.log('Show APi ', getDetails?.base_path)
 
   return (
     <Grid container spacing={6}>
@@ -399,7 +406,12 @@ export default function AddProduct() {
                   <CardHeader title='Upload Prescription' />
                   <CardContent>
                     <DropzoneWrapper sx={{ minHeight: '100px' }}>
-                      <FileUploaderMultiple />
+                      <FileUploaderMultiple
+                        onImageUpload={handleFileChange}
+                        image={handleAddGalleryClick}
+                        prescriptionField={prescriptionField}
+                        imgBaseUrl={imgBaseUrl}
+                      />
                     </DropzoneWrapper>
                     {/* <Box>
                       <Icon icon='material-symbols-light:close' onClick={() => removeselectedImage(index)}>
@@ -439,14 +451,14 @@ export default function AddProduct() {
                     Add Gallery
                   </Button> */}
               {/* <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
-                {fields?.map((image, index) => (
+                {prescriptionField?.map((image, index) => (
                   <Box sx={{ padding: '10px', display: 'flex', flexDirection: 'row' }}>
                     <Box>
                       <img
                         width={150}
                         height={150}
                         key={index}
-                        src={URL.createObjectURL(image.file)}
+                        src={typeof image === 'string' ? image : URL.createObjectURL(image)}
                         alt={`uploaded-${index}`}
                       />
                     </Box>

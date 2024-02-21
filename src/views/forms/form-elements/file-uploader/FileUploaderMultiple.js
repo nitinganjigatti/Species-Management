@@ -1,5 +1,6 @@
 // ** React Imports
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 
 // ** Next Import
 import Link from 'next/link'
@@ -40,46 +41,63 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
   }
 }))
 
-const FileUploaderMultiple = () => {
+const FileUploaderMultiple = props => {
   // ** State
   const [files, setFiles] = useState([])
-  const [openBox, setOpenBox] = useState(false)
+  const [prescribedFiles, setPrescribedFiles] = useState([])
+
+  const router = useRouter()
+
+  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
   // ** Hooks
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
+      props?.onImageUpload(acceptedFiles.map(file => Object.assign(file)))
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
 
+  useEffect(() => {
+    // If prescriptionField is provided, set the files initially
+    if (props?.prescriptionField) {
+      setPrescribedFiles(props.prescriptionField)
+      setFiles(props.prescriptionField.map(file => file))
+    }
+  }, [props.prescriptionField])
+
   const renderFilePreview = file => {
-    if (file?.type?.startsWith('image')) {
+    if (typeof file === 'string') {
+      return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
+    }
+    if (file instanceof Blob || file instanceof File) {
       return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
     } else {
       return <Icon icon='mdi:file-document-outline' />
     }
   }
 
-  const handleRemoveFile = file => {
+  const handleRemoveFile = (file, fileindex) => {
     const uploadedFiles = files
-    const filtered = uploadedFiles.filter(i => i.name !== file.name)
-    setFiles([...filtered])
+    if (typeof file === 'string') {
+      const filterData = [...files]
+      const removeData = filterData.filter((item, index) => fileindex !== index)
+      setFiles(removeData)
+    } else {
+      const filtered = uploadedFiles.filter(i => i.name !== file.name)
+      setFiles([...filtered])
+    }
   }
 
-  const fileList = files.map(file => (
+  const fileList = files.map((file, index) => (
     <ListItem key={file.name}>
       <div className='file-details'>
         <div className='file-preview'>{renderFilePreview(file)}</div>
         <div>
-          <Typography className='file-name'>{file.name}</Typography>
-          <Typography className='file-size' variant='body2'>
-            {Math.round(file.size / 100) / 10 > 1000
-              ? `${(Math.round(file.size / 100) / 10000).toFixed(1)} mb`
-              : `${(Math.round(file.size / 100) / 10).toFixed(1)} kb`}
-          </Typography>
+          <Typography className='file-name'>{typeof file === 'string' ? file : file.name}</Typography>
         </div>
       </div>
-      <IconButton onClick={() => handleRemoveFile(file)}>
+      <IconButton onClick={() => handleRemoveFile(file, index)}>
         <Icon icon='mdi:close' fontSize={20} />
       </IconButton>
     </ListItem>
@@ -96,7 +114,6 @@ const FileUploaderMultiple = () => {
   }
 
   const handleMultipleFiles = file => {
-    debugger
     const { files } = file.target
     console.log('files??', files)
     // setFiles(acceptedFiles.map(file => Object.assign(file)))

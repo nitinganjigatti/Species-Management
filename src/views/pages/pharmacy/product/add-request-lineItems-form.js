@@ -108,7 +108,6 @@ export const AddRequestLineItemsForm = ({
   }
 
   useEffect(() => {
-    debugger
     if (editValues) {
       reset({
         product_type: editValues.product_type,
