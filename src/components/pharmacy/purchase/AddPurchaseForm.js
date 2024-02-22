@@ -180,8 +180,18 @@ const AddPurchaseForm = () => {
     setMedicineItemId('')
   }
 
+  const totalLineItemsAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_gross_amount ? row.purchase_gross_amount : 0),
+    0
+  )
+
+  const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
+    0
+  )
+
   const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_net_amount),
+    (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
     0
   )
 
@@ -205,60 +215,75 @@ const AddPurchaseForm = () => {
     0
   )
 
-  function calculateTaxAmount(gst_name, totalAmount) {
-    if (!gst_name || !totalAmount) {
-      return 0
-    }
+  // const calculate_cgst_tax = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_cgst ? row.purchase_cgst : 0),
+  //   0
+  // )
 
-    const gstPercentage = parseFloat(gst_name)
+  // const calculate_sgst_tax = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_sgst ? row.purchase_sgst : 0),
+  //   0
+  // )
 
-    const taxAmount = totalAmount * (gstPercentage / 100)
+  // const calculate_lineItem_discount_percentage = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_discount ? row.purchase_discount : 0),
+  //   0
+  // )
 
-    // return taxAmount.toFixed(2)
-    return taxAmount
-  }
+  // function calculateTaxAmount(gst_name, totalAmount) {
+  //   if (!gst_name || !totalAmount) {
+  //     return 0
+  //   }
 
-  const calculateFinalAmount = useCallback(
-    discountValue => {
-      debugger
-      let finalAmount = totalLineItemsPurchase
-      let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
-      let netAmount = 0
-      setEditParams({
-        ...editParams,
-        total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-        net_amount: netAmountWithGST ? netAmountWithGST : 0,
-        tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-      })
-      if (editParams.discount_type === 'P') {
-        netAmount = (netAmountWithGST * discountValue) / 100
-        const discountValueAmount = netAmount
-        const netValueAfterDiscount = netAmountWithGST - netAmount
-        setEditParams({
-          ...editParams,
-          discount_percentage: discountValue,
-          discount_amount: discountValueAmount,
-          net_amount: netValueAfterDiscount,
-          tax_amount: calculateTotalTaxAmount
-        })
-      } else if (editParams.discount_type === 'F') {
-        const netValueAfterDiscount = netAmountWithGST - discountValue
-        setEditParams({
-          ...editParams,
-          discount_amount: discountValue,
-          discount_percentage: 0,
-          net_amount: netValueAfterDiscount,
-          tax_amount: calculateTotalTaxAmount
-        })
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [totalLineItemsPurchase, editParams]
-  )
-  useEffect(() => {
-    calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalLineItemsPurchase])
+  //   const gstPercentage = parseFloat(gst_name)
+
+  //   const taxAmount = totalAmount * (gstPercentage / 100)
+
+  //   // return taxAmount.toFixed(2)
+  //   return taxAmount
+  // }
+
+  // const calculateFinalAmount = useCallback(
+  //   discountValue => {
+  //     debugger
+  //     let finalAmount = totalLineItemsPurchase
+  //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
+  //     let netAmount = 0
+  //     setEditParams({
+  //       ...editParams,
+  //       total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
+  //       net_amount: netAmountWithGST ? netAmountWithGST : 0,
+  //       tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
+  //     })
+  //     if (editParams.discount_type === 'P') {
+  //       netAmount = (netAmountWithGST * discountValue) / 100
+  //       const discountValueAmount = netAmount
+  //       const netValueAfterDiscount = netAmountWithGST - netAmount
+  //       setEditParams({
+  //         ...editParams,
+  //         discount_percentage: discountValue,
+  //         discount_amount: discountValueAmount,
+  //         net_amount: netValueAfterDiscount,
+  //         tax_amount: calculateTotalTaxAmount
+  //       })
+  //     } else if (editParams.discount_type === 'F') {
+  //       const netValueAfterDiscount = netAmountWithGST - discountValue
+  //       setEditParams({
+  //         ...editParams,
+  //         discount_amount: discountValue,
+  //         discount_percentage: 0,
+  //         net_amount: netValueAfterDiscount,
+  //         tax_amount: calculateTotalTaxAmount
+  //       })
+  //     }
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [totalLineItemsPurchase, editParams]
+  // )
+  // useEffect(() => {
+  // calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [totalLineItemsPurchase])
 
   const addItemsToTable = payload => {
     // const newData = {
@@ -328,24 +353,24 @@ const AddPurchaseForm = () => {
     return itemErrors
   }
 
-  const validateItems = values => {
-    const errors = {}
+  // const validateItems = values => {
+  //   const errors = {}
 
-    if (!values.po_no) {
-      errors.po_no = 'This field is required'
-    }
-    if (!values.store_id) {
-      errors.store_id = 'This field is required'
-    }
-    if (!values.supplier_id) {
-      errors.supplier_id = 'This field is required'
-    }
-    if (!values.po_date) {
-      errors.po_date = 'This field is required'
-    }
+  //   if (!values.po_no) {
+  //     errors.po_no = 'This field is required'
+  //   }
+  //   if (!values.store_id) {
+  //     errors.store_id = 'This field is required'
+  //   }
+  //   if (!values.supplier_id) {
+  //     errors.supplier_id = 'This field is required'
+  //   }
+  //   if (!values.po_date) {
+  //     errors.po_date = 'This field is required'
+  //   }
 
-    return errors
-  }
+  //   return errors
+  // }
 
   const submitItems = payload => {
     // const HasErrors =
@@ -455,9 +480,16 @@ const AddPurchaseForm = () => {
     postData.po_date = data.po_date
     postData.supplier_id = data.supplier_id
     postData.po_no = data.po_no
-    postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
 
-    setSubmitLoader(false)
+    postData.cgst = calculate_cgst_tax_amount
+    postData.sgst = calculate_sgst_tax_amount
+    postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.total_amount = totalLineItemsAmount
+    postData.net_amount = totalLineItemsPurchase
+    // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.discount_amount = totalLineItemsDiscount
+    postData.taxable_amount = totalLineItemsTaxableAmount
+    // postData.discount_percentage = calculate_lineItem_discount_percentage
 
     if (id) {
       postData.antz_pharmacy_purchase_id = id
@@ -503,7 +535,6 @@ const AddPurchaseForm = () => {
     try {
       const errors = await trigger()
       if (errors) {
-        // handleSubmit(onSubmit)()
         showDialog()
       } else {
         scrollToTop()
@@ -639,22 +670,24 @@ const AddPurchaseForm = () => {
       if (result.success === true && result.data !== '') {
         const lineItems = result.data.purchase_detailss.map(el => {
           return {
-            id: el?.id,
+            ...el,
             medicine_name: el?.stock_item_name,
-            stock_type: el?.stock_type,
-            purchase_batch_no: el?.purchase_batch_no,
-            purchase_expiry_date: el?.purchase_expiry_date,
-            purchase_unit_price: el?.purchase_unit_price,
-            purchase_qty: el?.purchase_qty,
-            purchase_free_quantity: el?.purchase_free_quantity,
-            purchase_discount: el?.purchase_discount,
-            purchase_gst: el?.purchase_gst,
-            purchase_tax_amount: el?.purchase_tax_amount,
-            purchase_gross_amount: el?.purchase_gross_amount,
-            purchase_discount_amount: el?.purchase_discount_amount,
-            purchase_taxable_amount: el?.purchase_taxable_amount,
-            purchase_net_amount: el?.purchase_net_amount,
-            purchase_unit_id: el?.purchase_unit_id
+            id: el?.id
+            // medicine_name: el?.stock_item_name,
+            // stock_type: el?.stock_type,
+            // purchase_batch_no: el?.purchase_batch_no,
+            // purchase_expiry_date: el?.purchase_expiry_date,
+            // purchase_unit_price: el?.purchase_unit_price,
+            // purchase_qty: el?.purchase_qty,
+            // purchase_free_quantity: el?.purchase_free_quantity,
+            // purchase_discount: el?.purchase_discount,
+            // purchase_gst: el?.purchase_gst,
+            // purchase_tax_amount: el?.purchase_tax_amount,
+            // purchase_gross_amount: el?.purchase_gross_amount,
+            // purchase_discount_amount: el?.purchase_discount_amount,
+            // purchase_taxable_amount: el?.purchase_taxable_amount,
+            // purchase_net_amount: el?.purchase_net_amount,
+            // purchase_unit_id: el?.purchase_unit_id
 
             // medicine_name: el?.stock_item_name,
             // purchase_unit_id: el?.unit_id,
@@ -685,7 +718,8 @@ const AddPurchaseForm = () => {
           discount_amount: result?.data?.discount_amount,
           discount_percentage: result?.data?.discount_percentage,
           net_amount: result?.data?.net_amount,
-          tax_amount: result?.data?.tax_amount
+          tax_amount: result?.data?.tax_amount,
+          taxable_amount: result?.data?.taxable_amount
         })
 
         setSuppliers([{ id: result?.data?.supplier_id, name: result?.data?.supplier_name }])
@@ -862,13 +896,13 @@ const AddPurchaseForm = () => {
     <Card>
       <Grid
         container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
+        // sm={12}
+        // xs={12}
+        // sx={{
+        //   display: 'flex',
+        //   justifyContent: 'space-between',
+        //   alignItems: 'center'
+        // }}
       >
         <CardHeader
           avatar={
@@ -1001,27 +1035,27 @@ const AddPurchaseForm = () => {
             </Grid>
           </Grid>
         </CardContent>
-        <Grid container spacing={6} sm={12} xs={12}>
-          <Grid
-            item
-            sm={12}
-            xs={12}
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              mb: 4
-            }}
-          >
-            <AddButton
-              title='Add Inventory Item'
-              action={() => {
-                handlePurchaseSubmit()
+        <CardContent>
+          <Grid container>
+            <Grid
+              item
+              sm={12}
+              xs={12}
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center'
               }}
-            />
+            >
+              <AddButton
+                title='Add Inventory Item'
+                action={() => {
+                  handlePurchaseSubmit()
+                }}
+              />
+            </Grid>
           </Grid>
-        </Grid>
-
+        </CardContent>
         <TableContainer>
           <Table>
             <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -1051,9 +1085,9 @@ const AddPurchaseForm = () => {
                         <TableCell align='right'>{el.purchase_qty}</TableCell>
                         <TableCell align='right'>{el.purchase_free_quantity}</TableCell>
                         <TableCell align='right'>{el.purchase_unit_price}</TableCell>
-                        <TableCell align='right'>{el.purchase_discount}</TableCell>
+                        <TableCell align='right'>{el.purchase_discount}%</TableCell>
 
-                        <TableCell align='right'>{el.purchase_gst}</TableCell>
+                        <TableCell align='right'>{el.purchase_igst}%</TableCell>
                         <TableCell align='right'>{el.purchase_net_amount}</TableCell>
                         <TableCell align='center'>
                           <IconButton
@@ -1106,9 +1140,9 @@ const AddPurchaseForm = () => {
               <Card>
                 <CardContent sx={{ pt: 8 }}>
                   <CalcWrapper>
-                    <Typography variant='body2'>Sub Total :</Typography>
+                    <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.net_amount}
+                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1199,8 +1233,7 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>Grand Total :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {console.log(editParams.net_amount)}
-                      {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
+                      {totalLineItemsPurchase}
                     </Typography>
                   </CalcWrapper>
 
