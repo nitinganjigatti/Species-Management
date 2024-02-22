@@ -1,20 +1,34 @@
-// ** React Imports
-import { useState, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import React from 'react'
+import React, { useRef } from 'react'
 import { LoadingButton } from '@mui/lab'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
-// ** Third Party Imports
-import { Avatar, Checkbox, Typography } from '@mui/material'
+import {
+  Avatar,
+  Card,
+  CardContent,
+  CardHeader,
+  Checkbox,
+  Dialog,
+  FormControlLabel,
+  LinearProgress,
+  Radio,
+  RadioGroup,
+  Snackbar,
+  Typography,
+  debounce
+} from '@mui/material'
 import { getAnimalList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { useTheme } from '@mui/material/styles'
 
 const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSidebarOpen, handleSidebarClose }) => {
   const [searchValue, setSearchValue] = useState('')
+  const theme = useTheme()
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
@@ -24,6 +38,39 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
   })
   const [animalList, setAnimalList] = useState([])
   const [collectedAnimals, setCollectedAnimals] = useState([])
+  const [collectedAnimalsCount, setCollectedAnimalsCount] = useState(0)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  const [showFilterDialog, setShowFilterDialog] = useState(false)
+  const [animalFilterValue, setAnimalFilterValue] = useState('')
+  let [animalPage, setAnimalPage] = useState(1)
+  const animalFilterValueRef = useRef(animalFilterValue)
+  useEffect(() => {
+    animalFilterValueRef.current = animalFilterValue
+  }, [animalFilterValue])
+
+  const [animals_s_after_update, setAnimals_s_after_update] = useState([])
+
+  const [open, setOpen] = useState(false)
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpen(false)
+  }
+
+  const handleChange = event => {
+    setAnimalFilterValue(event.target.value)
+    setShowFilterDialog(false)
+  }
+
+  const action = (
+    <>
+      <IconButton size='small' aria-label='close' color='inherit' onClick={handleClose}>
+        &#10005;
+      </IconButton>
+    </>
+  )
 
   const RenderSidebarFooter = () => {
     return (
@@ -35,35 +82,96 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
     )
   }
 
+  useEffect(() => {
+    const filteredAnimals_s = animals_s.filter(
+      existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
+    )
+    // filtering out old elements which is not matched
+    const filteredCollectedAnimals = collectedAnimals.filter(
+      newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
+    )
+    // Concatenate the both filtered arrays
+    const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
+
+    setAnimals_s_after_update(updatedAnimals_s)
+  }, [])
+
+  const handleScroll = async e => {
+    const container = e.target
+    // Check if the user has reached the bottom
+    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && searchValue != '') {
+      // User has reached the bottom, perform your action here
+      setAnimalPage(++animalPage)
+      setReachedEnd(true)
+      try {
+        const currentAnimalFilterValue = animalFilterValueRef.current
+        await getAnimalList(
+          {
+            end_date: currentDate,
+            page_no: animalPage,
+            q: searchValue,
+            start_date: '',
+            type: 'all_animals',
+            selected_user_id: user
+          },
+          currentAnimalFilterValue
+        ).then(res => {
+          if (res?.data?.animals?.length > 0) {
+            setAnimalList(prevArray => [...prevArray, ...res?.data?.animals])
+            setReachedEnd(false)
+          } else {
+            setReachedEnd(false)
+            setOpen(true)
+          }
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
   const handleClear = () => {
     setSearchValue('')
     setAnimalList([])
     setCollectedAnimals([])
+    setCollectedAnimalsCount(0)
+    setAnimalPage(1)
   }
 
-  const searchAnimalData = async search => {
-    try {
-      await getAnimalList({
-        end_date: currentDate,
-        page_no: 1,
-        q: search,
-        start_date: '',
-        type: 'all_animals',
-        selected_user_id: user
-      }).then(res => {
-        if (res?.data?.animals.length > 0) {
-          setAnimalList(res?.data?.animals)
+  const searchAnimalData = useCallback(
+    debounce(async search => {
+      if (searchValue != ' ') {
+        try {
+          const currentAnimalFilterValue = animalFilterValueRef.current
+          await getAnimalList(
+            {
+              end_date: currentDate,
+              page_no: 1,
+              q: search,
+              start_date: '',
+              type: 'all_animals',
+              selected_user_id: user
+            },
+            currentAnimalFilterValue
+          ).then(res => {
+            if (res?.data?.animals.length > 0) {
+              setAnimalList(res?.data?.animals)
+              setAnimalPage(1)
+            }
+          })
+        } catch (error) {
+          // console.error(error)
+          setAnimalPage(1)
         }
-      })
-    } catch (error) {
-      console.error(error)
-    }
-  }
+      }
+    }, 500),
+
+    []
+  )
 
   const animalFunc = item => {
     setCollectedAnimals(pre => {
       const updatedArray = collectedAnimals
-      console.log('item', item)
       const existingIndex = updatedArray?.findIndex(animal => animal?.animal_id === item?.animal_id)
       if (existingIndex !== -1) {
         // If animal_id exists, remove the element
@@ -79,14 +187,39 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           gender: item?.sex
         })
       }
+      setCollectedAnimalsCount(updatedArray?.length)
+      const filteredAnimals_s = animals_s.filter(
+        existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
+      )
+      // filtering out old elements which is not matched
+      const filteredCollectedAnimals = collectedAnimals.filter(
+        newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
+      )
+      // Concatenate the both filtered arrays
+      const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
+
+      setAnimals_s_after_update(updatedAnimals_s)
       return updatedArray
     })
   }
-
   const addAnimals = () => {
-    setAnimals_s([...animals_s, ...collectedAnimals])
+    // filtering out new elements which is not matched
+    const filteredAnimals_s = animals_s.filter(
+      existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
+    )
+    // filtering out old elements which is not matched
+    const filteredCollectedAnimals = collectedAnimals.filter(
+      newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
+    )
+    // Concatenate the both filtered arrays
+    const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
+
+    setAnimals_s(updatedAnimals_s)
     handleClear()
     handleSidebarClose()
+    setAnimalPage(1)
+    setCollectedAnimals([])
+    setCollectedAnimalsCount(0)
   }
 
   return (
@@ -94,9 +227,42 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] }, height: '100vh' }}
     >
-      <Box sx={{ position: 'sticky', top: 0, zIndex: 10 }}>
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='All animals Found' action={action} />
+
+      <Dialog
+        open={showFilterDialog}
+        maxWidth='md'
+        height='auto'
+        scroll='body'
+        onClose={() => setShowFilterDialog(false)}
+        onBackdropClick={() => setShowFilterDialog(false)}
+      >
+        <Card>
+          <CardHeader
+            title={'Filter By'}
+            action={
+              <IconButton size='small' onClick={() => setShowFilterDialog(false)} sx={{ ml: 20 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
+            }
+          />
+          <CardContent>
+            <RadioGroup
+              aria-labelledby='demo-radio-buttons-group-label'
+              name='radio-buttons-group'
+              value={animalFilterValue}
+              onChange={handleChange}
+            >
+              <FormControlLabel value='commonName' control={<Radio />} label='Common Name' />
+              <FormControlLabel value='scientificName' control={<Radio />} label='Scientific Name' />
+              <FormControlLabel value='identifier' control={<Radio />} label='identifier' />
+            </RadioGroup>
+          </CardContent>
+        </Card>
+      </Dialog>
+      <Box sx={{ height: '0px', zIndex: 12 }}>
         <Box
           className='sidebar-header'
           sx={{
@@ -104,7 +270,8 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
             width: '100%',
             justifyContent: 'space-between',
             backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+            p: theme => theme.spacing(3, 3.255, 3, 5.255),
+            paddingX: 2
           }}
         >
           <Typography variant='h6'>Add Animals</Typography>
@@ -112,9 +279,21 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
             <IconButton
               size='small'
               onClick={() => {
+                setShowFilterDialog(true)
+              }}
+              sx={{ color: 'text.primary' }}
+            >
+              <Icon icon='mdi:filter' color={theme.palette.primary.main} fontSize={20} />
+            </IconButton>
+            <IconButton
+              size='small'
+              onClick={() => {
                 setAnimalList([])
+                setCollectedAnimals([])
+                setCollectedAnimalsCount(0)
                 handleSidebarClose()
                 setSearchValue('')
+                setAnimalPage(1)
               }}
               sx={{ color: 'text.primary' }}
             >
@@ -124,7 +303,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         </Box>
         <TextField
           fullWidth
-          sx={{ p: 2, borderBottom: 0, backgroundColor: 'white' }}
+          sx={{ p: 2, borderBottom: 0, backgroundColor: 'white', zIndex: 10 }}
           variant='standard'
           placeholder='Search Animals'
           value={searchValue}
@@ -135,7 +314,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               <InputAdornment sx={{ m: 3 }} position='end'>
                 {searchValue && (
                   <IconButton edge='end' onClick={handleClear}>
-                    {/* <CloseIcon /> */}&#10005;
+                    &#10005;
                   </IconButton>
                 )}
               </InputAdornment>
@@ -143,9 +322,10 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           }}
         />
       </Box>
-      {addEventSidebarOpen ? (
-        <div>
-          {animalList?.map((item, index) => (
+
+      <Box sx={{ height: '90%', overflowY: 'auto', mt: '100px' }} onScroll={handleScroll}>
+        {animalList.length > 0 &&
+          animalList?.map((item, index) => (
             <Box key={index}>
               <Box
                 sx={{
@@ -165,7 +345,15 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                       alignItems: 'center'
                     }}
                   >
-                    <Avatar alt={item?.default_icon} src={item?.default_icon} />
+                    <Avatar
+                      sx={{
+                        '& > img': {
+                          objectFit: 'contain'
+                        }
+                      }}
+                      alt={item?.default_icon}
+                      src={item?.default_icon}
+                    />
                     <Avatar sx={{ width: 24, height: 24, bgcolor: '#96DED1' }} variant='rounded'>
                       {item?.sex === 'male' ? (
                         <Typography sx={{ fontSize: 14 }}>M</Typography>
@@ -185,7 +373,8 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Checkbox
-                    disabled={animals_s?.some(i => i.animal_id === item?.animal_id)}
+                    defaultChecked={animals_s?.some(i => i.animal_id === item?.animal_id)}
+                    // disabled={animals_s?.some(i => i.animal_id === item?.animal_id)}
                     onChange={e => {
                       animalFunc(item)
                     }}
@@ -194,18 +383,21 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               </Box>
             </Box>
           ))}
-        </div>
-      ) : null}
+      </Box>
+      {reachedEnd ? <LinearProgress /> : null}
       <Box
         sx={{
-          position: 'sticky',
           p: 3,
           bottom: 0,
-          zIndex: 17,
           display: 'flex',
-          justifyContent: 'end'
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: 'transparent'
         }}
       >
+        <Typography>
+          {animals_s_after_update?.length > 0 ? 'Selected Animals : ' + animals_s_after_update?.length : null}
+        </Typography>
         <RenderSidebarFooter />
       </Box>
     </Drawer>
