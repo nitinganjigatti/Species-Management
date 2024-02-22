@@ -45,9 +45,9 @@ export async function getBatchList({ ProductId }) {
   return response.data
 }
 
-export async function getAnimalList(payload) {
+export async function getAnimalList(payload, query) {
   try {
-    const url = `${ANIMAL_LIST}`
+    const url = `${ANIMAL_LIST}?type=${query}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy: true })
 
