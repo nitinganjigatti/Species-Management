@@ -405,7 +405,13 @@ const ListOfStocks = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+      {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <AddButton
+            title='Add Inventory'
+            action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+          />
+        )}
     </div>
   )
 
