@@ -113,42 +113,43 @@ const ListOfStocks = () => {
 
   const getStocksReportBatchWise = async id => {
     // console.log(stockId)
-    if (id === '' || undefined) {
-      setErrors('Please select Store')
+    // if (id === '' || undefined) {
+    //   setErrors('Please select Store')
 
-      return
+    //   return
+    // } else {
+    if (selectedPharmacy?.type === 'local') {
+      try {
+        const result = await getStocksByBatch(id)
+        console.log('res', result.data)
+        if (result.success === true && result.data.length > 0) {
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReportBatch(listWithId)
+        }
+      } catch (error) {
+        console.log('error', error)
+      }
     } else {
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getLocalStocksReportById()
-          console.log('res', result.data)
-          if (result.success === true && result.data.length > 0) {
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
+      try {
+        const result = await getStocksByBatch(id)
+        if (result.success === true && result.data !== '') {
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReportBatch(listWithId)
         }
-      } else {
-        try {
-          const result = await getStocksByBatch(id)
-          if (result.success === true && result.data !== '') {
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(listWithId)
-          }
-        } catch (error) {
-          console.log('error', error)
-        }
+      } catch (error) {
+        console.log('error', error)
       }
     }
+
+    // }
   }
   useEffect(() => {
     if (selectedPharmacy?.id !== '' || undefined) {
