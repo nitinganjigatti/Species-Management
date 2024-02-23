@@ -50,6 +50,7 @@ const AddLab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
+  console.log('labType', labType)
   // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [prevTests, setPrevTests] = useState([])
@@ -761,7 +762,10 @@ const AddLab = () => {
                               sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
                             >
                               <Typography>Mark as default Lab</Typography>
-                              <FormControlLabel control={<Switch checked={value} onChange={onChange} />} />
+                              <FormControlLabel
+                                control={<Switch checked={value} onChange={onChange} />}
+                                disabled={labType === 'external'}
+                              />
                             </Stack>
                           )}
                         />

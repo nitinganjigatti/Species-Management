@@ -50,11 +50,12 @@ const AclGuard = props => {
       debugger
       const homeRoute = getPath()
       router?.replace(
-        !homeRoute
-          ? auth?.userData?.roles?.settings?.add_pharmacy
-            ? '/pharmacy/settings/store-list/'
-            : '/Error'
-          : homeRoute
+        '/dashboard'
+        // !homeRoute
+        //   ? auth?.userData?.roles?.settings?.add_pharmacy
+        //     ? '/pharmacy/settings/store-list/'
+        //     : '/Error'
+        //   : homeRoute
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
