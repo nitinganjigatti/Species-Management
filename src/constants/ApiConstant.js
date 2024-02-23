@@ -22,6 +22,8 @@ export const GetLab = 'antz/labs/list-labs'
 
 export const LabEditGetById = 'antz/labs/show-lab/'
 
+export const UpdateLab = 'antz/labs/update-lab/'
+
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
