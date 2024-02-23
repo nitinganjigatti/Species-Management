@@ -29,7 +29,7 @@ import {
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-import { getAllLabSample, getLabDeatilsById } from 'src/lib/api/lab/addLab'
+import { getAllLabSample, getLabDeatilsById, updateLabById } from 'src/lib/api/lab/addLab'
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -39,7 +39,7 @@ import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 
 // ** Source code imports
-import TestSample from './sample/sample'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/lab/addLab'
 
@@ -50,49 +50,91 @@ const AddLab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-  const [markDefault, setMarkDefault] = useState(false)
+  // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
+  const [prevTests, setPrevTests] = useState([])
+
   const [dataToUpdate, setDataToUpdate] = useState([])
+
   const [showLabTests, setShowLabTests] = useState()
-  // console.log('dataToUpdate', dataToUpdate)
+
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
   const [uploadedImage, setUploadedImage] = useState()
+
   const [files, setFiles] = useState([])
+
   // for handle reset form
 
   const shouldClearFieldsRef = useRef(false)
+
   // id for edit
   const router = useRouter()
-  const {
-    // id,
-    action
-  } = router.query
-  const id = 128
-  // console.log('id', id, action)
+  const { id, action } = router.query
 
   // edit call
+
+  const updateTestData = () => {
+    const setEditLabs = TestData?.map(testDataSample => {
+      const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
+
+      if (matchingPrevLab) {
+        const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
+
+        return {
+          ...testDataSample,
+          value: fullTestTrue,
+          tests: testDataSample.tests.map(test => {
+            const matchingPrevTest = matchingPrevLab.tests.find(
+              prevTest => prevTest.test_id.toString() === test.test_id.toString()
+            )
+
+            if (matchingPrevTest) {
+              // Update child_tests values based on matchingPrevTest
+              const updatedChildTests = test.child_tests.map(childTest => {
+                const matchingPrevChildTest = matchingPrevTest.child_tests.find(
+                  prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
+                )
+                return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
+              })
+
+              return {
+                ...test,
+                full_test: matchingPrevTest.full_test,
+                child_tests: updatedChildTests
+              }
+            }
+
+            return test
+          })
+        }
+      }
+
+      return testDataSample // return unmodified if no matchingPrevLab found
+    })
+
+    setTestData(setEditLabs)
+  }
 
   const labDeatilsById = async id => {
     try {
       const res = await getLabDeatilsById(id)
       if (res) {
-        console.log('res', res.data)
         setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
+        // setUploadedImage(res?.data[0]?.image)
         setValue('lab_name', res?.data[0]?.lab_name)
+
         setValue('type', res?.data[0]?.type)
         setValue('incharge_name', res?.data[0]?.incharge_name)
-        setValue('address', 'not gettin address')
+        setValue('address', res?.data[0]?.address)
         setValue('lab_contact_number', res?.data[0]?.lab_contact_number)
 
-        // setValue('is_default', 'true')
+        setValue('is_default', res?.data[0]?.is_default === '0' ? false : true)
         setValue('latitude', res?.data[0]?.latitudes)
         setValue('longitude', res?.data[0]?.longitudes)
-
-        // latitude: latitude,
-        // longitude: longitude,
-        // image: '',
-        // is_default: false
+        setPrevTests(res?.data[0]?.lab_details)
+        setShowLabTests(res?.data[0]?.lab_details)
+        setDataToUpdate(res?.data[0]?.lab_details)
       }
     } catch (error) {}
   }
@@ -103,17 +145,21 @@ const AddLab = () => {
     }
   }, [id, action])
 
+  // edit tests
+
   // ------------------------
 
   const getAllLabsLists = async () => {
     setLoader(true)
     const response = await getAllLabSample()
     if (response?.length > 0) {
+      // setUseEffect(false)
       // let listWithId = response.map((el, i) => {
       //   return { ...el, uid: i + 1 }
       // })
 
       setTestData(response)
+
       setLoader(false)
     } else {
       setLoader(false)
@@ -216,7 +262,7 @@ const AddLab = () => {
       const isLabTestsEmpty = dataToUpdate.every(sample => sample.tests.length === 0)
 
       if (errors || isLabTestsEmpty) {
-        handleSubmit(onSubmit)()
+        handleSubmit(onSubmit)
         if (isLabTestsEmpty) {
           setLabTestsEmpty(true)
           // console.error('Lab tests are required')
@@ -234,7 +280,7 @@ const AddLab = () => {
   }
 
   const onSubmit = async params => {
-    setSubmitLoader(true)
+    // setSubmitLoader(true)
 
     const { lab_name, type, incharge_name, address, lab_contact_number, tests, is_default } = {
       ...params
@@ -249,27 +295,41 @@ const AddLab = () => {
       lab_contact_number,
       latitudes: latitude,
       longitudes: longitude,
-      lab: dataToUpdate,
-      is_default,
-      user_id: '58'
+      lab: JSON.stringify(dataToUpdate),
+      is_default
+      // user_id: '58'
     }
 
     if (files.length > 0) {
       payload.image = files[0]
     } else {
     }
-
     // console.log('payload', payload)
 
-    const res = await addLabToList(payload).then(res => {
+    if (id !== undefined && action === 'edit') {
+      // console.log(payload)
+
+      await updateLabById(payload, id)
       setSubmitLoader(false)
-      reset(defaultValues)
-      // setDataToUpdate([])
+
+      // reset(defaultValues)
       Router.push('/lab/lab-list')
-    })
+    } else {
+      console.log(payload)
+
+      const res = await addLabToList(payload).then(res => {
+        setSubmitLoader(false)
+        reset(defaultValues)
+        // setDataToUpdate([])
+        Router.push('/lab/lab-list')
+      })
+    }
   }
 
   const handleOpen = () => {
+    if (id != undefined && action === 'edit') {
+      updateTestData()
+    }
     setOpen(true)
   }
 
@@ -281,6 +341,7 @@ const AddLab = () => {
   // Add Test
 
   const handleCheckBox = (sample, parent, child, isChecked) => {
+    console.log('sample', sample)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -694,13 +755,13 @@ const AddLab = () => {
                         <Controller
                           name='is_default'
                           control={control}
-                          render={({ field }) => (
+                          render={({ field: { value, onChange } }) => (
                             <Stack
                               direction='row'
                               sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
                             >
                               <Typography>Mark as default Lab</Typography>
-                              <FormControlLabel control={<Switch {...field} />} />
+                              <FormControlLabel control={<Switch checked={value} onChange={onChange} />} />
                             </Stack>
                           )}
                         />
@@ -910,7 +971,10 @@ const AddLab = () => {
                   <Typography variant='h6'>{sample?.sample_name}</Typography>
                   <Typography sx={{ alignItems: 'center', display: 'flex' }}>
                     Select All
-                    <Switch onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)} />
+                    <Switch
+                      checked={sample?.value}
+                      onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
+                    />
                   </Typography>
                 </Stack>
 
