@@ -39,7 +39,7 @@ import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 
 // ** Source code imports
-import TestSample from './sample/sample'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/lab/addLab'
 
@@ -55,13 +55,13 @@ const AddLab = () => {
   const [prevTests, setPrevTests] = useState([])
 
   const [dataToUpdate, setDataToUpdate] = useState([])
-  console.log('dataToUpdate', dataToUpdate)
+
   const [showLabTests, setShowLabTests] = useState()
 
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
   const [uploadedImage, setUploadedImage] = useState()
-  console.log('uploadedImage', uploadedImage)
+
   const [files, setFiles] = useState([])
 
   // for handle reset form
@@ -75,64 +75,21 @@ const AddLab = () => {
   // edit call
 
   const updateTestData = () => {
-    console.log('TestData', TestData, 'prev', prevTests)
-    // const darasds = TestData?.map(testDataSample => {
-    //   console.log('sample..', testDataSample)
-    //   const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
-    //   console.log('matchingPrevLab', matchingPrevLab)
-
-    //   if (matchingPrevLab) {
-    //     return {
-    //       ...testDataSample,
-    //       tests: testDataSample.tests.map(test => {
-    //         console.log('match prev....', test)
-    //         const matchingPrevTest = matchingPrevLab.tests.find(
-    //           prevTest => prevTest.test_id.toString() === test.test_id.toString()
-    //         )
-
-    //         if (matchingPrevTest) {
-    //           console.log('matchingPrevTest', matchingPrevTest)
-
-    //           // Updating value of child_tests only if it's not true
-    //           return {
-    //             ...test,
-    //             child_tests: matchingPrevTest.child_tests
-    //               ? matchingPrevTest.child_tests.map(childTest => ({
-    //                   ...childTest,
-    //                   value: true // Update to the desired condition
-    //                 }))
-    //               : test.child_tests
-    //           }
-    //         }
-    //         console.log('updated test....', test)
-    //         return test
-    //       })
-    //     }
-    //   }
-    //   console.log('afteer update matchingprevlab', matchingPrevLab)
-
-    //   return testDataSample
-    // })
     const setEditLabs = TestData?.map(testDataSample => {
-      console.log('sample..', testDataSample)
       const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
-      console.log('matchingPrevLab', matchingPrevLab)
 
       if (matchingPrevLab) {
         const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
-        console.log('fullte', fullTestTrue)
+
         return {
           ...testDataSample,
           value: fullTestTrue,
           tests: testDataSample.tests.map(test => {
-            console.log('match prev....', test)
             const matchingPrevTest = matchingPrevLab.tests.find(
               prevTest => prevTest.test_id.toString() === test.test_id.toString()
             )
 
             if (matchingPrevTest) {
-              console.log('matchingPrevTest', matchingPrevTest)
-
               // Update child_tests values based on matchingPrevTest
               const updatedChildTests = test.child_tests.map(childTest => {
                 const matchingPrevChildTest = matchingPrevTest.child_tests.find(
@@ -148,7 +105,6 @@ const AddLab = () => {
               }
             }
 
-            console.log('updated test....', test)
             return test
           })
         }
@@ -157,7 +113,6 @@ const AddLab = () => {
       return testDataSample // return unmodified if no matchingPrevLab found
     })
 
-    console.log('setEditLabs', setEditLabs)
     setTestData(setEditLabs)
   }
 
@@ -165,9 +120,8 @@ const AddLab = () => {
     try {
       const res = await getLabDeatilsById(id)
       if (res) {
-        console.log('res', res.data)
-        // setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
-        setUploadedImage(res?.data[0]?.image)
+        setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
+        // setUploadedImage(res?.data[0]?.image)
         setValue('lab_name', res?.data[0]?.lab_name)
 
         setValue('type', res?.data[0]?.type)
@@ -350,16 +304,16 @@ const AddLab = () => {
       payload.image = files[0]
     } else {
     }
-    console.log('payload', payload)
+    // console.log('payload', payload)
 
     if (id !== undefined && action === 'edit') {
-      console.log(payload)
+      // console.log(payload)
 
       await updateLabById(payload, id)
       setSubmitLoader(false)
 
       // reset(defaultValues)
-      // Router.push('/lab/lab-list')
+      Router.push('/lab/lab-list')
     } else {
       console.log(payload)
 
