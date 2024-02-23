@@ -57,17 +57,17 @@ const ListOfRequest = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.05,
+    //   Width: 40,
+    //   field: 'id',
+    //   headerName: 'SL ',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.sl_no)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -480,7 +480,7 @@ const ListOfRequest = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               // slots={{ toolbar: ServerSideToolbar }}

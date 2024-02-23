@@ -534,7 +534,7 @@ const RequestDetails = () => {
               sortingMode='server'
               // paginationMode='server'
               getRowId={row => row?.test_id}
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}

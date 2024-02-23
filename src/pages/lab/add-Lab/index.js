@@ -120,8 +120,8 @@ const AddLab = () => {
     try {
       const res = await getLabDeatilsById(id)
       if (res) {
-        setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
-        // setUploadedImage(res?.data[0]?.image)
+        // setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
+        setUploadedImage(res?.data[0]?.image || '/images/tablet.png')
         setValue('lab_name', res?.data[0]?.lab_name)
 
         setValue('type', res?.data[0]?.type)
@@ -793,10 +793,10 @@ const AddLab = () => {
                             </Box>
 
                             {showLabTests?.map((sample, sampleId) => (
-                              <Box sx={{ p: 1, mt: 2 }}>
+                              <Box sx={{ p: 1, mt: 4 }}>
                                 <Box>
                                   {sample?.tests?.length > 0 ? (
-                                    <Typography sx={{ mb: 1 }}>{sample?.sample_name}</Typography>
+                                    <Typography sx={{ mb: 2 }}>{sample?.sample_name}</Typography>
                                   ) : null}
 
                                   {sample?.tests?.map((parent, parentId) => (
@@ -821,10 +821,10 @@ const AddLab = () => {
                                             <Stack
                                               direction='row'
                                               gap={2}
-                                              sx={{ display: 'flex', alignItems: 'center' }}
+                                              sx={{ display: 'flex', alignItems: 'center', p: 1 }}
                                             >
                                               <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
-                                              <Typography>{child.test_name}</Typography>
+                                              <Typography sx>{child.test_name}</Typography>
                                             </Stack>
                                           ) : null
                                         )}
