@@ -190,6 +190,16 @@ const AddPurchaseForm = () => {
     0
   )
 
+  const totalLineItemsAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_gross_amount ? row.purchase_gross_amount : 0),
+    0
+  )
+
+  const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
+    0
+  )
+
   const totalLineItemsPurchase = editParams.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
     0

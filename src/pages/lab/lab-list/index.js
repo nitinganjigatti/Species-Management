@@ -256,7 +256,7 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    console.log('SearchValue', value)
+    // console.log('SearchValue', value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
@@ -307,7 +307,7 @@ const ListOfLab = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}

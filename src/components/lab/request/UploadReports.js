@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import { UploadLabReports } from 'src/lib/api/lab/getLabRequest'
 
-const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
+const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
   const [uploadedImage, setUploadedImage] = useState()
   const [files, setFiles] = useState([])
   const [selectedFile, setSelectedFile] = useState(null)
@@ -79,7 +79,9 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
       medical_record_id: medicalRecordId,
       animal_id: animalID,
       lab_test_id: labTestId,
-      lab_test_files
+      lab_test_files,
+      entity_type: type,
+      entity_id: id
     }
 
     try {
@@ -153,7 +155,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId }) => {
           <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
             Upload
           </LoadingButton>
-          <LoadingButton onClick={() => setFiles([])} type='submit' variant='outlined'>
+          <LoadingButton onClick={() => setUploadedImage()} variant='outlined'>
             Reset
           </LoadingButton>
         </div>

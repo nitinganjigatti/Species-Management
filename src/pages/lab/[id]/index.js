@@ -92,12 +92,13 @@ const RequestDetails = () => {
 
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  console.log('rows', rows)
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [testId, setTestId] = useState()
+  const [requestId, setRequestId] = useState()
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
@@ -141,7 +142,7 @@ const RequestDetails = () => {
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
-
+        setRequestId(res?.data?.result[0]?.id)
         setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
         setTotal(parseInt(res?.data?.total_count))
         setImage(res?.data?.result[0]?.files?.images)
@@ -191,8 +192,9 @@ const RequestDetails = () => {
 
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const handleOpenPopOver = event => {
+  const handleOpenPopOver = (event, params) => {
     setAnchorEl(event.currentTarget)
+    setTestId(params?.row?.test_id)
   }
 
   const handleClosePopover = () => {
@@ -225,7 +227,6 @@ const RequestDetails = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.test_name}
-          {console.log('params?.row?.test_name', params)}
         </Typography>
       )
     },
@@ -273,7 +274,16 @@ const RequestDetails = () => {
                   value={status} // Assuming params.row.status contains the current status value
                   label='Status'
                   onChange={handleChangeStatus}
-                  sx={{ color: 'red' }}
+                  sx={{
+                    color:
+                      params.row.status === 'pending'
+                        ? 'red'
+                        : params.row.status === 'completed'
+                        ? 'green'
+                        : params.row.status === 'in progress'
+                        ? 'blue'
+                        : 'black'
+                  }}
                 >
                   <MenuItem value='pending'>Pending</MenuItem>
                   <MenuItem value='completed'>Completed</MenuItem>
@@ -311,7 +321,7 @@ const RequestDetails = () => {
 
       renderCell: params => (
         <Box>
-          <IconButton size='small' onClick={e => handleOpenPopOver(e)}>
+          <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
             <Icon icon='charm:menu-kebab' />
           </IconButton>
 
@@ -534,7 +544,7 @@ const RequestDetails = () => {
               sortingMode='server'
               // paginationMode='server'
               getRowId={row => row?.test_id}
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
@@ -646,7 +656,13 @@ const RequestDetails = () => {
             {/* allow user Only if user hand upload permissions */}
 
             {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
-              <UploadReports animalID={animanlId} labTestId={LabRequestId} medicalRecordId={medicineId} />
+              <UploadReports
+                animalID={animanlId}
+                labTestId={LabRequestId}
+                medicalRecordId={medicineId}
+                type='lab_test_request'
+                id={requestId}
+              />
             ) : null}
           </Card>
         </>
@@ -859,7 +875,13 @@ const RequestDetails = () => {
                 <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
               </IconButton>
             </Box>
-            <UploadReports />
+            <UploadReports
+              animalID={animanlId}
+              labTestId={LabRequestId}
+              medicalRecordId={medicineId}
+              type='lab_test'
+              id={testId}
+            />
           </Card>
         </Dialog>
       </>
