@@ -72,7 +72,16 @@ const ListOfLab = () => {
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+        <Typography
+          variant='body2'
+          sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
+          onClick={() =>
+            Router.push({
+              pathname: '/lab/lab-details',
+              query: { id: params.row.id }
+            })
+          }
+        >
           {params.row.lab_name}
         </Typography>
       )

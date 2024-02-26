@@ -1,0 +1,83 @@
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { Box, Grid, Tab } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import Equipments from 'src/components/lab/lab-details/Equipments'
+import OverView from 'src/components/lab/lab-details/OverView'
+import ShowLabCard from 'src/components/lab/lab-details/ShowLabCard'
+import Site from 'src/components/lab/lab-details/Site'
+import Tests from 'src/components/lab/lab-details/Tests'
+import Users from 'src/components/lab/lab-details/Users'
+import { getLabDeatilsById } from 'src/lib/api/lab/addLab'
+import { useRouter } from 'next/router'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+
+const LabDetails = () => {
+  const [loader, setLoader] = useState(false)
+  const [status, setStatus] = useState('overview')
+  const [showLabDetails, setShowLabDetails] = useState()
+
+  const handleChange = (event, newValue) => {
+    setStatus(newValue)
+  }
+  const router = useRouter()
+  const { id } = router.query
+  console.log('id', id)
+  const labDetailsById = async id => {
+    try {
+      const res = await getLabDeatilsById(id)
+      if (res) {
+        console.log('res show', res?.data[0])
+        setShowLabDetails(res?.data[0])
+        setLoader(false)
+      }
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (id != undefined) {
+      setLoader(true)
+      labDetailsById(id)
+    }
+  }, [id])
+  return (
+    <>
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <Grid container spacing={2}>
+          <Grid item md={3}>
+            <ShowLabCard data={showLabDetails} />
+          </Grid>
+          <Grid item md={9}>
+            <TabContext value={status}>
+              <TabList onChange={handleChange}>
+                <Tab value='overview' label='OVERVIEW' />
+                <Tab value='site' label='SITE' />
+                <Tab value='tests' label='TESTS' />
+                <Tab value='users' label='USERS' />
+                <Tab value='equipments' label='EQUIPMENTS' />
+              </TabList>
+              <TabPanel value='overview'>
+                <OverView />
+              </TabPanel>
+              <TabPanel value='site'>
+                <Site />
+              </TabPanel>
+              <TabPanel value='tests'>
+                <Tests />
+              </TabPanel>
+              <TabPanel value='users'>
+                <Users />
+              </TabPanel>
+              <TabPanel value='equipments'>
+                <Equipments />
+              </TabPanel>
+            </TabContext>
+          </Grid>
+        </Grid>
+      )}
+    </>
+  )
+}
+
+export default LabDetails
