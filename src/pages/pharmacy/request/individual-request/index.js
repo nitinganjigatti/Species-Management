@@ -430,6 +430,7 @@ const IndividualRequest = () => {
                 setFulfillMedicine({
                   ...params.row
                 })
+                console.log('in fulfill button', params.row)
                 showDialog()
               }}
             >
@@ -624,6 +625,34 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      headerName: 'Action',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ mr: 2 }}>
+            <Icon
+              onClick={() => {
+                // getRequestItemLists(params.row.request_number)
+                setFulfillMedicine({
+                  ...params.row
+                })
+                showDialog()
+                console.log('full filled ', params.row)
+              }}
+              icon='material-symbols:edit-outline'
+            />
+            <Icon
+              onClick={() => {
+                console.log('full filled ', params.row)
+              }}
+              icon='material-symbols:delete-forever'
+            />
+          </Box>
         </Typography>
       )
     }
