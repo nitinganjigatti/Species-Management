@@ -10,6 +10,7 @@ import {
   Grid,
   Table,
   TableCell,
+  TableHead,
   TableRow,
   TextField,
   Typography,
@@ -335,7 +336,6 @@ function ProductForm({
     setDispensesPayload([...updatedProductArray])
     // Close the dialog or reset the form
     reset()
-    // setTotalProductQty(null)
     closeDialog()
   }
 
@@ -422,24 +422,34 @@ function ProductForm({
               You are trying to dispense higher higher quantity than it is available
             </Typography>
             <Table>
-              <TableRow>
-                <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                <TableCell>Dispense qty</TableCell>
-              </TableRow>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                  <TableCell sx={{ py: 1 }}>Dispense qty</TableCell>
+                </TableRow>
+              </TableHead>
               {invalidBatches?.map((item, index) => (
                 <TableRow>
                   <TableCell
-                    sx={{ borderRight: '1px solid #ccc', borderBottom: index === invalidBatches.length - 1 && 'none' }}
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidBatches.length - 1 && 'none'
+                    }}
                   >
                     {item?.batch_no?.value}
                   </TableCell>
                   <TableCell
-                    sx={{ borderRight: '1px solid #ccc', borderBottom: index === invalidBatches.length - 1 && 'none' }}
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidBatches.length - 1 && 'none'
+                    }}
                   >
                     {item?.totalQty}
                   </TableCell>
-                  <TableCell sx={{ borderBottom: index === invalidBatches.length - 1 && 'none' }}>
+                  <TableCell sx={{ py: 1, borderBottom: index === invalidBatches.length - 1 && 'none' }}>
                     {item?.filledQty}
                   </TableCell>
                 </TableRow>
@@ -585,11 +595,6 @@ function ProductForm({
                               }
                             }}
                           />
-                          {/* {errors?.product_batches?.[index]?.qty && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors?.product_batches?.[index]?.qty?.message || ' Quantity should be greater than 0'}
-                            </FormHelperText>
-                          )} */}
                         </>
                       )}
                     />
