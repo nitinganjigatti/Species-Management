@@ -68,6 +68,8 @@ export const DEBIT_NOTE = 'purchase-return'
 
 export const DISPATCH = 'dispatch'
 
+export const DISPATCH_ITEM = 'dispatchItem'
+
 export const DISPATCH_VALIDATION = 'dispatch-validation'
 
 export const REQUEST_ITEMS = 'request-item'

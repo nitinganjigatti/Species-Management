@@ -6,7 +6,8 @@ import {
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId,
   markItemNotAvailable,
-  markItemAvailable
+  markItemAvailable,
+  deleteFulfillItem
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -23,6 +24,11 @@ import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -38,6 +44,7 @@ import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
@@ -56,6 +63,9 @@ const IndividualRequest = () => {
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [showShipDialog, setShowShipDialog] = useState(false)
   const [dispenseDialog, setDispenseDialog] = useState(false)
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [deleteFullFillId, setDeleteFullFillId] = useState(null)
+
   const [productNotAvailableDialog, setProductNotAvailableDialog] = useState(false)
 
   const [dispatchedItems, setDispatchedItems] = useState([])
@@ -172,6 +182,29 @@ const IndividualRequest = () => {
     } catch (e) {
       console.log('error', e)
       setLoader(false)
+    }
+  }
+
+  const deleteFullFillItem = async dispatchedItemId => {
+    if (dispatchedItemId) {
+      try {
+        const result = await deleteFulfillItem(dispatchedItemId)
+        if (result?.success === true) {
+          toast.success(result.data)
+          getDispatchedItems(id)
+          getRequestItemLists(id)
+
+          setDeleteDialog(false)
+          setDeleteFullFillId(null)
+        } else {
+          toast.error(result.data)
+        }
+
+        console.log('delet result', result)
+      } catch (error) {
+        toast.error(error.data)
+        console.log('delet error result', error)
+      }
     }
   }
 
@@ -635,7 +668,7 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
           <Box sx={{ mr: 2 }}>
-            <Icon
+            {/* <Icon
               onClick={() => {
                 // getRequestItemLists(params.row.request_number)
                 setFulfillMedicine({
@@ -645,10 +678,12 @@ const IndividualRequest = () => {
                 console.log('full filled ', params.row)
               }}
               icon='material-symbols:edit-outline'
-            />
+            /> */}
             <Icon
               onClick={() => {
-                console.log('full filled ', params.row)
+                setDeleteDialog(true)
+                setDeleteFullFillId(params.row.dispatch_item_id)
+                console.log('full filled ', params.row.dispatch_item_id)
               }}
               icon='material-symbols:delete-forever'
             />
@@ -1074,6 +1109,51 @@ const IndividualRequest = () => {
                     ></CardHeader>
                     <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
                   </Card>
+                  <ConfirmDialogBox
+                    open={deleteDialog}
+                    closeDialog={() => {
+                      setDeleteDialog(false)
+                      setDeleteFullFillId(null)
+                    }}
+                    action={() => {
+                      setDeleteDialog(false)
+                      setDeleteFullFillId(null)
+                    }}
+                    content={
+                      <Box>
+                        <>
+                          <DialogContent>
+                            <DialogContentText sx={{ mb: 1 }}>
+                              Are you sure you want to delete this item?
+                            </DialogContentText>
+                          </DialogContent>
+                          <DialogActions className='dialog-actions-dense'>
+                            <Button
+                              variant='contained'
+                              size='small'
+                              color='primary'
+                              onClick={() => {
+                                setDeleteDialog(false)
+                                setDeleteFullFillId(null)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size='small'
+                              variant='contained'
+                              color='error'
+                              onClick={() => {
+                                deleteFullFillItem(deleteFullFillId)
+                              }}
+                            >
+                              Confirm
+                            </Button>
+                          </DialogActions>
+                        </>
+                      </Box>
+                    }
+                  />
                 </>
               )}
               {/* Shipped list        */}

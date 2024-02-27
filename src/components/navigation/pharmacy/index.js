@@ -237,7 +237,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
       productsList,
       purchaseList,
-      settingsParent
+      settingsParent,
+      dispense
     )
   }
 

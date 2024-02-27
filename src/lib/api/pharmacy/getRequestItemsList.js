@@ -2,6 +2,7 @@ import {
   REQUEST_ITEMS,
   BATCH_DETAILS,
   DISPATCH,
+  DISPATCH_ITEM,
   SHIPMENT,
   REQUEST_ITEMS_NOT_AVAILABLE,
   REQUEST_ITEMS_NOT_AVAILABLE_REVERT
@@ -162,6 +163,25 @@ export async function markItemAvailable(payload) {
   try {
     const url = `${REQUEST_ITEMS_NOT_AVAILABLE_REVERT}`
     const response = await axiosPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function deleteFulfillItem(id) {
+  try {
+    const url = `${DISPATCH_ITEM}/${id}/delete`
+    const response = await axiosGet({ url: `${DISPATCH_ITEM}/${id}/delete`, pharmacy })
 
     return response?.data
   } catch (error) {
