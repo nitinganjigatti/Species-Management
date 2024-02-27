@@ -68,7 +68,6 @@ const RequestList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-      console.log('status', status)
       try {
         setLoading(true)
 

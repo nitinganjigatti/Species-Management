@@ -30,7 +30,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import Icon from 'src/@core/components/icon'
@@ -45,16 +45,17 @@ import {
   getNonExistingProductList,
   updateNonExistingProduct
 } from 'src/lib/api/pharmacy/newMedicine'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { AddButton } from 'src/components/Buttons'
 import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/FileUploaderMultiple'
 
 // ** Styled Component
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
+import toast from 'react-hot-toast'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
-  const [show, setShow] = useState(false)
+
   const [storeList, setStoreList] = useState([])
   const [dataChildValues, setDataChildValues] = useState([])
   const [editValues, setEditValues] = useState(dataChildValues)
@@ -71,24 +72,28 @@ export default function AddProduct() {
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
-      .then(res => setStoreList(res.data))
+      .then(res => setStoreList(res?.data?.list_items))
       .catch(err => console.log(err))
   }, [])
 
-  console.log('storeList??', storeList)
+  console.log('storeList ????', storeList)
+
+  // {
+  //   storeList?.map((item, index) => setStoreId(item?.id))
+  // }
+  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
   const schema = yup.object().shape({
-    from_store: yup.string().required('Select the From Store'),
-    product_type: yup.string().required('select product type'),
+    from_store: yup.string().required('product name is required'),
+    product_type: yup.string().required('product name is required'),
     product_name: yup.string().required('product name is required'),
-    generic_name: yup.string().required('generic name is required'),
+    generic_name: yup.string().required('product name is required'),
     quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
   })
 
   const defaultValues = {
-    from_store: '',
+    from_store: 38,
     comment: '',
-    quantity: 0,
     prescription_images: [],
     product_type: '',
     product_name: '',
@@ -96,13 +101,14 @@ export default function AddProduct() {
     product_image: '',
     quantity: '1',
     priority: 'Normal',
-    salts: [
-      {
-        label: '',
-        salt_id: '',
-        salt_qty: ''
-      }
-    ],
+    salts: [],
+    // salts: [
+    //   {
+    //     label: '',
+    //     salt_id: '',
+    //     salt_qty: ''
+    //   }
+    // ],
     status: 'Pending'
   }
 
@@ -124,12 +130,12 @@ export default function AddProduct() {
   //   name: 'prescription_images'
   // })
 
-  const { fields, append, remove, insert } = useFieldArray({
-    control,
-    name: 'salts'
-  })
+  // const { fields, append, remove, insert } = useFieldArray({
+  //   control,
+  //   name: 'salts'
+  // })
 
-  console.log('salts????', fields)
+  // console.log('salts????', fields)
 
   const handleFileChange = event => {
     console.log('event ???', event)
@@ -139,8 +145,6 @@ export default function AddProduct() {
     }))
     setValue('prescription_images', newImages)
   }
-
-  console.log('dataChildValuesdataChildValues>>>>>>>>>>>>>>>>>', dataChildValues)
 
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
@@ -160,14 +164,16 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
+    // setDataChildValues([...dataChildValues])
     console.log('data?????', data)
-    const saltValues = data.salts
+    data.status = data?.status ? data?.status : 'Pending'
+    // const saltValues = data.salts
 
-    const filterSaltValues = saltValues?.map(item => ({
-      salt_id: item.salt_id,
-      salt_qty: item.salt_qty
-    }))
-    data.salts = JSON.stringify(filterSaltValues)
+    // const filterSaltValues = saltValues?.map(item => ({
+    //   salt_id: item.salt_id,
+    //   salt_qty: item.salt_qty
+    // }))
+    // data.salts = JSON.stringify(filterSaltValues)
     const {
       from_store,
       comment,
@@ -177,7 +183,7 @@ export default function AddProduct() {
       product_name,
       generic_name,
       quantity,
-      salts,
+      status,
       product_image
     } = data
 
@@ -190,7 +196,18 @@ export default function AddProduct() {
       from_store: from_store,
       comments: comment,
       prescription_images: listImages,
-      request_item_details: [{ product_type, product_name, generic_name, priority, quantity, product_image, salts }]
+      request_item_details: [
+        {
+          product_type: product_type,
+          product_name: product_name,
+          generic_name: generic_name,
+          priority: priority,
+          quantity: quantity,
+          product_image: product_image,
+          salts: JSON.stringify([]),
+          status: status
+        }
+      ]
     }
 
     let response
@@ -201,11 +218,13 @@ export default function AddProduct() {
       if (id) {
         response = await updateNonExistingProduct(payload, id)
       } else {
+        debugger
         response = await addNonExistingProduct(payload)
       }
 
-      if (response) {
-        setSuccessFulModal(true)
+      if (response?.success) {
+        const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
+        toast.success(toastMessage)
 
         router.push('/pharmacy/new-product-request/')
         reset()
@@ -220,17 +239,16 @@ export default function AddProduct() {
     }
   }
 
-  const handleUpdate = (item, itemIndex, dataFromChild) => {
+  const handleUpdate = item => {
+    debugger
     const updatedItems = [...dataChildValues]
-    let dataUpdate = dataFromChild
-    if (item?.request_item_detail_id) {
-      dataUpdate['request_item_detail_id'] = item.request_item_detail_id
+    // let dataUpdate = dataFromChild
+    if (item?.request_item_details?.request_item_detail_id) {
+      updatedItems['request_item_detail_id'] = item.request_item_detail_id
     }
-    updatedItems[itemIndex] = dataUpdate
+    // updatedItems[itemIndex] = dataUpdate
     setDataChildValues(updatedItems)
   }
-
-  console.log('updatedChild Comp????', dataChildValues)
 
   const clearSaltFields = index => {
     return (
@@ -258,68 +276,64 @@ export default function AddProduct() {
     }
   }
 
-  const addSaltButton = () => {
-    return (
-      <Button
-        variant='outlined'
-        onClick={() => {
-          setSalts([])
-          append({
-            salt_qty: '',
-            slat_id: ''
-          })
-        }}
-        sx={{ marginRight: '4px', borderRadius: 6 }}
-      >
-        Add Another
-      </Button>
-    )
-  }
+  // const addSaltButton = () => {
+  //   return (
+  //     <Button
+  //       variant='outlined'
+  //       onClick={() => {
+  //         setSalts([])
+  //         append({
+  //           salt_qty: '',
+  //           slat_id: ''
+  //         })
+  //       }}
+  //       sx={{ marginRight: '4px', borderRadius: 6 }}
+  //     >
+  //       Add Another
+  //     </Button>
+  //   )
+  // }
 
-  const removeSaltButton = index => {
-    return (
-      <Box>
-        <Icon
-          onClick={() => {
-            var tempDefaultSalts = defaultSalts
-            tempDefaultSalts.splice(index, 1)
-            setDefaultSalts(tempDefaultSalts)
-            remove(index)
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-    )
-  }
+  // const removeSaltButton = index => {
+  //   return (
+  //     <Box>
+  //       <Icon
+  //         onClick={() => {
+  //           var tempDefaultSalts = defaultSalts
+  //           tempDefaultSalts.splice(index, 1)
+  //           setDefaultSalts(tempDefaultSalts)
+  //           remove(index)
+  //         }}
+  //         icon='material-symbols-light:close'
+  //       />
+  //     </Box>
+  //   )
+  // }
 
-  const handleAddRemoveSalts = (fields, index) => {
-    if (fields.length - 1 === index && index > 0) {
-      return (
-        <>
-          {addSaltButton()}
-          {removeSaltButton(index)}
-        </>
-      )
-    } else if (index <= 0 && fields.length - 1 <= 0) {
-      return (
-        <>
-          {addSaltButton()}
-          {clearSaltFields(index)}
-        </>
-      )
-    } else if (index <= 0 && fields.length > 0) {
-      return <>{clearSaltFields(index)}</>
-    } else {
-      return <>{removeSaltButton(index)}</>
-    }
-  }
-
-  // console.log(
-  //   'presx???',
-  //   prescriptionField.map(item => console.log('item???', item))
-  // )
+  // const handleAddRemoveSalts = (fields, index) => {
+  //   if (fields.length - 1 === index && index > 0) {
+  //     return (
+  //       <>
+  //         {addSaltButton()}
+  //         {removeSaltButton(index)}
+  //       </>
+  //     )
+  //   } else if (index <= 0 && fields.length - 1 <= 0) {
+  //     return (
+  //       <>
+  //         {addSaltButton()}
+  //         {clearSaltFields(index)}
+  //       </>
+  //     )
+  //   } else if (index <= 0 && fields.length > 0) {
+  //     return <>{clearSaltFields(index)}</>
+  //   } else {
+  //     return <>{removeSaltButton(index)}</>
+  //   }
+  // }
 
   const handleInputImageChange = file => {
+    debugger
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
@@ -348,62 +362,111 @@ export default function AddProduct() {
   const { id } = router.query
 
   const getSpecificProductList = async id => {
+    debugger
     await getNonExistingProductById(id).then(res => {
+      // console.log('response ???', res.data?.request_item_details)
+
       SetImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
-      console.log('prescription???', res.data?.prescription_images)
       setPrescriptionField(res.data?.prescription_images)
 
       res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
 
       reset({
+        from_store: res?.data?.from_store,
         comment: res?.data?.comments,
-        from_store: res?.data?.from_store
+        quantity: res?.data?.quantity,
+        priority: res?.data?.request_item_details.map(Item => Item.priority),
+        product_type: res?.data?.request_item_details.map(Item => Item.product_type),
+        product_name: res?.data?.request_item_details.map(Item => Item.product_name),
+        generic_name: res?.data?.request_item_details.map(Item => Item.generic_name),
+        product_image: res?.data?.request_item_details.map(Item =>
+          typeof Item?.product_image === 'string'
+            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+            : Item?.product_image
+        )
       })
+      setImgSrc(
+        res?.data?.request_item_details?.map(Item =>
+          typeof Item?.product_image === 'string'
+            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+            : Item?.product_image
+        )
+      )
+      handleUpdate(getDetails)
     })
   }
+
+  // useEffect(() => {
+  //   getSpecificProductList()
+  // }, [])
+
+  // useEffect(() => {
+  //   if (dataChildValues) {
+  //     reset({
+  //       priority: res?.data?.request_item_details.map(Item => Item.priority),
+  //       product_type: res?.data?.request_item_details.map(Item => Item.product_type),
+  //       product_name: res?.data?.request_item_details.map(Item => Item.product_name),
+  //       generic_name: res?.data?.request_item_details.map(Item => Item.generic_name),
+  //       product_image: res?.data?.request_item_details.map(Item =>
+  //         typeof Item?.product_image === 'string'
+  //           ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+  //           : Item?.product_image
+  //       )
+  //     })
+
+  //     // let constructedPath = ''
+  //     // if (imgBaseUrl) {
+  //     //   constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
+  //     // }
+  //     setImgSrc(
+  //       editValues?.product_image !== '' && typeof editValues?.product_image === 'string'
+  //         ? `${base_url}${imgBaseUrl}${editValues?.product_image}`
+  //         : editValues?.product_image
+  //     )
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (id) {
       getSpecificProductList(id)
     }
-  }, [id])
+  }, [id, responseImage])
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Add Product Form' />
-          {successFulModal && (
-            <Box
-              sx={{
-                backgroundColor: 'cornsilk',
-                width: '1500px',
-                textAlign: 'center',
-                fontSize: '20px'
-              }}
-            >
-              <Typography>Data Successfully Submitted</Typography>
-            </Box>
-          )}
+          <CardHeader
+            title='Add Product Form'
+            avatar={
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  Router.push('/pharmacy/new-product-request/')
+                }}
+                icon='ep:back'
+              />
+            }
+          />
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
               <Grid container spacing={6}>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
-                    <InputLabel>From Store</InputLabel>
+                    <InputLabel>From Store Name</InputLabel>
                     <Controller
                       name='from_store'
                       control={control}
                       rules={{ required: true }}
                       render={({ field }) => (
-                        <Select {...field} label='Select From Store'>
-                          {storeList?.list_items?.map(item => {
+                        <Select {...field} label='From Store Name'>
+                          {storeList?.map((item, index) => {
                             return (
-                              <MenuItem key={item.id} value={item.id}>
-                                {item.name}
+                              <MenuItem key={index} value={item?.id}>
+                                {item?.name}
                               </MenuItem>
                             )
                           })}
@@ -437,10 +500,10 @@ export default function AddProduct() {
                 </Grid>
               </Grid>
               <Grid container sm={12} mt={4} xs={12}>
-                <Grid container spacing={6} xs={12}>
+                <Grid container spacing={6}>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel>Product Type</InputLabel>
+                      <InputLabel>Select Product Type*</InputLabel>
                       <Controller
                         name='product_type'
                         control={control}
@@ -449,7 +512,7 @@ export default function AddProduct() {
                           <Select
                             name='product_type'
                             value={value}
-                            label='Select Product Type'
+                            label='Select Product Type*'
                             onChange={onChange}
                             error={Boolean(errors?.product_type)}
                           >
@@ -474,7 +537,7 @@ export default function AddProduct() {
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
-                            label='Product Name'
+                            label='Product Name*'
                             name='product_name'
                             error={Boolean(errors.product_name)}
                             onChange={onChange}
@@ -497,7 +560,7 @@ export default function AddProduct() {
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
-                            label='Generic Name'
+                            label='Generic Name*'
                             name='generic_name'
                             error={Boolean(errors.generic_name)}
                             onChange={onChange}
@@ -577,7 +640,7 @@ export default function AddProduct() {
                     />
 
                     {/* {imgSrc === '' && ( */}
-                    {!imgSrc && <AddButton title=' Add Image' action={handleAddGalleryClick} />}
+                    {imgSrc === '' && <AddButton title=' Add Image' action={handleAddGalleryClick} />}
 
                     {imgSrc !== '' && (
                       <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
@@ -586,8 +649,8 @@ export default function AddProduct() {
                             width={60}
                             height={60}
                             alt='
-                    Uploaded image'
-                            src={typeof imgSrc === 'string' ? imgSrc : URL.createObjectURL(imgSrc)}
+                           Uploaded image'
+                            src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
                           />
                         </Box>
                         <Box>
@@ -601,7 +664,7 @@ export default function AddProduct() {
 
                   {/* salt composition */}
 
-                  <Grid item xs={12} sm={12}>
+                  {/* <Grid item xs={12} sm={12}>
                     <FormGroup>
                       <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
                         <Grid item xs={6}>
@@ -667,7 +730,7 @@ export default function AddProduct() {
                         </Grid>
                       ))}
                     </FormGroup>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
               {/* <Grid item xs={12} sm={12}>
@@ -823,6 +886,7 @@ export default function AddProduct() {
               {/* </Grid>
               </Grid> */}{' '}
               <Grid
+                container
                 sm={12}
                 spacing={6}
                 mt={4}
@@ -839,33 +903,6 @@ export default function AddProduct() {
               </Grid>
             </CardContent>
           </form>
-          {show && (
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={'Add Request Item'}
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <AddRequestLineItemsForm
-                      handleCallback={handleCallback}
-                      setShow={setShow}
-                      imgBaseUrl={imgBaseUrl}
-                      SetImgBaseUrl={SetImgBaseUrl}
-                      responseImage={responseImage}
-                      setResponseImage={setResponseImage}
-                      dataChildValues={dataChildValues}
-                      setDataChildValues={setDataChildValues}
-                      editValues={editValues}
-                      editIndex={editIndex}
-                      handleUpdate={handleUpdate}
-                    />
-                  }
-                  close={() => setShow(false)}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
-          )}
         </Card>
       </Grid>
     </Grid>

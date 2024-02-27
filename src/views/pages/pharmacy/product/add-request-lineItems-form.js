@@ -268,8 +268,8 @@ export const AddRequestLineItemsForm = ({
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
-                name='product_name'
                 control={control}
+                name='product_name'
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
