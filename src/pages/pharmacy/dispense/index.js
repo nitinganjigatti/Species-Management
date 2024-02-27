@@ -1,4 +1,4 @@
-import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
+import { Avatar, Card, CardHeader, Grid, Typography, debounce } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -6,7 +6,9 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { AddButton } from 'src/components/Buttons'
 import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import Utility from 'src/utility'
+import moment from 'moment'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
 
 function Dispense() {
   const [loading, setLoading] = useState(false)
@@ -17,25 +19,12 @@ function Dispense() {
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  const { formatDate } = Utility
-
+  const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const columns = [
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'id',
-    //   headerName: 'Id', // dont need
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params?.row?.id}
-    //     </Typography>
-    //   )
-    // },
-    // {
     {
       flex: 0.2,
       minWidth: 20,
@@ -81,7 +70,7 @@ function Dispense() {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {/* product count instead of */}
-          {formatDate(params.row.created_at)}
+          {moment(params.row.created_at).format('D MMM YYYY - h:mmA')}
         </Typography>
       )
     },
@@ -122,7 +111,7 @@ function Dispense() {
   )
   useEffect(() => {
     getDipsense({ sort, q: searchValue, column: sortColumn })
-  }, [getDipsense])
+  }, [getDipsense, selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -132,83 +121,110 @@ function Dispense() {
     sl_no: getSlNo(index)
   }))
 
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await getDipsense({ sort, q: value, column: sortColumn })
+  const handleSearch = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        await getDipsense({ sort, q: value, column: sortColumn })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
+  const onRowClick = params => {
+    var data = params.row
+    Router.push({
+      pathname: '/pharmacy/dispense/individual-dispense',
+      query: { id: data.id }
+    })
   }
 
   return (
-    <Card>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <Grid sx={{ mx: 1.4 }} item>
-          <CardHeader title='Dispense' />
-        </Grid>
-        <Grid sx={{ mx: 5 }} item>
-          <AddButton
-            title='Add Dispense'
-            action={() => {
-              Router.push('/pharmacy/dispense/add-dispense')
-            }}
+    <>
+      {selectedPharmacy.type === 'local' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' ||
+        selectedPharmacy.permission.key === 'ADD' ||
+        selectedPharmacy.permission.key === 'VIEW') ? (
+        <Card>
+          <Grid
+            container
+            sm={12}
+            xs={12}
             sx={{
-              mr: 6
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}
-          />
-        </Grid>
-      </Grid>
-      <CardContent>
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+          >
+            <Grid sx={{ mx: 1.4 }} item>
+              <CardHeader title='Dispense' />
+            </Grid>
+            <Grid sx={{ mx: 5 }} item>
+              {selectedPharmacy.type === 'local' &&
+                (selectedPharmacy.permission.key === 'allow_full_access' ||
+                  selectedPharmacy.permission.key === 'ADD') && (
+                  <AddButton
+                    title='Add Dispense'
+                    action={() => {
+                      Router.push('/pharmacy/dispense/add-dispense')
+                    }}
+                    sx={{
+                      mr: 6
+                    }}
+                  />
+                )}
+            </Grid>
+          </Grid>
+          <DataGrid
+            sx={{
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            },
-            '& .css-12hr0br': {
-              paddingLeft: 0,
-              paddingTop: 0
-            }
-          }}
-          autoHeight
-          pagination
-          disableColumnSelector={true}
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          slots={{ toolbar: ServerSideToolbar }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => {
-                setSearchValue(event.target.value)
-
-                return handleSearch(event.target.value)
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              },
+              '& .css-12hr0br': {
+                paddingTop: 0
               }
-            }
-          }}
-        />
-      </CardContent>
-    </Card>
+            }}
+            autoHeight
+            pagination
+            disableColumnSelector={true}
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[7, 10, 25, 50]}
+            paginationModel={paginationModel}
+            slots={{ toolbar: ServerSideToolbar }}
+            onPaginationModelChange={setPaginationModel}
+            loading={loading}
+            slotProps={{
+              baseButton: {
+                variant: 'outlined'
+              },
+              toolbar: {
+                value: searchValue,
+                clearSearch: () => handleSearch(''),
+                onChange: event => {
+                  setSearchValue(event.target.value)
+                  return handleSearch(event.target.value)
+                }
+              }
+            }}
+            onRowClick={onRowClick}
+          />
+        </Card>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }
 

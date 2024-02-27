@@ -1,30 +1,6 @@
-export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
+export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
 
-export const GetLabNo = 'user-lab-list'
-
-export const PostTransfer = '/antz/transfer/lab-tests'
-
-export const uploadLabReports = '/medical/add-lab-test-files'
-
-export const updateStatus = '/antz/update/lab-tests-status'
-
-export const GetLabReport = 'lab-report'
-
-export const GetRequestPopUpById = 'antz/request/lab-tests'
-
-export const RequestDetails = 'antz/request/tests'
-
-export const AddLAB = 'antz/labs/create-lab'
-
-export const AllLabSample = 'antz/get-sample-tests'
-
-export const GetLab = 'antz/labs/list-labs'
-
-export const LabEditGetById = 'antz/labs/show-lab/'
-
-export const UpdateLab = 'antz/labs/update-lab/'
-
-export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
+export const USER_REFRESH_TOKEN_ = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
 
