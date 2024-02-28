@@ -45,9 +45,9 @@ export async function getBatchList({ ProductId }) {
   return response.data
 }
 
-export async function getAnimalList(payload) {
+export async function getAnimalList(payload, query) {
   try {
-    const url = `${ANIMAL_LIST}`
+    const url = `${ANIMAL_LIST}?type=${query}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy: true })
 
@@ -81,4 +81,10 @@ export async function submitDispense(payload) {
 
     return error
   }
+}
+
+export async function getDispenseById(dispensecId) {
+  const response = await axiosGet({ url: `${SUBMIT_DISPENSE}/${dispensecId}/show`, pharmacy: true })
+
+  return response.data
 }

@@ -1,6 +1,6 @@
-export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
+export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
 
-export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
+export const USER_REFRESH_TOKEN_ = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
 
