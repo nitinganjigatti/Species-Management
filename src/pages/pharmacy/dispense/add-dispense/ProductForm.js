@@ -4,6 +4,9 @@ import {
   Card,
   CardContent,
   Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   FormControl,
   FormGroup,
   FormHelperText,
@@ -23,6 +26,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { getBatchList, getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 function ProductForm({
   closeDialog,
@@ -231,6 +235,19 @@ function ProductForm({
       </Box>
     )
   }
+  const ConfirmDialogFooter = () => {
+    return (
+      <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
+        <Typography>Confirm to proceed</Typography>
+        <Button variant='contained' onClick={() => submitItems(dataForSubmit)}>
+          Confirm
+        </Button>
+        <Button variant='outlined' onClick={() => closeConfirmationDialog()}>
+          Close
+        </Button>
+      </Box>
+    )
+  }
 
   const closeConfirmationDialog = () => {
     setShowConfirmationDialog(false)
@@ -408,7 +425,7 @@ function ProductForm({
 
   return (
     <Box>
-      <Dialog
+      {/* <Dialog
         open={showConfirmationDialog}
         maxWidth='sm'
         height='auto'
@@ -455,9 +472,62 @@ function ProductForm({
                 </TableRow>
               ))}
             </Table>
-            <Box sx={{ display: 'flex', mt: 3, justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography>Confirm to proceed</Typography>
-              <Box sx={{ display: 'flex', gap: 4 }}>
+            <ConfirmDialogFooter />
+          </CardContent>
+        </Card>
+      </Dialog> */}
+      <ConfirmDialogBox
+        open={showConfirmationDialog}
+        closeDialog={() => {
+          closeConfirmationDialog()
+        }}
+        action={() => {
+          closeConfirmationDialog()
+        }}
+        content={
+          <>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2 }}>
+                You are trying to dispense higher higher quantity than it is available
+              </DialogContentText>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                    <TableCell sx={{ py: 1 }}>Dispense qty</TableCell>
+                  </TableRow>
+                </TableHead>
+                {invalidBatches?.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidBatches.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.batch_no?.value}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidBatches.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.totalQty}
+                    </TableCell>
+                    <TableCell sx={{ py: 1, borderBottom: index === invalidBatches.length - 1 && 'none' }}>
+                      {item?.filledQty}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </Table>
+            </DialogContent>
+            <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText>
+            <DialogActions className='dialog-actions-dense'>
+              <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
                 <Button variant='contained' onClick={() => submitItems(dataForSubmit)}>
                   Confirm
                 </Button>
@@ -465,10 +535,10 @@ function ProductForm({
                   Close
                 </Button>
               </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Dialog>
+            </DialogActions>
+          </>
+        }
+      />
       <form onSubmit={handleSubmit(editMode ? EditItems : checkForSubmit, onError)}>
         <Grid container mb={5}>
           <Grid item xs={12}>
