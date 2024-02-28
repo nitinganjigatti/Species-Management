@@ -62,18 +62,20 @@ function IndividualDispense() {
       field: ' ',
       headerName: '',
       renderCell: params => (
-        <Avatar
-          sx={{
-            '& > img': {
-              objectFit: 'contain'
-            },
-            width: '100%',
-            height: '100%'
-          }}
-          variant='rounded'
-          alt={params?.row?.default_icon}
-          src={params?.row?.default_icon}
-        />
+        <Box sx={{ p: 1.4 }}>
+          <Avatar
+            sx={{
+              '& > img': {
+                objectFit: 'contain'
+              },
+              width: '100%',
+              height: '100%'
+            }}
+            variant='circular'
+            alt={params?.row?.default_icon}
+            src={params?.row?.default_icon}
+          />
+        </Box>
       )
     },
     {
@@ -169,10 +171,15 @@ function IndividualDispense() {
                     </Box>
 
                     <Box sx={{ my: 2 }}>
-                      <Typography sx={{ textAlign: 'center', fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name} :{' '}
-                        {dispenseData?.created_user_mobile_number}
+                      <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                        {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name}
                       </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                        <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                          {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
+                        </Typography>
+                      </Box>
                       <Box sx={{ display: 'flex' }}>
                         <Typography sx={{ fontWeight: 600 }}>Dispense Id : </Typography>
                         <Typography>&nbsp;{dispenseData?.dispense_id}</Typography>
@@ -194,8 +201,8 @@ function IndividualDispense() {
               <Card>
                 <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
                 <CardContent>
-                  <Grid container sx={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <Grid item xs={12} md={2.8}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
+                    <Box>
                       <Avatar
                         sx={{
                           '& > img': {
@@ -203,20 +210,25 @@ function IndividualDispense() {
                           },
                           width: 100,
                           height: 100,
-                          my: 3
+                          my: 7.4
                         }}
                         variant='rounded'
                         alt={dispenseData?.profile_pic}
                         src={dispenseData?.profile_pic}
                       />
-                    </Grid>
-                    <Grid item xs={12} md={8.8}>
-                      <Typography sx={{ textAlign: 'center', fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.user_first_name} {dispenseData?.user_last_name} :{' '}
-                        {dispenseData?.user_mobile_number}
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                        {dispenseData?.user_first_name} {dispenseData?.user_last_name}
                       </Typography>
-                    </Grid>
-                  </Grid>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                        <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                          {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
