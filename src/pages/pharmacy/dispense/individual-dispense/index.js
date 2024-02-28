@@ -17,9 +17,13 @@ const IndividualDispense = () => {
 
   useEffect(() => {
     if (id) {
-      getDispenseById(id)?.then(res => {
-        setDispenseData(res?.data)
-      })
+      try {
+        getDispenseById(id)?.then(res => {
+          setDispenseData(res?.data)
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     }
   }, [])
 
@@ -177,7 +181,7 @@ const IndividualDispense = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
                           {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
                         </Typography>
                       </Box>
@@ -211,7 +215,7 @@ const IndividualDispense = () => {
                           },
                           width: 100,
                           height: 100,
-                          my: 7.4
+                          my: 6.4
                         }}
                         variant='rounded'
                         alt={dispenseData?.profile_pic}
@@ -224,7 +228,7 @@ const IndividualDispense = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
                           {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
                         </Typography>
                       </Box>
