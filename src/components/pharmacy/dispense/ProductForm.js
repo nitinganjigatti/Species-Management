@@ -149,7 +149,7 @@ function ProductForm({
           .typeError('Quantity must be a number')
           .required('Quantity is required')
           .min(1, 'Quantity should be greater than 0')
-          .test('check-max-quantity', `Quantity should not be greater than ${addedProcuctQty}`, function (value) {
+          .test('check-max-quantity', `Quantity should not be greater than ${totalQty}`, function (value) {
             return value <= totalQty
           })
       })
@@ -707,7 +707,7 @@ function ProductForm({
                         forcePopupIcon={false}
                         inputProps={{ tabIndex: '6' }}
                         disablePortal
-                        getOptionDisabled={option => option?.qty < 1}
+                        // getOptionDisabled={option => option?.qty < 1}
                         disabled={batches?.length === 0 ? true : false}
                         value={field?.value}
                         options={batches}
@@ -717,7 +717,7 @@ function ProductForm({
                         )}
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
-                          setTotalQty(newValue?.qty)
+                          // setTotalQty(newValue?.qty)
                         }}
                       />
                       {errors.batch_no && (
