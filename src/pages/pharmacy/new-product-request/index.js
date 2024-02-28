@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import TableWithFilter from 'src/components/TableWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import { DataGrid } from '@mui/x-data-grid'
+import CardHeader from '@mui/material/CardHeader'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -12,7 +14,7 @@ import Icon from 'src/@core/components/icon'
 
 // import DeleteIcon from '@mui/icons-material/Delete'
 
-import { CardContent, Grid } from '@mui/material'
+import { Card, CardContent, Grid, debounce } from '@mui/material'
 
 import {
   deleteNonExistingProduct,
@@ -24,76 +26,82 @@ import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 export default function NewProductList() {
   const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
+  const [loading, setLoading] = useState(false)
   const [prescriptionImages, setPrescriptionImages] = useState()
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
   const [sortColumn, setSortColumn] = useState('label')
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState('asc')
   const [itemId, setItemId] = useState()
   const [imgUrl, setImageUrl] = useState()
   const [rows, setRows] = useState([])
 
-  const getProductList = async () => {
-    const response = await getNonExistingProductList()
-    console.log('response???', response)
-    if (response) {
-      setRows(response?.data)
-      setLoader(false)
-    } else {
-      setLoader(true)
-    }
+  function loadServerRows(currentPage, data) {
+    return data
   }
 
-  useEffect(() => {
-    getProductList()
-  }, [])
-
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
-      console.log('status', status)
+    async (sort, q, column) => {
       try {
         setLoading(true)
 
         const params = {
-          // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
-          type: 'request',
           sort,
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          status
+          limit: paginationModel.pageSize
         }
 
         await getNonExistingProductList({ params: params }).then(res => {
-          // debugger
-          console.log('response', res)
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          setTotal(parseInt(res?.count))
+          setRows(loadServerRows(paginationModel.page, res?.data))
         })
         setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoader(false)
+      } catch {
+        setLoading(false)
       }
     },
     [paginationModel]
   )
-  useEffect(() => {
-    fetchTableData(sort, sortColumn)
-  }, [fetchTableData])
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const headerAction = (
+    <AddButton title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+  )
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, 'request_number')
+  }
 
   const getProductSearchLists = async () => {
     try {
@@ -119,8 +127,8 @@ export default function NewProductList() {
   }
 
   useEffect(() => {
-    getProductSearchLists()
-  }, [])
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
 
   const handleEdit = id => {
     router.push({
@@ -279,26 +287,53 @@ export default function NewProductList() {
   //   console.log('Handle Header Action')
   // }
 
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={'New Product Request'}
-            headerActions={
-              <div>
-                <AddButton
-                  title='Add Product'
-                  action={() => router.push('/pharmacy/new-product-request/request-product/')}
-                />
-              </div>
-            }
-            columns={columns}
-            rows={rows}
-            onRowClick={params => handleRowClick(params.row.id)}
-          />
+          <Card>
+            <CardHeader title='New Product Request List' action={headerAction} />
+            <DataGrid
+              columnVisibilityModel={{
+                id: false
+              }}
+              autoHeight
+              pagination
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onRowClick={handleRowClick}
+            />
+          </Card>
 
           {show && (
             <CardContent>

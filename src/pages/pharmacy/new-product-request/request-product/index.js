@@ -167,6 +167,17 @@ export default function AddProduct() {
     // setDataChildValues([...dataChildValues])
     console.log('data?????', data)
     data.status = data?.status ? data?.status : 'Pending'
+    // const requestDetailsData = {
+    //   product_type: data?.product_type,
+    //   product_name: data?.product_name,
+    //   generic_name: data?.generic_name,
+    //   priority: data?.priority,
+    //   quantity: data?.quantity,
+    //   product_image: data?.product_image,
+    //   salts: JSON.stringify([]),
+    //   status: data?.status
+    // }
+
     // const saltValues = data.salts
 
     // const filterSaltValues = saltValues?.map(item => ({
@@ -198,14 +209,14 @@ export default function AddProduct() {
       prescription_images: listImages,
       request_item_details: [
         {
-          product_type: product_type,
-          product_name: product_name,
-          generic_name: generic_name,
-          priority: priority,
-          quantity: quantity,
-          product_image: product_image,
+          product_type,
+          product_name,
+          generic_name,
+          priority,
+          quantity,
+          product_image,
           salts: JSON.stringify([]),
-          status: status
+          status: data?.status
         }
       ]
     }
@@ -241,13 +252,14 @@ export default function AddProduct() {
 
   const handleUpdate = item => {
     debugger
-    const updatedItems = [...dataChildValues]
-    // let dataUpdate = dataFromChild
-    if (item?.request_item_details?.request_item_detail_id) {
-      updatedItems['request_item_detail_id'] = item.request_item_detail_id
-    }
-    // updatedItems[itemIndex] = dataUpdate
-    setDataChildValues(updatedItems)
+
+    // const updatedItems = [...dataChildValues]
+    // // let dataUpdate = dataFromChild
+    // if (item?.request_item_details?.request_item_detail_id) {
+    //   updatedItems['request_item_detail_id'] = item.request_item_detail_id
+    // }
+    // // updatedItems[itemIndex] = dataUpdate
+    // setDataChildValues(updatedItems)
   }
 
   const clearSaltFields = index => {
@@ -377,10 +389,10 @@ export default function AddProduct() {
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
         quantity: res?.data?.quantity,
-        priority: res?.data?.request_item_details.map(Item => Item.priority),
-        product_type: res?.data?.request_item_details.map(Item => Item.product_type),
-        product_name: res?.data?.request_item_details.map(Item => Item.product_name),
-        generic_name: res?.data?.request_item_details.map(Item => Item.generic_name),
+        priority: res?.data?.request_item_details.map(Item => Item.priority).join(','),
+        product_type: res?.data?.request_item_details.map(Item => Item.product_type).join(','),
+        product_name: res?.data?.request_item_details.map(Item => Item.product_name).join(','),
+        generic_name: res?.data?.request_item_details.map(Item => Item.generic_name).join(','),
         product_image: res?.data?.request_item_details.map(Item =>
           typeof Item?.product_image === 'string'
             ? `${base_url}${imgBaseUrl}${Item?.product_image}`
@@ -394,7 +406,7 @@ export default function AddProduct() {
             : Item?.product_image
         )
       )
-      handleUpdate(getDetails)
+      handleUpdate(getDetails, dataChildValues)
     })
   }
 
@@ -484,7 +496,6 @@ export default function AddProduct() {
                       name='comment'
                       control={control}
                       rules={{ required: true }}
-                      defaultValue=''
                       render={({ field }) => (
                         <TextField
                           {...field}

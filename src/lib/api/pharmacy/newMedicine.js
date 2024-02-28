@@ -8,10 +8,10 @@ export async function addNonExistingProduct(params) {
   return response.data
 }
 
-export async function getNonExistingProductList() {
+export async function getNonExistingProductList({ params }) {
   console.log('endpoint', `${MEDICINES_STOCK}`)
-  debugger
-  const response = await axiosGet({ url: `${MEDICINES_STOCK}`, pharmacy: true })
+
+  const response = await axiosGet({ url: `${MEDICINES_STOCK}`, params, pharmacy: true })
 
   return response.data
 }
