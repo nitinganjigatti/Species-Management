@@ -668,17 +668,6 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
           <Box sx={{ mr: 2 }}>
-            {/* <Icon
-              onClick={() => {
-                // getRequestItemLists(params.row.request_number)
-                setFulfillMedicine({
-                  ...params.row
-                })
-                showDialog()
-                console.log('full filled ', params.row)
-              }}
-              icon='material-symbols:edit-outline'
-            /> */}
             <Icon
               onClick={() => {
                 setDeleteDialog(true)
