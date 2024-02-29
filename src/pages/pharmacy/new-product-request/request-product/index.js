@@ -163,10 +163,53 @@ export default function AddProduct() {
     setValue('prescription_images', filterList)
   }
 
+  const getSpecificProductList = async id => {
+    debugger
+    await getNonExistingProductById(id).then(res => {
+      SetImgBaseUrl(res?.base_path)
+      setGetDetails(res?.data)
+      setDataChildValues(res?.data?.request_item_details)
+      setPrescriptionField(res?.data?.prescription_images)
+
+      res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
+
+      reset({
+        from_store: res?.data?.from_store,
+        comment: res?.data?.comments,
+        quantity: res?.data?.quantity,
+        priority: res?.data?.request_item_details[0].priority,
+        product_type: res?.data?.request_item_details[0].product_type,
+        product_name: res?.data?.request_item_details[0].product_name,
+        generic_name: res?.data?.request_item_details[0].generic_name,
+        product_image: res?.data?.request_item_details.map(Item =>
+          typeof Item?.product_image === 'string'
+            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+            : Item?.product_image
+        )
+      })
+      setImgSrc(
+        res?.data?.request_item_details?.map(Item =>
+          typeof Item?.product_image === 'string'
+            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+            : Item?.product_image
+        )
+      )
+    })
+  }
+
   const onSubmit = async data => {
-    // setDataChildValues([...dataChildValues])
-    console.log('data?????', data)
+    debugger
+    const dataChild = [...dataChildValues]
+    console.log('dataChild====????', dataChild)
+
+    const requestData = dataChild?.map((item, index) => {
+      return item?.request_item_detail_id
+    })
+    console.log('request???????', requestData)
+    data.request_item_detail_id = requestData.join('')
+
     data.status = data?.status ? data?.status : 'Pending'
+    // handleUpdate(getDetails, data)
     // const requestDetailsData = {
     //   product_type: data?.product_type,
     //   product_name: data?.product_name,
@@ -216,10 +259,12 @@ export default function AddProduct() {
           quantity,
           product_image,
           salts: JSON.stringify([]),
-          status: data?.status
+          status: data?.status,
+          request_item_detail_id: data.request_item_detail_id
         }
       ]
     }
+    // payload.request_item_details.request_item_detail_id = requestData
 
     let response
 
@@ -250,16 +295,15 @@ export default function AddProduct() {
     }
   }
 
-  const handleUpdate = item => {
+  const handleUpdate = (item, data) => {
     debugger
 
-    // const updatedItems = [...dataChildValues]
-    // // let dataUpdate = dataFromChild
+    console.log('Details????', item)
+
     // if (item?.request_item_details?.request_item_detail_id) {
-    //   updatedItems['request_item_detail_id'] = item.request_item_detail_id
+    //   // Use optional chaining consistently
+    //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
     // }
-    // // updatedItems[itemIndex] = dataUpdate
-    // setDataChildValues(updatedItems)
   }
 
   const clearSaltFields = index => {
@@ -372,43 +416,6 @@ export default function AddProduct() {
 
   const router = useRouter()
   const { id } = router.query
-
-  const getSpecificProductList = async id => {
-    debugger
-    await getNonExistingProductById(id).then(res => {
-      // console.log('response ???', res.data?.request_item_details)
-
-      SetImgBaseUrl(res?.base_path)
-      setGetDetails(res?.data)
-      setDataChildValues(res?.data?.request_item_details)
-      setPrescriptionField(res.data?.prescription_images)
-
-      res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
-
-      reset({
-        from_store: res?.data?.from_store,
-        comment: res?.data?.comments,
-        quantity: res?.data?.quantity,
-        priority: res?.data?.request_item_details.map(Item => Item.priority).join(','),
-        product_type: res?.data?.request_item_details.map(Item => Item.product_type).join(','),
-        product_name: res?.data?.request_item_details.map(Item => Item.product_name).join(','),
-        generic_name: res?.data?.request_item_details.map(Item => Item.generic_name).join(','),
-        product_image: res?.data?.request_item_details.map(Item =>
-          typeof Item?.product_image === 'string'
-            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-            : Item?.product_image
-        )
-      })
-      setImgSrc(
-        res?.data?.request_item_details?.map(Item =>
-          typeof Item?.product_image === 'string'
-            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-            : Item?.product_image
-        )
-      )
-      handleUpdate(getDetails, dataChildValues)
-    })
-  }
 
   // useEffect(() => {
   //   getSpecificProductList()

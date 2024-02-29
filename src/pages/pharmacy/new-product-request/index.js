@@ -49,7 +49,8 @@ export default function NewProductList() {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async ({ sort, q, column }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -62,22 +63,23 @@ export default function NewProductList() {
         }
 
         await getNonExistingProductList({ params: params }).then(res => {
+          console.log('getResponse ????', res)
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
         setLoading(false)
-      } catch {
+      } catch (e) {
+        console.log(e)
         setLoading(false)
       }
     },
     [paginationModel]
   )
 
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+  const handleSortModel = async newModel => {
+    debugger
+    if (newModel.length > 0) {
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
   }
@@ -87,10 +89,11 @@ export default function NewProductList() {
   )
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async ({ sort, q, column }) => {
+      debugger
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData({ sort, q, column })
       } catch (error) {
         console.error(error)
       }
@@ -98,36 +101,38 @@ export default function NewProductList() {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = async value => {
+    debugger
+    console.log('valuwwww???', value)
     setSearchValue(value)
-    searchTableData(sort, value, 'request_number')
+    await searchTableData({ sort, q: value, column: sortColumn })
   }
 
-  const getProductSearchLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getNonExistingProductList()
-      if (response?.length > 0) {
-        console.log('list', response)
+  // const getProductSearchLists = async () => {
+  //   try {
+  //     setLoader(true)
+  //     const response = await getNonExistingProductList()
+  //     if (response?.length > 0) {
+  //       console.log('list', response)
 
-        let listWithId = response
-          ? response.map((el, i) => {
-              return { ...el, uid: i + 1 }
-            })
-          : []
-        setRows(listWithId)
-        setLoader(false)
-      } else {
-        setLoader(false)
-      }
-    } catch (error) {
-      setLoader(false)
-      console.log('error', error)
-    }
-  }
+  //       let listWithId = response
+  //         ? response.map((el, i) => {
+  //             return { ...el, uid: i + 1 }
+  //           })
+  //         : []
+  //       setRows(listWithId)
+  //       setLoader(false)
+  //     } else {
+  //       setLoader(false)
+  //     }
+  //   } catch (error) {
+  //     setLoader(false)
+  //     console.log('error', error)
+  //   }
+  // }
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData({ sort, q: searchValue, column: sortColumn })
   }, [fetchTableData])
 
   const handleEdit = id => {
@@ -156,10 +161,11 @@ export default function NewProductList() {
   //   return response
   // }
 
-  const handleRowClick = async id => {
+  const onRowClick = async params => {
+    console.log('params???', params)
     setShow(true)
-    setItemId(id)
-    await getNonExistingProductById(id)
+    setItemId(params.id)
+    await getNonExistingProductById(params.id)
       .then(res => {
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
@@ -331,7 +337,7 @@ export default function NewProductList() {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              onRowClick={handleRowClick}
+              onRowClick={onRowClick}
             />
           </Card>
 
