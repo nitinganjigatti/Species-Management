@@ -1,9 +1,7 @@
 // ** React Imports
-import { forwardRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
-import TableBasic from 'src/views/table/mui/TableBasic'
 import { styled, createTheme } from '@mui/material/styles'
-import Link from 'next/link'
 import FormGroup from '@mui/material/FormGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
@@ -12,26 +10,19 @@ import { FormControl, FormHelperText } from '@mui/material'
 // ** MUI Imports
 
 import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Dialog from '@mui/material/Dialog'
-import IconButton from '@mui/material/IconButton'
 
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
 import { CardContent } from '@mui/material'
-import DialogTitle from '@mui/material/DialogTitle'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
-import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
+
 import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import UserSnackbar from 'src/components/utility/snackbar'
 import DialogActions from '@mui/material/DialogActions'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
@@ -41,14 +32,12 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { CardHeader } from '@mui/material'
 
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import { addDispatch, updateFullFillLineItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
-import { stringify } from 'stylis'
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
   const defaultValues = {
@@ -84,7 +73,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       })
     )
   })
-  console.log('fulfillMedicine in dialog', fulfillMedicine)
+  console.log('fulfillMedicine in comp', fulfillMedicine)
 
   const {
     reset,
@@ -155,7 +144,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //     tempState[index] = false
   //     setRowErrors(tempState)
   //   } else {
-  //     debugger
+  //
   //     const tempState = rowErrors
   //     tempState[index] = true
   //     setRowErrors(tempState)
@@ -285,7 +274,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const getMedicineByMedicineId = async id => {
-    debugger
     setLoader(true)
     const data = { stock_item_id: id }
     const response = await getAvailableMedicineByMedicineId(id, data, 'central')
@@ -295,7 +283,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       setTotalProductCount(response?.data?.total_quantity)
       console.log('in bataches', response?.data?.items)
 
-      // verifyUpdate()
       setLoader(false)
     } else {
       setLoader(false)
@@ -346,7 +333,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   useEffect(() => {
-    alert('1')
     if (fulfillMedicine?.stock_item_id !== undefined && fulfillMedicine?.stock_item_id !== null) {
       console.log(fulfillMedicine)
       console.log(storeDetails)
@@ -356,50 +342,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
   }, [fulfillMedicine, storeDetails])
-
-  function verifyUpdate() {
-    if (fulfillMedicine?.action === 'update') {
-      debugger
-      console.log('batches', batchItems)
-
-      const data = {
-        product_batches: [
-          {
-            batch_no: {
-              batch_no: 'BA0002',
-              expiry_date: '2030-02-20',
-              qty: '175',
-              stock_item_name: 'Intacil Pet',
-              store_name: 'LSET Central',
-              stock_item_id: '474',
-              store_id: '38',
-              type: 'central'
-            },
-            expiry_date: fulfillMedicine.expiry_date,
-            qty: fulfillMedicine.qty,
-            quantityAvailable: fulfillMedicine.quantityAvailable
-          }
-        ]
-      }
-
-      console.log('data in verifyUpdate', data)
-
-      // setBatchItems([
-      //   {
-      //     batch_no: fulfillMedicine.batch_no,
-      //     expiry_date: fulfillMedicine.expiry_date,
-      //     qty: fulfillMedicine.qty,
-      //     quantityAvailable: fulfillMedicine.quantityAvailable
-      //   }
-      // ])
-
-      reset(data)
-    }
-  }
-  useEffect(() => {
-    alert('2')
-    verifyUpdate()
-  }, [])
 
   const checkNumber = number => {
     return !isNaN(number) ? parseInt(number) : 0
@@ -566,7 +508,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const dispatchingItems = async params => {
     if (params?.product_batches?.length > 0) {
       const totalQuantity = getTotalMedicineQuantity(params)
-      debugger
+
       if (
         checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0 &&
         checkNumber(fulfilledQuantity) <= totalProductCount
@@ -590,7 +532,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
         payload_list.push(payload_item)
       })
-      debugger
 
       const payload = {
         dispatch_date: Utility.formatDate(Date()),
@@ -599,9 +540,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       }
 
       console.log(payload)
-
-      // debugger
-      // console.log('payload', JSON.stringify(payload))
 
       try {
         setErrors(false)
@@ -629,29 +567,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       await dispatchingItems(dispatchItems)
       closeConfirmationDialog()
     }
-  }
-
-  const updateFullFilledLineItem = async (payload, id) => {
-    const data = {
-      dispatch_date: '',
-      request_number: '',
-      dispatch_items: [
-        {
-          request_item_stock_item_id: '',
-          from_store_type: '',
-          from_store_id: '',
-          to_store_type: '',
-          to_store_id: '',
-          request_item_dispatch_qty: '',
-          request_item_batch_no: '',
-          request_item_expiry_date: '',
-          description: ''
-        }
-      ]
-    }
-    try {
-      const updated = await updateFullFillLineItems(payload, id)
-    } catch (error) {}
   }
 
   return (
@@ -715,12 +630,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     {fields.map((field, index) => (
                       <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
                         <Grid item xs={3}>
-                          {console.log('fields', field.batch_no)}
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].batch_no`}
                               control={control}
                               rules={{ required: true }}
+                              value={`product_batches[${index}].batch_no`}
                               render={({ field: { value, onChange } }) => {
                                 return (
                                   <Autocomplete
@@ -731,7 +646,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     isOptionEqualToValue={(option, value) =>
                                       parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                     }
-                                    // value={`product_batches[${index}].batch_no`}
                                     onChange={(e, val) => {
                                       console.log('valllll', val)
 
@@ -759,7 +673,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         // )
 
                                         // if (selectedBatchCount > 0) {
-                                        //   debugger
+                                        //
                                         //   setError(`product_batches[${index}].batch_no`, {
                                         //     type: 'manual',
                                         //     message: 'Batch number is already selected'
@@ -788,6 +702,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 )
                               }}
                             />
+
                             {errors?.product_batches?.[index]?.batch_no && (
                               <FormHelperText sx={{ color: 'error.main' }}>
                                 {errors?.product_batches?.[index]?.batch_no?.message}
