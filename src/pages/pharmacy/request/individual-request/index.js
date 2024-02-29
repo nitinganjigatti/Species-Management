@@ -7,7 +7,8 @@ import {
   getShippedItemsByRequestId,
   markItemNotAvailable,
   markItemAvailable,
-  deleteFulfillItem
+  deleteFulfillItem,
+  getFulfillItem
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -199,6 +200,26 @@ const IndividualRequest = () => {
         } else {
           toast.error(result.data)
         }
+
+        console.log('delet result', result)
+      } catch (error) {
+        toast.error(error.data)
+        console.log('delet error result', error)
+      }
+    }
+  }
+
+  const getFullFillLineItem = async dispatchedItemId => {
+    if (dispatchedItemId) {
+      try {
+        const result = await getFulfillItem(dispatchedItemId)
+
+        // if (result?.success === true) {
+        //   toast.success(result.data)
+        //   console.log('fullfil line item data', result)
+        // } else {
+        //   toast.error(result.data)
+        // }
 
         console.log('delet result', result)
       } catch (error) {
@@ -668,17 +689,29 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
           <Box sx={{ mr: 2 }}>
-            {/* <Icon
+            <Icon
               onClick={() => {
-                // getRequestItemLists(params.row.request_number)
-                setFulfillMedicine({
-                  ...params.row
-                })
+                const data = {
+                  stock_name: params?.row?.medicin_name,
+                  requested_qty: params?.row?.total_requested_qty,
+                  dispatch_qty: params?.row?.total_dispatch_qty,
+                  stock_item_id: params?.row?.stock_item_id,
+                  action: 'update',
+                  batch_no: parseInt(params?.row?.batch_no),
+                  expiry_date: params?.row?.expiry_date,
+                  qty: params?.row?.dispatch_qty
+
+                  // quantityAvailable: fulfillMedicine.quantityAvailable
+                }
+
+                setFulfillMedicine(data)
                 showDialog()
+
+                getFullFillLineItem(params.row?.dispatch_item_id)
                 console.log('full filled ', params.row)
               }}
               icon='material-symbols:edit-outline'
-            /> */}
+            />
             <Icon
               onClick={() => {
                 setDeleteDialog(true)
