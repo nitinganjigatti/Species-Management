@@ -186,8 +186,9 @@ function AddDispense() {
         setProductArray([])
         setProductArrayUi([])
         Router.push({
-          pathname: '/pharmacy/dispense/individual-dispense',
-          query: { id: res?.data }
+          pathname: `/pharmacy/dispense/${res?.data}`
+
+          // query: { id: res?.data }
         })
 
         // Router.push('/pharmacy/dispense')

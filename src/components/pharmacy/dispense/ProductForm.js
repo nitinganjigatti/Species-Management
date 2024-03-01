@@ -635,7 +635,6 @@ function ProductForm({
                         forcePopupIcon={false}
                         inputProps={{ tabIndex: '6' }}
                         disablePortal
-                        // getOptionDisabled={option => option?.qty < 1}
                         disabled={batches?.length === 0 ? true : false}
                         value={field?.value}
                         options={batches}
