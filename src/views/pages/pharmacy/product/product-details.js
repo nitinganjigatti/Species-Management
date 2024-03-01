@@ -15,6 +15,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { Box } from '@mui/system'
 
 export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescriptionImages }) => {
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -52,6 +53,7 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
   })
   return (
     <Grid>
+      {console.log('details>>>', detailsData)}
       {detailsData?.map((item, index) => {
         return (
           <>
@@ -78,6 +80,7 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 <Typography>Quantity</Typography>
                 {item?.quantity}
               </Grid>
+
               <Grid item xs={6}>
                 <Typography>Selected Image</Typography>
                 {item?.product_image ? (
@@ -96,20 +99,20 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 {item?.priority}
               </Grid>
             </Grid>
+            <Typography>Prescription Images</Typography>
             {prescriptionImages && (
-              <Grid sx={{ display: 'flex', padding: '10px' }}>
-                <Typography>Prescription Images</Typography>
+              <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                 {prescriptionImages &&
                   prescriptionImages?.map((item, index) => {
                     return (
-                      <>
+                      <Box>
                         <Grid>
                           <img
                             style={{ width: '50px', height: '50px', borderRadius: '10px', margin: '10px' }}
                             src={`${base_url}${imgUrl}${item}`}
                           />
                         </Grid>
-                      </>
+                      </Box>
                     )
                   })}
               </Grid>

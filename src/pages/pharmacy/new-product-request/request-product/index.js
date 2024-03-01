@@ -143,7 +143,6 @@ export default function AddProduct() {
   console.log('fields?', fields)
 
   const handleFileChange = event => {
-    debugger
     const { files } = event.target
     console.log('event ???', event)
 
@@ -176,15 +175,12 @@ export default function AddProduct() {
   }
 
   const getSpecificProductList = async id => {
-    debugger
     await getNonExistingProductById(id).then(res => {
       SetImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
-
-      res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
-
+      setResponseImage(res?.data?.request_item_details[0].product_image)
       // console.log('Prescription iMAGE???', prescriptionField)
 
       reset({
@@ -195,11 +191,9 @@ export default function AddProduct() {
         product_type: res?.data?.request_item_details[0].product_type,
         product_name: res?.data?.request_item_details[0].product_name,
         generic_name: res?.data?.request_item_details[0].generic_name,
-        product_image: res?.data?.request_item_details.map(Item =>
-          typeof Item?.product_image === 'string'
-            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-            : Item?.product_image
-        )
+        product_image: res?.data?.request_item_details[0].product_image
+          ? res?.data?.request_item_details[0].product_image
+          : `${base_url}${imgBaseUrl}${Item?.product_image}`
       })
       setImgSrc(
         res?.data?.request_item_details?.map(Item =>
@@ -210,9 +204,9 @@ export default function AddProduct() {
       )
     })
   }
+  console.log('response image ??', responseImage)
 
   const onSubmit = async data => {
-    debugger
     const dataChild = [...dataChildValues]
     console.log('dataChild====????', dataChild)
 
@@ -290,7 +284,6 @@ export default function AddProduct() {
       if (id) {
         response = await updateNonExistingProduct(payload, id)
       } else {
-        debugger
         response = await addNonExistingProduct(payload)
       }
 
@@ -312,8 +305,6 @@ export default function AddProduct() {
   }
 
   const handleUpdate = (item, data) => {
-    debugger
-
     console.log('Details????', item)
 
     // if (item?.request_item_details?.request_item_detail_id) {
@@ -340,7 +331,6 @@ export default function AddProduct() {
   }
 
   const handleCallback = dataFromChild => {
-    debugger
     if (editValues || editValues.request_item_detail_id) {
       handleUpdate(editValues, editIndex, dataFromChild)
     } else {
@@ -405,7 +395,6 @@ export default function AddProduct() {
   // }
 
   const handleInputImageChange = file => {
-    debugger
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
@@ -709,12 +698,12 @@ export default function AddProduct() {
                             src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
                           />
 
-                          <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
-                        </Box>
-                        <Box sx={{ cursor: 'pointer' }}>
-                          <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
-                            {' '}
-                          </Icon>
+                          <Typography sx={{ margin: '10px' }}>{responseImage ? responseImage : displayFile}</Typography>
+                          <Box sx={{ cursor: 'pointer', margin: '10px' }}>
+                            <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
+                              {' '}
+                            </Icon>
+                          </Box>
                         </Box>
                       </Box>
                     )}
@@ -902,16 +891,6 @@ export default function AddProduct() {
 
                   <Grid item xs={12} sm={6}>
                     <Typography>Prescription Images</Typography>
-                    {/* <Grid
-                      item
-                      sm={12}
-                      xs={12}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center'
-                      }}
-                    > */}
                     <input
                       type='file'
                       accept='image/*'
