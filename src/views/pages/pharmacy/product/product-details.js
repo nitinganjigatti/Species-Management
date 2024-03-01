@@ -64,19 +64,19 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
             <Grid container spacing={6}>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Product Type</Typography>
-                {item.product_type}
+                {item?.product_type}
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Product Name</Typography>
-                {item.product_name}
+                {item?.product_name}
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Generic Name</Typography>
-                {item.generic_name}
+                {item?.generic_name}
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Quantity</Typography>
-                {item.quantity}
+                {item?.quantity}
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Selected Image</Typography>
@@ -88,7 +88,7 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ fontSize: '20px', color: 'black' }}>Priority</Typography>
-                {item.priority}
+                {item?.priority}
               </Grid>
             </Grid>
             {prescriptionImages && (

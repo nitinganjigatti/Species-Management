@@ -13,6 +13,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  ListItem,
   MenuItem,
   Modal,
   Popover,
@@ -26,11 +27,12 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography
+  Typography,
+  List
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, Fragment } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import Icon from 'src/@core/components/icon'
@@ -52,6 +54,7 @@ import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/Fi
 // ** Styled Component
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import toast from 'react-hot-toast'
+import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/utility/image-upload-card'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
@@ -125,24 +128,26 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  // const { fields } = useFieldArray({
-  //   control,
-  //   name: 'prescription_images'
-  // })
+  const { fields } = useFieldArray({
+    control,
+    name: 'prescription_images'
+  })
 
   // const { fields, append, remove, insert } = useFieldArray({
   //   control,
   //   name: 'salts'
   // })
 
-  // console.log('salts????', fields)
+  console.log('fields?', fields)
 
   const handleFileChange = event => {
+    debugger
+    const { files } = event.target
     console.log('event ???', event)
-
-    const newImages = Array.from(event).map(file => ({
+    const newImages = Array.from(files).map(file => ({
       file
     }))
+    console.log('preImages???', newImages)
     setValue('prescription_images', newImages)
   }
 
@@ -409,7 +414,7 @@ export default function AddProduct() {
     setEditIndex(index)
   }
 
-  const removeSelectedImage = index => {
+  const removeSelectedImage = () => {
     setImgSrc('')
     setValue('product_image', '')
   }
@@ -452,6 +457,17 @@ export default function AddProduct() {
       getSpecificProductList(id)
     }
   }, [id, responseImage])
+
+  // const renderFilePreview = file => {
+  //   if (typeof file === 'string') {
+  //     return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
+  //   }
+  //   if (file instanceof Blob || file instanceof File) {
+  //     return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
+  //   } else {
+  //     return <Icon icon='mdi:file-document-outline' />
+  //   }
+  // }
 
   return (
     <Grid container spacing={6}>
@@ -615,7 +631,7 @@ export default function AddProduct() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={12}>
                     <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
                       <FormLabel>Priority</FormLabel>
                       <Controller
@@ -647,7 +663,7 @@ export default function AddProduct() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid item xs={12} sm={6}>
                     <input
                       type='file'
                       accept='image/*'
@@ -658,7 +674,7 @@ export default function AddProduct() {
                     />
 
                     {/* {imgSrc === '' && ( */}
-                    {imgSrc === '' && <AddButton title=' Add Image' action={handleAddGalleryClick} />}
+                    {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
 
                     {imgSrc !== '' && (
                       <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
@@ -666,8 +682,7 @@ export default function AddProduct() {
                           <img
                             width={60}
                             height={60}
-                            alt='
-                           Uploaded image'
+                            alt='Uploaded image'
                             src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
                           />
                         </Box>
@@ -837,7 +852,7 @@ export default function AddProduct() {
                   </Table>
                 </TableContainer>
               </Grid> */}
-              <Grid item xs={12} sx={{ mt: 6 }}>
+              {/* <Grid item xs={12} sx={{ mt: 6 }}>
                 <Card>
                   <CardHeader title='Upload Prescription' />
                   <CardContent>
@@ -854,10 +869,11 @@ export default function AddProduct() {
                         {' '}
                       </Icon>
                     </Box> */}
-                  </CardContent>
+              {/* </CardContent>
                 </Card>
-              </Grid>
-              {/* <Grid container sm={12} xs={12}>
+              </Grid> */}
+
+              <Grid item xs={12} sm={6}>
                 <Grid
                   item
                   sm={12}
@@ -872,37 +888,59 @@ export default function AddProduct() {
                     type='file'
                     accept='image/*'
                     multiple
-                    onChange={handleFileChange}
+                    onChange={e => handleFileChange(e)}
                     style={{ display: 'none' }}
                     name='prescription_images'
                     ref={fileInputRef}
                   />
-                  <AddButton
-                    title=' Add Gallery'
-                    action={() => {
-                      handleAddGalleryClick()
-                    }}
-                  />
+                  {prescriptionField && (
+                    <AddButton
+                      title=' Add Prescription'
+                      action={() => {
+                        handleAddGalleryClick()
+                      }}
+                    />
+                  )}
+                  <ImageUploadComponent fields={fields} setValue={setValue} />
                   {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
                   </Button> */}
-              {/* <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
-                {prescriptionField?.map((image, index) => (
-                  <Box sx={{ padding: '10px', display: 'flex', flexDirection: 'row' }}>
-                    <Box>
-                      <img
-                        width={150}
-                        height={150}
-                        key={index}
-                        src={typeof image === 'string' ? image : URL.createObjectURL(image)}
-                        alt={`uploaded-${index}`}
-                      />
+                  {/* <ImageUploadCard
+                    fields={fields}
+                    removeselectedImage={removeselectedImage}
+                    renderFilePreview={renderFilePreview}
+                  /> */}
+
+                  {/* {
+                    <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
+                      <CardContent>
+                        <DropzoneWrapper className='dropzone'></DropzoneWrapper>
+                        <Fragment>
+                          <List>
+                            {fields?.map((image, index) => (
+                              // console.log('image results??????', image)
+                              <ListItem key={image.file.name}>
+                                <div className='file-details'>
+                                  <div className='file-preview'>{renderFilePreview(image.file)}</div>
+                                  <div>
+                                    <Typography className='file-name'>
+                                      {typeof file === 'string' ? image.file : image.file.name}
+                                    </Typography>
+                                  </div>
+                                </div>
+                                <IconButton onClick={() => removeselectedImage(index)}>
+                                  <Icon icon='mdi:close' fontSize={20} />
+                                </IconButton>
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Fragment>
+                  
+                      </CardContent>
                     </Box>
-                  </Box>
-                ))}
-              </Box> */}
-              {/* </Grid>
-              </Grid> */}{' '}
+                  } */}
+                </Grid>
+              </Grid>
               <Grid
                 container
                 sm={12}

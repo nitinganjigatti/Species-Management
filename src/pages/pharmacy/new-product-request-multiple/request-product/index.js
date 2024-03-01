@@ -181,8 +181,6 @@ export default function AddProduct() {
     setDataChildValues(updatedItems)
   }
 
-  console.log('updatedChild Comp????', dataChildValues)
-
   const handleCallback = dataFromChild => {
     if (editValues || editValues.request_item_detail_id) {
       handleUpdate(editValues, editIndex, dataFromChild)
