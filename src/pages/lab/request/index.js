@@ -3,7 +3,7 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 
-import { getNoOfLab, GetLabReportById } from 'src/lib/api/lab/getLabRequest'
+import { getNoOfLab, GetLabReportById, GetLabRequestTestStatusById } from 'src/lib/api/lab/getLabRequest'
 // import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 import Button from '@mui/material/Button'
@@ -40,9 +40,10 @@ const ListOfRequest = () => {
   const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState()
-  console.log('selectedLab clo', selectedLab)
+
   const [storedData, setStoredData] = useState()
   const authData = useContext(AuthContext)
+  const [stats, setStats] = useState()
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -114,7 +115,7 @@ const ListOfRequest = () => {
       headerName: 'No. of Tests ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.total_test}>{params.row.total_test}</span>
+          <span alt={params.row.total_test}>{params.row.total_lab_tests}</span>
         </Typography>
       )
     },
@@ -137,49 +138,56 @@ const ListOfRequest = () => {
       headerName: 'Status',
       renderCell: params => (
         <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box
-            sx={{
-              bgcolor: '#E93353',
-              color: 'white',
-              borderRadius: '50px',
-              height: 25,
-              width: 25,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            {params.row.total_pending}
-          </Box>
+          {params.row.total_tests_pending > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#E93353',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_pending}
+            </Box>
+          )}
 
-          <Box
-            sx={{
-              bgcolor: '#00AEA4',
-              color: 'white',
-              borderRadius: '50px',
-              height: 25,
-              width: 25,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            {params.row.total_inprogress}
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#2A9D0D',
-              color: 'white',
-              borderRadius: '50px',
-              height: 25,
-              width: 25,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            {params.row.total_completed}
-          </Box>
+          {params.row.total_tests_inprogress > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#00AEA4',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_inprogress}
+            </Box>
+          )}
+
+          {params.row.total_tests_completed > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#2A9D0D',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_completed}
+            </Box>
+          )}
         </Stack>
       )
     },
@@ -191,12 +199,16 @@ const ListOfRequest = () => {
       // headerName: 'Action',
 
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
-          <Icon icon='et:attachments' fontSize={15} />
-          <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
-            <span alt={params.row.total_attachments}>{params.row.total_attachments}</span>
-          </Typography>
-        </Box>
+        <>
+          {params?.row?.total_attachments > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
+              <Icon icon='et:attachments' fontSize={15} />
+              <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
+                <span alt={params.row.total_attachments}>{params.row.total_attachments}</span>
+              </Typography>
+            </Box>
+          )}
+        </>
       )
     }
   ]
@@ -218,10 +230,10 @@ const ListOfRequest = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column }) => {
+    debounce(async ({ sort, q, column, lab_id }) => {
       setSearchValue(q)
       try {
-        await fetchData({ sort, q, column })
+        await fetchData({ sort, q, column, lab_id })
       } catch (error) {
         console.error(error)
       }
@@ -232,16 +244,23 @@ const ListOfRequest = () => {
   useEffect(() => {
     const options = authData?.userData?.modules?.lab_data?.lab
     setLab(options)
-    console.log('options', options)
   }, [])
 
+  const GetLabRequestStatus = async params2 => {
+    try {
+      const res = await GetLabRequestTestStatusById({ params2 })
+      setStats(res?.data?.stats)
+      console.log('res', res?.data?.stats)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
-    console.log('local data', Data)
+
     setLabSelected(Data)
     if (Data) {
       setSelectedLab(Data)
-      console.log('labSelected if ', Data)
 
       const params = {
         sort,
@@ -251,20 +270,24 @@ const ListOfRequest = () => {
         limit: paginationModel.pageSize,
         lab_id: Data
       }
+      const params2 = { lab_id: Data }
+      GetLabRequestStatus(params2)
       fetchData(params)
       setSelectLoader(false)
     } else {
       const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
-      console.log('lab[0]?.lab_id', data)
+
       setSelectedLab(data)
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
         page: paginationModel.page + 1,
-        limit: paginationModel.pageSize
-        // lab_id: data
+        limit: paginationModel.pageSize,
+        lab_id: data
       }
+      const params2 = { lab_id: Data }
+      GetLabRequestStatus(params2)
       fetchData(params)
       setSelectLoader(false)
     }
@@ -303,7 +326,6 @@ const ListOfRequest = () => {
     setLabSelected(event.target.value)
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
-      console.log('storedLabData', storedLabData)
       setSelectedLab(event.target.value)
       remove('selectedLAB')
     } else {
@@ -319,6 +341,8 @@ const ListOfRequest = () => {
       lab_id: event.target.value
     }
     await fetchData(params)
+    const params2 = { lab_id: event.target.value }
+    GetLabRequestStatus(params2)
   }
 
   const handlePaginationModelChange = async newModel => {
@@ -336,8 +360,9 @@ const ListOfRequest = () => {
   }
   const handleSearch = async value => {
     setSearchValue(value)
+    console.log('value', value)
 
-    await searchTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
   const getSlNo = (index, labTestId) => {
@@ -360,6 +385,14 @@ const ListOfRequest = () => {
   //   ...row,
   //   sl_no: getSlNo(index)
   // }))
+
+  // useEffect(() => {
+  //   if (labSelected) {
+  //     const params = { lab_id: labSelected }
+  //     const res = GetLabRequestTestStatusById({ params })
+  //     console.log('res', res)
+  //   }
+  // }, [])
 
   return (
     <>
@@ -417,23 +450,22 @@ const ListOfRequest = () => {
                 sx={{ display: 'flex', alignItems: 'center' }}
               >
                 <Typography>
-                  Total Requests -{' '}
-                  <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{status?.total_requests}</span>
+                  Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
                 <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
-                    Pending Test - {status?.total_tests_pending}
+                    Pending Test - {stats?.total_tests_pending}
                   </Typography>
                 </Box>
                 <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#00AEA4', fontSize: '12px' }}>
-                    Test in Progress - {status?.total_tests_inprogress}
+                    Test in Progress - {stats?.total_tests_inprogress}
                   </Typography>
                 </Box>
                 <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
-                    Completed Test - {status?.total_tests_completed}
+                    Completed Test - {stats?.total_tests_completed}
                   </Typography>
                 </Box>
               </Stack>

@@ -99,6 +99,7 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
+  const [fileId, setFileId] = useState()
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
@@ -279,15 +280,15 @@ const RequestDetails = () => {
                       params.row.status === 'pending'
                         ? 'red'
                         : params.row.status === 'completed'
-                        ? 'green'
-                        : params.row.status === 'in progress'
-                        ? 'blue'
+                        ? '#2a9d0d'
+                        : params.row.status === 'inprogress'
+                        ? '#00aea4'
                         : 'black'
                   }}
                 >
                   <MenuItem value='pending'>Pending</MenuItem>
                   <MenuItem value='completed'>Completed</MenuItem>
-                  <MenuItem value='inProgress'>In Progress</MenuItem>
+                  <MenuItem value='inprogress'>In Progress</MenuItem>
                 </Select>
               </FormControl>
             ) : (
@@ -449,8 +450,14 @@ const RequestDetails = () => {
     // }
   }
 
-  const handleDeleteImg = () => {
-    console.log('Delete')
+  const handleDeleteImg = (e, item) => {
+    e.preventDefault() // Prevent the default behavior of the anchor tag
+    e.stopPropagation() // Stop the event propagation
+    // Add your logic to delete the image using the information from the 'item'
+    setFileId(item?.id)
+    try {
+    } catch (error) {}
+    console.log('Delete image logic for', item)
   }
 
   const openFileInNewTab = imageUrl => {
@@ -537,18 +544,19 @@ const RequestDetails = () => {
 
             <DataGrid
               autoHeight
-              pagination
+              // pagination
+              hideFooterPagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              sortingMode='server'
+              // sortingMode='server'
               // paginationMode='server'
               getRowId={row => row?.test_id}
-              pageSizeOptions={[10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
+              // pageSizeOptions={[10, 25, 50]}
+              // paginationModel={paginationModel}
+              // onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
+              // onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -602,7 +610,7 @@ const RequestDetails = () => {
                               }}
                             >
                               {item?.file_original_name}{' '}
-                              <IconButton onClick={handleDeleteImg}>
+                              <IconButton onClick={e => handleDeleteImg(e, item)}>
                                 <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
                               </IconButton>
                             </Box>
@@ -641,7 +649,7 @@ const RequestDetails = () => {
                               <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
                             </Box>
 
-                            <IconButton onClick={handleDeleteImg}>
+                            <IconButton onClick={e => handleDeleteImg(e, item)}>
                               <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
                             </IconButton>
                           </Box>
