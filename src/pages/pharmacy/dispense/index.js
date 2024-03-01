@@ -141,7 +141,6 @@ function Dispense() {
     var data = params.row
     Router.push({
       pathname: `/pharmacy/dispense/${data?.id}`
-      // query: { id: data.id }
     })
   }
 
