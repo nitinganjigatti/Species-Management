@@ -289,7 +289,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         >
           <Typography variant='h6'>Add Animals</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
+            {/* <IconButton
               size='small'
               onClick={() => {
                 setShowFilterDialog(true)
@@ -297,7 +297,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               sx={{ color: 'text.primary' }}
             >
               <Icon icon='mdi:filter' color={theme.palette.primary.main} fontSize={20} />
-            </IconButton>
+            </IconButton> */}
             <IconButton
               size='small'
               onClick={() => {

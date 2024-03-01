@@ -57,7 +57,7 @@ const ListOfStocks = () => {
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -65,7 +65,7 @@ const ListOfStocks = () => {
   const [batchSort, setBatchSort] = useState('asc')
   const [stockReportBatch, setStockReportBatch] = useState([])
   const [batchSearchValue, setBatchSearchValue] = useState('')
-  const [batchSortColumn, setBatchSortColumn] = useState('label')
+  const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -76,6 +76,7 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
 
   const { selectedPharmacy } = usePharmacyContext()
+
   // console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
@@ -114,6 +115,7 @@ const ListOfStocks = () => {
             const result = await getLocalStocksReportById(params)
             if (result.success === true && result.data.length > 0) {
               setTotal(parseInt(result?.count))
+
               let listWithId = result.data
                 ? result.data.map((el, i) => {
                     return { ...el, uid: i + 1 }
@@ -129,6 +131,7 @@ const ListOfStocks = () => {
         } else {
           try {
             setLoading(true)
+
             const params = {
               sort,
               q,
@@ -237,6 +240,7 @@ const ListOfStocks = () => {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true && result.data.length > 0) {
             setBatchTotal(parseInt(result?.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -254,6 +258,7 @@ const ListOfStocks = () => {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true && result.data !== '') {
             setBatchTotal(parseInt(result?.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -270,11 +275,13 @@ const ListOfStocks = () => {
     },
     [batchPaginationModel]
   )
+
   const batchIndexedRows = stockReportBatch?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
     sl_no: index + 1
   }))
+
   const handleBatchSearch = useCallback(
     debounce(async value => {
       setBatchSearchValue(value)
@@ -613,7 +620,6 @@ const ListOfStocks = () => {
                     paginationMode='server'
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    // onSortModelChange={handleSortModel}
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
@@ -631,6 +637,7 @@ const ListOfStocks = () => {
                         }
                       }
                     }}
+
                     // onRowClick={onRowClick}
                   />
                 </Card>
@@ -673,7 +680,6 @@ const ListOfStocks = () => {
                       paginationMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
-                      // onSortModelChange={handleSortModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
                       onPaginationModelChange={setBatchPaginationModel}
                       loading={batchLoading}
@@ -691,7 +697,6 @@ const ListOfStocks = () => {
                           }
                         }
                       }}
-                      // onRowClick={onRowClick}
                     />
                   </Card>
                 </>

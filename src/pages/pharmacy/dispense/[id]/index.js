@@ -181,7 +181,7 @@ const IndividualDispense = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
+                        <Typography sx={{}}>
                           {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
                         </Typography>
                       </Box>
