@@ -42,41 +42,35 @@ const ImageUploadComponent = ({ fields, setValue }) => {
 
   return (
     <Box>
-      <CardContent>
-        {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
-        <Fragment>
-          <List>
-            {fields?.map((image, index) => (
-              // console.log('image results??????', image)
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <ListItem
-                  sx={{
-                    border: '1px solid grey',
-                    padding: '5px',
-                    borderRadius: '10px',
-                    width: '300px',
-                    margin: '10px'
-                  }}
-                  key={image?.file?.name}
-                >
-                  <div className='file-details'>
-                    <div className='file-preview'>{renderFilePreview(image?.file)}</div>
-                    <div>
-                      <Typography className='file-name'>
-                        {typeof file === 'string' ? image.file : image.file.name}
-                      </Typography>
-                    </div>
-                  </div>{' '}
-                  <IconButton onClick={() => removeselectedImage(index)}>
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </ListItem>
-              </Box>
-            ))}
-          </List>
-        </Fragment>
-        {/* <ImageUploadComponent fields={fields} /> */}
-      </CardContent>
+      {/* <CardContent> */}
+      {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
+
+      <List>
+        {fields?.map((image, index) => (
+          <ListItem
+            sx={{
+              border: '1px solid grey',
+              padding: '5px',
+              borderRadius: '10px',
+              width: '300px',
+              marginBottom: '6px'
+            }}
+            key={image?.file?.name}
+          >
+            <div className='file-details'>
+              <div className='file-preview'>{renderFilePreview(image?.file)}</div>
+              <div>
+                <Typography className='file-name'>{typeof file === 'string' ? image.file : image.file.name}</Typography>
+              </div>
+            </div>{' '}
+            <IconButton onClick={() => removeselectedImage(index)}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </ListItem>
+        ))}
+      </List>
+      {/* <ImageUploadComponent fields={fields} /> */}
+      {/* </CardContent> */}
     </Box>
   )
 }

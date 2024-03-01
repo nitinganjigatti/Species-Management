@@ -105,6 +105,7 @@ export default function AddProduct() {
     quantity: '1',
     priority: 'Normal',
     salts: [],
+
     // salts: [
     //   {
     //     label: '',
@@ -144,6 +145,7 @@ export default function AddProduct() {
     debugger
     const { files } = event.target
     console.log('event ???', event)
+
     const newImages = Array.from(files).map(file => ({
       file
     }))
@@ -214,6 +216,7 @@ export default function AddProduct() {
     data.request_item_detail_id = requestData.join('')
 
     data.status = data?.status ? data?.status : 'Pending'
+
     // handleUpdate(getDetails, data)
     // const requestDetailsData = {
     //   product_type: data?.product_type,
@@ -269,6 +272,7 @@ export default function AddProduct() {
         }
       ]
     }
+
     // payload.request_item_details.request_item_detail_id = requestData
 
     let response
@@ -764,9 +768,8 @@ export default function AddProduct() {
                       ))}
                     </FormGroup>
                   </Grid> */}
-                </Grid>
-              </Grid>
-              {/* <Grid item xs={12} sm={12}>
+
+                  {/* <Grid item xs={12} sm={12}>
                 <TableContainer>
                   <Table>
                     <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -852,7 +855,7 @@ export default function AddProduct() {
                   </Table>
                 </TableContainer>
               </Grid> */}
-              {/* <Grid item xs={12} sx={{ mt: 6 }}>
+                  {/* <Grid item xs={12} sx={{ mt: 6 }}>
                 <Card>
                   <CardHeader title='Upload Prescription' />
                   <CardContent>
@@ -869,49 +872,49 @@ export default function AddProduct() {
                         {' '}
                       </Icon>
                     </Box> */}
-              {/* </CardContent>
+                  {/* </CardContent>
                 </Card>
               </Grid> */}
 
-              <Grid item xs={12} sm={6}>
-                <Grid
-                  item
-                  sm={12}
-                  xs={12}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center'
-                  }}
-                >
-                  <input
-                    type='file'
-                    accept='image/*'
-                    multiple
-                    onChange={e => handleFileChange(e)}
-                    style={{ display: 'none' }}
-                    name='prescription_images'
-                    ref={fileInputRef}
-                  />
-                  {prescriptionField && (
-                    <AddButton
-                      title=' Add Prescription'
-                      action={() => {
-                        handleAddGalleryClick()
+                  <Grid item xs={12} sm={6}>
+                    {/* <Grid
+                      item
+                      sm={12}
+                      xs={12}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-start',
+                        alignItems: 'center'
                       }}
+                    > */}
+                    <input
+                      type='file'
+                      accept='image/*'
+                      multiple
+                      onChange={e => handleFileChange(e)}
+                      style={{ display: 'none' }}
+                      name='prescription_images'
+                      ref={fileInputRef}
                     />
-                  )}
-                  <ImageUploadComponent fields={fields} setValue={setValue} />
-                  {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
+                    {prescriptionField && (
+                      <AddButton
+                        title=' Add Prescription'
+                        action={() => {
+                          handleAddGalleryClick()
+                        }}
+                      />
+                    )}
+                    <ImageUploadComponent fields={fields} setValue={setValue} />
+                    {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
                   </Button> */}
-                  {/* <ImageUploadCard
+                    {/* <ImageUploadCard
                     fields={fields}
                     removeselectedImage={removeselectedImage}
                     renderFilePreview={renderFilePreview}
                   /> */}
 
-                  {/* {
+                    {/* {
                     <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                       <CardContent>
                         <DropzoneWrapper className='dropzone'></DropzoneWrapper>
@@ -935,10 +938,12 @@ export default function AddProduct() {
                             ))}
                           </List>
                         </Fragment>
-                  
+
                       </CardContent>
                     </Box>
                   } */}
+                    {/* </Grid> */}
+                  </Grid>
                 </Grid>
               </Grid>
               <Grid
