@@ -337,16 +337,7 @@ const ListOfRequest = () => {
   const handleSearch = async value => {
     setSearchValue(value)
 
-    const params = {
-      sort,
-      q: value,
-      column: sortColumn,
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      lab_id: selectedLab
-    }
-
-    await fetchData(params)
+    await searchTableData({ sort, q: value, column: sortColumn })
   }
 
   const getSlNo = (index, labTestId) => {
@@ -413,7 +404,7 @@ const ListOfRequest = () => {
                 bgcolor: '#F2F2F2',
                 p: 2,
                 mt: 3,
-                mb: 1,
+
                 ml: 5,
                 mr: 5,
                 borderRadius: '5px'
@@ -452,7 +443,6 @@ const ListOfRequest = () => {
               <Stack
                 direction={{ md: 'row', sm: 'row', sx: 'column' }}
                 spacing={4}
-                gap={2}
                 sx={{ alignItems: 'center', justifyContent: 'flex-end', m: 5 }}
               >
                 <>
@@ -483,19 +473,22 @@ const ListOfRequest = () => {
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbar }}
+              slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
-              // slotProps={{
-              //   baseButton: {
-              //     variant: 'outlined'
-              //   },
-              //   toolbar: {
-              //     value: searchValue,
-              //     clearSearch: () => handleSearch(''),
-              //     onChange: event => handleSearch(event.target.value)
-              //   }
-              // }}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => {
+                    setSearchValue(event.target.value)
+                    handleSearch(event.target.value)
+                  }
+                }
+              }}
             />
           </Card>
         </>
