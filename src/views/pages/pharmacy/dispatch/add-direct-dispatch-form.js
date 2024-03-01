@@ -21,12 +21,11 @@ import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
 
 import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import TableHead from '@mui/material/TableHead'
+
+import ConfirmDialog from 'src/components/ConfirmationDialog'
+
 import { LoaderIcon } from 'react-hot-toast'
 
 const defaultValues = {
@@ -463,64 +462,69 @@ export const AddItemsForm = ({
           </Grid>
         </Grid>
       </form>
-      <ConfirmDialogBox
+
+      <ConfirmDialog
         open={invalidQtyDialog}
+        title={'Your quantity exceeds the batch limit'}
         closeDialog={() => {
           closeConfirmationDialog()
         }}
         action={() => {
-          closeConfirmationDialog()
+          confirmDataSubmit()
         }}
         content={
-          <Box>
-            <>
-              <DialogContent>
-                <DialogContentText sx={{ mb: 1 }}>
-                  You are trying to full fill higher quantity than it is available in that batch
-                </DialogContentText>
-                <Table>
-                  <TableRow>
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Product</TableCell>
-
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                    <TableCell>Requested qty</TableCell>
-                  </TableRow>
-                  {invalidQty?.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item?.product_name}</TableCell>
-                      <TableCell>{item?.request_item_batch_no}</TableCell>
-                      <TableCell>{item?.available_item_qty}</TableCell>
-                      <TableCell>{item?.request_item_qty}</TableCell>
-                    </TableRow>
-                  ))}
-                </Table>
-              </DialogContent>
-              <DialogContentText sx={{ mb: 1 }}>Confirm to proceed</DialogContentText>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='primary'
-                  onClick={() => {
-                    confirmDataSubmit()
-                  }}
-                >
-                  Confirm
-                </Button>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='error'
-                  onClick={() => {
-                    closeConfirmationDialog()
-                  }}
-                >
-                  Cancel
-                </Button>
-              </DialogActions>
-            </>
-          </Box>
+          <>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                  <TableCell>Requested qty</TableCell>
+                </TableRow>
+              </TableHead>
+              {invalidQty?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.product_name}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_batch_no}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.available_item_qty}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_qty}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </Table>
+          </>
         }
       />
       {/* </CardContent> */}

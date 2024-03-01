@@ -1,35 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import {
-  CardContent,
-  Grid,
-  FormControl,
-  Autocomplete,
-  TextField,
-  FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Typography,
-  Box
-} from '@mui/material'
+import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { getValue } from '@mui/system'
 
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 
 import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
+
 import { LoaderIcon } from 'react-hot-toast'
 
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 const defaultValues = {
   request_item: {
@@ -465,82 +448,67 @@ export const AddItemsForm = ({
         </Grid>
       </form>
 
-      <ConfirmDialogBox
+      <ConfirmDialog
         open={invalidQtyDialog}
+        title={'Your quantity exceeds the batch limit'}
         closeDialog={() => {
           closeConfirmationDialog()
         }}
         action={() => {
-          closeConfirmationDialog()
+          confirmDataSubmit()
         }}
         content={
           <>
-            <DialogContent>
-              <DialogContentText sx={{ mb: 2 }}>Your quantity exceeds the batch limit</DialogContentText>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
-                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
-                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                    <TableCell>Requested qty</TableCell>
-                  </TableRow>
-                </TableHead>
-
-                {invalidQty?.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidQty.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.product_name}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidQty.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.request_item_batch_no}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidQty.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.available_item_qty}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidQty.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.request_item_qty}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </Table>
-            </DialogContent>
-
-            <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText>
-            <DialogActions className='dialog-actions-dense'>
-              <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
-                <Button variant='contained' onClick={() => confirmDataSubmit()}>
-                  Confirm
-                </Button>
-                <Button variant='outlined' onClick={() => closeConfirmationDialog()}>
-                  Close
-                </Button>
-              </Box>
-            </DialogActions>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                  <TableCell>Requested qty</TableCell>
+                </TableRow>
+              </TableHead>
+              {invalidQty?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.product_name}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_batch_no}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.available_item_qty}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_qty}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </Table>
           </>
         }
       />
