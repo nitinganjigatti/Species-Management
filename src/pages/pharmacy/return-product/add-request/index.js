@@ -467,7 +467,8 @@ const AddReturnRequest = () => {
             request_item_detail_id: el.id,
             request_item_batch_no: el.dispatch_batch_no,
             expiry_date: el.dispatch_expiry_date,
-            uuid: uuidv4()
+            uuid: uuidv4(),
+            available_item_qty: el?.batch_available_qty
           }
         })
 
