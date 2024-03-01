@@ -502,9 +502,7 @@ function ProductForm({
         content={
           <>
             <DialogContent>
-              <DialogContentText sx={{ mb: 2 }}>
-                You are trying to dispense higher higher quantity than it is available
-              </DialogContentText>
+              <DialogContentText sx={{ mb: 2 }}>Your quantity exceeds the batch limit</DialogContentText>
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
@@ -691,7 +689,7 @@ function ProductForm({
                     watch('product_batches')[index]?.batch_no?.qty === undefined ||
                     errors?.product_batches?.[index]?.batch_no
                       ? ''
-                      : 'Available Btach Quantity: ' + watch('product_batches')[index]?.batch_no?.qty
+                      : 'Available Batch Quantity: ' + watch('product_batches')[index]?.batch_no?.qty
                   }`}</Typography>
                 </Grid>
                 <Grid
@@ -731,6 +729,7 @@ function ProductForm({
                         )}
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
+
                           // setTotalQty(newValue?.qty)
                         }}
                       />

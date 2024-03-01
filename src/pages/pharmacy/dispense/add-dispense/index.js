@@ -282,7 +282,7 @@ function AddDispense() {
                             options={users}
                             getOptionLabel={option => option?.label || ''}
                             renderInput={params => (
-                              <TextField {...params} label='Users*' error={Boolean(errors.user_id)} />
+                              <TextField {...params} label='Dispense To*' error={Boolean(errors.user_id)} />
                             )}
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
