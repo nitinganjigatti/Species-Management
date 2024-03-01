@@ -393,18 +393,14 @@ const AddReturnRequest = () => {
               searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
                 label: item?.batch_no,
-                expiry_date: item?.expiry_date
+                expiry_date: item?.expiry_date,
+                available_item_qty: item?.qty
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
           } else {
             setTotalBatchQuantity(0)
           }
-          // debugger
-          console.log('searchResults', optionsBatchList)
-          // setOptionsBatchList()
-
-          console.log('optionsBatchList', optionsBatchList)
         } else {
           setOptionsBatchList([])
         }
@@ -483,7 +479,6 @@ const AddReturnRequest = () => {
         // }
       }
     } catch (error) {
-      console.log('error', error)
       console.log('direct dispatch items update', error)
     }
   }
@@ -518,7 +513,6 @@ const AddReturnRequest = () => {
     })
 
     // debugger
-
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -530,7 +524,8 @@ const AddReturnRequest = () => {
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
       priority_item: getItems[0].priority_item,
       control_substance: getItems[0].control_substance,
-      uuid: getItems[0].uuid
+      uuid: getItems[0].uuid,
+      available_item_qty: getItems[0]?.available_item_qty
     })
     // }
   }
@@ -812,7 +807,6 @@ const AddReturnRequest = () => {
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.product_name}
-                              {console.log(el)}
                             </Typography>
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
