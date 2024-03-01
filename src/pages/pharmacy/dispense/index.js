@@ -140,8 +140,8 @@ function Dispense() {
   const onRowClick = params => {
     var data = params.row
     Router.push({
-      pathname: '/pharmacy/dispense/individual-dispense',
-      query: { id: data.id }
+      pathname: `/pharmacy/dispense/${data?.id}`
+      // query: { id: data.id }
     })
   }
 
