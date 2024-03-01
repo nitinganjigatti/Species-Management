@@ -63,44 +63,49 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
 
             <Grid container spacing={6}>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Product Type</Typography>
+                <Typography>Product Type</Typography>
                 {item?.product_type}
               </Grid>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Product Name</Typography>
+                <Typography>Product Name</Typography>
                 {item?.product_name}
               </Grid>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Generic Name</Typography>
+                <Typography>Generic Name</Typography>
                 {item?.generic_name}
               </Grid>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Quantity</Typography>
+                <Typography>Quantity</Typography>
                 {item?.quantity}
               </Grid>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Selected Image</Typography>
+                <Typography>Selected Image</Typography>
                 {item?.product_image ? (
-                  <img width='100px' height='100px' src={`${base_url}${imgUrl}${item?.product_image}`} />
+                  <img
+                    style={{ borderRadius: '10px' }}
+                    width='50px'
+                    height='50px'
+                    src={`${base_url}${imgUrl}${item?.product_image}`}
+                  />
                 ) : (
                   'No Image Found'
                 )}
               </Grid>
               <Grid item xs={6}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Priority</Typography>
+                <Typography>Priority</Typography>
                 {item?.priority}
               </Grid>
             </Grid>
             {prescriptionImages && (
-              <Grid sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '20px', color: 'black' }}>Prescription Images</Typography>
+              <Grid sx={{ display: 'flex', padding: '10px' }}>
+                <Typography>Prescription Images</Typography>
                 {prescriptionImages &&
                   prescriptionImages?.map((item, index) => {
                     return (
                       <>
                         <Grid>
                           <img
-                            style={{ width: '100px', margin: '10px', height: '100px' }}
+                            style={{ width: '50px', height: '50px', borderRadius: '10px', margin: '10px' }}
                             src={`${base_url}${imgUrl}${item}`}
                           />
                         </Grid>

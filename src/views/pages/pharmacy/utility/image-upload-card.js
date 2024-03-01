@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
 import List from '@mui/material/List'
@@ -22,23 +22,66 @@ import styled from '@emotion/styled'
 //     border: `2px dashed ${theme.palette.mode === 'light' ? 'rgba(93, 89, 98, 0.22)' : 'rgba(247, 244, 254, 0.14)'}`,
 // }}
 
-const ImageUploadComponent = ({ fields, setValue }) => {
+const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl }) => {
+  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+
+  const [prescriptionImage, setPrescriptionImage] = useState()
+  debugger
   const removeselectedImage = selectedindex => {
     const list = [...fields]
     const filterList = list.filter((item, index) => selectedindex !== index)
     setValue('prescription_images', filterList)
   }
 
+  useEffect(() => {
+    // If prescriptionField
+    debugger
+    if (prescriptionField) {
+      setPrescriptionImage(prescriptionField)
+    }
+    if (fields) {
+      setPrescriptionImage(fields)
+    }
+  }, [fields, prescriptionField])
+
   const renderFilePreview = file => {
+    debugger
+    console.log('file???', file)
     if (typeof file === 'string') {
-      return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
+      return (
+        <img
+          style={{
+            width: '38px',
+            height: '38px',
+            padding: '0.1875rem',
+            borderRadius: '10px',
+            border: '1px solid rgba(93, 89, 98, 0.14)'
+          }}
+          alt={file.name}
+          src={`${base_url}${imgBaseUrl}${file}`}
+        />
+      )
     }
     if (file instanceof Blob || file instanceof File) {
-      return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
+      return (
+        <img
+          style={{
+            width: '38px',
+            height: '38px',
+            padding: '0.1875rem',
+            borderRadius: '10px',
+            border: '1px solid rgba(93, 89, 98, 0.14)'
+          }}
+          alt={file.file.name}
+          src={URL.createObjectURL(file.File)}
+        />
+      )
     } else {
       return <Icon icon='mdi:file-document-outline' />
     }
   }
+
+  console.log('prescriptionImage????', prescriptionImage)
 
   return (
     <Box>
@@ -46,21 +89,19 @@ const ImageUploadComponent = ({ fields, setValue }) => {
       {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
 
       <List>
-        {fields?.map((image, index) => (
+        {prescriptionImage?.map((image, index) => (
           <ListItem
             sx={{
-              border: '1px solid grey',
-              padding: '5px',
               borderRadius: '10px',
               width: '300px',
               marginBottom: '6px'
             }}
             key={image?.file?.name}
           >
-            <div className='file-details'>
-              <div className='file-preview'>{renderFilePreview(image?.file)}</div>
-              <div>
-                <Typography className='file-name'>{typeof file === 'string' ? image.file : image.file.name}</Typography>
+            <div style={{ display: 'flex', justifyContent: 'space-around', margin: '10px' }}>
+              <div className='file-preview'>{renderFilePreview(image)}</div>
+              <div style={{ margin: '3px' }}>
+                <Typography className='file-name'>{typeof file === 'string' ? image : image?.file?.name}</Typography>
               </div>
             </div>{' '}
             <IconButton onClick={() => removeselectedImage(index)}>

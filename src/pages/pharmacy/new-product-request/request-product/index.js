@@ -30,7 +30,7 @@ import {
   Typography,
   List
 } from '@mui/material'
-import { Box } from '@mui/system'
+import { Box, borderRadius } from '@mui/system'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import React, { useRef, useState, useEffect, Fragment } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -58,12 +58,13 @@ import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
+  const prescriptionRef = useRef(null)
 
   const [storeList, setStoreList] = useState([])
   const [dataChildValues, setDataChildValues] = useState([])
   const [editValues, setEditValues] = useState(dataChildValues)
   const [editIndex, setEditIndex] = useState(null)
-  const [successFulModal, setSuccessFulModal] = useState(false)
+  const [displayFile, setDisplayFile] = useState()
   const [imgBaseUrl, SetImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
   const [prescriptionField, setPrescriptionField] = useState([])
@@ -157,6 +158,10 @@ export default function AddProduct() {
     fileInputRef.current.click()
   }
 
+  const handlePrescriptionClick = () => {
+    prescriptionRef.current.click()
+  }
+
   const removeItemsFroTable = index => {
     const updatedItems = dataChildValues.filter((el, elindex) => {
       return elindex != index
@@ -179,6 +184,8 @@ export default function AddProduct() {
       setPrescriptionField(res?.data?.prescription_images)
 
       res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))
+
+      // console.log('Prescription iMAGE???', prescriptionField)
 
       reset({
         from_store: res?.data?.from_store,
@@ -409,9 +416,12 @@ export default function AddProduct() {
       }
 
       setValue('product_image', files[0])
+      setDisplayFile(files[0].name)
       reader.readAsDataURL(files[0])
     }
   }
+
+  console.log('file name', displayFile)
 
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
@@ -668,35 +678,49 @@ export default function AddProduct() {
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
+                    <Typography>Product Image</Typography>
                     <input
                       type='file'
                       accept='image/*'
-                      onChange={handleInputImageChange}
+                      onChange={e => handleInputImageChange(e)}
                       style={{ display: 'none' }}
                       name='product_image'
                       ref={fileInputRef}
                     />
 
-                    {/* {imgSrc === '' && ( */}
-                    {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
-
                     {imgSrc !== '' && (
-                      <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
-                        <Box>
+                      <Box
+                        sx={{
+                          display: 'flex'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex' }}>
                           <img
-                            width={60}
-                            height={60}
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              padding: '0.1875rem',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(93, 89, 98, 0.14)'
+                            }}
+                            width={50}
+                            height={50}
                             alt='Uploaded image'
                             src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
                           />
+
+                          <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
                         </Box>
-                        <Box>
+                        <Box sx={{ cursor: 'pointer' }}>
                           <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
                             {' '}
                           </Icon>
                         </Box>
                       </Box>
                     )}
+
+                    {/* {imgSrc === '' && ( */}
+                    {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
                   </Grid>
 
                   {/* salt composition */}
@@ -877,6 +901,7 @@ export default function AddProduct() {
               </Grid> */}
 
                   <Grid item xs={12} sm={6}>
+                    <Typography>Prescription Images</Typography>
                     {/* <Grid
                       item
                       sm={12}
@@ -894,17 +919,22 @@ export default function AddProduct() {
                       onChange={e => handleFileChange(e)}
                       style={{ display: 'none' }}
                       name='prescription_images'
-                      ref={fileInputRef}
+                      ref={prescriptionRef}
                     />
                     {prescriptionField && (
                       <AddButton
                         title=' Add Prescription'
                         action={() => {
-                          handleAddGalleryClick()
+                          handlePrescriptionClick()
                         }}
                       />
                     )}
-                    <ImageUploadComponent fields={fields} setValue={setValue} />
+                    <ImageUploadComponent
+                      fields={fields}
+                      setValue={setValue}
+                      prescriptionField={prescriptionField}
+                      imgBaseUrl={imgBaseUrl}
+                    />
                     {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
                   </Button> */}
