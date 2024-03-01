@@ -526,7 +526,7 @@ const AddReturnRequest = () => {
           setSubmitLoader(false)
           getListOfItemsById(id)
 
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
 
@@ -542,7 +542,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
