@@ -20,12 +20,14 @@ import { getValue } from '@mui/system'
 
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
 
 import TableCell from '@mui/material/TableCell'
 import UserSnackbar from 'src/components/utility/snackbar'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import { LoaderIcon } from 'react-hot-toast'
 
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
@@ -213,9 +215,8 @@ export const AddItemsForm = ({
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date,
         available_item_qty: nestedMedicine?.available_item_qty
-
-        // available_item_qty: nestedMedicine?.available_item_qty
       })
+      console.log('nested medicine ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id)
       }
@@ -239,6 +240,7 @@ export const AddItemsForm = ({
 
   const checkTotalCount = e => {
     console.log('nestedMedicine', nestedMedicine)
+
     debugger
 
     // console.log('editParams', editParams)
@@ -344,8 +346,7 @@ export const AddItemsForm = ({
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
-
-                      // seValu
+                      checkTotalCount()
                     }} // Set selected value
                     loading={batchLoading}
                     noOptionsText='Type to search'
@@ -444,8 +445,11 @@ export const AddItemsForm = ({
           </Grid>
 
           <Grid item xs={12} sm={12} display={'flex'}>
-            <Typography>Available Quantity: </Typography>
-            <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography>
+            {/* <Typography>Available Quantity: </Typography>
+            <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography> */}
+            <Typography sx={{ mx: 2 }}>
+              {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
+            </Typography>
           </Grid>
 
           {quantityError && (
@@ -460,6 +464,7 @@ export const AddItemsForm = ({
           </Grid>
         </Grid>
       </form>
+
       <ConfirmDialogBox
         open={invalidQtyDialog}
         closeDialog={() => {
@@ -469,55 +474,74 @@ export const AddItemsForm = ({
           closeConfirmationDialog()
         }}
         content={
-          <Box>
-            <>
-              <DialogContent>
-                <DialogContentText sx={{ mb: 1 }}>
-                  You are trying to full fill higher quantity than it is available in that batch
-                </DialogContentText>
-                <Table>
-                  <TableRow>
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Product</TableCell>
-
-                    <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+          <>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2 }}>Your quantity exceeds the batch limit</DialogContentText>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
+                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
                     <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
                     <TableCell>Requested qty</TableCell>
                   </TableRow>
-                  {invalidQty?.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item?.product_name}</TableCell>
-                      <TableCell>{item?.request_item_batch_no}</TableCell>
-                      <TableCell>{item?.available_item_qty}</TableCell>
-                      <TableCell>{item?.request_item_qty}</TableCell>
-                    </TableRow>
-                  ))}
-                </Table>
-              </DialogContent>
-              <DialogContentText sx={{ mb: 1 }}>Confirm to proceed</DialogContentText>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='primary'
-                  onClick={() => {
-                    confirmDataSubmit()
-                  }}
-                >
+                </TableHead>
+
+                {invalidQty?.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidQty.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.product_name}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidQty.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.request_item_batch_no}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidQty.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.available_item_qty}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        py: 1,
+                        borderRight: '1px solid #ccc',
+                        borderBottom: index === invalidQty.length - 1 && 'none'
+                      }}
+                    >
+                      {item?.request_item_qty}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </Table>
+            </DialogContent>
+
+            <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText>
+            <DialogActions className='dialog-actions-dense'>
+              <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
+                <Button variant='contained' onClick={() => confirmDataSubmit()}>
                   Confirm
                 </Button>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='error'
-                  onClick={() => {
-                    closeConfirmationDialog()
-                  }}
-                >
-                  Cancel
+                <Button variant='outlined' onClick={() => closeConfirmationDialog()}>
+                  Close
                 </Button>
-              </DialogActions>
-            </>
-          </Box>
+              </Box>
+            </DialogActions>
+          </>
         }
       />
       {/* </CardContent> */}

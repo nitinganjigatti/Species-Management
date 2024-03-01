@@ -27,6 +27,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { LoaderIcon } from 'react-hot-toast'
 
 const defaultValues = {
   request_item: {
@@ -101,6 +102,7 @@ export const AddItemsForm = ({
   const [quantityError, setQuantityError] = useState(false)
   const [invalidQty, setInvalidQty] = useState([])
   const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  const [totalQtyLoader, setTotalQtyLoader] = useState(false)
 
   const showConfirmationDialog = () => {
     setInvalidQtyDialog(true)
@@ -179,7 +181,7 @@ export const AddItemsForm = ({
     )
   }
 
-  const checkTotalCount = e => {
+  const checkTotalCount = async e => {
     // console.log('nestedMedicine', nestedMedicine)
     debugger
 
@@ -210,6 +212,7 @@ export const AddItemsForm = ({
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
     debugger
+
     setTotalAvailableCount(available_qty)
   }
 
@@ -235,6 +238,7 @@ export const AddItemsForm = ({
   }
   useEffect(() => {
     debugger
+
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
@@ -250,6 +254,7 @@ export const AddItemsForm = ({
         expiry_date: nestedMedicine?.expiry_date,
         available_item_qty: nestedMedicine?.available_item_qty
       })
+      console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id)
       }
@@ -442,7 +447,9 @@ export const AddItemsForm = ({
             </FormControl>
           </Grid>
           <Grid item xs={12}>
-            Available Quantity: {totalAvailableCount}
+            <Typography sx={{ mx: 2 }}>
+              {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
+            </Typography>
           </Grid>
           {quantityError && (
             <Grid item xs={12}>
