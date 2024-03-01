@@ -57,7 +57,7 @@ const ListOfStocks = () => {
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -65,7 +65,7 @@ const ListOfStocks = () => {
   const [batchSort, setBatchSort] = useState('asc')
   const [stockReportBatch, setStockReportBatch] = useState([])
   const [batchSearchValue, setBatchSearchValue] = useState('')
-  const [batchSortColumn, setBatchSortColumn] = useState('label')
+  const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 

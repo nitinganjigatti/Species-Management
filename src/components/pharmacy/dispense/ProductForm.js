@@ -1,12 +1,6 @@
 import {
   Autocomplete,
   Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
   FormControl,
   FormGroup,
   FormHelperText,
@@ -26,7 +20,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { getBatchList, getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 function ProductForm({
   closeDialog,
@@ -242,20 +236,6 @@ function ProductForm({
     )
   }
 
-  const ConfirmDialogFooter = () => {
-    return (
-      <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
-        <Typography>Confirm to proceed</Typography>
-        <Button variant='contained' onClick={() => submitItems(dataForSubmit)}>
-          Confirm
-        </Button>
-        <Button variant='outlined' onClick={() => closeConfirmationDialog()}>
-          Close
-        </Button>
-      </Box>
-    )
-  }
-
   const closeConfirmationDialog = () => {
     setShowConfirmationDialog(false)
     setInvalidBatches([])
@@ -440,19 +420,17 @@ function ProductForm({
 
   return (
     <Box>
-      {/* <Dialog
+      <ConfirmDialog
         open={showConfirmationDialog}
-        maxWidth='sm'
-        height='auto'
-        scroll='body'
-        onClose={() => closeConfirmationDialog()}
-        onBackdropClick={() => closeConfirmationDialog()}
-      >
-        <Card>
-          <CardContent sx={{ pt: 0 }}>
-            <Typography sx={{ textAlign: 'center', my: 4, fontWeight: 600 }}>
-              You are trying to dispense higher higher quantity than it is available
-            </Typography>
+        title={'Your quantity exceeds the batch limit'}
+        closeDialog={() => {
+          closeConfirmationDialog()
+        }}
+        action={() => {
+          submitItems(dataForSubmit)
+        }}
+        content={
+          <>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
@@ -462,7 +440,7 @@ function ProductForm({
                 </TableRow>
               </TableHead>
               {invalidBatches?.map((item, index) => (
-                <TableRow>
+                <TableRow key={index}>
                   <TableCell
                     sx={{
                       py: 1,
@@ -487,68 +465,6 @@ function ProductForm({
                 </TableRow>
               ))}
             </Table>
-            <ConfirmDialogFooter />
-          </CardContent>
-        </Card>
-      </Dialog> */}
-      <ConfirmDialogBox
-        open={showConfirmationDialog}
-        closeDialog={() => {
-          closeConfirmationDialog()
-        }}
-        action={() => {
-          closeConfirmationDialog()
-        }}
-        content={
-          <>
-            <DialogContent>
-              <DialogContentText sx={{ mb: 2 }}>Your quantity exceeds the batch limit</DialogContentText>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
-                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                    <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                    <TableCell sx={{ py: 1 }}>Dispense qty</TableCell>
-                  </TableRow>
-                </TableHead>
-                {invalidBatches?.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidBatches.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.batch_no?.value}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        py: 1,
-                        borderRight: '1px solid #ccc',
-                        borderBottom: index === invalidBatches.length - 1 && 'none'
-                      }}
-                    >
-                      {item?.totalQty}
-                    </TableCell>
-                    <TableCell sx={{ py: 1, borderBottom: index === invalidBatches.length - 1 && 'none' }}>
-                      {item?.filledQty}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </Table>
-            </DialogContent>
-            <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText>
-            <DialogActions className='dialog-actions-dense'>
-              <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
-                <Button variant='contained' onClick={() => submitItems(dataForSubmit)}>
-                  Confirm
-                </Button>
-                <Button variant='outlined' onClick={() => closeConfirmationDialog()}>
-                  Close
-                </Button>
-              </Box>
-            </DialogActions>
           </>
         }
       />
