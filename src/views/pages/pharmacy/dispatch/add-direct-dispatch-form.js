@@ -170,7 +170,7 @@ export const AddItemsForm = ({
     clearErrors('request_item_batch_no')
 
     if (totalAvailableCount < 0) {
-      alert('2')
+      // alert('2')
       setQuantityError(true)
 
       return
