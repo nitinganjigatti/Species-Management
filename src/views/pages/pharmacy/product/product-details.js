@@ -96,9 +96,10 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 {item?.quantity}
               </Grid>
 
-              <Grid item xs={6}>
-                <Typography>Product Image</Typography>
-                {item?.product_image ? (
+              {item?.product_image && (
+                <Grid item xs={6}>
+                  <Typography>Product Image</Typography>
+
                   <a href={`${base_url}${imgUrl}${item?.product_image}`} target='_blank'>
                     <img
                       alt='Product Image'
@@ -108,17 +109,16 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                       src={`${base_url}${imgUrl}${item?.product_image}`}
                     />
                   </a>
-                ) : (
-                  'No Image Found'
-                )}
-              </Grid>
+                </Grid>
+              )}
               <Grid item xs={6}>
                 <Typography>Priority</Typography>
                 {item?.priority}
               </Grid>
-              <Grid item xs={6}>
-                <Typography>Prescription Images</Typography>
-                {prescriptionImages && (
+              {prescriptionImages && (
+                <Grid item xs={6}>
+                  <Typography>Prescription Images</Typography>
+
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
@@ -137,8 +137,8 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                         )
                       })}
                   </Grid>
-                )}
-              </Grid>
+                </Grid>
+              )}
               <Grid item xs={6}>
                 <Typography>Comments</Typography>
                 {productDetails?.comments}
