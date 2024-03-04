@@ -121,6 +121,7 @@ const FileUploaderMultiple = props => {
     setFiles(prevFiles => [...prevFiles, ...totalFiles])
   }
   const fileInputRef = useRef(null)
+
   return (
     <Fragment>
       <div style={{ minHeight: '10%' }} {...getRootProps({ className: 'dropzone' })}>
