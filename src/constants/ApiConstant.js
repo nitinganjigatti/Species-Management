@@ -1,4 +1,6 @@
-export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
+export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
+
+export const LabFileDelete = 'delete-lab-test-file'
 
 export const GetLabNo = 'user-lab-list'
 
@@ -9,6 +11,8 @@ export const uploadLabReports = '/medical/add-lab-test-files'
 export const updateStatus = '/antz/update/lab-tests-status'
 
 export const GetLabReport = 'lab-report'
+
+export const GetTestsStatusById = 'lab-report-stats'
 
 export const GetRequestPopUpById = 'antz/request/lab-tests'
 
@@ -25,6 +29,8 @@ export const LabEditGetById = 'antz/labs/show-lab/'
 export const UpdateLab = 'antz/labs/update-lab/'
 
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
+
+export const USER_REFRESH_TOKEN_ = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
 
@@ -67,6 +73,8 @@ export const SHIPMENT = 'shipment'
 export const DEBIT_NOTE = 'purchase-return'
 
 export const DISPATCH = 'dispatch'
+
+export const DISPATCH_ITEM = 'dispatchItem'
 
 export const DISPATCH_VALIDATION = 'dispatch-validation'
 

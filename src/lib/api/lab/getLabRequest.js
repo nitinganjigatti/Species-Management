@@ -5,7 +5,8 @@ import {
   GetRequestPopUpById,
   PostTransfer,
   updateStatus,
-  uploadLabReports
+  uploadLabReports,
+  GetTestsStatusById
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -88,4 +89,10 @@ export async function UploadLabReports(payload) {
 
     return error
   }
+}
+
+export async function GetLabRequestTestStatusById({ params }) {
+  const response = await axiosGet({ url: `${GetTestsStatusById}`, params })
+
+  return response.data
 }

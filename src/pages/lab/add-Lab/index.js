@@ -884,6 +884,7 @@ const AddLab = () => {
                                   placeholder='Longitude'
                                   error={Boolean(errors?.longitude)}
                                   name='longitude'
+                                  disabled
                                 />
                               )}
                             />
@@ -904,6 +905,7 @@ const AddLab = () => {
                                     placeholder='Latitude'
                                     error={Boolean(errors?.latitude)}
                                     name='latitude'
+                                    disabled
                                   />
                                 )}
                               />

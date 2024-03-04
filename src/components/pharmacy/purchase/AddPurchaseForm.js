@@ -190,13 +190,23 @@ const AddPurchaseForm = () => {
     0
   )
 
-  const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
+  const totalLineItemsAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_gross_amount ? row.purchase_gross_amount : 0),
     0
   )
 
   const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
+    0
+  )
+
+  const totalLineItemsPurchase = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
+    0
+  )
+
+  const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
     0
   )
 
@@ -210,8 +220,13 @@ const AddPurchaseForm = () => {
     0
   )
 
-  const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_taxable_amount),
+  const calculate_cgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_cgst_amount ? row.purchase_cgst_amount : 0),
+    0
+  )
+
+  const calculate_sgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_sgst_amount ? row.purchase_sgst_amount : 0),
     0
   )
 
@@ -1140,7 +1155,6 @@ const AddPurchaseForm = () => {
               <Card>
                 <CardContent sx={{ pt: 8 }}>
                   <CalcWrapper>
-                    <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                       {totalLineItemsAmount ? totalLineItemsAmount : 0}

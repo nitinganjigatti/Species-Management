@@ -15,6 +15,7 @@ const LabDetails = () => {
   const [loader, setLoader] = useState(false)
   const [status, setStatus] = useState('overview')
   const [showLabDetails, setShowLabDetails] = useState()
+  const [labTests, setLabTests] = useState()
 
   const handleChange = (event, newValue) => {
     setStatus(newValue)
@@ -28,6 +29,7 @@ const LabDetails = () => {
       if (res) {
         console.log('res show', res?.data[0])
         setShowLabDetails(res?.data[0])
+        setLabTests(res?.data[0]?.lab_details)
         setLoader(false)
       }
     } catch (error) {}
@@ -64,7 +66,7 @@ const LabDetails = () => {
                 <Site />
               </TabPanel>
               <TabPanel value='tests'>
-                <Tests />
+                <Tests labTest={labTests} />
               </TabPanel>
               <TabPanel value='users'>
                 <Users />
