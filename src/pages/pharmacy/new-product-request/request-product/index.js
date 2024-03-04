@@ -90,11 +90,15 @@ export default function AddProduct() {
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
   const schema = yup.object().shape({
-    from_store: yup.string().required('product name is required'),
-    product_type: yup.string().required('product name is required'),
-    product_name: yup.string().required('product name is required'),
-    generic_name: yup.string().required('product name is required'),
-    quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
+    from_store: yup.string().required('Store Name is required'),
+    product_type: yup.string().required('Product type is required'),
+    product_name: yup.string().required('Product name is required'),
+    generic_name: yup.string().required('Generic name is required'),
+    quantity: yup
+      .number()
+      .typeError('Quantity must be a number')
+      .required('Quantity is required')
+      .moreThan(0, 'Quantity must be greater than 0')
   })
 
   const defaultValues = {
@@ -152,7 +156,6 @@ export default function AddProduct() {
 
     setValue('prescription_images', newImages)
   }
-  console.log('fields????', fields)
 
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
@@ -495,7 +498,7 @@ export default function AddProduct() {
                   <Grid container spacing={6}>
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
-                        <InputLabel>From Store Name</InputLabel>
+                        <InputLabel>From Store Name*</InputLabel>
                         <Controller
                           name='from_store'
                           control={control}
@@ -623,7 +626,7 @@ export default function AddProduct() {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 value={value}
-                                label='Quantity'
+                                label='Quantity*'
                                 name='quantity'
                                 type='number'
                                 onChange={onChange}
@@ -638,7 +641,7 @@ export default function AddProduct() {
                       </Grid>
 
                       <Grid item xs={12} sm={12}>
-                        <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+                        <FormControl fullWidth error={Boolean(errors.radio)}>
                           <FormLabel>Priority</FormLabel>
                           <Controller
                             name='priority'
@@ -670,7 +673,7 @@ export default function AddProduct() {
                       </Grid>
 
                       <Grid item xs={12} sm={6}>
-                        <Typography>Product Image</Typography>
+                        <Typography sx={{ mb: 4 }}>Product Image</Typography>
                         <input
                           type='file'
                           accept='image/*'
@@ -681,7 +684,6 @@ export default function AddProduct() {
                         />
 
                         {console.log('imgSrc', imgSrc)}
-
                         {imgSrc !== '' && (
                           <Box
                             sx={{
@@ -897,7 +899,7 @@ export default function AddProduct() {
               </Grid> */}
 
                       <Grid item xs={12} sm={6}>
-                        <Typography>Prescription Images</Typography>
+                        <Typography sx={{ mb: 4 }}>Prescription Images</Typography>
                         <input
                           type='file'
                           accept='image/*'
@@ -913,15 +915,16 @@ export default function AddProduct() {
                             handlePrescriptionClick()
                           }}
                         />
-                        {fields.length > 0 ||
-                          (prescriptionField.length > 0 && (
-                            <ImageUploadComponent
-                              fields={fields}
-                              setValue={setValue}
-                              prescriptionField={prescriptionField}
-                              imgBaseUrl={imgBaseUrl}
-                            />
-                          ))}
+                        {console.log('fields-length', fields.length)}
+                        {console.log('prescriptionField', prescriptionField.length)}
+                        {(fields.length > 0 || prescriptionField.length > 0) && (
+                          <ImageUploadComponent
+                            fields={fields}
+                            setValue={setValue}
+                            prescriptionField={prescriptionField}
+                            imgBaseUrl={imgBaseUrl}
+                          />
+                        )}
 
                         {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
