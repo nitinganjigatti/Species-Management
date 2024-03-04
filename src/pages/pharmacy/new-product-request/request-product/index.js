@@ -55,6 +55,8 @@ import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/Fi
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import toast from 'react-hot-toast'
 import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/utility/image-upload-card'
+import Error404 from 'src/pages/404'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
@@ -74,13 +76,13 @@ export default function AddProduct() {
 
   const [responseImage, setResponseImage] = useState()
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
       .then(res => setStoreList(res?.data?.list_items))
       .catch(err => console.log(err))
   }, [])
-
-  console.log('storeList ????', storeList)
 
   // {
   //   storeList?.map((item, index) => setStoreId(item?.id))
@@ -114,7 +116,7 @@ export default function AddProduct() {
     //     salt_qty: ''
     //   }
     // ],
-    status: 'Pending'
+    status: 'pending'
   }
 
   const {
@@ -140,16 +142,13 @@ export default function AddProduct() {
   //   name: 'salts'
   // })
 
-  console.log('fields?', fields)
-
   const handleFileChange = event => {
     const { files } = event.target
-    console.log('event ???', event)
 
     const newImages = Array.from(files).map(file => ({
       file
     }))
-    console.log('preImages???', newImages)
+
     setValue('prescription_images', newImages)
   }
 
@@ -181,8 +180,7 @@ export default function AddProduct() {
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
       setResponseImage(res?.data?.request_item_details[0].product_image)
-      // console.log('Prescription iMAGE???', prescriptionField)
-
+      debugger
       reset({
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
@@ -193,30 +191,34 @@ export default function AddProduct() {
         generic_name: res?.data?.request_item_details[0].generic_name,
         product_image: res?.data?.request_item_details[0].product_image
           ? res?.data?.request_item_details[0].product_image
-          : `${base_url}${imgBaseUrl}${Item?.product_image}`
+          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
       })
+
+      // res?.data?.request_item_details?.map(Item =>
+      //   typeof Item?.product_image === 'string'
+      //     ? `${base_url}${imgBaseUrl}${Item?.product_image}`
+      //     : Item?.product_image
+      // )
       setImgSrc(
-        res?.data?.request_item_details?.map(Item =>
-          typeof Item?.product_image === 'string'
-            ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-            : Item?.product_image
-        )
+        res?.data?.request_item_details[0].product_image
+          ? res?.data?.request_item_details[0].product_image
+          : res?.data?.request_item_details[0].product_image === ''
+          ? ''
+          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
       )
     })
   }
-  console.log('response image ??', responseImage)
 
   const onSubmit = async data => {
     const dataChild = [...dataChildValues]
-    console.log('dataChild====????', dataChild)
 
     const requestData = dataChild?.map((item, index) => {
       return item?.request_item_detail_id
     })
-    console.log('request???????', requestData)
+
     data.request_item_detail_id = requestData.join('')
 
-    data.status = data?.status ? data?.status : 'Pending'
+    data.status = data?.status ? data?.status : 'pending'
 
     // handleUpdate(getDetails, data)
     // const requestDetailsData = {
@@ -278,8 +280,6 @@ export default function AddProduct() {
 
     let response
 
-    console.log('payload???', payload)
-
     try {
       if (id) {
         response = await updateNonExistingProduct(payload, id)
@@ -304,14 +304,12 @@ export default function AddProduct() {
     }
   }
 
-  const handleUpdate = (item, data) => {
-    console.log('Details????', item)
-
-    // if (item?.request_item_details?.request_item_detail_id) {
-    //   // Use optional chaining consistently
-    //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
-    // }
-  }
+  // const handleUpdate = (item, data) => {
+  //   // if (item?.request_item_details?.request_item_detail_id) {
+  //   //   // Use optional chaining consistently
+  //   //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
+  //   // }
+  // }
 
   const clearSaltFields = index => {
     return (
@@ -330,13 +328,13 @@ export default function AddProduct() {
     )
   }
 
-  const handleCallback = dataFromChild => {
-    if (editValues || editValues.request_item_detail_id) {
-      handleUpdate(editValues, editIndex, dataFromChild)
-    } else {
-      setDataChildValues([...dataChildValues, dataFromChild])
-    }
-  }
+  // const handleCallback = dataFromChild => {
+  //   if (editValues || editValues.request_item_detail_id) {
+  //     handleUpdate(editValues, editIndex, dataFromChild)
+  //   } else {
+  //     setDataChildValues([...dataChildValues, dataFromChild])
+  //   }
+  // }
 
   // const addSaltButton = () => {
   //   return (
@@ -473,248 +471,255 @@ export default function AddProduct() {
   // }
 
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader
-            title='Add Product Form'
-            avatar={
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  Router.push('/pharmacy/new-product-request/')
-                }}
-                icon='ep:back'
+    <>
+      {selectedPharmacy.type === 'local' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+        <Grid container spacing={6}>
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader
+                title='Add Product Form'
+                avatar={
+                  <Icon
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      Router.push('/pharmacy/new-product-request/')
+                    }}
+                    icon='ep:back'
+                  />
+                }
               />
-            }
-          />
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent>
-              <Grid container spacing={6}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>From Store Name</InputLabel>
-                    <Controller
-                      name='from_store'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Select {...field} label='From Store Name'>
-                          {storeList?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.id}>
-                                {item?.name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors?.from_store && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.from_store?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='comment'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label='Comment'
-                          multiline
-                          rows={1}
-
-                          // error={Boolean(errors.medicine_name)}
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <CardContent>
+                  <Grid container spacing={6}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>From Store Name</InputLabel>
+                        <Controller
+                          name='from_store'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field }) => (
+                            <Select {...field} label='From Store Name'>
+                              {storeList?.map((item, index) => {
+                                return (
+                                  <MenuItem key={index} value={item?.id}>
+                                    {item?.name}
+                                  </MenuItem>
+                                )
+                              })}
+                            </Select>
+                          )}
                         />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-              <Grid container sm={12} mt={4} xs={12}>
-                <Grid container spacing={6}>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Select Product Type*</InputLabel>
-                      <Controller
-                        name='product_type'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <Select
+                        {errors?.from_store && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.from_store?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='comment'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label='Comment'
+                              multiline
+                              rows={1}
+
+                              // error={Boolean(errors.medicine_name)}
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                  <Grid container sm={12} mt={4} xs={12}>
+                    <Grid container spacing={6}>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Select Product Type*</InputLabel>
+                          <Controller
                             name='product_type'
-                            value={value}
-                            label='Select Product Type*'
-                            onChange={onChange}
-                            error={Boolean(errors?.product_type)}
-                          >
-                            <MenuItem value='allopathy'>Allopathy</MenuItem>
-                            <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                            <MenuItem value='unani'>Unani</MenuItem>
-                            <MenuItem value='non_medical'>Non Medical</MenuItem>
-                          </Select>
-                        )}
-                      />
-                      {errors?.product_type && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_type?.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='product_name'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Product Name*'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name='product_type'
+                                value={value}
+                                label='Select Product Type*'
+                                onChange={onChange}
+                                error={Boolean(errors?.product_type)}
+                              >
+                                <MenuItem value='allopathy'>Allopathy</MenuItem>
+                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                                <MenuItem value='unani'>Unani</MenuItem>
+                                <MenuItem value='non_medical'>Non Medical</MenuItem>
+                              </Select>
+                            )}
+                          />
+                          {errors?.product_type && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.product_type?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
                             name='product_name'
-                            error={Boolean(errors.product_name)}
-                            onChange={onChange}
-                            placeholder='Product Name'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                value={value}
+                                label='Product Name*'
+                                name='product_name'
+                                error={Boolean(errors.product_name)}
+                                onChange={onChange}
+                                placeholder='Product Name'
+                              />
+                            )}
                           />
-                        )}
-                      />
-                      {errors?.product_name && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                          {errors?.product_name && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='generic_name'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Generic Name*'
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
                             name='generic_name'
-                            error={Boolean(errors.generic_name)}
-                            onChange={onChange}
-                            placeholder='Generic Name'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                value={value}
+                                label='Generic Name*'
+                                name='generic_name'
+                                error={Boolean(errors.generic_name)}
+                                onChange={onChange}
+                                placeholder='Generic Name'
+                              />
+                            )}
                           />
-                        )}
-                      />
-                      {errors?.generic_name && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                          {errors?.generic_name && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='quantity'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Quantity'
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
                             name='quantity'
-                            type='number'
-                            onChange={onChange}
-                            placeholder='quantity'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                value={value}
+                                label='Quantity'
+                                name='quantity'
+                                type='number'
+                                onChange={onChange}
+                                placeholder='quantity'
+                              />
+                            )}
                           />
-                        )}
-                      />
-                      {errors?.quantity && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                          {errors?.quantity && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
-                  <Grid item xs={12} sm={12}>
-                    <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-                      <FormLabel>Priority</FormLabel>
-                      <Controller
-                        name='priority'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field }) => (
-                          <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                            <FormControlLabel
-                              value='High'
-                              label='High'
-                              sx={errors.status ? { color: 'error.main' } : null}
-                              control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                            />
-                            <FormControlLabel
-                              value='Normal'
-                              label='Normal'
-                              sx={errors.status ? { color: 'error.main' } : null}
-                              control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                            />
-                          </RadioGroup>
-                        )}
-                      />
-                      {errors.radio && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                      <Grid item xs={12} sm={12}>
+                        <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+                          <FormLabel>Priority</FormLabel>
+                          <Controller
+                            name='priority'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => (
+                              <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
+                                <FormControlLabel
+                                  value='High'
+                                  label='High'
+                                  sx={errors.status ? { color: 'error.main' } : null}
+                                  control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                                />
+                                <FormControlLabel
+                                  value='Normal'
+                                  label='Normal'
+                                  sx={errors.status ? { color: 'error.main' } : null}
+                                  control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                                />
+                              </RadioGroup>
+                            )}
+                          />
+                          {errors.radio && (
+                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
+                              This field is required
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
-                  <Grid item xs={12} sm={6}>
-                    <Typography>Product Image</Typography>
-                    <input
-                      type='file'
-                      accept='image/*'
-                      onChange={e => handleInputImageChange(e)}
-                      style={{ display: 'none' }}
-                      name='product_image'
-                      ref={fileInputRef}
-                    />
+                      <Grid item xs={12} sm={6}>
+                        <Typography>Product Image</Typography>
+                        <input
+                          type='file'
+                          accept='image/*'
+                          onChange={e => handleInputImageChange(e)}
+                          style={{ display: 'none' }}
+                          name='product_image'
+                          ref={fileInputRef}
+                        />
 
-                    {imgSrc !== '' && (
-                      <Box
-                        sx={{
-                          display: 'flex'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex' }}>
-                          <img
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              padding: '0.1875rem',
-                              borderRadius: '10px',
-                              border: '1px solid rgba(93, 89, 98, 0.14)'
+                        {imgSrc !== '' && (
+                          <Box
+                            sx={{
+                              display: 'flex'
                             }}
-                            width={50}
-                            height={50}
-                            alt='Uploaded image'
-                            src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
-                          />
+                          >
+                            <Box sx={{ display: 'flex' }}>
+                              <img
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  padding: '0.1875rem',
+                                  borderRadius: '10px',
+                                  border: '1px solid rgba(93, 89, 98, 0.14)'
+                                }}
+                                width={50}
+                                height={50}
+                                alt='Uploaded image'
+                                src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                              />
 
-                          <Typography sx={{ margin: '10px' }}>{responseImage ? responseImage : displayFile}</Typography>
-                          <Box sx={{ cursor: 'pointer', margin: '10px' }}>
-                            <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
-                              {' '}
-                            </Icon>
+                              <Typography sx={{ margin: '10px' }}>
+                                {responseImage ? responseImage : displayFile}
+                              </Typography>
+                              <Box sx={{ cursor: 'pointer', margin: '10px' }}>
+                                <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
+                                  {' '}
+                                </Icon>
+                              </Box>
+                            </Box>
                           </Box>
-                        </Box>
-                      </Box>
-                    )}
+                        )}
 
-                    {/* {imgSrc === '' && ( */}
-                    {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
-                  </Grid>
+                        {/* {imgSrc === '' && ( */}
+                        {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
+                      </Grid>
 
-                  {/* salt composition */}
+                      {/* salt composition */}
 
-                  {/* <Grid item xs={12} sm={12}>
+                      {/* <Grid item xs={12} sm={12}>
                     <FormGroup>
                       <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
                         <Grid item xs={6}>
@@ -782,7 +787,7 @@ export default function AddProduct() {
                     </FormGroup>
                   </Grid> */}
 
-                  {/* <Grid item xs={12} sm={12}>
+                      {/* <Grid item xs={12} sm={12}>
                 <TableContainer>
                   <Table>
                     <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -868,7 +873,7 @@ export default function AddProduct() {
                   </Table>
                 </TableContainer>
               </Grid> */}
-                  {/* <Grid item xs={12} sx={{ mt: 6 }}>
+                      {/* <Grid item xs={12} sx={{ mt: 6 }}>
                 <Card>
                   <CardHeader title='Upload Prescription' />
                   <CardContent>
@@ -885,45 +890,47 @@ export default function AddProduct() {
                         {' '}
                       </Icon>
                     </Box> */}
-                  {/* </CardContent>
+                      {/* </CardContent>
                 </Card>
               </Grid> */}
 
-                  <Grid item xs={12} sm={6}>
-                    <Typography>Prescription Images</Typography>
-                    <input
-                      type='file'
-                      accept='image/*'
-                      multiple
-                      onChange={e => handleFileChange(e)}
-                      style={{ display: 'none' }}
-                      name='prescription_images'
-                      ref={prescriptionRef}
-                    />
-                    {prescriptionField && (
-                      <AddButton
-                        title=' Add Prescription'
-                        action={() => {
-                          handlePrescriptionClick()
-                        }}
-                      />
-                    )}
-                    <ImageUploadComponent
-                      fields={fields}
-                      setValue={setValue}
-                      prescriptionField={prescriptionField}
-                      imgBaseUrl={imgBaseUrl}
-                    />
-                    {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography>Prescription Images</Typography>
+                        <input
+                          type='file'
+                          accept='image/*'
+                          multiple
+                          onChange={e => handleFileChange(e)}
+                          style={{ display: 'none' }}
+                          name='prescription_images'
+                          ref={prescriptionRef}
+                        />
+
+                        <AddButton
+                          title='Add Prescription'
+                          action={() => {
+                            handlePrescriptionClick()
+                          }}
+                        />
+
+                        {prescriptionField.length > 0 && (
+                          <ImageUploadComponent
+                            fields={fields}
+                            setValue={setValue}
+                            prescriptionField={prescriptionField}
+                            imgBaseUrl={imgBaseUrl}
+                          />
+                        )}
+                        {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
                   </Button> */}
-                    {/* <ImageUploadCard
+                        {/* <ImageUploadCard
                     fields={fields}
                     removeselectedImage={removeselectedImage}
                     renderFilePreview={renderFilePreview}
                   /> */}
 
-                    {/* {
+                        {/* {
                     <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                       <CardContent>
                         <DropzoneWrapper className='dropzone'></DropzoneWrapper>
@@ -951,30 +958,36 @@ export default function AddProduct() {
                       </CardContent>
                     </Box>
                   } */}
-                    {/* </Grid> */}
+                        {/* </Grid> */}
+                      </Grid>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Grid>
-              <Grid
-                container
-                sm={12}
-                spacing={6}
-                mt={4}
-                item
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center'
-                }}
-              >
-                <LoadingButton type='submit' sx={{ marginRight: '8px' }} size='large' variant='contained'>
-                  Save
-                </LoadingButton>
-              </Grid>
-            </CardContent>
-          </form>
-        </Card>
-      </Grid>
-    </Grid>
+                  <Grid
+                    container
+                    sm={12}
+                    spacing={6}
+                    mt={4}
+                    item
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <LoadingButton type='submit' sx={{ marginRight: '8px' }} size='large' variant='contained'>
+                      Save
+                    </LoadingButton>
+                  </Grid>
+                </CardContent>
+              </form>
+            </Card>
+          </Grid>
+        </Grid>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }

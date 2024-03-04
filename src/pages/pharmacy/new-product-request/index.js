@@ -28,11 +28,16 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 export default function NewProductList() {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
+  const [productDetails, setProductDetails] = useState({})
   const [prescriptionImages, setPrescriptionImages] = useState()
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const columns = [
     // {
@@ -71,7 +76,7 @@ export default function NewProductList() {
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} variant='body2'>
+            <Typography key={index} sx={{ color: 'text.primary' }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -199,7 +204,12 @@ export default function NewProductList() {
   }
 
   const headerAction = (
-    <AddButton title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+    <>
+      {selectedPharmacy.type === 'local' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <AddButton title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+        )}
+    </>
   )
 
   const searchTableData = useCallback(
@@ -244,7 +254,7 @@ export default function NewProductList() {
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy.id])
 
   const handleEdit = id => {
     router.push({
@@ -277,6 +287,7 @@ export default function NewProductList() {
     setItemId(params.id)
     await getNonExistingProductById(params.id)
       .then(res => {
+        setProductDetails(res?.data)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
         setImageUrl(res?.base_path)
@@ -340,7 +351,7 @@ export default function NewProductList() {
             <CardContent>
               <Grid container>
                 <CommonDialogBox
-                  title={'View Details'}
+                  title={'Product Details'}
                   dialogBoxStatus={show}
                   formComponent={
                     <ProductDetail
@@ -350,6 +361,7 @@ export default function NewProductList() {
                       imgUrl={imgUrl}
                       itemId={itemId}
                       handleEdit={handleEdit}
+                      productDetails={productDetails}
                     />
                   }
                   close={() => setShow(false)}
