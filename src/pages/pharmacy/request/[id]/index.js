@@ -674,7 +674,7 @@ const IndividualRequest = () => {
                 setDeleteFullFillId(params.row.dispatch_item_id)
                 console.log('full filled ', params.row.dispatch_item_id)
               }}
-              icon='material-symbols:delete-forever'
+              icon='mdi:delete-outline'
             />
           </Box>
         </Typography>
