@@ -6,9 +6,10 @@ import Switch from '@mui/material/Switch'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
-function AddButton({ action, title }) {
+function AddButton({ action, title, disabled }) {
   return (
     <Button
+      disabled={disabled || false}
       onClick={action ? action : null}
       size='large'
       variant='outlined'

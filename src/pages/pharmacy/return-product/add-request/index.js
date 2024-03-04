@@ -390,11 +390,13 @@ const AddReturnRequest = () => {
         const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local')
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
+            console.log('data of batch', searchResults?.data?.items)
             setOptionsBatchList(
               searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
                 label: item?.batch_no,
-                expiry_date: item?.expiry_date
+                expiry_date: item?.expiry_date,
+                available_item_qty: item?.qty
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -428,7 +430,7 @@ const AddReturnRequest = () => {
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
-      console.log('id', id, action)
+      // console.log('id', id, action)
       getListOfItemsById(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -465,7 +467,8 @@ const AddReturnRequest = () => {
             request_item_detail_id: el.id,
             request_item_batch_no: el.dispatch_batch_no,
             expiry_date: el.dispatch_expiry_date,
-            uuid: uuidv4()
+            uuid: uuidv4(),
+            available_item_qty: el?.batch_available_qty
           }
         })
 
@@ -490,7 +493,6 @@ const AddReturnRequest = () => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
-
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -502,7 +504,8 @@ const AddReturnRequest = () => {
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
       priority_item: getItems[0].priority_item,
       control_substance: getItems[0].control_substance,
-      uuid: getItems[0].uuid
+      uuid: getItems[0].uuid,
+      available_item_qty: getItems[0]?.available_item_qty
     })
     // }
     // await searchBatchData(itemId)
@@ -524,10 +527,9 @@ const AddReturnRequest = () => {
           setSubmitLoader(false)
           getListOfItemsById(id)
 
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
-          console.log('error', response)
 
           toast.error(response?.errors ? response?.errors : response?.message)
         }
@@ -541,7 +543,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -596,13 +598,13 @@ const AddReturnRequest = () => {
                   icon='ep:back'
                 />
               }
-              title='Return Request Item'
+              title='Add Return Request'
             />
           </Grid>
           <CardContent>
             <Grid container>
               <CommonDialogBox
-                title={'Add Request Item'}
+                title={'Add Return Item'}
                 dialogBoxStatus={show}
                 formComponent={createForm()}
                 close={closeDialog}
@@ -702,7 +704,7 @@ const AddReturnRequest = () => {
             }}
           >
             <AddButton
-              title='Add Request Item'
+              title='Add Return Item'
               action={() => {
                 handleSubmit()
               }}

@@ -1,21 +1,21 @@
-import { GENERICS } from '../../../constants/ApiConstant'
+import { GENERICS, PHARMACY_MASTER_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getGenerics() {
-  const response = await axiosGet({ url: GENERICS, pharmacy: true })
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${GENERICS}/list`, pharmacy: true })
 
-  return response.data.data
+  return response.data
 }
 
 export async function getGenericsById(id) {
-  const response = await axiosGet({ url: `${GENERICS}/${id}/show`, pharmacy: true })
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${GENERICS}/${id}`, pharmacy: true })
 
   return response.data
 }
 
 export async function addGenericName(payload) {
   try {
-    const url = `${GENERICS}`
+    const url = `${PHARMACY_MASTER_BASE_URL}${GENERICS}/add`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy: true })
 
@@ -34,7 +34,7 @@ export async function addGenericName(payload) {
 
 export async function updateGenericName(id, payload) {
   try {
-    const url = `${GENERICS}/${id}/update`
+    const url = `${PHARMACY_MASTER_BASE_URL}${GENERICS}/edit/${id}`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy: true })

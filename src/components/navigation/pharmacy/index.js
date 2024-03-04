@@ -6,7 +6,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const inventoryParent = {
-    title: 'Inventory',
+    title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
     icon: 'material-symbols:inventory-2-outline',
     children: []
@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase',
+    title: 'Purchase Invoice',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
@@ -174,6 +174,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/settings/supplier/supplier-list'
   }
 
+  const genericNamesList = {
+    title: 'Generic Names',
+    path: '/pharmacy/settings/generic'
+  }
+
   const testList = {
     title: 'Test Module',
     path: '/test/'
@@ -182,6 +187,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const rackList = {
     title: 'Rack list',
     path: '/pharmacy/store/rackList'
+  }
+
+  const dispense = {
+    title: 'Dispense',
+    path: '/pharmacy/dispense',
+    icon: 'bi:boxes'
+  }
+
+  const addDispense = {
+    title: 'Dispense List',
+    path: '/pharmacy/dispense/add-dispense'
   }
 
   const pharmacyNavigationArray = []
@@ -201,6 +217,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       gst,
       uom,
       productForm,
+      genericNamesList,
       drugClass,
       manufacturer,
       packages,
@@ -212,12 +229,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      stockParent,
+
       requestListing,
       returnListing,
       directDispatchList,
-      purchaseList,
-      stockParent,
+
       productsList,
+      purchaseList,
       settingsParent
     )
   }
@@ -228,7 +247,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      requestListing,
+      returnListing,
+      directDispatchList,
+      dispense,
+      stockParent,
+      settingsParent
+    )
   }
 
   // debugger

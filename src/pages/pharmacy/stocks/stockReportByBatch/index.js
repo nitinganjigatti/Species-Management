@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
@@ -17,7 +17,7 @@ import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
-import { Box } from '@mui/material'
+import { Box, Card, CardHeader, LinearProgress, debounce } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 
@@ -25,10 +25,20 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 import Utility from 'src/utility'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { DataGrid } from '@mui/x-data-grid'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
+
+  const [loading, setLoading] = useState(false)
+  const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [total, setTotal] = useState(0)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
   const [stockId, setStockId] = useState('')
   const [loader, setLoader] = useState(false)
   const [errors, setErrors] = useState('')
@@ -48,9 +58,7 @@ const ListOfStocksByBatch = () => {
     try {
       setLoader(true)
       const response = await getStoreList({ params: { q: 'local', column: 'type' } })
-      console.log('list', response)
       if (response?.data?.list_items?.length > 0) {
-        console.log('list', response)
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
         setStores(response?.data?.list_items)
         setLoader(false)
@@ -63,31 +71,73 @@ const ListOfStocksByBatch = () => {
     }
   }
 
-  const getStocksReport = async id => {
-    // console.log(stockId)
-    if (id === '' || undefined) {
-      setErrors('Please select Store')
-
-      return
-    } else {
-      try {
-        const result = await getStocksByBatch(id)
-        if (result.success === true && result.data !== '') {
-          let listWithId = result.data
-            ? result.data.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReport(listWithId)
-        }
-      } catch (error) {
-        console.log('error', error)
-      }
-    }
+  function loadServerRows(currentPage, data) {
+    return data
   }
+
+  const getStocksReport = useCallback(
+    async ({ sort, q, column, id }) => {
+      if (id === undefined) {
+        // setErrors('Please select Store')
+        console.log('Please select Store')
+
+        return
+      } else {
+        try {
+          setLoading(true)
+          const params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize
+          }
+          const result = await getStocksByBatch(id, params)
+          if (result.success === true && result.data !== '') {
+            setTotal(parseInt(result?.count))
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(loadServerRows(paginationModel.page, listWithId))
+            setLoading(false)
+          }
+        } catch (error) {
+          console.log('error', error)
+          setLoading(false)
+        }
+      }
+    },
+    [paginationModel]
+  )
+
+  const indexedRows = stockReport?.map((row, index) => ({
+    ...row,
+    id: `${row.id}_${index}`,
+    sl_no: index + 1
+  }))
+
+  const handleSearch = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   useEffect(() => {
     getStoresLists()
   }, [])
+  useEffect(() => {
+    if (stockId !== '') {
+      getStocksReport({ sort, q: searchValue, column: sortColumn, id: stockId })
+    }
+  }, [getStocksReport])
 
   const columns = [
     {
@@ -220,7 +270,8 @@ const ListOfStocksByBatch = () => {
 
   const createForm = () => {
     return (
-      <Grid
+      <>
+        {/* <Grid
         container
         gap={3}
         sx={{
@@ -230,41 +281,41 @@ const ListOfStocksByBatch = () => {
           mx: 6,
           my: 4
         }}
-      >
-        <Grid item lg={2}>
-          <FormControl sx={{ width: '100%' }}>
-            <InputLabel id='controlled-select-label'>Stores</InputLabel>
-            <Select
-              onChange={e => {
-                let id = e.target.value
-                setStockId(id)
-                setStockReport([])
-                setConfigureMedId('')
-                setErrors('')
-                getStocksReport(id)
-              }}
-              label='Stores'
-              value={stockId}
-              id='controlled-select'
-              labelId='controlled-select-label'
-              sx={{ width: '100%' }}
-            >
-              <MenuItem value=''>
-                <em>None</em>
-              </MenuItem>
-              {stores.length > 0
-                ? stores.map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name}
-                      </MenuItem>
-                    )
-                  })
-                : null}
-            </Select>
-            <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-          </FormControl>
-        </Grid>
+      > */}
+        {/* <Grid item lg={2}> */}
+        <FormControl sx={{ width: 250 }}>
+          <InputLabel id='controlled-select-label'>Stores</InputLabel>
+          <Select
+            onChange={e => {
+              let id = e.target.value
+              setStockId(id)
+              setStockReport([])
+              setConfigureMedId('')
+              setErrors('')
+              getStocksReport({ sort, q: searchValue, column: sortColumn, id })
+            }}
+            label='Stores'
+            value={stockId}
+            id='controlled-select'
+            labelId='controlled-select-label'
+            sx={{ width: '100%' }}
+          >
+            <MenuItem value=''>
+              <em>None</em>
+            </MenuItem>
+            {stores.length > 0
+              ? stores.map(el => {
+                  return (
+                    <MenuItem key={el.id} value={el.id}>
+                      {el.name}
+                    </MenuItem>
+                  )
+                })
+              : null}
+          </Select>
+          <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+        </FormControl>
+        {/* </Grid> */}
 
         {/* <Grid item lg={2}>
           <Button
@@ -278,7 +329,8 @@ const ListOfStocksByBatch = () => {
             Find
           </Button>
         </Grid> */}
-      </Grid>
+        {/* </Grid> */}
+      </>
     )
   }
 
@@ -297,12 +349,63 @@ const ListOfStocksByBatch = () => {
                 close={closeDialog}
                 show={showDialog}
               />
-              <TableWithFilter
+              {/* <createForm /> */}
+              {/* <TableWithFilter
                 TableTitle={stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
                 inpFields={createForm()}
                 columns={columns}
                 rows={stockReport}
-              />
+              /> */}
+              <Card>
+                <CardHeader
+                  title={
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <Typography variant='h6'>
+                        {stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
+                      </Typography>
+
+                      {createForm()}
+                    </Box>
+                  }
+                  // action={createForm}
+                />
+                {indexedRows.length > 0 ? (
+                  <DataGrid
+                    autoHeight
+                    hideFooterSelectedRowCount
+                    disableColumnSelector={true}
+                    pagination
+                    rows={indexedRows === undefined ? [] : indexedRows}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    // onSortModelChange={handleSortModel}
+                    slots={{ toolbar: ServerSideToolbarWithFilter }}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={loading}
+                    slotProps={{
+                      baseButton: {
+                        variant: 'outlined'
+                      },
+                      toolbar: {
+                        value: searchValue,
+                        clearSearch: () => handleSearch(''),
+                        onChange: event => {
+                          setSearchValue(event.target.value)
+
+                          return handleSearch(event.target.value)
+                        }
+                      }
+                    }}
+                    // onRowClick={onRowClick}
+                  />
+                ) : loading ? (
+                  <LinearProgress />
+                ) : null}
+              </Card>
             </>
           )}
         </>
