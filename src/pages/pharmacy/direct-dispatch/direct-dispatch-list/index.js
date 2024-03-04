@@ -127,6 +127,7 @@ const DirectDispatchList = () => {
 
     Router.push({
       pathname: `/pharmacy/direct-dispatch/${data?.id}`
+
       // pathname: '/pharmacy/direct-dispatch/individual-direct-dispatch/',
       // query: { id: data.id, request_number: data.request_number }
     })
