@@ -58,7 +58,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
 import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
