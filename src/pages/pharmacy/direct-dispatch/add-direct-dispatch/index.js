@@ -232,7 +232,7 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = (params, type) => {
-    // debugger
+    //
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -262,7 +262,7 @@ const AddReturnRequest = () => {
   }
 
   const updateTableItems = params => {
-    // debugger
+    //
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -370,19 +370,14 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async id => {
-    // debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central')
-        // debugger
+
         if (searchResults?.success) {
-          // debugger
-
           if (searchResults?.data?.items.length > 0) {
-            // debugger
-
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
             //   label: item?.batch_no,
@@ -393,18 +388,14 @@ const AddReturnRequest = () => {
               searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
                 label: item?.batch_no,
-                expiry_date: item?.expiry_date
+                expiry_date: item?.expiry_date,
+                available_item_qty: item?.qty
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
           } else {
             setTotalBatchQuantity(0)
           }
-          // debugger
-          console.log('searchResults', optionsBatchList)
-          // setOptionsBatchList()
-
-          console.log('optionsBatchList', optionsBatchList)
         } else {
           setOptionsBatchList([])
         }
@@ -421,7 +412,6 @@ const AddReturnRequest = () => {
 
   const searchBatchData = useCallback(
     debounce(async id => {
-      // debugger
       try {
         await fetchBatchData(id)
       } catch (error) {
@@ -447,7 +437,6 @@ const AddReturnRequest = () => {
     try {
       const result = await getDirectDispatchItemsListById(id)
       console.log('direct dispatch items id ', result)
-      // debugger
 
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
@@ -455,7 +444,6 @@ const AddReturnRequest = () => {
             request_item_medicine_id: el.stock_item_id,
             // medicine_name: el.stock_name,
             product_name: el.stock_name,
-
             request_item_qty: el.qty,
             request_item_leaf_id: el.stock_item_id,
             priority_item: el.priority,
@@ -465,7 +453,8 @@ const AddReturnRequest = () => {
             request_item_detail_id: el.id,
             request_item_batch_no: el.dispatch_batch_no,
             expiry_date: el.dispatch_expiry_date,
-            uuid: uuidv4()
+            uuid: uuidv4(),
+            available_item_qty: el?.batch_available_qty
           }
         })
 
@@ -480,23 +469,21 @@ const AddReturnRequest = () => {
           to_store_type: result.data.to_store_type,
           request_item_details: lineItems
         })
-        // }
       }
     } catch (error) {
-      console.log('error', error)
       console.log('direct dispatch items update', error)
     }
   }
 
   // ****** edit section //////
   const editTableData = itemId => {
-    // debugger
+    //
     // if (id != undefined && action === 'edit') {
     //   const getItems = editParams.request_item_details.filter(el => {
     //     return el.request_item_medicine_id === itemId
     //   })
 
-    //   debugger
+    //
 
     //   setNestedRowMedicine({
     //     ...nestedRowMedicine,
@@ -517,8 +504,7 @@ const AddReturnRequest = () => {
       return el.uuid === itemId
     })
 
-    // debugger
-
+    //
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -530,14 +516,15 @@ const AddReturnRequest = () => {
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
       priority_item: getItems[0].priority_item,
       control_substance: getItems[0].control_substance,
-      uuid: getItems[0].uuid
+      uuid: getItems[0].uuid,
+      available_item_qty: getItems[0]?.available_item_qty
     })
     // }
   }
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
-      // debugger
+      //
       getListOfItemsById(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -559,7 +546,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/direct-dispatch/individual-direct-dispatch/?id=${response?.data}`)
+          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -575,7 +562,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/direct-dispatch/individual-direct-dispatch/?id=${response?.data}`)
+          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -588,7 +575,7 @@ const AddReturnRequest = () => {
 
   // data posting section
   // const createForm = () => {
-  //   debugger
+  //
 
   //   return (
   //     <AddItemsForm
@@ -632,8 +619,7 @@ const AddReturnRequest = () => {
                   icon='ep:back'
                 />
               }
-              title='Direct Dispatch Item
-'
+              title='Add Direct Dispatch'
             />
           </Grid>
           <CardContent>
@@ -813,7 +799,6 @@ const AddReturnRequest = () => {
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.product_name}
-                              {console.log(el)}
                             </Typography>
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -839,7 +824,7 @@ const AddReturnRequest = () => {
                               sx={{ mr: 0.5 }}
                               aria-label='Edit'
                               onClick={() => {
-                                // debugger
+                                //
                                 setMedicineItemId(el.request_item_medicine_id)
 
                                 editTableData(el.uuid)
@@ -852,7 +837,7 @@ const AddReturnRequest = () => {
                             {id && el.request_item_detail_id ? null : (
                               <IconButton
                                 onClick={() => {
-                                  // debugger
+                                  //
                                   removeItemsFroTable(el.uuid)
                                 }}
                                 size='small'

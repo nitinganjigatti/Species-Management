@@ -1,5 +1,6 @@
 import { Card, CardHeader, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
+import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
@@ -19,6 +20,27 @@ function Escrow() {
     return data
   }
 
+  const onRowClick = params => {
+    var data = params.row
+    if (data?.request_number?.startsWith('RES')) {
+      console.log('data', data)
+      Router.push({
+        pathname: '/pharmacy/request/individual-request/',
+        query: { id: data.request_id, request_number: data.request_number }
+      })
+    } else if (data?.request_number?.startsWith('DD')) {
+      Router.push({
+        pathname: '/pharmacy/direct-dispatch/individual-direct-dispatch/',
+        query: { id: data.request_id, request_number: data.request_number }
+      })
+    } else if (data?.request_number?.startsWith('RET')) {
+      Router.push({
+        pathname: '/pharmacy/return-product/individual-return/',
+        query: { id: data.request_id, request_number: data.request_number }
+      })
+    }
+  }
+
   const columns = [
     {
       flex: 0.2,
@@ -28,6 +50,17 @@ function Escrow() {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.request_id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'request_number',
+      headerName: 'Request Number',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.request_number}
         </Typography>
       )
     },
@@ -161,6 +194,7 @@ function Escrow() {
                   }
                 }
               }}
+              onRowClick={onRowClick}
             />
           </Card>
         </>

@@ -1,9 +1,7 @@
 // ** React Imports
-import { forwardRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
-import TableBasic from 'src/views/table/mui/TableBasic'
 import { styled, createTheme } from '@mui/material/styles'
-import Link from 'next/link'
 import FormGroup from '@mui/material/FormGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
@@ -12,72 +10,69 @@ import { FormControl, FormHelperText } from '@mui/material'
 // ** MUI Imports
 
 import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Dialog from '@mui/material/Dialog'
-import IconButton from '@mui/material/IconButton'
 
-import DialogContent from '@mui/material/DialogContent'
 import { CardContent } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
-import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
+
 import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
 import UserSnackbar from 'src/components/utility/snackbar'
+
+import TableHead from '@mui/material/TableHead'
+
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { CardHeader } from '@mui/material'
 
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
-import { stringify } from 'stylis'
-
-const defaultValues = {
-  product_batches: [
-    {
-      batch_no: '',
-      expiry_date: '',
-      qty: 0
-    }
-  ]
-}
-
-const schema = yup.object().shape({
-  product_batches: yup.array().of(
-    yup.object().shape({
-      batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
-        const { product_batches } = this.options.from[1].value
-
-        const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-
-        const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
-
-        return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
-      }),
-      expiry_date: yup.string().required('Expiry Date is required'),
-      qty: yup
-        .number()
-        .required('Quantity is required')
-        .typeError('Quantity should be a number')
-        .positive('Quantity must be a positive number')
-        .moreThan(0, 'Quantity must be greater than zero')
-    })
-  )
-})
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
+  const defaultValues = {
+    product_batches: [
+      {
+        batch_no: '',
+        expiry_date: '',
+        qty: 0,
+        quantityAvailable: 0
+      }
+    ]
+  }
+
+  const schema = yup.object().shape({
+    product_batches: yup.array().of(
+      yup.object().shape({
+        batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
+          const { product_batches } = this.options.from[1].value
+
+          const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
+
+          const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
+
+          return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
+        }),
+        expiry_date: yup.string().required('Expiry Date is required'),
+        qty: yup
+          .number()
+          .required('Quantity is required')
+          .typeError('Quantity should be a number')
+          .positive('Quantity must be a positive number')
+          .moreThan(0, 'Quantity must be greater than zero')
+      })
+    )
+  })
+  console.log('fulfillMedicine in comp', fulfillMedicine)
+
   const {
     reset,
     control,
@@ -86,6 +81,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     trigger,
     setValue,
     getValues,
+
     setError
   } = useForm({
     defaultValues,
@@ -94,7 +90,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
+  console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
   const [totalProductCount, setTotalProductCount] = useState(0)
@@ -104,10 +100,23 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [totalMedicine, setTotalMedicine] = useState(0)
   const [error, setErrors] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [invalidQty, setInvalidQty] = useState([])
+  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  const [dispatchItems, setDispatchItems] = useState([])
 
   // const [errors, setErrors] = useState({})
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
   const [rowErrors, setRowErrors] = useState({})
+
+  const showConfirmationDialog = () => {
+    setInvalidQtyDialog(true)
+  }
+
+  const closeConfirmationDialog = () => {
+    setInvalidQtyDialog(false)
+    setDispatchItems([])
+    setInvalidQty([])
+  }
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -133,7 +142,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //     tempState[index] = false
   //     setRowErrors(tempState)
   //   } else {
-  //     debugger
+  //
   //     const tempState = rowErrors
   //     tempState[index] = true
   //     setRowErrors(tempState)
@@ -270,7 +279,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     if (response.success) {
       setBatchItems(response?.data?.items)
       setTotalProductCount(response?.data?.total_quantity)
-      console.log(response.data)
+      console.log('in bataches', response?.data?.items)
+
       setLoader(false)
     } else {
       setLoader(false)
@@ -475,63 +485,85 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onSubmit = async params => {
-    console.log(params)
+    console.log('pay load params', params)
+    setDispatchItems(params)
+    var invalidQtyItems = []
 
-    const totalQuantity = getTotalMedicineQuantity(params)
-    debugger
-    if (
-      checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0 &&
-      checkNumber(fulfilledQuantity) <= totalProductCount
-    ) {
-      return
+    if (params?.product_batches?.length > 0) {
+      invalidQtyItems = params?.product_batches?.filter(item => item.qty > item.quantityAvailable)
+      console.log('itemsWithMoreQty', invalidQtyItems)
+    }
+    if (invalidQtyItems?.length > 0) {
+      setInvalidQty(invalidQtyItems)
+      setInvalidQtyDialog(true)
+    } else {
+      dispatchingItems(params)
     }
 
-    const payload_list = []
+    console.log('in outide block itemsWithMoreQty', invalidQtyItems)
+  }
 
-    params.product_batches.forEach(item => {
-      const payload_item = {}
-      payload_item['dispatch_date'] = Utility.formatDate(Date())
-      payload_item['request_item_dispatch_qty'] = item.qty
-      payload_item['request_item_stock_item_id'] = fulfillMedicine?.stock_item_id
-      payload_item['request_item_batch_no'] = item.batch_no
-      payload_item['request_item_expiry_date'] = item.expiry_date
-      payload_item['from_store_id'] = storeDetails?.from_store_id
-      payload_item['from_store_type'] = storeDetails.from_store_type
-      payload_item['to_store_id'] = storeDetails?.to_store_id
-      payload_item['to_store_type'] = storeDetails.to_store_type
+  const dispatchingItems = async params => {
+    if (params?.product_batches?.length > 0) {
+      const totalQuantity = getTotalMedicineQuantity(params)
 
-      payload_list.push(payload_item)
-    })
-    debugger
-
-    const payload = {
-      dispatch_date: Utility.formatDate(Date()),
-      dispatch_items: payload_list,
-      request_number: storeDetails.id
-    }
-
-    console.log(payload)
-
-    // debugger
-    // console.log('payload', JSON.stringify(payload))
-
-    try {
-      setErrors(false)
-      setSubmitLoader(true)
-
-      const response = await addDispatch(payload)
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
-        setSubmitLoader(false)
-        close()
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+      if (
+        checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0 &&
+        checkNumber(fulfilledQuantity) <= totalProductCount
+      ) {
+        return
       }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+
+      const payload_list = []
+
+      params.product_batches.forEach(item => {
+        const payload_item = {}
+        payload_item['dispatch_date'] = Utility.formatDate(Date())
+        payload_item['request_item_dispatch_qty'] = item.qty
+        payload_item['request_item_stock_item_id'] = fulfillMedicine?.stock_item_id
+        payload_item['request_item_batch_no'] = item.batch_no
+        payload_item['request_item_expiry_date'] = item.expiry_date
+        payload_item['from_store_id'] = storeDetails?.from_store_id
+        payload_item['from_store_type'] = storeDetails.from_store_type
+        payload_item['to_store_id'] = storeDetails?.to_store_id
+        payload_item['to_store_type'] = storeDetails.to_store_type
+
+        payload_list.push(payload_item)
+      })
+
+      const payload = {
+        dispatch_date: Utility.formatDate(Date()),
+        dispatch_items: payload_list,
+        request_number: storeDetails.id
+      }
+
+      console.log(payload)
+
+      try {
+        setErrors(false)
+        setSubmitLoader(true)
+
+        const response = await addDispatch(payload)
+        if (response?.success) {
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+          setSubmitLoader(false)
+          close()
+        } else {
+          setSubmitLoader(false)
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        }
+      } catch (e) {
+        console.log(e)
+        setSubmitLoader(false)
+        setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      }
+    }
+  }
+
+  const handleConfirmDispatch = async () => {
+    if (dispatchItems?.product_batches?.length > 0) {
+      await dispatchingItems(dispatchItems)
+      closeConfirmationDialog()
     }
   }
 
@@ -601,28 +633,33 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               name={`product_batches[${index}].batch_no`}
                               control={control}
                               rules={{ required: true }}
+                              value={`product_batches[${index}].batch_no`}
                               render={({ field: { value, onChange } }) => {
                                 return (
                                   <Autocomplete
                                     disablePortal
-                                    id={`product_batches[${index}].batch_no`}
+                                    id={parseInt(`product_batches[${index}].batch_no`)}
                                     options={batchItems}
                                     getOptionLabel={option => option?.batch_no}
                                     isOptionEqualToValue={(option, value) =>
                                       parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                     }
                                     onChange={(e, val) => {
+                                      console.log('valllll', val)
+
                                       if (val === null) {
                                         //setDefaultProductForm(undefined)
                                         // var saltComposition = defaultSalts
                                         // saltComposition[index] = null
                                         // setDefaultSalts(saltComposition)
+
                                         setValue(`product_batches[${index}].expiry_date`, '')
 
                                         return onChange('')
                                       } else {
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
+                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
 
                                         // const allValues = getValues()
 
@@ -634,7 +671,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         // )
 
                                         // if (selectedBatchCount > 0) {
-                                        //   debugger
+                                        //
                                         //   setError(`product_batches[${index}].batch_no`, {
                                         //     type: 'manual',
                                         //     message: 'Batch number is already selected'
@@ -663,6 +700,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 )
                               }}
                             />
+
                             {errors?.product_batches?.[index]?.batch_no && (
                               <FormHelperText sx={{ color: 'error.main' }}>
                                 {errors?.product_batches?.[index]?.batch_no?.message}
@@ -771,8 +809,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>The selected quantity is greater than the quantity requested</StyledErrorText>
                   </div>
                 ) : null}
-
-                {totalProductCount <= checkNumber(fulfilledQuantity) ? (
+                {console.log('totalProductCount', totalProductCount)}
+                {totalProductCount < checkNumber(fulfilledQuantity) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
                   </div>
@@ -803,6 +841,61 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </>
             </form>
           </CardContent>
+
+          <ConfirmDialog
+            open={invalidQtyDialog}
+            title={'Your quantity exceeds the batch limit'}
+            closeDialog={() => {
+              closeConfirmationDialog()
+            }}
+            action={() => {
+              handleConfirmDispatch()
+            }}
+            content={
+              <>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                      <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                      <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                      <TableCell>Requested qty</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  {invalidQty?.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.batch_no}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.quantityAvailable}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.qty}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </Table>
+              </>
+            }
+          />
 
           {/* {batchItems.length > 0 ? (
             <TableContainer component={Paper}>

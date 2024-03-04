@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import {
-  CardContent,
-  Grid,
-  FormControl,
-  Autocomplete,
-  TextField,
-  FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Typography
-} from '@mui/material'
+import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { getValue } from '@mui/system'
+
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
+
+import TableCell from '@mui/material/TableCell'
+
+import { LoaderIcon } from 'react-hot-toast'
+
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 const defaultValues = {
   request_item: {
@@ -30,7 +27,7 @@ const defaultValues = {
   },
   request_item_qty: '',
 
-  // available_item_qty: '',
+  available_item_qty: '',
   expiry_date: ''
 }
 
@@ -88,13 +85,26 @@ export const AddItemsForm = ({
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
+  const [invalidQty, setInvalidQty] = useState([])
+  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
 
-  console.log('nestedMedicine', nestedMedicine)
-  console.log('batchLoading', batchLoading)
+  const showConfirmationDialog = () => {
+    setInvalidQtyDialog(true)
+  }
+
+  const closeConfirmationDialog = () => {
+    setInvalidQtyDialog(false)
+    setInvalidQty([])
+  }
+
+  // console.log('nestedMedicine', nestedMedicine)
+  // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
+
+    // console.log('params', params)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
@@ -113,7 +123,27 @@ export const AddItemsForm = ({
 
       return
     }
+    if (request_item_qty > available_item_qty) {
+      const invalidItems = [
+        {
+          request_item_batch_no: request_item_batch_no?.value,
+          request_item_qty,
+          available_item_qty,
+          expiry_date,
+          request_item_medicine_id: request_item?.value,
+          product_name: request_item?.label,
+          priority_item: 'Normal',
+          uuid: nestedMedicine?.uuid
+        }
+      ]
 
+      // console.log('invalid items', invalidItems)
+      setInvalidQty(invalidItems)
+
+      setInvalidQtyDialog(true)
+
+      return
+    }
     clearErrors('request_item_batch_no')
 
     if (totalAvailableCount < 0) {
@@ -121,14 +151,15 @@ export const AddItemsForm = ({
 
       return
     }
+
     onSubmitData(
       {
-        request_item_batch_no: request_item_batch_no.value,
+        request_item_batch_no: request_item_batch_no?.value,
         request_item_qty,
         available_item_qty,
         expiry_date,
-        request_item_medicine_id: request_item.value,
-        product_name: request_item.label,
+        request_item_medicine_id: request_item?.value,
+        product_name: request_item?.label,
         priority_item: 'Normal',
         uuid: nestedMedicine?.uuid
       },
@@ -136,6 +167,22 @@ export const AddItemsForm = ({
     )
   }
 
+  const confirmDataSubmit = () => {
+    const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
+    onSubmitData(
+      {
+        request_item_batch_no: invalidQty[0]?.request_item_batch_no,
+        request_item_qty: invalidQty[0]?.request_item_qty,
+        available_item_qty: invalidQty[0]?.available_item_qty,
+        expiry_date: invalidQty[0]?.expiry_date,
+        request_item_medicine_id: invalidQty[0]?.request_item_medicine_id,
+        product_name: invalidQty[0]?.product_name,
+        priority_item: invalidQty[0]?.priority_item,
+        uuid: invalidQty[0]?.uuid
+      },
+      type
+    )
+  }
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
       reset({
@@ -149,8 +196,10 @@ export const AddItemsForm = ({
           expiry_date: nestedMedicine?.expiry_date
         },
         request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date
+        expiry_date: nestedMedicine?.expiry_date,
+        available_item_qty: nestedMedicine?.available_item_qty
       })
+      console.log('nested medicine ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id)
       }
@@ -170,10 +219,11 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     checkTotalCount()
-  }, [error, totalQuantity, batchLoading])
+  }, [error, totalQuantity])
 
   const checkTotalCount = e => {
     console.log('nestedMedicine', nestedMedicine)
+
     debugger
 
     // console.log('editParams', editParams)
@@ -232,6 +282,7 @@ export const AddItemsForm = ({
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
+                      setValue('available_item_qty', '')
 
                       if (value !== '' && value !== null) {
                         searchBatchData(value.value)
@@ -271,12 +322,14 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
+                      // console.log('batch values', value)
+
                       // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
+                      setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
-
-                      // seValu
+                      checkTotalCount()
                     }} // Set selected value
                     loading={batchLoading}
                     noOptionsText='Type to search'
@@ -294,6 +347,11 @@ export const AddItemsForm = ({
               {errors?.request_item_batch_no && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
+              {getValues('available_item_qty') ? (
+                <Typography sx={{ fontSize: 14, mx: 2 }}>
+                  Qty available for this batch:{getValues('available_item_qty')}
+                </Typography>
+              ) : null}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -370,8 +428,11 @@ export const AddItemsForm = ({
           </Grid>
 
           <Grid item xs={12} sm={12} display={'flex'}>
-            <Typography>Available Quantity: </Typography>
-            <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography>
+            {/* <Typography>Available Quantity: </Typography>
+            <Typography> {batchLoading ? 0 : totalAvailableCount}</Typography> */}
+            <Typography sx={{ mx: 2 }}>
+              {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
+            </Typography>
           </Grid>
 
           {quantityError && (
@@ -386,6 +447,71 @@ export const AddItemsForm = ({
           </Grid>
         </Grid>
       </form>
+
+      <ConfirmDialog
+        open={invalidQtyDialog}
+        title={'Your quantity exceeds the batch limit'}
+        closeDialog={() => {
+          closeConfirmationDialog()
+        }}
+        action={() => {
+          confirmDataSubmit()
+        }}
+        content={
+          <>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
+                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                  <TableCell>Requested qty</TableCell>
+                </TableRow>
+              </TableHead>
+              {invalidQty?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.product_name}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_batch_no}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.available_item_qty}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      py: 1,
+                      borderRight: '1px solid #ccc',
+                      borderBottom: index === invalidQty.length - 1 && 'none'
+                    }}
+                  >
+                    {item?.request_item_qty}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </Table>
+          </>
+        }
+      />
       {/* </CardContent> */}
     </>
   )

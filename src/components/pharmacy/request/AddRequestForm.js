@@ -58,7 +58,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
 import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
@@ -463,7 +462,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -478,7 +477,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -740,7 +739,7 @@ const AddRequestForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Request Item'
+          title='Add Request'
         />
       </Grid>
       <CardContent>

@@ -1,4 +1,4 @@
-export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
+export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
 
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
 
@@ -38,11 +38,15 @@ export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
 
+export const MEDICINES_STOCK = 'nonexisting-stock'
+
 export const SHIPMENT = 'shipment'
 
 export const DEBIT_NOTE = 'purchase-return'
 
 export const DISPATCH = 'dispatch'
+
+export const DISPATCH_ITEM = 'dispatchItem'
 
 export const DISPATCH_VALIDATION = 'dispatch-validation'
 
@@ -87,3 +91,15 @@ export const DIRECT_DISPATCH = 'direct-dispatch'
 export const DENIED_COMMENTS = 'deny-comments'
 
 export const CHECK_BATCH = 'check-batch'
+
+export const DISPENSE_LIST = 'dispense-item'
+
+export const USER_LIST = 'user/listing'
+
+export const PRODUCT_LIST = 'v1/pharma/stock/list'
+
+export const BATCH_LIST = 'batch-details'
+
+export const ANIMAL_LIST = 'v1/collection/animal/list'
+
+export const SUBMIT_DISPENSE = 'dispense-item'

@@ -2,6 +2,7 @@ import {
   REQUEST_ITEMS,
   BATCH_DETAILS,
   DISPATCH,
+  DISPATCH_ITEM,
   SHIPMENT,
   REQUEST_ITEMS_NOT_AVAILABLE,
   REQUEST_ITEMS_NOT_AVAILABLE_REVERT
@@ -161,6 +162,63 @@ export async function markItemNotAvailable(payload) {
 export async function markItemAvailable(payload) {
   try {
     const url = `${REQUEST_ITEMS_NOT_AVAILABLE_REVERT}`
+    const response = await axiosPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function deleteFulfillItem(id) {
+  try {
+    const url = `${DISPATCH_ITEM}/${id}/delete`
+    const response = await axiosGet({ url, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function getFulfillItem(id) {
+  try {
+    const url = `${DISPATCH}/${id}/showById`
+    const response = await axiosGet({ url, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function updateFullFillLineItems(payload, id) {
+  try {
+    const url = `${DISPATCH}/${id}/update`
     const response = await axiosPost({ url, body: payload, pharmacy })
 
     return response?.data

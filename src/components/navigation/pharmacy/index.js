@@ -6,7 +6,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const inventoryParent = {
-    title: 'Inventory',
+    title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
     icon: 'material-symbols:inventory-2-outline',
     children: []
@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase',
+    title: 'Purchase Invoice',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
@@ -189,6 +189,23 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/store/rackList'
   }
 
+  const dispense = {
+    title: 'Dispense',
+    path: '/pharmacy/dispense',
+    icon: 'bi:boxes'
+  }
+
+  const addDispense = {
+    title: 'Dispense List',
+    path: '/pharmacy/dispense/add-dispense'
+  }
+
+  const nonExistingProductRequestList = {
+    title: 'New Product Request',
+    icon: 'tabler:report-medical',
+    path: '/pharmacy/new-product-request/'
+  }
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -218,12 +235,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      stockParent,
       requestListing,
       returnListing,
       directDispatchList,
-      purchaseList,
-      stockParent,
       productsList,
+      nonExistingProductRequestList,
+      purchaseList,
       settingsParent
     )
   }
@@ -234,7 +252,19 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(requestListing, returnListing, directDispatchList, stockParent, settingsParent)
+    pharmacyNavigationArray.push(
+      requestListing,
+
+      returnListing,
+
+      directDispatchList,
+      dispense,
+
+      nonExistingProductRequestList,
+      stockParent,
+
+      settingsParent
+    )
   }
 
   // debugger
