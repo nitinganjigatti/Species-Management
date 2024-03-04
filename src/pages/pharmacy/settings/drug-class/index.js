@@ -148,6 +148,7 @@ const ListOfDrugs = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
+      debugger
       try {
         setLoading(true)
 
@@ -160,6 +161,7 @@ const ListOfDrugs = () => {
         }
 
         await getDrugClass({ params: params }).then(res => {
+          console.log('rez????', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -185,6 +187,7 @@ const ListOfDrugs = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
+      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
