@@ -25,7 +25,9 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
-
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -46,6 +48,8 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -100,8 +104,10 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
+  const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+  const [deleteDialog, setDeleteDialog] = useState(false)
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -485,6 +491,29 @@ const AddRequestForm = () => {
         }
       } catch (error) {
         console.log('error', error)
+      }
+    }
+  }
+
+  const deleteLineItemFromDb = async dispatchedItemId => {
+    if (dispatchedItemId) {
+      try {
+        const result = await deleteFulfillItem(dispatchedItemId)
+        if (result?.success === true) {
+          toast.success(result.data)
+          getDispatchedItems(id)
+          getRequestItemLists(id)
+
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        } else {
+          toast.error(result.data)
+        }
+
+        console.log('delet result', result)
+      } catch (error) {
+        toast.error(error.data)
+        console.log('delet error result', error)
       }
     }
   }
@@ -941,6 +970,20 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         )}
+                        {console.log('line items', el)}
+                        {el.id !== undefined ? (
+                          <IconButton
+                            onClick={() => {
+                              setDeleteItemId(el.id)
+                              setDeleteDialog(true)
+                              // removeItemsFroTable(el.request_item_medicine_id)
+                            }}
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                          >
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   )
@@ -1003,6 +1046,49 @@ const AddRequestForm = () => {
           </Button>
         </Box>
       </Grid>
+      <ConfirmDialogBox
+        open={deleteDialog}
+        closeDialog={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        action={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    setDeleteDialog(false)
+                    setDeleteItemId(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    deleteLineItemFromDb(deleteItemId)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
     </Card>
   )
 }

@@ -123,29 +123,35 @@ export const AddItemsForm = ({
 
       return
     }
-    if (request_item_qty > available_item_qty) {
-      const invalidItems = [
-        {
-          request_item_batch_no: request_item_batch_no?.value,
-          request_item_qty,
-          available_item_qty,
-          expiry_date,
-          request_item_medicine_id: request_item?.value,
-          product_name: request_item?.label,
-          priority_item: 'Normal',
-          uuid: nestedMedicine?.uuid
-        }
-      ]
 
-      // console.log('invalid items', invalidItems)
-      setInvalidQty(invalidItems)
+    // if (request_item_qty > available_item_qty) {
+    //   const invalidItems = [
+    //     {
+    //       request_item_batch_no: request_item_batch_no?.value,
+    //       request_item_qty,
+    //       available_item_qty,
+    //       expiry_date,
+    //       request_item_medicine_id: request_item?.value,
+    //       product_name: request_item?.label,
+    //       priority_item: 'Normal',
+    //       uuid: nestedMedicine?.uuid
+    //     }
+    //   ]
 
-      setInvalidQtyDialog(true)
+    //   // console.log('invalid items', invalidItems)
+    //   setInvalidQty(invalidItems)
+
+    //   setInvalidQtyDialog(true)
+
+    //   return
+    // }
+    clearErrors('request_item_batch_no')
+
+    if (request_item_qty >= available_item_qty) {
+      setQuantityError(true)
 
       return
     }
-    clearErrors('request_item_batch_no')
-
     if (totalAvailableCount < 0) {
       setQuantityError(true)
 
