@@ -6,13 +6,14 @@ import Switch from '@mui/material/Switch'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
-function AddButton({ action, title }) {
+function AddButton({ action, title, disabled, styles }) {
   return (
     <Button
       onClick={action ? action : null}
       size='large'
       variant='outlined'
       startIcon={<Icon icon='material-symbols-light:add' />}
+      style={{ ...styles }}
     >
       {title ? title : null}
     </Button>
