@@ -182,9 +182,8 @@ export const AddItemsForm = ({
 
   const checkTotalCount = async e => {
     // console.log('nestedMedicine', nestedMedicine)
-    debugger
+    // debugger
 
-    // console.log('editParams', editParams)
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
     debugger

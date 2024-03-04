@@ -113,7 +113,7 @@ const AddReturnRequest = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [productLoading, setProductLoading] = useState(false)
-  const [batchLoading, setBatchLoading] = useState(true)
+  const [batchLoading, setBatchLoading] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 

@@ -219,7 +219,7 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     checkTotalCount()
-  }, [error, totalQuantity, batchLoading])
+  }, [error, totalQuantity])
 
   const checkTotalCount = e => {
     console.log('nestedMedicine', nestedMedicine)
