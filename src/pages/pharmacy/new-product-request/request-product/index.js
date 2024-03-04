@@ -67,7 +67,7 @@ export default function AddProduct() {
   const [editValues, setEditValues] = useState(dataChildValues)
   const [editIndex, setEditIndex] = useState(null)
   const [displayFile, setDisplayFile] = useState()
-  const [imgBaseUrl, SetImgBaseUrl] = useState()
+  const [imgBaseUrl, setImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
   const [prescriptionField, setPrescriptionField] = useState([])
   const [defaultSalts, setDefaultSalts] = useState([])
@@ -143,6 +143,7 @@ export default function AddProduct() {
   // })
 
   const handleFileChange = event => {
+    debugger
     const { files } = event.target
 
     const newImages = Array.from(files).map(file => ({
@@ -151,6 +152,7 @@ export default function AddProduct() {
 
     setValue('prescription_images', newImages)
   }
+  console.log('fields????', fields)
 
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
@@ -175,7 +177,7 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
-      SetImgBaseUrl(res?.base_path)
+      setImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
@@ -200,11 +202,9 @@ export default function AddProduct() {
       //     : Item?.product_image
       // )
       setImgSrc(
-        res?.data?.request_item_details[0].product_image
-          ? res?.data?.request_item_details[0].product_image
-          : res?.data?.request_item_details[0].product_image === ''
-          ? ''
-          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
+        res?.data?.request_item_details[0].product_image !== ''
+          ? `${base_url}${res?.base_path}${res?.data?.request_item_details[0].product_image}`
+          : ''
       )
     })
   }
@@ -457,7 +457,7 @@ export default function AddProduct() {
     if (id) {
       getSpecificProductList(id)
     }
-  }, [id, responseImage])
+  }, [id])
 
   // const renderFilePreview = file => {
   //   if (typeof file === 'string') {
@@ -680,6 +680,8 @@ export default function AddProduct() {
                           ref={fileInputRef}
                         />
 
+                        {console.log('imgSrc', imgSrc)}
+
                         {imgSrc !== '' && (
                           <Box
                             sx={{
@@ -698,7 +700,7 @@ export default function AddProduct() {
                                 width={50}
                                 height={50}
                                 alt='Uploaded image'
-                                src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                                src={typeof imgSrc === 'string' ? `${imgSrc}` : imgSrc}
                               />
 
                               <Typography sx={{ margin: '10px' }}>
@@ -905,22 +907,22 @@ export default function AddProduct() {
                           name='prescription_images'
                           ref={prescriptionRef}
                         />
-
                         <AddButton
                           title='Add Prescription'
                           action={() => {
                             handlePrescriptionClick()
                           }}
                         />
+                        {fields.length > 0 ||
+                          (prescriptionField.length > 0 && (
+                            <ImageUploadComponent
+                              fields={fields}
+                              setValue={setValue}
+                              prescriptionField={prescriptionField}
+                              imgBaseUrl={imgBaseUrl}
+                            />
+                          ))}
 
-                        {prescriptionField.length > 0 && (
-                          <ImageUploadComponent
-                            fields={fields}
-                            setValue={setValue}
-                            prescriptionField={prescriptionField}
-                            imgBaseUrl={imgBaseUrl}
-                          />
-                        )}
                         {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
                     Add Gallery
                   </Button> */}
@@ -929,7 +931,6 @@ export default function AddProduct() {
                     removeselectedImage={removeselectedImage}
                     renderFilePreview={renderFilePreview}
                   /> */}
-
                         {/* {
                     <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
                       <CardContent>

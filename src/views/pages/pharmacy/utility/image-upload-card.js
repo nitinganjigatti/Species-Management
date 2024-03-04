@@ -21,6 +21,7 @@ import { Icon } from '@iconify/react'
 // }}
 
 const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl }) => {
+  debugger
   console.log('prescription??', prescriptionField)
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
@@ -30,43 +31,56 @@ const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl 
     const list = [...fields]
     const filterList = list.filter((item, index) => selectedindex !== index)
     setValue('prescription_images', filterList)
+    setPrescriptionImage([...filterList])
+
+    // Log the remaining images and titles
+    // console.log(
+    //   'Remaining Images:',
+    //   filterList.map(image => (typeof image === 'string' ? image : image?.file?.name))
+    // )
   }
 
+  // console.log('prescription Images ?>>>', prescriptionField)
+
   useEffect(() => {
+    debugger
     fields.length > 0 ? setPrescriptionImage(fields) : setPrescriptionImage(prescriptionField)
   }, [fields, prescriptionField])
 
   const renderFilePreview = file => {
-    if (typeof file === 'string') {
-      return (
-        <img
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            border: '1px solid rgba(93, 89, 98, 0.14)'
-          }}
-          alt={file.name}
-          src={`${base_url}${imgBaseUrl}${file}`}
-        />
-      )
-    }
-    if (file instanceof Blob || file instanceof File) {
-      return (
-        <img
-          style={{
-            width: '38px',
-            height: '38px',
+    debugger
+    if (file !== undefined) {
+      if (typeof file === 'string') {
+        return (
+          <img
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              border: '1px solid rgba(93, 89, 98, 0.14)'
+            }}
+            alt={file.name}
+            src={`${base_url}${imgBaseUrl}${file}`}
+          />
+        )
+      }
+      if (file instanceof Blob || file instanceof File) {
+        return (
+          <img
+            style={{
+              width: '38px',
+              height: '38px',
 
-            borderRadius: '10px',
-            border: '1px solid rgba(93, 89, 98, 0.14)'
-          }}
-          alt={typeof file === 'string' ? file.file.name : file?.name}
-          src={URL.createObjectURL(file)}
-        />
-      )
-    } else {
-      return <Icon icon='mdi:file-document-outline' />
+              borderRadius: '10px',
+              border: '1px solid rgba(93, 89, 98, 0.14)'
+            }}
+            alt={typeof file === 'string' ? file.file.name : file?.name}
+            src={URL.createObjectURL(file)}
+          />
+        )
+      } else {
+        return <Icon icon='mdi:file-document-outline' />
+      }
     }
   }
 
@@ -79,22 +93,27 @@ const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl 
 
       <List>
         {prescriptionImage?.map((image, index) => (
-          <ListItem
-            sx={{
-              borderRadius: '10px'
-            }}
-            key={image?.file?.name}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-              <div className='file-preview'>{renderFilePreview(typeof image === 'string' ? image : image.file)}</div>
-              <div style={{ margin: '10px' }}>
-                <Typography className='file-name'>{typeof image === 'string' ? image : image?.file?.name}</Typography>
-              </div>
-            </div>{' '}
-            <IconButton onClick={() => removeselectedImage(index)}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </ListItem>
+          <>
+            <ListItem
+              debugger
+              sx={{
+                borderRadius: '10px'
+              }}
+              key={image?.file?.name}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                <div className='file-preview'>
+                  {image && renderFilePreview(typeof image === 'string' ? image : image.file)}
+                </div>
+                <div style={{ margin: '10px' }}>
+                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.file?.name}</Typography>
+                </div>
+              </div>{' '}
+              <IconButton onClick={() => removeselectedImage(index)}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            </ListItem>
+          </>
         ))}
       </List>
       {/* <ImageUploadComponent fields={fields} /> */}
