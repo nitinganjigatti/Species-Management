@@ -22,7 +22,7 @@ const LabDetails = () => {
   }
   const router = useRouter()
   const { id } = router.query
-  console.log('id', id)
+
   const labDetailsById = async id => {
     try {
       const res = await getLabDeatilsById(id)
@@ -63,7 +63,7 @@ const LabDetails = () => {
                 <OverView />
               </TabPanel>
               <TabPanel value='site'>
-                <Site />
+                <Site labId={id} />
               </TabPanel>
               <TabPanel value='tests'>
                 <Tests labTest={labTests} />

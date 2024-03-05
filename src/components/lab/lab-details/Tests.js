@@ -19,7 +19,7 @@ const Tests = ({ labTest }) => {
     //   )
     // },
     {
-      flex: 2.5,
+      flex: 2.3,
       Width: 20,
       field: 'tests',
       headerName: 'TESTS',
@@ -28,7 +28,6 @@ const Tests = ({ labTest }) => {
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params?.row?.test_name}
-            {console.log('first', params?.row?.test_name)}
           </Typography>
         </>
       )
@@ -42,7 +41,7 @@ const Tests = ({ labTest }) => {
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
             <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='ant-design:more-outlined' fontSize={25} />
+              <Icon icon='ant-design:more-outlined' fontSize={30} />
             </IconButton>
           </Box>
         </>
@@ -53,14 +52,13 @@ const Tests = ({ labTest }) => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  // const [sortColumn, setSortColumn] = useState('label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
+  // const [status, setStatus] = useState('pending')
 
   const getSlNo = index => index + 1
 
@@ -70,14 +68,14 @@ const Tests = ({ labTest }) => {
   }))
   const getRowId = row => row.test_id
 
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
-    }
-  }
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+  //   } else {
+  //   }
+  // }
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -103,7 +101,7 @@ const Tests = ({ labTest }) => {
   useEffect(() => {
     if (labTest) {
       const extractedTestsData = extractTestsData(labTest)
-      console.log('lllllllllllll', extractedTestsData)
+      // console.log('lllllllllllll', extractedTestsData)
       setRows(extractedTestsData)
     }
   }, [labTest])
@@ -116,17 +114,11 @@ const Tests = ({ labTest }) => {
       />
       <DataGrid
         autoHeight
-        // pagination
+        hideFooterPagination
         getRowId={getRowId}
         rows={indexedRows === undefined ? [] : indexedRows}
         rowCount={total}
         columns={columns}
-        sortingMode='server'
-        pageSizeOptions={[10, 25, 50]}
-        paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
-        slots={{ toolbar: ServerSideToolbar }}
-        onPaginationModelChange={setPaginationModel}
         loading={loading}
         slotProps={{
           baseButton: {

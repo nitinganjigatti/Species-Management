@@ -6,7 +6,8 @@ import {
   PostTransfer,
   updateStatus,
   uploadLabReports,
-  GetTestsStatusById
+  GetTestsStatusById,
+  LabFileDelete
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -22,8 +23,8 @@ export async function GetLabReportById({ params }) {
   return response.data
 }
 
-export async function GetRequestDetails(id) {
-  const response = await axiosGet({ url: `${RequestDetails}/${id}` })
+export async function GetRequestDetails(id, { params }) {
+  const response = await axiosGet({ url: `${RequestDetails}/${id}`, params })
 
   return response.data
 }
@@ -95,4 +96,23 @@ export async function GetLabRequestTestStatusById({ params }) {
   const response = await axiosGet({ url: `${GetTestsStatusById}`, params })
 
   return response.data
+}
+
+export async function DeleteLAbRequestAttachment(id) {
+  try {
+    const url = `medical/${id}/${LabFileDelete}`
+
+    const response = await axiosPost({ url })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
 }

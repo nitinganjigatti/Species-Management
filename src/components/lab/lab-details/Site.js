@@ -1,12 +1,15 @@
-import { Card, CardHeader } from '@mui/material'
+import { Icon } from '@iconify/react'
+import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-const Site = () => {
+const Site = ({ labId }) => {
+  console.log('labId', labId)
   const columns = [
     {
-      flex: 0.2,
+      flex: 2.3,
       minWidth: 20,
       field: 'site',
       headerName: 'SITE',
@@ -14,7 +17,7 @@ const Site = () => {
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            site
+            {params?.row?.site_name}
           </Typography>
         </>
       )
@@ -28,7 +31,7 @@ const Site = () => {
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
             <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='mdi:package-delivered' />
+              <Icon icon='ant-design:more-outlined' fontSize={30} />
             </IconButton>
           </Box>
         </>
@@ -39,31 +42,53 @@ const Site = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  // const [sortColumn, setSortColumn] = useState('label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
+
+  const getSlNo = index => index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
-    }
-  }
+  const getRowId = row => row.site_id
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+  //   } else {
+  //   }
+  // }
 
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, 'request_number', status)
   }
+
+  const LabSitesById = async labId => {
+    const params = {
+      // id: labId
+      lab_id: 279
+    }
+    try {
+      const res = await GetLabSitesById({ params })
+      setLoading(false)
+      console.log('res', res?.data)
+      setRows(res?.data)
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (labId) {
+      setLoading(true)
+      LabSitesById(labId)
+    }
+  }, [])
   return (
     <Card>
       <CardHeader
@@ -72,16 +97,12 @@ const Site = () => {
       />
       <DataGrid
         autoHeight
-        // pagination
+        hideFooterPagination
         rows={indexedRows === undefined ? [] : indexedRows}
+        getRowId={getRowId}
         rowCount={total}
         columns={columns}
-        sortingMode='server'
-        pageSizeOptions={[10, 25, 50]}
-        paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
         slots={{ toolbar: ServerSideToolbar }}
-        onPaginationModelChange={setPaginationModel}
         loading={loading}
         slotProps={{
           baseButton: {
