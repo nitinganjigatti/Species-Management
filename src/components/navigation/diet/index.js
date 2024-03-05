@@ -1,27 +1,17 @@
 const composeDietNavigation = () => {
-  const dietTitle = {
+  const pharmacyTitle = {
     sectionTitle: 'Diet'
   }
 
-  const diet = {
-    title: 'Feed Type',
+  const feedTypes = {
+    title: 'Feed Types',
     path: '/diet/feed',
-    icon: 'icon-park-outline:traditional-chinese-medicine'
+    icon: 'material-symbols:inventory-2-outline'
   }
 
-  const request = {
-    title: 'Diet',
-    path: '/diet/diet-list',
-    icon: 'solar:clipboard-list-line-duotone'
-  }
+  const dietNavigation = [pharmacyTitle, feedTypes]
 
-  const dietNavigationArray = []
-
-  dietNavigationArray.push(dietTitle)
-
-  dietNavigationArray.push(diet, request)
-
-  return dietNavigationArray
+  return dietNavigation
 }
 
 const dietNavigation = () => composeDietNavigation()
