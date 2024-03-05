@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import pharmacyNavigation from 'src/components/navigation/pharmacy'
+import dietNavigation from 'src/components/navigation/diet'
 
 // const pharmacyNav = [
 //   // {
@@ -291,6 +292,9 @@ const ComposeNavigation = () => {
     const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
     navigationArray.push(...pharmacyNav)
   }
+
+  const dietNav = dietNavigation()
+  navigationArray.push(...dietNav)
 
   return navigationArray
 }
