@@ -301,7 +301,7 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Storage' action={headerAction} />
+                <CardHeader title='Store List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     sl_no: false
