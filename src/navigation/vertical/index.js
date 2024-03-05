@@ -18,7 +18,6 @@ const ComposeNavigation = () => {
   }
 
   const dietNav = dietNavigation()
-
   navigationArray.push(...dietNav)
 
   return navigationArray
