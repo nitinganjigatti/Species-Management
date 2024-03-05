@@ -24,6 +24,7 @@ const FeedTypes = () => {
   function createData(feeds, description) {
     return { feeds, description }
   }
+
   const rows = [
     createData(
       'Frozen ',
@@ -55,6 +56,7 @@ const FeedTypes = () => {
             sx={{ px: 7 }}
             size='small'
             variant='contained'
+
             // onClick={() => Router.push('/diet/add-feed')}
           >
             <Icon icon='mdi:add' fontSize={20} />

@@ -9,7 +9,13 @@ const composeDietNavigation = () => {
     icon: 'material-symbols:inventory-2-outline'
   }
 
-  const dietNavigation = [pharmacyTitle, feedTypes]
+  const feedDetails = {
+    title: 'Feed Details',
+    path: '/diet/feed/feed-details',
+    icon: 'material-symbols:inventory-2-outline'
+  }
+
+  const dietNavigation = [pharmacyTitle, feedTypes, feedDetails]
 
   return dietNavigation
 }
