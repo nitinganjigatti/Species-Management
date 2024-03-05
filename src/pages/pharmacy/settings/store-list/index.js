@@ -45,8 +45,6 @@ const ListOfStores = () => {
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
-  debugger
-
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
@@ -226,7 +224,6 @@ const ListOfStores = () => {
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
-    debugger
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -301,7 +298,7 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Storage' action={headerAction} />
+                <CardHeader title='Store List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     sl_no: false

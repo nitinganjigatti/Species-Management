@@ -160,7 +160,7 @@ export default function NewProductList() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
-  const [sortColumn, setSortColumn] = useState('request_number')
+  const [sortColumn, setSortColumn] = useState('id')
   const [sort, setSort] = useState('desc')
   const [itemId, setItemId] = useState()
   const [imgUrl, setImageUrl] = useState()
@@ -172,6 +172,7 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -226,7 +227,11 @@ export default function NewProductList() {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    if (value === '') {
+      await searchTableData({ sort, q: value, column: 'id' })
+    } else {
+      await searchTableData({ sort, q: value, column: 'request_number' })
+    }
   }
 
   // const getProductSearchLists = async () => {
@@ -351,7 +356,7 @@ export default function NewProductList() {
             <CardContent>
               <Grid container>
                 <CommonDialogBox
-                  title={'Product Details'}
+                  title={`Product Details - ${productDetails?.request_number}`}
                   dialogBoxStatus={show}
                   formComponent={
                     <ProductDetail
