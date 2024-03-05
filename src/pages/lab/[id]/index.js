@@ -8,7 +8,8 @@ import {
   GetRequestPopUp,
   transferLab,
   getNoOfLab,
-  UpdateStatus
+  UpdateStatus,
+  DeleteLAbRequestAttachment
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -53,6 +54,7 @@ import Utility from 'src/utility'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -63,6 +65,8 @@ const RequestDetails = () => {
   const [popUpRow, setPopUpRow] = useState([])
 
   const { id } = Router.query
+  const searchParams = useSearchParams()
+  const Selectedlab_id = searchParams.get('lab_id')
 
   const [medicineId, setMedicineId] = useState()
 
@@ -87,6 +91,7 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
+
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -100,6 +105,7 @@ const RequestDetails = () => {
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
   const [fileId, setFileId] = useState()
+  const [testName, setTestName] = useState()
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
@@ -137,11 +143,14 @@ const RequestDetails = () => {
     try {
       // Make your API call here
       setLoading(true)
+      const params = {
+        lab_id: Selectedlab_id
+      }
 
-      const response = await GetRequestDetails(id).then(res => {
+      const response = await GetRequestDetails(id, { params }).then(res => {
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
-        setMedicineId(res?.data?.result[0]?.medical_record_id)
+        setMedicineId(res?.data?.result[0]?.id)
         setRequest(res?.data?.result)
         setRequestId(res?.data?.result[0]?.id)
         setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
@@ -196,6 +205,7 @@ const RequestDetails = () => {
   const handleOpenPopOver = (event, params) => {
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.test_id)
+    setTestName(params?.row?.test_name)
   }
 
   const handleClosePopover = () => {
@@ -424,11 +434,16 @@ const RequestDetails = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
-    const { lab_name, replaced_lab_id, transfer_reason } = {
+    const {
+      lab_name,
+      // replaced_lab_id,
+      transfer_reason
+    } = {
       ...params
     }
     const id = medicineId
 
+    const replaced_lab_id = request[0]?.lab_id
     const payload = {
       // lab_name: request[0]?.lab_id,
       replaced_lab_id,
@@ -441,23 +456,17 @@ const RequestDetails = () => {
         handleCloseTransfer()
       }
     })
-
-    // if (id !== undefined && action === 'edit') {
-    //   console.log('payload', payload)
-    //   // await updateMedicine(payload, id)
-    // } else {
-    //   await addLabToList(payload)
-    // }
   }
 
-  const handleDeleteImg = (e, item) => {
-    e.preventDefault() // Prevent the default behavior of the anchor tag
-    e.stopPropagation() // Stop the event propagation
-    // Add your logic to delete the image using the information from the 'item'
+  const handleDeleteImg = async (e, item) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const id = item?.id
     setFileId(item?.id)
     try {
+      const res = await DeleteLAbRequestAttachment(id)
     } catch (error) {}
-    console.log('Delete image logic for', item)
   }
 
   const openFileInNewTab = imageUrl => {
@@ -700,9 +709,9 @@ const RequestDetails = () => {
                   <Typography>
                     No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
                   </Typography>
-                  <Typography>
+                  {/* <Typography>
                     No. of Samples : <span style={{ fontWeight: 'bold' }}>{item?.sample_count}</span>
-                  </Typography>
+                  </Typography> */}
                 </Box>
                 <Typography>
                   Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
@@ -765,13 +774,13 @@ const RequestDetails = () => {
 
               <Box>
                 <Typography>
-                  Test name - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{selectedLab?.test_name}</span>
+                  Test name - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{testName}</span>
                 </Typography>
                 <Typography>
-                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request?.request_id}</span>
+                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
                 </Typography>
                 <Typography>
-                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request?.site_name}</span>
+                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.site_name}</span>
                 </Typography>
               </Box>
 
@@ -781,15 +790,17 @@ const RequestDetails = () => {
                     <Controller
                       name='lab_name'
                       control={control}
+                      // defaultValue={request[0]?.lab_id || ''}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
-                          value={request[0]?.lab_id}
+                          value={request[0]?.lab_name}
                           disabled
                           label='Transfer From*'
                           name='lab_name'
                           error={Boolean(errors.lab_name)}
                           onChange={onChange}
+                          InputProps={{ readOnly: true }}
                           placeholder=''
                         />
                       )}
@@ -846,7 +857,7 @@ const RequestDetails = () => {
                       render={({ field: { value, onChange } }) => (
                         <TextField
                           value={value}
-                          label='transfer_reason'
+                          label='Transfer Reason'
                           name='transfer_reason'
                           error={Boolean(errors.lab_name)}
                           onChange={onChange}
