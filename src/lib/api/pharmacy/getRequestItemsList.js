@@ -234,3 +234,22 @@ export async function updateFullFillLineItems(payload, id) {
     return error
   }
 }
+
+export async function deleteLineItem(id) {
+  try {
+    const url = `${REQUEST_ITEMS}/${id}/deleteRow`
+    const response = await axiosGet({ url, pharmacy })
+
+    return response
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
