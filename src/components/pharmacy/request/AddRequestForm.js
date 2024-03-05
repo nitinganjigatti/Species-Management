@@ -45,11 +45,15 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import {
+  addRequestItems,
+  getRequestItemsListById,
+  updateRequestItems,
+  deleteLineItem
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -391,7 +395,8 @@ const AddRequestForm = () => {
           control_substance: el.control_substance === '0' ? false : true,
           control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
           id: el.id,
-          request_item_detail_id: el.id
+          request_item_detail_id: el.id,
+          dispatch_item_id: el.dispatch_item_id
         }
       })
 
@@ -494,25 +499,24 @@ const AddRequestForm = () => {
     }
   }
 
-  const deleteLineItemFromDb = async dispatchedItemId => {
-    if (dispatchedItemId) {
+  const deleteLineItemFromDb = async lineItemId => {
+    debugger
+    console.log('lineItemId', lineItemId)
+    if (lineItemId) {
       try {
-        const result = await deleteFulfillItem(dispatchedItemId)
-        if (result?.success === true) {
-          toast.success(result.data)
-          getDispatchedItems(id)
-          getRequestItemLists(id)
-
+        const result = await deleteLineItem(lineItemId)
+        console.log('deleteLineItem result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
           setDeleteDialog(false)
           setDeleteItemId(null)
+          getListOfItemsById(id)
         } else {
           toast.error(result.data)
         }
-
-        console.log('delet result', result)
       } catch (error) {
         toast.error(error.data)
-        console.log('delet error result', error)
+        console.log('error', error)
       }
     }
   }
@@ -953,7 +957,6 @@ const AddRequestForm = () => {
 
                             editTableData(el.request_item_medicine_id)
                             showDialog()
-                            // }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
@@ -969,7 +972,7 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         )}
-                        {console.log('line items', el)}
+
                         {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
