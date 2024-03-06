@@ -143,7 +143,7 @@ const AddReturnRequest = () => {
     setDuplicateMedError('')
     // Resetting State
     setOptionsBatchList([])
-    setOptionsMedicineList([])
+    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -354,38 +354,34 @@ const AddReturnRequest = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        setProductLoading(true)
+    // if (searchText !== '') {
+    try {
+      setProductLoading(true)
 
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 20
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-        setProductLoading(false)
-      } catch (e) {
-        console.log('error', e)
-        setProductLoading(false)
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+      }
+      setProductLoading(false)
+    } catch (e) {
+      console.log('error', e)
+      setProductLoading(false)
     }
+    // }
   }
 
   const fetchBatchData = async id => {
@@ -453,6 +449,11 @@ const AddReturnRequest = () => {
     []
   )
   //  ****** debounce
+
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData()
+  }, [])
 
   const getListOfItemsById = async id => {
     try {

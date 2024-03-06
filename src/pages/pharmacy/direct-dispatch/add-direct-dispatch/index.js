@@ -152,7 +152,7 @@ const AddReturnRequest = () => {
     setDuplicateMedError(false)
     // Resetting State
     setOptionsBatchList([])
-    setOptionsMedicineList([])
+    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -342,38 +342,32 @@ const AddReturnRequest = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        setProductLoading(true)
+    try {
+      setProductLoading(true)
 
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 20
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        console.log('searchResults', searchResults)
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-        setProductLoading(false)
-      } catch (e) {
-        console.log('error', e)
-        setProductLoading(false)
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      console.log('searchResults', searchResults)
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+      }
+      setProductLoading(false)
+    } catch (e) {
+      console.log('error', e)
+      setProductLoading(false)
     }
   }
 
@@ -417,6 +411,11 @@ const AddReturnRequest = () => {
       }
     }
   }
+
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData()
+  }, [])
 
   const searchBatchData = useCallback(
     debounce(async id => {
