@@ -133,7 +133,6 @@ export default function AddProduct() {
   })
 
   const handleFileChange = event => {
-    debugger
     const { files } = event.target
 
     const newImages = Array.from(files).map(file => file)
@@ -165,29 +164,12 @@ export default function AddProduct() {
   }
 
   const removeselectedImage = selectedindex => {
-    debugger
     if (prescriptionImage.length > 0) {
       const list = [...prescriptionImage]
       const filterList = list.filter((item, index) => selectedindex !== index)
       setValue('prescription_images', filterList)
       setPrescriptionImage(filterList)
     }
-
-    // if (prescriptionField.length > 0) {
-    //   debugger
-    //   const list = [...prescriptionField]
-    //   const filterList = list.filter((item, index) => selectedindex !== index)
-    //   setValue('prescription_images', filterList)
-    //   setPrescriptionImage(filterList)
-    // }
-
-    // setPrescriptionImage([...filterList])
-
-    // Log the remaining images and titles
-    // console.log(
-    //   'Remaining Images:',
-    //   filterList.map(image => (typeof image === 'string' ? image : image?.file?.name))
-    // )
   }
 
   const getSpecificProductList = async id => {
@@ -271,8 +253,6 @@ export default function AddProduct() {
       } = data
 
       const listImages = []
-
-      debugger
 
       // prescription_images?.map(file => {
       //   return listImages?.push(file.file)
@@ -484,6 +464,12 @@ export default function AddProduct() {
     }
   }, [id])
 
+  const handleCancelChange = () => {
+    {
+      isDirty ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
+    }
+  }
+
   // const renderFilePreview = file => {
   //   if (typeof file === 'string') {
   //     return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
@@ -508,7 +494,7 @@ export default function AddProduct() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      id ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
+                      isDirty && id ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
@@ -874,7 +860,7 @@ export default function AddProduct() {
                     {id && (
                       <AddButton
                         styles={{ color: 'red', border: '1px solid red', margin: '5px' }}
-                        action={() => handleCancelDialogBox()}
+                        action={() => handleCancelChange()}
                         title='Cancel'
                       >
                         Cancel
