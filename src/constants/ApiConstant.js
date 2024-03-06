@@ -1,5 +1,7 @@
 export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
 
+export const getUserByLabId = 'antz/lab/users'
+
 export const getSitesByLabId = 'antz/labs/lab-sites'
 
 export const LabFileDelete = 'delete-lab-test-file'

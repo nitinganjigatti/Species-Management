@@ -1,20 +1,23 @@
-import { Card, CardHeader } from '@mui/material'
+import { Icon } from '@iconify/react'
+import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { GetLabSitesById, GetLabUsersById } from 'src/lib/api/lab/labDetails'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-const Users = () => {
+const Users = ({ labId }) => {
+  console.log('labId', labId)
   const columns = [
     {
-      flex: 0.2,
+      flex: 2.3,
       minWidth: 20,
-      field: 'tests',
+      field: 'users',
       headerName: 'Users',
       hide: true,
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            site
+            {params?.row?.user_first_name}
           </Typography>
         </>
       )
@@ -22,13 +25,13 @@ const Users = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
+      // field: 'Action',
+      // headerName: 'Action',
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
             <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='mdi:package-delivered' />
+              <Icon icon='ant-design:more-outlined' fontSize={30} />
             </IconButton>
           </Box>
         </>
@@ -39,49 +42,67 @@ const Users = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  // const [sortColumn, setSortColumn] = useState('label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
+
+  const getSlNo = index => index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
-    }
-  }
+  const getRowId = row => row?.user_first_name
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+  //   } else {
+  //   }
+  // }
 
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, 'request_number', status)
   }
+
+  const LabUsersById = async labId => {
+    const params = {
+      // id: labId
+      lab_id: labId
+    }
+    try {
+      const res = await GetLabUsersById({ params })
+      setLoading(false)
+      console.log('res', res?.data?.labs)
+      setRows(res?.data?.labs)
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (labId) {
+      setLoading(true)
+      LabUsersById(labId)
+    }
+  }, [])
   return (
     <Card>
       <CardHeader
-        title='Users'
+        title='USERS'
         //    action={headerAction}
       />
       <DataGrid
         autoHeight
-        // pagination
+        hideFooterPagination
         rows={indexedRows === undefined ? [] : indexedRows}
+        getRowId={getRowId}
         rowCount={total}
         columns={columns}
-        sortingMode='server'
-        pageSizeOptions={[10, 25, 50]}
-        paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
         slots={{ toolbar: ServerSideToolbar }}
-        onPaginationModelChange={setPaginationModel}
         loading={loading}
         slotProps={{
           baseButton: {

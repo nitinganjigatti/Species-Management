@@ -25,8 +25,8 @@ const Site = ({ labId }) => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
+      // field: 'Action',
+      // headerName: 'Action',
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
@@ -73,7 +73,7 @@ const Site = ({ labId }) => {
   const LabSitesById = async labId => {
     const params = {
       // id: labId
-      lab_id: 279
+      lab_id: labId
     }
     try {
       const res = await GetLabSitesById({ params })

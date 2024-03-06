@@ -69,7 +69,7 @@ const LabDetails = () => {
                 <Tests labTest={labTests} />
               </TabPanel>
               <TabPanel value='users'>
-                <Users />
+                <Users labId={id} />
               </TabPanel>
               <TabPanel value='equipments'>
                 <Equipments />
