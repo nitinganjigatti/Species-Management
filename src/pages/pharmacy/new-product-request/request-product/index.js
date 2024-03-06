@@ -140,10 +140,10 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  // const { fields } = useFieldArray({
-  //   control,
-  //   name: 'prescription_images'
-  // })
+  const { fields } = useFieldArray({
+    control,
+    name: 'prescription_images'
+  })
 
   // console.log('fields', fields)
 
@@ -876,7 +876,7 @@ export default function AddProduct() {
                     container
                     sm={12}
                     spacing={6}
-                    mt={4}
+                    mt={5}
                     item
                     sx={{
                       display: 'flex',
@@ -885,15 +885,13 @@ export default function AddProduct() {
                     }}
                   >
                     {id && (
-                      <Button
-                        onClick={() => handleCancelDialogBox()}
-                        type='submit'
-                        sx={{ marginRight: '8px' }}
-                        size='large'
-                        variant='contained'
+                      <AddButton
+                        styles={{ color: 'red', border: '1px solid red', margin: '5px' }}
+                        action={() => handleCancelDialogBox()}
+                        title='Cancel'
                       >
                         Cancel
-                      </Button>
+                      </AddButton>
                     )}
                     <LoadingButton
                       type='submit'
