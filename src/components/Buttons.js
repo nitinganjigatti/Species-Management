@@ -7,8 +7,6 @@ import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
 function AddButton({ action, title, disabled, styles }) {
-  debugger
-
   return (
     <Button
       disabled={disabled || false}

@@ -319,7 +319,7 @@ export const AddItemsForm = ({
                       <TextField
                         {...params}
                         label='Product Name*'
-                        placeholder='Search'
+                        placeholder='Search & Select'
                         error={Boolean(errors.request_item)}
                       />
                     )}

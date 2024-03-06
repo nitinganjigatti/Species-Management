@@ -57,6 +57,7 @@ import toast from 'react-hot-toast'
 import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/utility/image-upload-card'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { ConfirmationBox } from 'src/utility/Confirm-dialog-box'
 
 export default function AddProduct() {
   const fileInputRef = useRef(null)
@@ -73,6 +74,8 @@ export default function AddProduct() {
   const [defaultSalts, setDefaultSalts] = useState([])
   const [saltsList, setSalts] = useState([])
   const [imgSrc, setImgSrc] = useState('')
+  const [prescriptionImage, setPrescriptionImage] = useState()
+  const [confirmationBox, setConfirmationBox] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
 
@@ -112,14 +115,6 @@ export default function AddProduct() {
     quantity: '1',
     priority: 'Normal',
     salts: [],
-
-    // salts: [
-    //   {
-    //     label: '',
-    //     salt_id: '',
-    //     salt_qty: ''
-    //   }
-    // ],
     status: 'pending'
   }
 
@@ -127,8 +122,9 @@ export default function AddProduct() {
     control,
     handleSubmit,
     setValue,
+    getValues,
     reset,
-    formState: { errors }
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -136,26 +132,22 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  const { fields } = useFieldArray({
-    control,
-    name: 'prescription_images'
-  })
-
-  // const { fields, append, remove, insert } = useFieldArray({
-  //   control,
-  //   name: 'salts'
-  // })
-
   const handleFileChange = event => {
     debugger
     const { files } = event.target
 
-    const newImages = Array.from(files).map(file => ({
-      file
-    }))
+    const newImages = Array.from(files).map(file => file)
+    const imagesList = getValues('prescription_images')
+    if (imagesList.length > 0) {
+      setValue('prescription_images', [...imagesList, ...newImages])
+    } else {
+      setValue('prescription_images', [...newImages])
+    }
 
-    setValue('prescription_images', newImages)
+    setPrescriptionImage([...imagesList, ...newImages])
   }
+
+  console.log('getValues???', getValues())
 
   const handleAddGalleryClick = () => {
     fileInputRef.current.click()
@@ -174,9 +166,28 @@ export default function AddProduct() {
   }
 
   const removeselectedImage = selectedindex => {
-    const list = [...fields]
-    const filterList = list.filter((item, index) => selectedindex !== index)
-    setValue('prescription_images', filterList)
+    debugger
+    if (fields.length > 0) {
+      const list = [...fields]
+      const filterList = list.filter((item, index) => selectedindex !== index)
+      setValue('prescription_images', filterList)
+      setPrescriptionField(filterList)
+    }
+    if (prescriptionField.length > 0) {
+      debugger
+      const list = [...prescriptionField]
+      const filterList = list.filter((item, index) => selectedindex !== index)
+      setValue('prescription_images', filterList)
+      setPrescriptionField(filterList)
+    }
+
+    // setPrescriptionImage([...filterList])
+
+    // Log the remaining images and titles
+    // console.log(
+    //   'Remaining Images:',
+    //   filterList.map(image => (typeof image === 'string' ? image : image?.file?.name))
+    // )
   }
 
   const getSpecificProductList = async id => {
@@ -186,7 +197,6 @@ export default function AddProduct() {
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
       setResponseImage(res?.data?.request_item_details[0].product_image)
-      debugger
       reset({
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
@@ -197,8 +207,11 @@ export default function AddProduct() {
         generic_name: res?.data?.request_item_details[0].generic_name,
         product_image: res?.data?.request_item_details[0].product_image
           ? res?.data?.request_item_details[0].product_image
-          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
+          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`,
+        prescription_images: res?.data?.prescription_images
       })
+
+      setPrescriptionImage(res?.data?.prescription_images)
 
       // res?.data?.request_item_details?.map(Item =>
       //   typeof Item?.product_image === 'string'
@@ -214,97 +227,104 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
-    const dataChild = [...dataChildValues]
+    if (!confirmationBox) {
+      const dataChild = [...dataChildValues]
 
-    const requestData = dataChild?.map((item, index) => {
-      return item?.request_item_detail_id
-    })
+      const requestData = dataChild?.map((item, index) => {
+        return item?.request_item_detail_id
+      })
 
-    data.request_item_detail_id = requestData.join('')
+      data.request_item_detail_id = requestData.join('')
 
-    data.status = data?.status ? data?.status : 'pending'
+      data.status = data?.status ? data?.status : 'pending'
 
-    // handleUpdate(getDetails, data)
-    // const requestDetailsData = {
-    //   product_type: data?.product_type,
-    //   product_name: data?.product_name,
-    //   generic_name: data?.generic_name,
-    //   priority: data?.priority,
-    //   quantity: data?.quantity,
-    //   product_image: data?.product_image,
-    //   salts: JSON.stringify([]),
-    //   status: data?.status
-    // }
+      // handleUpdate(getDetails, data)
+      // const requestDetailsData = {
+      //   product_type: data?.product_type,
+      //   product_name: data?.product_name,
+      //   generic_name: data?.generic_name,
+      //   priority: data?.priority,
+      //   quantity: data?.quantity,
+      //   product_image: data?.product_image,
+      //   salts: JSON.stringify([]),
+      //   status: data?.status
+      // }
 
-    // const saltValues = data.salts
+      // const saltValues = data.salts
 
-    // const filterSaltValues = saltValues?.map(item => ({
-    //   salt_id: item.salt_id,
-    //   salt_qty: item.salt_qty
-    // }))
-    // data.salts = JSON.stringify(filterSaltValues)
-    const {
-      from_store,
-      comment,
-      prescription_images,
-      product_type,
-      priority,
-      product_name,
-      generic_name,
-      quantity,
-      status,
-      product_image
-    } = data
+      // const filterSaltValues = saltValues?.map(item => ({
+      //   salt_id: item.salt_id,
+      //   salt_qty: item.salt_qty
+      // }))
+      // data.salts = JSON.stringify(filterSaltValues)
+      const {
+        from_store,
+        comment,
+        prescription_images,
+        product_type,
+        priority,
+        product_name,
+        generic_name,
+        quantity,
+        status,
+        product_image
+      } = data
 
-    const listImages = []
-    prescription_images?.map(file => {
-      return listImages?.push(file.file)
-    })
+      const listImages = []
 
-    const payload = {
-      from_store: from_store,
-      comments: comment,
-      prescription_images: listImages,
-      request_item_details: [
-        {
-          product_type,
-          product_name,
-          generic_name,
-          priority,
-          quantity,
-          product_image,
-          salts: JSON.stringify([]),
-          status: data?.status,
-          request_item_detail_id: data.request_item_detail_id
+      debugger
+
+      // prescription_images?.map(file => {
+      //   return listImages?.push(file.file)
+      // })
+
+      const payload = {
+        from_store: from_store,
+        comments: comment,
+        prescription_images,
+        request_item_details: [
+          {
+            product_type,
+            product_name,
+            generic_name,
+            priority,
+            quantity,
+            product_image,
+            salts: JSON.stringify([]),
+            status: data?.status,
+            request_item_detail_id: data.request_item_detail_id
+          }
+        ]
+      }
+
+      console.log(payload)
+
+      // payload.request_item_details.request_item_detail_id = requestData
+
+      let response
+
+      try {
+        if (id) {
+          response = await updateNonExistingProduct(payload, id)
+        } else {
+          response = await addNonExistingProduct(payload)
         }
-      ]
-    }
 
-    // payload.request_item_details.request_item_detail_id = requestData
+        if (response?.success) {
+          const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
+          toast.success(toastMessage)
 
-    let response
-
-    try {
-      if (id) {
-        response = await updateNonExistingProduct(payload, id)
-      } else {
-        response = await addNonExistingProduct(payload)
-      }
-
-      if (response?.success) {
-        const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
-        toast.success(toastMessage)
-
-        router.push('/pharmacy/new-product-request/')
-        reset()
-      } else {
+          router.push('/pharmacy/new-product-request/')
+          reset()
+        } else {
+          setSuccessFulModal(false)
+        }
+      } catch (error) {
         setSuccessFulModal(false)
-      }
-    } catch (error) {
-      setSuccessFulModal(false)
 
-      // Handle the error as needed
-      console.error('An error occurred:', error)
+        // Handle the error as needed
+        console.error('An error occurred:', error)
+      }
     }
   }
 
@@ -314,6 +334,12 @@ export default function AddProduct() {
   //   //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
   //   // }
   // }
+
+  const handleCancelDialogBox = () => {
+    if (isDirty) {
+      setConfirmationBox(true)
+    }
+  }
 
   const clearSaltFields = index => {
     return (
@@ -412,8 +438,6 @@ export default function AddProduct() {
     }
   }
 
-  console.log('file name', displayFile)
-
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
     setEditIndex(index)
@@ -487,7 +511,7 @@ export default function AddProduct() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      Router.push('/pharmacy/new-product-request/')
+                      id ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
@@ -617,6 +641,7 @@ export default function AddProduct() {
                           )}
                         </FormControl>
                       </Grid>
+                      {}
 
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
@@ -727,9 +752,34 @@ export default function AddProduct() {
                           )}
                         </Grid>
 
+                        <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            name='product_image'
+                            ref={fileInputRef}
+                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                          />
+                          {imgSrc === '' && (
+                            <AddButton
+                              title=' Upload Image'
+                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            />
+                          )}
+                        </Grid>
+
                         {/* {imgSrc === '' && ( */}
                       </Grid>
-
+                      {confirmationBox && (
+                        <Grid>
+                          <CommonDialogBox
+                            dialogBoxStatus={confirmationBox}
+                            formComponent={<ConfirmationBox setConfirmationBox={setConfirmationBox} />}
+                            show={() => setConfirmationBox(true)}
+                          />
+                        </Grid>
+                      )}
                       {/* salt composition */}
 
                       {/* <Grid item xs={12} sm={12}>
@@ -809,7 +859,6 @@ export default function AddProduct() {
                             multiple
                             onChange={e => handleFileChange(e)}
                             name='prescription_images'
-                            ref={prescriptionRef}
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
                           <AddButton
@@ -817,14 +866,14 @@ export default function AddProduct() {
                             title='Add Prescription'
                           />
                         </Grid>
-                        {console.log('fields-length', fields.length)}
-                        {console.log('prescriptionField', prescriptionField.length)}
-                        {(fields.length > 0 || prescriptionField.length > 0) && (
+                        {/* {console.log('fields-length', fields.length)} */}
+                        {prescriptionImage?.length > 0 && (
                           <ImageUploadComponent
-                            fields={fields}
-                            setValue={setValue}
-                            prescriptionField={prescriptionField}
+                            getValues={getValues}
+                            setPrescriptionField={setPrescriptionField}
                             imgBaseUrl={imgBaseUrl}
+                            prescriptionImage={prescriptionImage}
+                            removeselectedImage={removeselectedImage}
                           />
                         )}
                       </Grid>
@@ -834,7 +883,7 @@ export default function AddProduct() {
                     container
                     sm={12}
                     spacing={6}
-                    mt={4}
+                    mt={5}
                     item
                     sx={{
                       display: 'flex',
@@ -842,7 +891,22 @@ export default function AddProduct() {
                       alignItems: 'center'
                     }}
                   >
-                    <LoadingButton type='submit' sx={{ marginRight: '8px' }} size='large' variant='contained'>
+                    {id && (
+                      <AddButton
+                        styles={{ color: 'red', border: '1px solid red', margin: '5px' }}
+                        action={() => handleCancelDialogBox()}
+                        title='Cancel'
+                      >
+                        Cancel
+                      </AddButton>
+                    )}
+                    <LoadingButton
+                      type='submit'
+                      sx={{ marginRight: '8px' }}
+                      size='large'
+                      variant='contained'
+                      disabled={!isValid}
+                    >
                       Submit
                     </LoadingButton>
                   </Grid>

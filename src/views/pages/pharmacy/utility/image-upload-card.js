@@ -1,6 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import Typography from '@mui/material/Typography'
@@ -20,32 +19,29 @@ import { Icon } from '@iconify/react'
 //     border: `2px dashed ${theme.palette.mode === 'light' ? 'rgba(93, 89, 98, 0.22)' : 'rgba(247, 244, 254, 0.14)'}`,
 // }}
 
-const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl }) => {
+const ImageUploadComponent = ({
+  fields,
+  getValues,
+  prescriptionImage,
+  imgBaseUrl,
+  removeselectedImage,
+  setPrescriptionField
+}) => {
+  console.log('Get??????', prescriptionImage)
   debugger
-  console.log('prescription??', prescriptionField)
+
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
-  const [prescriptionImage, setPrescriptionImage] = useState()
+  // useEffect(() => {
+  //   debugger
+  //   if (fields.length > 0) {
+  //     setPrescriptionField([...prescriptionField, fields])
+  //   }
+  // }, [fields])
 
-  const removeselectedImage = selectedindex => {
-    const list = [...fields]
-    const filterList = list.filter((item, index) => selectedindex !== index)
-    setValue('prescription_images', filterList)
-    setPrescriptionImage([...filterList])
-
-    // Log the remaining images and titles
-    // console.log(
-    //   'Remaining Images:',
-    //   filterList.map(image => (typeof image === 'string' ? image : image?.file?.name))
-    // )
-  }
-
-  // console.log('prescription Images ?>>>', prescriptionField)
-
-  useEffect(() => {
-    debugger
-    fields.length > 0 ? setPrescriptionImage(fields) : setPrescriptionImage(prescriptionField)
-  }, [fields, prescriptionField])
+  // {
+  //   console.log('Prescription Images???', prescriptionField)
+  // }
 
   const renderFilePreview = file => {
     debugger
@@ -84,8 +80,6 @@ const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl 
     }
   }
 
-  console.log('prescriptionImage????', prescriptionImage)
-
   return (
     <Box>
       {/* <CardContent> */}
@@ -95,20 +89,21 @@ const ImageUploadComponent = ({ fields, setValue, prescriptionField, imgBaseUrl 
         {prescriptionImage?.map((image, index) => (
           <>
             <ListItem
-              debugger
               sx={{
                 borderRadius: '10px'
               }}
               key={image?.file?.name}
             >
+              {console.log('type of image', typeof image)}
               <div style={{ display: 'flex', justifyContent: 'space-around' }}>
                 <div className='file-preview'>
-                  {image && renderFilePreview(typeof image === 'string' ? image : image.file)}
+                  {image && renderFilePreview(typeof image === 'string' ? image : image)}
                 </div>
                 <div style={{ margin: '10px' }}>
-                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.file?.name}</Typography>
+                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.name}</Typography>
                 </div>
               </div>{' '}
+              {console.log('image>>>>>>', image)}
               <IconButton onClick={() => removeselectedImage(index)}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>

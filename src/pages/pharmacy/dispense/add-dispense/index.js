@@ -73,7 +73,7 @@ function AddDispense() {
 
   const PayloadValidationSchema = Yup.object().shape({
     user_id: Yup.object({
-      value: Yup.string().required('User Id is required')
+      value: Yup.string().required('Select the user')
     })
   })
 
@@ -213,7 +213,7 @@ function AddDispense() {
             <Card>
               <CardHeader
                 sx={{ mx: 1.4 }}
-                title={'Add Dispense Item'}
+                title={editMode ? 'Edit Dispense Item' : 'Add Dispense Item'}
                 action={
                   <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
                     <Icon icon='mdi:close' />
@@ -281,9 +281,15 @@ function AddDispense() {
                             disablePortal
                             value={field?.value}
                             options={users}
+                            noOptionsText='Type to search'
                             getOptionLabel={option => option?.label || ''}
                             renderInput={params => (
-                              <TextField {...params} label='Dispense To*' error={Boolean(errors.user_id)} />
+                              <TextField
+                                {...params}
+                                label='Dispense To*'
+                                placeholder='Search & Select'
+                                error={Boolean(errors.user_id)}
+                              />
                             )}
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
@@ -292,8 +298,8 @@ function AddDispense() {
                           {errors.user_id && (
                             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                               {errors.user_id?.message === 'user_id cannot be null'
-                                ? 'User Id is required'
-                                : errors.user_id?.message || 'User Id is required'}
+                                ? 'Select the user'
+                                : errors.user_id?.message || 'Select the user'}
                             </FormHelperText>
                           )}
                         </>

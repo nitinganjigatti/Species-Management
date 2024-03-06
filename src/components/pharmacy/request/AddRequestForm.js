@@ -339,34 +339,30 @@ const AddRequestForm = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 10
-        }
 
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-      } catch (e) {
-        console.log('error', e)
+    try {
+      var params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+      }
+    } catch (e) {
+      console.log('error', e)
     }
+   
   }
 
   const searchMedicineData = useCallback(
@@ -379,6 +375,10 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData('')
+  }, [])
   //  ****** debounce
 
   const getListOfItemsById = async id => {
@@ -553,7 +553,12 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                   renderInput={params => (
-                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField
+                      {...params}
+                      placeholder='Search & Select'
+                      label='Product Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
                   )}
                 />
                 {itemErrors.medicine_name && (

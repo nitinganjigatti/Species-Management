@@ -83,8 +83,8 @@ export async function submitDispense(payload) {
   }
 }
 
-export async function getDispenseById(dispensecId) {
-  const response = await axiosGet({ url: `${SUBMIT_DISPENSE}/${dispensecId}/show`, pharmacy: true })
+export async function getDispenseById(dispenseId) {
+  const response = await axiosGet({ url: `${SUBMIT_DISPENSE}/${dispenseId}/show`, pharmacy: true })
 
   return response.data
 }
