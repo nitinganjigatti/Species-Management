@@ -78,7 +78,7 @@ const ListOfRacks = () => {
         setResetForm(true)
         setOpenDrawer(false)
 
-        await getRacksLists()
+        // await getRacksLists()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -147,9 +147,9 @@ const ListOfRacks = () => {
     getRacksLists()
   }, [])
 
-  useEffect(() => {
-    getRacksLists()
-  }, [selectedPharmacy])
+  // useEffect(() => {
+  //   getRacksLists()
+  // }, [selectedPharmacy])
 
   const columns = [
     {

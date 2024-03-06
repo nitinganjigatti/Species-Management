@@ -11,22 +11,18 @@ import { FormControl, FormHelperText } from '@mui/material'
 
 import Grid from '@mui/material/Grid'
 
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-
 import { CardContent } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
+import UserSnackbar from 'src/components/utility/snackbar'
+
+import TableHead from '@mui/material/TableHead'
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
-
 import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
@@ -83,6 +79,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     trigger,
     setValue,
     getValues,
+    watch,
 
     setError
   } = useForm({
@@ -102,23 +99,25 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [totalMedicine, setTotalMedicine] = useState(0)
   const [error, setErrors] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [invalidQty, setInvalidQty] = useState([])
-  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
-  const [dispatchItems, setDispatchItems] = useState([])
+
+  // const [invalidQty, setInvalidQty] = useState([])
+  // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  // const [dispatchItems, setDispatchItems] = useState([])
+  const [quantityError, setQuantityError] = useState(false)
 
   // const [errors, setErrors] = useState({})
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
   const [rowErrors, setRowErrors] = useState({})
 
-  const showConfirmationDialog = () => {
-    setInvalidQtyDialog(true)
-  }
+  // const showConfirmationDialog = () => {
+  //   setInvalidQtyDialog(true)
+  // }
 
-  const closeConfirmationDialog = () => {
-    setInvalidQtyDialog(false)
-    setDispatchItems([])
-    setInvalidQty([])
-  }
+  // const closeConfirmationDialog = () => {
+  //   setInvalidQtyDialog(false)
+  //   setDispatchItems([])
+  //   setInvalidQty([])
+  // }
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -488,7 +487,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const onSubmit = async params => {
     console.log('pay load params', params)
-    setDispatchItems(params)
+
+    // setDispatchItems(params)
     var invalidQtyItems = []
 
     if (params?.product_batches?.length > 0) {
@@ -496,8 +496,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       console.log('itemsWithMoreQty', invalidQtyItems)
     }
     if (invalidQtyItems?.length > 0) {
-      setInvalidQty(invalidQtyItems)
-      setInvalidQtyDialog(true)
+      // setInvalidQty(invalidQtyItems)
+      // setInvalidQtyDialog(true)
+      setQuantityError(true)
     } else {
       dispatchingItems(params)
     }
@@ -562,12 +563,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     }
   }
 
-  const handleConfirmDispatch = async () => {
-    if (dispatchItems?.product_batches?.length > 0) {
-      await dispatchingItems(dispatchItems)
-      closeConfirmationDialog()
-    }
-  }
+  // const handleConfirmDispatch = async () => {
+  //   if (dispatchItems?.product_batches?.length > 0) {
+  //     await dispatchingItems(dispatchItems)
+  //     closeConfirmationDialog()
+  //   }
+  // }
 
   return (
     <>
@@ -662,6 +663,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
                                         setValue(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
+                                        watch(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
 
                                         // const allValues = getValues()
 
@@ -751,7 +753,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                   type='text'
                                   value={value}
                                   label='Quantity'
-                                  onChange={onChange}
+                                  onChange={e => {
+                                    onChange(e)
+                                    setQuantityError(false)
+                                  }}
                                   placeholder='Quantity'
                                   error={Boolean(errors?.product_batches?.[index]?.qty)}
                                   name={`product_batches[${index}].qty`}
@@ -766,15 +771,17 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 {errors?.product_batches?.[index]?.qty?.message}
                               </FormHelperText>
                             )}
+                            {getValues(`product_batches[${index}].quantityAvailable`) ? (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                Available Quantity:{getValues(`product_batches[${index}].quantityAvailable`)}
+                              </FormHelperText>
+                            ) : null}
                           </FormControl>
                         </Grid>
 
                         <Grid
                           item
                           xs={3}
-                          // eslint-disable-next-line lines-around-comment
-                          // justifyContent='flex-end'
-
                           alignSelf='center'
                           sx={{
                             display: 'flex',
@@ -817,6 +824,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
                   </div>
                 ) : null}
+                {quantityError && (
+                  <Grid item xs={12}>
+                    <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+                  </Grid>
+                )}
                 <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
                   <LoadingButton
                     size='large'
@@ -843,63 +855,61 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </>
             </form>
           </CardContent>
-          <ConfirmDialogBox
+
+          {/* <ConfirmDialog
             open={invalidQtyDialog}
+            title={'Your quantity exceeds the batch limit'}
             closeDialog={() => {
               closeConfirmationDialog()
             }}
             action={() => {
-              closeConfirmationDialog()
+              handleConfirmDispatch()
             }}
             content={
-              <Box>
-                <>
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 1 }}>
-                      You are trying to full fill higher quantity than it is available in that batch
-                    </DialogContentText>
-                    <Table>
-                      <TableRow>
-                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                        <TableCell>Requested qty</TableCell>
-                      </TableRow>
-                      {invalidQty?.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item?.batch_no}</TableCell>
-                          <TableCell>{item?.quantityAvailable}</TableCell>
-                          <TableCell>{item?.qty}</TableCell>
-                        </TableRow>
-                      ))}
-                    </Table>
-                  </DialogContent>
-                  <DialogContentText sx={{ mb: 1 }}>Confirm to proceed</DialogContentText>
-                  <DialogActions className='dialog-actions-dense'>
-                    <Button
-                      size='small'
-                      variant='contained'
-                      color='primary'
-                      onClick={() => {
-                        handleConfirmDispatch()
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      variant='contained'
-                      size='small'
-                      color='error'
-                      onClick={() => {
-                        closeConfirmationDialog()
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </DialogActions>
-                </>
-              </Box>
+              <>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
+                      <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                      <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                      <TableCell>Requested qty</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  {invalidQty?.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.batch_no}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.quantityAvailable}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 1,
+                          borderRight: '1px solid #ccc',
+                          borderBottom: index === invalidQty.length - 1 && 'none'
+                        }}
+                      >
+                        {item?.qty}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </Table>
+              </>
             }
-          />
+          /> */}
 
           {/* {batchItems.length > 0 ? (
             <TableContainer component={Paper}>

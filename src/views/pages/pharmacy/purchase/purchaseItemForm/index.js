@@ -132,22 +132,42 @@ const PurchaseItemForm = props => {
       .typeError('GST must be a number')
       .min(1, 'GST must be greater than zero')
       .required('GST is required'),
+
+    // purchase_cgst_amount: yup
+    //   .number()
+    //   .typeError('Central GST Amount must be a number')
+    //   .min(1, 'Central GST Amount must be greater than zero')
+    //   .required('Central GST Amount is required'),
+
     purchase_cgst_amount: yup
       .number()
       .typeError('Central GST Amount must be a number')
-      .min(1, 'Central GST Amount must be greater than zero')
+      .positive('Central GST Amount must be a positive number')
       .required('Central GST Amount is required'),
+
+    // purchase_sgst_amount: yup
+    //   .number()
+    //   .typeError('State GST Amount must be a number')
+    //   .min(1, 'State GST Amount must be greater than zero')
+    //   .required('State GST Amount is required'),
 
     purchase_sgst_amount: yup
       .number()
       .typeError('State GST Amount must be a number')
-      .min(1, 'State GST Amount must be greater than zero')
+      .positive('State GST Amount must be a positive number')
       .required('State GST Amount is required'),
+
     purchase_igst_amount: yup
       .number()
       .typeError('Tax Amount must be a number')
-      .min(1, 'Tax Amount must be greater than zero')
+      .positive('Tax Amount must be a positive zero')
       .required('Tax Amount is required'),
+
+    // purchase_igst_amount: yup
+    //   .number()
+    //   .typeError('Tax Amount must be a number')
+    //   .min(1, 'Tax Amount must be greater than zero')
+    //   .required('Tax Amount is required'),
 
     purchase_gross_amount: yup
       .number()
