@@ -167,19 +167,20 @@ export default function AddProduct() {
 
   const removeselectedImage = selectedindex => {
     debugger
-    if (fields.length > 0) {
-      const list = [...fields]
+    if (prescriptionImage.length > 0) {
+      const list = [...prescriptionImage]
       const filterList = list.filter((item, index) => selectedindex !== index)
       setValue('prescription_images', filterList)
-      setPrescriptionField(filterList)
+      setPrescriptionImage(filterList)
     }
-    if (prescriptionField.length > 0) {
-      debugger
-      const list = [...prescriptionField]
-      const filterList = list.filter((item, index) => selectedindex !== index)
-      setValue('prescription_images', filterList)
-      setPrescriptionField(filterList)
-    }
+
+    // if (prescriptionField.length > 0) {
+    //   debugger
+    //   const list = [...prescriptionField]
+    //   const filterList = list.filter((item, index) => selectedindex !== index)
+    //   setValue('prescription_images', filterList)
+    //   setPrescriptionImage(filterList)
+    // }
 
     // setPrescriptionImage([...filterList])
 
@@ -317,11 +318,8 @@ export default function AddProduct() {
           router.push('/pharmacy/new-product-request/')
           reset()
         } else {
-          // setSuccessFulModal(false)
         }
       } catch (error) {
-        // setSuccessFulModal(false)
-
         // Handle the error as needed
         console.error('An error occurred:', error)
       }
