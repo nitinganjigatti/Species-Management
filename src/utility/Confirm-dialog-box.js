@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 
 export const ConfirmationBox = ({ setConfirmationBox }) => {
   const router = useRouter()
+
   return (
     <>
       <Grid container xs={12} sx={{ position: 'relative', bottom: '12px' }}>
