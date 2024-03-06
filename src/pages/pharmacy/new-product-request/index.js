@@ -172,7 +172,6 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
-      debugger
       try {
         setLoading(true)
 

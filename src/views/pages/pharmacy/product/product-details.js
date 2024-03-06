@@ -22,8 +22,6 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescriptionImages, productDetails }) => {
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
-  debugger
-
   const { selectedPharmacy } = usePharmacyContext()
 
   // const defaultValues = {
