@@ -115,14 +115,6 @@ export default function AddProduct() {
     quantity: '1',
     priority: 'Normal',
     salts: [],
-
-    // salts: [
-    //   {
-    //     label: '',
-    //     salt_id: '',
-    //     salt_qty: ''
-    //   }
-    // ],
     status: 'pending'
   }
 
@@ -140,25 +132,19 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  const { fields } = useFieldArray({
-    control,
-    name: 'prescription_images'
-  })
-
-  // console.log('fields', fields)
-
-  // const { fields, append, remove, insert } = useFieldArray({
-  //   control,
-  //   name: 'salts'
-  // })
-
   const handleFileChange = event => {
     debugger
     const { files } = event.target
 
     const newImages = Array.from(files).map(file => file)
+    const imagesList = getValues('prescription_images')
+    if (imagesList.length > 0) {
+      setValue('prescription_images', [...imagesList, ...newImages])
+    } else {
+      setValue('prescription_images', [...newImages])
+    }
 
-    setValue('prescription_images', newImages)
+    setPrescriptionImage([...imagesList, ...newImages])
   }
 
   console.log('getValues???', getValues())
@@ -202,6 +188,7 @@ export default function AddProduct() {
     //   filterList.map(image => (typeof image === 'string' ? image : image?.file?.name))
     // )
   }
+
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
       setImgBaseUrl(res?.base_path)
@@ -222,6 +209,8 @@ export default function AddProduct() {
           : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`,
         prescription_images: res?.data?.prescription_images
       })
+
+      setPrescriptionImage(res?.data?.prescription_images)
 
       // res?.data?.request_item_details?.map(Item =>
       //   typeof Item?.product_image === 'string'
@@ -281,14 +270,17 @@ export default function AddProduct() {
       } = data
 
       const listImages = []
-      prescription_images?.map(file => {
-        return listImages?.push(file.file)
-      })
+
+      debugger
+
+      // prescription_images?.map(file => {
+      //   return listImages?.push(file.file)
+      // })
 
       const payload = {
         from_store: from_store,
         comments: comment,
-        prescription_images: listImages,
+        prescription_images,
         request_item_details: [
           {
             product_type,
@@ -303,6 +295,8 @@ export default function AddProduct() {
           }
         ]
       }
+
+      console.log(payload)
 
       // payload.request_item_details.request_item_detail_id = requestData
 
@@ -847,7 +841,6 @@ export default function AddProduct() {
                             multiple
                             onChange={e => handleFileChange(e)}
                             name='prescription_images'
-                            ref={prescriptionRef}
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
                           <AddButton
@@ -856,14 +849,10 @@ export default function AddProduct() {
                           />
                         </Grid>
                         {/* {console.log('fields-length', fields.length)} */}
-                        {console.log('prescriptionField', prescriptionField.length)}
-                        {prescriptionField.length > 0 && (
+                        {prescriptionImage?.length > 0 && (
                           <ImageUploadComponent
-                            fields={fields}
                             getValues={getValues}
                             setPrescriptionField={setPrescriptionField}
-                            prescriptionField={prescriptionField}
-                            //setPrescriptionImage={setPrescriptionImage}
                             imgBaseUrl={imgBaseUrl}
                             prescriptionImage={prescriptionImage}
                             removeselectedImage={removeselectedImage}

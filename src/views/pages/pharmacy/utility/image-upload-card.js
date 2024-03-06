@@ -22,26 +22,26 @@ import { Icon } from '@iconify/react'
 const ImageUploadComponent = ({
   fields,
   getValues,
-  prescriptionField,
+  prescriptionImage,
   imgBaseUrl,
   removeselectedImage,
   setPrescriptionField
 }) => {
-  console.log('Get??????', getValues('presc'))
+  console.log('Get??????', prescriptionImage)
   debugger
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
-  useEffect(() => {
-    debugger
-    if (fields.length > 0) {
-      setPrescriptionField([...prescriptionField, fields])
-    }
-  }, [fields])
+  // useEffect(() => {
+  //   debugger
+  //   if (fields.length > 0) {
+  //     setPrescriptionField([...prescriptionField, fields])
+  //   }
+  // }, [fields])
 
-  {
-    console.log('Prescription Images???', prescriptionField)
-  }
+  // {
+  //   console.log('Prescription Images???', prescriptionField)
+  // }
 
   const renderFilePreview = file => {
     debugger
@@ -86,7 +86,7 @@ const ImageUploadComponent = ({
       {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
 
       <List>
-        {prescriptionField?.map((image, index) => (
+        {prescriptionImage?.map((image, index) => (
           <>
             <ListItem
               sx={{
@@ -94,12 +94,13 @@ const ImageUploadComponent = ({
               }}
               key={image?.file?.name}
             >
+              {console.log('type of image', typeof image)}
               <div style={{ display: 'flex', justifyContent: 'space-around' }}>
                 <div className='file-preview'>
-                  {image && renderFilePreview(typeof image === 'string' ? image : image.file)}
+                  {image && renderFilePreview(typeof image === 'string' ? image : image)}
                 </div>
                 <div style={{ margin: '10px' }}>
-                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.file?.name}</Typography>
+                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.name}</Typography>
                 </div>
               </div>{' '}
               {console.log('image>>>>>>', image)}
