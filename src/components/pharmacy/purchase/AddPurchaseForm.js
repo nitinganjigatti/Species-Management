@@ -592,7 +592,6 @@ const AddPurchaseForm = () => {
 
   //  ******
   const fetchMedicineData = async searchText => {
-    // if (searchText !== '') {
     try {
       const params = {
         sort: 'asc',
@@ -616,7 +615,6 @@ const AddPurchaseForm = () => {
     } catch (e) {
       console.log('error', e)
     }
-    // }
   }
 
   const getMedicineExpiryDate = async (product_id, batch) => {

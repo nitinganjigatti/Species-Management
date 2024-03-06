@@ -356,7 +356,6 @@ const AddReturnRequest = () => {
 
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    // if (searchText !== '') {
     try {
       setProductLoading(true)
 
@@ -381,7 +380,6 @@ const AddReturnRequest = () => {
       console.log('error', e)
       setProductLoading(false)
     }
-    // }
   }
 
   const fetchBatchData = async id => {

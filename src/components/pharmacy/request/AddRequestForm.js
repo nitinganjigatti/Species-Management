@@ -341,7 +341,7 @@ const AddRequestForm = () => {
 
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    // if (searchText !== '') {
+
     try {
       var params = {
         sort: 'asc',
@@ -362,7 +362,7 @@ const AddRequestForm = () => {
     } catch (e) {
       console.log('error', e)
     }
-    // }
+   
   }
 
   const searchMedicineData = useCallback(
