@@ -317,10 +317,10 @@ export default function AddProduct() {
           router.push('/pharmacy/new-product-request/')
           reset()
         } else {
-          setSuccessFulModal(false)
+          // setSuccessFulModal(false)
         }
       } catch (error) {
-        setSuccessFulModal(false)
+        // setSuccessFulModal(false)
 
         // Handle the error as needed
         console.error('An error occurred:', error)
@@ -752,7 +752,7 @@ export default function AddProduct() {
                           )}
                         </Grid>
 
-                        <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                        {/* <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
                           <input
                             type='file'
                             accept='image/*'
@@ -767,7 +767,7 @@ export default function AddProduct() {
                               styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
                             />
                           )}
-                        </Grid>
+                        </Grid> */}
 
                         {/* {imgSrc === '' && ( */}
                       </Grid>
