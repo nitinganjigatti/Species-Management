@@ -72,7 +72,12 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 </Typography>
                 <Typography variant='body2'>{item.quantity}</Typography>
               </Grid>
-
+              <Grid item xs={6}>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Priority
+                </Typography>
+                {item?.priority}
+              </Grid>
               {item?.product_image && (
                 <Grid item xs={6}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
@@ -90,12 +95,7 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   </a>
                 </Grid>
               )}
-              <Grid item xs={6}>
-                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                  Priority
-                </Typography>
-                {item?.priority}
-              </Grid>
+
               {prescriptionImages && (
                 <Grid item xs={12}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
