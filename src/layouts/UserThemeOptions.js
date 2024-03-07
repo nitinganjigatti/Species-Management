@@ -79,6 +79,13 @@ const UserThemeOptions = () => {
             '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
               outline: 'none'
             }
+          },
+          cell: {
+            // Your styles for the DataGrid cells...
+            borderBottom: 'none',
+            marginBottom: '5px',
+            paddingLeft: '1.25rem',
+            paddingRight: '1rem'
           }
         }
       }
