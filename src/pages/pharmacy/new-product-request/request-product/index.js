@@ -428,36 +428,6 @@ export default function AddProduct() {
   const router = useRouter()
   const { id } = router.query
 
-  // useEffect(() => {
-  //   getSpecificProductList()
-  // }, [])
-
-  // useEffect(() => {
-  //   if (dataChildValues) {
-  //     reset({
-  //       priority: res?.data?.request_item_details.map(Item => Item.priority),
-  //       product_type: res?.data?.request_item_details.map(Item => Item.product_type),
-  //       product_name: res?.data?.request_item_details.map(Item => Item.product_name),
-  //       generic_name: res?.data?.request_item_details.map(Item => Item.generic_name),
-  //       product_image: res?.data?.request_item_details.map(Item =>
-  //         typeof Item?.product_image === 'string'
-  //           ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-  //           : Item?.product_image
-  //       )
-  //     })
-
-  //     // let constructedPath = ''
-  //     // if (imgBaseUrl) {
-  //     //   constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
-  //     // }
-  //     setImgSrc(
-  //       editValues?.product_image !== '' && typeof editValues?.product_image === 'string'
-  //         ? `${base_url}${imgBaseUrl}${editValues?.product_image}`
-  //         : editValues?.product_image
-  //     )
-  //   }
-  // }, [])
-
   useEffect(() => {
     if (id) {
       getSpecificProductList(id)
@@ -469,17 +439,6 @@ export default function AddProduct() {
       isDirty ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
     }
   }
-
-  // const renderFilePreview = file => {
-  //   if (typeof file === 'string') {
-  //     return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
-  //   }
-  //   if (file instanceof Blob || file instanceof File) {
-  //     return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
-  //   } else {
-  //     return <Icon icon='mdi:file-document-outline' />
-  //   }
-  // }
 
   return (
     <>
@@ -724,7 +683,7 @@ export default function AddProduct() {
                             accept='image/*'
                             onChange={e => handleInputImageChange(e)}
                             name='product_image'
-                            ref={fileInputRef}
+                            // ref={fileInputRef}
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
                           {imgSrc === '' && (

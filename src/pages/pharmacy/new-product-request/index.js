@@ -233,29 +233,6 @@ export default function NewProductList() {
     }
   }
 
-  // const getProductSearchLists = async () => {
-  //   try {
-  //     setLoader(true)
-  //     const response = await getNonExistingProductList()
-  //     if (response?.length > 0) {
-  //       console.log('list', response)
-
-  //       let listWithId = response
-  //         ? response.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //         : []
-  //       setRows(listWithId)
-  //       setLoader(false)
-  //     } else {
-  //       setLoader(false)
-  //     }
-  //   } catch (error) {
-  //     setLoader(false)
-  //     console.log('error', error)
-  //   }
-  // }
-
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
   }, [fetchTableData, selectedPharmacy.id])
@@ -266,25 +243,6 @@ export default function NewProductList() {
       query: { id: id }
     })
   }
-
-  // const handleEditItems = id => {
-  //   setShow(true)
-  //   console.log(id, 'idd')
-  // }
-
-  // const handleView = () => {
-  //   setShow(true)
-  // }
-
-  // const handleDelete = async id => {
-  //   const response = await deleteNonExistingProduct(id)
-  //     .then(res => {
-  //       console.log('deleted Successfully', res)
-  //     })
-  //     .catch(err => console.log('err', err))
-
-  //   return response
-  // }
 
   const onRowClick = async params => {
     setShow(true)
@@ -298,10 +256,6 @@ export default function NewProductList() {
       })
       .catch(err => console.log(err))
   }
-
-  // const handleHeaderAction = () => {
-  //   console.log('Handle Header Action')
-  // }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
