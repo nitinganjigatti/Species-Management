@@ -39,33 +39,45 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 </Grid>
               )}
 
-            <Grid container spacing={6} sx={{ mb: '30px' }}>
+            <Grid container spacing={6} sx={{ mb: '30px' }} xs={12}>
               {selectedPharmacy.type === 'central' && (
                 <Grid item xs={6}>
-                  <Typography>From Store</Typography>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    From Store
+                  </Typography>
                   {productDetails?.to_store_name}
                 </Grid>
               )}
               <Grid item xs={6}>
-                <Typography>Product Type</Typography>
-                {item?.product_type}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Product Type
+                </Typography>
+                <Typography variant='body2'>{item.product_type}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Product Name</Typography>
-                {item?.product_name}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Product Name
+                </Typography>
+                <Typography variant='body2'>{item.product_name}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Generic Name</Typography>
-                {item?.generic_name}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Generic Name
+                </Typography>
+                <Typography variant='body2'>{item.generic_name}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Quantity</Typography>
-                {item?.quantity}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Quantity
+                </Typography>
+                <Typography variant='body2'>{item.quantity}</Typography>
               </Grid>
 
               {item?.product_image && (
                 <Grid item xs={6}>
-                  <Typography>Product Image</Typography>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Product Image
+                  </Typography>
 
                   <a href={`${base_url}${imgUrl}${item?.product_image}`} target='_blank'>
                     <img
@@ -79,12 +91,16 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 </Grid>
               )}
               <Grid item xs={6}>
-                <Typography>Priority</Typography>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Priority
+                </Typography>
                 {item?.priority}
               </Grid>
               {prescriptionImages && (
-                <Grid item xs={6}>
-                  <Typography>Prescription Images</Typography>
+                <Grid item xs={12}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Prescription Images
+                  </Typography>
 
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
@@ -106,9 +122,11 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   </Grid>
                 </Grid>
               )}
-              <Grid item xs={6}>
-                <Typography>Comments</Typography>
-                {productDetails?.comments}
+              <Grid item xs={12}>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Comments
+                </Typography>
+                <Typography variant='body2'>{productDetails?.comments}</Typography>
               </Grid>
             </Grid>
           </div>
