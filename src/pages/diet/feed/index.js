@@ -52,13 +52,7 @@ const FeedTypes = () => {
           <Typography sx={{ fontWeight: 600 }} variant='h6'>
             Feed Types
           </Typography>
-          <Button
-            sx={{ px: 7 }}
-            size='small'
-            variant='contained'
-
-            // onClick={() => Router.push('/diet/add-feed')}
-          >
+          <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-feed')}>
             <Icon icon='mdi:add' fontSize={20} />
             &nbsp; NEW
           </Button>
