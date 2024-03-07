@@ -24,37 +24,6 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  // const defaultValues = {
-  //   from_store: '',
-  //   comment: '',
-  //   prescription_images: [],
-  //   product_type: '',
-  //   product_name: '',
-  //   generic_name: '',
-  //   product_image: '',
-  //   quantity: '1',
-  //   priority: 'Normal'
-  // }
-
-  // const schema = yup.object().shape({
-  //   from_store: yup.string().required('please select from store'),
-  //   product_type: yup.string().required('product type is required'),
-  //   product_name: yup.string().required('product name is required'),
-  //   generic_name: yup.string().required('generic name is required'),
-  //   quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
-  // })
-
-  // const {
-  //   handleSubmit,
-  //   control,
-  //   reset,
-  //   formState: { errors }
-  // } = useForm({
-  //   defaultValues,
-  //   resolver: yupResolver(schema),
-  //   mode: 'onBlur'
-  // })
-
   return (
     <Grid>
       {detailsData?.map((item, index) => {
@@ -74,7 +43,7 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
               {selectedPharmacy.type === 'central' && (
                 <Grid item xs={6}>
                   <Typography>From Store</Typography>
-                  {productDetails.to_store_name}
+                  {productDetails?.to_store_name}
                 </Grid>
               )}
               <Grid item xs={6}>

@@ -9,7 +9,7 @@ export const ConfirmationBox = ({ setConfirmationBox }) => {
     <>
       <Grid container xs={12} sx={{ position: 'relative', bottom: '12px' }}>
         <Typography sx={{ fontSize: '20px', position: 'relative', left: '78px', top: '10px' }}>
-          Are you sure you want to Cancel ?
+          Are you sure you want to Cancel the Changes ?
         </Typography>
         <Grid xs={12} sx={{ position: 'relative', left: '200px', top: '10px' }}>
           <LoadingButton
