@@ -507,7 +507,7 @@ export default function AddProduct() {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Grid container sm={12} mt={4} xs={12}>
+                  <Grid container mt={4} xs={12}>
                     <Grid container spacing={6}>
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
