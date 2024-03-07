@@ -426,7 +426,7 @@ const RequestDetails = () => {
     try {
       const errors = await trigger()
       if (errors) {
-        handleSubmit(onSubmit)()
+        handleSubmit(onSubmit)
       } else {
         scrollToTop()
       }
@@ -454,6 +454,7 @@ const RequestDetails = () => {
       replaced_lab_id,
       transfer_reason
     }
+    console.log('payload', payload)
 
     const res = await transferLab(id, payload).then(res => {
       if (res?.status) {
