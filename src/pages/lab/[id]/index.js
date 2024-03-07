@@ -117,7 +117,10 @@ const RequestDetails = () => {
   const handleChangeStatus = async event => {
     setStatus(event.target.value)
     const id = medicineId
-    const payload = event.target.value
+    const payload = {
+      status: event.target.value
+    }
+    console.log('payload', payload)
 
     const response = await UpdateStatus(id, payload).then(res => {})
   }
@@ -150,8 +153,10 @@ const RequestDetails = () => {
       const response = await GetRequestDetails(id, { params }).then(res => {
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
-        setMedicineId(res?.data?.result[0]?.id)
+
+        setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
+
         setRequestId(res?.data?.result[0]?.id)
         setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
         setTotal(parseInt(res?.data?.total_count))
@@ -441,7 +446,7 @@ const RequestDetails = () => {
     } = {
       ...params
     }
-    const id = medicineId
+    const id = requestId
 
     const replaced_lab_id = request[0]?.lab_id
     const payload = {

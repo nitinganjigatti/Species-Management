@@ -60,29 +60,30 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
 
     const lab_test_files = []
 
-    if (files.length > 0) {
-      lab_test_files.push({
-        type: 'image',
-        file: files[0]
-      })
-    }
+    // if (files.length > 0) {
+    //   lab_test_files.push({
+    //     // type: 'image',
+    //     file: files[0]
+    //   })
+    // }
 
     // Add document to lab_test_files array
-    if (selectedFile) {
-      lab_test_files.push({
-        type: 'document',
-        file: selectedFile
-      })
-    }
+    // if (selectedFile) {
+    //   lab_test_files.push({
+    //     // type: 'document',
+    //     file: selectedFile
+    //   })
+    // }
 
     const payload = {
       medical_record_id: medicalRecordId,
       animal_id: animalID,
       lab_test_id: labTestId,
-      lab_test_files,
+      lab_test_files: [files[0]],
       entity_type: type,
       entity_id: id
     }
+    console.log('payload', payload)
 
     try {
       const res = await UploadLabReports(payload)
@@ -155,7 +156,7 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
           <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
             Upload
           </LoadingButton>
-          <LoadingButton onClick={() => setUploadedImage()} variant='outlined'>
+          <LoadingButton onClick={() => setFiles([])} variant='outlined'>
             Reset
           </LoadingButton>
         </div>

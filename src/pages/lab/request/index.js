@@ -250,9 +250,10 @@ const ListOfRequest = () => {
     setLab(options)
   }, [])
 
-  const GetLabRequestStatus = async params2 => {
+  const GetLabRequestStatus = async params => {
+    console.log('params2', params)
     try {
-      const res = await GetLabRequestTestStatusById({ params2 })
+      const res = await GetLabRequestTestStatusById({ params })
       setStats(res?.data?.stats)
       console.log('res', res?.data?.stats)
     } catch (error) {

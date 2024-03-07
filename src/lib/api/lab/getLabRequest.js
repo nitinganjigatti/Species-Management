@@ -9,7 +9,7 @@ import {
   GetTestsStatusById,
   LabFileDelete
 } from '../../../constants/ApiConstant'
-import { axiosGet, axiosPost } from '../utility'
+import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function getNoOfLab() {
   const response = await axiosGet({ url: `${GetLabNo}` })
@@ -77,7 +77,7 @@ export async function UploadLabReports(payload) {
   try {
     const url = `${uploadLabReports}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {

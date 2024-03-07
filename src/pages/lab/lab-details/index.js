@@ -53,15 +53,15 @@ const LabDetails = () => {
           <Grid item md={9}>
             <TabContext value={status}>
               <TabList onChange={handleChange}>
-                <Tab value='overview' label='OVERVIEW' />
+                {/* <Tab value='overview' label='OVERVIEW' /> */}
                 <Tab value='site' label='SITE' />
                 <Tab value='tests' label='TESTS' />
                 <Tab value='users' label='USERS' />
-                <Tab value='equipments' label='EQUIPMENTS' />
+                {/* <Tab value='equipments' label='EQUIPMENTS' /> */}
               </TabList>
-              <TabPanel value='overview'>
+              {/* <TabPanel value='overview'>
                 <OverView />
-              </TabPanel>
+              </TabPanel> */}
               <TabPanel value='site'>
                 <Site labId={id} />
               </TabPanel>
@@ -71,9 +71,9 @@ const LabDetails = () => {
               <TabPanel value='users'>
                 <Users labId={id} />
               </TabPanel>
-              <TabPanel value='equipments'>
+              {/* <TabPanel value='equipments'>
                 <Equipments />
-              </TabPanel>
+              </TabPanel> */}
             </TabContext>
           </Grid>
         </Grid>

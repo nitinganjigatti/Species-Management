@@ -10,7 +10,7 @@ export const GetLabNo = 'user-lab-list'
 
 export const PostTransfer = '/antz/transfer/lab-tests'
 
-export const uploadLabReports = '/medical/add-lab-test-files'
+export const uploadLabReports = 'medical/add-lab-test-files'
 
 export const updateStatus = '/antz/update/lab-tests-status'
 
