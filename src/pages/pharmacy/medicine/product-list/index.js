@@ -37,8 +37,6 @@ const ListOfMedicine = () => {
   const [configureMedId, setConfigureMedId] = useState('')
 
   const { selectedPharmacy } = usePharmacyContext()
-
-  debugger
   console.log(selectedPharmacy)
 
   const closeDialog = () => {
