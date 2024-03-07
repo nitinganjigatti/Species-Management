@@ -27,24 +27,9 @@ const ImageUploadComponent = ({
   removeselectedImage,
   setPrescriptionField
 }) => {
-  console.log('Get??????', prescriptionImage)
-  debugger
-
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
-  // useEffect(() => {
-  //   debugger
-  //   if (fields.length > 0) {
-  //     setPrescriptionField([...prescriptionField, fields])
-  //   }
-  // }, [fields])
-
-  // {
-  //   console.log('Prescription Images???', prescriptionField)
-  // }
-
   const renderFilePreview = file => {
-    debugger
     if (file !== undefined) {
       if (typeof file === 'string') {
         return (
@@ -82,17 +67,14 @@ const ImageUploadComponent = ({
 
   return (
     <Box>
-      {/* <CardContent> */}
-      {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
-
       <List>
         {prescriptionImage?.map((image, index) => (
           <>
             <ListItem
+              key={image}
               sx={{
                 borderRadius: '10px'
               }}
-              key={image?.file?.name}
             >
               {console.log('type of image', typeof image)}
               <div style={{ display: 'flex', justifyContent: 'space-around' }}>
@@ -103,7 +85,6 @@ const ImageUploadComponent = ({
                   <Typography className='file-name'>{typeof image === 'string' ? image : image?.name}</Typography>
                 </div>
               </div>{' '}
-              {console.log('image>>>>>>', image)}
               <IconButton onClick={() => removeselectedImage(index)}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
@@ -111,8 +92,6 @@ const ImageUploadComponent = ({
           </>
         ))}
       </List>
-      {/* <ImageUploadComponent fields={fields} /> */}
-      {/* </CardContent> */}
     </Box>
   )
 }
