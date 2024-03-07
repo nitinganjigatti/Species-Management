@@ -67,7 +67,7 @@ const Supplier = () => {
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.company_name}
         </Typography>
       )
     },
@@ -90,7 +90,7 @@ const Supplier = () => {
       headerName: 'CONTACT PERSON',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.company_name}
+          {params.row.name}
         </Typography>
       )
     },
