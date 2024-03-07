@@ -15,7 +15,13 @@ const composeDietNavigation = () => {
     icon: 'material-symbols:inventory-2-outline'
   }
 
-  const dietNavigation = [pharmacyTitle, feedTypes, feedDetails]
+  const testscroll = {
+    title: 'Scroll test',
+    path: '/diet/feed/scroll',
+    icon: 'material-symbols:inventory-2-outline'
+  }
+
+  const dietNavigation = [pharmacyTitle, feedTypes, feedDetails, testscroll]
 
   return dietNavigation
 }
