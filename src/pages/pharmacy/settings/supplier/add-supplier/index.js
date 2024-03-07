@@ -201,7 +201,12 @@ const AddSupplier = () => {
         Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === object) {
+          const message = response?.message.company_name
+          setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
+        } else {
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        }
       }
     } catch (e) {
       console.log(e)
@@ -220,8 +225,27 @@ const AddSupplier = () => {
         reset(defaultValues)
         Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
+        debugger
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          const message = response?.message.company_name
+
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: message !== '' ? 'Supplier name should be unique' : '',
+            severity: 'error'
+          })
+        } else {
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: JSON.stringify(response?.message),
+            severity: 'error'
+          })
+        }
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
