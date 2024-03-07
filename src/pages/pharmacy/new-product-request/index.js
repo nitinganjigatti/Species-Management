@@ -40,21 +40,6 @@ export default function NewProductList() {
   const { selectedPharmacy } = usePharmacyContext()
 
   const columns = [
-    // {
-    //   flex: 0.2,
-    //   Width: 20,
-    //   field: 'from_store_name',
-    //   headerName: 'Store Name',
-    //   renderCell: (params, rowId) => (
-    //     <div onClick={() => handleRowClick(params.row.id)}>
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {console.log('params', params)}
-    //         {params.row.from_store_name}
-    //       </Typography>
-    //     </div>
-    //   )
-    // },
-
     {
       flex: 0.2,
       Width: 20,
@@ -62,6 +47,7 @@ export default function NewProductList() {
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
+          {console.log('params>>>>>', params)}
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params?.row?.request_number}
           </Typography>
@@ -109,11 +95,15 @@ export default function NewProductList() {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
-      headerName: 'Status',
+      field: 'quantity',
+      headerName: 'Quantity',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.status}
+          {params?.row.request_items?.map((item, index) => (
+            <Typography key={index} sx={{ color: 'text.primary' }}>
+              {item?.quantity}
+            </Typography>
+          ))}
         </Typography>
       )
     },
@@ -128,30 +118,18 @@ export default function NewProductList() {
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params?.row?.status}
+        </Typography>
+      )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     // <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //     //   {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)}>
-    //     //     <Icon icon='mdi:pencil-outline' />
-    //     //   </IconButton> */}
-    //     //   <IconButton
-    //     //     size='small'
-    //     //     sx={{ mr: 0.5 }}
-    //     //     onClick={() => {
-    //     //       handleDelete(params.row.id)
-    //     //     }}
-    //     //   >
-    //     //     {/* <DeleteIcon /> */}
-    //     //   </IconButton>
-    //     // </Box>
-    //   )
-    // }
   ]
   const router = useRouter()
 
