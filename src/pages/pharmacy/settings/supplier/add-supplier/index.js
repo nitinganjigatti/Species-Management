@@ -52,7 +52,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  name: yup
+  company_name: yup
     .string()
     .required('Supplier name is required')
     .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
@@ -89,7 +89,7 @@ const schema = yup.object().shape({
     .required('Mobile No is required')
     .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
     .max(10, 'Maximum of 10 digits'),
-  state_id: yup.string().required('Select state'),
+  state_id: yup.string().required('State is Required'),
   gst_number: yup
     .string()
     .nullable()
@@ -107,7 +107,7 @@ const schema = yup.object().shape({
   opening_balance: yup.string().nullable(),
   address: yup.string().nullable(),
   description: yup.string().nullable(),
-  company_name: yup.string().nullable()
+  name: yup.string().nullable()
 })
 
 const AddSupplier = () => {
@@ -201,7 +201,12 @@ const AddSupplier = () => {
         Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === object) {
+          const message = response?.message.company_name
+          setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
+        } else {
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        }
       }
     } catch (e) {
       console.log(e)
@@ -220,8 +225,27 @@ const AddSupplier = () => {
         reset(defaultValues)
         Router.push('/pharmacy/settings/supplier/supplier-list')
       } else {
+        debugger
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          const message = response?.message.company_name
+
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: message !== '' ? 'Supplier name should be unique' : '',
+            severity: 'error'
+          })
+        } else {
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: JSON.stringify(response?.message),
+            severity: 'error'
+          })
+        }
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -261,7 +285,7 @@ const AddSupplier = () => {
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <Controller
-                        name='name'
+                        name='company_name'
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
@@ -270,13 +294,13 @@ const AddSupplier = () => {
                             label='Supplier Name'
                             onChange={onChange}
                             placeholder='Supplier Name'
-                            error={Boolean(errors.name)}
-                            name='name'
+                            error={Boolean(errors.company_name)}
+                            name='company_name'
                           />
                         )}
                       />
-                      {errors.name && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>
+                      {errors.company_name && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.company_name.message}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
@@ -284,14 +308,14 @@ const AddSupplier = () => {
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <Controller
-                        name='company_name'
+                        name='name'
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
                             label='Contact Person'
-                            name='company_name'
+                            name='name'
                             onChange={onChange}
                             placeholder=''
                           />

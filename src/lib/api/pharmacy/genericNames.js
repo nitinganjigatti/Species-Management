@@ -7,6 +7,12 @@ export async function getGenerics() {
   return response.data
 }
 
+export async function getGenericsForMaster({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${GENERICS}/list`, params, pharmacy: true })
+
+  return response.data
+}
+
 export async function getGenericsById(id) {
   const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${GENERICS}/${id}`, pharmacy: true })
 
