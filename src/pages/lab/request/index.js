@@ -38,6 +38,7 @@ const ListOfRequest = () => {
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
+  console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
   const [selectedLab, setSelectedLab] = useState()
 
@@ -54,7 +55,10 @@ const ListOfRequest = () => {
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
     write('selectedLAB', labSelected)
-    router.push(`/lab/${id}`)
+    router.push({
+      pathname: `/lab/${id}`,
+      query: { lab_id: labSelected }
+    })
   }
 
   const columns = [
@@ -246,9 +250,10 @@ const ListOfRequest = () => {
     setLab(options)
   }, [])
 
-  const GetLabRequestStatus = async params2 => {
+  const GetLabRequestStatus = async params => {
+    console.log('params2', params)
     try {
-      const res = await GetLabRequestTestStatusById({ params2 })
+      const res = await GetLabRequestTestStatusById({ params })
       setStats(res?.data?.stats)
       console.log('res', res?.data?.stats)
     } catch (error) {

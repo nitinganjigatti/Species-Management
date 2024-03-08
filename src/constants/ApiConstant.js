@@ -1,12 +1,16 @@
 export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
 
+export const getUserByLabId = 'antz/lab/users'
+
+export const getSitesByLabId = 'antz/labs/lab-sites'
+
 export const LabFileDelete = 'delete-lab-test-file'
 
 export const GetLabNo = 'user-lab-list'
 
 export const PostTransfer = '/antz/transfer/lab-tests'
 
-export const uploadLabReports = '/medical/add-lab-test-files'
+export const uploadLabReports = 'medical/add-lab-test-files'
 
 export const updateStatus = '/antz/update/lab-tests-status'
 

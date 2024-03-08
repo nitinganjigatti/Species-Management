@@ -22,7 +22,7 @@ const LabDetails = () => {
   }
   const router = useRouter()
   const { id } = router.query
-  console.log('id', id)
+
   const labDetailsById = async id => {
     try {
       const res = await getLabDeatilsById(id)
@@ -53,27 +53,27 @@ const LabDetails = () => {
           <Grid item md={9}>
             <TabContext value={status}>
               <TabList onChange={handleChange}>
-                <Tab value='overview' label='OVERVIEW' />
+                {/* <Tab value='overview' label='OVERVIEW' /> */}
                 <Tab value='site' label='SITE' />
                 <Tab value='tests' label='TESTS' />
                 <Tab value='users' label='USERS' />
-                <Tab value='equipments' label='EQUIPMENTS' />
+                {/* <Tab value='equipments' label='EQUIPMENTS' /> */}
               </TabList>
-              <TabPanel value='overview'>
+              {/* <TabPanel value='overview'>
                 <OverView />
-              </TabPanel>
+              </TabPanel> */}
               <TabPanel value='site'>
-                <Site />
+                <Site labId={id} />
               </TabPanel>
               <TabPanel value='tests'>
                 <Tests labTest={labTests} />
               </TabPanel>
               <TabPanel value='users'>
-                <Users />
+                <Users labId={id} />
               </TabPanel>
-              <TabPanel value='equipments'>
+              {/* <TabPanel value='equipments'>
                 <Equipments />
-              </TabPanel>
+              </TabPanel> */}
             </TabContext>
           </Grid>
         </Grid>
