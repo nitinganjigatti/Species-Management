@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -29,11 +30,13 @@ import { useTheme } from '@mui/material/styles'
 const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSidebarOpen, handleSidebarClose }) => {
   const [searchValue, setSearchValue] = useState('')
   const theme = useTheme()
+
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
     const day = String(today.getDate()).padStart(2, '0')
+
     return `${year}-${month}-${day}`
   })
   const [animalList, setAnimalList] = useState([])
@@ -86,10 +89,12 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
     const filteredAnimals_s = animals_s.filter(
       existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
     )
+
     // filtering out old elements which is not matched
     const filteredCollectedAnimals = collectedAnimals.filter(
       newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
     )
+
     // Concatenate the both filtered arrays
     const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
 
@@ -98,6 +103,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
 
   const handleScroll = async e => {
     const container = e.target
+
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && searchValue != '') {
       // User has reached the bottom, perform your action here
@@ -188,29 +194,36 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         })
       }
       setCollectedAnimalsCount(updatedArray?.length)
+
       const filteredAnimals_s = animals_s.filter(
         existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
       )
+
       // filtering out old elements which is not matched
       const filteredCollectedAnimals = collectedAnimals.filter(
         newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
       )
+
       // Concatenate the both filtered arrays
       const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
 
       setAnimals_s_after_update(updatedAnimals_s)
+
       return updatedArray
     })
   }
+
   const addAnimals = () => {
     // filtering out new elements which is not matched
     const filteredAnimals_s = animals_s.filter(
       existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
     )
+
     // filtering out old elements which is not matched
     const filteredCollectedAnimals = collectedAnimals.filter(
       newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
     )
+
     // Concatenate the both filtered arrays
     const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
 
@@ -276,7 +289,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         >
           <Typography variant='h6'>Add Animals</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
+            {/* <IconButton
               size='small'
               onClick={() => {
                 setShowFilterDialog(true)
@@ -284,7 +297,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               sx={{ color: 'text.primary' }}
             >
               <Icon icon='mdi:filter' color={theme.palette.primary.main} fontSize={20} />
-            </IconButton>
+            </IconButton> */}
             <IconButton
               size='small'
               onClick={() => {
@@ -374,7 +387,6 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Checkbox
                     defaultChecked={animals_s?.some(i => i.animal_id === item?.animal_id)}
-                    // disabled={animals_s?.some(i => i.animal_id === item?.animal_id)}
                     onChange={e => {
                       animalFunc(item)
                     }}

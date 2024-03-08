@@ -30,7 +30,7 @@ import { AuthContext } from 'src/context/AuthContext'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Dosage Form is Required'),
+  name: yup.string().required('Store Name is Required'),
 
   // type: yup.string().required('Type is Required'),
   site_id: yup.string().nullable(),
@@ -100,7 +100,7 @@ const AddStore = props => {
     await handleSubmitData(payload)
   }
 
-  const getDosage = useCallback(
+  const getStore = useCallback(
     async id => {
       const response = await getStoreById(id)
       if (response?.success) {
@@ -117,8 +117,11 @@ const AddStore = props => {
     }
     if (editParams?.id !== null) {
       getDosage(editParams?.id)
+      console.log()
+
+      getStore(editParams?.id)
     }
-  }, [resetForm, editParams, reset, getDosage])
+  }, [resetForm, editParams, reset, getStore])
 
   const RenderSidebarFooter = () => {
     return (

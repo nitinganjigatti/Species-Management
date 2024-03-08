@@ -68,7 +68,6 @@ const RequestList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-      console.log('status', status)
       try {
         setLoading(true)
 
@@ -133,8 +132,7 @@ const RequestList = () => {
     var data = params.row
 
     Router.push({
-      pathname: '/pharmacy/request/individual-request/',
-      query: { id: data.id, request_number: data.request_number }
+      pathname: `/pharmacy/request/${data?.id}`
     })
   }
 

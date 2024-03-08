@@ -57,7 +57,7 @@ const ListOfStocks = () => {
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -65,7 +65,7 @@ const ListOfStocks = () => {
   const [batchSort, setBatchSort] = useState('asc')
   const [stockReportBatch, setStockReportBatch] = useState([])
   const [batchSearchValue, setBatchSearchValue] = useState('')
-  const [batchSortColumn, setBatchSortColumn] = useState('label')
+  const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -76,6 +76,7 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
 
   const { selectedPharmacy } = usePharmacyContext()
+
   // console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
@@ -83,6 +84,7 @@ const ListOfStocks = () => {
   }
 
   const closeDialog = () => {
+    setConfigureMedId('')
     setShow(false)
   }
 
@@ -114,6 +116,7 @@ const ListOfStocks = () => {
             const result = await getLocalStocksReportById(params)
             if (result.success === true && result.data.length > 0) {
               setTotal(parseInt(result?.count))
+
               let listWithId = result.data
                 ? result.data.map((el, i) => {
                     return { ...el, uid: i + 1 }
@@ -129,6 +132,7 @@ const ListOfStocks = () => {
         } else {
           try {
             setLoading(true)
+
             const params = {
               sort,
               q,
@@ -237,6 +241,7 @@ const ListOfStocks = () => {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true && result.data.length > 0) {
             setBatchTotal(parseInt(result?.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -254,6 +259,7 @@ const ListOfStocks = () => {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true && result.data !== '') {
             setBatchTotal(parseInt(result?.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -270,11 +276,13 @@ const ListOfStocks = () => {
     },
     [batchPaginationModel]
   )
+
   const batchIndexedRows = stockReportBatch?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
     sl_no: index + 1
   }))
+
   const handleBatchSearch = useCallback(
     debounce(async value => {
       setBatchSearchValue(value)
@@ -370,17 +378,17 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'expiry_date',
+    //   headerName: 'EXPIRY DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.expiry_date)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -408,17 +416,18 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'store_name',
-      headerName: 'Store Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.store_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'store_name',
+    //   headerName: 'Store Name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.store_name}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -431,31 +440,31 @@ const ListOfStocks = () => {
           {params.row.purchase_price}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              setConfigureMedId(params.row.stock_item_id)
-              showDialog()
-            }}
-          >
-            <Icon icon='grommet-icons:configure' />
-          </IconButton>
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+    //         <Icon icon='mdi:eye-outline' />
+    //       </IconButton> */}
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           setConfigureMedId(params.row.stock_item_id)
+    //           showDialog()
+    //         }}
+    //       >
+    //         <Icon icon='grommet-icons:configure' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const batchWiseColumn = [
@@ -532,28 +541,28 @@ const ListOfStocks = () => {
           {params.row.purchase_price}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              setConfigureMedId(params.row.stock_item_id)
-              showDialog()
-            }}
-          >
-            <Icon icon='grommet-icons:configure' />
-          </IconButton>
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           setConfigureMedId(params.row.stock_item_id)
+    //           showDialog()
+    //         }}
+    //       >
+    //         <Icon icon='grommet-icons:configure' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const headerAction = (
@@ -567,6 +576,11 @@ const ListOfStocks = () => {
         )}
     </div>
   )
+
+  const handleStockRowClick = params => {
+    setConfigureMedId(params?.row?.stock_item_id)
+    showDialog()
+  }
 
   return (
     <>
@@ -613,7 +627,6 @@ const ListOfStocks = () => {
                     paginationMode='server'
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    // onSortModelChange={handleSortModel}
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
@@ -631,7 +644,7 @@ const ListOfStocks = () => {
                         }
                       }
                     }}
-                    // onRowClick={onRowClick}
+                    onRowClick={handleStockRowClick}
                   />
                 </Card>
               </>
@@ -673,7 +686,6 @@ const ListOfStocks = () => {
                       paginationMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
-                      // onSortModelChange={handleSortModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
                       onPaginationModelChange={setBatchPaginationModel}
                       loading={batchLoading}
@@ -691,7 +703,6 @@ const ListOfStocks = () => {
                           }
                         }
                       }}
-                      // onRowClick={onRowClick}
                     />
                   </Card>
                 </>

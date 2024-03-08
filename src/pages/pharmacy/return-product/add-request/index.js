@@ -22,7 +22,9 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
-
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -47,11 +49,13 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import { addReturnItems, updateReturnItems, getReturnItemsListById } from 'src/lib/api/pharmacy/returnRequest'
+import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -113,7 +117,9 @@ const AddReturnRequest = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [productLoading, setProductLoading] = useState(false)
-  const [batchLoading, setBatchLoading] = useState(true)
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [deleteItemId, setDeleteItemId] = useState('')
+  const [deleteDialog, setDeleteDialog] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -137,7 +143,7 @@ const AddReturnRequest = () => {
     setDuplicateMedError('')
     // Resetting State
     setOptionsBatchList([])
-    setOptionsMedicineList([])
+    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -350,37 +356,31 @@ const AddReturnRequest = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        setProductLoading(true)
+    try {
+      setProductLoading(true)
 
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 20
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-        setProductLoading(false)
-      } catch (e) {
-        console.log('error', e)
-        setProductLoading(false)
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+      }
+      setProductLoading(false)
+    } catch (e) {
+      console.log('error', e)
+      setProductLoading(false)
     }
   }
 
@@ -450,6 +450,11 @@ const AddReturnRequest = () => {
   )
   //  ****** debounce
 
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData()
+  }, [])
+
   const getListOfItemsById = async id => {
     try {
       const result = await getReturnItemsListById(id)
@@ -469,7 +474,9 @@ const AddReturnRequest = () => {
             request_item_detail_id: el.id,
             request_item_batch_no: el.dispatch_batch_no,
             expiry_date: el.dispatch_expiry_date,
-            uuid: uuidv4()
+            uuid: uuidv4(),
+            available_item_qty: el?.batch_available_qty,
+            dispatch_item_id: el.dispatch_item_id
           }
         })
 
@@ -528,7 +535,7 @@ const AddReturnRequest = () => {
           setSubmitLoader(false)
           getListOfItemsById(id)
 
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
 
@@ -544,12 +551,34 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/return-product/individual-return/?id=${response.data}`)
+          Router.push(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
         }
       } catch (error) {
+        console.log('error', error)
+      }
+    }
+  }
+
+  const deleteLineItemFromDb = async lineItemId => {
+    debugger
+    console.log('lineItemId', lineItemId)
+    if (lineItemId) {
+      try {
+        const result = await deleteLineItem(lineItemId)
+        console.log('deleteLineItem result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+          getListOfItemsById(id)
+        } else {
+          toast.error(result.data)
+        }
+      } catch (error) {
+        toast.error(error.data)
         console.log('error', error)
       }
     }
@@ -778,6 +807,20 @@ const AddReturnRequest = () => {
                                 <Icon icon='mdi:delete-outline' />
                               </IconButton>
                             )}
+                            {console.log('line items', el)}
+                            {el.id !== undefined ? (
+                              <IconButton
+                                onClick={() => {
+                                  setDeleteItemId(el.id)
+                                  setDeleteDialog(true)
+                                  // removeItemsFroTable(el.request_item_medicine_id)
+                                }}
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                              >
+                                <Icon icon='mdi:delete-outline' />
+                              </IconButton>
+                            ) : null}
                           </TableCell>
                         </TableRow>
                       )
@@ -844,6 +887,49 @@ const AddReturnRequest = () => {
               </Button>
             </Box>
           </Grid>
+          <ConfirmDialogBox
+            open={deleteDialog}
+            closeDialog={() => {
+              setDeleteDialog(false)
+              setDeleteItemId(null)
+            }}
+            action={() => {
+              setDeleteDialog(false)
+              setDeleteItemId(null)
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
+                  </DialogContent>
+                  <DialogActions className='dialog-actions-dense'>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      color='primary'
+                      onClick={() => {
+                        setDeleteDialog(false)
+                        setDeleteItemId(null)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      color='error'
+                      onClick={() => {
+                        deleteLineItemFromDb(deleteItemId)
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </DialogActions>
+                </>
+              </Box>
+            }
+          />
         </Card>
       ) : (
         <>

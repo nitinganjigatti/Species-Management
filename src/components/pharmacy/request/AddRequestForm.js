@@ -25,7 +25,9 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
-
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -43,9 +45,15 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import {
+  addRequestItems,
+  getRequestItemsListById,
+  updateRequestItems,
+  deleteLineItem
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -58,7 +66,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
 import { AddButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
@@ -100,8 +107,10 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
+  const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+  const [deleteDialog, setDeleteDialog] = useState(false)
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -330,34 +339,30 @@ const AddRequestForm = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 10
-        }
 
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-      } catch (e) {
-        console.log('error', e)
+    try {
+      var params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+      }
+    } catch (e) {
+      console.log('error', e)
     }
+   
   }
 
   const searchMedicineData = useCallback(
@@ -370,6 +375,10 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData('')
+  }, [])
   //  ****** debounce
 
   const getListOfItemsById = async id => {
@@ -386,7 +395,8 @@ const AddRequestForm = () => {
           control_substance: el.control_substance === '0' ? false : true,
           control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
           id: el.id,
-          request_item_detail_id: el.id
+          request_item_detail_id: el.id,
+          dispatch_item_id: el.dispatch_item_id
         }
       })
 
@@ -463,7 +473,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -478,12 +488,34 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
         }
       } catch (error) {
+        console.log('error', error)
+      }
+    }
+  }
+
+  const deleteLineItemFromDb = async lineItemId => {
+    debugger
+    console.log('lineItemId', lineItemId)
+    if (lineItemId) {
+      try {
+        const result = await deleteLineItem(lineItemId)
+        console.log('deleteLineItem result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+          getListOfItemsById(id)
+        } else {
+          toast.error(result.data)
+        }
+      } catch (error) {
+        toast.error(error.data)
         console.log('error', error)
       }
     }
@@ -521,7 +553,12 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                   renderInput={params => (
-                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField
+                      {...params}
+                      placeholder='Search & Select'
+                      label='Product Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
                   )}
                 />
                 {itemErrors.medicine_name && (
@@ -925,7 +962,6 @@ const AddRequestForm = () => {
 
                             editTableData(el.request_item_medicine_id)
                             showDialog()
-                            // }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
@@ -941,6 +977,20 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         )}
+
+                        {el.id !== undefined ? (
+                          <IconButton
+                            onClick={() => {
+                              setDeleteItemId(el.id)
+                              setDeleteDialog(true)
+                              // removeItemsFroTable(el.request_item_medicine_id)
+                            }}
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                          >
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   )
@@ -1003,6 +1053,49 @@ const AddRequestForm = () => {
           </Button>
         </Box>
       </Grid>
+      <ConfirmDialogBox
+        open={deleteDialog}
+        closeDialog={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        action={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    setDeleteDialog(false)
+                    setDeleteItemId(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    deleteLineItemFromDb(deleteItemId)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
     </Card>
   )
 }

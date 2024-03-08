@@ -124,8 +124,7 @@ const ReturnRequestList = () => {
     var data = params.row
 
     Router.push({
-      pathname: '/pharmacy/return-product/individual-return/',
-      query: { id: data.id, request_number: data.request_number }
+      pathname: `/pharmacy/return-product/${data?.id}`
     })
   }
 

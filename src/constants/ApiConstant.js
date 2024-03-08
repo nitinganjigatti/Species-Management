@@ -72,6 +72,8 @@ export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
 
+export const MEDICINES_STOCK = 'nonexisting-stock'
+
 export const SHIPMENT = 'shipment'
 
 export const DEBIT_NOTE = 'purchase-return'

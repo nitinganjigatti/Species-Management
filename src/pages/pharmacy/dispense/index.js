@@ -2,6 +2,7 @@ import { Avatar, Card, CardHeader, Grid, Typography, debounce } from '@mui/mater
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
+
 // ** Icon Imports
 import { AddButton } from 'src/components/Buttons'
 import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -91,6 +92,7 @@ function Dispense() {
     async ({ sort, q, column }) => {
       try {
         setLoading(true)
+
         const params = {
           sort,
           q,
@@ -136,8 +138,7 @@ function Dispense() {
   const onRowClick = params => {
     var data = params.row
     Router.push({
-      pathname: '/pharmacy/dispense/individual-dispense',
-      query: { id: data.id }
+      pathname: `/pharmacy/dispense/${data?.id}`
     })
   }
 
@@ -212,6 +213,7 @@ function Dispense() {
                 clearSearch: () => handleSearch(''),
                 onChange: event => {
                   setSearchValue(event.target.value)
+
                   return handleSearch(event.target.value)
                 }
               }
