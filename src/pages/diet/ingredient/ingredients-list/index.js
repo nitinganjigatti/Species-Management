@@ -178,6 +178,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -291,70 +292,70 @@ const IngredientsList = ({ fromIngredientsPage }) => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
-        <>
-          {loader ? (
-            <FallbackSpinner />
-          ) : (
-            <>
-              <CommonDialogBox
-                title={'Configure Medicine'}
-                dialogBoxStatus={show}
-                formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-                close={closeDialog}
-                show={showDialog}
-              />
-              <Card>
-                <CardHeader title='Ingredients' action={headerAction} />
-                {/* <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <CommonDialogBox
+              title={'Configure Medicine'}
+              dialogBoxStatus={show}
+              formComponent={<MedicineConfigure configureMedId={configureMedId} />}
+              close={closeDialog}
+              show={showDialog}
+            />
+            <Card>
+              <CardHeader title='Ingredients' action={headerAction} />
+              {/* <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
                   <FormControlLabel control={<Switch defaultChecked />} label='Show Active Only' />
                 </Box> */}
-                <DataGrid
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilterAndToggle }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  className='raghu'
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined',
-                      sx: { float: 'right' }
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
+              <DataGrid
+                columnVisibilityModel={{
+                  id: false
+                }}
+                autoHeight
+                pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilterAndToggle }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                className='raghu'
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined',
+                    sx: { float: 'right' }
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
 
-                      onChange: event => {
-                        setSearchValue(event.target.value)
+                    onChange: event => {
+                      setSearchValue(event.target.value)
 
-                        return handleSearch(event.target.value)
-                      }
+                      return handleSearch(event.target.value)
                     }
-                  }}
-                />
-              </Card>
-            </>
-          )}
-        </>
-      ) : (
+                  }
+                }}
+              />
+            </Card>
+          </>
+        )}
+      </>
+      {/* ) : (
         <>
           <Error404></Error404>
         </>
-      )}
+      )} */}
     </>
   )
 }

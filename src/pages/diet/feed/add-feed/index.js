@@ -13,14 +13,19 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { AddButton } from 'src/components/Buttons'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
+import { addFeedType, getFeedById, updateFeedType } from 'src/lib/api/diet/feedType'
+import { useRouter } from 'next/router'
 
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
+
+  const router = useRouter()
+  const { id } = router.query
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
@@ -69,8 +74,6 @@ const AddFeedType = () => {
       // setValue('feedImg', reader?.result)
       reader?.readAsDataURL(files[0])
       setValue('feedImg', files[0])
-      // console.log('feedImg', files[0])
-      // console.log(getValues('feedImg'))
       clearErrors('feedImg')
     }
   }
@@ -80,18 +83,37 @@ const AddFeedType = () => {
     // setDisplayFile('')
   }
 
+  useEffect(() => {
+    if (id) {
+      getFeedById(id).then(res => {
+        // console.log('res', res?.data)
+        setImgSrc(res?.data?.feed_type_image)
+        setValue('name', res?.data?.feed_type_name)
+        setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
+        setValue('description', res?.data?.desc)
+        setValue('feedImg', res?.data?.feed_type_image)
+      })
+    }
+  }, [])
+
   const onSubmit = async params => {
     const { status, name, description, feedImg } = { ...params }
 
     const payload = {
-      status,
-      name,
-      description,
-      feedImg: getValues('feedImg')
+      active: status == 'inactive' ? 0 : 1,
+      feed_type_name: name,
+      desc: description,
+      feed_type_key: name,
+      feed_type_image: getValues('feedImg')
     }
-    console.log('submit', payload)
-    // await handleSubmitData(payload)
+    // console.log('submit', payload)
+    if (id) {
+      await updateFeedType({ ...payload }, id)
+    } else {
+      await addFeedType(payload)
+    }
   }
+
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
@@ -101,7 +123,7 @@ const AddFeedType = () => {
           variant='contained'
           // loading={submitLoader}
         >
-          Save
+          {id ? 'Update' : 'Save'}
         </LoadingButton>
         <Button size='large' type='reset' color='error' variant='outlined'>
           Cancel
@@ -113,9 +135,11 @@ const AddFeedType = () => {
     <Card>
       <CardContent>
         <Typography sx={{ mb: 1 }} variant='h6'>
-          Add New Feed
+          {id ? 'Update Feed' : ' Add New Feed'}
         </Typography>
-        <Typography sx={{ mb: 1 }}>Add New Feed type and write some description for it</Typography>
+        <Typography sx={{ mb: 1 }}>
+          {id ? 'Update Feed type' : 'Add New Feed type'} and write some description for it
+        </Typography>
 
         <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
           {/* {editParams?.id !== null ? ( */}

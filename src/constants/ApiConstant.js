@@ -109,3 +109,9 @@ export const FEED_DETAILS = 'feed-details'
 export const FEED = 'feed'
 
 export const INGREDIENTS_LIST = 'ingredients-list'
+
+export const FEED_TYPE_LIST = 'feed-listing'
+
+export const ADD_FEED_TYPE = 'add-feed'
+
+export const UPDATE_FEED_TYPE = 'update-feed'
