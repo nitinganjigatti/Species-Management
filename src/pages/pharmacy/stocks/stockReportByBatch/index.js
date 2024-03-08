@@ -85,6 +85,7 @@ const ListOfStocksByBatch = () => {
       } else {
         try {
           setLoading(true)
+
           const params = {
             sort,
             q,
@@ -95,6 +96,7 @@ const ListOfStocksByBatch = () => {
           const result = await getStocksByBatch(id, params)
           if (result.success === true && result.data !== '') {
             setTotal(parseInt(result?.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -367,6 +369,7 @@ const ListOfStocksByBatch = () => {
                       {createForm()}
                     </Box>
                   }
+
                   // action={createForm}
                 />
                 {indexedRows.length > 0 ? (
@@ -382,7 +385,6 @@ const ListOfStocksByBatch = () => {
                     paginationMode='server'
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    // onSortModelChange={handleSortModel}
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
@@ -400,6 +402,7 @@ const ListOfStocksByBatch = () => {
                         }
                       }
                     }}
+
                     // onRowClick={onRowClick}
                   />
                 ) : loading ? (
