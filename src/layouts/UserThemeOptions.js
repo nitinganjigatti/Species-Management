@@ -86,6 +86,16 @@ const UserThemeOptions = () => {
             marginBottom: '5px',
             paddingLeft: '1.25rem',
             paddingRight: '1rem'
+          },
+          row: {
+            // Your row styles...
+            marginTop: '13px',
+            '&:hover': {
+              backgroundColor: '#F2FFF8'
+            }
+          },
+          columnHeaders: {
+            backgroundColor: '#C1D3D0'
           }
         }
       }

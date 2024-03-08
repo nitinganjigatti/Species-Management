@@ -31,22 +31,27 @@ const data = {
 }
 
 const roleColors = {
-  admin: 'error',
-  editor: 'info',
-  author: 'warning',
-  maintainer: 'success',
-  subscriber: 'primary'
-}
-
-const statusColors = {
   active: 'success',
-  pending: 'warning',
-  inactive: 'secondary'
+  inactive: 'error'
 }
 
-const FeedOverview = () => {
+const FeedOverview = ({ FeedDetailsValue }) => {
   const handleEditClickOpen = () => setOpenEdit(true)
-  if (data) {
+
+  function convertToTitleCase(str) {
+    const words = str?.split(/(?=[A-Z])/)
+    const titleCaseWords = words?.map(word => {
+      const firstLetter = word?.charAt(0).toUpperCase()
+      const restOfWord = word?.slice(1)
+
+      return firstLetter + restOfWord
+    })
+    const titleCaseStr = titleCaseWords?.join(' ')
+
+    return titleCaseStr
+  }
+
+  if (FeedDetailsValue) {
     return (
       <Grid item xs={4}>
         <Card>
@@ -54,31 +59,21 @@ const FeedOverview = () => {
             <Typography variant='h6' sx={{ mb: 10 }}>
               Feed Type
             </Typography>
-            {data.avatar ? (
-              <CustomAvatar
-                src={data.avatar}
-                variant='rounded'
-                alt={data.fullName}
-                sx={{ width: 120, height: 120, fontWeight: 400, mb: 4 }}
-              />
-            ) : (
-              <CustomAvatar
-                skin='light'
-                variant='rounded'
-                color={data.avatarColor}
-                sx={{ width: 120, height: 120, fontWeight: 600, mb: 4, fontSize: '3rem' }}
-              >
-                {getInitials(data.fullName)}
-              </CustomAvatar>
-            )}
+            {console.log(FeedDetailsValue, 'FeedDetailsValue')}
+            <CustomAvatar
+              src={FeedDetailsValue.feed_type_image ? FeedDetailsValue.feed_type_image : ''}
+              variant='rounded'
+              alt={FeedDetailsValue.feed_type_name}
+              sx={{ width: 120, height: 120, fontWeight: 400, mb: 4 }}
+            />
             <Typography variant='h7' sx={{ mb: 2, fontWeight: 500 }}>
-              {data.fullName}
+              {convertToTitleCase(FeedDetailsValue.feed_type_name)}
             </Typography>
             <CustomChip
               skin='light'
               size='small'
-              label={data.role}
-              color={roleColors[data.role]}
+              label={FeedDetailsValue.active === 1 ? 'Active' : 'InActive'}
+              color={FeedDetailsValue?.active === 1 ? roleColors.active : roleColors.inactive}
               sx={{
                 height: 20,
                 fontWeight: 600,
@@ -93,12 +88,18 @@ const FeedOverview = () => {
           <CardContent sx={{ my: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'left', justifyContent: 'left' }}>
               <Box sx={{ mr: 8, display: 'flex', alignItems: 'left' }}>
-                <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
-                  <Icon icon='arcticons:recipe-keeper' />
-                </CustomAvatar>
+                {FeedDetailsValue.image ? (
+                  <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
+                    <Avatar sx={{ width: 24, height: 24 }} src={FeedDetailsValue.image} />
+                  </CustomAvatar>
+                ) : (
+                  <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
+                    <Icon icon='arcticons:recipe-keeper' />
+                  </CustomAvatar>
+                )}
                 <div>
                   <Typography variant='h6' sx={{ lineHeight: 1.9 }}>
-                    5 ingredients
+                    {FeedDetailsValue.ingredients} ingredients
                   </Typography>
                   {/* <Typography variant='body2'>Task Done</Typography> */}
                 </div>
@@ -177,7 +178,7 @@ const FeedOverview = () => {
           </CardContent> */}
 
           <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button variant='outlined' sx={{ mr: 2, mt: 2, pl: 40, pr: 40 }} onClick={handleEditClickOpen}>
+            <Button variant='outlined' sx={{ mr: 2, mt: 2, pl: 40, pr: 40 }}>
               Edit
             </Button>
           </CardActions>

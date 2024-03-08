@@ -3,6 +3,8 @@ import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import { GridToolbarFilterButton } from '@mui/x-data-grid'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -21,6 +23,9 @@ const ServerSideToolbarWithFilterAndToggle = props => {
       }}
     >
       <GridToolbarFilterButton />
+      <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+        <FormControlLabel control={<Switch defaultChecked />} label='Show Active Only' />
+      </Box>
       <TextField
         size='small'
         value={props.value}
