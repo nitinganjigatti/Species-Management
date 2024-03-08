@@ -187,26 +187,6 @@ const SupplierLedger = () => {
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:eye-outline' />
-    //       </IconButton>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:delete-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   // sl,Date,amount,description,type,balance

@@ -32,7 +32,6 @@ const AclGuard = props => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const getPath = () => {
-    debugger
     if (selectedPharmacy) {
       if (selectedPharmacy?.type === 'local') {
         return '/pharmacy/request/request-list/'
@@ -47,7 +46,6 @@ const AclGuard = props => {
   useEffect(() => {
     if (auth.user && auth.user.role && !guestGuard && router.route === '/') {
       // const homeRoute = getHomeRoute(auth.user.role)
-      debugger
       const homeRoute = getPath()
       router?.replace(
         !homeRoute
