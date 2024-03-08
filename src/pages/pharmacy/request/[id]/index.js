@@ -749,21 +749,30 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.dispute_status === 'Dispute Pending' && (
+            {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.dispute_status === 'Dispute Resolved' && (
+            ,
+            {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.delivery_status === 'Delivered' && (
+            {params?.row?.delivery_status === 'Delivered' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
+            {/* /* This will show after shipping before receiving the request */}
+            {params?.row?.delivery_status === 'Not Delivered' &&
+              params?.row?.request_status === '' &&
+              params?.row?.shipment_status === 'Shipped' && (
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              )}
           </div>
         </Typography>
       )

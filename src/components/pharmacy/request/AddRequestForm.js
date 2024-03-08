@@ -186,6 +186,7 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
+    console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -193,12 +194,24 @@ const AddRequestForm = () => {
     if (!values.request_item_qty) {
       itemErrors.request_item_qty = 'This field is required'
     }
+    // if (Number(values.request_item_qty) === 0 || Number(values.request_item_qty) < 0) {
+    //   itemErrors.request_item_qty = 'Enter valid Quantity '
+    // }
+    if (!values.request_item_qty) {
+      itemErrors.request_item_qty = 'This field is required'
+    }
+
+    if (!Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+      itemErrors.request_item_qty = 'Enter valid Quantity'
+    }
+
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-    if (!values.control_substance_file) {
-      itemErrors.control_substance_file = 'This field is required'
-    }
+
+    // if (!values.control_substance_file) {
+    //   itemErrors.control_substance_file = 'This field is required'
+    // }
     // if (values.control_substance) {
     if (values.control_substance === true) {
       if (values.control_substance_file.length === 0) {
@@ -207,6 +220,7 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
+    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -229,13 +243,19 @@ const AddRequestForm = () => {
 
   const submitItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // || !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
+
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
+
     if (nestedRowMedicine.control_substance === true) {
       if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -278,12 +298,19 @@ const AddRequestForm = () => {
     } else {
       console.error('updateTableItems error')
     }
+    closeDialog()
   }
 
   const updateFormItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
+    debugger
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -341,7 +368,6 @@ const AddRequestForm = () => {
 
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-
     try {
       var params = {
         sort: 'asc',
@@ -358,11 +384,11 @@ const AddRequestForm = () => {
             control_substance: item.controlled_substance === '1' ? true : false
           }))
         )
+        setItemErrors({})
       }
     } catch (e) {
       console.log('error', e)
     }
-   
   }
 
   const searchMedicineData = useCallback(
@@ -586,9 +612,10 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                 />
-                {itemErrors.request_item_qty && (
+                {itemErrors?.request_item_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {/* This field is required */}
+                    {itemErrors?.request_item_qty}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -705,7 +732,7 @@ const AddRequestForm = () => {
                       sx={{ mr: 2 }}
                       onClick={() => {
                         updateFormItems()
-                        closeDialog()
+                        // closeDialog()
                         // submitItems()
                       }}
                       size='large'
@@ -777,7 +804,7 @@ const AddRequestForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Request'
+          title={id ? 'Edit Request' : 'Add Request'}
         />
       </Grid>
       <CardContent>
@@ -880,6 +907,7 @@ const AddRequestForm = () => {
               <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
+                    disabled={true}
                     fullWidth
                     date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     width={'100%'}
@@ -947,7 +975,7 @@ const AddRequestForm = () => {
                         ) : null}
                       </TableCell>
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
-                        {el.priority_item}
+                        {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>
 
                       <TableCell>{el.request_item_qty}</TableCell>
