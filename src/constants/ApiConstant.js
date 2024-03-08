@@ -103,3 +103,11 @@ export const BATCH_LIST = 'batch-details'
 export const ANIMAL_LIST = 'v1/collection/animal/list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
+
+export const FEED_TYPE_LIST = 'feed-listing'
+
+export const ADD_FEED_TYPE = 'add-feed'
+
+export const FEED_DETAILS = 'feed-details'
+
+export const UPDATE_FEED_TYPE = 'update-feed'
