@@ -116,13 +116,14 @@ const RequestDetails = () => {
 
   const handleChangeStatus = async event => {
     setStatus(event.target.value)
-    const id = medicineId
+    const id = requestId
     const payload = {
       status: event.target.value
     }
     console.log('payload', payload)
 
-    const response = await UpdateStatus(id, payload).then(res => {})
+    const response = await UpdateStatus(id, payload)
+    fetchRequestDetails()
   }
 
   const handleClickOpen = async item => {
@@ -292,7 +293,7 @@ const RequestDetails = () => {
                   onChange={handleChangeStatus}
                   sx={{
                     color:
-                      params.row.status === 'pending'
+                      params.row.status === 'pending' || params.row.status === 'transferred'
                         ? 'red'
                         : params.row.status === 'completed'
                         ? '#2a9d0d'
@@ -304,6 +305,7 @@ const RequestDetails = () => {
                   <MenuItem value='pending'>Pending</MenuItem>
                   <MenuItem value='completed'>Completed</MenuItem>
                   <MenuItem value='inprogress'>In Progress</MenuItem>
+                  <MenuItem value='transferred'>Pending</MenuItem>
                 </Select>
               </FormControl>
             ) : (
@@ -439,29 +441,22 @@ const RequestDetails = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
-    const {
-      lab_name,
-      // replaced_lab_id,
-      transfer_reason
-    } = {
+    const { lab_name, replaced_lab_id, transfer_reason } = {
       ...params
     }
     const id = requestId
 
-    const replaced_lab_id = request[0]?.lab_id
     const payload = {
-      // lab_name: request[0]?.lab_id,
       replaced_lab_id,
       transfer_reason
     }
     console.log('payload', payload)
 
-    const res = await transferLab(id, payload).then(res => {
-      if (res?.status) {
-        setSubmitLoader(false)
-        handleCloseTransfer()
-      }
-    })
+    const res = await transferLab(id, payload)
+
+    // // setSubmitLoader(false)
+    handleCloseTransfer()
+    fetchRequestDetails()
   }
 
   const handleDeleteImg = async (e, item) => {
@@ -472,6 +467,7 @@ const RequestDetails = () => {
     setFileId(item?.id)
     try {
       const res = await DeleteLAbRequestAttachment(id)
+      fetchRequestDetails()
     } catch (error) {}
   }
 
@@ -728,7 +724,7 @@ const RequestDetails = () => {
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#F5F5F7' }}>
+                      <TableRow sx={{ bgcolor: '#e8f4f2' }}>
                         <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
