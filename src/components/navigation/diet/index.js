@@ -9,11 +9,11 @@ const composeDietNavigation = () => {
     icon: 'material-symbols:inventory-2-outline'
   }
 
-  const feedDetails = {
-    title: 'Feed Details',
-    path: '/diet/feed/feed-details',
-    icon: 'material-symbols:inventory-2-outline'
-  }
+  // const feedDetails = {
+  //   title: 'Feed Details',
+  //   path: '/diet/feed/feed-details',
+  //   icon: 'material-symbols:inventory-2-outline'
+  // }
 
   const ingredientsList = {
     title: 'Ingredient',
@@ -21,7 +21,7 @@ const composeDietNavigation = () => {
     icon: 'arcticons:recipe-keeper'
   }
 
-  const dietNavigation = [pharmacyTitle, feedTypes, feedDetails, ingredientsList]
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList]
 
   return dietNavigation
 }

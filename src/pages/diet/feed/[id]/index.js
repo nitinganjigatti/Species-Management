@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Avatar,
   Button,
@@ -12,21 +12,39 @@ import {
   TableRow,
   TextField,
   Typography,
-  CircularProgress
+  CircularProgress,
+  TablePagination,
+  TableFooter
 } from '@mui/material'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
+import { debounce } from 'lodash'
 import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
 import { getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
 import format from 'date-fns/format'
+import { useRouter } from 'next/router'
 
 const FeedDetails = () => {
+  const router = useRouter()
+  const { id } = router.query
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [IngredientsList, setIngredientsList] = useState([])
   const [loader, setLoader] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredIngredients, setFilteredIngredients] = useState([])
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [page_no, setPage_no] = useState(0)
+
+  const emptyRows = page_no > 0 ? Math.max(0, (1 + page_no) * rowsPerPage - feedRows.length) : 0
+
+  const handleChangePage = (event, newPage) => {
+    setPage_no(newPage)
+  }
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage_no(0)
+  }
 
   function convertToTitleCase(str) {
     const words = str?.split(/(?=[A-Z])/)
@@ -41,9 +59,9 @@ const FeedDetails = () => {
     return titleCaseStr
   }
 
-  const getFeedDetailsList = async () => {
+  const getFeedDetailsList = async id => {
     try {
-      const response = await getFeedDetails()
+      const response = await getFeedDetails(id)
       console.log(response, 'response')
       if (response.data.success === true) {
         setFeedDetails(response.data.data)
@@ -55,13 +73,12 @@ const FeedDetails = () => {
     }
   }
 
-  const getIngredientsonFeedList = async () => {
+  const getIngredientsonFeedList = async (id, query) => {
     try {
-      const response = await getIngredientsOnFeed()
+      const response = await getIngredientsOnFeed(id, { q: query })
       console.log(response, 'response1')
       if (response.data.success === true) {
         setIngredientsList(response.data.data)
-        setFilteredIngredients(response.data.data) // Initialize filtered data with all ingredients
         setLoader(false)
       }
     } catch (error) {
@@ -71,23 +88,23 @@ const FeedDetails = () => {
   }
 
   useEffect(() => {
-    getFeedDetailsList()
-    getIngredientsonFeedList()
-  }, [])
+    if (id) {
+      getFeedDetailsList(id)
+      getIngredientsonFeedList(id, searchQuery)
+    }
+  }, [id, searchQuery])
 
-  const handleSearch = event => {
-    const query = event.target.value
-    setSearchQuery(query)
-    // Filter the IngredientsList based on the search query
-    const filteredData = IngredientsList.filter(ingredient =>
-      ingredient.ingredient_name.toLowerCase().includes(query.toLowerCase())
-    )
-    setFilteredIngredients(filteredData)
+  const searchTableData = useCallback(
+    debounce(async q => {
+      setSearchQuery(q) // Update searchQuery state
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchQuery(value)
+    searchTableData(value)
   }
-
-  // const filteredItems = list.filter(
-  //   item => item.fullName && item.fullName.toLowerCase().includes(searchSquadMemeber.toLowerCase())
-  // )
 
   return (
     <>
@@ -99,6 +116,7 @@ const FeedDetails = () => {
         </CardContent>
       ) : (
         <Grid container spacing={6}>
+          {console.log(id, 'id')}
           <FeedOverview FeedDetailsValue={FeedDetailsValue} />
           <Grid item xs={8}>
             <Card>
@@ -130,13 +148,15 @@ const FeedDetails = () => {
                       )
                     }}
                     sx={{ '& input': { py: 2 } }}
-                    value={searchQuery ? searchQuery : ''}
-                    onChange={handleSearch}
-                    defaultValue=''
+                    value={searchQuery}
+                    onChange={event => handleSearch(event.target.value)}
+                    type='search'
                   />
                 </Box>
-                {filteredIngredients.length === 0 ? (
-                  <Typography variant='subtitle1'>No data to show</Typography>
+                {IngredientsList.length === 0 ? (
+                  <Typography variant='subtitle1' sx={{ my: '10%', textAlign: 'center' }}>
+                    No data to show
+                  </Typography>
                 ) : (
                   <TableContainer sx={{ border: '1px solid #e8ebf1' }}>
                     <Table aria-label='simple table'>
@@ -148,7 +168,7 @@ const FeedDetails = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {filteredIngredients.map(row => (
+                        {IngredientsList.map(row => (
                           <TableRow key={row.ingredient_name}>
                             <TableCell sx={{ pr: 10 }}>
                               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -179,7 +199,33 @@ const FeedDetails = () => {
                             </TableCell>
                           </TableRow>
                         ))}
+                        {emptyRows > 0 && (
+                          <TableRow style={{ height: 53 * emptyRows }}>
+                            <TableCell colSpan={6} />
+                          </TableRow>
+                        )}
                       </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TablePagination
+                            rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                            colSpan={3}
+                            count={IngredientsList.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page_no}
+                            slotProps={{
+                              select: {
+                                inputProps: {
+                                  'aria-label': 'rows per page'
+                                },
+                                native: true
+                              }
+                            }}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                          />
+                        </TableRow>
+                      </TableFooter>
                     </Table>
                   </TableContainer>
                 )}

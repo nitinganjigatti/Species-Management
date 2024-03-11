@@ -112,6 +112,13 @@ const FeedTypes = () => {
     }
   }, [])
 
+  const onRowClick = id => {
+    console.log(id, 'id')
+    Router.push({
+      pathname: `/diet/feed/${id}`
+    })
+  }
+
   return (
     <Card>
       <CardContent>
@@ -162,7 +169,7 @@ const FeedTypes = () => {
                     <Box sx={{ display: 'flex', gap: 2 }}>
                       <Icon
                         style={{ cursor: 'pointer' }}
-                        onClick={() => console.log('ghj')}
+                        onClick={() => onRowClick(item.id)}
                         color='#a7a7a7'
                         icon='mdi:eye-outline'
                       />

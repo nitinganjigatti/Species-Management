@@ -23,8 +23,8 @@ const ServerSideToolbarWithFilterAndToggle = props => {
       }}
     >
       <GridToolbarFilterButton />
-      <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-        <FormControlLabel control={<Switch defaultChecked />} label='Show Active Only' />
+      <Box sx={{ my: 4, height: '40px', width: '64%', float: 'right', textAlign: 'right' }}>
+        <FormControlLabel control={<Switch defaultChecked />} label='Active' />
       </Box>
       <TextField
         size='small'

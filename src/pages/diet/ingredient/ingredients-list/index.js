@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import { getIngredientList } from 'src/lib/api/diet/getFeedDetails'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -79,20 +79,21 @@ const IngredientsList = ({ fromIngredientsPage }) => {
 
   const columns = [
     {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'id',
-      headerName: 'No',
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt='name'>{parseInt(params.row.sl_no)}</span>
+          {console.log(params, 'ppp')}
+          {params.row.length}
         </Typography>
       )
     },
     {
       flex: 0.6,
       minWidth: 30,
-      field: 'name',
+      field: 'ingredient_name',
       headerName: 'INGREDIENTS',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -105,7 +106,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
           />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.name}
+              {params.row.ingredient_name}
             </Typography>
           </Box>
         </Box>
@@ -225,9 +226,9 @@ const IngredientsList = ({ fromIngredientsPage }) => {
           limit: paginationModel.pageSize
         }
 
-        await getMedicineList({ params: params }).then(res => {
+        await getIngredientList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
         })
         setLoading(false)
       } catch (e) {

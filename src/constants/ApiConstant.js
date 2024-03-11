@@ -115,3 +115,5 @@ export const FEED_TYPE_LIST = 'feed-listing'
 export const ADD_FEED_TYPE = 'add-feed'
 
 export const UPDATE_FEED_TYPE = 'update-feed'
+
+export const INGREDIENT_LIST = 'ingredient-list'
