@@ -336,10 +336,10 @@ const PurchaseItemForm = props => {
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
     // console.log('taxAmount', taxAmount)
-    setValue('purchase_cgst_amount', purchase_cgst_amount)
-    setValue('purchase_sgst_amount', purchase_sgst_amount)
+    setValue('purchase_cgst_amount', parseFloat(purchase_cgst_amount).toFixed(2))
+    setValue('purchase_sgst_amount', parseFloat(purchase_sgst_amount).toFixed(2))
     setValue('purchase_igst', purchase_igst)
-    setValue('purchase_igst_amount', purchase_igst_amount)
+    setValue('purchase_igst_amount', parseFloat(purchase_igst_amount).toFixed(2))
     setValue('purchase_gross_amount', parseFloat(grossAmount).toFixed(2))
     setValue('purchase_discount_amount', discountAmount)
     setValue('purchase_taxable_amount', taxableAmount)

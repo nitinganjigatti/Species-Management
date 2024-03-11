@@ -942,7 +942,7 @@ const AddPurchaseForm = () => {
                     >
                       {suppliers?.map(item => (
                         <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.name}
+                          {item.company_name}
                         </MenuItem>
                       ))}
                     </Select>
