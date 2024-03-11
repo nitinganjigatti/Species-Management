@@ -33,9 +33,10 @@ const FeedDetails = () => {
   const [loader, setLoader] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [page_no, setPage_no] = useState(0)
+  const [page_no, setPage_no] = useState(1)
+  const [sortColumning, setsortColumning] = useState('ingredient_name')
 
-  const emptyRows = page_no > 0 ? Math.max(0, (1 + page_no) * rowsPerPage - feedRows.length) : 0
+  const emptyRows = page_no > 1 ? Math.max(0, (1 + page_no) * rowsPerPage - feedRows.length) : 0
 
   const handleChangePage = (event, newPage) => {
     setPage_no(newPage)
@@ -75,7 +76,7 @@ const FeedDetails = () => {
 
   const getIngredientsonFeedList = async (id, query) => {
     try {
-      const response = await getIngredientsOnFeed(id, { q: query })
+      const response = await getIngredientsOnFeed(id, { q: query, page_no, sortColumn: sortColumning, limit: '1' })
       console.log(response, 'response1')
       if (response.data.success === true) {
         setIngredientsList(response.data.data)
@@ -95,15 +96,16 @@ const FeedDetails = () => {
   }, [id, searchQuery])
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async ({ q }) => {
       setSearchQuery(q) // Update searchQuery state
     }, 1000),
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = async value => {
     setSearchQuery(value)
     searchTableData(value)
+    await searchTableData({ q: value, sortColumn: sortColumning })
   }
 
   return (
@@ -212,7 +214,7 @@ const FeedDetails = () => {
                             colSpan={3}
                             count={IngredientsList.length}
                             rowsPerPage={rowsPerPage}
-                            page={page_no}
+                            page={page_no === 0 ? 0 : page_no - 1}
                             slotProps={{
                               select: {
                                 inputProps: {

@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getFeedDetails'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
-import FallbackSpinner from 'src/@core/components/spinner/index'
-
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -20,41 +14,9 @@ import { getInitials } from 'src/@core/utils/get-initials'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Button, FormControlLabel, Switch, TextField } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
-import Utility from 'src/utility'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-
-import Error404 from 'src/pages/404'
 import ServerSideToolbarWithFilterAndToggle from 'src/views/table/data-grid/ServerSideToolbarwithfilter_toggle'
 
-const IngredientsList = ({ fromIngredientsPage }) => {
-  const [medicineList, setMedicineList] = useState([])
-  const [loader, setLoader] = useState(false)
-  const [show, setShow] = useState(false)
-  const [configureMedId, setConfigureMedId] = useState('')
-
-  const { selectedPharmacy } = usePharmacyContext()
-
-  console.log(selectedPharmacy)
-
-  const closeDialog = () => {
-    setShow(false)
-  }
-
-  const showDialog = () => {
-    setShow(true)
-  }
-
-  const handleEdit = async id => {
-    Router.push({
-      pathname: '/pharmacy/medicine/add-product',
-      query: { id: id, action: 'edit' }
-    })
-  }
-
+const IngredientsList = () => {
   const renderClient = params => {
     const { row } = params
     const stateNum = Math.floor(Math.random() * 6)
@@ -106,7 +68,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
           />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.ingredient_name}
+              {params.row.ingredient_name ? params.row.ingredient_name : '-'}
             </Typography>
           </Box>
         </Box>
@@ -119,7 +81,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       headerName: 'FEED TYPE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          Fruits
+          {params.row.feed_type ? params.row.feed_type : '-'}
         </Typography>
       )
     },
@@ -130,7 +92,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       headerName: 'CARBS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          Nil
+          {params.row.carbs ? params.row.carbs + ' g' : '-'}
         </Typography>
       )
     },
@@ -141,7 +103,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       headerName: 'PROTEIN',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span>0.3g</span>
+          <span>{params.row.protein ? params.row.protein + ' g' : '-'}</span>
         </Typography>
       )
     },
@@ -152,7 +114,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       headerName: 'FAT',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span>0.2g</span>
+          <span>{params.row.fat ? params.row.fat + ' g' : '-'}</span>
         </Typography>
       )
     },
@@ -164,7 +126,7 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {/* <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span> */}
-          <spna>86%</spna>
+          <span>{params.row.water_percentage ? params.row.water_percentage + ' %' : '-'}</span>
         </Typography>
       )
     },
@@ -175,30 +137,10 @@ const IngredientsList = ({ fromIngredientsPage }) => {
       headerName: 'MG',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <spna>6 mg</spna>
+          <span>{params.row.water_dry_matter ? params.row.water_dry_matter + ' mg' : '-'}</span>
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <>
-    //       {selectedPharmacy.type === 'central' &&
-    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-    //           <Box>
-    //             <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //               <Icon icon='mdi:pencil-outline' />
-    //             </IconButton>
-    //           </Box>
-    //         )}
-    //     </>
-    //   )
-    // }
   ]
 
   /***** Serverside pagination */
@@ -269,18 +211,15 @@ const IngredientsList = ({ fromIngredientsPage }) => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <Button
-            size='small'
-            variant='contained'
+      <Button
+        size='small'
+        variant='contained'
 
-            // onClick={() => Router.push('/diet/add-feed')}
-          >
-            <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Add New
-          </Button>
-        )}
+        // onClick={() => Router.push('/diet/add-feed')}
+      >
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Add New
+      </Button>
     </div>
   )
 
@@ -293,70 +232,53 @@ const IngredientsList = ({ fromIngredientsPage }) => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       <>
-        {loader ? (
-          <FallbackSpinner />
-        ) : (
-          <>
-            <CommonDialogBox
-              title={'Configure Medicine'}
-              dialogBoxStatus={show}
-              formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-              close={closeDialog}
-              show={showDialog}
-            />
-            <Card>
-              <CardHeader title='Ingredients' action={headerAction} />
-              {/* <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+        <>
+          <Card>
+            <CardHeader title='Ingredients' action={headerAction} />
+            {/* <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
                   <FormControlLabel control={<Switch defaultChecked />} label='Show Active Only' />
                 </Box> */}
-              <DataGrid
-                columnVisibilityModel={{
-                  id: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilterAndToggle }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                className='raghu'
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined',
-                    sx: { float: 'right' }
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
+            <DataGrid
+              columnVisibilityModel={{
+                id: false
+              }}
+              autoHeight
+              pagination
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilterAndToggle }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              className='raghu'
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined',
+                  sx: { float: 'right' }
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
 
-                    onChange: event => {
-                      setSearchValue(event.target.value)
+                  onChange: event => {
+                    setSearchValue(event.target.value)
 
-                      return handleSearch(event.target.value)
-                    }
+                    return handleSearch(event.target.value)
                   }
-                }}
-              />
-            </Card>
-          </>
-        )}
-      </>
-      {/* ) : (
-        <>
-          <Error404></Error404>
+                }
+              }}
+            />
+          </Card>
         </>
-      )} */}
+      </>
     </>
   )
 }
