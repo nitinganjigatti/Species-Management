@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getGenerics, getGenericsById, addGenericName, updateGenericName } from 'src/lib/api/pharmacy/genericNames'
+import {
+  getGenericsForMaster,
+  getGenericsById,
+  addGenericName,
+  updateGenericName
+} from 'src/lib/api/pharmacy/genericNames'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -159,7 +164,7 @@ const GenericNamesList = () => {
           limit: paginationModel.pageSize
         }
 
-        await getGenerics({ params: params }).then(res => {
+        await getGenericsForMaster({ params: params }).then(res => {
           debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -176,6 +181,7 @@ const GenericNamesList = () => {
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
+    debugger
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
