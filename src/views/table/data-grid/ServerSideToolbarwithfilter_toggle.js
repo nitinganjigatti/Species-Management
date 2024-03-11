@@ -15,6 +15,7 @@ const ServerSideToolbarWithFilterAndToggle = props => {
       sx={{
         gap: 2,
         display: 'flex',
+
         //float: 'left',
         flexWrap: 'wrap',
         alignItems: 'center',

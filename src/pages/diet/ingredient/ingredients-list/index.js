@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getFeedDetails'
+
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
