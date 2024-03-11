@@ -19,7 +19,8 @@ import { AddButton } from 'src/components/Buttons'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { addFeedType, getFeedById, updateFeedType } from 'src/lib/api/diet/feedType'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
@@ -29,6 +30,11 @@ const AddFeedType = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
     name: yup.string().required('Feed Name is Required'),
@@ -108,9 +114,31 @@ const AddFeedType = () => {
     }
     // console.log('submit', payload)
     if (id) {
-      await updateFeedType({ ...payload }, id)
+      try {
+        await updateFeedType({ ...payload }, id).then(res => {
+          Router.push('/diet/feed')
+          if (res?.success) {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+          } else {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     } else {
-      await addFeedType(payload)
+      try {
+        await addFeedType(payload).then(res => {
+          if (res?.success) {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+            Router.push('/diet/feed')
+          } else {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     }
   }
 
@@ -258,6 +286,9 @@ const AddFeedType = () => {
           {errors.feedImg && <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>}
 
           <RenderSidebarFooter />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
         </form>
       </CardContent>
     </Card>

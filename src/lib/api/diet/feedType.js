@@ -1,7 +1,7 @@
 import { FEED_TYPE_LIST, ADD_FEED_TYPE, UPDATE_FEED_TYPE, FEED_DETAILS } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
-export async function getFeedTypeList({ params }) {
+export async function getFeedTypeList(params) {
   const response = await axiosGet({ url: `${FEED_TYPE_LIST}`, params })
   return response.data
 }

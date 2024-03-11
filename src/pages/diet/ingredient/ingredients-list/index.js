@@ -306,7 +306,25 @@ const IngredientsList = ({ fromIngredientsPage }) => {
               show={showDialog}
             />
             <Card>
-              <CardHeader title='Ingredients' action={headerAction} />
+              <CardHeader
+                title={
+                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontWeight: 600 }} variant='h6'>
+                      Ingredients
+                    </Typography>
+                    <Button
+                      sx={{ px: 7 }}
+                      size='small'
+                      variant='contained'
+                      onClick={() => Router.push('/diet/ingredient/add-ingredient/')}
+                    >
+                      <Icon icon='mdi:add' fontSize={20} />
+                      &nbsp; NEW
+                    </Button>
+                  </Box>
+                }
+                action={headerAction}
+              />
               {/* <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
                   <FormControlLabel control={<Switch defaultChecked />} label='Show Active Only' />
                 </Box> */}
