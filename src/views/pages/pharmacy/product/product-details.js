@@ -20,8 +20,6 @@ import { Box } from '@mui/system'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescriptionImages, productDetails }) => {
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
-
   const { selectedPharmacy } = usePharmacyContext()
 
   return (
@@ -84,13 +82,13 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                     Product Image
                   </Typography>
 
-                  <a href={`${base_url}${imgUrl}${item?.product_image}`} target='_blank'>
+                  <a href={`${item?.product_image}`} target='_blank'>
                     <img
                       alt='Product Image'
                       style={{ borderRadius: '10px' }}
                       width='50px'
                       height='50px'
-                      src={`${base_url}${imgUrl}${item?.product_image}`}
+                      src={`${item?.product_image}`}
                     />
                   </a>
                 </Grid>
@@ -108,11 +106,11 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                         return (
                           <Box key={index}>
                             <Grid>
-                              <a href={`${base_url}${imgUrl}${item}`} target='_blank'>
+                              <a href={`${item}`} target='_blank'>
                                 <img
                                   alt='Prescription Image'
                                   style={{ width: '50px', height: '50px', borderRadius: '10px', margin: '10px' }}
-                                  src={`${base_url}${imgUrl}${item}`}
+                                  src={`${item}`}
                                 />
                               </a>
                             </Grid>
