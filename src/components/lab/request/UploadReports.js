@@ -8,7 +8,17 @@ import { useForm, Controller } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import { UploadLabReports } from 'src/lib/api/lab/getLabRequest'
 
-const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
+const UploadReports = ({
+  animalID,
+  labTestId,
+  medicalRecordId,
+  type,
+  id,
+  handleCloseUploader,
+  setAlertDefaults,
+  handleClosePopover,
+  fetchRequestDetails
+}) => {
   const [uploadedImage, setUploadedImage] = useState()
   const [files, setFiles] = useState([])
   const [selectedFile, setSelectedFile] = useState(null)
@@ -86,8 +96,16 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
     console.log('payload', payload)
 
     try {
-      const res = await UploadLabReports(payload)
+      const response = await UploadLabReports(payload)
+      if (response?.success) {
+        handleCloseUploader(false)
+        handleClosePopover()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
+        fetchRequestDetails()
+      } else {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
       // Reset the form after successful submission
       reset()
     } catch (error) {
@@ -97,6 +115,12 @@ const UploadReports = ({ animalID, labTestId, medicalRecordId, type, id }) => {
     }
   }
 
+  const handleCloseSnackBar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
+  }
   //document uploder
   const handleFileChange = event => {
     const file = event.target.files[0]

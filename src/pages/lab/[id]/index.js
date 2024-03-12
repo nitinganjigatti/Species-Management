@@ -55,6 +55,7 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -107,6 +108,19 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
 
+  // ........... snackbar
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
+  const [statusId, setStatusId] = useState()
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
+
+  //...........
+
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
     if (labObject && labObject.permission) {
@@ -114,16 +128,23 @@ const RequestDetails = () => {
     }
   }, [PrvLabId])
 
-  const handleChangeStatus = async event => {
+  const handleChangeStatus = async (event, params) => {
+    // console.log('params status', params)
     setStatus(event.target.value)
-    const id = requestId
+    console.log('event.target.value', event.target.value)
+    const id = params
     const payload = {
       status: event.target.value
     }
     console.log('payload', payload)
 
     const response = await UpdateStatus(id, payload)
-    fetchRequestDetails()
+    if (response?.success) {
+      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+      fetchRequestDetails()
+    } else {
+      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+    }
   }
 
   const handleClickOpen = async item => {
@@ -287,10 +308,10 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status}
+                  defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
                   value={status} // Assuming params.row.status contains the current status value
                   label='Status'
-                  onChange={handleChangeStatus}
+                  onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
                     color:
                       params.row.status === 'pending' || params.row.status === 'transferred'
@@ -305,7 +326,7 @@ const RequestDetails = () => {
                   <MenuItem value='pending'>Pending</MenuItem>
                   <MenuItem value='completed'>Completed</MenuItem>
                   <MenuItem value='inprogress'>In Progress</MenuItem>
-                  <MenuItem value='transferred'>Pending</MenuItem>
+                  {/* <MenuItem value='transferred'>Pending</MenuItem> */}
                 </Select>
               </FormControl>
             ) : (
@@ -452,11 +473,18 @@ const RequestDetails = () => {
     }
     console.log('payload', payload)
 
-    const res = await transferLab(id, payload)
+    const response = await transferLab(id, payload)
+    if (response?.success) {
+      handleCloseTransfer()
+      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+      fetchRequestDetails()
+    } else {
+      handleCloseTransfer()
+      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+    }
 
     // // setSubmitLoader(false)
-    handleCloseTransfer()
-    fetchRequestDetails()
   }
 
   const handleDeleteImg = async (e, item) => {
@@ -466,13 +494,27 @@ const RequestDetails = () => {
     const id = item?.id
     setFileId(item?.id)
     try {
-      const res = await DeleteLAbRequestAttachment(id)
+      const response = await DeleteLAbRequestAttachment(id)
       fetchRequestDetails()
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        fetchRequestDetails()
+      } else {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
     } catch (error) {}
   }
 
   const openFileInNewTab = imageUrl => {
     window.open(imageUrl, '_blank')
+  }
+
+  const handleCloseSnackBar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   return (
@@ -549,6 +591,12 @@ const RequestDetails = () => {
               </>
             ))}
           </Card>
+          <UserSnackbar
+            status={openSnackbar}
+            message={snackbarMessage}
+            severity={severity}
+            handleClose={handleCloseSnackBar}
+          />
 
           <Card sx={{ mt: 5 }}>
             <CardHeader title='Test Reports' />
@@ -902,6 +950,10 @@ const RequestDetails = () => {
               medicalRecordId={medicineId}
               type='lab_test'
               id={testId}
+              handleCloseUploader={setOpenUploader}
+              setAlertDefaults={setAlertDefaults}
+              handleClosePopover={handleClosePopover}
+              fetchRequestDetails={fetchRequestDetails}
             />
           </Card>
         </Dialog>
