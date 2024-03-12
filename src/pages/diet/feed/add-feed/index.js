@@ -19,7 +19,8 @@ import { AddButton } from 'src/components/Buttons'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { addFeedType, getFeedById, updateFeedType } from 'src/lib/api/diet/feedType'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
@@ -29,11 +30,14 @@ const AddFeedType = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
-    name: yup.string().required('Feed Name is Required'),
-    description: yup.string().required('Feed description is Required'),
-    feedImg: yup.string().required('Image is Required')
+    name: yup.string().required('Feed Name is Required')
   })
 
   const defaultValues = {
@@ -47,6 +51,7 @@ const AddFeedType = () => {
     reset,
     control,
     setValue,
+    watch,
     getValues,
     clearErrors,
     handleSubmit,
@@ -87,11 +92,12 @@ const AddFeedType = () => {
     if (id) {
       getFeedById(id).then(res => {
         // console.log('res', res?.data)
-        setImgSrc(res?.data?.feed_type_image)
+        setImgSrc(res?.data?.image)
         setValue('name', res?.data?.feed_type_name)
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
         setValue('description', res?.data?.desc)
         setValue('feedImg', res?.data?.feed_type_image)
+        setDisplayFile(res?.data?.feed_type_image)
       })
     }
   }, [])
@@ -108,24 +114,41 @@ const AddFeedType = () => {
     }
     // console.log('submit', payload)
     if (id) {
-      await updateFeedType({ ...payload }, id)
+      try {
+        await updateFeedType({ ...payload }, id).then(res => {
+          Router.push('/diet/feed')
+          if (res?.success) {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+          } else {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     } else {
-      await addFeedType(payload)
+      try {
+        await addFeedType(payload).then(res => {
+          if (res?.success) {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+            Router.push('/diet/feed')
+          } else {
+            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     }
   }
 
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton
-          size='large'
-          type='submit'
-          variant='contained'
-          // loading={submitLoader}
-        >
+        <LoadingButton size='large' type='submit' variant='contained' disabled={watch('name') === ''}>
           {id ? 'Update' : 'Save'}
         </LoadingButton>
-        <Button size='large' type='reset' color='error' variant='outlined'>
+        <Button onClick={() => Router.push('/diet/feed')} size='large' type='reset' color='error' variant='outlined'>
           Cancel
         </Button>
       </Box>
@@ -258,6 +281,9 @@ const AddFeedType = () => {
           {errors.feedImg && <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>}
 
           <RenderSidebarFooter />
+          {openSnackbar.open ? (
+            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+          ) : null}
         </form>
       </CardContent>
     </Card>
