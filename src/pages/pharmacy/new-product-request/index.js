@@ -223,13 +223,11 @@ export default function NewProductList() {
   }
 
   const onRowClick = async params => {
-    debugger
     setShow(true)
     setItemId(params.id)
     await getNonExistingProductById(params.id)
       .then(res => {
         setProductDetails(res?.data)
-        console.log('Presxr....>>>>>>', res?.data?.prescriptionImages)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
       })
