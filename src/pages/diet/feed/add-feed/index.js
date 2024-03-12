@@ -37,9 +37,7 @@ const AddFeedType = () => {
   })
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
-    name: yup.string().required('Feed Name is Required'),
-    description: yup.string().required('Feed description is Required'),
-    feedImg: yup.string().required('Image is Required')
+    name: yup.string().required('Feed Name is Required')
   })
 
   const defaultValues = {
@@ -53,6 +51,7 @@ const AddFeedType = () => {
     reset,
     control,
     setValue,
+    watch,
     getValues,
     clearErrors,
     handleSubmit,
@@ -93,7 +92,7 @@ const AddFeedType = () => {
     if (id) {
       getFeedById(id).then(res => {
         // console.log('res', res?.data)
-        setImgSrc(res?.data?.feed_type_image)
+        setImgSrc(res?.data?.image)
         setValue('name', res?.data?.feed_type_name)
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
         setValue('description', res?.data?.desc)
@@ -145,15 +144,10 @@ const AddFeedType = () => {
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton
-          size='large'
-          type='submit'
-          variant='contained'
-          // loading={submitLoader}
-        >
+        <LoadingButton size='large' type='submit' variant='contained' disabled={watch('name') === ''}>
           {id ? 'Update' : 'Save'}
         </LoadingButton>
-        <Button size='large' type='reset' color='error' variant='outlined'>
+        <Button onClick={() => Router.push('/diet/feed')} size='large' type='reset' color='error' variant='outlined'>
           Cancel
         </Button>
       </Box>

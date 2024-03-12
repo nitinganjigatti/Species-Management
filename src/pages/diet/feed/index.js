@@ -49,6 +49,17 @@ const FeedTypes = () => {
     setPage_no(newPage)
   }
 
+  const handleChangeRowsPerPage = event => {
+    setLoading(true)
+    setLimit(parseInt(event.target.value, 10))
+    getFeedTypeList({ page_no: 1, limit: event.target.value, q: searchValue, searchColumns, status }).then(res => {
+      setFeedRows(res?.data?.result)
+      setTotalFeeds(res?.data?.total_count)
+      setLoading(false)
+    })
+    setPage_no(1)
+  }
+
   function TablePaginationActions(props) {
     const theme = useTheme()
     const { count, page, rowsPerPage, onPageChange } = props
@@ -75,7 +86,7 @@ const FeedTypes = () => {
         </IconButton>
         <IconButton
           onClick={handleNextButtonClick}
-          disabled={page >= Math.round(count / rowsPerPage)}
+          disabled={page >= Math.ceil(count / rowsPerPage)}
           aria-label='next page'
         >
           {theme.direction === 'rtl' ? (
@@ -243,7 +254,7 @@ const FeedTypes = () => {
                 >
                   <CircularProgress color={theme?.palette?.customColors?.primary?.light} />
                 </Box>
-              ) : feedRows.length > 0 ? (
+              ) : feedRows?.length > 0 ? (
                 feedRows?.map(item => (
                   <TableRow key={item.id}>
                     <TableCell sx={{ pr: 10 }}>
@@ -280,10 +291,10 @@ const FeedTypes = () => {
                   <TablePagination
                     sx={{
                       '& .css-re6ba-MuiTablePagination-selectLabel': {
-                        display: 'none'
+                        // display: 'none'
                       },
                       '& .css-1twleqn-MuiInputBase-root-MuiTablePagination-select': {
-                        display: 'none'
+                        // display: 'none'
                       },
                       '& .css-nbjgsh-MuiTablePagination-displayedRows': {
                         display: 'none'
@@ -294,6 +305,8 @@ const FeedTypes = () => {
                     page={page_no}
                     onPageChange={handleChangePage}
                     ActionsComponent={TablePaginationActions}
+                    rowsPerPageOptions={[5, 10, 20]}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                   />
                 </TableRow>
               </TableFooter>
