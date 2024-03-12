@@ -37,6 +37,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 // ** Source code imports
 
@@ -69,12 +70,17 @@ const AddLab = () => {
 
   const shouldClearFieldsRef = useRef(false)
 
+  const [openSnackbar, setOpenSnackbar] = useState(false)
   // id for edit
   const router = useRouter()
   const { id, action } = router.query
 
   // edit call
-
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
   const updateTestData = () => {
     const setEditLabs = TestData?.map(testDataSample => {
       const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
@@ -171,11 +177,11 @@ const AddLab = () => {
     getAllLabsLists()
   }, [])
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  // const [openSnackbar, setOpenSnackbar] = useState({
+  //   open: false,
+  //   severity: '',
+  //   message: ''
+  // })
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -310,8 +316,9 @@ const AddLab = () => {
     if (id !== undefined && action === 'edit') {
       // console.log(payload)
 
-      await updateLabById(payload, id)
+      const response = await updateLabById(payload, id)
       setSubmitLoader(false)
+      // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
       // reset(defaultValues)
       Router.push('/lab/lab-list')
@@ -337,6 +344,13 @@ const AddLab = () => {
   const handleClose = () => {
     setOpen(false)
     setShowLabTests([])
+  }
+  const handleCloseSnackBar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
   }
 
   // Add Test
@@ -937,6 +951,13 @@ const AddLab = () => {
                             Submit
                           </LoadingButton>
                         </Box>
+
+                        <UserSnackbar
+                          status={openSnackbar}
+                          message={snackbarMessage}
+                          severity={severity}
+                          handleClose={handleCloseSnackBar}
+                        />
                       </Grid>
                     </Grid>
                   </form>
