@@ -97,6 +97,7 @@ const AddFeedType = () => {
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
         setValue('description', res?.data?.desc)
         setValue('feedImg', res?.data?.feed_type_image)
+        setDisplayFile(res?.data?.feed_type_image)
       })
     }
   }, [])
