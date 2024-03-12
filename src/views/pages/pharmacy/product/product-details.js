@@ -103,6 +103,8 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
+                        console.log('Item????', item)
+
                         return (
                           <Box key={index}>
                             <Grid>
