@@ -27,8 +27,15 @@ const ImageUploadComponent = ({
   removeselectedImage,
   setPrescriptionField
 }) => {
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  const MAX_NAME_LENGTH = 15
 
+  const getLastCharacters = (name, length) => {
+    if (name.length <= length) {
+      return name
+    }
+    return name.slice(-length)
+  }
   const renderFilePreview = file => {
     if (file !== undefined) {
       if (typeof file === 'string') {
@@ -41,7 +48,7 @@ const ImageUploadComponent = ({
               border: '1px solid rgba(93, 89, 98, 0.14)'
             }}
             alt={file.name}
-            src={`${base_url}${imgBaseUrl}${file}`}
+            src={`${file}`}
           />
         )
       }
@@ -82,7 +89,9 @@ const ImageUploadComponent = ({
                   {image && renderFilePreview(typeof image === 'string' ? image : image)}
                 </div>
                 <div style={{ margin: '10px' }}>
-                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.name}</Typography>
+                  <Typography className='file-name'>
+                    {getLastCharacters(typeof image === 'string' ? image : image?.name, MAX_NAME_LENGTH)}
+                  </Typography>
                 </div>
               </div>{' '}
               <IconButton onClick={() => removeselectedImage(index)}>

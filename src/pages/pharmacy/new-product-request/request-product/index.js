@@ -173,8 +173,9 @@ export default function AddProduct() {
   }
 
   const getSpecificProductList = async id => {
+    debugger
     await getNonExistingProductById(id).then(res => {
-      setImgBaseUrl(res?.base_path)
+      // setImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
@@ -187,9 +188,7 @@ export default function AddProduct() {
         product_type: res?.data?.request_item_details[0].product_type,
         product_name: res?.data?.request_item_details[0].product_name,
         generic_name: res?.data?.request_item_details[0].generic_name,
-        product_image: res?.data?.request_item_details[0].product_image
-          ? res?.data?.request_item_details[0].product_image
-          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`,
+        product_image: res?.data?.request_item_details[0].product_image,
         prescription_images: res?.data?.prescription_images
       })
 
@@ -200,15 +199,12 @@ export default function AddProduct() {
       //     ? `${base_url}${imgBaseUrl}${Item?.product_image}`
       //     : Item?.product_image
       // )
-      setImgSrc(
-        res?.data?.request_item_details[0].product_image !== ''
-          ? `${base_url}${res?.base_path}${res?.data?.request_item_details[0].product_image}`
-          : ''
-      )
+      setImgSrc(res?.data?.request_item_details[0].product_image)
     })
   }
 
   const onSubmit = async data => {
+    debugger
     if (!confirmationBox) {
       const dataChild = [...dataChildValues]
 
@@ -666,7 +662,7 @@ export default function AddProduct() {
                               />
 
                               <Typography sx={{ margin: '10px' }}>
-                                {responseImage ? responseImage : displayFile}
+                                {responseImage ? responseImage.slice(-10) : displayFile}
                               </Typography>
                               <Box sx={{ cursor: 'pointer', margin: '10px' }}>
                                 <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
