@@ -952,12 +952,12 @@ const AddLab = () => {
                           </LoadingButton>
                         </Box>
 
-                        <UserSnackbar
+                        {/* <UserSnackbar
                           status={openSnackbar}
                           message={snackbarMessage}
                           severity={severity}
                           handleClose={handleCloseSnackBar}
-                        />
+                        /> */}
                       </Grid>
                     </Grid>
                   </form>
