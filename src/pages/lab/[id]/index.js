@@ -258,7 +258,7 @@ const RequestDetails = () => {
     //   )
     // },
     {
-      flex: 0.3,
+      flex: 0.8,
       minWidth: 20,
       field: 'test_name',
       headerName: 'Test Name',
@@ -270,7 +270,7 @@ const RequestDetails = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
       field: 'sample_name',
       headerName: 'Sample',
@@ -281,19 +281,8 @@ const RequestDetails = () => {
       )
     },
 
-    // {
-    //   flex: 0.4,
-    //   minWidth: 20,
-    //   field: 'sample_id',
-    //   headerName: 'Sample id',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       <span alt={params.row.sample_id}>{params.row.sample_id}</span>
-    //     </Typography>
-    //   )
-    // },
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
       field: 'status',
       headerName: 'STATUS',
@@ -387,6 +376,29 @@ const RequestDetails = () => {
             <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
           </Popover>
         </Box>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      // field: 'Action',
+      // headerName: 'Action',
+
+      renderCell: params => (
+        <>
+          {params.row.attachments.length > 0 ? (
+            <Box sx={{ display: 'flex' }}>
+              <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
+                <Icon icon='et:attachments' />
+              </IconButton>
+
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <span alt={params.row.attachments}>{params.row.attachments}</span>
+                {console.log('params.row.attachments', params.row.attachments)}
+              </Typography>
+            </Box>
+          ) : null}
+        </>
       )
     }
   ]
@@ -654,9 +666,16 @@ const RequestDetails = () => {
                               bgcolor: '#B1B1B1',
                               mt: 3,
                               display: 'flex',
-                              alignItems: 'end'
+                              flexDirection: 'column'
                             }}
                           >
+                            <Box sx={{ maxHeight: 110 }}>
+                              <img
+                                src={item.file} // Assuming item.file contains the image source URL
+                                alt={item.file_original_name}
+                                style={{ width: '100%', height: '100%' }}
+                              />
+                            </Box>
                             <Box
                               sx={{
                                 flex: 1,
