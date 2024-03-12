@@ -133,7 +133,6 @@ export default function AddProduct() {
   })
 
   const handleFileChange = event => {
-    debugger
     const { files } = event.target
 
     const newImages = Array.from(files).map(file => file)
@@ -175,7 +174,6 @@ export default function AddProduct() {
   }
 
   const getSpecificProductList = async id => {
-    debugger
     await getNonExistingProductById(id).then(res => {
       // setImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
@@ -206,7 +204,6 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
-    debugger
     if (!confirmationBox) {
       const dataChild = [...dataChildValues]
 
@@ -217,6 +214,18 @@ export default function AddProduct() {
       data.request_item_detail_id = requestData.join('')
 
       data.status = data?.status ? data?.status : 'pending'
+
+      const filterPrescriptionImages = data?.prescription_images?.map(element => {
+        console.log('el????', element)
+        if (typeof element === 'string') {
+          const trimElement = element.trim()
+          const imageName = trimElement.split('/').pop()
+          return imageName
+        } else {
+          return element
+        }
+      })
+      data.prescription_images = filterPrescriptionImages
 
       // handleUpdate(getDetails, data)
       // const requestDetailsData = {
@@ -250,24 +259,7 @@ export default function AddProduct() {
         product_image
       } = data
 
-      console.log('Prescriptin Images????', prescription_images)
-
       // const listImages = []
-
-      // if (typeof prescription_images === 'string') {
-      //   const trimImages = prescription_images.trim()
-      //   const imageName = trimImages.split('/').pop()
-      //   prescription_images = imageName
-      // }
-
-      // const prescriptionData = prescription_images.forEach(element, index => {
-      //   if (typeof element === 'string') {
-      //     const trimImages = element.trim()
-      //     const imageName = trimImages.split('/').pop()
-      //     element[index] = imageName
-      //   }
-      //   prescription_images = prescriptionData
-      // })
 
       const payload = {
         from_store: from_store,
