@@ -71,6 +71,8 @@ const AddLab = () => {
   const shouldClearFieldsRef = useRef(false)
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
   // id for edit
   const router = useRouter()
   const { id, action } = router.query
@@ -176,12 +178,6 @@ const AddLab = () => {
   useEffect(() => {
     getAllLabsLists()
   }, [])
-
-  // const [openSnackbar, setOpenSnackbar] = useState({
-  //   open: false,
-  //   severity: '',
-  //   message: ''
-  // })
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -318,10 +314,11 @@ const AddLab = () => {
 
       const response = await updateLabById(payload, id)
       setSubmitLoader(false)
-      // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
       // reset(defaultValues)
-      Router.push('/lab/lab-list')
+
+      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+      await Router.push('/lab/lab-list')
     } else {
       console.log(payload)
 
@@ -549,7 +546,7 @@ const AddLab = () => {
     try {
       const response = await addLab(payload)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: 'Lab Created Successfully', severity: 'success' })
 
         reset(defaultValues)
       } else {
@@ -952,12 +949,12 @@ const AddLab = () => {
                           </LoadingButton>
                         </Box>
 
-                        {/* <UserSnackbar
+                        <UserSnackbar
                           status={openSnackbar}
                           message={snackbarMessage}
                           severity={severity}
                           handleClose={handleCloseSnackBar}
-                        /> */}
+                        />
                       </Grid>
                     </Grid>
                   </form>
