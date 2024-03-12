@@ -133,6 +133,7 @@ export default function AddProduct() {
   })
 
   const handleFileChange = event => {
+    debugger
     const { files } = event.target
 
     const newImages = Array.from(files).map(file => file)
@@ -146,6 +147,7 @@ export default function AddProduct() {
     setPrescriptionImage([...imagesList, ...newImages])
   }
 
+  console.log('prescriptionImafes>>>>>', prescriptionImage)
   console.log('getValues???', getValues())
 
   const handleAddGalleryClick = () => {
@@ -235,7 +237,7 @@ export default function AddProduct() {
       //   salt_qty: item.salt_qty
       // }))
       // data.salts = JSON.stringify(filterSaltValues)
-      const {
+      let {
         from_store,
         comment,
         prescription_images,
@@ -248,10 +250,23 @@ export default function AddProduct() {
         product_image
       } = data
 
-      const listImages = []
+      console.log('Prescriptin Images????', prescription_images)
 
-      // prescription_images?.map(file => {
-      //   return listImages?.push(file.file)
+      // const listImages = []
+
+      // if (typeof prescription_images === 'string') {
+      //   const trimImages = prescription_images.trim()
+      //   const imageName = trimImages.split('/').pop()
+      //   prescription_images = imageName
+      // }
+
+      // const prescriptionData = prescription_images.forEach(element, index => {
+      //   if (typeof element === 'string') {
+      //     const trimImages = element.trim()
+      //     const imageName = trimImages.split('/').pop()
+      //     element[index] = imageName
+      //   }
+      //   prescription_images = prescriptionData
       // })
 
       const payload = {
