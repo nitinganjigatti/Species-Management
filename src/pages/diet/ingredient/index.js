@@ -15,6 +15,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Button, FormControlLabel, Switch, TextField } from '@mui/material'
 import ServerSideToolbarWithFilterAndToggle from 'src/views/table/data-grid/ServerSideToolbarwithfilter_toggle'
+import IngredientDetailDialog from 'src/pages/diet/ingredient/ingredientdetail-dialog'
 
 const IngredientsList = () => {
   const renderClient = params => {
@@ -47,8 +48,7 @@ const IngredientsList = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {console.log(params, 'ppp')}
-          {params.row.length}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -151,6 +151,7 @@ const IngredientsList = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -169,8 +170,12 @@ const IngredientsList = () => {
         }
 
         await getIngredientList({ params: params }).then(res => {
+          // Generate uid field based on the index
+          let listWithId = res.data.result.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
           setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+          setRows(loadServerRows(paginationModel.page, listWithId))
         })
         setLoading(false)
       } catch (e) {
@@ -230,6 +235,17 @@ const IngredientsList = () => {
     sl_no: getSlNo(index)
   }))
 
+  const gridHeight = paginationModel.pageSize * 70 // Assuming each row is 40px high
+  console.log(paginationModel, 'paginationModel')
+
+  const handleRowClick = () => {
+    setOpen(true)
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+  }
+
   return (
     <>
       <>
@@ -243,7 +259,7 @@ const IngredientsList = () => {
               columnVisibilityModel={{
                 id: false
               }}
-              autoHeight
+              // autoHeight
               pagination
               hideFooterSelectedRowCount
               disableColumnSelector={true}
@@ -258,7 +274,8 @@ const IngredientsList = () => {
               slots={{ toolbar: ServerSideToolbarWithFilterAndToggle }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
-              className='raghu'
+              className=''
+              style={{ height: gridHeight }} // Dynamically set the height
               slotProps={{
                 baseButton: {
                   variant: 'outlined',
@@ -275,7 +292,9 @@ const IngredientsList = () => {
                   }
                 }
               }}
+              onRowClick={handleRowClick}
             />
+            <IngredientDetailDialog open={open} handleClose={handleClose} />
           </Card>
         </>
       </>

@@ -88,7 +88,6 @@ const UserThemeOptions = () => {
             paddingRight: '1rem'
           },
           row: {
-            // Your row styles...
             marginTop: '13px',
             '&:hover': {
               backgroundColor: '#F2FFF8'
@@ -100,6 +99,30 @@ const UserThemeOptions = () => {
           // virtualScrollerContent: {
           //   height: '672px!important'
           // }
+        }
+      },
+      MuiBackdrop: {
+        styleOverrides: {
+          root: {
+            // backgroundColor: 'rgba(0, 0, 0, 0.5)' // Example background color
+          }
+        }
+      },
+      MuiModal: {
+        styleOverrides: {
+          backdrop: {
+            backgroundColor: '#1f515b99'
+          }
+        }
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: '#EFF5F2'
+          },
+          backdrop: {
+            backgroundColor: '#1f515bb5'
+          }
         }
       }
     }

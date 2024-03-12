@@ -11,6 +11,8 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components
 import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -37,6 +39,7 @@ const roleColors = {
 
 const FeedOverview = ({ FeedDetailsValue }) => {
   const handleEditClickOpen = () => setOpenEdit(true)
+  const router = useRouter()
 
   function convertToTitleCase(str) {
     const words = str?.split(/(?=[A-Z])/)
@@ -99,85 +102,18 @@ const FeedOverview = ({ FeedDetailsValue }) => {
                 )}
                 <div>
                   <Typography variant='h6' sx={{ lineHeight: 1.9 }}>
-                    {FeedDetailsValue.ingredients} ingredients
+                    {FeedDetailsValue.ingredients} Ingredients
                   </Typography>
                   {/* <Typography variant='body2'>Task Done</Typography> */}
                 </div>
               </Box>
-              {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
-                  <Icon icon='mdi:briefcase-variant-outline' />
-                </CustomAvatar>
-                <div>
-                  <Typography variant='h6' sx={{ lineHeight: 1.3 }}>
-                    568
-                  </Typography>
-                  <Typography variant='body2'>Project Done</Typography>
-                </div>
-              </Box> */}
             </Box>
           </CardContent>
 
-          {/* <CardContent>
-            <Typography variant='h6'>Details</Typography>
-            <Divider sx={{ mt: theme => `${theme.spacing(4)} !important` }} />
-            <Box sx={{ pt: 2, pb: 1 }}>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                  Username:
-                </Typography>
-                <Typography variant='body2'>@{data.username}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                  Billing Email:
-                </Typography>
-                <Typography variant='body2'>{data.email}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                  Status:
-                </Typography>
-                <CustomChip
-                  skin='light'
-                  size='small'
-                  label={data.status}
-                  color={statusColors[data.status]}
-                  sx={{
-                    height: 20,
-                    fontWeight: 500,
-                    fontSize: '0.75rem',
-                    borderRadius: '5px',
-                    textTransform: 'capitalize'
-                  }}
-                />
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Role:</Typography>
-                <Typography variant='body2' sx={{ textTransform: 'capitalize' }}>
-                  {data.role}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Tax ID:</Typography>
-                <Typography variant='body2'>Tax-8894</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Contact:</Typography>
-                <Typography variant='body2'>+1 {data.contact}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Language:</Typography>
-                <Typography variant='body2'>English</Typography>
-              </Box>
-              <Box sx={{ display: 'flex' }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Country:</Typography>
-                <Typography variant='body2'>{data.country}</Typography>
-              </Box>
-            </Box>
-          </CardContent> */}
-
-          <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CardActions
+            sx={{ display: 'flex', justifyContent: 'center' }}
+            onClick={() => Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })}
+          >
             <Button variant='outlined' sx={{ mr: 2, mt: 2, pl: 40, pr: 40 }}>
               Edit
             </Button>
