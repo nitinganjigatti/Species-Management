@@ -85,10 +85,12 @@ const UserThemeOptions = () => {
             borderBottom: 'none',
             marginBottom: '5px',
             paddingLeft: '1.25rem',
-            paddingRight: '1rem'
+            paddingRight: '1rem',
+            '&:focus': {
+              outline: 'none'
+            }
           },
           row: {
-            marginTop: '13px',
             '&:hover': {
               backgroundColor: '#F2FFF8'
             }

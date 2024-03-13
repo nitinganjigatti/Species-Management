@@ -2,7 +2,7 @@
 import { Fragment, useState } from 'react'
 
 // ** MUI Imports
-import { Avatar, Button, Card, CardContent, Grid, Box, Typography } from '@mui/material'
+import { Button, Card, CardContent, Grid, Box, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -11,6 +11,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContentText from '@mui/material/DialogContentText'
 import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -30,21 +31,55 @@ const roleColors = {
   inactive: 'error'
 }
 
-const IngredientDetailDialog = ({ open, handleClose }) => {
-  //   const handleClickOpen = () => setOpen(true)
+const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }) => {
+  const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [expanded, setExpanded] = useState(false)
+
+  const handleClickOpen = () => {
+    handleClose()
+    setDeleteDialogBox(true)
+  }
+
+  const handleClosenew = () => {
+    setDeleteDialogBox(false)
+    setOpen(true)
+  }
+
   const toggleExpanded = () => {
     setExpanded(!expanded)
     window.scroll(0, 0)
   }
+
   const handleClosebtn = () => {
     handleClose()
     setExpanded(false)
   }
 
+  // delete
+  //   const confirmDeleteAction = async () => {
+  //     // console.log(deleteRowId)
+  //     const response = await deleteMedicineConfig(deleteRowId)
+
+  //     // console.log('afterdelte', response)
+
+  //     if (response?.success === true) {
+  //       toast.success(response?.data)
+  //       configureMedicine(configureMedId)
+  //       reset(defaultValues)
+  //       handleClose()
+
+  //       setDeleteRowId('')
+  //     } else {
+  //       handleClose()
+  //       toast.error(response?.message)
+  //     }
+  //   }
+
+  const descbbbb =
+    'provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu '
+
   return (
     <Fragment>
-      <Button variant='outlined'>Open dialog</Button>
       <Dialog
         open={open}
         disableEscapeKeyDown
@@ -57,7 +92,15 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
         }}
       >
         <DialogTitle id='alert-dialog-title' variant='h5'>
-          Ingredient <Icon icon='bx:pencil' style={{ float: 'right', cursor: 'pointer' }} />
+          Ingredient
+          <Icon
+            icon='material-symbols:delete-outline'
+            style={{ float: 'right', cursor: 'pointer', marginLeft: '15px' }}
+            onClick={() => {
+              handleClickOpen()
+            }}
+          />
+          <Icon icon='bx:pencil' style={{ float: 'right', cursor: 'pointer' }} />
         </DialogTitle>
 
         <DialogContent>
@@ -80,7 +123,11 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
                         width={60}
                         height={60}
                         // alt='Apple iPhone 11 Pro'
-                        src='https://gallery.yopriceville.com/var/resizes/Free-Clipart-Pictures/Fruit-PNG/Large_Painted_Red_Apple_PNG_Clipart.png?m=1507172114'
+                        src={
+                          IngredientRowVal.ingredient_image
+                            ? IngredientRowVal.ingredient_image
+                            : 'https://gallery.yopriceville.com/var/resizes/Free-Clipart-Pictures/Fruit-PNG/Large_Painted_Red_Apple_PNG_Clipart.png?m=1507172114'
+                        }
                       />
                     </div>
                   </CardContent>
@@ -95,8 +142,9 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
                   }}
                 >
                   <CardContent style={{ width: '400px' }}>
+                    {console.log(IngredientRowVal, 'rows')}
                     <Typography variant='h6' sx={{ mb: 1 }}>
-                      Apple
+                      {IngredientRowVal.ingredient_name ?? '-'}
                     </Typography>
                     <Typography variant='body2' sx={{ mb: 2 }}>
                       ING022
@@ -105,8 +153,8 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
                       <CustomChip
                         skin='light'
                         size='small'
-                        label={'Active'}
-                        // color={FeedDetailsValue?.active === 1 ? roleColors.active : roleColors.inactive}
+                        label={IngredientRowVal.active === '1' ? 'Active' : 'InActive'}
+                        color={IngredientRowVal?.active === '1' ? roleColors.active : roleColors.inactive}
                         sx={{
                           height: 20,
                           fontWeight: 600,
@@ -138,7 +186,7 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                  Fruits
+                  {IngredientRowVal.feed_type}
                 </Typography>
               </Box>
             </Box>
@@ -159,7 +207,7 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                  Gram (g)
+                  {IngredientRowVal.uom === 'gm' ? 'Gram (g)' : IngredientRowVal.uom}
                 </Typography>
               </Box>
             </Box>
@@ -180,72 +228,84 @@ const IngredientDetailDialog = ({ open, handleClose }) => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                  100
+                  {IngredientRowVal.standard_unit}
                 </Typography>
               </Box>
             </Box>
-
-            <Card sx={{ backgroundColor: '#0000000f', boxShadow: 'none', mt: 8 }}>
-              <Grid container spacing={6}>
-                <Grid
-                  item
-                  md={12}
-                  xs={12}
-                  mx={5}
-                  sx={{
-                    pt: theme => ['0 !important', '0 !important', `${theme.spacing(6)} !important`],
-                    pl: theme => [`${theme.spacing(6)} !important`, `${theme.spacing(6)} !important`, '0 !important']
-                  }}
-                >
-                  <CardContent sx={{ width: '560px' }}>
-                    <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        width: '100%',
-                        color: '#7A8684',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: expanded ? 'unset' : 3,
-                        WebkitBoxOrient: 'vertical',
-                        transition: 'max-height 2s ease-in-out',
-                        maxHeight: expanded ? '1000px' : '60px'
-                      }}
-                    >
-                      Provide Provide Provide Provide Provide Provide Provide Provide Provide Pro v ide Provide Provide
-                      Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Pro v ide Provide
-                      Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Pro v ide
-                      Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide
-                      Pro v ide Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide Provide
-                      Provide Pro v ide Provide Provide Provide
-                    </Typography>
-                    <Typography
-                      onClick={toggleExpanded}
-                      sx={{
-                        mt: 1,
-                        fontWeight: '600',
-                        fontSize: '13px',
-                        textDecoration: 'underline',
-                        color: '#000',
-                        cursor: 'pointer',
-                        float: 'right',
-                        paddingBottom: '30px'
-                      }}
-                    >
-                      {expanded ? 'View less' : 'View more'}
-                    </Typography>
-                  </CardContent>
+            {IngredientRowVal.desc ? (
+              <Card sx={{ backgroundColor: '#0000000f', boxShadow: 'none', mt: 8 }}>
+                <Grid container spacing={6}>
+                  <Grid
+                    item
+                    md={12}
+                    xs={12}
+                    mx={5}
+                    sx={{
+                      pt: theme => ['0 !important', '0 !important', `${theme.spacing(6)} !important`],
+                      pl: theme => [`${theme.spacing(6)} !important`, `${theme.spacing(6)} !important`, '0 !important']
+                    }}
+                  >
+                    <CardContent sx={{ width: '560px' }}>
+                      <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          width: '100%',
+                          color: '#7A8684',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: expanded ? 'unset' : 3,
+                          WebkitBoxOrient: 'vertical',
+                          transition: 'max-height 2s ease-in-out',
+                          maxHeight: expanded ? '1000px' : '60px'
+                        }}
+                      >
+                        {IngredientRowVal.desc}
+                      </Typography>
+                      {IngredientRowVal.desc.length > 180 ? (
+                        <Typography
+                          onClick={toggleExpanded}
+                          sx={{
+                            mt: 1,
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            textDecoration: 'underline',
+                            color: '#000',
+                            cursor: 'pointer',
+                            float: 'right',
+                            paddingBottom: '30px'
+                          }}
+                        >
+                          {expanded ? 'View less' : 'View more'}
+                        </Typography>
+                      ) : (
+                        ''
+                      )}
+                    </CardContent>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Card>
+              </Card>
+            ) : (
+              ''
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions className='dialog-actions-dense'>
-          {/* <Button onClick={handleClose}>Disagree</Button> */}
           <Button onClick={handleClosebtn}>Go Back</Button>
         </DialogActions>
       </Dialog>
+      <DeleteDialogConfirmation
+        handleClosenew={handleClosenew}
+        handleClosebtn={handleClosebtn}
+        //action={confirmDeleteAction}
+        open={deleteDialogBox}
+        message={
+          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+            Are you sure you want to delete this <br /> ingredient?
+          </span>
+        }
+      />
     </Fragment>
   )
 }

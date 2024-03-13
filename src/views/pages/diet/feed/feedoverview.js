@@ -75,8 +75,8 @@ const FeedOverview = ({ FeedDetailsValue }) => {
             <CustomChip
               skin='light'
               size='small'
-              label={FeedDetailsValue.active === 1 ? 'Active' : 'InActive'}
-              color={FeedDetailsValue?.active === 1 ? roleColors.active : roleColors.inactive}
+              label={FeedDetailsValue.active === '1' ? 'Active' : 'InActive'}
+              color={FeedDetailsValue?.active === '1' ? roleColors.active : roleColors.inactive}
               sx={{
                 height: 20,
                 fontWeight: 600,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getIngredientList } from 'src/lib/api/diet/getFeedDetails'
+import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 // ** MUI Imports
 
@@ -14,7 +14,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Button, FormControlLabel, Switch, TextField } from '@mui/material'
+import { Box, Avatar, Button, FormControlLabel, Switch } from '@mui/material'
 import ServerSideToolbarWithFilterAndToggle from 'src/views/table/data-grid/ServerSideToolbarwithfilter_toggle'
 import IngredientDetailDialog from 'src/pages/diet/ingredient/ingredientdetail-dialog'
 
@@ -65,7 +65,7 @@ const IngredientsList = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+            src={params.row.ingredient_image ? `${params.row.ingredient_image}` : '/images/tablet.png'}
           />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -149,24 +149,25 @@ const IngredientsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [IngredientRowVal, setIngredientRowVal] = useState({})
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, sortColumn }) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
-          column,
-          page: paginationModel.page + 1,
+          sortColumn,
+          page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
@@ -188,10 +189,10 @@ const IngredientsList = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column }) => {
+    debounce(async ({ sort, q, sortColumn }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, sortColumn })
       } catch (error) {
         console.error(error)
       }
@@ -200,19 +201,19 @@ const IngredientsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    fetchTableData({ sort, q: searchValue, sortColumn: sortColumning })
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, sortColumn: newModel[0].field })
     } else {
     }
   }
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, sortColumn: sortColumning })
   }
 
   const headerAction = (
@@ -236,11 +237,11 @@ const IngredientsList = () => {
     sl_no: getSlNo(index)
   }))
 
-  const gridHeight = paginationModel.pageSize * 70 // Assuming each row is 40px high
   console.log(paginationModel, 'paginationModel')
 
-  const handleRowClick = () => {
+  const handleRowClick = value => {
     setOpen(true)
+    setIngredientRowVal(value)
   }
 
   const handleClose = () => {
@@ -260,7 +261,7 @@ const IngredientsList = () => {
               columnVisibilityModel={{
                 id: false
               }}
-              // autoHeight
+              autoHeight
               pagination
               hideFooterSelectedRowCount
               disableColumnSelector={true}
@@ -276,7 +277,6 @@ const IngredientsList = () => {
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               className=''
-              style={{ height: gridHeight }} // Dynamically set the height
               slotProps={{
                 baseButton: {
                   variant: 'outlined',
@@ -293,9 +293,17 @@ const IngredientsList = () => {
                   }
                 }
               }}
-              onRowClick={handleRowClick}
+              onRowClick={params => {
+                const rowData = params.row
+                handleRowClick(rowData)
+              }}
             />
-            <IngredientDetailDialog open={open} handleClose={handleClose} />
+            <IngredientDetailDialog
+              open={open}
+              setOpen={setOpen}
+              handleClose={handleClose}
+              IngredientRowVal={IngredientRowVal}
+            />
           </Card>
         </>
       </>
