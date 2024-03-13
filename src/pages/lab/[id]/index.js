@@ -691,7 +691,6 @@ const RequestDetails = () => {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 p: 2,
-
                                 maxHeight: 40,
                                 bgcolor: '#EFF5F2'
                               }}
@@ -717,7 +716,7 @@ const RequestDetails = () => {
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
-                          style={{ textDecoration: 'none' }}
+                          style={{ textDecoration: 'none', color: '#6e6f81' }}
                         >
                           <Box
                             key={item?.file}
