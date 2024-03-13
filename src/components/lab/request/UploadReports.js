@@ -28,10 +28,11 @@ const UploadReports = ({
     setFiles(imageData)
   }
 
-  const defaultValues = {}
+  const defaultValues = { image: '' }
 
   const schema = yup.object().shape({
     // document: yup.mixed().required('Please upload a document')
+    image: yup.mixed().required('Please upload a document')
   })
 
   const {
@@ -70,48 +71,39 @@ const UploadReports = ({
 
     const lab_test_files = []
 
-    // if (files.length > 0) {
-    //   lab_test_files.push({
-    //     // type: 'image',
-    //     file: files[0]
-    //   })
-    // }
-
-    // Add document to lab_test_files array
-    // if (selectedFile) {
-    //   lab_test_files.push({
-    //     // type: 'document',
-    //     file: selectedFile
-    //   })
-    // }
-
-    const payload = {
-      medical_record_id: medicalRecordId,
-      animal_id: animalID,
-      lab_test_id: labTestId,
-      lab_test_files: [files[0]],
-      entity_type: type,
-      entity_id: id
-    }
-    console.log('payload', payload)
-
-    try {
-      const response = await UploadLabReports(payload)
-      if (response?.success) {
-        handleCloseUploader(false)
-        handleClosePopover()
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
-        fetchRequestDetails()
-      } else {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-      }
-      // Reset the form after successful submission
-      reset()
-    } catch (error) {
-      console.error(error)
-    } finally {
+    if (!files[0]) {
+      setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
       setSubmitting(false)
+    } else {
+      const payload = {
+        medical_record_id: medicalRecordId,
+        animal_id: animalID,
+        lab_test_id: labTestId,
+        lab_test_files: [files[0]],
+        entity_type: type,
+        entity_id: id
+      }
+      console.log('payload', payload)
+
+      try {
+        const response = await UploadLabReports(payload)
+        if (response?.success) {
+          handleCloseUploader(false)
+          handleClosePopover()
+          reset(defaultValues)
+          setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+          fetchRequestDetails()
+        } else {
+          reset(defaultValues)
+          setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        }
+        // Reset the form after successful submission
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
@@ -180,7 +172,13 @@ const UploadReports = ({
           <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
             Upload
           </LoadingButton>
-          <LoadingButton onClick={() => setFiles([])} variant='outlined'>
+          <LoadingButton
+            onClick={() => {
+              // reset(defaultValues)
+              onImageUpload()
+            }}
+            variant='outlined'
+          >
             Reset
           </LoadingButton>
         </div>
