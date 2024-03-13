@@ -34,8 +34,10 @@ const ImageUploadComponent = ({
     if (name.length <= length) {
       return name
     }
+
     return name.slice(-length)
   }
+
   const renderFilePreview = file => {
     if (file !== undefined) {
       if (typeof file === 'string') {
