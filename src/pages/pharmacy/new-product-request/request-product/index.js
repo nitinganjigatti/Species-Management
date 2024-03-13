@@ -149,21 +149,6 @@ export default function AddProduct() {
   console.log('prescriptionImafes>>>>>', prescriptionImage)
   console.log('getValues???', getValues())
 
-  const handleAddGalleryClick = () => {
-    fileInputRef.current.click()
-  }
-
-  const handlePrescriptionClick = () => {
-    prescriptionRef.current.click()
-  }
-
-  const removeItemsFroTable = index => {
-    const updatedItems = dataChildValues.filter((el, elindex) => {
-      return elindex != index
-    })
-    setDataChildValues(updatedItems)
-  }
-
   const removeselectedImage = selectedindex => {
     if (prescriptionImage.length > 0) {
       const list = [...prescriptionImage]
@@ -175,7 +160,6 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
-      // setImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
@@ -194,11 +178,6 @@ export default function AddProduct() {
 
       setPrescriptionImage(res?.data?.prescription_images)
 
-      // res?.data?.request_item_details?.map(Item =>
-      //   typeof Item?.product_image === 'string'
-      //     ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-      //     : Item?.product_image
-      // )
       setImgSrc(res?.data?.request_item_details[0].product_image)
     })
   }
@@ -216,7 +195,6 @@ export default function AddProduct() {
       data.status = data?.status ? data?.status : 'pending'
 
       const filterPrescriptionImages = data?.prescription_images?.map(element => {
-        console.log('el????', element)
         if (typeof element === 'string') {
           const trimElement = element.trim()
           const imageName = trimElement.split('/').pop()
@@ -226,6 +204,13 @@ export default function AddProduct() {
         }
       })
       data.prescription_images = filterPrescriptionImages
+
+      if (typeof data?.product_image === 'string') {
+        const trimImg = data?.product_image.trim()
+        const imgName = trimImg.split('/').pop()
+        data.product_image = imgName // Set imgName in data.product_image
+        return imgName
+      }
 
       // handleUpdate(getDetails, data)
       // const requestDetailsData = {
@@ -259,8 +244,6 @@ export default function AddProduct() {
         product_image
       } = data
 
-      // const listImages = []
-
       const payload = {
         from_store: from_store,
         comments: comment,
@@ -281,8 +264,6 @@ export default function AddProduct() {
       }
 
       console.log(payload)
-
-      // payload.request_item_details.request_item_detail_id = requestData
 
       let response
 
@@ -316,27 +297,27 @@ export default function AddProduct() {
   // }
 
   const handleCancelDialogBox = () => {
-    if (isDirty) {
+    if (isDirty || imgSrc || prescriptionImage) {
       setConfirmationBox(true)
     }
   }
 
-  const clearSaltFields = index => {
-    return (
-      <Box>
-        <Icon
-          onClick={() => {
-            var tempDefaultSalts = defaultSalts
-            tempDefaultSalts[index] = undefined
-            setDefaultSalts(tempDefaultSalts)
-            remove(index)
-            insert(index, {})
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-    )
-  }
+  // const clearSaltFields = index => {
+  //   return (
+  //     <Box>
+  //       <Icon
+  //         onClick={() => {
+  //           var tempDefaultSalts = defaultSalts
+  //           tempDefaultSalts[index] = undefined
+  //           setDefaultSalts(tempDefaultSalts)
+  //           remove(index)
+  //           insert(index, {})
+  //         }}
+  //         icon='material-symbols-light:close'
+  //       />
+  //     </Box>
+  //   )
+  // }
 
   // const handleCallback = dataFromChild => {
   //   if (editValues || editValues.request_item_detail_id) {
@@ -438,8 +419,10 @@ export default function AddProduct() {
   }, [id])
 
   const handleCancelChange = () => {
-    {
-      isDirty ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
+    if (isDirty || imgSrc || prescriptionImage) {
+      handleCancelDialogBox()
+    } else {
+      router.push('/pharmacy/new-product-request/')
     }
   }
 
