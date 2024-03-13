@@ -559,6 +559,14 @@ const IndividualReturnRequest = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
+            {/* /* This will show after shipping before receiving the request */}
+            {params?.row?.delivery_status === 'Not Delivered' &&
+              params?.row?.request_status === '' &&
+              params?.row?.shipment_status === 'Shipped' && (
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              )}
           </div>
         </Typography>
       )
