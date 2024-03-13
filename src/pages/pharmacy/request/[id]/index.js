@@ -754,7 +754,7 @@ const IndividualRequest = () => {
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            ,
+
             {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
@@ -770,7 +770,7 @@ const IndividualRequest = () => {
               params?.row?.request_status === '' &&
               params?.row?.shipment_status === 'Shipped' && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               )}
           </div>

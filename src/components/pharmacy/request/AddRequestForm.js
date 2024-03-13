@@ -49,7 +49,8 @@ import {
   addRequestItems,
   getRequestItemsListById,
   updateRequestItems,
-  deleteLineItem
+  deleteLineItem,
+  cancelRequestItems
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -111,6 +112,8 @@ const AddRequestForm = () => {
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [deleteDialog, setDeleteDialog] = useState(false)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -124,6 +127,14 @@ const AddRequestForm = () => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
 
     return storeType
+  }
+
+  const openCancelDialog = () => {
+    setCancelRequestDialog(true)
+  }
+
+  const closeCancelDialog = () => {
+    setCancelRequestDialog(false)
   }
 
   const closeDialog = () => {
@@ -537,6 +548,26 @@ const AddRequestForm = () => {
           setDeleteDialog(false)
           setDeleteItemId(null)
           getListOfItemsById(id)
+        } else {
+          toast.error(result.data)
+        }
+      } catch (error) {
+        toast.error(error.data)
+        console.log('error', error)
+      }
+    }
+  }
+
+  const cancelRequest = async id => {
+    debugger
+    console.log('id', id)
+    if (id) {
+      try {
+        const result = await cancelRequestItems(id)
+        console.log('cancelRequest result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
+          Router.push(`/pharmacy/request/request-list/`)
         } else {
           toast.error(result.data)
         }
@@ -962,8 +993,8 @@ const AddRequestForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
+            {editParams?.request_item_details
+              ? editParams?.request_item_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -1009,8 +1040,15 @@ const AddRequestForm = () => {
                         {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
-                              setDeleteItemId(el.id)
-                              setDeleteDialog(true)
+                              console.log('line items', el)
+
+                              if (editParams?.request_item_details?.length === 1) {
+                                openCancelDialog()
+                              } else {
+                                setDeleteItemId(el.id)
+                                setDeleteDialog(true)
+                              }
+
                               // removeItemsFroTable(el.request_item_medicine_id)
                             }}
                             size='small'
@@ -1058,6 +1096,20 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          {id ? (
+            <Button
+              sx={{ mx: 2 }}
+              color='error'
+              onClick={() => {
+                openCancelDialog()
+                // setEditParams(editParamsInitialState)
+              }}
+              size='large'
+              variant='outlined'
+            >
+              Cancel Request
+            </Button>
+          ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
             sx={{ marginRight: '8px' }}
@@ -1070,15 +1122,17 @@ const AddRequestForm = () => {
           >
             Save
           </LoadingButton>
-          <Button
-            onClick={() => {
-              setEditParams(editParamsInitialState)
-            }}
-            size='large'
-            variant='outlined'
-          >
-            Reset
-          </Button>
+          {id ? null : (
+            <Button
+              onClick={() => {
+                setEditParams(editParamsInitialState)
+              }}
+              size='large'
+              variant='outlined'
+            >
+              Reset
+            </Button>
+          )}
         </Box>
       </Grid>
       <ConfirmDialogBox
@@ -1115,6 +1169,49 @@ const AddRequestForm = () => {
                   color='error'
                   onClick={() => {
                     deleteLineItemFromDb(deleteItemId)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
                   }}
                 >
                   Confirm

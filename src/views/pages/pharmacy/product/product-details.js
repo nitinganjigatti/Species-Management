@@ -20,40 +20,7 @@ import { Box } from '@mui/system'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescriptionImages, productDetails }) => {
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
-
   const { selectedPharmacy } = usePharmacyContext()
-
-  // const defaultValues = {
-  //   from_store: '',
-  //   comment: '',
-  //   prescription_images: [],
-  //   product_type: '',
-  //   product_name: '',
-  //   generic_name: '',
-  //   product_image: '',
-  //   quantity: '1',
-  //   priority: 'Normal'
-  // }
-
-  // const schema = yup.object().shape({
-  //   from_store: yup.string().required('please select from store'),
-  //   product_type: yup.string().required('product type is required'),
-  //   product_name: yup.string().required('product name is required'),
-  //   generic_name: yup.string().required('generic name is required'),
-  //   quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
-  // })
-
-  // const {
-  //   handleSubmit,
-  //   control,
-  //   reset,
-  //   formState: { errors }
-  // } = useForm({
-  //   defaultValues,
-  //   resolver: yupResolver(schema),
-  //   mode: 'onBlur'
-  // })
 
   return (
     <Grid>
@@ -70,64 +37,82 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                 </Grid>
               )}
 
-            <Grid container spacing={6} sx={{ mb: '30px' }}>
+            <Grid container spacing={6} sx={{ mb: '30px' }} xs={12}>
               {selectedPharmacy.type === 'central' && (
                 <Grid item xs={6}>
-                  <Typography>From Store</Typography>
-                  {productDetails.to_store_name}
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    From Store
+                  </Typography>
+                  {productDetails?.to_store_name}
                 </Grid>
               )}
               <Grid item xs={6}>
-                <Typography>Product Type</Typography>
-                {item?.product_type}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Product Type
+                </Typography>
+                <Typography variant='body2'>{item.product_type}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Product Name</Typography>
-                {item?.product_name}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Product Name
+                </Typography>
+                <Typography variant='body2'>{item.product_name}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Generic Name</Typography>
-                {item?.generic_name}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Generic Name
+                </Typography>
+                <Typography variant='body2'>{item.generic_name}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography>Quantity</Typography>
-                {item?.quantity}
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Quantity
+                </Typography>
+                <Typography variant='body2'>{item.quantity}</Typography>
               </Grid>
-
+              <Grid item xs={6}>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Priority
+                </Typography>
+                {item?.priority}
+              </Grid>
               {item?.product_image && (
                 <Grid item xs={6}>
-                  <Typography>Product Image</Typography>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Product Image
+                  </Typography>
 
-                  <a href={`${base_url}${imgUrl}${item?.product_image}`} target='_blank'>
+                  <a href={`${item?.product_image}`} target='_blank'>
                     <img
                       alt='Product Image'
                       style={{ borderRadius: '10px' }}
                       width='50px'
                       height='50px'
-                      src={`${base_url}${imgUrl}${item?.product_image}`}
+                      src={`${item?.product_image}`}
                     />
                   </a>
                 </Grid>
               )}
-              <Grid item xs={6}>
-                <Typography>Priority</Typography>
-                {item?.priority}
-              </Grid>
+
               {prescriptionImages && (
-                <Grid item xs={6}>
-                  <Typography>Prescription Images</Typography>
+                <Grid item xs={12}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Prescription Images
+                  </Typography>
 
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
+                        console.log('Item????', item)
+
                         return (
                           <Box key={index}>
                             <Grid>
-                              <a href={`${base_url}${imgUrl}${item}`} target='_blank'>
+                              <a href={`${item}`} target='_blank'>
                                 <img
                                   alt='Prescription Image'
                                   style={{ width: '50px', height: '50px', borderRadius: '10px', margin: '10px' }}
-                                  src={`${base_url}${imgUrl}${item}`}
+                                  src={`${item}`}
                                 />
                               </a>
                             </Grid>
@@ -137,9 +122,11 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   </Grid>
                 </Grid>
               )}
-              <Grid item xs={6}>
-                <Typography>Comments</Typography>
-                {productDetails?.comments}
+              <Grid item xs={12}>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Comments
+                </Typography>
+                <Typography variant='body2'>{productDetails?.comments}</Typography>
               </Grid>
             </Grid>
           </div>

@@ -233,7 +233,7 @@ const AddSupplier = () => {
           setOpenSnackbar({
             ...openSnackbar,
             open: true,
-            message: message !== '' ? 'Supplier name should be unique' : '',
+            message: message !== '' ? 'The supplier name field must contain a unique value' : '',
             severity: 'error'
           })
         } else {
