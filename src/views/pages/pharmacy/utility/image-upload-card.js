@@ -27,24 +27,16 @@ const ImageUploadComponent = ({
   removeselectedImage,
   setPrescriptionField
 }) => {
-  console.log('Get??????', prescriptionImage)
-  debugger
+  // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  const MAX_NAME_LENGTH = 15
 
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
-
-  // useEffect(() => {
-  //   debugger
-  //   if (fields.length > 0) {
-  //     setPrescriptionField([...prescriptionField, fields])
-  //   }
-  // }, [fields])
-
-  // {
-  //   console.log('Prescription Images???', prescriptionField)
-  // }
-
+  const getLastCharacters = (name, length) => {
+    if (name.length <= length) {
+      return name
+    }
+    return name.slice(-length)
+  }
   const renderFilePreview = file => {
-    debugger
     if (file !== undefined) {
       if (typeof file === 'string') {
         return (
@@ -56,7 +48,7 @@ const ImageUploadComponent = ({
               border: '1px solid rgba(93, 89, 98, 0.14)'
             }}
             alt={file.name}
-            src={`${base_url}${imgBaseUrl}${file}`}
+            src={`${file}`}
           />
         )
       }
@@ -82,17 +74,14 @@ const ImageUploadComponent = ({
 
   return (
     <Box>
-      {/* <CardContent> */}
-      {/* <DropzoneWrapper className='dropzone'></DropzoneWrapper> */}
-
       <List>
         {prescriptionImage?.map((image, index) => (
           <>
             <ListItem
+              key={image}
               sx={{
                 borderRadius: '10px'
               }}
-              key={image?.file?.name}
             >
               {console.log('type of image', typeof image)}
               <div style={{ display: 'flex', justifyContent: 'space-around' }}>
@@ -100,10 +89,11 @@ const ImageUploadComponent = ({
                   {image && renderFilePreview(typeof image === 'string' ? image : image)}
                 </div>
                 <div style={{ margin: '10px' }}>
-                  <Typography className='file-name'>{typeof image === 'string' ? image : image?.name}</Typography>
+                  <Typography className='file-name'>
+                    {getLastCharacters(typeof image === 'string' ? image : image?.name, MAX_NAME_LENGTH)}
+                  </Typography>
                 </div>
               </div>{' '}
-              {console.log('image>>>>>>', image)}
               <IconButton onClick={() => removeselectedImage(index)}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
@@ -111,8 +101,6 @@ const ImageUploadComponent = ({
           </>
         ))}
       </List>
-      {/* <ImageUploadComponent fields={fields} /> */}
-      {/* </CardContent> */}
     </Box>
   )
 }
