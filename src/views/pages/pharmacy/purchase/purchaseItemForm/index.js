@@ -98,7 +98,7 @@ const PurchaseItemForm = props => {
     purchase_unit_price: yup
       .number()
       .typeError('Supplier rate must be a number')
-      .min(1, 'Supplier rate must be greater than zero')
+      .positive('Supplier rate must be a positive number')
       .required('Supplier rate is required'),
     purchase_qty: yup
       .number()
@@ -120,17 +120,17 @@ const PurchaseItemForm = props => {
     purchase_cgst: yup
       .number()
       .typeError('Central GST must be a number')
-      .min(1, 'Central GST must be greater than zero')
+      .min(0, 'Central GST must be greater than zero')
       .required('Central GST is required'),
     purchase_sgst: yup
       .number()
       .typeError('State GST must be a number')
-      .min(1, 'State GST must be greater than zero')
+      .min(0, 'State GST must be greater than zero')
       .required('State GST is required'),
     purchase_igst: yup
       .number()
       .typeError('GST must be a number')
-      .min(1, 'GST must be greater than zero')
+      .min(0, 'GST must be greater than zero')
       .required('GST is required'),
 
     // purchase_cgst_amount: yup
@@ -142,7 +142,8 @@ const PurchaseItemForm = props => {
     purchase_cgst_amount: yup
       .number()
       .typeError('Central GST Amount must be a number')
-      .positive('Central GST Amount must be a positive number')
+
+      // .positive('Central GST Amount must be a positive number')
       .required('Central GST Amount is required'),
 
     // purchase_sgst_amount: yup
@@ -154,13 +155,15 @@ const PurchaseItemForm = props => {
     purchase_sgst_amount: yup
       .number()
       .typeError('State GST Amount must be a number')
-      .positive('State GST Amount must be a positive number')
+
+      // .positive('State GST Amount must be a positive number')
       .required('State GST Amount is required'),
 
     purchase_igst_amount: yup
       .number()
       .typeError('Tax Amount must be a number')
-      .positive('Tax Amount must be a positive zero')
+
+      // .positive('Tax Amount must be a positive zero')
       .required('Tax Amount is required'),
 
     // purchase_igst_amount: yup
@@ -172,7 +175,7 @@ const PurchaseItemForm = props => {
     purchase_gross_amount: yup
       .number()
       .typeError('Gross amount must be a number')
-      .min(1, 'Gross amount must be greater than one')
+      .positive('Gross amount must be a positive number')
       .required('Gross amount is required'),
 
     purchase_discount_amount: yup
@@ -183,13 +186,15 @@ const PurchaseItemForm = props => {
     purchase_taxable_amount: yup
       .number()
       .typeError('Taxable amount must be a number')
-      .min(1, 'Taxable amount amount must be greater than zero')
+
+      // .positive('Taxable amount amount must be greater than zero')
       .required('Taxable amount is required'),
 
     purchase_net_amount: yup
       .number()
       .typeError('Net amount must be a number')
-      .min(1, 'Net amount amount must be greater than zero')
+
+      // .positive('Net amount amount must be greater than zero')
       .required('Net amount is required')
   })
 
@@ -296,6 +301,16 @@ const PurchaseItemForm = props => {
     return parseFloat(numberToCheck?.toString().length > 0 && !isNaN(numberToCheck) ? numberToCheck : 0)
   }
 
+  const checkFloatValue = value => {
+    if (value >= 0.01) {
+      return parseFloat(value).toFixed(2)
+    } else if (value > 0 && value < 0.01) {
+      return parseFloat(value).toFixed(5)
+    } else {
+      return 0
+    }
+  }
+
   const calculateStuff = () => {
     const updatedValues = getValues()
 
@@ -336,14 +351,60 @@ const PurchaseItemForm = props => {
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
     // console.log('taxAmount', taxAmount)
-    setValue('purchase_cgst_amount', parseFloat(purchase_cgst_amount).toFixed(2))
-    setValue('purchase_sgst_amount', parseFloat(purchase_sgst_amount).toFixed(2))
-    setValue('purchase_igst', purchase_igst)
-    setValue('purchase_igst_amount', parseFloat(purchase_igst_amount).toFixed(2))
-    setValue('purchase_gross_amount', parseFloat(grossAmount).toFixed(2))
-    setValue('purchase_discount_amount', discountAmount)
-    setValue('purchase_taxable_amount', taxableAmount)
-    setValue('purchase_net_amount', netAmount)
+    setValue(
+      'purchase_cgst_amount',
+      checkFloatValue(purchase_cgst_amount)
+
+      // purchase_cgst_amount >= 0.01
+      //   ? parseFloat(purchase_cgst_amount).toFixed(2)
+      //   : parseFloat(purchase_cgst_amount).toFixed(5)
+    )
+    setValue(
+      'purchase_sgst_amount',
+      checkFloatValue(purchase_sgst_amount)
+
+      // purchase_sgst_amount >= 0.01
+      //   ? parseFloat(purchase_sgst_amount).toFixed(2)
+      //   : parseFloat(purchase_sgst_amount).toFixed(5)
+    )
+    setValue(
+      'purchase_igst',
+      checkFloatValue(purchase_igst)
+
+      // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
+    )
+    setValue(
+      'purchase_igst_amount',
+      checkFloatValue(purchase_igst_amount)
+
+      // purchase_igst_amount >= 0.01
+      //   ? parseFloat(purchase_igst_amount).toFixed(2)
+      //   : parseFloat(purchase_igst_amount).toFixed(5)
+    )
+    setValue(
+      'purchase_gross_amount',
+      checkFloatValue(grossAmount)
+
+      // grossAmount >= 0.01 ? parseFloat(grossAmount).toFixed(2) : parseFloat(grossAmount).toFixed(5)
+    )
+    setValue(
+      'purchase_discount_amount',
+      checkFloatValue(discountAmount)
+
+      // discountAmount >= 0.01 ? parseFloat(discountAmount).toFixed(2) : parseFloat(discountAmount).toFixed(5)
+    )
+    setValue(
+      'purchase_taxable_amount',
+      checkFloatValue(taxableAmount)
+
+      // taxableAmount >= 0.01 ? parseFloat(taxableAmount).toFixed(2) : parseFloat(taxableAmount).toFixed(2)
+    )
+    setValue(
+      'purchase_net_amount',
+      checkFloatValue(netAmount)
+
+      // netAmount >= 0.01 ? parseFloat(netAmount).toFixed(2) : parseFloat(netAmount).toFixed(5)
+    )
   }
 
   useEffect(() => {
@@ -924,7 +985,7 @@ const PurchaseItemForm = props => {
                 </Button>
                 <Button
                   onClick={() => {
-                    closeDialog()
+                    reset(defaultValues)
                   }}
                   size='large'
                   variant='outlined'
@@ -939,7 +1000,7 @@ const PurchaseItemForm = props => {
                 </Button>
                 <Button
                   onClick={() => {
-                    closeDialog()
+                    reset(defaultValues)
                   }}
                   size='large'
                   variant='outlined'
