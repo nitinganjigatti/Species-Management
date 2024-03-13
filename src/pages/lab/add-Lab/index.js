@@ -283,7 +283,7 @@ const AddLab = () => {
   }
 
   const onSubmit = async params => {
-    // setSubmitLoader(true)
+    setSubmitLoader(true)
 
     const { lab_name, type, incharge_name, address, lab_contact_number, tests, is_default } = {
       ...params

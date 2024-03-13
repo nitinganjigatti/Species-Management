@@ -485,7 +485,7 @@ const RequestDetails = () => {
     const { lab_name, replaced_lab_id, transfer_reason } = {
       ...params
     }
-    const id = requestId
+    const id = testId
 
     const payload = {
       replaced_lab_id,
