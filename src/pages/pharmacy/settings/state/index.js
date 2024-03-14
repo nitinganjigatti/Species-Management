@@ -53,7 +53,6 @@ const ListOfStates = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        // debugger
         console.log('while updating', editParams?.id, payload)
 
         response = await updateStates(editParams?.id, payload)
@@ -72,7 +71,7 @@ const ListOfStates = () => {
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
