@@ -14,7 +14,7 @@ import Icon from 'src/@core/components/icon'
 
 // import DeleteIcon from '@mui/icons-material/Delete'
 
-import { Card, CardContent, Grid, debounce } from '@mui/material'
+import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
 
 import {
   deleteNonExistingProduct,
@@ -283,27 +283,47 @@ export default function NewProductList() {
           </Card>
 
           {show && (
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={`Product Details - ${productDetails?.request_number}`}
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <ProductDetail
-                      setShow={setShow}
-                      detailsData={detailsData}
-                      prescriptionImages={prescriptionImages}
-                      imgUrl={imgUrl}
-                      itemId={itemId}
-                      handleEdit={handleEdit}
-                      productDetails={productDetails}
-                    />
-                  }
-                  close={() => setShow(false)}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
+            <>
+              <CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>Product Details - {productDetails?.request_number}</div>
+                        {selectedPharmacy.type === 'local' &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') && (
+                            <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => handleEdit(itemId)}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
+                            </Grid>
+                          )}
+                      </div>
+                    }
+                    dialogBoxStatus={show}
+                    formComponent={
+                      <ProductDetail
+                        setShow={setShow}
+                        detailsData={detailsData}
+                        prescriptionImages={prescriptionImages}
+                        imgUrl={imgUrl}
+                        itemId={itemId}
+                        handleEdit={handleEdit}
+                        productDetails={productDetails}
+                      />
+                    }
+                    close={() => setShow(false)}
+                    show={() => setShow(true)}
+                  />
+                </Grid>
+              </CardContent>
+            </>
           )}
         </>
       )}

@@ -156,7 +156,12 @@ const AddMedicine = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const router = useRouter()
-  const { id, action } = router.query
+  const { id, action, productDetails } = router.query
+
+  // const queryParams = new URLSearchParams(window.location.search)
+  // const productDetails = queryParams.get('productDetails')
+
+  console.log('GproductDetails', productDetails)
 
   const { settings } = useSettings()
   const { skin } = settings

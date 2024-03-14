@@ -230,6 +230,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       purchaseList,
       stockParent,
       productsList,
+      nonExistingProductRequestList,
       settingsParent
     )
   }

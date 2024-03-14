@@ -60,9 +60,6 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ConfirmationBox } from 'src/utility/Confirm-dialog-box'
 
 export default function AddProduct() {
-  const fileInputRef = useRef(null)
-  const prescriptionRef = useRef(null)
-
   const [storeList, setStoreList] = useState([])
   const [dataChildValues, setDataChildValues] = useState([])
   const [editValues, setEditValues] = useState(dataChildValues)
@@ -75,6 +72,8 @@ export default function AddProduct() {
   const [saltsList, setSalts] = useState([])
   const [imgSrc, setImgSrc] = useState('')
   const [prescriptionImage, setPrescriptionImage] = useState()
+  const [previousPrescriptionLength, setPreviousPrescriptionLength] = useState(false)
+  const [imgSrcChange, setImgSrcChange] = useState(false)
   const [confirmationBox, setConfirmationBox] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
@@ -86,11 +85,6 @@ export default function AddProduct() {
       .then(res => setStoreList(res?.data?.list_items))
       .catch(err => console.log(err))
   }, [])
-
-  // {
-  //   storeList?.map((item, index) => setStoreId(item?.id))
-  // }
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
   const schema = yup.object().shape({
     from_store: yup.string().required('Store Name is required'),
@@ -144,6 +138,7 @@ export default function AddProduct() {
     }
 
     setPrescriptionImage([...imagesList, ...newImages])
+    setPreviousPrescriptionLength(true)
   }
 
   console.log('prescriptionImafes>>>>>', prescriptionImage)
@@ -155,6 +150,7 @@ export default function AddProduct() {
       const filterList = list.filter((item, index) => selectedindex !== index)
       setValue('prescription_images', filterList)
       setPrescriptionImage(filterList)
+      setPreviousPrescriptionLength(true)
     }
   }
 
@@ -183,111 +179,98 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
-    if (!confirmationBox) {
-      const dataChild = [...dataChildValues]
+    const dataChild = [...dataChildValues]
 
-      const requestData = dataChild?.map((item, index) => {
-        return item?.request_item_detail_id
-      })
+    const requestData = dataChild?.map((item, index) => {
+      return item?.request_item_detail_id
+    })
 
-      data.request_item_detail_id = requestData.join('')
+    if (typeof data?.product_image === 'string') {
+      const trimImg = data?.product_image.trim()
+      const imgName = trimImg.split('/').pop()
+      data.product_image = imgName
+    }
 
-      data.status = data?.status ? data?.status : 'pending'
+    data.request_item_detail_id = requestData.join('')
 
-      const filterPrescriptionImages = data?.prescription_images?.map(element => {
-        if (typeof element === 'string') {
-          const trimElement = element.trim()
-          const imageName = trimElement.split('/').pop()
+    data.status = data?.status ? data?.status : 'pending'
 
-          return imageName
-        } else {
-          return element
-        }
-      })
-      data.prescription_images = filterPrescriptionImages
-
-      if (typeof data?.product_image === 'string') {
-        const trimImg = data?.product_image.trim()
-        const imgName = trimImg.split('/').pop()
-        data.product_image = imgName // Set imgName in data.product_image
-
-        return imgName
+    const filterPrescriptionImages = data?.prescription_images?.map(element => {
+      if (typeof element === 'string') {
+        const trimElement = element.trim()
+        const imageName = trimElement.split('/').pop()
+        return imageName
+      } else {
+        return element
       }
+    })
+    data.prescription_images = filterPrescriptionImages
 
-      // handleUpdate(getDetails, data)
-      // const requestDetailsData = {
-      //   product_type: data?.product_type,
-      //   product_name: data?.product_name,
-      //   generic_name: data?.generic_name,
-      //   priority: data?.priority,
-      //   quantity: data?.quantity,
-      //   product_image: data?.product_image,
-      //   salts: JSON.stringify([]),
-      //   status: data?.status
-      // }
+    // handleUpdate(getDetails, data)
+    // const requestDetailsData = {
+    //   product_type: data?.product_type,
+    //   product_name: data?.product_name,
+    //   generic_name: data?.generic_name,
+    //   priority: data?.priority,
+    //   quantity: data?.quantity,
+    //   product_image: data?.product_image,
+    //   salts: JSON.stringify([]),
+    //   status: data?.status
+    // }
 
-      // const saltValues = data.salts
+    // const saltValues = data.salts
 
-      // const filterSaltValues = saltValues?.map(item => ({
-      //   salt_id: item.salt_id,
-      //   salt_qty: item.salt_qty
-      // }))
-      // data.salts = JSON.stringify(filterSaltValues)
-      let {
-        from_store,
-        comment,
-        prescription_images,
-        product_type,
-        priority,
-        product_name,
-        generic_name,
-        quantity,
-        status,
-        product_image
-      } = data
+    // const filterSaltValues = saltValues?.map(item => ({
+    //   salt_id: item.salt_id,
+    //   salt_qty: item.salt_qty
+    // }))
+    // data.salts = JSON.stringify(filterSaltValues)
 
-      const payload = {
-        from_store: from_store,
-        comments: comment,
-        prescription_images,
-        request_item_details: [
-          {
-            product_type,
-            product_name,
-            generic_name,
-            priority,
-            quantity,
-            product_image,
-            salts: JSON.stringify([]),
-            status: data?.status,
-            request_item_detail_id: data.request_item_detail_id
-          }
-        ]
-      }
+    let {
+      from_store,
+      comment,
+      prescription_images,
+      product_type,
+      priority,
+      product_name,
+      generic_name,
+      quantity,
+      status,
+      product_image
+    } = data
 
-      console.log(payload)
-
-      let response
-
-      try {
-        if (id) {
-          response = await updateNonExistingProduct(payload, id)
-        } else {
-          response = await addNonExistingProduct(payload)
+    const payload = {
+      from_store: from_store,
+      comments: comment,
+      prescription_images,
+      request_item_details: [
+        {
+          product_type,
+          product_name,
+          generic_name,
+          priority,
+          quantity,
+          product_image,
+          salts: JSON.stringify([]),
+          status: data?.status,
+          request_item_detail_id: data.request_item_detail_id
         }
+      ]
+    }
 
-        if (response?.success) {
-          const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
-          toast.success(toastMessage)
+    if (typeof data?.product_image === 'string') {
+      const trimImg = data?.product_image.trim()
+      const imgName = trimImg.split('/').pop()
+      data.product_image = imgName // Set imgName in data.product_image
+    }
 
-          router.push('/pharmacy/new-product-request/')
-          reset()
-        } else {
-        }
-      } catch (error) {
-        // Handle the error as needed
-        console.error('An error occurred:', error)
-      }
+    if (response?.success) {
+      const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
+      toast.success(toastMessage)
+
+      router.push('/pharmacy/new-product-request/')
+      reset()
+    } else {
     }
   }
 
@@ -299,8 +282,14 @@ export default function AddProduct() {
   // }
 
   const handleCancelDialogBox = () => {
-    if (isDirty || imgSrc || prescriptionImage) {
+    if (isDirty) {
       setConfirmationBox(true)
+    } else if (imgSrcChange) {
+      setConfirmationBox(true)
+    } else if (previousPrescriptionLength) {
+      setConfirmationBox(true)
+    } else {
+      router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -392,6 +381,7 @@ export default function AddProduct() {
       if (files[0] !== imgBaseUrl) {
         reader.onload = () => {
           setImgSrc(reader?.result)
+          setImgSrcChange(true)
         }
       }
 
@@ -421,7 +411,11 @@ export default function AddProduct() {
   }, [id])
 
   const handleCancelChange = () => {
-    if (isDirty || imgSrc || prescriptionImage) {
+    if (isDirty) {
+      handleCancelDialogBox()
+    } else if (imgSrcChange) {
+      handleCancelDialogBox()
+    } else if (previousPrescriptionLength) {
       handleCancelDialogBox()
     } else {
       router.push('/pharmacy/new-product-request/')
@@ -441,7 +435,9 @@ export default function AddProduct() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      isDirty && id ? handleCancelDialogBox() : router.push('/pharmacy/new-product-request/')
+                      isDirty || imgSrcChange || previousPrescriptionLength
+                        ? handleCancelDialogBox()
+                        : router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
