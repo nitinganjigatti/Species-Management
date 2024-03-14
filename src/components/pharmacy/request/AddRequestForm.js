@@ -49,7 +49,7 @@ import {
   addRequestItems,
   getRequestItemsListById,
   updateRequestItems,
-  deleteLineItem,
+  // deleteLineItem,
   cancelRequestItems
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
@@ -108,10 +108,10 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
-  const [deleteItemId, setDeleteItemId] = useState('')
+  // const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
 
   const router = useRouter()
@@ -536,27 +536,27 @@ const AddRequestForm = () => {
     }
   }
 
-  const deleteLineItemFromDb = async lineItemId => {
-    debugger
-    console.log('lineItemId', lineItemId)
-    if (lineItemId) {
-      try {
-        const result = await deleteLineItem(lineItemId)
-        console.log('deleteLineItem result', result)
-        if (result?.data?.success === true) {
-          toast.success(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
-          getListOfItemsById(id)
-        } else {
-          toast.error(result.data)
-        }
-      } catch (error) {
-        toast.error(error.data)
-        console.log('error', error)
-      }
-    }
-  }
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
 
   const cancelRequest = async id => {
     debugger
@@ -1131,7 +1131,7 @@ const AddRequestForm = () => {
           )}
         </Box>
       </Grid>
-      <ConfirmDialogBox
+      {/* <ConfirmDialogBox
         open={deleteDialog}
         closeDialog={() => {
           setDeleteDialog(false)
@@ -1173,7 +1173,7 @@ const AddRequestForm = () => {
             </>
           </Box>
         }
-      />
+      /> */}
       <ConfirmDialogBox
         open={cancelRequestDialog}
         closeDialog={() => {

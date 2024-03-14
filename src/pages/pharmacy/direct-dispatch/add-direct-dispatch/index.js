@@ -55,7 +55,7 @@ import {
   updateDirectDispatchItems,
   cancelDirectDispatchItems
 } from 'src/lib/api/pharmacy/directDispatch'
-import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
+// import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 import Error404 from 'src/pages/404'
@@ -125,8 +125,8 @@ const AddReturnRequest = () => {
 
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
-  const [deleteItemId, setDeleteItemId] = useState('')
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  // const [deleteItemId, setDeleteItemId] = useState('')
+  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
 
   const openCancelDialog = () => {
@@ -610,29 +610,29 @@ const AddReturnRequest = () => {
   //     />
   //   )
   // }
-  const deleteLineItemFromDb = async lineItemId => {
-    debugger
-    console.log('lineItemId', lineItemId)
-    if (lineItemId) {
-      try {
-        const result = await deleteLineItem(lineItemId)
-        console.log('deleteLineItem result', result)
-        if (result?.data?.success === true) {
-          toast.success(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
-          getListOfItemsById(id)
-        } else {
-          toast.error(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
-        }
-      } catch (error) {
-        toast.error(error.data)
-        console.log('error', error)
-      }
-    }
-  }
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
 
   const cancelDirectDispatch = async id => {
     console.log('id', id)
@@ -1002,7 +1002,7 @@ const AddReturnRequest = () => {
               )}
             </Box>
           </Grid>
-          <ConfirmDialogBox
+          {/* <ConfirmDialogBox
             open={deleteDialog}
             closeDialog={() => {
               setDeleteDialog(false)
@@ -1044,7 +1044,7 @@ const AddReturnRequest = () => {
                 </>
               </Box>
             }
-          />
+          /> */}
           <ConfirmDialogBox
             open={cancelRequestDialog}
             closeDialog={() => {

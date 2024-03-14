@@ -4,13 +4,8 @@ import { Button } from '@mui/material'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Switch from '@mui/material/Switch'
-import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
-// import DefaultPalette from 'src/@core/theme/palette'
-
-// const palette = DefaultPalette()
-// console.log('palette', palette)
 function AddButton({ action, title, disabled, styles }) {
   return (
     <Button
@@ -49,8 +44,6 @@ function RequestCancelButton({ action, title }) {
     <Button
       onClick={action ? action : null}
       color='primary'
-      size='large'
-      // sx={{ mx: 2, backgroundColor: palette.grey[600], color: palette.common.white }}
       sx={{
         mx: 2,
         backgroundColor: 'grey.600',
