@@ -2,7 +2,7 @@
 import { Fragment, useState } from 'react'
 
 // ** MUI Imports
-import { Button, Card, CardContent, Grid, Box, Typography } from '@mui/material'
+import { Button, Card, CardContent, Grid, Box, Typography, Avatar } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -34,6 +34,15 @@ const roleColors = {
 const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }) => {
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [expanded, setExpanded] = useState(false)
+
+  const convertToTitleCase = str => {
+    if (!str) return ''
+
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
+
+    return firstLetter + restOfWord
+  }
 
   const handleClickOpen = () => {
     handleClose()
@@ -74,9 +83,6 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
   //       toast.error(response?.message)
   //     }
   //   }
-
-  const descbbbb =
-    'provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu provide jeawdjgjg uyygdgugu '
 
   return (
     <Fragment>
@@ -119,16 +125,17 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
                         marginLeft: '15px'
                       }}
                     >
-                      <img
-                        width={60}
-                        height={60}
-                        // alt='Apple iPhone 11 Pro'
-                        src={
-                          IngredientRowVal.ingredient_image
-                            ? IngredientRowVal.ingredient_image
-                            : 'https://gallery.yopriceville.com/var/resizes/Free-Clipart-Pictures/Fruit-PNG/Large_Painted_Red_Apple_PNG_Clipart.png?m=1507172114'
-                        }
-                      />
+                      <Avatar
+                        variant='square'
+                        alt='Ingredient Image'
+                        sx={{
+                          width: 60,
+                          height: 60
+                        }}
+                        src={IngredientRowVal.ingredient_image ? IngredientRowVal.ingredient_image : null}
+                      >
+                        {IngredientRowVal.ingredient_image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
+                      </Avatar>
                     </div>
                   </CardContent>
                 </StyledGrid>
@@ -142,12 +149,11 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
                   }}
                 >
                   <CardContent style={{ width: '400px' }}>
-                    {console.log(IngredientRowVal, 'rows')}
                     <Typography variant='h6' sx={{ mb: 1 }}>
                       {IngredientRowVal.ingredient_name ?? '-'}
                     </Typography>
                     <Typography variant='body2' sx={{ mb: 2 }}>
-                      ING022
+                      {'ING' + IngredientRowVal.id ?? '-'}
                     </Typography>
                     <Typography sx={{ mb: 2 }}>
                       <CustomChip
@@ -261,7 +267,7 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
                           maxHeight: expanded ? '1000px' : '60px'
                         }}
                       >
-                        {IngredientRowVal.desc}
+                        {convertToTitleCase(IngredientRowVal.desc)}
                       </Typography>
                       {IngredientRowVal.desc.length > 180 ? (
                         <Typography

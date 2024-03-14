@@ -64,9 +64,11 @@ const IngredientsList = () => {
           <Avatar
             variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4 }}
-            src={params.row.ingredient_image ? `${params.row.ingredient_image}` : '/images/tablet.png'}
-          />
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+          >
+            {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
+          </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
               {params.row.ingredient_name ? params.row.ingredient_name : '-'}
@@ -154,12 +156,13 @@ const IngredientsList = () => {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [IngredientRowVal, setIngredientRowVal] = useState({})
+  const [status, setStatus] = useState(1)
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, sortColumn }) => {
+    async ({ sort, q, sortColumn, status }) => {
       try {
         setLoading(true)
 
@@ -168,7 +171,8 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          status: status
         }
 
         await getIngredientList({ params: params }).then(res => {
@@ -189,10 +193,10 @@ const IngredientsList = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, sortColumn }) => {
+    debounce(async ({ sort, q, sortColumn, status }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, sortColumn })
+        await fetchTableData({ sort, q, sortColumn, status })
       } catch (error) {
         console.error(error)
       }
@@ -201,7 +205,7 @@ const IngredientsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, sortColumn: sortColumning })
+    fetchTableData({ sort, q: searchValue, sortColumn: sortColumning, status: status })
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
@@ -213,7 +217,12 @@ const IngredientsList = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    const currentPage = paginationModel.page
     await searchTableData({ sort, q: value, sortColumn: sortColumning })
+    setPaginationModel(prevState => ({
+      ...prevState,
+      page: currentPage
+    }))
   }
 
   const headerAction = (
@@ -237,8 +246,6 @@ const IngredientsList = () => {
     sl_no: getSlNo(index)
   }))
 
-  console.log(paginationModel, 'paginationModel')
-
   const handleRowClick = value => {
     setOpen(true)
     setIngredientRowVal(value)
@@ -246,6 +253,15 @@ const IngredientsList = () => {
 
   const handleClose = () => {
     setOpen(false)
+  }
+
+  const onStatusChange = async val => {
+    setStatus(Number(val))
+    setPaginationModel(prevState => ({
+      ...prevState,
+      page: 0
+    }))
+    await fetchTableData({ sort, q: searchValue, sortColumn: sortColumning, status: val })
   }
 
   return (
@@ -290,6 +306,10 @@ const IngredientsList = () => {
                     setSearchValue(event.target.value)
 
                     return handleSearch(event.target.value)
+                  },
+                  onSwitchChange: checked => {
+                    setStatus(Number(checked))
+                    onStatusChange(Number(checked))
                   }
                 }
               }}

@@ -10,6 +10,10 @@ import Switch from '@mui/material/Switch'
 import Icon from 'src/@core/components/icon'
 
 const ServerSideToolbarWithFilterAndToggle = props => {
+  const handleSwitchChange = event => {
+    const { checked } = event.target
+    props.onSwitchChange(checked)
+  }
   return (
     <Box
       sx={{
@@ -25,7 +29,7 @@ const ServerSideToolbarWithFilterAndToggle = props => {
     >
       <GridToolbarFilterButton />
       <Box sx={{ my: 4, height: '40px', width: '64%', float: 'right', textAlign: 'right' }}>
-        <FormControlLabel control={<Switch defaultChecked />} label='Active' />
+        <FormControlLabel control={<Switch defaultChecked onChange={handleSwitchChange} />} label='Active' />
       </Box>
       <TextField
         size='small'

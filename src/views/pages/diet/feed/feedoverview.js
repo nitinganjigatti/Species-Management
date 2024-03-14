@@ -41,17 +41,13 @@ const FeedOverview = ({ FeedDetailsValue }) => {
   const handleEditClickOpen = () => setOpenEdit(true)
   const router = useRouter()
 
-  function convertToTitleCase(str) {
-    const words = str?.split(/(?=[A-Z])/)
-    const titleCaseWords = words?.map(word => {
-      const firstLetter = word?.charAt(0).toUpperCase()
-      const restOfWord = word?.slice(1)
+  const convertToTitleCase = str => {
+    if (!str) return ''
 
-      return firstLetter + restOfWord
-    })
-    const titleCaseStr = titleCaseWords?.join(' ')
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
 
-    return titleCaseStr
+    return firstLetter + restOfWord
   }
 
   if (FeedDetailsValue) {

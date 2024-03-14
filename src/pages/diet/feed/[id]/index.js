@@ -53,29 +53,24 @@ const FeedDetails = () => {
     setPage(0)
   }
 
-  function convertToTitleCase(str) {
-    const words = str?.split(/(?=[A-Z])/)
-    const titleCaseWords = words?.map(word => {
-      const firstLetter = word?.charAt(0).toUpperCase()
-      const restOfWord = word?.slice(1)
+  const convertToTitleCase = str => {
+    if (!str) return ''
 
-      return firstLetter + restOfWord
-    })
-    const titleCaseStr = titleCaseWords?.join(' ')
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
 
-    return titleCaseStr
+    return firstLetter + restOfWord
   }
 
   const getFeedDetailsList = async id => {
     try {
       const response = await getFeedDetails(id)
-      console.log(response, 'response')
       if (response.data.success === true) {
         setFeedDetails(response.data.data)
         setLoader(false)
       }
     } catch (error) {
-      console.log('Suppliers list', error)
+      console.log('Feed list', error)
       setLoader(false)
     }
   }
@@ -89,7 +84,6 @@ const FeedDetails = () => {
         searchColumns: sortColumning,
         limit: rowsPerPage
       })
-      console.log(response, 'response1')
       if (response.data.success === true) {
         setIngredientsList(response.data.data.result)
         setingredientsCount(response.data.data.total_count)
@@ -97,7 +91,7 @@ const FeedDetails = () => {
         settableLoader(false)
       }
     } catch (error) {
-      console.log('Suppliers list', error)
+      console.log('Ingredient list', error)
       setLoader(false)
       settableLoader(false)
     }
@@ -187,7 +181,6 @@ const FeedDetails = () => {
         </CardContent>
       ) : (
         <Grid container spacing={6}>
-          {console.log(IngredientsList, 'IngredientsList')}
           <FeedOverview FeedDetailsValue={FeedDetailsValue} />
           <Grid item xs={8}>
             <Card>
