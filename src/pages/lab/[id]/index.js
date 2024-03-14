@@ -678,11 +678,19 @@ const RequestDetails = () => {
                             }}
                           >
                             <Box>
-                              <img
-                                src={item.file}
-                                alt={item.file_original_name}
-                                style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
-                              />
+                              {item.file ? (
+                                <img
+                                  src={item.file}
+                                  alt={item.file_original_name}
+                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                />
+                              ) : (
+                                <img
+                                  src='/images/tablet.png'
+                                  alt={item.file_original_name}
+                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                />
+                              )}
                             </Box>
                             <Box
                               sx={{
