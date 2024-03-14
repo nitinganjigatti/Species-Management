@@ -67,7 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -1025,19 +1025,21 @@ const AddRequestForm = () => {
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id && el.request_item_detail_id ? null : (
-                          <IconButton
-                            onClick={() => {
+                        <IconButton
+                          onClick={() => {
+                            if (editParams?.request_item_details?.length === 1) {
+                              openCancelDialog()
+                            } else {
                               removeItemsFroTable(el.request_item_medicine_id)
-                            }}
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                          >
-                            <Icon icon='mdi:delete-outline' />
-                          </IconButton>
-                        )}
+                            }
+                          }}
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                        >
+                          <Icon icon='mdi:delete-outline' />
+                        </IconButton>
 
-                        {el.id !== undefined ? (
+                        {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
                               console.log('line items', el)
@@ -1045,18 +1047,15 @@ const AddRequestForm = () => {
                               if (editParams?.request_item_details?.length === 1) {
                                 openCancelDialog()
                               } else {
-                                setDeleteItemId(el.id)
-                                setDeleteDialog(true)
+                                removeItemsFroTable(el.request_item_medicine_id)
                               }
-
-                              // removeItemsFroTable(el.request_item_medicine_id)
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
                           >
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
-                        ) : null}
+                        ) : null} */}
                       </TableCell>
                     </TableRow>
                   )
@@ -1097,18 +1096,15 @@ const AddRequestForm = () => {
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id ? (
-            <Button
-              sx={{ mx: 2 }}
-              color='error'
-              onClick={() => {
-                openCancelDialog()
-                // setEditParams(editParamsInitialState)
-              }}
-              size='large'
-              variant='outlined'
-            >
-              Cancel Request
-            </Button>
+            <>
+              <RequestCancelButton
+                title='Cancel Request'
+                action={() => {
+                  openCancelDialog()
+                  // setEditParams(editParamsInitialState)
+                }}
+              />
+            </>
           ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
@@ -1191,8 +1187,9 @@ const AddRequestForm = () => {
             <>
               <DialogContent>
                 <DialogContentText sx={{ mb: 1 }}>
-                  Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
-                  cannot perform any operations for this request
+                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request */}
+                  Are you sure you want to cancel this request?
                 </DialogContentText>
               </DialogContent>
               <DialogActions className='dialog-actions-dense'>
@@ -1204,7 +1201,7 @@ const AddRequestForm = () => {
                     closeCancelDialog()
                   }}
                 >
-                  Cancel
+                  No
                 </Button>
                 <Button
                   size='small'
@@ -1214,7 +1211,7 @@ const AddRequestForm = () => {
                     cancelRequest(id)
                   }}
                 >
-                  Confirm
+                  Yes
                 </Button>
               </DialogActions>
             </>

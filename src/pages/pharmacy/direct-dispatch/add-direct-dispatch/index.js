@@ -75,7 +75,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -893,19 +893,22 @@ const AddReturnRequest = () => {
                             >
                               <Icon icon='mdi:pencil-outline' />
                             </IconButton>
-                            {id && el.request_item_detail_id ? null : (
-                              <IconButton
-                                onClick={() => {
-                                  //
+
+                            <IconButton
+                              onClick={() => {
+                                if (editParams?.request_item_details?.length === 1) {
+                                  openCancelDialog()
+                                } else {
                                   removeItemsFroTable(el.uuid)
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            )}
-                            {el.id !== undefined ? (
+                                }
+                              }}
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                            >
+                              <Icon icon='mdi:delete-outline' />
+                            </IconButton>
+
+                            {/* {el.id !== undefined ? (
                               <IconButton
                                 onClick={() => {
                                   if (editParams?.request_item_details?.length === 1) {
@@ -920,7 +923,7 @@ const AddReturnRequest = () => {
                               >
                                 <Icon icon='mdi:delete-outline' />
                               </IconButton>
-                            ) : null}
+                            ) : null} */}
                           </TableCell>
                         </TableRow>
                       )
@@ -964,18 +967,15 @@ const AddReturnRequest = () => {
           <Grid item xs={12}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? (
-                <Button
-                  sx={{ mx: 2 }}
-                  color='error'
-                  onClick={() => {
-                    openCancelDialog()
-                    // setEditParams(editParamsInitialState)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Cancel Request
-                </Button>
+                <>
+                  <RequestCancelButton
+                    title='Cancel Request'
+                    action={() => {
+                      openCancelDialog()
+                      // setEditParams(editParamsInitialState)
+                    }}
+                  />
+                </>
               ) : null}
               <LoadingButton
                 disabled={editParams.request_item_details.length > 0 ? false : true}
@@ -1057,10 +1057,7 @@ const AddReturnRequest = () => {
               <Box>
                 <>
                   <DialogContent>
-                    <DialogContentText sx={{ mb: 1 }}>
-                      Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
-                      cannot perform any operations for this request
-                    </DialogContentText>
+                    <DialogContentText sx={{ mb: 1 }}>Are you sure you want to Cancel this request?</DialogContentText>
                   </DialogContent>
                   <DialogActions className='dialog-actions-dense'>
                     <Button
@@ -1071,7 +1068,7 @@ const AddReturnRequest = () => {
                         closeCancelDialog()
                       }}
                     >
-                      Cancel
+                      No
                     </Button>
                     <Button
                       size='small'
@@ -1081,7 +1078,7 @@ const AddReturnRequest = () => {
                         cancelDirectDispatch(id)
                       }}
                     >
-                      Confirm
+                      Yes
                     </Button>
                   </DialogActions>
                 </>
