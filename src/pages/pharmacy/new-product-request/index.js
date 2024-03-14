@@ -40,21 +40,6 @@ export default function NewProductList() {
   const { selectedPharmacy } = usePharmacyContext()
 
   const columns = [
-    // {
-    //   flex: 0.2,
-    //   Width: 20,
-    //   field: 'from_store_name',
-    //   headerName: 'Store Name',
-    //   renderCell: (params, rowId) => (
-    //     <div onClick={() => handleRowClick(params.row.id)}>
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {console.log('params', params)}
-    //         {params.row.from_store_name}
-    //       </Typography>
-    //     </div>
-    //   )
-    // },
-
     {
       flex: 0.2,
       Width: 20,
@@ -62,6 +47,7 @@ export default function NewProductList() {
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
+          {console.log('params>>>>>', params)}
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params?.row?.request_number}
           </Typography>
@@ -109,11 +95,15 @@ export default function NewProductList() {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'status',
-      headerName: 'Status',
+      field: 'quantity',
+      headerName: 'Quantity',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.status}
+          {params?.row.request_items?.map((item, index) => (
+            <Typography key={index} sx={{ color: 'text.primary' }}>
+              {item?.quantity}
+            </Typography>
+          ))}
         </Typography>
       )
     },
@@ -128,30 +118,18 @@ export default function NewProductList() {
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params?.row?.status}
+        </Typography>
+      )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     // <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //     //   {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)}>
-    //     //     <Icon icon='mdi:pencil-outline' />
-    //     //   </IconButton> */}
-    //     //   <IconButton
-    //     //     size='small'
-    //     //     sx={{ mr: 0.5 }}
-    //     //     onClick={() => {
-    //     //       handleDelete(params.row.id)
-    //     //     }}
-    //     //   >
-    //     //     {/* <DeleteIcon /> */}
-    //     //   </IconButton>
-    //     // </Box>
-    //   )
-    // }
   ]
   const router = useRouter()
 
@@ -233,29 +211,6 @@ export default function NewProductList() {
     }
   }
 
-  // const getProductSearchLists = async () => {
-  //   try {
-  //     setLoader(true)
-  //     const response = await getNonExistingProductList()
-  //     if (response?.length > 0) {
-  //       console.log('list', response)
-
-  //       let listWithId = response
-  //         ? response.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //         : []
-  //       setRows(listWithId)
-  //       setLoader(false)
-  //     } else {
-  //       setLoader(false)
-  //     }
-  //   } catch (error) {
-  //     setLoader(false)
-  //     console.log('error', error)
-  //   }
-  // }
-
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
   }, [fetchTableData, selectedPharmacy.id])
@@ -267,25 +222,6 @@ export default function NewProductList() {
     })
   }
 
-  // const handleEditItems = id => {
-  //   setShow(true)
-  //   console.log(id, 'idd')
-  // }
-
-  // const handleView = () => {
-  //   setShow(true)
-  // }
-
-  // const handleDelete = async id => {
-  //   const response = await deleteNonExistingProduct(id)
-  //     .then(res => {
-  //       console.log('deleted Successfully', res)
-  //     })
-  //     .catch(err => console.log('err', err))
-
-  //   return response
-  // }
-
   const onRowClick = async params => {
     setShow(true)
     setItemId(params.id)
@@ -294,14 +230,9 @@ export default function NewProductList() {
         setProductDetails(res?.data)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
-        setImageUrl(res?.base_path)
       })
       .catch(err => console.log(err))
   }
-
-  // const handleHeaderAction = () => {
-  //   console.log('Handle Header Action')
-  // }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
