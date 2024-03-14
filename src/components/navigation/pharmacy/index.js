@@ -164,8 +164,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/settings/storage'
   }
 
+  const state = {
+    title: 'State',
+    path: '/pharmacy/settings/state'
+  }
+
   const storeList = {
-    title: 'Store list',
+    title: 'Pharmacy list',
     path: '/pharmacy/settings/store-list'
   }
 
@@ -231,7 +236,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       salts,
       storage,
       supplierList,
-      rackList
+      rackList,
+      state
     )
 
     pharmacyNavigationArray.push(
