@@ -218,7 +218,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
+    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
     settingsParent.children.push(
       gst,
       uom,
