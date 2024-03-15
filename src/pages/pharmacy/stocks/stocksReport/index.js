@@ -20,7 +20,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Card, CardHeader, Grid, debounce } from '@mui/material'
+import { Box, Card, CardHeader, Grid, debounce, Button } from '@mui/material'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -509,7 +509,7 @@ const ListOfStocks = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -567,6 +567,16 @@ const ListOfStocks = () => {
 
   const headerAction = (
     <div>
+      {selectedPharmacy.type === 'central' && (
+        <Button
+          onClick={() => Router.push({ pathname: '/pharmacy/purchase/purchase-list/' })}
+          size='large'
+          variant='outlined'
+          sx={{ mr: '6px' }}
+        >
+          Inventory List
+        </Button>
+      )}
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
           <AddButton
