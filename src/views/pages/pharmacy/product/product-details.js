@@ -1,20 +1,5 @@
-import {
-  Button,
-  FormControl,
-  FormHelperText,
-  Grid,
-  Icon,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography
-} from '@mui/material'
-import React, { useRef, useState, useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
+import { Button, Grid, TextField, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 
@@ -28,17 +13,11 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
   const [reasonText, setReasonText] = useState('')
+  const [statusCall, setStatusCall] = useState('')
 
-  // const handleSave = () => {
-  //   console.log('saved Vaalues??', reasonText)
-  //   setVisibleArea(false)
-  // }
   const router = useRouter()
 
   const handleRequestStatus = async (status, id, productDetails) => {
-    debugger
-    console.log('Id>>>>>>', id)
-
     const payload = {
       status: status,
       comments: reasonText ? reasonText : ''
