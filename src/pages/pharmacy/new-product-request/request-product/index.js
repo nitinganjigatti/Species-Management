@@ -258,19 +258,28 @@ export default function AddProduct() {
       ]
     }
 
-    if (typeof data?.product_image === 'string') {
-      const trimImg = data?.product_image.trim()
-      const imgName = trimImg.split('/').pop()
-      data.product_image = imgName // Set imgName in data.product_image
-    }
+    console.log(payload)
 
-    if (response?.success) {
-      const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
-      toast.success(toastMessage)
+    let response
 
-      router.push('/pharmacy/new-product-request/')
-      reset()
-    } else {
+    try {
+      if (id) {
+        response = await updateNonExistingProduct(payload, id)
+      } else {
+        response = await addNonExistingProduct(payload)
+      }
+
+      if (response?.success) {
+        const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
+        toast.success(toastMessage)
+
+        router.push('/pharmacy/new-product-request/')
+        reset()
+      } else {
+      }
+    } catch (error) {
+      // Handle the error as needed
+      console.error('An error occurred:', error)
     }
   }
 
