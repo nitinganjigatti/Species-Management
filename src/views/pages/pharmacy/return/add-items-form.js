@@ -26,7 +26,7 @@ const defaultValues = {
     expiry_date: ''
   },
   request_item_qty: '',
-
+  stock_type: '',
   available_item_qty: '',
   expiry_date: ''
 }

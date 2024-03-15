@@ -93,7 +93,8 @@ const IndividualRequest = () => {
     const response = await getRequestItemsListById(id)
     if (response.success) {
       const responseData = response.data
-      debugger
+
+      // debugger
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
@@ -101,7 +102,8 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
-      debugger
+
+      // debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -152,7 +154,8 @@ const IndividualRequest = () => {
       })
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
-      debugger
+
+      // debugger
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -463,6 +466,7 @@ const IndividualRequest = () => {
               }
               variant='contained'
               onClick={() => {
+                console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
@@ -635,7 +639,7 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.expiry_dates ? Utility.formatDisplayDate(params.row.expiry_date) : null}
         </Typography>
       )
     },
@@ -973,7 +977,7 @@ const IndividualRequest = () => {
   }
 
   const handleProductNotAvailableAction = (id, available) => {
-    debugger
+    // debugger
     setNotAvailableItemId({
       id: id,
       available: available
