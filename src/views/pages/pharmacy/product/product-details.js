@@ -51,13 +51,13 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
         toast.success(toastMessage)
         setShow(false)
 
-        router.push({
-          pathname: '/pharmacy/medicine/add-product/',
-          query: {
-            productDetails: productDetails
-          }
-        })
-        // router.push('/pharmacy/medicine/add-product/', { query: { productDetails: productDetails } })
+        if (status === 'Cancelled') {
+          router.push('/pharmacy/new-product-request/')
+        } else {
+          router.push({
+            pathname: '/pharmacy/medicine/add-product/'
+          })
+        }
       }
     } catch (error) {
       console.log(error)
@@ -214,13 +214,15 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                       </Grid>
                     )}
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={12}>
                 {visibleArea && (
                   <>
                     <TextField
                       fullWidth
                       id='outlined-basic'
                       label='Reason of Rejecting'
+                      multiline
+                      rows={4}
                       onChange={e => setReasonText(e.target.value)}
                     />
 
