@@ -140,7 +140,7 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                 <Typography variant='body2'>{productDetails?.comments}</Typography>
               </Grid>
 
-              {productDetails?.status !== 'pending' && (
+              {productDetails?.status !== 'Pending' && (
                 <Grid item xs={12}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Status
@@ -154,7 +154,7 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                   ? (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
                       <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                        {productDetails?.status === 'pending' && (
+                        {productDetails?.status === 'Pending' && (
                           <Button
                             variant='contained'
                             onClick={() => {
@@ -168,7 +168,7 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                     )
                   : !visibleArea && (
                       <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                        {productDetails?.status === 'pending' && (
+                        {productDetails?.status === 'Pending' && (
                           <Button
                             sx={{ margin: '2px' }}
                             variant='contained'
@@ -179,7 +179,7 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                             Approve Request
                           </Button>
                         )}
-                        {productDetails?.status === 'pending' && (
+                        {productDetails?.status === 'Pending' && (
                           <Button
                             sx={{ margin: '2px' }}
                             variant='contained'
