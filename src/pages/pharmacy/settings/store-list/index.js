@@ -270,8 +270,9 @@ const ListOfStores = () => {
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+        Router.reload()
 
-        await fetchTableData(sort, searchValue, sortColumn)
+        // await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
         console.log('test')
