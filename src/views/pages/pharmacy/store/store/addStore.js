@@ -279,7 +279,7 @@ const AddStore = props => {
             />
           </FormControl>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -309,7 +309,7 @@ const AddStore = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>
