@@ -1066,7 +1066,7 @@ const AddPurchaseForm = () => {
                 <TableCell width='10%'>Batch</TableCell>
                 <TableCell>Expiry Date</TableCell>
                 <TableCell align='right'>Quantity</TableCell>
-                <TableCell align='right'>Free Quantity</TableCell>
+                {/* <TableCell align='right'>Free Quantity</TableCell> */}
                 <TableCell align='right'>Rate</TableCell>
                 <TableCell align='right'>Discount in %</TableCell>
                 <TableCell align='right'>GST in %</TableCell>
@@ -1085,7 +1085,7 @@ const AddPurchaseForm = () => {
                           {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
                         </TableCell>
                         <TableCell align='right'>{el.purchase_qty}</TableCell>
-                        <TableCell align='right'>{el.purchase_free_quantity}</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                         <TableCell align='right'>{el.purchase_unit_price}</TableCell>
                         <TableCell align='right'>{el.purchase_discount}%</TableCell>
 
