@@ -272,15 +272,25 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     return total
   }
 
-  const getMedicineByMedicineId = async id => {
+  const getMedicineByMedicineId = async (id, productType) => {
     setLoader(true)
     const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'central')
+    const response = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
 
     if (response.success) {
-      setBatchItems(response?.data?.items)
+      console.log('batch details response', response)
+
+      //
+      const data = response?.data?.items
+
+      const updatedItems = data.map(el => ({
+        ...el,
+        ['stock_type']: fulfillMedicine?.stock_type
+      }))
+
+      // setBatchItems(response?.data?.items)
+      setBatchItems(updatedItems)
       setTotalProductCount(response?.data?.total_quantity)
-      console.log('in bataches', response?.data?.items)
 
       setLoader(false)
     } else {
@@ -336,7 +346,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       console.log(fulfillMedicine)
       console.log(storeDetails)
 
-      getMedicineByMedicineId(fulfillMedicine?.stock_item_id)
+      getMedicineByMedicineId(fulfillMedicine?.stock_item_id, fulfillMedicine?.stock_type)
 
       // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
@@ -712,31 +722,33 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             )}
                           </FormControl>
                         </Grid>
-                        <Grid item xs={3}>
-                          <FormControl fullWidth>
-                            <Controller
-                              name={`product_batches[${index}].expiry_date`}
-                              control={control}
-                              rules={{ required: false }}
-                              render={({ field: { value, onChange } }) => (
-                                <TextField
-                                  disabled
-                                  value={value}
-                                  label='Expiry Date'
-                                  onChange={onChange}
-                                  placeholder='Expiry Date'
-                                  error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
-                                  name={`product_batches[${index}].expiry_date`}
-                                />
+                        {batchItems[index]?.stock_type === 'non_medical' ? null : (
+                          <Grid item xs={3}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name={`product_batches[${index}].expiry_date`}
+                                control={control}
+                                rules={{ required: false }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    disabled
+                                    value={value}
+                                    label='Expiry Date'
+                                    onChange={onChange}
+                                    placeholder='Expiry Date'
+                                    error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
+                                    name={`product_batches[${index}].expiry_date`}
+                                  />
+                                )}
+                              />
+                              {errors?.product_batches?.[index]?.expiry_date && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.product_batches?.[index]?.expiry_date?.message}
+                                </FormHelperText>
                               )}
-                            />
-                            {errors?.product_batches?.[index]?.expiry_date && (
-                              <FormHelperText sx={{ color: 'error.main' }}>
-                                {errors?.product_batches?.[index]?.expiry_date?.message}
-                              </FormHelperText>
-                            )}
-                          </FormControl>
-                        </Grid>
+                            </FormControl>
+                          </Grid>
+                        )}
                         <Grid item xs={3}>
                           <FormControl fullWidth>
                             <Controller
