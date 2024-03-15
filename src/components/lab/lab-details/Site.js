@@ -44,6 +44,7 @@ const Site = ({ labId }) => {
   const [total, setTotal] = useState(0)
   // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
   // const [sortColumn, setSortColumn] = useState('label')
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -95,31 +96,37 @@ const Site = ({ labId }) => {
         title='SITE'
         //    action={headerAction}
       />
-      <DataGrid
-        autoHeight
-        hideFooterPagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        getRowId={getRowId}
-        rowCount={total}
-        columns={columns}
-        slots={{ toolbar: ServerSideToolbar }}
-        loading={loading}
-        slotProps={{
-          baseButton: {
-            variant: 'outlined'
-          },
-          toolbar: {
-            value: searchValue,
-            clearSearch: () => handleSearch(''),
+      {rows?.length > 0 ? (
+        <DataGrid
+          autoHeight
+          hideFooterPagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          getRowId={getRowId}
+          rowCount={total}
+          columns={columns}
+          slots={{ toolbar: ServerSideToolbar }}
+          loading={loading}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
 
-            onChange: event => {
-              setSearchValue(event.target.value)
+              onChange: event => {
+                setSearchValue(event.target.value)
 
-              return handleSearch(event.target.value)
+                return handleSearch(event.target.value)
+              }
             }
-          }
-        }}
-      />
+          }}
+        />
+      ) : (
+        <Box sx={{ px: 4, pb: 3 }}>
+          <Typography variant='subtitle1'>No sites are associated with this lab yet.</Typography>
+        </Box>
+      )}
     </Card>
   )
 }
