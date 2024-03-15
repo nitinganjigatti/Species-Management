@@ -94,8 +94,6 @@ const IndividualRequest = () => {
     if (response.success) {
       const responseData = response.data
 
-      // debugger
-
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
         sl_no: index + 1
