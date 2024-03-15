@@ -197,6 +197,8 @@ const IndividualRequest = () => {
           setDeleteDialog(false)
           setDeleteFullFillId(null)
         } else {
+          setDeleteDialog(false)
+          setDeleteFullFillId(null)
           toast.error(result.data)
         }
 
@@ -454,7 +456,8 @@ const IndividualRequest = () => {
               size='small'
               disabled={
                 parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
-                params.row.request_status !== 'Not Available'
+                params.row.request_status !== 'Not Available' &&
+                requestItems.status !== 'Cancelled'
                   ? false
                   : true
               }
@@ -1040,7 +1043,9 @@ const IndividualRequest = () => {
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                    selectedPharmacy.type === 'local' &&
+                    requestItems.status === 'request' &&
+                    requestItems.status !== 'Cancelled' ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1090,7 +1095,8 @@ const IndividualRequest = () => {
                       title={`Fulfillment`}
                       action={
                         (selectedPharmacy.permission.key === 'ADD' ||
-                          selectedPharmacy.permission.key === 'allow_full_access') && (
+                          selectedPharmacy.permission.key === 'allow_full_access') &&
+                        requestItems.status !== 'Cancelled' ? (
                           <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
                             <Button
                               size='big'
@@ -1102,7 +1108,7 @@ const IndividualRequest = () => {
                               Ship
                             </Button>
                           </Grid>
-                        )
+                        ) : null
                       }
                     ></CardHeader>
                     <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>

@@ -26,7 +26,7 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
     <Dialog
       fullWidth
       open={dialogBoxStatus}
-      maxWidth='sm'
+      maxWidth='md'
       height='auto'
       scroll='body'
       onClose={() => close()}

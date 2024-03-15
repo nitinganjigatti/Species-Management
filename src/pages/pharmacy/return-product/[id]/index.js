@@ -790,7 +790,9 @@ const IndividualReturnRequest = () => {
                 />
               }
               action={
-                selectedPharmacy.type === 'local' && shippedItems.length === 0 ? (
+                selectedPharmacy.type === 'local' &&
+                shippedItems.length === 0 &&
+                requestItems.status !== 'Cancelled' ? (
                   <Button
                     size='large'
                     variant='contained'
@@ -840,6 +842,7 @@ const IndividualReturnRequest = () => {
                   title='Fulfillment'
                   action={
                     selectedPharmacy.type === 'local' &&
+                    requestItems.status !== 'Cancelled' &&
                     (selectedPharmacy.permission.key === 'ADD' ||
                       selectedPharmacy.permission.key === 'allow_full_access') && (
                       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>

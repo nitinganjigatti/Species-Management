@@ -881,7 +881,8 @@ const IndividualRequest = () => {
             show={showOrderFormDialog}
           />
           <Card sx={{ mb: 6 }}>
-            {/* {console.log('requestItems.status', shippedItems.length > 0)} */}
+            {console.log('shipped items', shippedItems)}
+            {console.log('requestItems', requestItems)}
             <CardHeader
               title={`Direct Dispatch - ${requestItems?.request_number}`}
               avatar={
@@ -894,10 +895,11 @@ const IndividualRequest = () => {
                 />
               }
               action={
-                (selectedPharmacy?.type === 'central' &&
-                  shippedItems.length === 0 &&
-                  selectedPharmacy?.permission.key === 'allow_full_access') ||
-                selectedPharmacy?.permission.key === 'ADD' ? (
+                selectedPharmacy?.type === 'central' &&
+                shippedItems.length === 0 &&
+                requestItems.status !== 'Cancelled' &&
+                (selectedPharmacy?.permission.key === 'allow_full_access' ||
+                  selectedPharmacy?.permission.key === 'ADD') ? (
                   <Button
                     size='large'
                     variant='contained'
@@ -960,6 +962,7 @@ const IndividualRequest = () => {
                   title={`Fulfillment`}
                   action={
                     selectedPharmacy.type === 'central' &&
+                    requestItems.status !== 'Cancelled' &&
                     (selectedPharmacy.permission.key === 'ADD' ||
                       selectedPharmacy.permission.key === 'allow_full_access') && (
                       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
