@@ -408,6 +408,7 @@ export default function AddProduct() {
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('product_image', '')
+    setImgSrcChange(true)
   }
 
   const router = useRouter()
