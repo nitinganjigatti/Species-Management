@@ -170,7 +170,7 @@ const AddReturnRequest = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.uuid != itemId
     })
@@ -896,11 +896,11 @@ const AddReturnRequest = () => {
 
                             <IconButton
                               onClick={() => {
-                                if (editParams?.request_item_details?.length === 1) {
-                                  openCancelDialog()
-                                } else {
-                                  removeItemsFroTable(el.uuid)
-                                }
+                                // if (editParams?.request_item_details?.length === 1) {
+                                //   openCancelDialog()
+                                // } else {
+                                removeItemsFromTable(el.uuid)
+                                // }
                               }}
                               size='small'
                               sx={{ mr: 0.5 }}

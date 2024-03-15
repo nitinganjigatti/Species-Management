@@ -44,6 +44,7 @@ function RequestCancelButton({ action, title }) {
     <Button
       onClick={action ? action : null}
       color='primary'
+      size='large'
       sx={{
         mx: 2,
         backgroundColor: 'grey.600',

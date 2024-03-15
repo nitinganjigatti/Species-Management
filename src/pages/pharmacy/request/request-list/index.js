@@ -318,6 +318,7 @@ const RequestList = () => {
               </Box>
             )}
           </div>
+          {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
       )
     }

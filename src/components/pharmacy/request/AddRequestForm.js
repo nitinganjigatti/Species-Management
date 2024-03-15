@@ -148,7 +148,7 @@ const AddRequestForm = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.request_item_medicine_id != itemId
     })
@@ -1027,11 +1027,11 @@ const AddRequestForm = () => {
                         </IconButton>
                         <IconButton
                           onClick={() => {
-                            if (editParams?.request_item_details?.length === 1) {
-                              openCancelDialog()
-                            } else {
-                              removeItemsFroTable(el.request_item_medicine_id)
-                            }
+                            // if (editParams?.request_item_details?.length === 1) {
+                            //   openCancelDialog()
+                            // } else {
+                            removeItemsFromTable(el.request_item_medicine_id)
+                            // }
                           }}
                           size='small'
                           sx={{ mr: 0.5 }}
@@ -1047,7 +1047,7 @@ const AddRequestForm = () => {
                               if (editParams?.request_item_details?.length === 1) {
                                 openCancelDialog()
                               } else {
-                                removeItemsFroTable(el.request_item_medicine_id)
+                                removeItemsFromTable(el.request_item_medicine_id)
                               }
                             }}
                             size='small'
