@@ -509,7 +509,7 @@ const ListOfStocks = () => {
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
