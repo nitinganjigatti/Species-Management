@@ -277,7 +277,8 @@ const PurchaseItemForm = props => {
       purchase_discount_amount,
       purchase_taxable_amount,
       purchase_net_amount,
-      stock_type: stock_type
+      stock_type: stock_type,
+      purchase_purchase_price: purchase_net_amount
     }
 
     submitItems(payload)
