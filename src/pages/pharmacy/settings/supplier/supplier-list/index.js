@@ -90,7 +90,7 @@ const Supplier = () => {
       headerName: 'CONTACT PERSON',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
+          {params.row.name !== '' ? params.row.name : 'NA'}
         </Typography>
       )
     },
