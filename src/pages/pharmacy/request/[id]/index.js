@@ -637,7 +637,7 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_dates ? Utility.formatDisplayDate(params.row.expiry_date) : null}
+          {params.row.expiry_dates ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
     },

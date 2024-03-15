@@ -212,7 +212,7 @@ const AddRequestForm = () => {
       itemErrors.request_item_qty = 'This field is required'
     }
 
-    if (!Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+    if (Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
       itemErrors.request_item_qty = 'Enter valid Quantity'
     }
 
@@ -321,7 +321,6 @@ const AddRequestForm = () => {
       Number(nestedRowMedicine.request_item_qty) === 0 ||
       Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
-    debugger
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -559,7 +558,6 @@ const AddRequestForm = () => {
   // }
 
   const cancelRequest = async id => {
-    debugger
     console.log('id', id)
     if (id) {
       try {
