@@ -427,8 +427,12 @@ const PurchaseItemForm = props => {
       setValue('product', {
         label: nestedRowMedicine.medicine_name,
         value: nestedRowMedicine.purchase_unit_id,
-        stock_type: 'allopathy'
+        stock_type: nestedRowMedicine.stock_type
       })
+
+      if (nestedRowMedicine.stock_type === 'non_medical') {
+        setNonMedicalProduct(true)
+      }
 
       setValue('purchase_expiry_date', dayjs(nestedRowMedicine.purchase_expiry_date))
     } else {
