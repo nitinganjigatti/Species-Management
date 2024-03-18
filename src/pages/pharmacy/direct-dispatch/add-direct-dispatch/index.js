@@ -124,7 +124,7 @@ const AddReturnRequest = () => {
   const [duplicateMedError, setDuplicateMedError] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
-
+  const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
   // const [deleteItemId, setDeleteItemId] = useState('')
@@ -169,6 +169,7 @@ const AddReturnRequest = () => {
 
   const showDialog = () => {
     setShow(true)
+    setVisibleExpiryField(false)
   }
 
   // local nested items delete
@@ -697,6 +698,7 @@ const AddReturnRequest = () => {
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
                     productLoading={productLoading}
+                    visibleExpiryField={visibleExpiryField}
                     batchLoading={batchLoading}
                     onSubmitData={submitItems}
                     batchList={optionsBatchList}

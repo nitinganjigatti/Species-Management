@@ -66,6 +66,7 @@ export const AddItemsForm = ({
   searchMedicineData,
   productList,
   productLoading,
+  visibleExpiryField,
   onSubmitData,
   searchBatchData,
   batchLoading,
