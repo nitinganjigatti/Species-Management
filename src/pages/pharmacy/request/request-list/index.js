@@ -94,6 +94,7 @@ const RequestList = () => {
         setLoading(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
   useEffect(() => {

@@ -1216,6 +1216,49 @@ const AddRequestForm = () => {
           </Box>
         }
       />
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
     </Card>
   )
 }

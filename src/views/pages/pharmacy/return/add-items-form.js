@@ -14,6 +14,17 @@ import { LoaderIcon } from 'react-hot-toast'
 
 // import ConfirmDialog from 'src/components/ConfirmationDialog'
 
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+
+import TableCell from '@mui/material/TableCell'
+import UserSnackbar from 'src/components/utility/snackbar'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+
 const defaultValues = {
   request_item: {
     label: '',
@@ -85,6 +96,8 @@ export const AddItemsForm = ({
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
+  const [invalidQty, setInvalidQty] = useState([])
+  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
 
   // const [invalidQty, setInvalidQty] = useState([])
   // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
@@ -121,6 +134,27 @@ export const AddItemsForm = ({
         message: 'Batch already exists'
       })
       console.log('Medicine already exists')
+
+      return
+    }
+    if (request_item_qty > available_item_qty) {
+      const invalidItems = [
+        {
+          request_item_batch_no: request_item_batch_no?.value,
+          request_item_qty,
+          available_item_qty,
+          expiry_date,
+          request_item_medicine_id: request_item?.value,
+          product_name: request_item?.label,
+          priority_item: 'Normal',
+          uuid: nestedMedicine?.uuid
+        }
+      ]
+
+      // console.log('invalid items', invalidItems)
+      setInvalidQty(invalidItems)
+
+      setInvalidQtyDialog(true)
 
       return
     }
@@ -259,6 +293,72 @@ export const AddItemsForm = ({
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
     setTotalAvailableCount(available_qty)
   }
+
+  useEffect(() => {
+    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+      reset({
+        request_item: {
+          label: nestedMedicine?.medicine_name,
+          value: nestedMedicine?.request_item_medicine_id
+        },
+        request_item_batch_no: {
+          label: nestedMedicine?.request_item_batch_no,
+          value: nestedMedicine?.request_item_batch_no,
+          expiry_date: nestedMedicine?.expiry_date
+        },
+        request_item_qty: nestedMedicine?.request_item_qty,
+        expiry_date: nestedMedicine?.expiry_date
+      })
+    } else {
+    }
+  }, [])
+
+  useEffect(() => {
+    // setTotalAvailableCount(totalQuantity)
+
+    if (error !== '') {
+      setError('request_item_batch_no', {
+        type: 'manual',
+        message: 'Batch already exists'
+      })
+    }
+    if (!batchLoading) {
+      checkTotalCount()
+    }
+  }, [error, totalQuantity, batchLoading])
+
+  // const checkTotalCount = e => {
+  //   console.log('nestedMedicine', nestedMedicine)
+  //   debugger
+
+  //   // console.log('editParams', editParams)
+  //   const productId = watch('request_item')
+  //   const quantity = watch('request_item_qty')
+  //   debugger
+  //   var totalCount = 0
+  //   var enteredCount = 0
+  //   var nestedItemQuantity = 0
+
+  //   if (e?.target?.value !== undefined) {
+  //     enteredCount = isNaN(parseInt(e?.target?.value)) ? 0 : parseInt(e?.target?.value)
+  //   } else {
+  //     enteredCount = isNaN(parseInt(quantity)) ? 0 : parseInt(quantity)
+  //   }
+
+  //   if (productId !== undefined) {
+  //     const filteredList = editParams?.request_item_details?.filter(
+  //       item => item.request_item_medicine_id === productId?.value
+  //     )
+  //     totalCount = filteredList.reduce((acc, item) => acc + parseInt(item.request_item_qty), 0)
+  //   }
+
+  //   if (nestedMedicine.request_item_qty !== '') {
+  //     nestedItemQuantity = nestedMedicine?.request_item_qty
+  //   }
+
+  //   const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+  //   setTotalAvailableCount(available_qty)
+  // }
 
   return (
     <>

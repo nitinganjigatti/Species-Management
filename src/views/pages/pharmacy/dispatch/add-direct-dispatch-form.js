@@ -17,6 +17,17 @@ import {
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+
+import TableCell from '@mui/material/TableCell'
+import UserSnackbar from 'src/components/utility/snackbar'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+
 // import Table from '@mui/material/Table'
 // import TableRow from '@mui/material/TableRow'
 
@@ -99,6 +110,17 @@ export const AddItemsForm = ({
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
+  const [invalidQty, setInvalidQty] = useState([])
+  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+
+  const showConfirmationDialog = () => {
+    setInvalidQtyDialog(true)
+  }
+
+  const closeConfirmationDialog = () => {
+    setInvalidQtyDialog(false)
+    setInvalidQty([])
+  }
   const [totalQtyLoader, setTotalQtyLoader] = useState(false)
 
   // confirm dialogbox validation
@@ -137,7 +159,26 @@ export const AddItemsForm = ({
 
       return
     }
+    if (request_item_qty > available_item_qty) {
+      const invalidItems = [
+        {
+          request_item_batch_no: request_item_batch_no?.value,
+          request_item_qty,
+          available_item_qty,
+          expiry_date,
+          request_item_medicine_id: request_item?.value,
+          product_name: request_item?.label,
+          priority_item: 'Normal',
+          uuid: nestedMedicine?.uuid
+        }
+      ]
 
+      setInvalidQty(invalidItems)
+
+      setInvalidQtyDialog(true)
+
+      return
+    }
     if (Number(request_item_qty) >= Number(available_item_qty)) {
       setQuantityError(true)
 
