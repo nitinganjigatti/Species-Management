@@ -116,6 +116,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
     setSnackbarMessage(message)
@@ -136,6 +137,7 @@ const RequestDetails = () => {
     setStatus(event.target.value)
     console.log('event.target.value', event.target.value)
     const id = params
+
     const payload = {
       status: event.target.value
     }
@@ -171,6 +173,7 @@ const RequestDetails = () => {
     try {
       // Make your API call here
       setLoading(true)
+
       const params = {
         lab_id: Selectedlab_id
       }
@@ -247,6 +250,7 @@ const RequestDetails = () => {
   const handleOpenUploader = () => {
     setOpenUploader(true)
   }
+
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
     console.log('params?.row', params?.row?.attachments?.images)

@@ -83,6 +83,7 @@ const AddLab = () => {
     setSnackbarMessage(message)
     setSeverity(severity)
   }
+
   const updateTestData = () => {
     const setEditLabs = TestData?.map(testDataSample => {
       const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
@@ -104,6 +105,7 @@ const AddLab = () => {
                 const matchingPrevChildTest = matchingPrevTest.child_tests.find(
                   prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
                 )
+
                 return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
               })
 
@@ -342,6 +344,7 @@ const AddLab = () => {
     setOpen(false)
     setShowLabTests([])
   }
+
   const handleCloseSnackBar = (event, reason) => {
     if (reason === 'clickaway') {
       return

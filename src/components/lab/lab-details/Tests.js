@@ -6,6 +6,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Tests = ({ labTest }) => {
   console.log('labTest', labTest)
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -35,6 +36,7 @@ const Tests = ({ labTest }) => {
     {
       flex: 0.2,
       minWidth: 20,
+
       // field: 'Action',
       // headerName: 'Action',
       renderCell: params => (
@@ -52,12 +54,15 @@ const Tests = ({ labTest }) => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
+
   // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+
   // const [sortColumn, setSortColumn] = useState('label')
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+
   // const [status, setStatus] = useState('pending')
 
   const getSlNo = index => index + 1
@@ -96,11 +101,13 @@ const Tests = ({ labTest }) => {
     const child = labTest.flatMap(lab => lab.tests.map(test => ({ test_id: test.test_id, test_name: test.test_name })))
 
     let newArray = [...parent, ...child]
+
     return newArray
   }
   useEffect(() => {
     if (labTest) {
       const extractedTestsData = extractTestsData(labTest)
+
       // console.log('lllllllllllll', extractedTestsData)
       setRows(extractedTestsData)
     }
@@ -110,6 +117,7 @@ const Tests = ({ labTest }) => {
     <Card>
       <CardHeader
         title='TESTS'
+
         //    action={headerAction}
       />
       <DataGrid
