@@ -122,7 +122,7 @@ const AddReturnRequest = () => {
   const [duplicateMedError, setDuplicateMedError] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
-
+  const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
   // const [deleteItemId, setDeleteItemId] = useState('')
@@ -167,6 +167,7 @@ const AddReturnRequest = () => {
 
   const showDialog = () => {
     setShow(true)
+    setVisibleExpiryField(false)
   }
 
   // local nested items delete
@@ -365,13 +366,20 @@ const AddReturnRequest = () => {
       const searchResults = await getMedicineList({ params: params })
       console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
-            value: item.id,
-            label: item.name,
-            control_substance: item.controlled_substance === '1' ? true : false
-          }))
+        if (
+          searchResults?.data?.list_items?.map(item => {
+            if (item.stock_type === 'non_medical') {
+              setVisibleExpiryField(true)
+            }
+          })
         )
+          setOptionsMedicineList(
+            searchResults?.data?.list_items?.map(item => ({
+              value: item.id,
+              label: item.name,
+              control_substance: item.controlled_substance === '1' ? true : false
+            }))
+          )
       }
       setProductLoading(false)
     } catch (e) {
@@ -692,6 +700,7 @@ const AddReturnRequest = () => {
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
                     productLoading={productLoading}
+                    visibleExpiryField={visibleExpiryField}
                     batchLoading={batchLoading}
                     onSubmitData={submitItems}
                     batchList={optionsBatchList}

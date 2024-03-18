@@ -65,6 +65,7 @@ export const AddItemsForm = ({
   searchMedicineData,
   productList,
   productLoading,
+  visibleExpiryField,
   onSubmitData,
   searchBatchData,
   batchLoading,
@@ -427,29 +428,31 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid> */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='expiry_date'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Expiry Date*'
-                    name='expiry_date'
-                    error={Boolean(errors.expiry_date)}
-                    onChange={onChange}
-                    disabled
-                  />
-                )}
-              >
-                {errors.expiry_date && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                )}
-              </Controller>
-            </FormControl>
-          </Grid>
+          {!visibleExpiryField && (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='expiry_date'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      label='Expiry Date*'
+                      name='expiry_date'
+                      error={Boolean(errors.expiry_date)}
+                      onChange={onChange}
+                      disabled
+                    />
+                  )}
+                >
+                  {errors.expiry_date && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                  )}
+                </Controller>
+              </FormControl>
+            </Grid>
+          )}
           <Grid item xs={12}>
             <Typography sx={{ mx: 2 }}>
               {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
