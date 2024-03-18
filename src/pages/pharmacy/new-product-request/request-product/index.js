@@ -198,6 +198,7 @@ export default function AddProduct() {
         if (typeof element === 'string') {
           const trimElement = element.trim()
           const imageName = trimElement.split('/').pop()
+
           return imageName
         } else {
           return element
@@ -209,6 +210,7 @@ export default function AddProduct() {
         const trimImg = data?.product_image.trim()
         const imgName = trimImg.split('/').pop()
         data.product_image = imgName // Set imgName in data.product_image
+
         return imgName
       }
 
@@ -669,7 +671,6 @@ export default function AddProduct() {
                             accept='image/*'
                             onChange={e => handleInputImageChange(e)}
                             name='product_image'
-                            // ref={fileInputRef}
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
                           {imgSrc === '' && (

@@ -1,9 +1,9 @@
+/* eslint-disable lines-around-comment */
 import { Button } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Switch from '@mui/material/Switch'
-import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
 function AddButton({ action, title, disabled, styles }) {
@@ -39,4 +39,24 @@ function SwitchButton({ action, status, title, style }) {
   )
 }
 
-export { AddButton, BackButton, SwitchButton }
+function RequestCancelButton({ action, title }) {
+  return (
+    <Button
+      onClick={action ? action : null}
+      color='primary'
+      size='large'
+      sx={{
+        mx: 2,
+        backgroundColor: 'grey.600',
+        borderColor: 'grey.500',
+        color: 'common.white',
+        '&:hover': { borderColor: 'grey.700', color: 'grey.700', backgroundColor: 'common.white' }
+      }}
+      variant='outlined'
+    >
+      {title ? title : null}
+    </Button>
+  )
+}
+
+export { AddButton, BackButton, SwitchButton, RequestCancelButton }

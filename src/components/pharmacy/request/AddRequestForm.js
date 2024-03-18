@@ -49,7 +49,7 @@ import {
   addRequestItems,
   getRequestItemsListById,
   updateRequestItems,
-  deleteLineItem,
+  // deleteLineItem,
   cancelRequestItems
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
@@ -67,7 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -108,10 +108,10 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
-  const [deleteItemId, setDeleteItemId] = useState('')
+  // const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
 
   const router = useRouter()
@@ -148,7 +148,7 @@ const AddRequestForm = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.request_item_medicine_id != itemId
     })
@@ -212,7 +212,7 @@ const AddRequestForm = () => {
       itemErrors.request_item_qty = 'This field is required'
     }
 
-    if (!Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+    if (Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
       itemErrors.request_item_qty = 'Enter valid Quantity'
     }
 
@@ -321,7 +321,6 @@ const AddRequestForm = () => {
       Number(nestedRowMedicine.request_item_qty) === 0 ||
       Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
-    debugger
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -536,30 +535,29 @@ const AddRequestForm = () => {
     }
   }
 
-  const deleteLineItemFromDb = async lineItemId => {
-    debugger
-    console.log('lineItemId', lineItemId)
-    if (lineItemId) {
-      try {
-        const result = await deleteLineItem(lineItemId)
-        console.log('deleteLineItem result', result)
-        if (result?.data?.success === true) {
-          toast.success(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
-          getListOfItemsById(id)
-        } else {
-          toast.error(result.data)
-        }
-      } catch (error) {
-        toast.error(error.data)
-        console.log('error', error)
-      }
-    }
-  }
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
 
   const cancelRequest = async id => {
-    debugger
     console.log('id', id)
     if (id) {
       try {
@@ -1025,19 +1023,21 @@ const AddRequestForm = () => {
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id && el.request_item_detail_id ? null : (
-                          <IconButton
-                            onClick={() => {
-                              removeItemsFroTable(el.request_item_medicine_id)
-                            }}
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                          >
-                            <Icon icon='mdi:delete-outline' />
-                          </IconButton>
-                        )}
+                        <IconButton
+                          onClick={() => {
+                            // if (editParams?.request_item_details?.length === 1) {
+                            //   openCancelDialog()
+                            // } else {
+                            removeItemsFromTable(el.request_item_medicine_id)
+                            // }
+                          }}
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                        >
+                          <Icon icon='mdi:delete-outline' />
+                        </IconButton>
 
-                        {el.id !== undefined ? (
+                        {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
                               console.log('line items', el)
@@ -1045,18 +1045,15 @@ const AddRequestForm = () => {
                               if (editParams?.request_item_details?.length === 1) {
                                 openCancelDialog()
                               } else {
-                                setDeleteItemId(el.id)
-                                setDeleteDialog(true)
+                                removeItemsFromTable(el.request_item_medicine_id)
                               }
-
-                              // removeItemsFroTable(el.request_item_medicine_id)
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
                           >
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
-                        ) : null}
+                        ) : null} */}
                       </TableCell>
                     </TableRow>
                   )
@@ -1097,18 +1094,15 @@ const AddRequestForm = () => {
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id ? (
-            <Button
-              sx={{ mx: 2 }}
-              color='error'
-              onClick={() => {
-                openCancelDialog()
-                // setEditParams(editParamsInitialState)
-              }}
-              size='large'
-              variant='outlined'
-            >
-              Cancel Request
-            </Button>
+            <>
+              <RequestCancelButton
+                title='Cancel Request'
+                action={() => {
+                  openCancelDialog()
+                  // setEditParams(editParamsInitialState)
+                }}
+              />
+            </>
           ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
@@ -1135,7 +1129,7 @@ const AddRequestForm = () => {
           )}
         </Box>
       </Grid>
-      <ConfirmDialogBox
+      {/* <ConfirmDialogBox
         open={deleteDialog}
         closeDialog={() => {
           setDeleteDialog(false)
@@ -1172,6 +1166,50 @@ const AddRequestForm = () => {
                   }}
                 >
                   Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      /> */}
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request */}
+                  Are you sure you want to cancel this request?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Yes
                 </Button>
               </DialogActions>
             </>

@@ -1141,7 +1141,7 @@ const AddMedicine = () => {
                               <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
                                 <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                   <AddButton
-                                    title='Add Manufacture'
+                                    title='Add Manufacturer'
                                     action={() => {
                                       addNewManufacturer()
                                     }}

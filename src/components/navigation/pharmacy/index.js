@@ -164,8 +164,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/settings/storage'
   }
 
+  const state = {
+    title: 'State',
+    path: '/pharmacy/settings/state'
+  }
+
   const storeList = {
-    title: 'Store list',
+    title: 'Pharmacy list',
     path: '/pharmacy/settings/store-list'
   }
 
@@ -218,7 +223,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
+    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
     settingsParent.children.push(
       gst,
       uom,
@@ -231,7 +236,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       salts,
       storage,
       supplierList,
-      rackList
+      rackList,
+      state
     )
 
     pharmacyNavigationArray.push(

@@ -77,41 +77,42 @@ const ListOfStocksByBatch = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id }) => {
-      if (id === undefined) {
-        // setErrors('Please select Store')
-        console.log('Please select Store')
+      // if (id === undefined) {
+      //   // setErrors('Please select Store')
+      //   console.log('Please select Store')
 
-        return
-      } else {
-        try {
-          setLoading(true)
+      //   return
+      // } else {
+      try {
+        setLoading(true)
 
-          const params = {
-            sort,
-            q,
-            column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize
-          }
-          const result = await getStocksByBatch(id, params)
-          if (result.success === true && result.data !== '') {
-            setTotal(parseInt(result?.count))
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+        const result = await getStocksByBatch(id, params)
+        if (result.success === true && result.data !== '') {
+          setTotal(parseInt(result?.count))
 
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReport(loadServerRows(paginationModel.page, listWithId))
-            setLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
         }
+      } catch (error) {
+        console.log('error', error)
+        setLoading(false)
       }
+
+      // }
     },
-    [paginationModel]
+    [paginationModel, stockId]
   )
 
   const indexedRows = stockReport?.map((row, index) => ({
@@ -121,10 +122,17 @@ const ListOfStocksByBatch = () => {
   }))
 
   const handleSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id) => {
       setSearchValue(value)
       try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId })
+        await getStocksReport({
+          sort,
+          q: value,
+          column: sortColumn,
+          id
+
+          // id: stockId
+        })
       } catch (error) {
         console.error(error)
       }
@@ -394,11 +402,11 @@ const ListOfStocksByBatch = () => {
                       },
                       toolbar: {
                         value: searchValue,
-                        clearSearch: () => handleSearch(''),
+                        clearSearch: () => handleSearch('', stockId),
                         onChange: event => {
                           setSearchValue(event.target.value)
 
-                          return handleSearch(event.target.value)
+                          return handleSearch(event.target.value, stockId)
                         }
                       }
                     }}

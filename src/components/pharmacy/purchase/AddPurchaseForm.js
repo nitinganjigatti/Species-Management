@@ -671,7 +671,8 @@ const AddPurchaseForm = () => {
           return {
             ...el,
             medicine_name: el?.stock_item_name,
-            id: el?.id
+            id: el?.id,
+            stock_type: el?.stock_type
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -721,8 +722,8 @@ const AddPurchaseForm = () => {
           taxable_amount: result?.data?.taxable_amount
         })
 
-        setSuppliers([{ id: result?.data?.supplier_id, name: result?.data?.supplier_name }])
-        setValue('supplier_id', result?.data?.supplier_id)
+        setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+        // setValue('supplier_id', result?.data?.supplier_id)
         reset({
           supplier_id: result?.data?.supplier_id,
           po_date: result?.data?.po_date,
@@ -743,7 +744,7 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: 'allopathy' }
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
       ])
 
       setNestedRowMedicine({
@@ -751,6 +752,7 @@ const AddPurchaseForm = () => {
         id: getItems[0]?.id,
         index,
         medicine_name: getItems[0]?.medicine_name,
+        stock_type: getItems[0]?.stock_type,
         purchase_unit_id: getItems[0]?.purchase_unit_id,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
@@ -782,12 +784,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: 'allopathy' }
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
       ])
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0]?.medicine_name,
+        stock_type: getItems[0]?.stock_type,
         index,
         purchase_unit_id: getItems[0].purchase_unit_id,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
@@ -908,7 +911,8 @@ const AddPurchaseForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/purchase/purchase-list/')
+                router.back()
+                // Router.push('/pharmacy/purchase/purchase-list/')
               }}
               icon='ep:back'
             />
@@ -1063,7 +1067,7 @@ const AddPurchaseForm = () => {
                 <TableCell width='10%'>Batch</TableCell>
                 <TableCell>Expiry Date</TableCell>
                 <TableCell align='right'>Quantity</TableCell>
-                <TableCell align='right'>Free Quantity</TableCell>
+                {/* <TableCell align='right'>Free Quantity</TableCell> */}
                 <TableCell align='right'>Rate</TableCell>
                 <TableCell align='right'>Discount in %</TableCell>
                 <TableCell align='right'>GST in %</TableCell>
@@ -1079,10 +1083,10 @@ const AddPurchaseForm = () => {
                         <TableCell>{el.medicine_name}</TableCell>
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
-                          {el?.stock_type === 'non_medical' ? '' : Utility.formatDisplayDate(el.purchase_expiry_date)}
+                          {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
                         </TableCell>
                         <TableCell align='right'>{el.purchase_qty}</TableCell>
-                        <TableCell align='right'>{el.purchase_free_quantity}</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                         <TableCell align='right'>{el.purchase_unit_price}</TableCell>
                         <TableCell align='right'>{el.purchase_discount}%</TableCell>
 

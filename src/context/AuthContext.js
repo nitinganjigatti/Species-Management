@@ -221,7 +221,7 @@ const AuthProvider = ({ children }) => {
           const storedPharmacy = await readAsync('selectedStore')
 
           const foundStored = () => {
-            if (options?.length > 0 && storedPharmacy !== undefined) {
+            if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
               return options.some(item => item?.id === storedPharmacy?.id)
             }
 
@@ -230,7 +230,7 @@ const AuthProvider = ({ children }) => {
 
           const findSelectedPharmacy = () => {
             let foundPharmacy = ''
-            if (options?.length > 0 && storedPharmacy !== undefined) {
+            if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
               foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
             }
 
@@ -256,7 +256,6 @@ const AuthProvider = ({ children }) => {
           }
 
           /*********pharmacy */
-
           const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
           router.replace(redirectURL)
         } else {
