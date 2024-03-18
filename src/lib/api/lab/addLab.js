@@ -37,6 +37,7 @@ export async function getAllLabSample() {
 
   return response.data.data
 }
+
 export async function getLabDeatilsById(id) {
   const response = await axiosGet({ url: `${LabEditGetById}${id}` })
 
