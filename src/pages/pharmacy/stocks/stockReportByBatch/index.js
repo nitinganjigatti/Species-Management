@@ -61,6 +61,9 @@ const ListOfStocksByBatch = () => {
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
         setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+          setStockId(response?.data?.list_items[0].id)
+        }
         setLoader(false)
       } else {
         setLoader(false)
@@ -310,9 +313,6 @@ const ListOfStocksByBatch = () => {
             labelId='controlled-select-label'
             sx={{ width: '100%' }}
           >
-            <MenuItem value=''>
-              <em>None</em>
-            </MenuItem>
             {stores.length > 0
               ? stores.map(el => {
                   return (
@@ -371,7 +371,7 @@ const ListOfStocksByBatch = () => {
                   title={
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                       <Typography variant='h6'>
-                        {stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
+                        {stockReport.length > 0 ? 'Stock report Store wise' : 'Stock not available'}
                       </Typography>
 
                       {createForm()}

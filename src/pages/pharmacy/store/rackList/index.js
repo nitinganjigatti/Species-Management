@@ -73,15 +73,16 @@ const ListOfRacks = () => {
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+        getRacksLists()
 
         // await getRacksLists()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -105,16 +106,15 @@ const ListOfRacks = () => {
   const confirmDeleteAction = async () => {
     console.log(deleteRowId)
     const response = await deleteRackItem(deleteRowId)
-    console.log('afterdelte', response)
 
     if (response?.success) {
       handleClose()
-      toast.success(response?.message)
+      toast.success(response?.data)
       getRacksLists()
       setDeleteRowId('')
     } else {
       handleClose()
-      toast.error(response?.message)
+      toast.error(response?.data)
     }
   }
 

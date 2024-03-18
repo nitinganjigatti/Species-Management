@@ -916,7 +916,7 @@ const AddPurchaseForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Inventory'
+          title={id ? 'Edit Inventory List' : 'Add Inventory'}
         />
       </Grid>
 
@@ -1263,15 +1263,17 @@ const AddPurchaseForm = () => {
             >
               Save
             </LoadingButton>
-            <Button
-              onClick={() => {
-                setEditParams(editParamsInitialState)
-              }}
-              size='large'
-              variant='outlined'
-            >
-              Reset
-            </Button>
+            {id ? null : (
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            )}
           </Box>
         </Grid>
       </form>
