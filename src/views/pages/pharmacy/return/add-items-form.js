@@ -26,7 +26,7 @@ const defaultValues = {
     expiry_date: ''
   },
   request_item_qty: '',
-
+  stock_type: '',
   available_item_qty: '',
   expiry_date: ''
 }
@@ -147,13 +147,14 @@ export const AddItemsForm = ({
     //   return
     // }
     clearErrors('request_item_batch_no')
-
-    if (Number(request_item_qty) >= Number(available_item_qty)) {
+    debugger
+    if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
       return
     }
-    if (totalAvailableCount < 0) {
+    console.log(totalAvailableCount <= 0)
+    if (totalAvailableCount <= 0) {
       setQuantityError(true)
 
       return
@@ -231,12 +232,9 @@ export const AddItemsForm = ({
   const checkTotalCount = e => {
     console.log('nestedMedicine', nestedMedicine)
 
-    debugger
-
     // console.log('editParams', editParams)
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
-    debugger
     var totalCount = 0
     var enteredCount = 0
     var nestedItemQuantity = 0

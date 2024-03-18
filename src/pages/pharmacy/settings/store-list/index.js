@@ -100,7 +100,7 @@ const ListOfStores = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'name',
-      headerName: 'STORE NAME',
+      headerName: 'PHARMACY NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
@@ -249,7 +249,9 @@ const ListOfStores = () => {
     searchTableData(sort, value, sortColumn)
   }
 
-  const headerAction = <div>{pharmacyRole && <AddButton title='Add Store' action={() => addEventSidebarOpen()} />}</div>
+  const headerAction = (
+    <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+  )
 
   const handleSubmitData = async payload => {
     console.log('payload', payload)
@@ -268,12 +270,13 @@ const ListOfStores = () => {
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+        Router.reload()
 
-        await fetchTableData(sort, searchValue, sortColumn)
+        // await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
         console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -298,7 +301,7 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Store List' action={headerAction} />
+                <CardHeader title='Pharmacy List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     sl_no: false

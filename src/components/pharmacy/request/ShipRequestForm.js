@@ -37,7 +37,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  debugger
   console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
@@ -108,8 +107,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
-
-      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -143,8 +140,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     const shipmentDate = Utility.formatDate(date)
 
     const payload = []
-
-    // debugger
 
     dispatchedItems?.forEach((value, index) => {
       const payloadItem = {}
@@ -246,7 +241,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       headerName: 'Expiry date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },

@@ -9,7 +9,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 function Escrow() {
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -25,17 +25,17 @@ function Escrow() {
     if (data?.request_number?.startsWith('RES')) {
       console.log('data', data)
       Router.push({
-        pathname: '/pharmacy/request/individual-request/',
+        pathname: `/pharmacy/request/${data?.request_id}`,
         query: { id: data.request_id, request_number: data.request_number }
       })
     } else if (data?.request_number?.startsWith('DD')) {
       Router.push({
-        pathname: '/pharmacy/direct-dispatch/individual-direct-dispatch/',
+        pathname: `/pharmacy/direct-dispatch/${data?.request_id}`,
         query: { id: data.request_id, request_number: data.request_number }
       })
     } else if (data?.request_number?.startsWith('RET')) {
       Router.push({
-        pathname: '/pharmacy/return-product/individual-return/',
+        pathname: `/pharmacy/return-product/${data?.request_id}`,
         query: { id: data.request_id, request_number: data.request_number }
       })
     }

@@ -93,7 +93,6 @@ const IndividualRequest = () => {
     const response = await getRequestItemsListById(id)
     if (response.success) {
       const responseData = response.data
-      debugger
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
@@ -101,7 +100,8 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
-      debugger
+
+      // debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -152,7 +152,8 @@ const IndividualRequest = () => {
       })
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
-      debugger
+
+      // debugger
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -197,6 +198,8 @@ const IndividualRequest = () => {
           setDeleteDialog(false)
           setDeleteFullFillId(null)
         } else {
+          setDeleteDialog(false)
+          setDeleteFullFillId(null)
           toast.error(result.data)
         }
 
@@ -454,12 +457,14 @@ const IndividualRequest = () => {
               size='small'
               disabled={
                 parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
-                params.row.request_status !== 'Not Available'
+                params.row.request_status !== 'Not Available' &&
+                requestItems.status !== 'Cancelled'
                   ? false
                   : true
               }
               variant='contained'
               onClick={() => {
+                console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
@@ -632,7 +637,7 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.expiry_dates ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
     },
@@ -754,7 +759,7 @@ const IndividualRequest = () => {
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            ,
+
             {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
@@ -770,7 +775,7 @@ const IndividualRequest = () => {
               params?.row?.request_status === '' &&
               params?.row?.shipment_status === 'Shipped' && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               )}
           </div>
@@ -970,7 +975,7 @@ const IndividualRequest = () => {
   }
 
   const handleProductNotAvailableAction = (id, available) => {
-    debugger
+    // debugger
     setNotAvailableItemId({
       id: id,
       available: available
@@ -1040,7 +1045,9 @@ const IndividualRequest = () => {
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                    selectedPharmacy.type === 'local' &&
+                    requestItems.status === 'request' &&
+                    requestItems.status !== 'Cancelled' ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1090,7 +1097,8 @@ const IndividualRequest = () => {
                       title={`Fulfillment`}
                       action={
                         (selectedPharmacy.permission.key === 'ADD' ||
-                          selectedPharmacy.permission.key === 'allow_full_access') && (
+                          selectedPharmacy.permission.key === 'allow_full_access') &&
+                        requestItems.status !== 'Cancelled' ? (
                           <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
                             <Button
                               size='big'
@@ -1102,7 +1110,7 @@ const IndividualRequest = () => {
                               Ship
                             </Button>
                           </Grid>
-                        )
+                        ) : null
                       }
                     ></CardHeader>
                     <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>

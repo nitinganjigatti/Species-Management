@@ -30,7 +30,7 @@ import { AuthContext } from 'src/context/AuthContext'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Store Name is Required'),
+  name: yup.string().required('Pharmacy Name is Required'),
 
   // type: yup.string().required('Type is Required'),
   site_id: yup.string().nullable(),
@@ -149,7 +149,7 @@ const AddStore = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Store</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Pharmacy</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
             size='small'
@@ -172,7 +172,7 @@ const AddStore = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Store Name'
+                  label='Pharmacy Name'
                   value={value}
                   onChange={onChange}
                   placeholder='Store Name'
@@ -279,7 +279,7 @@ const AddStore = props => {
             />
           </FormControl>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -309,7 +309,7 @@ const AddStore = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

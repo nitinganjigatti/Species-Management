@@ -49,7 +49,8 @@ import {
   addRequestItems,
   getRequestItemsListById,
   updateRequestItems,
-  deleteLineItem
+  // deleteLineItem,
+  cancelRequestItems
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -66,7 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -107,10 +108,12 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
-  const [deleteItemId, setDeleteItemId] = useState('')
+  // const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -126,6 +129,14 @@ const AddRequestForm = () => {
     return storeType
   }
 
+  const openCancelDialog = () => {
+    setCancelRequestDialog(true)
+  }
+
+  const closeCancelDialog = () => {
+    setCancelRequestDialog(false)
+  }
+
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
@@ -137,7 +148,7 @@ const AddRequestForm = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.request_item_medicine_id != itemId
     })
@@ -201,7 +212,7 @@ const AddRequestForm = () => {
       itemErrors.request_item_qty = 'This field is required'
     }
 
-    if (!Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+    if (Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
       itemErrors.request_item_qty = 'Enter valid Quantity'
     }
 
@@ -310,7 +321,6 @@ const AddRequestForm = () => {
       Number(nestedRowMedicine.request_item_qty) === 0 ||
       Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
-    debugger
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
@@ -525,18 +535,37 @@ const AddRequestForm = () => {
     }
   }
 
-  const deleteLineItemFromDb = async lineItemId => {
-    debugger
-    console.log('lineItemId', lineItemId)
-    if (lineItemId) {
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
+
+  const cancelRequest = async id => {
+    console.log('id', id)
+    if (id) {
       try {
-        const result = await deleteLineItem(lineItemId)
-        console.log('deleteLineItem result', result)
+        const result = await cancelRequestItems(id)
+        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
-          getListOfItemsById(id)
+          Router.push(`/pharmacy/request/request-list/`)
         } else {
           toast.error(result.data)
         }
@@ -962,8 +991,8 @@ const AddRequestForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
+            {editParams?.request_item_details
+              ? editParams?.request_item_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -994,31 +1023,37 @@ const AddRequestForm = () => {
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id && el.request_item_detail_id ? null : (
-                          <IconButton
-                            onClick={() => {
-                              removeItemsFroTable(el.request_item_medicine_id)
-                            }}
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                          >
-                            <Icon icon='mdi:delete-outline' />
-                          </IconButton>
-                        )}
+                        <IconButton
+                          onClick={() => {
+                            // if (editParams?.request_item_details?.length === 1) {
+                            //   openCancelDialog()
+                            // } else {
+                            removeItemsFromTable(el.request_item_medicine_id)
+                            // }
+                          }}
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                        >
+                          <Icon icon='mdi:delete-outline' />
+                        </IconButton>
 
-                        {el.id !== undefined ? (
+                        {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
-                              setDeleteItemId(el.id)
-                              setDeleteDialog(true)
-                              // removeItemsFroTable(el.request_item_medicine_id)
+                              console.log('line items', el)
+
+                              if (editParams?.request_item_details?.length === 1) {
+                                openCancelDialog()
+                              } else {
+                                removeItemsFromTable(el.request_item_medicine_id)
+                              }
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
                           >
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
-                        ) : null}
+                        ) : null} */}
                       </TableCell>
                     </TableRow>
                   )
@@ -1058,6 +1093,17 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          {id ? (
+            <>
+              <RequestCancelButton
+                title='Cancel Request'
+                action={() => {
+                  openCancelDialog()
+                  // setEditParams(editParamsInitialState)
+                }}
+              />
+            </>
+          ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
             sx={{ marginRight: '8px' }}
@@ -1070,18 +1116,20 @@ const AddRequestForm = () => {
           >
             Save
           </LoadingButton>
-          <Button
-            onClick={() => {
-              setEditParams(editParamsInitialState)
-            }}
-            size='large'
-            variant='outlined'
-          >
-            Reset
-          </Button>
+          {id ? null : (
+            <Button
+              onClick={() => {
+                setEditParams(editParamsInitialState)
+              }}
+              size='large'
+              variant='outlined'
+            >
+              Reset
+            </Button>
+          )}
         </Box>
       </Grid>
-      <ConfirmDialogBox
+      {/* <ConfirmDialogBox
         open={deleteDialog}
         closeDialog={() => {
           setDeleteDialog(false)
@@ -1118,6 +1166,50 @@ const AddRequestForm = () => {
                   }}
                 >
                   Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      /> */}
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request */}
+                  Are you sure you want to cancel this request?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Yes
                 </Button>
               </DialogActions>
             </>
