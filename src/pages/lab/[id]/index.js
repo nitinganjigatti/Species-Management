@@ -485,7 +485,7 @@ const RequestDetails = () => {
     const { lab_name, replaced_lab_id, transfer_reason } = {
       ...params
     }
-    const id = requestId
+    const id = testId
 
     const payload = {
       replaced_lab_id,
@@ -678,11 +678,19 @@ const RequestDetails = () => {
                             }}
                           >
                             <Box>
-                              <img
-                                src={item.file}
-                                alt={item.file_original_name}
-                                style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
-                              />
+                              {item.file ? (
+                                <img
+                                  src={item.file}
+                                  alt={item.file_original_name}
+                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                />
+                              ) : (
+                                <img
+                                  src='/images/tablet.png'
+                                  alt={item.file_original_name}
+                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                />
+                              )}
                             </Box>
                             <Box
                               sx={{
@@ -691,7 +699,6 @@ const RequestDetails = () => {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 p: 2,
-
                                 maxHeight: 40,
                                 bgcolor: '#EFF5F2'
                               }}
@@ -717,7 +724,7 @@ const RequestDetails = () => {
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
-                          style={{ textDecoration: 'none' }}
+                          style={{ textDecoration: 'none', color: '#6e6f81' }}
                         >
                           <Box
                             key={item?.file}

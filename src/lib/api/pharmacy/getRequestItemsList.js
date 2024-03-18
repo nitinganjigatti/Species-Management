@@ -94,6 +94,24 @@ export async function updateRequestItems(id, payload) {
   }
 }
 
+export async function cancelRequestItems(id) {
+  try {
+    const url = `${REQUEST_ITEMS}/${id}/cancel`
+    const response = await axiosPost({ url, pharmacy })
+
+    return response
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function shipRequestedItems(payload) {
   try {
     const url = `${SHIPMENT}`

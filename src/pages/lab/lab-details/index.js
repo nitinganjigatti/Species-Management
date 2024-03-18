@@ -13,7 +13,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 
 const LabDetails = () => {
   const [loader, setLoader] = useState(false)
-  const [status, setStatus] = useState('overview')
+  const [status, setStatus] = useState('site')
   const [showLabDetails, setShowLabDetails] = useState()
   const [labTests, setLabTests] = useState()
 

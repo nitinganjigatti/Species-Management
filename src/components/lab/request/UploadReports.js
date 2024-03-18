@@ -31,7 +31,6 @@ const UploadReports = ({
   const defaultValues = { image: '' }
 
   const schema = yup.object().shape({
-    // document: yup.mixed().required('Please upload a document')
     image: yup.mixed().required('Please upload a document')
   })
 
@@ -62,8 +61,6 @@ const UploadReports = ({
     } catch (error) {
       console.error(error)
     }
-
-    // handleSubmit(onSubmit)()
   }
 
   const onSubmit = async params => {
@@ -83,7 +80,7 @@ const UploadReports = ({
         entity_type: type,
         entity_id: id
       }
-      console.log('payload', payload)
+      // console.log('payload', payload)
 
       try {
         const response = await UploadLabReports(payload)
@@ -114,18 +111,18 @@ const UploadReports = ({
     setOpenSnackbar(false)
   }
   //document uploder
-  const handleFileChange = event => {
-    const file = event.target.files[0]
-    setSelectedFile(file)
-  }
-
+  // const handleFileChange = event => {
+  //   const file = event.target.files[0]
+  //   setSelectedFile(file)
+  // }
+  const [key, setKey] = useState(0)
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container>
           <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
-            <Card>
-              <CardHeader title='Upload Image' />
+            <Card key={key}>
+              <CardHeader title='Upload File' />
               <CardContent>
                 <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
               </CardContent>
@@ -174,8 +171,10 @@ const UploadReports = ({
           </LoadingButton>
           <LoadingButton
             onClick={() => {
-              // reset(defaultValues)
-              onImageUpload()
+              reset(defaultValues)
+              // setUploadedImage('')
+              setKey(key + 1)
+              setFiles([])
             }}
             variant='outlined'
           >
