@@ -276,3 +276,14 @@ export async function deleteLineItem(id) {
     return error
   }
 }
+
+export async function getAvailableMedicineByMedicineIdToReturn(id, data, store, productType, is_return, stock_type) {
+  // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+  const response = await axiosGet({
+    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&stock_type=${productType}&is_return=${is_return}&stock_type=${stock_type}`,
+    body: data,
+    pharmacy
+  })
+
+  return response.data
+}

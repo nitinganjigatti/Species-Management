@@ -46,7 +46,7 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import {
   addReturnItems,
@@ -407,7 +407,7 @@ const AddReturnRequest = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local', productType)
+        const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             console.log('data of batch', searchResults?.data?.items)
