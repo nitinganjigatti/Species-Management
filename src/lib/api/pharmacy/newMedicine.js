@@ -42,5 +42,6 @@ export async function addNonExistingProductStatus(params, id) {
   console.log('Status Params >>', params, id)
   var data = params
   const response = await axiosPost({ url: `${MEDICINES_STOCK}/${id}/status`, body: data, pharmacy: true })
+
   return response.data
 }
