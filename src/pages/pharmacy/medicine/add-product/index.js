@@ -158,6 +158,9 @@ const AddMedicine = () => {
   const router = useRouter()
   const { id, action } = router.query
 
+  // const queryParams = new URLSearchParams(window.location.search)
+  // const productDetails = queryParams.get('productDetails')
+
   const { settings } = useSettings()
   const { skin } = settings
 

@@ -47,7 +47,8 @@ const ImageUploadComponent = ({
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              border: '1px solid rgba(93, 89, 98, 0.14)'
+              border: theme => `1px solid ${theme.palette.divider}`,
+              borderColor: theme => `rgba(${theme.palette.customColors.main}, 0.25)`
             }}
             alt={file.name}
             src={`${file}`}
@@ -62,7 +63,8 @@ const ImageUploadComponent = ({
               height: '38px',
 
               borderRadius: '10px',
-              border: '1px solid rgba(93, 89, 98, 0.14)'
+              border: theme => `1px solid ${theme.palette.divider}`,
+              borderColor: theme => `rgba(${theme.palette.customColors.main}, 0.25)`
             }}
             alt={typeof file === 'string' ? file.file.name : file?.name}
             src={URL.createObjectURL(file)}

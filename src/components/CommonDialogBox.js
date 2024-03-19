@@ -31,7 +31,7 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
       scroll='body'
       onClose={() => close()}
       TransitionComponent={Transition}
-      onBackdropClick={() => close()}
+      // onBackdropClick={() => close()}
     >
       <Card>
         {/* <Grid

@@ -1,5 +1,5 @@
 import { MEDICINES_STOCK } from 'src/constants/ApiConstant'
-import { axiosFormPost, axiosGet } from '../utility'
+import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function addNonExistingProduct(params) {
   var data = params
@@ -35,5 +35,12 @@ export async function deleteNonExistingProduct(id) {
   console.log('id???', id)
   const response = await axiosPost({ url: `${MEDICINES_STOCK}/${id}/delete`, pharmacy: true })
 
+  return response.data
+}
+
+export async function addNonExistingProductStatus(params, id) {
+  console.log('Status Params >>', params, id)
+  var data = params
+  const response = await axiosPost({ url: `${MEDICINES_STOCK}/${id}/status`, body: data, pharmacy: true })
   return response.data
 }

@@ -246,8 +246,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
       directDispatchList,
       productsList,
-      nonExistingProductRequestList,
       purchaseList,
+      stockParent,
+      productsList,
+      nonExistingProductRequestList,
       settingsParent
     )
   }

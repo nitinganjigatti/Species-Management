@@ -97,7 +97,8 @@ const initialNestedRowMedicine = {
   priority_item: 'Normal',
   control_substance: false,
   control_substance_file: '',
-  uuid: ''
+  uuid: '',
+  stock_type: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -383,11 +384,13 @@ const AddReturnRequest = () => {
 
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
+        console.log('searchResults', searchResults)
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
-            control_substance: item.controlled_substance === '1' ? true : false
+            control_substance: item.controlled_substance === '1' ? true : false,
+            stock_type: item?.stock_type
           }))
         )
       }
@@ -398,12 +401,13 @@ const AddReturnRequest = () => {
     }
   }
 
-  const fetchBatchData = async id => {
+  const fetchBatchData = async (id, productType) => {
+    debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local')
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local', productType)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             console.log('data of batch', searchResults?.data?.items)
@@ -434,9 +438,9 @@ const AddReturnRequest = () => {
   }
 
   const searchBatchData = useCallback(
-    debounce(async id => {
+    debounce(async (id, productType) => {
       try {
-        await fetchBatchData(id)
+        await fetchBatchData(id, productType)
       } catch (error) {
         console.error(error)
       }
@@ -490,7 +494,8 @@ const AddReturnRequest = () => {
             expiry_date: el.dispatch_expiry_date,
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
-            dispatch_item_id: el.dispatch_item_id
+            dispatch_item_id: el?.dispatch_item_id,
+            stock_type: el?.stock_type
           }
         })
 
@@ -512,9 +517,12 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = async itemId => {
+    // debugger
+
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
+    console.log('get itemsin edit table', getItems)
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -527,7 +535,8 @@ const AddReturnRequest = () => {
       priority_item: getItems[0].priority_item,
       control_substance: getItems[0].control_substance,
       uuid: getItems[0].uuid,
-      available_item_qty: getItems[0]?.available_item_qty
+      available_item_qty: getItems[0]?.available_item_qty,
+      stock_type: getItems[0]?.stock_type
     })
     // }
     // await searchBatchData(itemId)
@@ -599,7 +608,7 @@ const AddReturnRequest = () => {
   // }
 
   const cancelReturnRequest = async id => {
-    debugger
+    // debugger
     console.log('id', id)
     if (id) {
       try {
@@ -827,7 +836,7 @@ const AddReturnRequest = () => {
                           </TableCell>
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.expiry_date}
+                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
                             </Typography>
                           </TableCell>
                           <TableCell>{el.priority_item}</TableCell>
