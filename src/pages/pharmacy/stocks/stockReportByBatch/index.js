@@ -27,6 +27,7 @@ import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineC
 import Utility from 'src/utility'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { DataGrid } from '@mui/x-data-grid'
+import toast from 'react-hot-toast'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
@@ -97,7 +98,8 @@ const ListOfStocksByBatch = () => {
           limit: paginationModel.pageSize
         }
         const result = await getStocksByBatch(id, params)
-        if (result.success === true && result.data !== '') {
+        console.log('result', result)
+        if (result.success === true && result?.data?.length > 0) {
           setTotal(parseInt(result?.count))
 
           let listWithId = result.data
@@ -107,6 +109,11 @@ const ListOfStocksByBatch = () => {
             : []
           setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
+        } else {
+          setLoading(false)
+        }
+        if (result?.count === '0') {
+          toast.success('There is no stock for this store')
         }
       } catch (error) {
         console.log('error', error)
@@ -359,20 +366,12 @@ const ListOfStocksByBatch = () => {
                 close={closeDialog}
                 show={showDialog}
               />
-              {/* <createForm /> */}
-              {/* <TableWithFilter
-                TableTitle={stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
-                inpFields={createForm()}
-                columns={columns}
-                rows={stockReport}
-              /> */}
+
               <Card>
                 <CardHeader
                   title={
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography variant='h6'>
-                        {stockReport.length > 0 ? 'Stock report Store wise' : 'Stock not available'}
-                      </Typography>
+                      <Typography variant='h6'>Stock report Store wise</Typography>
 
                       {createForm()}
                     </Box>
