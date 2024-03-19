@@ -103,7 +103,7 @@ const UserDropdown = props => {
           alt='John Doe'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={userData?.user?.profile_pic ? userData?.user?.profile_pic : '/images/avatars/1.png'}
         />
       </Badge>
       <Menu
