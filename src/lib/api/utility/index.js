@@ -44,6 +44,7 @@ export const axiosPost = async ({ url, body, pharmacy }) => {
 }
 
 export const axiosFormPost = async ({ url, body, pharmacy }) => {
+  debugger
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
   const headers = await GetAPIHeader({ pharmacy })
   headers['Content-Type'] = 'multipart/form-data'
