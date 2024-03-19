@@ -696,6 +696,23 @@ export default function AddProduct() {
                           )}
                         </Grid>
 
+                        {/* <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            name='product_image'
+                            ref={fileInputRef}
+                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                          />
+                          {imgSrc === '' && (
+                            <AddButton
+                              title=' Upload Image'
+                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            />
+                          )}
+                        </Grid> */}
+
                         {/* {imgSrc === '' && ( */}
                       </Grid>
                       {confirmationBox && (
@@ -793,7 +810,7 @@ export default function AddProduct() {
                             title='Add Prescription'
                           />
                         </Grid>
-                        {/* {console.log('fields-length', fields.length)} */}
+
                         {prescriptionImage?.length > 0 && (
                           <ImageUploadComponent
                             getValues={getValues}

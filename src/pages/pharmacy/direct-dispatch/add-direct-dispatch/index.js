@@ -650,7 +650,9 @@ const AddReturnRequest = () => {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
         } else {
-          toast.error(result.data)
+          toast.error(result?.data?.data)
+          setDeleteDialog(false)
+          setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
@@ -658,6 +660,25 @@ const AddReturnRequest = () => {
       }
     }
   }
+
+  // const cancelDirectDispatch = async id => {
+  //   console.log('id', id)
+  //   if (id) {
+  //     try {
+  //       const result = await cancelDirectDispatchItems(id)
+  //       console.log('cancelRequest result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
 
   return (
     <>
@@ -1086,6 +1107,49 @@ const AddReturnRequest = () => {
                       }}
                     >
                       Yes
+                    </Button>
+                  </DialogActions>
+                </>
+              </Box>
+            }
+          />
+          <ConfirmDialogBox
+            open={cancelRequestDialog}
+            closeDialog={() => {
+              closeCancelDialog()
+            }}
+            action={() => {
+              closeCancelDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>
+                      Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                      cannot perform any operations for this request
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions className='dialog-actions-dense'>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      color='primary'
+                      onClick={() => {
+                        closeCancelDialog()
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      color='error'
+                      onClick={() => {
+                        cancelDirectDispatch(id)
+                      }}
+                    >
+                      Confirm
                     </Button>
                   </DialogActions>
                 </>

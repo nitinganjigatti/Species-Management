@@ -272,6 +272,8 @@ const AddReturnRequest = () => {
         params.uuid !== item.uuid
     )
 
+    debugger
+
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
       console.log('Medicine already exists')
@@ -625,6 +627,26 @@ const AddReturnRequest = () => {
     }
   }
 
+  // const cancelReturnRequest = async id => {
+  //   debugger
+  //   console.log('id', id)
+  //   if (id) {
+  //     try {
+  //       const result = await cancelReturnItemsRequest(id)
+  //       console.log('cancelRequest result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         Router.push(`/pharmacy/return-product/request-list/`)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
+
   // data posting section
   const createForm = () => {
     return (
@@ -860,7 +882,6 @@ const AddReturnRequest = () => {
                                     setDeleteDialog(true)
                                   }
 
-
                                 }}
                                 size='small'
                                 sx={{ mr: 0.5 }}
@@ -1022,6 +1043,49 @@ const AddReturnRequest = () => {
                       }}
                     >
                       Yes
+                    </Button>
+                  </DialogActions>
+                </>
+              </Box>
+            }
+          />
+          <ConfirmDialogBox
+            open={cancelRequestDialog}
+            closeDialog={() => {
+              closeCancelDialog()
+            }}
+            action={() => {
+              closeCancelDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>
+                      Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                      cannot perform any operations for this request
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions className='dialog-actions-dense'>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      color='primary'
+                      onClick={() => {
+                        closeCancelDialog()
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      color='error'
+                      onClick={() => {
+                        cancelReturnRequest(id)
+                      }}
+                    >
+                      Confirm
                     </Button>
                   </DialogActions>
                 </>
