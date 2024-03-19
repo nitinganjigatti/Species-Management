@@ -78,6 +78,14 @@ const PurchaseItemForm = props => {
       label: yup.string().required('Product name is required'),
       stock_type: yup.string().nullable()
     }),
+
+    // purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
+    purchase_expiry_date: yup
+      .date()
+      .typeError('Select a valid expiry date')
+      .when(['product.stock_type'], (stockType, schema) => {
+        return stockType === 'non medical' ? schema : schema.required('Expiry date is required')
+      }),
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
@@ -94,7 +102,6 @@ const PurchaseItemForm = props => {
       })
       .required('Batch number is required'),
 
-    purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
     purchase_unit_price: yup
       .number()
       .typeError('Supplier rate must be a number')
@@ -415,6 +422,7 @@ const PurchaseItemForm = props => {
   }, [productExpiryDate, expiryDateLoader])
 
   useEffect(() => {
+    debugger
     if (nestedRowMedicine.medicine_name !== '') {
       console.log(optionsMedicineList)
 

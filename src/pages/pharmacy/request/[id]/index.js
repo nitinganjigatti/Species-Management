@@ -749,7 +749,7 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'shipment_status',
+      field: 'status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>

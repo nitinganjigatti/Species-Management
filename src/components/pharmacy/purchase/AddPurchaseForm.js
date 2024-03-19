@@ -195,13 +195,13 @@ const AddPurchaseForm = () => {
     0
   )
 
+  // const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
+  //   0
+  // )
+
   const totalLineItemsDiscount = editParams.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
-    0
-  )
-
-  const calculateTotalTaxAmount = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_tax_amount ? row.purchase_tax_amount : 0),
     0
   )
 
@@ -615,6 +615,7 @@ const AddPurchaseForm = () => {
     } catch (e) {
       console.log('error', e)
     }
+    // }
   }
 
   const getMedicineExpiryDate = async (product_id, batch) => {

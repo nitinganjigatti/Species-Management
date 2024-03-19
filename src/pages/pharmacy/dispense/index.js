@@ -104,8 +104,6 @@ function Dispense() {
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
-
-        // console.log('row', rows)
         setLoading(false)
       } catch (e) {
         setLoading(false)
