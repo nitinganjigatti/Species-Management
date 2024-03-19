@@ -127,12 +127,12 @@ const PurchaseItemForm = props => {
     purchase_cgst: yup
       .number()
       .typeError('Central GST must be a number')
-      .min(0, 'Central GST must be greater than zero')
+      .min(1, 'Central GST must be greater than zero')
       .required('Central GST is required'),
     purchase_sgst: yup
       .number()
       .typeError('State GST must be a number')
-      .min(0, 'State GST must be greater than zero')
+      .min(1, 'State GST must be greater than zero')
       .required('State GST is required'),
     purchase_igst: yup
       .number()
