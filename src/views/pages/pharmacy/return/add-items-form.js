@@ -139,27 +139,28 @@ export const AddItemsForm = ({
 
       return
     }
-    if (request_item_qty > available_item_qty) {
-      const invalidItems = [
-        {
-          request_item_batch_no: request_item_batch_no?.value,
-          request_item_qty,
-          available_item_qty,
-          expiry_date,
-          request_item_medicine_id: request_item?.value,
-          product_name: request_item?.label,
-          priority_item: 'Normal',
-          uuid: nestedMedicine?.uuid
-        }
-      ]
 
-      // console.log('invalid items', invalidItems)
-      setInvalidQty(invalidItems)
+    // if (request_item_qty > available_item_qty) {
+    //   const invalidItems = [
+    //     {
+    //       request_item_batch_no: request_item_batch_no?.value,
+    //       request_item_qty,
+    //       available_item_qty,
+    //       expiry_date,
+    //       request_item_medicine_id: request_item?.value,
+    //       product_name: request_item?.label,
+    //       priority_item: 'Normal',
+    //       uuid: nestedMedicine?.uuid
+    //     }
+    //   ]
 
-      setInvalidQtyDialog(true)
+    //   // console.log('invalid items', invalidItems)
+    //   setInvalidQty(invalidItems)
 
-      return
-    }
+    //   setInvalidQtyDialog(true)
+
+    //   return
+    // }
 
     // if (request_item_qty > available_item_qty) {
     //   const invalidItems = [
@@ -458,7 +459,7 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'error.main', fontSize: 14, mx: 2 }}>
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
                   Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
