@@ -115,10 +115,14 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
+    debugger
+
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
       ...params
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
+
+    // console.log('params', params)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
@@ -135,30 +139,39 @@ export const AddItemsForm = ({
       })
       console.log('Medicine already exists')
 
+      // alert('2')
+
       return
+
+      // alert('3')
     }
+    if (request_item_qty > available_item_qty) {
+      setQuantityError(true)
 
-    // if (request_item_qty > available_item_qty) {
-    //   const invalidItems = [
-    //     {
-    //       request_item_batch_no: request_item_batch_no?.value,
-    //       request_item_qty,
-    //       available_item_qty,
-    //       expiry_date,
-    //       request_item_medicine_id: request_item?.value,
-    //       product_name: request_item?.label,
-    //       priority_item: 'Normal',
-    //       uuid: nestedMedicine?.uuid
-    //     }
-    //   ]
+      // const invalidItems = [
+      //   {
+      //     request_item_batch_no: request_item_batch_no?.value,
+      //     request_item_qty,
+      //     available_item_qty,
+      //     expiry_date,
+      //     request_item_medicine_id: request_item?.value,
+      //     product_name: request_item?.label,
+      //     priority_item: 'Normal',
+      //     uuid: nestedMedicine?.uuid
+      //   }
+      // ]
 
-    //   // console.log('invalid items', invalidItems)
-    //   setInvalidQty(invalidItems)
+      // // console.log('invalid items', invalidItems)
+      // setInvalidQty(invalidItems)
 
-    //   setInvalidQtyDialog(true)
+      // setInvalidQtyDialog(true)
 
-    //   return
-    // }
+      // alert('2')
+
+      return
+
+      // alert('3')
+    }
 
     // if (request_item_qty > available_item_qty) {
     //   const invalidItems = [
@@ -227,40 +240,6 @@ export const AddItemsForm = ({
   //     type
   //   )
   // }
-  useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      reset({
-        request_item: {
-          label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
-        },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
-        },
-        request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date,
-        available_item_qty: nestedMedicine?.available_item_qty,
-        stock_type: nestedMedicine?.stock_type
-      })
-      console.log('nested medicine in form', nestedMedicine)
-      async function searchMedicine() {
-        await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
-      }
-
-      async function searchBatch() {
-        await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
-      }
-
-      searchMedicine()
-      searchBatch()
-
-      checkTotalCount()
-    } else {
-    }
-    checkTotalCount()
-  }, [])
 
   useEffect(() => {
     checkTotalCount()
@@ -295,24 +274,24 @@ export const AddItemsForm = ({
     setTotalAvailableCount(available_qty)
   }
 
-  useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      reset({
-        request_item: {
-          label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
-        },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
-        },
-        request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date
-      })
-    } else {
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+  //     reset({
+  //       request_item: {
+  //         label: nestedMedicine?.medicine_name,
+  //         value: nestedMedicine?.request_item_medicine_id
+  //       },
+  //       request_item_batch_no: {
+  //         label: nestedMedicine?.request_item_batch_no,
+  //         value: nestedMedicine?.request_item_batch_no,
+  //         expiry_date: nestedMedicine?.expiry_date
+  //       },
+  //       request_item_qty: nestedMedicine?.request_item_qty,
+  //       expiry_date: nestedMedicine?.expiry_date
+  //     })
+  //   } else {
+  //   }
+  // }, [])
 
   useEffect(() => {
     // setTotalAvailableCount(totalQuantity)
@@ -360,6 +339,42 @@ export const AddItemsForm = ({
   //   const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
   //   setTotalAvailableCount(available_qty)
   // }
+
+  useEffect(() => {
+    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+      debugger
+      reset({
+        request_item: {
+          label: nestedMedicine?.medicine_name,
+          value: nestedMedicine?.request_item_medicine_id
+        },
+        request_item_batch_no: {
+          label: nestedMedicine?.request_item_batch_no,
+          value: nestedMedicine?.request_item_batch_no,
+          expiry_date: nestedMedicine?.expiry_date
+        },
+        request_item_qty: nestedMedicine?.request_item_qty,
+        expiry_date: nestedMedicine?.expiry_date,
+        available_item_qty: nestedMedicine?.available_item_qty,
+        stock_type: nestedMedicine?.stock_type
+      })
+      console.log('nested medicine in form', nestedMedicine)
+      async function searchMedicine() {
+        await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+      }
+
+      async function searchBatch() {
+        await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+      }
+
+      searchMedicine()
+      searchBatch()
+
+      checkTotalCount()
+    } else {
+    }
+    checkTotalCount()
+  }, [])
 
   return (
     <>
@@ -439,6 +454,7 @@ export const AddItemsForm = ({
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
                       checkTotalCount()
+                      setQuantityError(false)
                     }} // Set selected value
                     loading={batchLoading}
                     noOptionsText='Type to search'

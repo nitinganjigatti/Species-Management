@@ -942,7 +942,7 @@ const AddPurchaseForm = () => {
                       //   onChange(e.target.value)
                       // }}
                       label='Supplier*'
-                      disabled={!!id}
+                      // disabled={!!id}
                       error={Boolean(errors.supplier_id)}
                     >
                       {suppliers?.map(item => (

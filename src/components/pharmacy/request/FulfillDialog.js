@@ -793,7 +793,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               </FormHelperText>
                             )}
                             {getValues(`product_batches[${index}].quantityAvailable`) ? (
-                              <FormHelperText sx={{ color: 'error.main' }}>
+                              <FormHelperText sx={{ color: 'primary.main' }}>
                                 Available Quantity:{getValues(`product_batches[${index}].quantityAvailable`)}
                               </FormHelperText>
                             ) : null}

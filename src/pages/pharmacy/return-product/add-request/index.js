@@ -522,7 +522,9 @@ const AddReturnRequest = () => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
-    console.log('get itemsin edit table', getItems)
+    console.log('params', editParams)
+
+    console.log('get items in edit table', getItems)
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
