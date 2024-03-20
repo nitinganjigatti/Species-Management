@@ -2,15 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Icon from 'src/@core/components/icon'
-
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -81,12 +76,6 @@ const ListOfStocksByBatch = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id }) => {
-      // if (id === undefined) {
-      //   // setErrors('Please select Store')
-      //   console.log('Please select Store')
-
-      //   return
-      // } else {
       try {
         setLoading(true)
 
@@ -99,6 +88,9 @@ const ListOfStocksByBatch = () => {
         }
         const result = await getStocksByBatch(id, params)
         console.log('result', result)
+        if (result?.data?.length === 0) {
+          toast.success('There is no stock for this store')
+        }
         if (result.success === true && result?.data?.length > 0) {
           setTotal(parseInt(result?.count))
 
@@ -112,9 +104,6 @@ const ListOfStocksByBatch = () => {
         } else {
           setLoading(false)
         }
-        if (result?.count === '0') {
-          toast.success('There is no stock for this store')
-        }
       } catch (error) {
         console.log('error', error)
         setLoading(false)
@@ -122,7 +111,7 @@ const ListOfStocksByBatch = () => {
 
       // }
     },
-    [paginationModel, stockId]
+    [paginationModel]
   )
 
   const indexedRows = stockReport?.map((row, index) => ({

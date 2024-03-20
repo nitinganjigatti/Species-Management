@@ -320,7 +320,7 @@ const RequestList = () => {
             )}
             {/*  When the items are shipped - For local pharmacy */}
             {params?.row?.delivery_status === 'Not Delivered' &&
-              params?.row?.request_status === '' &&
+              (params?.row?.request_status === '' || !params?.row?.request_status) &&
               params?.row?.shipping_status === 'Fully Shipped' && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
