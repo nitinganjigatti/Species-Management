@@ -50,26 +50,6 @@ const ListOfStocksByBatch = () => {
     setShow(true)
   }
 
-  const getStoresLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
-      if (response?.data?.list_items?.length > 0) {
-        response?.data?.list_items?.sort((a, b) => a.id - b.id)
-        setStores(response?.data?.list_items)
-        if (response?.data?.list_items.length > 0) {
-          setStockId(response?.data?.list_items[0].id)
-        }
-        setLoader(false)
-      } else {
-        setLoader(false)
-      }
-    } catch (error) {
-      setLoader(false)
-      console.log('error', error)
-    }
-  }
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -139,14 +119,36 @@ const ListOfStocksByBatch = () => {
     []
   )
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+          setStockId(response?.data?.list_items[0].id)
+          getStocksReport({ sort, q: searchValue, column: sortColumn, id: response?.data?.list_items[0].id })
+        }
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
+  }
+
   useEffect(() => {
     if (stockId !== '') {
       getStocksReport({ sort, q: searchValue, column: sortColumn, id: stockId })
     }
   }, [getStocksReport])
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
 
   const columns = [
     {
