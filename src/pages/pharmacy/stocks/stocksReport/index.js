@@ -396,21 +396,32 @@ const ListOfStocks = () => {
           {params.row.stock_qty}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'store_name',
-      headerName: 'Store Name',
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.store_name}
-        </Typography>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'store_name',
+    //   headerName: 'Store Name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.store_name}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'STOCK PURCHASE PRICE',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.purchase_price}
+    //     </Typography>
+    //   )
+    // }
 
     // {
     //   flex: 0.2,

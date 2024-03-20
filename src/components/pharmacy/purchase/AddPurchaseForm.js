@@ -1093,18 +1093,21 @@ const AddPurchaseForm = () => {
                         <TableCell align='right'>{el.purchase_igst}%</TableCell>
                         <TableCell align='right'>{el.purchase_net_amount}</TableCell>
                         <TableCell align='center'>
-                          <IconButton
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                            aria-label='Edit'
-                            onClick={() => {
-                              setMedicineItemId(el.purchase_unit_id)
-                              editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
-                              showDialog()
-                            }}
-                          >
-                            <Icon icon='mdi:pencil-outline' />
-                          </IconButton>
+                          {el.id ? null : (
+                            <IconButton
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.purchase_unit_id)
+                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                showDialog()
+                              }}
+                            >
+                              <Icon icon='mdi:pencil-outline' />
+                            </IconButton>
+                          )}
+
                           {id && el.id ? null : (
                             <IconButton
                               onClick={() => {
