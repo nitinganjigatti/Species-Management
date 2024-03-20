@@ -814,9 +814,7 @@ export default function AddProduct() {
                         styles={{ color: 'red', border: '1px solid red', margin: '5px' }}
                         action={() => handleCancelChange()}
                         title='Cancel'
-                      >
-                        Cancel
-                      </AddButton>
+                      ></AddButton>
                     )}
                     <LoadingButton
                       type='submit'
