@@ -272,8 +272,6 @@ const AddReturnRequest = () => {
         params.uuid !== item.uuid
     )
 
-    debugger
-
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
       console.log('Medicine already exists')
@@ -402,7 +400,7 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async (id, productType) => {
-    debugger
+    // debugger
     if (id !== '') {
       try {
         setBatchLoading(true)

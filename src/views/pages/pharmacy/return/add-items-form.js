@@ -115,7 +115,7 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    debugger
+    // debugger
 
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
       ...params
@@ -195,7 +195,8 @@ export const AddItemsForm = ({
     //   return
     // }
     clearErrors('request_item_batch_no')
-    debugger
+
+    // debugger
     if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
@@ -342,7 +343,7 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      debugger
+      // debugger
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -407,7 +408,7 @@ export const AddItemsForm = ({
                       setValue('available_item_qty', '')
 
                       if (value !== '' && value !== null) {
-                        debugger
+                        // debugger
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                       }

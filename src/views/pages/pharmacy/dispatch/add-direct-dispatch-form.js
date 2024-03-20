@@ -242,7 +242,8 @@ export const AddItemsForm = ({
 
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
-    debugger
+
+    // debugger
     var totalCount = 0
     var enteredCount = 0
     var nestedItemQuantity = 0
@@ -265,7 +266,8 @@ export const AddItemsForm = ({
     }
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
-    debugger
+
+    // debugger
 
     setTotalAvailableCount(available_qty)
   }
@@ -291,7 +293,7 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    debugger
+    // debugger
 
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
