@@ -117,3 +117,15 @@ export const ADD_FEED_TYPE = 'add-feed'
 export const UPDATE_FEED_TYPE = 'update-feed'
 
 export const INGREDIENT_LIST = 'ingredient-list'
+
+export const UOM_LIST = 'uom-list'
+
+export const ADD_INGREDIENT = 'add-ingredient'
+
+export const PREPARATION_LIST = 'diet/preparations/list'
+
+export const ADD_PREPARATION_TYPE = 'diet/preparations/add-preparation'
+
+export const GET_PREPARATION_TYPEBY_ID = 'diet/preparations/show'
+
+export const UPDATE_PREPARATION_TYPE = 'diet/preparations/update-preparation'

@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Button, FormControlLabel, Switch } from '@mui/material'
 import ServerSideToolbarWithFilterAndToggle from 'src/views/table/data-grid/ServerSideToolbarwithfilter_toggle'
 import IngredientDetailDialog from 'src/pages/diet/ingredient/ingredientdetail-dialog'
+import Router from 'next/router'
 
 const IngredientsList = () => {
   const renderClient = params => {
@@ -227,12 +228,7 @@ const IngredientsList = () => {
 
   const headerAction = (
     <div>
-      <Button
-        size='small'
-        variant='contained'
-
-        // onClick={() => Router.push('/diet/add-feed')}
-      >
+      <Button size='small' variant='contained' onClick={() => Router.push(`/diet/ingredient/add-ingredient`)}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
