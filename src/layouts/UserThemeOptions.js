@@ -126,6 +126,14 @@ const UserThemeOptions = () => {
             backgroundColor: '#1f515bb5'
           }
         }
+      },
+      MuiButton: {
+        styleOverrides: {
+          outlined: {
+            color: '#38bd69',
+            border: '1px solid #8080806b'
+          }
+        }
       }
     }
 

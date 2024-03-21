@@ -15,7 +15,13 @@ const composeDietNavigation = () => {
     icon: 'arcticons:recipe-keeper'
   }
 
-  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList]
+  const recipeList = {
+    title: 'Recipe',
+    path: '/diet/recipe',
+    icon: 'arcticons:recipe-keeper'
+  }
+
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, recipeList]
 
   return dietNavigation
 }
