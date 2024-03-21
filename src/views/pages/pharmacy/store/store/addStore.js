@@ -116,9 +116,6 @@ const AddStore = props => {
       reset(defaultValues)
     }
     if (editParams?.id !== null) {
-      getDosage(editParams?.id)
-      console.log()
-
       getStore(editParams?.id)
     }
   }, [resetForm, editParams, reset, getStore])
@@ -213,37 +210,39 @@ const AddStore = props => {
             )}
           </FormControl> */}
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-              Site
-            </InputLabel>
-            <Controller
-              name='site_id'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <Select
-                  name='site_id'
-                  value={value}
-                  label='Site'
-                  onChange={onChange}
-                  error={Boolean(errors?.gst_slab)}
-                  labelId='site_id'
-                >
-                  {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                    return (
-                      <MenuItem key={index} value={item?.site_id}>
-                        {item?.site_name}
-                      </MenuItem>
-                    )
-                  })}
-                </Select>
+          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+            <FormControl fullWidth sx={{ mb: 6 }}>
+              <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                Site
+              </InputLabel>
+              <Controller
+                name='site_id'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    name='site_id'
+                    value={value}
+                    label='Site'
+                    onChange={onChange}
+                    error={Boolean(errors?.gst_slab)}
+                    labelId='site_id'
+                  >
+                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      return (
+                        <MenuItem key={index} value={item?.site_id}>
+                          {item?.site_name}
+                        </MenuItem>
+                      )
+                    })}
+                  </Select>
+                )}
+              />
+              {errors?.site_id && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
               )}
-            />
-            {errors?.site_id && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
-            )}
-          </FormControl>
+            </FormControl>
+          )}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='latitude'
