@@ -286,6 +286,40 @@ const IngredientsList = () => {
     }
   }
 
+<<<<<<< HEAD
+=======
+  const handleSearch = async value => {
+    setSearchValue(value)
+    const currentPage = paginationModel.page
+    await searchTableData({ sort, q: value, sortColumn: sortColumning })
+    setPaginationModel(prevState => ({
+      ...prevState,
+      page: currentPage
+    }))
+  }
+
+  const headerAction = (
+    <div>
+      <Button size='small' variant='contained' onClick={() => Router.push(`/diet/ingredient/add-ingredient`)}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Add New
+      </Button>
+    </div>
+  )
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const handleRowClick = value => {
+    setOpen(true)
+    setIngredientRowVal(value)
+  }
+
+>>>>>>> origin/diet-dev
   const handleClose = () => {
     setOpen(false)
   }

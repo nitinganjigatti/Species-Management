@@ -41,7 +41,7 @@ const FeedTypes = () => {
 
   const handleChangePage = (event, newPage) => {
     setLoading(true)
-    getFeedTypeList({ page_no: newPage, limit, q: searchValue, searchColumns, status }).then(res => {
+    getFeedTypeList({ page: newPage, limit, q: searchValue, searchColumns, status }).then(res => {
       setFeedRows(res?.data?.result)
       setTotalFeeds(res?.data?.total_count)
       setLoading(false)
@@ -52,7 +52,7 @@ const FeedTypes = () => {
   const handleChangeRowsPerPage = event => {
     setLoading(true)
     setLimit(parseInt(event.target.value, 10))
-    getFeedTypeList({ page_no: 1, limit: event.target.value, q: searchValue, searchColumns, status }).then(res => {
+    getFeedTypeList({ page: 1, limit: event.target.value, q: searchValue, searchColumns, status }).then(res => {
       setFeedRows(res?.data?.result)
       setTotalFeeds(res?.data?.total_count)
       setLoading(false)
@@ -105,7 +105,7 @@ const FeedTypes = () => {
       setSearchValue(value)
       try {
         setLoading(true)
-        await getFeedTypeList({ page_no: 1, limit, q: value, sortBy, searchColumns, status }).then(res => {
+        await getFeedTypeList({ page: 1, limit, q: value, sortBy, searchColumns, status }).then(res => {
           setFeedRows(res?.data?.result)
           setTotalFeeds(res?.data?.total_count)
           setLoading(false)
@@ -126,7 +126,7 @@ const FeedTypes = () => {
         setTotalFeeds(0)
         setPage_no(1)
         setLoading(true)
-        await getFeedTypeList({ page_no: 1, limit, q: '', sortBy, searchColumns, status }).then(res => {
+        await getFeedTypeList({ page: 1, limit, q: '', sortBy, searchColumns, status }).then(res => {
           setFeedRows(res?.data?.result)
           setTotalFeeds(res?.data?.total_count)
           setLoading(false)
@@ -144,7 +144,7 @@ const FeedTypes = () => {
     try {
       setLoading(true)
       await getFeedTypeList({
-        page_no: 1,
+        page: 1,
         limit,
         q: searchValue,
         sortBy,
@@ -164,7 +164,7 @@ const FeedTypes = () => {
   useEffect(() => {
     try {
       setLoading(true)
-      getFeedTypeList({ page_no, limit, status }).then(res => {
+      getFeedTypeList({ page: page_no, limit, status }).then(res => {
         // console.log('first', res?.data?.result)
         setFeedRows(res?.data?.result)
         setTotalFeeds(res?.data?.total_count)

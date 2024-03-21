@@ -20,8 +20,20 @@ const composeDietNavigation = () => {
     path: '/diet/recipe',
     icon: 'arcticons:recipe-keeper'
   }
+  const settingsParent = {
+    title: 'Setting',
+    path: '/diet/settings',
+    icon: 'uil:setting',
+    children: []
+  }
 
-  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, recipeList]
+  const preparationTypes = {
+    title: 'Preparation Types',
+    path: '/diet/settings/preparation-types'
+  }
+
+  settingsParent.children.push(preparationTypes)
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, recipeList, settingsParent]
 
   return dietNavigation
 }
