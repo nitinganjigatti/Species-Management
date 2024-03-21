@@ -47,6 +47,7 @@ import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
+import AddSupplier from 'src/pages/pharmacy/settings/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -118,6 +119,9 @@ const AddPurchaseForm = () => {
   const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+
+  const [supplierDialog, setSupplierDialog] = useState(false)
+
   const router = useRouter()
   const { id, action } = router.query
 
@@ -894,6 +898,11 @@ const AddPurchaseForm = () => {
     )
   }
 
+  const closeSupplierDialog = () => {
+    getSuppliersLists()
+    setSupplierDialog(false)
+  }
+
   return (
     <Card>
       <Grid
@@ -1050,6 +1059,13 @@ const AddPurchaseForm = () => {
                 alignItems: 'center'
               }}
             >
+              <AddButton
+                styles={{ marginRight: 4 }}
+                title='Add Suppliers'
+                action={() => {
+                  setSupplierDialog(true)
+                }}
+              />
               <AddButton
                 title='Add Inventory Item'
                 action={() => {
@@ -1291,6 +1307,24 @@ const AddPurchaseForm = () => {
             show={showDialog}
           />
         </Grid>
+        <CommonDialogBox
+          title={'Add Suppliers'}
+          dialogBoxStatus={supplierDialog}
+          formComponent={
+            <AddSupplier
+              closeSupplierDialog={() => {
+                closeSupplierDialog()
+              }}
+              supplierDialog={supplierDialog}
+            />
+          }
+          close={() => {
+            setSupplierDialog(false)
+          }}
+          show={() => {
+            setSupplierDialog(true)
+          }}
+        />
       </CardContent>
     </Card>
   )
