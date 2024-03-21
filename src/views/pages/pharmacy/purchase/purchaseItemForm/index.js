@@ -70,6 +70,7 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
+  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -80,12 +81,22 @@ const PurchaseItemForm = props => {
     }),
 
     // purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
-    purchase_expiry_date: yup
-      .date()
-      .typeError('Select a valid expiry date')
-      .when(['product.stock_type'], (stockType, schema) => {
-        return stockType === 'non medical' ? schema : schema.required('Expiry date is required')
-      }),
+    // purchase_expiry_date: yup
+    //   .date()
+    //   .typeError('Select a valid expiry date')
+    //   .when(['product.stock_type'], (stockType, schema) => {
+    //     console.log('product.stock_type', stockType[0])
+
+    //     return stockType[0] === 'non_medical' ? schema.notRequired() : schema.required('Expiry date is required')
+    //   }),
+
+    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
+      const result =
+        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
+
+      return result
+    }),
+
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
