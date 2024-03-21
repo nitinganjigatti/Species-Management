@@ -1308,7 +1308,7 @@ const AddPurchaseForm = () => {
           />
         </Grid>
         <CommonDialogBox
-          title={'Add Suppliers'}
+          title={'Add Supplier'}
           dialogBoxStatus={supplierDialog}
           formComponent={
             <AddSupplier
