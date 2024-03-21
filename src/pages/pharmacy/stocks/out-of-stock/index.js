@@ -39,7 +39,7 @@ const StockOut = () => {
     async (sort, q, column, status) => {
       try {
         setLoading(true)
-        debugger
+        // debugger
 
         const params = {
           sort,
@@ -188,7 +188,7 @@ const StockOut = () => {
   }
 
   const handleChange = (event, newValue) => {
-    debugger
+    // debugger
     setStatus(newValue)
   }
 
