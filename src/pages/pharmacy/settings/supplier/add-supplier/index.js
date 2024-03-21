@@ -110,7 +110,7 @@ const schema = yup.object().shape({
   name: yup.string().nullable()
 })
 
-const AddSupplier = () => {
+const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   // ** Hooks
   const {
     reset,
@@ -223,7 +223,13 @@ const AddSupplier = () => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/settings/supplier/supplier-list')
+
+        // This for adding supplier from the inventory page
+        if (supplierDialog) {
+          closeSupplierDialog()
+        } else {
+          Router.push('/pharmacy/settings/supplier/supplier-list')
+        }
       } else {
         debugger
         setSubmitLoader(false)
@@ -254,31 +260,40 @@ const AddSupplier = () => {
     }
   }
 
+  // This for adding supplier from the inventory page
+  function SupplierComponent({ supplierDialog, children }) {
+    const Tag = supplierDialog ? Grid : Card
+
+    return <Tag>{children}</Tag>
+  }
+
   return (
     <>
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12}>
-          <Card>
-            <CardHeader
-              title={id ? 'Edit Supplier' : 'Add Supplier'}
-              action={
-                <div>
-                  <Button
-                    size='big'
-                    variant='contained'
-                    onClick={() => {
-                      Router.push('/pharmacy/settings/supplier/supplier-list')
-                    }}
-                  >
-                    Suppliers List
-                  </Button>
-                  {/* <span style={{ marginRight: 4 }}></span>
+          <SupplierComponent supplierDialog={supplierDialog}>
+            {supplierDialog ? null : (
+              <CardHeader
+                title={id ? 'Edit Supplier' : 'Add Supplier'}
+                action={
+                  <div>
+                    <Button
+                      size='big'
+                      variant='contained'
+                      onClick={() => {
+                        Router.push('/pharmacy/settings/supplier/supplier-list')
+                      }}
+                    >
+                      Suppliers List
+                    </Button>
+                    {/* <span style={{ marginRight: 4 }}></span>
                   <Button size='big' variant='contained' href=''>
                     Upload CSV
                   </Button> */}
-                </div>
-              }
-            />
+                  </div>
+                }
+              />
+            )}
             <CardContent>
               <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                 <Grid container spacing={5}>
@@ -514,7 +529,7 @@ const AddSupplier = () => {
                 </Grid>
               </form>
             </CardContent>
-          </Card>
+          </SupplierComponent>
         </Grid>
       </Grid>
     </>
