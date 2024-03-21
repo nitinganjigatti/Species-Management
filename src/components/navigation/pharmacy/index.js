@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase Invoice',
+    title: 'Inventory',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
