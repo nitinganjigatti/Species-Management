@@ -27,19 +27,27 @@ import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import Icon from 'src/@core/components/icon'
 import Image from 'next/image'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import { addIngredients, getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
+import {
+  addIngredients,
+  getIngredientDetails,
+  getUnitsForIngredient,
+  updateIngredients
+} from 'src/lib/api/diet/getFeedDetails'
 import UserSnackbar from 'src/components/utility/snackbar'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const AddIngredient = () => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
-  // const [inputValue, setInputValue] = useState('')
-  // const [selectedValues, setSelectedValues] = useState([])
+
+  const router = useRouter()
+  const { id } = router.query
+  const [loading, setLoading] = useState(false)
   const [uomList, setUom] = useState([])
-  const [defaultUom, setDefaultUom] = useState(null)
   const [FeedTypeList, setFeedTypeList] = useState([])
+  const [defaultUom, setDefaultUom] = useState(null)
   const [defaultFeedType, setDefaultFeedType] = useState(null)
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
@@ -74,6 +82,42 @@ const AddIngredient = () => {
     uom: yup.string().nullable().required('UOM is Required'),
     nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required')
   })
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true)
+      getIngredientDetails(id).then(res => {
+        // console.log('res', res?.data)
+        if (res?.success) {
+          setValue('ingredientName', res?.data?.ingredient_name)
+          setValue('active', Number(res?.data?.active) === 0 ? 0 : 1)
+          setValue('feedType', res?.data?.feed_type)
+          setDefaultFeedType({
+            id: res?.data?.feed_type,
+            feed_type_name: res?.data?.feed_type_label
+          })
+          setValue('waterPercentage', res?.data?.water_percentage)
+          setValue('dryMatterPercentage', res?.data?.water_dry_matter)
+          setValue('nutritionalValuesPer', res?.data?.standard_unit)
+          setDefaultUom({
+            id: res?.data?.uom_id,
+            unit_name: res?.data?.uom
+          })
+          setValue('uom', res?.data?.uom_id)
+          setValue('calorie', res?.data?.calorie)
+          setValue('description', res?.data?.desc)
+          setValue(
+            'ingredientImg',
+            res?.data?.ingredient_image === null || undefined || '' ? '' : res?.data?.ingredient_image
+          )
+          setImgSrc(res?.data?.ingredient_image === null || undefined || '' ? '' : res?.data?.ingredient_image)
+          setValue('preprationTypes', res?.data?.preparation_types)
+        }
+        setValue('active', 0)
+        setLoading(false)
+      })
+    }
+  }, [])
 
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
@@ -179,25 +223,14 @@ const AddIngredient = () => {
     []
   )
 
-  // const handleInputChange = event => {
-  //   setInputValue(event.target.value)
-  // }
-  // const handleKeyDown = event => {
-  //   if (event.key === 'Enter' && inputValue.trim() !== '') {
-  //     if (selectedValues.findIndex(item => item?.title === inputValue) == -1) {
-  //       setSelectedValues(prevValues => [...prevValues, { title: inputValue }])
-  //       setValue('preprationTypes', [...getValues('preprationTypes'), inputValue])
-  //     }
-  //     setInputValue('')
-  //   }
-  // }
-
-  // const handleDelete = valueToDelete => {
-  //   setSelectedValues(prevValues => prevValues.filter(value => value !== valueToDelete))
-  // }
-
   const onError = errors => {
-    console.log('Form errros', errors)
+    // console.log('Form errros', errors)
+    setOpenSnackbar({
+      ...openSnackbar,
+      open: true,
+      message: 'Error Occured in Form Field',
+      severity: 'error'
+    })
   }
 
   const onSubmit = async params => {
@@ -230,44 +263,63 @@ const AddIngredient = () => {
     }
     // console.log('submit', params)
     // console.log('payload', payload)
-    // if (id) {
-    //   try {
-    //     await updateFeedType({ ...payload }, id).then(res => {
-    //       Router.push('/diet/feed')
-    //       if (res?.success) {
-    //         setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
-    //       } else {
-    //         setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
-    //       }
-    //     })
-    //   } catch (error) {
-    //     console.log('error', error)
-    //   }
-    // } else {
-    try {
-      setSubmitLoader(true)
-      await addIngredients(payload).then(res => {
-        if (res?.success) {
+    if (id) {
+      try {
+        setSubmitLoader(true)
+        await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
-          setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.data), severity: 'success' })
-          Router.push('/diet/ingredient')
-          reset()
-        } else {
-          setSubmitLoader(false)
-          setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.message), severity: 'warning' })
-        }
-      })
-    } catch (error) {
-      setSubmitLoader(false)
-      console.log('error', error)
+          if (res?.success) {
+            setOpenSnackbar({
+              ...openSnackbar,
+              open: true,
+              message: JSON?.stringify(res?.message),
+              severity: 'success'
+            })
+            Router.push('/diet/ingredient')
+          } else {
+            setOpenSnackbar({
+              ...openSnackbar,
+              open: true,
+              message: JSON?.stringify(res?.message),
+              severity: 'warning'
+            })
+          }
+        })
+      } catch (error) {
+        setSubmitLoader(false)
+        console.log('error', error)
+      }
+    } else {
+      try {
+        setSubmitLoader(true)
+        await addIngredients(payload).then(res => {
+          if (res?.success) {
+            setSubmitLoader(false)
+            setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.data), severity: 'success' })
+            Router.push('/diet/ingredient')
+            reset()
+          } else {
+            setSubmitLoader(false)
+            setOpenSnackbar({
+              ...openSnackbar,
+              open: true,
+              message: JSON?.stringify(res?.message),
+              severity: 'warning'
+            })
+          }
+        })
+      } catch (error) {
+        setSubmitLoader(false)
+        console.log('error', error)
+      }
     }
-    // }
   }
 
   const headerAction = (
     <FormControlLabel
       control={
         <Switch
+          checked={Boolean(watch('active'))}
           onChange={e => {
             setValue('active', Number(e.target.checked))
           }}
@@ -280,459 +332,486 @@ const AddIngredient = () => {
   )
 
   return (
-    <Box>
+    <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb'>
-          <Link underline='hover' color='inherit' href=''>
-            Ingredients
-          </Link>
-          <Typography color='text.primary'>Add new ingredient</Typography>
-        </Breadcrumbs>
-      </Box>
-      <form onSubmit={handleSubmit(onSubmit, onError)}>
-        <Card sx={{ mt: 3 }}>
-          <CardHeader sx={{ paddingBottom: 0, marginX: 1 }} title='Add New Ingredient' action={headerAction} />
-          <CardContent>
-            <Typography sx={{ width: '70%', fontSize: 14 }}>
-              Please provide the standard unit, unit of measurement, water percentage, and dry ingredient proportions
-              for this ingredient prior to processing.
-            </Typography>
-            <Box sx={{ my: '24px' }}>
-              <Divider />
-              <Divider />
-            </Box>
+        <Box>
+          <Breadcrumbs aria-label='breadcrumb'>
+            <Link underline='hover' color='inherit' href=''>
+              Ingredients
+            </Link>
+            <Typography color='text.primary'>{id ? 'Update' : 'Add'} new ingredient</Typography>
+          </Breadcrumbs>
+        </Box>
+        {loading ? (
+          <Box sx={{ justifyContent: 'center', display: 'flex', alignItems: 'center', height: '70vh' }}>
+            <FallbackSpinner />
+          </Box>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit, onError)}>
+            <Card sx={{ mt: 3 }}>
+              <CardHeader
+                sx={{ paddingBottom: 0, marginX: 1 }}
+                title={id ? 'Update Ingredient' : 'Add New Ingredient'}
+                action={headerAction}
+              />
+              <CardContent>
+                <Typography sx={{ width: '70%', fontSize: 14 }}>
+                  Please provide the standard unit, unit of measurement, water percentage, and dry ingredient
+                  proportions for this ingredient prior to processing.
+                </Typography>
+                <Box sx={{ my: '24px' }}>
+                  <Divider />
+                  <Divider />
+                </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
-              <Box sx={{ marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    height: 20,
-                    width: 20,
-                    border: `3px solid ${theme.palette.primary.main}`,
-                    borderRadius: '50%',
-                    mb: 3
-                  }}
-                ></Box>
-                <Typography sx={{ fontWeight: 600, fontSize: 14 }}>Basic Information</Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: 12 }}>Enter details</Typography>
-              </Box>
-            </Box>
-
-            <Box>
-              <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>1. Ingredient details</Typography>
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='ingredientName'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Ingredient Name *'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Ingredient Name'
-                          error={Boolean(errors.ingredientName)}
-                          name='ingredientName'
-                        />
-                      )}
-                    />
-                    {errors.ingredientName && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.ingredientName?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='feedType'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          value={defaultFeedType}
-                          disablePortal
-                          id='feedType'
-                          placeholder='Search & Select'
-                          options={FeedTypeList}
-                          getOptionLabel={option => option?.feed_type_name}
-                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                          onChange={(e, val) => {
-                            if (val === null) {
-                              setDefaultFeedType(null)
-
-                              return onChange('')
-                            } else {
-                              setDefaultFeedType(val)
-
-                              return onChange(val?.id)
-                            }
-                          }}
-                          onKeyUp={e => {
-                            feedTypeListSearch(e?.target?.value)
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Select Feed Type *'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.feedType)}
-                            />
-                          )}
-                        />
-                      )}
-                    />
-                    {errors?.feedType && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.feedType?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='waterPercentage'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          type='number'
-                          label='Percentage(%) of water'
-                          value={value}
-                          onChange={onChange}
-                          inputProps={{ min: 0 }}
-                          placeholder='Percentage(%) of water'
-                          error={Boolean(errors.waterPercentage)}
-                          name='waterPercentage'
-                        />
-                      )}
-                    />
-                    {errors.waterPercentage && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.waterPercentage?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='dryMatterPercentage'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          type='number'
-                          label='Percentage(%) of dry matter'
-                          value={value}
-                          onChange={onChange}
-                          inputProps={{ min: 0 }}
-                          placeholder='Percentage(%) of dry matter'
-                          error={Boolean(errors.dryMatterPercentage)}
-                          name='dryMatterPercentage'
-                        />
-                      )}
-                    />
-                    {errors.dryMatterPercentage && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors.dryMatterPercentage?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              <Box sx={{ mt: '32px' }}>
-                <Divider />
-                <Divider />
-              </Box>
-
-              <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Types of measurement</Typography>
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='nutritionalValuesPer'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          inputProps={{ min: 0 }}
-                          type='number'
-                          label='Enter nutritional values per *'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Enter nutritional values per'
-                          error={Boolean(errors.nutritionalValuesPer)}
-                          name='nutritionalValuesPer'
-                        />
-                      )}
-                    />
-                    {errors.nutritionalValuesPer && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors.nutritionalValuesPer?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={5.9}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='uom'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          value={defaultUom}
-                          disablePortal
-                          id='uom'
-                          options={uomList?.length > 0 ? uomList : []}
-                          getOptionLabel={option => option.unit_name}
-                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                          onChange={(e, val) => {
-                            if (val === null) {
-                              setDefaultUom(null)
-
-                              return onChange('')
-                            } else {
-                              setDefaultUom(val)
-
-                              return onChange(val.id)
-                            }
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Select unit of measurement (UOM) *'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.uom)}
-                            />
-                          )}
-                        />
-                      )}
-                    />
-                    {errors?.uom && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.uom?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item md={5.9}>
-                  <FormControl sx={{ mt: '20px' }} fullWidth>
-                    <Controller
-                      name='calorie'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          type='number'
-                          inputProps={{ min: 0 }}
-                          label='Enter total calories'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Enter total calories'
-                          error={Boolean(errors.calorie)}
-                          name='calorie'
-                        />
-                      )}
-                    />
-                    {errors.calorie && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.calorie?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              <Box sx={{ my: '32px' }}>
-                <Divider />
-                <Divider />
-              </Box>
-
-              <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
-
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={12}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='description'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          rows={4}
-                          multiline
-                          label='Description'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Description'
-                          error={Boolean(errors.description)}
-                          name='description'
-                        />
-                      )}
-                    />
-                    {errors.description && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              <Box sx={{ my: '32px' }}>
-                <Divider />
-                <Divider />
-              </Box>
-
-              <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>4. Attach image</Typography>
-
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={5.9}>
-                  <input
-                    type='file'
-                    accept='image/*'
-                    onChange={e => handleInputImageChange(e)}
-                    style={{ display: 'none' }}
-                    name='ingredientImg'
-                    ref={fileInputRef}
-                  />
-
-                  <Box
-                    onClick={handleAddImageClick}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 7,
-                      height: 120,
-                      border: `2px solid ${theme.palette.customColors.trackBg}`,
-                      borderRadius: 1,
-                      padding: 3
-                    }}
-                  >
-                    <Image alt={'filename'} src={imageUploader} width={100} height={100} />
-
-                    <Typography>Drop your image here</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
+                  <Box sx={{ marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        height: 20,
+                        width: 20,
+                        border: `3px solid ${theme.palette.primary.main}`,
+                        borderRadius: '50%',
+                        mb: 3
+                      }}
+                    ></Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14 }}>Basic Information</Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: 12 }}>Enter details</Typography>
                   </Box>
-                </Grid>
-                <Grid item md={5.9}>
-                  {imgSrc !== '' && (
-                    <Box sx={{ display: 'flex' }}>
+                </Box>
+
+                <Box>
+                  <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>1. Ingredient details</Typography>
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='ingredientName'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              label='Ingredient Name *'
+                              value={value}
+                              onChange={onChange}
+                              placeholder='Ingredient Name'
+                              error={Boolean(errors.ingredientName)}
+                              name='ingredientName'
+                            />
+                          )}
+                        />
+                        {errors.ingredientName && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.ingredientName?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='feedType'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Autocomplete
+                              value={defaultFeedType}
+                              disablePortal
+                              id='feedType'
+                              placeholder='Search & Select'
+                              options={FeedTypeList}
+                              getOptionLabel={option => option?.feed_type_name}
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              onChange={(e, val) => {
+                                if (val === null) {
+                                  setDefaultFeedType(null)
+
+                                  return onChange('')
+                                } else {
+                                  setDefaultFeedType(val)
+                                  return onChange(val?.id)
+                                }
+                              }}
+                              onKeyUp={e => {
+                                feedTypeListSearch(e?.target?.value)
+                              }}
+                              renderInput={params => (
+                                <TextField
+                                  {...params}
+                                  label='Select Feed Type *'
+                                  placeholder='Search & Select'
+                                  error={Boolean(errors.feedType)}
+                                />
+                              )}
+                            />
+                          )}
+                        />
+                        {errors?.feedType && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.feedType?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='waterPercentage'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              type='number'
+                              label='Percentage(%) of water'
+                              value={value}
+                              onChange={onChange}
+                              inputProps={{ min: 0, max: 100 }}
+                              placeholder='Percentage(%) of water'
+                              error={Boolean(errors.waterPercentage)}
+                              name='waterPercentage'
+                            />
+                          )}
+                        />
+                        {errors.waterPercentage && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.waterPercentage?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='dryMatterPercentage'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              type='number'
+                              label='Percentage(%) of dry matter'
+                              value={value}
+                              onChange={onChange}
+                              inputProps={{ min: 0, max: 100 }}
+                              placeholder='Percentage(%) of dry matter'
+                              error={Boolean(errors.dryMatterPercentage)}
+                              name='dryMatterPercentage'
+                            />
+                          )}
+                        />
+                        {errors.dryMatterPercentage && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.dryMatterPercentage?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ mt: '32px' }}>
+                    <Divider />
+                    <Divider />
+                  </Box>
+
+                  <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Types of measurement</Typography>
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='nutritionalValuesPer'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              inputProps={{ min: 0 }}
+                              type='number'
+                              label='Enter nutritional values per *'
+                              value={value}
+                              onChange={onChange}
+                              placeholder='Enter nutritional values per'
+                              error={Boolean(errors.nutritionalValuesPer)}
+                              name='nutritionalValuesPer'
+                            />
+                          )}
+                        />
+                        {errors.nutritionalValuesPer && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.nutritionalValuesPer?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={5.9}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='uom'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Autocomplete
+                              value={defaultUom}
+                              disablePortal
+                              id='uom'
+                              options={uomList?.length > 0 ? uomList : []}
+                              getOptionLabel={option => option.unit_name}
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              onChange={(e, val) => {
+                                if (val === null) {
+                                  setDefaultUom(null)
+
+                                  return onChange('')
+                                } else {
+                                  setDefaultUom(val)
+
+                                  return onChange(val.id)
+                                }
+                              }}
+                              renderInput={params => (
+                                <TextField
+                                  {...params}
+                                  label='Select unit of measurement (UOM) *'
+                                  placeholder='Search & Select'
+                                  error={Boolean(errors.uom)}
+                                />
+                              )}
+                            />
+                          )}
+                        />
+                        {errors?.uom && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.uom?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item md={5.9}>
+                      <FormControl sx={{ mt: '20px' }} fullWidth>
+                        <Controller
+                          name='calorie'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              type='number'
+                              inputProps={{ min: 0 }}
+                              label='Enter total calories'
+                              value={value}
+                              onChange={onChange}
+                              placeholder='Enter total calories'
+                              error={Boolean(errors.calorie)}
+                              name='calorie'
+                            />
+                          )}
+                        />
+                        {errors.calorie && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.calorie?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ my: '32px' }}>
+                    <Divider />
+                    <Divider />
+                  </Box>
+
+                  <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
+
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={12}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='description'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              rows={4}
+                              multiline
+                              label='Description'
+                              value={value}
+                              onChange={onChange}
+                              placeholder='Description'
+                              error={Boolean(errors.description)}
+                              name='description'
+                            />
+                          )}
+                        />
+                        {errors.description && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ my: '32px' }}>
+                    <Divider />
+                    <Divider />
+                  </Box>
+
+                  <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>4. Attach image</Typography>
+
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={5.9}>
+                      <input
+                        type='file'
+                        accept='image/*'
+                        onChange={e => handleInputImageChange(e)}
+                        style={{ display: 'none' }}
+                        name='ingredientImg'
+                        ref={fileInputRef}
+                      />
+
                       <Box
+                        onClick={handleAddImageClick}
                         sx={{
-                          position: 'relative',
-                          backgroundColor: theme.palette.customColors.tableHeaderBg,
-                          borderRadius: '10px',
-                          height: 121,
-                          padding: '10.5px',
-                          boxSizing: 'border-box'
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 7,
+                          height: 120,
+                          border: `2px solid ${theme.palette.customColors.trackBg}`,
+                          borderRadius: 1,
+                          padding: 3
                         }}
                       >
-                        <img
-                          style={{
-                            aspectRatio: 2 / 2,
-                            height: '100%',
-                            borderRadius: '5%'
-                          }}
-                          alt='Uploaded image'
-                          src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
-                        />
-                        <Box
-                          sx={{
-                            cursor: 'pointer',
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            zIndex: 10,
-                            height: '24px',
-                            borderRadius: 0.4,
-                            backgroundColor: theme.palette.customColors.secondaryBg
-                          }}
-                        >
-                          <Icon icon='material-symbols-light:close' color='#fff' onClick={() => removeSelectedImage()}>
-                            {' '}
-                          </Icon>
-                        </Box>
+                        <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+
+                        <Typography>Drop your image here</Typography>
                       </Box>
-                    </Box>
-                  )}
-                </Grid>
-              </Grid>
+                    </Grid>
+                    <Grid item md={5.9}>
+                      {imgSrc !== '' && (
+                        <Box sx={{ display: 'flex' }}>
+                          <Box
+                            sx={{
+                              position: 'relative',
+                              backgroundColor: theme.palette.customColors.tableHeaderBg,
+                              borderRadius: '10px',
+                              height: 121,
+                              padding: '10.5px',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <img
+                              style={{
+                                aspectRatio: 2 / 2,
+                                height: '100%',
+                                borderRadius: '5%'
+                              }}
+                              alt='Uploaded image'
+                              src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                            />
+                            <Box
+                              sx={{
+                                cursor: 'pointer',
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                zIndex: 10,
+                                height: '24px',
+                                borderRadius: 0.4,
+                                backgroundColor: theme.palette.customColors.secondaryBg
+                              }}
+                            >
+                              <Icon
+                                icon='material-symbols-light:close'
+                                color='#fff'
+                                onClick={() => removeSelectedImage()}
+                              >
+                                {' '}
+                              </Icon>
+                            </Box>
+                          </Box>
+                        </Box>
+                      )}
+                    </Grid>
+                  </Grid>
 
-              <Box sx={{ my: '32px' }}>
-                <Divider />
-                <Divider />
-              </Box>
+                  <Box sx={{ my: '32px' }}>
+                    <Divider />
+                    <Divider />
+                  </Box>
 
-              <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
+                  <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
 
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                <Grid item md={5.9}>
-                  <FormControl sx={{ mb: 6 }} fullWidth>
-                    <Controller
-                      name='preprationTypes'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          multiple
-                          options={options?.length > 0 ? options : []}
-                          getOptionLabel={option => option?.label}
-                          id='preprationTypes'
-                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                          onChange={(e, val) => onChange(val)}
-                          filterSelectedOptions
-                          renderInput={params => (
-                            <TextField
-                              onChange={e => searchPreparationList(sort, e.target.value, sortColumn)}
-                              {...params}
-                              label='Preparation Types'
-                              placeholder='Preparation Types'
+                  <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                    <Grid item md={5.9}>
+                      <FormControl sx={{ mb: 6 }} fullWidth>
+                        <Controller
+                          name='preprationTypes'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Autocomplete
+                              multiple
+                              options={options?.length > 0 ? options : []}
+                              getOptionLabel={option => option?.label}
+                              id='preprationTypes'
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              onChange={(e, val) => {
+                                onChange(val)
+                              }}
+                              filterSelectedOptions
+                              value={value || []}
+                              renderInput={params => (
+                                <TextField
+                                  onChange={e => searchPreparationList(sort, e.target.value, sortColumn)}
+                                  {...params}
+                                  label='Preparation Types'
+                                  placeholder='Preparation Types'
+                                />
+                              )}
                             />
                           )}
                         />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-              <Grid item xs={12} sm={12} md={5}>
-                <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' gap={5} container>
-                  <Button
-                    onClick={() => Router.push('/diet/ingredient')}
-                    startIcon={<Icon icon='ph:arrow-left-bold' />}
-                    variant='outlined'
-                    sx={{ width: '124', height: '38' }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    endIcon={<Icon icon='ph:arrow-right-bold' />}
-                    disabled={
-                      watch('ingredientName') === '' ||
-                      watch('feedType') === '' ||
-                      watch('uom') === '' ||
-                      watch('nutritionalValuesPer') === '' ||
-                      submitLoader
-                    }
-                    type='submit'
-                    variant='contained'
-                    sx={{ width: '124', height: '38' }}
-                  >
-                    Submit &nbsp; {submitLoader ? <CircularProgress size={16} /> : null}
-                  </Button>
-                </Grid>
-              </Grid>
-            </Box>
-            {openSnackbar.open ? (
-              <UserSnackbar
-                severity={openSnackbar?.severity}
-                status={true}
-                message={openSnackbar?.message}
-                handleClose={() => setOpenSnackbar({ ...openSnackbar, open: false })}
-              />
-            ) : null}
-          </CardContent>
-        </Card>
-      </form>
-    </Box>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={5}>
+                    <Grid
+                      Grid
+                      sx={{ height: '100%' }}
+                      alignItems='flex-end'
+                      justifyContent='flex-end'
+                      gap={5}
+                      container
+                    >
+                      <Button
+                        onClick={() => Router.push('/diet/ingredient')}
+                        startIcon={<Icon icon='ph:arrow-left-bold' />}
+                        variant='outlined'
+                        sx={{ width: '124', height: '38' }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        endIcon={<Icon icon='ph:arrow-right-bold' />}
+                        disabled={
+                          watch('ingredientName') === '' ||
+                          watch('feedType') === '' ||
+                          watch('uom') === '' ||
+                          watch('nutritionalValuesPer') === '' ||
+                          submitLoader
+                        }
+                        type='submit'
+                        variant='contained'
+                        sx={{ width: '124', height: '38' }}
+                      >
+                        {id ? 'Update' : 'Submit'} &nbsp; {submitLoader ? <CircularProgress size={16} /> : null}
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+                {openSnackbar.open ? (
+                  <UserSnackbar
+                    severity={openSnackbar?.severity}
+                    status={true}
+                    message={openSnackbar?.message}
+                    handleClose={() => setOpenSnackbar({ ...openSnackbar, open: false })}
+                  />
+                ) : null}
+              </CardContent>
+            </Card>
+          </form>
+        )}
+      </Box>
+    </>
   )
 }
 

@@ -1,4 +1,12 @@
-import { FEED_DETAILS, INGREDIENTS_LIST, FEED, UOM_LIST, ADD_INGREDIENT } from '../../../constants/ApiConstant'
+import {
+  FEED_DETAILS,
+  INGREDIENTS_LIST,
+  FEED,
+  UOM_LIST,
+  ADD_INGREDIENT,
+  INGREDIENT_DETAIL,
+  UPDATE_INGREDIENT
+} from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
 export async function getFeedDetails(id) {
@@ -18,6 +26,29 @@ export async function getUnitsForIngredient({ params }) {
 export async function addIngredients(payload) {
   try {
     const url = `${ADD_INGREDIENT}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+    return error
+  }
+}
+
+export async function getIngredientDetails(id) {
+  const response = await axiosGet({ url: `${INGREDIENT_DETAIL}/${id}` })
+
+  return response.data
+}
+
+export async function updateIngredients(payload, id) {
+  try {
+    const url = `${UPDATE_INGREDIENT}/${id}`
     const response = await axiosFormPost({ url, body: payload })
 
     return response?.data

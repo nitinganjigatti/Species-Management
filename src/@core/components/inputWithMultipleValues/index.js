@@ -1,7 +1,26 @@
 import { Chip, TextField } from '@mui/material'
 import { Box } from '@mui/system'
 
-const InputwithMultipleValues = ({ inputValue, handleInputChange, handleKeyDown, selectedValues, handleDelete }) => {
+const InputwithMultipleValues = ({ name }) => {
+  // const [inputValue, setInputValue] = useState('')
+  // const [selectedValues, setSelectedValues] = useState([])
+
+  // const handleInputChange = event => {
+  //   setInputValue(event.target.value)
+  // }
+  // const handleKeyDown = event => {
+  //   if (event.key === 'Enter' && inputValue.trim() !== '') {
+  //     if (selectedValues.findIndex(item => item?.title === inputValue) == -1) {
+  //       setSelectedValues(prevValues => [...prevValues, { title: inputValue }])
+  //       setValue('preprationTypes', [...getValues('preprationTypes'), inputValue])
+  //     }
+  //     setInputValue('')
+  //   }
+  // }
+
+  // const handleDelete = valueToDelete => {
+  //   setSelectedValues(prevValues => prevValues.filter(value => value !== valueToDelete))
+  // }
   return (
     <TextField
       sx={{
@@ -14,6 +33,7 @@ const InputwithMultipleValues = ({ inputValue, handleInputChange, handleKeyDown,
           pt: selectedValues?.length > 0 ? 1 : 4
         }
       }}
+      name={name}
       label='Prepration Types'
       value={inputValue}
       onChange={handleInputChange}
