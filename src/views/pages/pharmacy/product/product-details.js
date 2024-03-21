@@ -6,42 +6,40 @@ import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { addNonExistingProductStatus } from 'src/lib/api/pharmacy/newMedicine'
 import toast from 'react-hot-toast'
+import { LoadingButton } from '@mui/lab'
+import NewProductList from 'src/pages/pharmacy/new-product-request'
 
-export const ProductDetail = ({ setShow, detailsData, prescriptionImages, productDetails }) => {
-  console.log('product data????', productDetails, detailsData)
+export const ProductDetail = ({
+  setShow,
+  detailsData,
+  prescriptionImages,
+  productDetails,
+  submitLoader,
+  handleRequestStatus,
+  statusCall,
+  setReasonText
+}) => {
+  console.log('product data????', productDetails)
 
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
-  const [reasonText, setReasonText] = useState('')
-  const [statusCall, setStatusCall] = useState('')
+  const [status, setStatus] = useState('')
+
+  const [savedText, setSavedText] = useState()
 
   const router = useRouter()
 
-  const handleRequestStatus = async (status, id, productDetails) => {
-    const payload = {
-      status: status,
-      comments: reasonText ? reasonText : ''
-    }
+  // useEffect(() => {
+  //   if (statusCall) {
+  //     ;<NewProductList />
+  //   }
+  // }, [statusCall])
 
-    try {
-      const response = await addNonExistingProductStatus(payload, id)
-      if (response?.success) {
-        const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
-        toast.success(toastMessage)
-        setShow(false)
-
-        if (status === 'Cancelled') {
-          router.push('/pharmacy/new-product-request/')
-        } else {
-          router.push({
-            pathname: '/pharmacy/medicine/add-product/'
-          })
-        }
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  // const handlePopup = () => {
+  //   ;() => {
+  //     setStatusCall(prev => !prev)
+  //   }
+  // }
 
   return (
     <Grid>
@@ -114,8 +112,6 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
-                        console.log('Item????', item)
-
                         return (
                           <Box key={index}>
                             <Grid>
@@ -141,7 +137,7 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
               </Grid>
 
               {productDetails?.status !== 'Pending' && (
-                <Grid item xs={12}>
+                <Grid item xs={12} key={statusCall}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Status
                   </Typography>
@@ -149,14 +145,34 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                 </Grid>
               )}
 
-              <Grid item xs={12}>
+              {savedText && (
+                <Grid item xs={12}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Reason Of Rejecting
+                  </Typography>
+                  <Typography variant='body2'>{reasonText ? savedText : null}</Typography>
+                </Grid>
+              )}
+
+              <Grid
+                item
+                xs={12}
+                sm={12}
+                sx={{
+                  position: 'relative',
+                  top: '52px',
+                  left: '33px'
+                }}
+              >
                 {selectedPharmacy.type === 'local'
                   ? (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
                       <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                         {productDetails?.status === 'Pending' && (
                           <Button
-                            variant='contained'
+                            variant='outlined'
+                            sx={{ color: 'error' }}
+                            color='error'
                             onClick={() => {
                               handleRequestStatus('Cancelled', productDetails.id, productDetails)
                             }}
@@ -167,28 +183,30 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                       </Grid>
                     )
                   : !visibleArea && (
-                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                      <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         {productDetails?.status === 'Pending' && (
-                          <Button
+                          <LoadingButton
+                            loading={submitLoader}
                             sx={{ margin: '2px' }}
-                            variant='contained'
+                            variant='outlined'
                             onClick={() => {
                               handleRequestStatus('Approved', productDetails.id, productDetails)
                             }}
                           >
                             Approve Request
-                          </Button>
+                          </LoadingButton>
                         )}
                         {productDetails?.status === 'Pending' && (
-                          <Button
-                            sx={{ margin: '2px' }}
-                            variant='contained'
+                          <LoadingButton
+                            sx={{ margin: '2px', color: 'error' }}
+                            variant='outlined'
+                            color='error'
                             onClick={() => {
                               setVisibleArea(true)
                             }}
                           >
                             Reject Request
-                          </Button>
+                          </LoadingButton>
                         )}
                       </Grid>
                     )}
@@ -204,21 +222,28 @@ export const ProductDetail = ({ setShow, detailsData, prescriptionImages, produc
                       rows={4}
                       onChange={e => setReasonText(e.target.value)}
                     />
-
-                    <Button
-                      onClick={() => {
-                        setVisibleArea(false)
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        handleRequestStatus('Rejected', productDetails.id, productDetails)
-                      }}
-                    >
-                      Submit
-                    </Button>
+                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <LoadingButton
+                        sx={{ margin: '3px' }}
+                        size='small'
+                        variant='contained'
+                        loading={submitLoader}
+                        onClick={() => {
+                          handleRequestStatus('Rejected', productDetails.id, productDetails)
+                        }}
+                      >
+                        Submit
+                      </LoadingButton>
+                      <Button
+                        sx={{ margin: '3px' }}
+                        size='small'
+                        onClick={() => {
+                          setVisibleArea(false)
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </Grid>
                   </>
                 )}
               </Grid>

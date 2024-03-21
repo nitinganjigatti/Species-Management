@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
 
 import {
+  addNonExistingProductStatus,
   deleteNonExistingProduct,
   getNonExistingProductById,
   getNonExistingProductList
@@ -29,15 +30,57 @@ import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import toast from 'react-hot-toast'
 
 export default function NewProductList() {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
   const [productDetails, setProductDetails] = useState({})
+  const [reasonText, setReasonText] = useState('')
+  const [submitLoader, setSubmitLoader] = useState(false)
   const [prescriptionImages, setPrescriptionImages] = useState()
-
+  const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const handlePopup = () => {
+  //   setStatusCall(prev => !prev)
+  // }
+
+  const handleRequestStatus = async (status, id, productDetails) => {
+    const payload = {
+      status: status,
+      comments: reasonText ? reasonText : productDetails?.comments
+    }
+
+    try {
+      const response = await addNonExistingProductStatus(payload, id)
+      if (response?.success) {
+        const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
+        toast.success(toastMessage)
+        setShow(false)
+        // setStatus(status)
+        if (status === 'Cancelled') {
+          setShow(false)
+          router.reload()
+
+          setSubmitLoader(false)
+        } else if (status === 'Rejected') {
+          setShow(false)
+
+          setSubmitLoader(true)
+          // setSavedText(reasonText)
+        } else {
+          setSubmitLoader(true)
+          router.push({
+            pathname: '/pharmacy/medicine/add-product/'
+          })
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const columns = [
     {
@@ -310,8 +353,12 @@ export default function NewProductList() {
                     formComponent={
                       <ProductDetail
                         setShow={setShow}
+                        statusCall={statusCall}
+                        submitLoader={submitLoader}
                         detailsData={detailsData}
+                        handleRequestStatus={handleRequestStatus}
                         prescriptionImages={prescriptionImages}
+                        setReasonText={setReasonText}
                         imgUrl={imgUrl}
                         itemId={itemId}
                         handleEdit={handleEdit}
