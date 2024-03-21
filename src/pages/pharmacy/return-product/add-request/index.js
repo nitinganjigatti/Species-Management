@@ -405,7 +405,7 @@ const AddReturnRequest = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType)
+        const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             console.log('data of batch', searchResults?.data?.items)
