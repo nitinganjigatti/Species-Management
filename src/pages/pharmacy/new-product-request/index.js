@@ -59,6 +59,7 @@ export default function NewProductList() {
         const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
         toast.success(toastMessage)
         setShow(false)
+
         // setStatus(status)
         if (status === 'Cancelled') {
           setShow(false)
@@ -69,6 +70,7 @@ export default function NewProductList() {
           setShow(false)
 
           setSubmitLoader(true)
+
           // setSavedText(reasonText)
         } else {
           setSubmitLoader(true)
