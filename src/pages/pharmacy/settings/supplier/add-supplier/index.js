@@ -64,7 +64,9 @@ const schema = yup.object().shape({
       return true // Email is not required, so no validation needed
     }
 
-    return yup.string().email().isValidSync(value)
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    return regex.test(value)
   }),
   phone: yup
     .string()
