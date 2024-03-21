@@ -1040,7 +1040,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 <FormControl fullWidth>
                   <TextField
                     // disabled={disableButton()}
-                    disabled={selectedPharmacy.type === 'central' ? 'disabled' : null}
+                    disabled={
+                      selectedPharmacy.type === 'central'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
                     multiline
                     rows={3}
                     type='text'
