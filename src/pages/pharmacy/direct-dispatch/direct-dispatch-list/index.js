@@ -51,7 +51,7 @@ const DirectDispatchList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
-
+    setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
 
