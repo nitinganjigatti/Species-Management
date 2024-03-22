@@ -43,7 +43,7 @@ const ReturnRequestList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(selectedPharmacy?.type === 'local' ? 'pending' : 'completed')
+  const [status, setStatus] = useState('pending')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -82,16 +82,26 @@ const ReturnRequestList = () => {
     },
     [paginationModel]
   )
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [fetchTableData, selectedPharmacy, status])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [selectedPharmacy.id])
 
+  useEffect(() => {
+    setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'completed')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn, status)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
