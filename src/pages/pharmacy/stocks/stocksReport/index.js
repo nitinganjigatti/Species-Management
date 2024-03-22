@@ -87,6 +87,7 @@ const ListOfStocks = () => {
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
   const [changeSwitch, setChangeSwitch] = useState()
+  const [stockType, setStockType] = useState()
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -115,16 +116,17 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id }) => {
       if (id) {
-        if (selectedPharmacy?.type == 'local') {
+        if (stockType === 'local') {
           try {
             setLoading(true)
-
+            // console.log('id', id)
             const params = {
               sort,
               q,
               column,
               page: paginationModel.page + 1,
-              limit: paginationModel.pageSize
+              limit: paginationModel.pageSize,
+              store_id: id
             }
             const result = await getLocalStocksReportById(params)
             if (result.success === true) {
@@ -670,6 +672,10 @@ const ListOfStocks = () => {
           <Select
             onChange={e => {
               let id = e.target.value
+              const type = stores.find(el => el.id === id)?.type || ''
+
+              setStockType(type)
+              // console.log('e.target.value', e)
               setStockId(id)
               setStockReport([])
               setConfigureMedId('')
@@ -689,6 +695,7 @@ const ListOfStocks = () => {
           >
             {stores.length > 0
               ? stores.map(el => {
+                  // console.log('el', el.type)
                   return (
                     <MenuItem key={el.id} value={el.id}>
                       {el.name}
@@ -792,8 +799,27 @@ const ListOfStocks = () => {
                     title={
                       stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
                     }
-                    action={headerAction}
+                    // action={headerAction}
                   />
+                  <Box>
+                    <div>
+                      {selectedPharmacy.type === 'central' && createForm()}
+
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            // onChange={e => {
+                            checked={changeSwitch}
+                            onChange={handleSwitchChange}
+                            // }}
+                            // defaultChecked
+                          />
+                        }
+                        labelPlacement='start'
+                        label='Batch Wise'
+                      />
+                    </div>
+                  </Box>
 
                   {changeSwitch ? (
                     <DataGrid

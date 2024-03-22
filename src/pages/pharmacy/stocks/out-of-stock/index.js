@@ -28,7 +28,7 @@ const StockOut = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('out_of_stock')
+  const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
 
   function loadServerRows(currentPage, data) {
@@ -201,7 +201,7 @@ const StockOut = () => {
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
 
-    setStatus(event.target.checked ? 'low_stock' : 'out_of_stock')
+    setStatus(event.target.checked ? 'out_of_stock' : 'low_stock')
   }
 
   const headerAction = (
@@ -209,7 +209,7 @@ const StockOut = () => {
       <FormControlLabel
         control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
         labelPlacement='start'
-        label='Low Stock'
+        label='Out Of Stock'
       />
     </div>
   )
@@ -291,7 +291,7 @@ const StockOut = () => {
         <FallbackSpinner />
       ) : (
         <Card>
-          <CardHeader title={changeSwitch ? 'Low Stock' : 'Out of Stock'} action={headerAction} />
+          <CardHeader title={changeSwitch ? 'Out of Stock' : 'Low Stock'} action={headerAction} />
           <DataGrid
             sx={{
               '.MuiDataGrid-cell:focus': {
