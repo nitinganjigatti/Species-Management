@@ -30,6 +30,8 @@ import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 
 const ReturnRequestList = () => {
+  const { selectedPharmacy } = usePharmacyContext()
+
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -41,9 +43,7 @@ const ReturnRequestList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
-
-  const { selectedPharmacy } = usePharmacyContext()
+  const [status, setStatus] = useState(selectedPharmacy?.type === 'local' ? 'pending' : 'completed')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -130,7 +130,7 @@ const ReturnRequestList = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'local' &&
+      {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
           <AddButton
             title='Add Return Request'
@@ -150,7 +150,7 @@ const ReturnRequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Returned By' : 'Returned To'
+    return selectedPharmacy?.type === 'central' ? 'Returned By' : 'Returned To'
   }
 
   const columns = [
@@ -360,10 +360,12 @@ const ReturnRequestList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'local' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
             <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
