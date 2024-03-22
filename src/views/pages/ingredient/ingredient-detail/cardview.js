@@ -1,9 +1,85 @@
-import { Grid, CardContent, Card, Box, Typography, Avatar, Switch, FormControlLabel } from '@mui/material'
-import React from 'react'
-import Divider from '@mui/material/Divider'
+import {
+  Grid,
+  CardContent,
+  Card,
+  Box,
+  Typography,
+  Avatar,
+  Switch,
+  FormControlLabel,
+  IconButton,
+  Divider
+} from '@mui/material'
+import { React, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
+import toast from 'react-hot-toast'
+import Router from 'next/router'
+import { useRouter } from 'next/router'
+import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
+  const router = useRouter()
+  const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || false)
+  const [deleteDialogBox, setDeleteDialogBox] = useState(false)
+
+  const handleClosenew = () => {
+    setDeleteDialogBox(false)
+    setIsActive(IngredientsDetailsval.active)
+  }
+  const handleSwitchChange = async event => {
+    const newIsActive = event.target.checked ? 1 : 0
+    setIsActive(newIsActive)
+    setDeleteDialogBox(true)
+    console.log(deleteDialogBox, 'deleteDialogBox')
+  }
+
+  const confirmDeleteAction = async () => {
+    console.log(isActive, 'ooo')
+    try {
+      setDeleteDialogBox(false)
+      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { active: isActive })
+      console.log(response, 'response')
+      if (response.success === true) {
+        Router.push(`/diet/ingredient`)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Ingredient {'ING' + IngredientsDetailsval.id} has been successfully deactivated
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {
+      console.error('Error updating ingredient status:', error)
+    }
+  }
+
   return (
     <Grid item xs={4}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
@@ -50,9 +126,15 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
           <Grid item>
             <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>{'ING' + IngredientsDetailsval.id}</Typography>
             <FormControlLabel
-              control={<Switch defaultChecked onChange={event => handleSwitchChange(event, params.row)} fontSize={2} />}
+              control={
+                <Switch
+                  checked={IngredientsDetailsval.active === '1' ? true : isActive}
+                  onChange={handleSwitchChange}
+                  fontSize={2}
+                />
+              }
               labelPlacement='start'
-              label='Active'
+              label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
             />
           </Grid>
         </div>
@@ -122,6 +204,12 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
           </Box>
         </CardContent>
       </Card>
+      <DeleteDialogConfirmation
+        handleClosenew={handleClosenew}
+        action={confirmDeleteAction}
+        open={deleteDialogBox}
+        message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Ingredient?</span>}
+      />
     </Grid>
   )
 }

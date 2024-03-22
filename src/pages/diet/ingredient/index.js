@@ -13,8 +13,8 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch } from '@mui/material'
-import IngredientDetailDialog from './ingredientdetail-dialog'
+import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider } from '@mui/material'
+import toast from 'react-hot-toast'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -27,6 +27,7 @@ import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 
 // Styled TabList component
 
@@ -43,9 +44,7 @@ const IngredientsList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('all')
-  const [open, setOpen] = useState(false)
-  const [IngredientRowVal, setIngredientRowVal] = useState({})
-
+  const [statusCheckval, setstatusCheckval] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -77,6 +76,7 @@ const IngredientsList = () => {
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
+          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
@@ -131,8 +131,57 @@ const IngredientsList = () => {
     </div>
   )
 
-  const handleSwitchChange = (event, rowData) => {
+  const handleSwitchChange = async (event, rowData) => {
     console.log(event.target.checked, 'lll')
+    console.log(rowData, 'rowData')
+    const newIsActive = event.target.checked ? 1 : 0
+    try {
+      const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
+      console.log(response, 'response')
+      if (response.success === true) {
+        fetchTableData(sort, searchValue, sortColumning, status)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Ingredient {'ING' + rowData.id} has been successfully{' '}
+                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {
+      console.error('Error updating ingredient status:', error)
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumning, status)
   }
 
   const columns = [
@@ -201,12 +250,20 @@ const IngredientsList = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <Tooltip
-            title={params.row.protein ? params.row.protein : '-'}
+            title={
+              params.row.preparation_types && params.row.preparation_types.length > 0
+                ? params.row.preparation_types.map(preparation => (
+                    <div style={{ padding: '4px' }} key={preparation.label}>
+                      {preparation.label}
+                    </div>
+                  ))
+                : '-'
+            }
             arrow
             placement='right'
-            sx={{ backgroundColor: 'blue' }}
+            // style={{ background: '#1F515B' }}
           >
-            <span>{params.row.protein ? params.row.protein : '-'}</span>
+            <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
           </Tooltip>
         </Typography>
       )
@@ -214,7 +271,7 @@ const IngredientsList = () => {
     {
       flex: 0.6,
       minWidth: 60,
-      field: 'ingredient_nameQ',
+      field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -231,10 +288,10 @@ const IngredientsList = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user[0]?.profile_pic ? (
+            {params.row.created_by_user?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user[0]?.profile_pic}
+                src={params.row.created_by_user?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -243,7 +300,7 @@ const IngredientsList = () => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.created_by_user[0]?.user_name ? params.row.created_by_user[0]?.user_name : '-'}
+              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
@@ -260,9 +317,10 @@ const IngredientsList = () => {
       disableColumnMenu: true, // Exclude from column menu
       renderCell: params => (
         <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <FormControlLabel
-            control={<Switch defaultChecked onChange={event => handleSwitchChange(event, params.row)} fontSize={2} />}
-            label=''
+          <Switch
+            checked={params.row.active === '0' ? false : true}
+            onChange={event => handleSwitchChange(event, params.row)}
+            fontSize={2}
           />
         </Box>
       )
@@ -279,15 +337,9 @@ const IngredientsList = () => {
       Router.push({
         pathname: `/diet/ingredient/${data?.id}`
       })
-      //   setOpen(true)
-      //   setIngredientRowVal(data)
     } else {
       return
     }
-  }
-
-  const handleClose = () => {
-    setOpen(false)
   }
 
   const TabBadge = ({ label, totalCount }) => (
@@ -375,12 +427,6 @@ const IngredientsList = () => {
           <TabPanel value='inactive'>{tableData()}</TabPanel>
           {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
         </TabContext>
-        {/* <IngredientDetailDialog
-          open={open}
-          setOpen={setOpen}
-          handleClose={handleClose}
-          IngredientRowVal={IngredientRowVal}
-        /> */}
       </Grid>
     </>
   )

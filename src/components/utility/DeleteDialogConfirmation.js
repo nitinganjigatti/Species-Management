@@ -8,8 +8,13 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
+import { Card, Typography, FormControlLabel, Checkbox, Grid } from '@mui/material'
 
 const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => {
+  const [checked, setChecked] = useState(false)
+  const handleChange = event => {
+    setChecked(event.target.checked)
+  }
   const handleNoClick = () => {
     handleClosenew()
   }
@@ -41,8 +46,8 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
             textAlign: 'center',
             borderRadius: '10px',
             padding: '10px',
-            width: '100px',
-            height: '100px',
+            width: '84px',
+            height: '84px',
             padding: '12px 10px 10px 10px',
             marginTop: '20px',
             marginBottom: '15px'
@@ -50,10 +55,48 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
         >
           <Icon
             icon='material-symbols:delete-outline'
-            style={{ cursor: 'pointer', fontSize: '74px', color: '#E93353' }}
+            style={{ cursor: 'pointer', fontSize: '63px', color: '#E93353' }}
           />
         </span>
-        <DialogTitle id='alert-dialog-title'>{message}</DialogTitle>
+        <DialogTitle id='alert-dialog-title'>
+          {message}
+          <Typography sx={{ mt: 2 }}>
+            Deactivating this ingredient prevents its addition to new <br /> recipes or diets.
+          </Typography>
+        </DialogTitle>
+
+        <Card
+          sx={{
+            mb: 4,
+            boxShadow: 'none',
+            background: '#ffbda83d',
+            textAlign: 'left',
+            pl: 5,
+            borderRadius: '5px',
+            height: 125
+          }}
+        >
+          <Typography sx={{ color: '#FA6140', pt: 6, fontSize: 14, fontWeight: 600 }}>
+            This ingredient is part of 15 recipes and 10 diets.
+          </Typography>
+          <Grid>
+            <Typography sx={{ fontSize: 15 }}>
+              <FormControlLabel
+                label={
+                  <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
+                    Deactivate this ingredient in all records
+                  </span>
+                }
+                control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
+              />
+            </Typography>
+            <Grid item>
+              <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
+                Option to swap it with another ingredient is still possible
+              </Typography>
+            </Grid>
+          </Grid>
+        </Card>
 
         <DialogActions
           className='dialog-actions-dense'
@@ -66,6 +109,7 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
             onClick={() => {
               action()
             }}
+            disabled={checked === true ? false : true}
           >
             Yes
           </Button>

@@ -119,11 +119,18 @@ export const UPDATE_FEED_TYPE = 'update-feed'
 export const INGREDIENT_LIST = 'ingredient-list'
 
 export const INGREDIENTS_DETAIL = 'ingredient-details'
+
 export const UOM_LIST = 'uom-list'
 
 export const ADD_INGREDIENT = 'add-ingredient'
 
 export const INGREDIENT_DETAIL = 'ingredient-details'
+
+export const DIET = 'diet'
+
+export const INGREDIENT = 'ingredient'
+
+export const UPDATE_STATUS = 'update-status'
 
 export const UPDATE_INGREDIENT = 'update-ingredient'
 

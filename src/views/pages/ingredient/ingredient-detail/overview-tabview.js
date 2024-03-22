@@ -78,27 +78,14 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
         <Box className='demo-space-x' sx={{ display: 'flex' }}>
           <Avatar
             src={
-              IngredientsDetailsval?.created_by_user && IngredientsDetailsval.created_by_user.length > 0
-                ? IngredientsDetailsval.created_by_user[0]?.profile_pic
-                : undefined
+              IngredientsDetailsval?.created_by_user ? IngredientsDetailsval.created_by_user?.profile_pic : undefined
             }
-            alt={
-              IngredientsDetailsval?.created_by_user && IngredientsDetailsval.created_by_user.length > 0
-                ? IngredientsDetailsval?.created_by_user[0]?.user_name
-                : 'User'
-            }
+            alt={IngredientsDetailsval?.created_by_user ? IngredientsDetailsval?.created_by_user?.user_name : 'User'}
           >
-            {!IngredientsDetailsval.created_by_user ||
-            IngredientsDetailsval.created_by_user.length === 0 ||
-            !IngredientsDetailsval.created_by_user[0]?.profile_pic ? (
-              <Icon icon='mdi:user' />
-            ) : null}
+            {!IngredientsDetailsval.created_by_user ? <Icon icon='mdi:user' /> : null}
           </Avatar>
           <Typography sx={{ color: '#000000' }}>
-            {IngredientsDetailsval?.created_by_user && IngredientsDetailsval.created_by_user.length > 0
-              ? IngredientsDetailsval?.created_by_user[0]?.user_name
-              : '--'}{' '}
-            <br />
+            {IngredientsDetailsval?.created_by_user ? IngredientsDetailsval?.created_by_user?.user_name : '-'} <br />
             <div style={{ color: '#44544A', fontSize: 12, margin: 0 }}>
               {'Created on' + ' ' + moment(IngredientsDetailsval?.created_at).format('DD/MM/YYYY')}
             </div>

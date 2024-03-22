@@ -12,6 +12,7 @@ import IngredientDetailCardview from 'src/views/pages/ingredient/ingredient-deta
 import { useRouter } from 'next/router'
 import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
 import OverviewTabView from 'src/views/pages/ingredient/ingredient-detail/overview-tabview'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
