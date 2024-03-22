@@ -42,8 +42,8 @@ const DirectDispatchList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-
-  const [status, setStatus] = useState(selectedPharmacy?.type === 'central' ? 'pending' : 'completed')
+  console.log('selectedPharmacy?.type', selectedPharmacy?.type)
+  const [status, setStatus] = useState('pending')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -83,10 +83,16 @@ const DirectDispatchList = () => {
     },
     [paginationModel]
   )
+
+  useEffect(() => {
+    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'completed')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+  }, [status, fetchTableData])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
