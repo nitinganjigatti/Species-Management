@@ -414,6 +414,9 @@ export const AddItemsForm = ({
                       }
                       checkTotalCount()
                     }} // Set selected value
+                    onBlur={async () => {
+                      await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+                    }}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (

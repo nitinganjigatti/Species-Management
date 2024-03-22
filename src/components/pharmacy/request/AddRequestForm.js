@@ -607,6 +607,9 @@ const AddRequestForm = () => {
                     searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
+                  onBlur={() => {
+                    fetchMedicineData('')
+                  }}
                   renderInput={params => (
                     <TextField
                       {...params}
