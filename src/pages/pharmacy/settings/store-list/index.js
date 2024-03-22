@@ -160,24 +160,23 @@ const ListOfStores = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+          {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-                <IconButton
-                  size='small'
-                  sx={{ mr: 0.5 }}
-                  onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-                >
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:delete-outline' />
           </IconButton> */}
-              </Box>
-            )}
+            </Box>
+          )}
         </>
       )
     }
@@ -205,7 +204,8 @@ const ListOfStores = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          is_access: 1
         }
 
         await getStoreList({ params: params }).then(res => {
