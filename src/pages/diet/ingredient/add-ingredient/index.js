@@ -112,8 +112,9 @@ const AddIngredient = () => {
           )
           setImgSrc(res?.data?.ingredient_image === null || undefined || '' ? '' : res?.data?.ingredient_image)
           setValue('preprationTypes', res?.data?.preparation_types)
+        } else {
+          setValue('active', 0)
         }
-        setValue('active', 0)
         setLoading(false)
       })
     }
