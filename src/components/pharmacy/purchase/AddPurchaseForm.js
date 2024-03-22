@@ -907,13 +907,13 @@ const AddPurchaseForm = () => {
     <Card>
       <Grid
         container
-        // sm={12}
-        // xs={12}
-        // sx={{
-        //   display: 'flex',
-        //   justifyContent: 'space-between',
-        //   alignItems: 'center'
-        // }}
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
       >
         <CardHeader
           avatar={
@@ -927,6 +927,14 @@ const AddPurchaseForm = () => {
             />
           }
           title={id ? 'Edit Inventory List' : 'Add Inventory'}
+        />
+
+        <AddButton
+          styles={{ marginRight: 20 }}
+          title='Add Supplier'
+          action={() => {
+            setSupplierDialog(true)
+          }}
         />
       </Grid>
 
@@ -1059,13 +1067,6 @@ const AddPurchaseForm = () => {
                 alignItems: 'center'
               }}
             >
-              <AddButton
-                styles={{ marginRight: 4 }}
-                title='Add Suppliers'
-                action={() => {
-                  setSupplierDialog(true)
-                }}
-              />
               <AddButton
                 title='Add Inventory Item'
                 action={() => {
