@@ -128,6 +128,8 @@ export const INGREDIENT_DETAIL = 'ingredient-details'
 
 export const DIET = 'diet'
 
+export const DELETE = 'delete'
+
 export const INGREDIENT = 'ingredient'
 
 export const UPDATE_STATUS = 'update-status'

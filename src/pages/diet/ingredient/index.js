@@ -9,11 +9,9 @@ import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
 
 // ** MUI Imports
@@ -34,8 +32,6 @@ import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 const IngredientsList = () => {
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
-
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -44,7 +40,7 @@ const IngredientsList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('all')
-  const [statusCheckval, setstatusCheckval] = useState(false)
+
   function loadServerRows(currentPage, data) {
     return data
   }

@@ -220,11 +220,7 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                  {IngredientRowVal.uom === 'gm'
-                    ? 'Gram (g)'
-                    : IngredientRowVal.uom === null
-                    ? '-'
-                    : IngredientRowVal.uom}
+                  {IngredientRowVal.uom === 'gm' ? 'Gram (g)' : IngredientRowVal.uom}
                 </Typography>
               </Box>
             </Box>

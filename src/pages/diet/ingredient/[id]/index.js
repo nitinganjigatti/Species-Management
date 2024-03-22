@@ -7,12 +7,27 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
-import { Grid, Card, CardContent, Box, Typography, CircularProgress, Breadcrumbs, Link } from '@mui/material'
+import {
+  Grid,
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  CircularProgress,
+  Breadcrumbs,
+  Link,
+  Divider,
+  IconButton
+} from '@mui/material'
 import IngredientDetailCardview from 'src/views/pages/ingredient/ingredient-detail/cardview'
+import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
 import OverviewTabView from 'src/views/pages/ingredient/ingredient-detail/overview-tabview'
-import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import Icon from 'src/@core/components/icon'
+import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
+import { deleteIngredient } from 'src/lib/api/diet/getIngredients'
+import toast from 'react-hot-toast'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -44,10 +59,19 @@ const IngredientDetail = () => {
   const { id } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
+  const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+  }
+
+  const handleClosenew = () => {
+    setDeleteDialogBox(false)
+  }
+
+  const handleClickOpen = () => {
+    setDeleteDialogBox(true)
   }
 
   const getIngredientsDetailval = async id => {
@@ -71,6 +95,49 @@ const IngredientDetail = () => {
       getIngredientsDetailval(id)
     }
   }, [id])
+
+  const confirmDeleteAction = async () => {
+    try {
+      setDeleteDialogBox(false)
+      const response = await deleteIngredient(id)
+      console.log(response, 'response')
+      if (response.success === true) {
+        Router.push(`/diet/ingredient`)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Ingredient {'ING' + id} has been successfully deleted
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {}
+  }
 
   return (
     <>
@@ -97,6 +164,16 @@ const IngredientDetail = () => {
                     <Typography sx={{ fontWeight: 600 }} variant='h6'>
                       {IngredientsDetailsval.ingredient_name}
                     </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                      <Icon icon='bx:pencil' style={{ cursor: 'pointer' }} />
+                      <Icon
+                        icon='material-symbols:delete-outline'
+                        style={{ cursor: 'pointer', marginLeft: '15px' }}
+                        onClick={() => {
+                          handleClickOpen()
+                        }}
+                      />
+                    </Box>
                   </Box>
                   <Grid container spacing={6} sx={{ mt: 3 }}>
                     <IngredientDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
@@ -136,6 +213,14 @@ const IngredientDetail = () => {
               </Grid>
             )}
           </Grid>
+          <ModuleDeleteDialogConfirmation
+            handleClosenew={handleClosenew}
+            action={confirmDeleteAction}
+            open={deleteDialogBox}
+            message={
+              <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
+            }
+          />
         </Grid>
       )}
     </>

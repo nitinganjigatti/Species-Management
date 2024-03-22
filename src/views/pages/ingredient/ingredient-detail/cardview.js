@@ -53,7 +53,8 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + IngredientsDetailsval.id} has been successfully deactivated
+                    Ingredient {'ING' + IngredientsDetailsval.id} has been successfully{' '}
+                    {isActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
               </Box>
@@ -75,9 +76,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
       } else {
         alert('something went wrong')
       }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
+    } catch (error) {}
   }
 
   return (
@@ -128,7 +127,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={IngredientsDetailsval.active === '1' ? true : isActive}
+                  checked={IngredientsDetailsval.active === '1' ? true : false}
                   onChange={handleSwitchChange}
                   fontSize={2}
                 />
@@ -177,7 +176,11 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.uom === 'gm' ? 'Gram (g)' : IngredientsDetailsval.uom}
+                {IngredientsDetailsval.uom === 'gm'
+                  ? 'Gram (g)'
+                  : IngredientsDetailsval.uom === null
+                  ? '-'
+                  : IngredientsDetailsval.uom}
               </Typography>
             </Box>
           </Box>
