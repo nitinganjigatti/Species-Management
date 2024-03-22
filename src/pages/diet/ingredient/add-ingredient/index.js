@@ -80,7 +80,17 @@ const AddIngredient = () => {
     ingredientName: yup.string().required('Ingredient Name is Required'),
     feedType: yup.string().nullable().required('Feed Type is Required'),
     uom: yup.string().nullable().required('UOM is Required'),
-    nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required')
+    nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required'),
+    preprationTypes: yup
+      .array()
+      .of(
+        yup.object({
+          id: yup.number().required(),
+          label: yup.string().required()
+        })
+      )
+      .min(1, 'At least one preparation type is required')
+      .required('At least one preparation type is required')
   })
 
   useEffect(() => {
@@ -106,11 +116,8 @@ const AddIngredient = () => {
           setValue('uom', res?.data?.uom_id)
           setValue('calorie', res?.data?.calorie)
           setValue('description', res?.data?.desc)
-          setValue(
-            'ingredientImg',
-            res?.data?.ingredient_image === null || undefined || '' ? '' : res?.data?.ingredient_image
-          )
-          setImgSrc(res?.data?.ingredient_image === null || undefined || '' ? '' : res?.data?.ingredient_image)
+          setValue('ingredientImg', res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
+          setImgSrc(res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
           setValue('preprationTypes', res?.data?.preparation_types)
         } else {
           setValue('active', 0)
@@ -276,7 +283,8 @@ const AddIngredient = () => {
               message: JSON?.stringify(res?.message),
               severity: 'success'
             })
-            Router.push('/diet/ingredient')
+            // Router.push('/diet/ingredient')
+            Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
             setOpenSnackbar({
               ...openSnackbar,
@@ -297,7 +305,8 @@ const AddIngredient = () => {
           if (res?.success) {
             setSubmitLoader(false)
             setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.data), severity: 'success' })
-            Router.push('/diet/ingredient')
+            // Router.push('/diet/ingredient')
+            Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
           } else {
             setSubmitLoader(false)
@@ -788,6 +797,7 @@ const AddIngredient = () => {
                           watch('feedType') === '' ||
                           watch('uom') === '' ||
                           watch('nutritionalValuesPer') === '' ||
+                          watch('preprationTypes')?.length === 0 ||
                           submitLoader
                         }
                         type='submit'
