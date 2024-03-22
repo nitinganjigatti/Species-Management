@@ -763,7 +763,7 @@ const AddIngredient = () => {
                                 <TextField
                                   onChange={e => searchPreparationList(sort, e.target.value, sortColumn)}
                                   {...params}
-                                  label='Preparation Types'
+                                  label='Preparation Types *'
                                   placeholder='Preparation Types'
                                 />
                               )}
