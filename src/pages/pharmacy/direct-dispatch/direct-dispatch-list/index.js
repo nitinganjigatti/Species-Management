@@ -33,6 +33,7 @@ const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
+  const { selectedPharmacy } = usePharmacyContext()
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -41,9 +42,8 @@ const DirectDispatchList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
 
-  const { selectedPharmacy } = usePharmacyContext()
+  const [status, setStatus] = useState(selectedPharmacy?.type === 'central' ? 'pending' : 'completed')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -361,10 +361,13 @@ const DirectDispatchList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'central' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
+
             <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
