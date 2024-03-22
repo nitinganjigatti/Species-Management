@@ -67,6 +67,7 @@ const ListOfStocks = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const [batchLoading, setBatchLoading] = useState(false)
@@ -78,6 +79,7 @@ const ListOfStocks = () => {
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const [stockId, setStockId] = useState('')
+
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
@@ -125,7 +127,7 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize
             }
             const result = await getLocalStocksReportById(params)
-            if (result.success === true && result.data.length > 0) {
+            if (result.success === true) {
               setTotal(parseInt(result?.count))
 
               let listWithId = result.data
@@ -152,17 +154,18 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize
             }
             const result = await getStocksReportById(id, params)
-            if (result?.data?.length > 0) {
-              setTotal(parseInt(result?.count))
+            // if (result?.data?.length > 0) {
 
-              // result.sort((a, b) => a.id - b.id)
-              let listWithId = result?.data
-                ? result?.data?.map((el, i) => {
-                    return { ...el, uid: i + 1 }
-                  })
-                : []
-              setStockReport(loadServerRows(paginationModel.page, listWithId))
-            }
+            setTotal(parseInt(result?.count))
+
+            // result.sort((a, b) => a.id - b.id)
+            let listWithId = result?.data
+              ? result?.data?.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(loadServerRows(paginationModel.page, listWithId))
+            // }
             setLoading(false)
           } catch (error) {
             console.log('error', error)
@@ -174,53 +177,53 @@ const ListOfStocks = () => {
     [paginationModel]
   )
 
-  const getStocksReportByStore = useCallback(
-    async ({ sort, q, column, id }) => {
-      // if (id === undefined) {
-      //   // setErrors('Please select Store')
-      //   console.log('Please select Store')
+  // const getStocksReportByStore = useCallback(
+  //   async ({ sort, q, column, id }) => {
+  //     // if (id === undefined) {
+  //     //   // setErrors('Please select Store')
+  //     //   console.log('Please select Store')
 
-      //   return
-      // } else {
-      try {
-        setLoading(true)
+  //     //   return
+  //     // } else {
+  //     try {
+  //       setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-        const result = await getStocksByBatch(id, params)
-        console.log('result', result)
-        if (result.success === true && result?.data?.length > 0) {
-          setTotal(parseInt(result?.count))
+  //       const params = {
+  //         sort,
+  //         q,
+  //         column,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+  //       const result = await getStocksByBatch(id, params)
+  //       console.log('result', result)
+  //       if (result.success === true && result?.data?.length > 0) {
+  //         setTotal(parseInt(result?.count))
 
-          let listWithId = result.data
-            ? result.data.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReport(loadServerRows(paginationModel.page, listWithId))
-          if (changeSwitch) setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+  //         let listWithId = result.data
+  //           ? result.data.map((el, i) => {
+  //               return { ...el, uid: i + 1 }
+  //             })
+  //           : []
+  //         setStockReport(loadServerRows(paginationModel.page, listWithId))
+  //         if (changeSwitch) setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
 
-          setLoading(false)
-        } else {
-          setLoading(false)
-        }
-        if (result?.count === '0') {
-          toast.success('There is no stock for this store')
-        }
-      } catch (error) {
-        console.log('error', error)
-        setLoading(false)
-      }
+  //         setLoading(false)
+  //       } else {
+  //         setLoading(false)
+  //       }
+  //       if (result?.count === '0') {
+  //         toast.success('There is no stock for this store')
+  //       }
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setLoading(false)
+  //     }
 
-      // }
-    },
-    [paginationModel, stockId]
-  )
+  //     // }
+  //   },
+  //   [paginationModel, stockId]
+  // )
 
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
@@ -298,7 +301,8 @@ const ListOfStocks = () => {
       if (selectedPharmacy?.type === 'local') {
         try {
           const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true && result.data.length > 0) {
+          if (result.success === true) {
+            console.log('result', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -316,7 +320,8 @@ const ListOfStocks = () => {
       } else {
         try {
           const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true && result.data !== '') {
+          if (result.success === true) {
+            console.log('result else', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -640,7 +645,7 @@ const ListOfStocks = () => {
         setStores(response?.data?.list_items)
         if (response?.data?.list_items.length > 0) {
           // setStockId(response?.data?.list_items)
-          console.log('response?.data?.list_items[0].id', response?.data?.list_items)
+          // console.log('response?.data?.list_items[0].id', response?.data?.list_items)
         }
         setLoader(false)
       } else {
@@ -669,9 +674,10 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
+              // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
-                ? getStocksReportByStore({ sort, q: searchValue, column: sortColumn, id })
+                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
                 : getStocksReport({ sort, q: searchValue, column: sortColumn, id })
             }}
             label='Stores'
@@ -699,8 +705,8 @@ const ListOfStocks = () => {
   }
 
   const handleSwitchChange = event => {
-    setChangeSwitch(event.target.checked) // Update switch state
-    // setValue(event.target.checked ? '2' : '1') // Update tab value based on switch state
+    setChangeSwitch(event.target.checked)
+    // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
   }
 
@@ -783,7 +789,9 @@ const ListOfStocks = () => {
                 /> */}
                 <Card>
                   <CardHeader
-                    title={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
+                    title={
+                      stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
+                    }
                     action={headerAction}
                   />
 
@@ -873,7 +881,7 @@ const ListOfStocks = () => {
                     columns={batchWiseColumn}
                     rows={stockReportBatch}
                     headerActions={headerAction}
-                  /> 
+                  />
                   <Card>
                     <CardHeader
                       title={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
