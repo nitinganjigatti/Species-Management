@@ -67,7 +67,7 @@ import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import GenericNamesList from '../../settings/generic'
+import GenericNamesList from '../../masters/generic'
 
 const defaultValues = {
   medicine_type: 'allopathy',

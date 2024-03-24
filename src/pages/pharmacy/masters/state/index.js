@@ -14,8 +14,15 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 
+import { AddButton } from 'src/components/Buttons'
+
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
 import UserSnackbar from 'src/components/utility/snackbar'
+
+import Error404 from 'src/pages/404'
+
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
 
 const ListOfStates = () => {
   const [stateList, setStateList] = useState([])
@@ -27,6 +34,9 @@ const ListOfStates = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -174,52 +184,67 @@ const ListOfStates = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() =>
-              handleEdit(params.row.id, params.row.name, params.row.code, params.row.short_code, params.row.status)
-            }
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
+        <>
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() =>
+                  handleEdit(params.row.id, params.row.name, params.row.code, params.row.short_code, params.row.status)
+                }
+                aria-label='Edit'
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Box>
+          )}
+        </>
       )
     }
   ]
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {pharmacyRole ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <TableWithFilter
+                TableTitle={stateList.length > 0 ? 'State List' : 'State list is empty add State'}
+                headerActions={
+                  <div>
+                    <AddButton
+                      title={'Add State'}
+                      size='big'
+                      variant='contained'
+                      onClick={() => addEventSidebarOpen()}
+                    ></AddButton>
+                  </div>
+                }
+                columns={columns}
+                rows={stateList}
+              />
+              <AddStates
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              {openSnackbar.open ? (
+                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+              ) : null}
+            </>
+          )}
+        </>
       ) : (
         <>
-          <TableWithFilter
-            TableTitle={stateList.length > 0 ? 'State List' : 'State list is empty add State'}
-            headerActions={
-              <div>
-                <Button size='big' variant='contained' onClick={() => addEventSidebarOpen()}>
-                  Add State
-                </Button>
-              </div>
-            }
-            columns={columns}
-            rows={stateList}
-          />
-          <AddStates
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handleSubmitData}
-            resetForm={resetForm}
-            submitLoader={submitLoader}
-            editParams={editParams}
-          />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
+          <Error404></Error404>
         </>
       )}
     </>

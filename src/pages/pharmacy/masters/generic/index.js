@@ -32,6 +32,9 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+
 const GenericNamesList = () => {
   const [genericNames, setGenericNames] = useState([])
   const [loader, setLoader] = useState(false)
@@ -48,6 +51,9 @@ const GenericNamesList = () => {
   const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -120,20 +126,21 @@ const GenericNamesList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.name, params.row.active)}
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.name, params.row.active)}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -209,10 +216,9 @@ const GenericNamesList = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Generic Name' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Generic Name' action={() => addEventSidebarOpen()} />}
     </div>
   )
 
@@ -255,7 +261,8 @@ const GenericNamesList = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />

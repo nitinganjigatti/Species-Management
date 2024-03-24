@@ -126,62 +126,62 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const gst = {
     title: 'GST',
-    path: '/pharmacy/settings/gst'
+    path: '/pharmacy/masters/gst'
   }
 
   const uom = {
     title: 'UOM',
-    path: '/pharmacy/settings/uom'
+    path: '/pharmacy/masters/uom'
   }
 
   const productForm = {
     title: 'Product Form',
-    path: '/pharmacy/settings/product-form'
+    path: '/pharmacy/masters/product-form'
   }
 
   const drugClass = {
     title: 'Drug class',
-    path: '/pharmacy/settings/drug-class'
+    path: '/pharmacy/masters/drug-class'
   }
 
   const manufacturer = {
     title: 'Manufacturer',
-    path: '/pharmacy/settings/manufacturer'
+    path: '/pharmacy/masters/manufacturer'
   }
 
   const packages = {
     title: 'Packages',
-    path: '/pharmacy/settings/packages'
+    path: '/pharmacy/masters/packages'
   }
 
   const salts = {
     title: 'Salts',
-    path: '/pharmacy/settings/salts'
+    path: '/pharmacy/masters/salts'
   }
 
   const storage = {
     title: 'Storage',
-    path: '/pharmacy/settings/storage'
+    path: '/pharmacy/masters/storage'
   }
 
   const state = {
     title: 'State',
-    path: '/pharmacy/settings/state'
+    path: '/pharmacy/masters/state'
   }
 
   const storeList = {
     title: 'Pharmacy list',
-    path: '/pharmacy/settings/store-list'
+    path: '/pharmacy/masters/store-list'
   }
 
   const supplierList = {
     title: 'Supplier list',
-    path: '/pharmacy/settings/supplier/supplier-list'
+    path: '/pharmacy/masters/supplier/supplier-list'
   }
 
   const genericNamesList = {
     title: 'Generic Names',
-    path: '/pharmacy/settings/generic'
+    path: '/pharmacy/masters/generic'
   }
 
   const testList = {
@@ -211,6 +211,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/new-product-request/'
   }
 
+  const mastersParent = {
+    title: 'Master',
+    path: '/pharmacy/masters/',
+    icon: 'uil:setting',
+    children: []
+  }
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -225,18 +232,20 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
     settingsParent.children.push(
-      uom,
-      productForm,
-      genericNamesList,
-      drugClass,
-      manufacturer,
-      packages,
-      storeList,
-      salts,
-      storage,
-      supplierList,
-      rackList,
-      state
+      rackList
+
+      // uom,
+      // productForm,
+      // genericNamesList,
+      // drugClass,
+      // manufacturer,
+      // packages,
+      // storeList,
+      // salts,
+      // storage,
+      // supplierList,
+
+      // state
     )
 
     pharmacyNavigationArray.push(
@@ -274,9 +283,26 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   // debugger
 
-  if (pharmacyRole && selectedPharmacy === '') {
-    settingsParent.children.push(storeList)
-    pharmacyNavigationArray.push(settingsParent)
+  // if (pharmacyRole && selectedPharmacy === '') {
+  //   settingsParent.children.push(storeList)
+  //   pharmacyNavigationArray.push(settingsParent)
+  // }
+
+  if (pharmacyRole) {
+    mastersParent.children.push(
+      uom,
+      productForm,
+      genericNamesList,
+      drugClass,
+      manufacturer,
+      packages,
+      storeList,
+      salts,
+      storage,
+      supplierList,
+      state
+    )
+    pharmacyNavigationArray.push(mastersParent)
   }
 
   // console.log(pharmacyNavigationArray)

@@ -200,7 +200,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/settings/supplier/supplier-list')
+        Router.push('/pharmacy/masters/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
         if (typeof response?.message === object) {
@@ -230,7 +230,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         if (supplierDialog) {
           closeSupplierDialog()
         } else {
-          Router.push('/pharmacy/settings/supplier/supplier-list')
+          Router.push('/pharmacy/masters/supplier/supplier-list')
         }
       } else {
         debugger
@@ -283,7 +283,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                       size='big'
                       variant='contained'
                       onClick={() => {
-                        Router.push('/pharmacy/settings/supplier/supplier-list')
+                        Router.push('/pharmacy/masters/supplier/supplier-list')
                       }}
                     >
                       Suppliers List

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStoreList, addStore, updateStore } from 'src/lib/api/pharmacy/getStoreList'
+import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/api/pharmacy/productForms'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -10,7 +10,6 @@ import { DataGrid } from '@mui/x-data-grid'
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
@@ -19,10 +18,10 @@ import { Box } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
-import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
+
+import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
 import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { column } from 'stylis'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
@@ -31,113 +30,75 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 
-const ListOfStores = () => {
-  const [stores, setStores] = useState([])
+const ListOfDosageForms = () => {
+  const [dosageForms, setDosageForms] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  const authData = useContext(AuthContext)
-  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
+
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
-
-  /***** Drawer  */
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'sl_no',
-      headerName: 'SL ',
+      field: 'id',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'type',
-      headerName: 'TYPE',
+      field: 'label',
+      headerName: 'Product Form',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.type}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'name',
-      headerName: 'PHARMACY NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'latitude',
-      headerName: 'LATITUDE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.latitude}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'logitude',
-      headerName: 'LONGITUDE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.logitude}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'site_name',
-      headerName: 'Site Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.site_name}
+          {params.row.label}
         </Typography>
       )
     },
@@ -150,6 +111,7 @@ const ListOfStores = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.status}
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
@@ -160,21 +122,20 @@ const ListOfStores = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          {/* {
+           selectedPharmacy.type === 'central' &&
+             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
             </Box>
           )}
         </>
@@ -187,7 +148,7 @@ const ListOfStores = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -204,16 +165,16 @@ const ListOfStores = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          is_access: 1
+          limit: paginationModel.pageSize
         }
 
-        await getStoreList({ params: params }).then(res => {
+        await getProductFormList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
       } catch (e) {
+        console.log(e)
         setLoading(false)
       }
     },
@@ -250,38 +211,38 @@ const ListOfStores = () => {
   }
 
   const headerAction = (
-    <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+    <div>
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Product Form' action={() => addEventSidebarOpen()} />}
+    </div>
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updateStore(editParams?.id, payload)
+        response = await updateProductForm(editParams?.id, payload)
       } else {
-        payload.type = parseInt(total) > 0 ? 'local' : 'central'
-        response = await addStore(payload)
+        response = await addProductForm(payload)
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
-        Router.reload()
 
-        // await fetchTableData(sort, searchValue, sortColumn)
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -294,6 +255,7 @@ const ListOfStores = () => {
 
   return (
     <>
+      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -301,10 +263,10 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Pharmacy List' action={headerAction} />
+                <CardHeader title='Product Form List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
-                    sl_no: false
+                    id: false
                   }}
                   autoHeight
                   pagination
@@ -333,7 +295,7 @@ const ListOfStores = () => {
                   }}
                 />
               </Card>
-              <AddStore
+              <AddProductForm
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -341,12 +303,13 @@ const ListOfStores = () => {
                 resetForm={resetForm}
                 submitLoader={submitLoader}
                 editParams={editParams}
-                pharmacyList={pharmacyList}
-                totalStores={total}
               />
-              {openSnackbar.open ? (
-                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null}
+              <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              />
             </>
           )}
         </>
@@ -359,4 +322,4 @@ const ListOfStores = () => {
   )
 }
 
-export default ListOfStores
+export default ListOfDosageForms

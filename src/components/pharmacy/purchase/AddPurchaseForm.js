@@ -47,7 +47,7 @@ import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
-import AddSupplier from 'src/pages/pharmacy/settings/supplier/add-supplier'
+import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
