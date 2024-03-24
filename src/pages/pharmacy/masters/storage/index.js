@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getSalts, addSalt, updateSalt } from 'src/lib/api/pharmacy/salts'
+import { getStorage, updateStorage } from 'src/lib/api/pharmacy/storage'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -21,14 +21,18 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
-import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
+import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { addStorage } from 'src/lib/api/pharmacy/storage'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
-const Salts = () => {
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+
+const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -44,6 +48,9 @@ const Salts = () => {
   const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -92,7 +99,7 @@ const Salts = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'Salt',
+      headerName: 'Storage',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -118,21 +125,22 @@ const Salts = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-                    aria-label='Edit'
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
+                  aria-label='Edit'
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -163,7 +171,7 @@ const Salts = () => {
           limit: paginationModel.pageSize
         }
 
-        await getSalts({ params: params }).then(res => {
+        await getStorage({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -206,21 +214,20 @@ const Salts = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title=' Add Salt' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Storage' action={() => addEventSidebarOpen()} />}
     </div>
   )
 
-  const handleSubmitData = async payload => {
+  const handleSubmitData = async (payload, id) => {
     try {
       setSubmitLoader(true)
       var response
-      if (editParams?.id !== null) {
-        response = await updateSalt(editParams?.id, payload)
+      if (id !== null) {
+        response = await updateStorage(id, payload)
       } else {
-        response = await addSalt(payload)
+        response = await addStorage(payload)
       }
       if (response?.success) {
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
@@ -234,7 +241,6 @@ const Salts = () => {
         setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
     }
@@ -249,14 +255,15 @@ const Salts = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
           ) : (
             <>
               <Card>
-                <CardHeader title='Salts' action={headerAction} />
+                <CardHeader title='Storage' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -282,13 +289,13 @@ const Salts = () => {
                     },
                     toolbar: {
                       value: searchValue,
-                      clearSearch: () => handleSearch(''),
+                      clearSearch: () => (searchValue === '' ? null : handleSearch('')),
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
                 />
               </Card>
-              <AddSalts
+              <AddStorage
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -315,4 +322,4 @@ const Salts = () => {
   )
 }
 
-export default Salts
+export default StorageList
