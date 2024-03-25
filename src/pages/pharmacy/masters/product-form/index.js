@@ -18,9 +18,11 @@ import { Box } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
+import toast from 'react-hot-toast'
 
 import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -29,6 +31,7 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const ListOfDosageForms = () => {
   const [dosageForms, setDosageForms] = useState([])
@@ -182,7 +185,7 @@ const ListOfDosageForms = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy?.id])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -229,7 +232,8 @@ const ListOfDosageForms = () => {
       }
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         setSubmitLoader(false)
         setResetForm(true)
@@ -238,11 +242,19 @@ const ListOfDosageForms = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -304,12 +316,12 @@ const ListOfDosageForms = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>
