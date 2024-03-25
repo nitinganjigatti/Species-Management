@@ -29,6 +29,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Package name must contain at least 3 characters')
     .required('Package Name is Required'),
   active: yup.string().required('Status is Required')
 })
@@ -137,7 +138,7 @@ const AddPackages = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Package Name'
+                  label='Package Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Package Name'

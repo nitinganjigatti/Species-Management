@@ -21,8 +21,10 @@ import Router from 'next/router'
 import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
 
 import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import toast from 'react-hot-toast'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
@@ -30,6 +32,7 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const ManufacturerList = () => {
   const [packages, setPackages] = useState([])
@@ -232,19 +235,28 @@ const ManufacturerList = () => {
         response = await addPackages(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -306,12 +318,12 @@ const ManufacturerList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>
