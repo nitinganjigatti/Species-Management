@@ -267,9 +267,12 @@ const ListOfStocks = () => {
           batchSort: batchSort,
           batchQ: batchSearchValue,
           batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id
+          id: selectedPharmacy?.id,
+          storeType: selectedPharmacy?.type
         })
       }
+      setStoreType(selectedPharmacy?.type)
+      setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
@@ -623,6 +626,7 @@ const ListOfStocks = () => {
 
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
+    setSearchValue('')
 
     // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
@@ -801,11 +805,11 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: searchValue,
-                          clearSearch: () => handleSearch(''),
+                          clearSearch: () => handleSearch('', stockId, storeType),
                           onChange: event => {
                             setSearchValue(event.target.value)
 
-                            return handleSearch(event.target.value)
+                            return handleSearch(event.target.value, stockId, storeType)
                           }
                         }
                       }}
