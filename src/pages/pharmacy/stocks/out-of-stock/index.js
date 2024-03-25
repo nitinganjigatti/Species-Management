@@ -41,6 +41,7 @@ const StockOut = () => {
     async (sort, q, column, status) => {
       try {
         setLoading(true)
+
         // debugger
 
         const params = {

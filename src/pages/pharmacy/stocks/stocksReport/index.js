@@ -116,10 +116,8 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, storeType }) => {
-      debugger
       if (id) {
         if (storeType === 'local') {
-          debugger
           try {
             setLoading(true)
 
@@ -310,7 +308,6 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
-            console.log('result', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -329,7 +326,6 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
-            console.log('result else', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -680,7 +676,6 @@ const ListOfStocks = () => {
             onChange={e => {
               let id = e.target.value
               const type = stores.find(el => el.id === id)?.type || ''
-              debugger
 
               // setStoreType(type)
 
@@ -722,7 +717,6 @@ const ListOfStocks = () => {
   }
 
   const handleSwitchChange = event => {
-    debugger
     setChangeSwitch(event.target.checked)
 
     // setValue(event.target.checked ? '2' : '1')
