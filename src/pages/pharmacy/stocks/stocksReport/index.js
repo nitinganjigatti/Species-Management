@@ -364,7 +364,7 @@ const ListOfStocks = () => {
         })
       } catch (error) {
         console.error(error)
-        console.log()
+        console.log('test')
       }
     }, 1000),
     []
