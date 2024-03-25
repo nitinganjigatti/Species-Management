@@ -726,7 +726,7 @@ const AddPurchaseForm = () => {
           taxable_amount: result?.data?.taxable_amount
         })
 
-        setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+        // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
         // setValue('supplier_id', result?.data?.supplier_id)
         reset({
           supplier_id: result?.data?.supplier_id,

@@ -38,81 +38,81 @@ import { getStates } from 'src/lib/api/pharmacy/getStates'
 import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 import UserSnackbar from 'src/components/utility/snackbar'
 
-const defaultValues = {
-  name: '',
-  company_name: '',
-  email: '',
-  phone: '',
-  mobile: '',
-  address: '',
-  gst_number: '',
-  state_id: '',
-  opening_balance: 0,
-  description: ''
-}
-
-const schema = yup.object().shape({
-  company_name: yup
-    .string()
-    .required('Supplier name is required')
-    .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
-    .max(50, 'Supplier name must be at most 50 characters'),
-
-  // email: yup.string().email('Enter valid email').nullable(),
-  email: yup.string().test('valid-email', 'Invalid email format', function (value) {
-    if (!value) {
-      return true // Email is not required, so no validation needed
-    }
-
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-    return regex.test(value)
-  }),
-  phone: yup
-    .string()
-    .nullable()
-    .test('valid-phone', 'Enter valid phone number', function (value) {
-      if (!value) {
-        return true
-      }
-      const regex = /^[6-9]\d{9}$/
-
-      return regex.test(value)
-    }),
-
-  // .matches(
-  //   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
-  //   'Enter valid phone number',
-  // )
-  // .max(10, 'Maximum of 10 digits')
-  // .nullable(),
-  mobile: yup
-    .string()
-    .required('Mobile No is required')
-    .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-    .max(10, 'Maximum of 10 digits'),
-  state_id: yup.string().required('State is Required'),
-  gst_number: yup
-    .string()
-    .nullable()
-    .test('valid-gst', 'Enter valid GST number', function (value) {
-      if (!value) {
-        return true
-      }
-      const regex = /^(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})$/
-
-      return regex.test(value)
-    }),
-
-  // due_balance: yup.string().required('Enter due balance'),
-
-  opening_balance: yup.string().nullable(),
-  address: yup.string().nullable(),
-  description: yup.string().nullable(),
-  name: yup.string().nullable()
-})
-
 const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
+  const defaultValues = {
+    name: '',
+    company_name: '',
+    email: '',
+    phone: '',
+    mobile: '',
+    address: '',
+    gst_number: '',
+    state_id: '',
+    opening_balance: 0,
+    description: ''
+  }
+
+  const schema = yup.object().shape({
+    company_name: yup
+      .string()
+      .required('Supplier name is required')
+      .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
+      .max(50, 'Supplier name must be at most 50 characters'),
+
+    // email: yup.string().email('Enter valid email').nullable(),
+    email: yup.string().test('valid-email', 'Invalid email format', function (value) {
+      if (!value) {
+        return true // Email is not required, so no validation needed
+      }
+
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+      return regex.test(value)
+    }),
+    phone: yup
+      .string()
+      .nullable()
+      .test('valid-phone', 'Enter valid phone number', function (value) {
+        if (!value) {
+          return true
+        }
+        const regex = /^[6-9]\d{9}$/
+
+        return regex.test(value)
+      }),
+
+    // .matches(
+    //   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
+    //   'Enter valid phone number',
+    // )
+    // .max(10, 'Maximum of 10 digits')
+    // .nullable(),
+    mobile: yup
+      .string()
+      .required('Mobile No is required')
+      .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
+      .max(10, 'Maximum of 10 digits'),
+    state_id: yup.string().required('State is Required'),
+    gst_number: yup
+      .string()
+      .nullable()
+      .test('valid-gst', 'Enter valid GST number', function (value) {
+        if (!value) {
+          return true
+        }
+        const regex = /^(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})$/
+
+        return regex.test(value)
+      }),
+
+    // due_balance: yup.string().required('Enter due balance'),
+
+    opening_balance: yup.string().nullable(),
+    address: yup.string().nullable(),
+    description: yup.string().nullable(),
+    name: yup.string().nullable()
+  })
+
   // ** Hooks
   const {
     reset,
@@ -161,7 +161,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
 
   useEffect(() => {
     getStatesList()
-    if (id != undefined && action === 'edit') {
+    if (id != undefined && action === 'edit' && supplierDialog !== true) {
       getSupplier(id)
     }
   }, [id, action])
@@ -185,7 +185,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       description,
       company_name
     }
-    if (id !== undefined && action === 'edit') {
+    if (id !== undefined && action === 'edit' && supplierDialog !== true) {
       debugger
       await updateSupplier(payload, id)
     } else {
