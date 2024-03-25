@@ -59,7 +59,9 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     company_name: yup
       .string()
       .required('Supplier name is required')
+
       .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
+      .min(3, 'Supplier name must be at least 3 characters')
       .max(50, 'Supplier name must be at most 50 characters'),
 
     // email: yup.string().email('Enter valid email').nullable(),
@@ -286,17 +288,18 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   }
 
   // This for adding supplier from the inventory page
-  function SupplierComponent({ supplierDialog, children }) {
-    const Tag = supplierDialog ? Grid : Card
+  // function SupplierComponent({ supplierDialog, children }) {
+  //   const Tag = supplierDialog ? Grid : Card
 
-    return <Tag>{children}</Tag>
-  }
+  //   return <Card>{children}</Card>
+  // }
 
   return (
     <>
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12}>
-          <SupplierComponent supplierDialog={supplierDialog}>
+          <Card>
+            {/* <SupplierComponent supplierDialog={supplierDialog}> */}
             {supplierDialog ? null : (
               <CardHeader
                 title={id ? 'Edit Supplier' : 'Add Supplier'}
@@ -331,7 +334,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
-                            label='Supplier Name'
+                            label='Supplier Name*'
                             onChange={onChange}
                             placeholder='Supplier Name'
                             error={Boolean(errors.company_name)}
@@ -373,7 +376,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                         render={({ field: { value, onChange, onBlur } }) => (
                           <TextField
                             value={value}
-                            label='Mobile Number'
+                            label='Mobile Number*'
                             onChange={onChange}
                             placeholder=''
                             error={Boolean(errors?.mobile)}
@@ -391,7 +394,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
-                        State
+                        State*
                       </InputLabel>
                       <Controller
                         name='state_id'
@@ -554,7 +557,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </Grid>
               </form>
             </CardContent>
-          </SupplierComponent>
+            {/* </SupplierComponent> */}
+          </Card>
         </Grid>
       </Grid>
     </>
