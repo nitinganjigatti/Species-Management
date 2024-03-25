@@ -129,8 +129,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
+    mode: 'onBlur',
+    reValidateMode: 'onBlur'
   })
 
   const router = useRouter()
