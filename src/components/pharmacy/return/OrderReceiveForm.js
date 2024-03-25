@@ -1058,26 +1058,32 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             </>
           ) : null}
 
-          <Grid container items>
-            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-              <FormControl fullWidth>
-                <TextField
-                  // disabled={disableButton()}
-                  disabled={selectedPharmacy.type === 'local' ? 'disabled' : null}
-                  multiline
-                  rows={3}
-                  type='text'
-                  label='Comment'
-                  value={disputeItemDetails?.comments}
-                  onChange={e => {
-                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                  }}
-                  placeholder='comment'
-                  name='comments'
-                />
-              </FormControl>
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    value={disputeItemDetails?.comments}
+                    label='Comment'
+                    name='comments'
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder=''
+                    multiline
+                    rows={3}
+                    disabled={
+                      selectedPharmacy.type === 'local'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
+                  />
+                </FormControl>
+              </Grid>
             </Grid>
-          </Grid>
+          ) : null}
           {selectedPharmacy.type === 'central' && (
             <Divider
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
