@@ -13,7 +13,7 @@ import Error404 from 'src/pages/404'
 
 function Dispense() {
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('dispense_id')
