@@ -230,7 +230,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine, escrow)
+    stockParent.children.push(stockReport, escrow)
     settingsParent.children.push(
       rackList
 
@@ -263,7 +263,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
-    stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
+    stockParent.children.push(stockReport, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
