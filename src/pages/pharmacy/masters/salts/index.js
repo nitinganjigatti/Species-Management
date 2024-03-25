@@ -16,9 +16,12 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
+
+import toast from 'react-hot-toast'
 
 import Router from 'next/router'
 import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
@@ -30,6 +33,7 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const Salts = () => {
   const [saltsList, setSaltsList] = useState([])
@@ -229,7 +233,8 @@ const Salts = () => {
         response = await addSalt(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -237,12 +242,20 @@ const Salts = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -304,12 +317,12 @@ const Salts = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>

@@ -771,6 +771,27 @@ const ListOfStocks = () => {
     showDialog()
   }
 
+  useEffect(() => {
+    if (selectedPharmacy?.id !== '' || undefined) {
+      // getStocksReport(selectedPharmacy?.id)
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id
+      })
+
+      setStockId(selectedPharmacy?.id)
+      getStocksReportBatchWise({
+        batchSort: batchSort,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: selectedPharmacy?.id
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value])
+
   return (
     <>
       <Grid>

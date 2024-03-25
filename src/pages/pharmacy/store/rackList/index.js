@@ -71,7 +71,7 @@ const ListOfRacks = () => {
       } else {
         response = await addRackList(payload)
       }
-
+      console.log('rack list', response)
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -82,7 +82,7 @@ const ListOfRacks = () => {
         // await getRacksLists()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
