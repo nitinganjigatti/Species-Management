@@ -33,10 +33,13 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 
+import toast from 'react-hot-toast'
+
 import { addSuppliers } from 'src/lib/api/pharmacy/addSupplier'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 import UserSnackbar from 'src/components/utility/snackbar'
+import Utility from 'src/utility'
 
 const defaultValues = {
   name: '',
@@ -141,26 +144,35 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   })
 
   const getStatesList = async () => {
-    setLoader(true)
-    const response = await getStates()
-    console.log(response)
-    if (response?.length > 0) {
-      setStatesList(response)
+    try {
+      setLoader(true)
+      const response = await getStates({ params: {} })
+      debugger
+      console.log(response)
+      if (response?.data?.list_items?.length > 0) {
+        setStatesList(response?.data?.list_items)
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
   const getSupplier = async id => {
-    setLoader(true)
-    const response = await getSupplierById(id)
+    try {
+      setLoader(true)
+      const response = await getSupplierById(id)
 
-    // debugger
-    if (response != undefined) {
-      reset(response)
+      // debugger
+      if (response != undefined) {
+        reset(response)
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
   useEffect(() => {
-    getStatesList()
+    getStatesList({ params: {} })
     if (id != undefined && action === 'edit') {
       getSupplier(id)
     }
@@ -197,23 +209,27 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     try {
       const response = await updateSuppliersById(payload, id)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        toast.success(response.data)
         setSubmitLoader(true)
         reset(defaultValues)
         Router.push('/pharmacy/masters/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
         if (typeof response?.message === object) {
-          const message = response?.message.company_name
-          setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
+          Utility.errorMessageExtractorFromObject(response.message)
+
+          // setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
         } else {
-          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+          toast.error(response.data)
+
+          // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
         }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -222,7 +238,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       const response = await addSuppliers(payload)
       debugger
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        toast.success(response.data)
         setSubmitLoader(true)
         reset(defaultValues)
 
@@ -236,21 +253,25 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         debugger
         setSubmitLoader(false)
         if (typeof response?.message === 'object') {
-          const message = response?.message.company_name
+          Utility.errorMessageExtractorFromObject(response.message)
 
-          setOpenSnackbar({
-            ...openSnackbar,
-            open: true,
-            message: message !== '' ? 'The supplier name field must contain a unique value' : '',
-            severity: 'error'
-          })
+          // const message = response?.message.company_name
+
+          // setOpenSnackbar({
+          //   ...openSnackbar,
+          //   open: true,
+          //   message: message !== '' ? 'The supplier name field must contain a unique value' : '',
+          //   severity: 'error'
+          // })
         } else {
-          setOpenSnackbar({
-            ...openSnackbar,
-            open: true,
-            message: JSON.stringify(response?.message),
-            severity: 'error'
-          })
+          toast.error(JSON.stringify(response.message))
+
+          // setOpenSnackbar({
+          //   ...openSnackbar,
+          //   open: true,
+          //   message: JSON.stringify(response?.message),
+          //   severity: 'error'
+          // })
         }
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(response?.message), severity: 'error' })
@@ -258,7 +279,9 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -524,9 +547,9 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                     <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                       Submit
                     </LoadingButton>
-                    {openSnackbar.open ? (
+                    {/* {openSnackbar.open ? (
                       <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-                    ) : null}
+                    ) : null} */}
                   </Grid>
                 </Grid>
               </form>
