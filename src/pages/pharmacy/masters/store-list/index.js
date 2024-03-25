@@ -33,6 +33,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 
 import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ListOfStores = () => {
   const [stores, setStores] = useState([])

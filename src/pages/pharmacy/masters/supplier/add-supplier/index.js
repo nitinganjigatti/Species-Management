@@ -38,7 +38,8 @@ import toast from 'react-hot-toast'
 import { addSuppliers } from 'src/lib/api/pharmacy/addSupplier'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import Utility from 'src/utility'
 
 const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
