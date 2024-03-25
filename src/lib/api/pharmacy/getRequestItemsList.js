@@ -25,8 +25,9 @@ export async function getRequestItemsListById(id) {
 
 export async function getAvailableMedicineByMedicineId(id, data, store, productType) {
   // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+  //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
-    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&stock_type=${productType}`,
+    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}`,
     body: data,
     pharmacy
   })
@@ -279,8 +280,10 @@ export async function deleteLineItem(id) {
 
 export async function getAvailableMedicineByMedicineIdToReturn(id, data, store, productType, is_return, stock_type) {
   // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+
+  //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
-    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&stock_type=${productType}&is_return=${is_return}`,
+    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&is_return=${is_return}`,
     body: data,
     pharmacy
   })
