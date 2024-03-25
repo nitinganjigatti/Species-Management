@@ -16,7 +16,8 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
 
@@ -314,12 +315,12 @@ const StorageList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>
