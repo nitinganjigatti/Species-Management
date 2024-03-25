@@ -54,7 +54,7 @@ export async function updateRackList(id, payload) {
 }
 
 export async function deleteRackItem(id) {
-  const response = await axiosGet({ url: `${RACK}/${id}/delete` })
+  const response = await axiosGet({ url: `${RACK}/${id}/delete`, pharmacy: true })
 
   return response?.data
 }
