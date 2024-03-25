@@ -19,7 +19,8 @@ import IconButton from '@mui/material/IconButton'
 import { AddButton } from 'src/components/Buttons'
 
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 
 import Error404 from 'src/pages/404'
 
@@ -351,9 +352,9 @@ const ListOfStates = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              {openSnackbar.open ? (
+              {/* {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null}
+              ) : null} */}
             </>
           )}
         </>

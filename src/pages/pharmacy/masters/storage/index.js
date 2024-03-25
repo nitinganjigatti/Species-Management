@@ -20,6 +20,8 @@ import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
 
+import toast from 'react-hot-toast'
+
 import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
@@ -230,7 +232,8 @@ const StorageList = () => {
         response = await addStorage(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -238,11 +241,18 @@ const StorageList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        debugger
+
+        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
