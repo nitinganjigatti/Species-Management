@@ -30,7 +30,11 @@ import { AuthContext } from 'src/context/AuthContext'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Pharmacy Name is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .min(3, 'Pharmacy name must contain at least 3 characters')
+    .required('Pharmacy Name is Required'),
 
   // type: yup.string().required('Type is Required'),
   site_id: yup.string().nullable(),
@@ -169,7 +173,7 @@ const AddStore = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Pharmacy Name'
+                  label='Pharmacy Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Store Name'
