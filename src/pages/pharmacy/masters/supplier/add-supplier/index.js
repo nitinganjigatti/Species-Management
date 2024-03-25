@@ -216,7 +216,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         Router.push('/pharmacy/masters/supplier/supplier-list')
       } else {
         setSubmitLoader(false)
-        if (typeof response?.message === object) {
+        if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
 
           // setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
