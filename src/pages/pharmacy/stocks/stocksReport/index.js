@@ -88,7 +88,7 @@ const ListOfStocks = () => {
   const [errors, setErrors] = useState('')
   const [changeSwitch, setChangeSwitch] = useState(false)
 
-  // const [storeType, setStoreType] = useState()
+  const [storeType, setStoreType] = useState()
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -116,6 +116,7 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, storeType }) => {
+      debugger
       if (id) {
         if (storeType === 'local') {
           try {
@@ -238,10 +239,11 @@ const ListOfStocks = () => {
   }))
 
   const handleSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id, storeType) => {
       setSearchValue(value)
       try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id: selectedPharmacy?.id })
+        debugger
+        await getStocksReport({ sort, q: value, column: sortColumn, id, storeType })
       } catch (error) {
         console.error(error)
       }
@@ -359,7 +361,8 @@ const ListOfStocks = () => {
           batchSort: batchSort,
           batchQ: value,
           batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id
+          id: selectedPharmacy?.id,
+          storeType
         })
       } catch (error) {
         console.error(error)
@@ -368,13 +371,15 @@ const ListOfStocks = () => {
     []
   )
   useEffect(() => {
+    debugger
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
       getStocksReport({
         sort,
         q: searchValue,
         column: sortColumn,
-        id: selectedPharmacy?.id
+        id: selectedPharmacy?.id,
+        storeType: selectedPharmacy?.type
       })
 
       setStockId(selectedPharmacy?.id)
@@ -383,9 +388,12 @@ const ListOfStocks = () => {
           batchSort: batchSort,
           batchQ: batchSearchValue,
           batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id
+          id: selectedPharmacy?.id,
+          storeType: selectedPharmacy?.type
         })
       }
+      setStoreType(selectedPharmacy?.type)
+      setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value, changeSwitch])
@@ -676,8 +684,8 @@ const ListOfStocks = () => {
             onChange={e => {
               let id = e.target.value
               const type = stores.find(el => el.id === id)?.type || ''
-
-              // setStoreType(type)
+              debugger
+              setStoreType(type)
 
               // console.log('e.target.value', e)
               setStockId(id)
@@ -688,7 +696,7 @@ const ListOfStocks = () => {
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
-                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
+                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id, storeType: type })
                 : getStocksReport({ sort, q: searchValue, column: sortColumn, id, storeType: type })
             }}
             label='Stores'
@@ -718,6 +726,7 @@ const ListOfStocks = () => {
 
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
+    setSearchValue('')
 
     // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
@@ -883,11 +892,11 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: searchValue,
-                          clearSearch: () => handleSearch(''),
+                          clearSearch: () => handleSearch('', stockId, storeType),
                           onChange: event => {
                             setSearchValue(event.target.value)
 
-                            return handleSearch(event.target.value)
+                            return handleSearch(event.target.value, stockId, storeType)
                           }
                         }
                       }}
