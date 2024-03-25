@@ -115,7 +115,7 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    // debugger
+    debugger
 
     const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
       ...params
@@ -203,11 +203,12 @@ export const AddItemsForm = ({
       return
     }
     console.log(totalAvailableCount <= 0)
-    if (totalAvailableCount <= 0) {
-      setQuantityError(true)
 
-      return
-    }
+    // if (totalAvailableCount <= 0) {
+    //   setQuantityError(true)
+
+    //   return
+    // }
 
     onSubmitData(
       {
