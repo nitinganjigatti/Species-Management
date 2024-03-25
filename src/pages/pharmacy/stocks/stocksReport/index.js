@@ -157,7 +157,7 @@ const ListOfStocks = () => {
         }
       }
     },
-    [paginationModel, stockId]
+    [paginationModel]
   )
 
   const indexedRows = stockReport?.map((row, index) => ({
@@ -232,22 +232,71 @@ const ListOfStocks = () => {
     sl_no: index + 1
   }))
 
-  const handleBatchSearch = useCallback(
-    debounce(async value => {
-      setBatchSearchValue(value)
-      try {
-        await getStocksReportBatchWise({
+  useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  useEffect(() => {
+    console.log('1 ', selectedPharmacy?.id)
+    if (selectedPharmacy?.id !== '' || undefined) {
+      // getStocksReport(selectedPharmacy?.id)
+      setStockType(selectedPharmacy?.type)
+
+      setStockId(selectedPharmacy?.id)
+
+      // console.log('1 ', stockId)
+      console.log('setStockType ', selectedPharmacy?.type)
+      console.log('payload', {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id,
+        type: selectedPharmacy?.type
+      })
+
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id,
+        type: selectedPharmacy?.type
+      })
+
+      if (changeSwitch) {
+        getStocksReportBatchWise({
           batchSort: batchSort,
-          batchQ: value,
+          batchQ: batchSearchValue,
           batchColumn: batchSortColumn,
           id: selectedPharmacy?.id
         })
-      } catch (error) {
-        console.error(error)
       }
-    }, 1000),
-    []
-  )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id, value])
+
+  useEffect(() => {
+    console.log('2')
+
+    // getStocksReport(selectedPharmacy?.id)
+
+    if (changeSwitch) {
+      getStocksReportBatchWise({
+        batchSort: batchSort,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId
+      })
+    } else {
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
 
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
@@ -347,32 +396,21 @@ const ListOfStocks = () => {
           {params.row.stock_qty}
         </Typography>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'store_name',
-    //   headerName: 'Store Name',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.store_name}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'purchase_price',
-    //   headerName: 'STOCK PURCHASE PRICE',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.purchase_price}
-    //     </Typography>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'store_name',
+      headerName: 'Store Name',
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.store_name}
+        </Typography>
+      )
+    }
 
     // {
     //   flex: 0.2,
@@ -624,26 +662,36 @@ const ListOfStocks = () => {
     showDialog()
   }
 
-  useEffect(() => {
-    if (selectedPharmacy?.id !== '' || undefined) {
-      // getStocksReport(selectedPharmacy?.id)
-      getStocksReport({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        id: selectedPharmacy?.id
-      })
+  const handleBatchSearch = useCallback(
+    debounce(async value => {
+      setBatchSearchValue(value)
+      try {
+        await getStocksReportBatchWise({
+          batchSort: batchSort,
+          batchQ: value,
+          batchColumn: batchSortColumn,
+          id: stockId
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
-      setStockId(selectedPharmacy?.id)
-      getStocksReportBatchWise({
-        batchSort: batchSort,
-        batchQ: batchSearchValue,
-        batchColumn: batchSortColumn,
-        id: selectedPharmacy?.id
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value])
+  const handleSearch = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        console.log('value', value)
+        console.log('payloadsearch', { sort, q: value, column: sortColumn, id: stockId, type: stockType })
+        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [getStocksReport]
+  )
 
   return (
     <>
