@@ -81,10 +81,9 @@ const ListOfStates = () => {
         setResetForm(true)
         setOpenDrawer(false)
 
-        await getStatesLists()
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        debugger
         if (typeof response.data === 'object') {
           Utility.errorMessageExtractorFromObject(response.data)
         } else {
@@ -134,7 +133,7 @@ const ListOfStates = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -235,6 +234,7 @@ const ListOfStates = () => {
         }
 
         await getStates({ params: params }).then(res => {
+          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
