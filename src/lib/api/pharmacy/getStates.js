@@ -1,8 +1,8 @@
 import { STATES } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
-export async function getStates() {
-  const response = await axiosGet({ url: STATES })
+export async function getStates({ params }) {
+  const response = await axiosGet({ url: STATES, params: params, pharmacy: true })
   if (response?.status == 200 && response?.data?.success) {
     return response.data.data
   } else {
