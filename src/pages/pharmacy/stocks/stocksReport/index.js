@@ -86,8 +86,9 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState()
-  const [stockType, setStockType] = useState()
+  const [changeSwitch, setChangeSwitch] = useState(false)
+
+  // const [storeType, setStoreType] = useState()
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -114,11 +115,14 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id }) => {
+    async ({ sort, q, column, id, storeType }) => {
+      debugger
       if (id) {
-        if (stockType === 'local') {
+        if (storeType === 'local') {
+          debugger
           try {
             setLoading(true)
+
             // console.log('id', id)
             const params = {
               sort,
@@ -156,6 +160,7 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize
             }
             const result = await getStocksReportById(id, params)
+
             // if (result?.data?.length > 0) {
 
             setTotal(parseInt(result?.count))
@@ -167,6 +172,7 @@ const ListOfStocks = () => {
                 })
               : []
             setStockReport(loadServerRows(paginationModel.page, listWithId))
+
             // }
             setLoading(false)
           } catch (error) {
@@ -486,7 +492,7 @@ const ListOfStocks = () => {
           {params.row.stock_qty}
         </Typography>
       )
-    }
+    },
 
     {
       flex: 0.2,
@@ -501,6 +507,7 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -673,18 +680,21 @@ const ListOfStocks = () => {
             onChange={e => {
               let id = e.target.value
               const type = stores.find(el => el.id === id)?.type || ''
+              debugger
 
-              setStockType(type)
+              // setStoreType(type)
+
               // console.log('e.target.value', e)
               setStockId(id)
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
+
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
                 ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
-                : getStocksReport({ sort, q: searchValue, column: sortColumn, id })
+                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, storeType: type })
             }}
             label='Stores'
             value={stockId}
@@ -712,7 +722,9 @@ const ListOfStocks = () => {
   }
 
   const handleSwitchChange = event => {
+    debugger
     setChangeSwitch(event.target.checked)
+
     // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
   }
@@ -741,9 +753,9 @@ const ListOfStocks = () => {
       <FormControlLabel
         control={
           <Switch
-            // onChange={e => {
             checked={changeSwitch}
             onChange={handleSwitchChange}
+
             // }}
             // defaultChecked
           />
@@ -799,6 +811,7 @@ const ListOfStocks = () => {
                     title={
                       stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
                     }
+
                     // action={headerAction}
                   />
                   <Box>
@@ -808,9 +821,11 @@ const ListOfStocks = () => {
                       <FormControlLabel
                         control={
                           <Switch
-                            // onChange={e => {
                             checked={changeSwitch}
                             onChange={handleSwitchChange}
+
+                            // onChange={e => {
+
                             // }}
                             // defaultChecked
                           />
