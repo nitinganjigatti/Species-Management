@@ -20,7 +20,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Card, CardHeader, Grid, debounce, Button } from '@mui/material'
+import { Box, Card, CardHeader, Grid, debounce, Button, MenuItem, Switch, FormControlLabel } from '@mui/material'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -32,6 +32,14 @@ import { AddButton } from 'src/components/Buttons'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import ListOfStocksByBatch from '../stockReportByBatch'
+import StockOut from '../out-of-stock'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import FormHelperText from '@mui/material/FormHelperText'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import ExpiredMedicine from '../expired-medicine'
 
 const ListOfStocks = () => {
   // const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -59,6 +67,7 @@ const ListOfStocks = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const [batchLoading, setBatchLoading] = useState(false)
@@ -70,10 +79,16 @@ const ListOfStocks = () => {
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const [stockId, setStockId] = useState('')
+
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
   const [value, setValue] = useState('1')
+  const [stores, setStores] = useState([])
+  const [errors, setErrors] = useState('')
+  const [changeSwitch, setChangeSwitch] = useState(false)
+
+  const [storeType, setStoreType] = useState()
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -100,21 +115,23 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id }) => {
+    async ({ sort, q, column, id, storeType }) => {
       if (id) {
-        if (selectedPharmacy?.type == 'local') {
+        if (storeType === 'local') {
           try {
             setLoading(true)
 
+            // console.log('id', id)
             const params = {
               sort,
               q,
               column,
               page: paginationModel.page + 1,
-              limit: paginationModel.pageSize
+              limit: paginationModel.pageSize,
+              store_id: id
             }
             const result = await getLocalStocksReportById(params)
-            if (result.success === true && result.data.length > 0) {
+            if (result.success === true) {
               setTotal(parseInt(result?.count))
 
               let listWithId = result.data
@@ -141,17 +158,20 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize
             }
             const result = await getStocksReportById(id, params)
-            if (result?.data?.length > 0) {
-              setTotal(parseInt(result?.count))
 
-              // result.sort((a, b) => a.id - b.id)
-              let listWithId = result?.data
-                ? result?.data?.map((el, i) => {
-                    return { ...el, uid: i + 1 }
-                  })
-                : []
-              setStockReport(loadServerRows(paginationModel.page, listWithId))
-            }
+            // if (result?.data?.length > 0) {
+
+            setTotal(parseInt(result?.count))
+
+            // result.sort((a, b) => a.id - b.id)
+            let listWithId = result?.data
+              ? result?.data?.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(loadServerRows(paginationModel.page, listWithId))
+
+            // }
             setLoading(false)
           } catch (error) {
             console.log('error', error)
@@ -163,6 +183,54 @@ const ListOfStocks = () => {
     [paginationModel]
   )
 
+  // const getStocksReportByStore = useCallback(
+  //   async ({ sort, q, column, id }) => {
+  //     // if (id === undefined) {
+  //     //   // setErrors('Please select Store')
+  //     //   console.log('Please select Store')
+
+  //     //   return
+  //     // } else {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         q,
+  //         column,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+  //       const result = await getStocksByBatch(id, params)
+  //       console.log('result', result)
+  //       if (result.success === true && result?.data?.length > 0) {
+  //         setTotal(parseInt(result?.count))
+
+  //         let listWithId = result.data
+  //           ? result.data.map((el, i) => {
+  //               return { ...el, uid: i + 1 }
+  //             })
+  //           : []
+  //         setStockReport(loadServerRows(paginationModel.page, listWithId))
+  //         if (changeSwitch) setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+
+  //         setLoading(false)
+  //       } else {
+  //         setLoading(false)
+  //       }
+  //       if (result?.count === '0') {
+  //         toast.success('There is no stock for this store')
+  //       }
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setLoading(false)
+  //     }
+
+  //     // }
+  //   },
+  //   [paginationModel, stockId]
+  // )
+
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
@@ -170,10 +238,10 @@ const ListOfStocks = () => {
   }))
 
   const handleSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id, storeType) => {
       setSearchValue(value)
       try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id: selectedPharmacy?.id })
+        await getStocksReport({ sort, q: value, column: sortColumn, id, storeType })
       } catch (error) {
         console.error(error)
       }
@@ -239,7 +307,7 @@ const ListOfStocks = () => {
       if (selectedPharmacy?.type === 'local') {
         try {
           const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true && result.data.length > 0) {
+          if (result.success === true) {
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -257,7 +325,7 @@ const ListOfStocks = () => {
       } else {
         try {
           const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true && result.data !== '') {
+          if (result.success === true) {
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -291,7 +359,8 @@ const ListOfStocks = () => {
           batchSort: batchSort,
           batchQ: value,
           batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id
+          id: selectedPharmacy?.id,
+          storeType
         })
       } catch (error) {
         console.error(error)
@@ -299,7 +368,36 @@ const ListOfStocks = () => {
     }, 1000),
     []
   )
+  useEffect(() => {
+    if (selectedPharmacy?.id !== '' || undefined) {
+      // getStocksReport(selectedPharmacy?.id)
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id,
+        storeType: selectedPharmacy?.type
+      })
 
+      setStockId(selectedPharmacy?.id)
+      if (changeSwitch) {
+        getStocksReportBatchWise({
+          batchSort: batchSort,
+          batchQ: batchSearchValue,
+          batchColumn: batchSortColumn,
+          id: selectedPharmacy?.id,
+          storeType: selectedPharmacy?.type
+        })
+      }
+      setStoreType(selectedPharmacy?.type)
+      setStockId(selectedPharmacy?.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value, changeSwitch])
+
+  // useEffect(() => {
+  //   setStockId(selectedPharmacy?.id)
+  // }, [])
   const columns = [
     {
       flex: 0.05,
@@ -395,19 +493,22 @@ const ListOfStocks = () => {
           {params.row.stock_qty}
         </Typography>
       )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'store_name',
+      headerName: 'Store Name',
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.store_name}
+        </Typography>
+      )
     }
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'store_name',
-    //   headerName: 'Store Name',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.store_name}
-    //     </Typography>
-    //   )
-    // },
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -545,9 +646,91 @@ const ListOfStocks = () => {
     // }
   ]
 
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+          // setStockId(response?.data?.list_items)
+          // console.log('response?.data?.list_items[0].id', response?.data?.list_items)
+        }
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
+  }
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  const createForm = () => {
+    return (
+      <>
+        {/* <Grid> */}
+        <FormControl sx={{ width: 200, ml: 2 }}>
+          <InputLabel id='controlled-select-label'>Stores</InputLabel>
+          <Select
+            onChange={e => {
+              let id = e.target.value
+              const type = stores.find(el => el.id === id)?.type || ''
+              setStoreType(type)
+
+              // console.log('e.target.value', e)
+              setStockId(id)
+              setStockReport([])
+              setConfigureMedId('')
+              setErrors('')
+
+              // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
+
+              changeSwitch
+                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id, storeType: type })
+                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, storeType: type })
+            }}
+            label='Stores'
+            value={stockId}
+            id='controlled-select'
+            labelId='controlled-select-label'
+            sx={{ width: '100%' }}
+            size='small'
+          >
+            {stores.length > 0
+              ? stores.map(el => {
+                  // console.log('el', el.type)
+                  return (
+                    <MenuItem key={el.id} value={el.id}>
+                      {el.name}
+                    </MenuItem>
+                  )
+                })
+              : null}
+          </Select>
+          <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+        </FormControl>
+        {/* </Grid> */}
+      </>
+    )
+  }
+
+  const handleSwitchChange = event => {
+    setChangeSwitch(event.target.checked)
+    setSearchValue('')
+
+    // setValue(event.target.checked ? '2' : '1')
+    // console.log('value', value)
+  }
+
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' && (
+      {/* {selectedPharmacy.type === 'central' && (
         <Button
           onClick={() => Router.push({ pathname: '/pharmacy/purchase/purchase-list/' })}
           size='large'
@@ -563,7 +746,22 @@ const ListOfStocks = () => {
             title='Add Inventory'
             action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
           />
-        )}
+        )} */}
+      {selectedPharmacy.type === 'central' && createForm()}
+
+      <FormControlLabel
+        control={
+          <Switch
+            checked={changeSwitch}
+            onChange={handleSwitchChange}
+
+            // }}
+            // defaultChecked
+          />
+        }
+        labelPlacement='start'
+        label='Stock Report Batch Wise'
+      />
     </div>
   )
 
@@ -597,10 +795,17 @@ const ListOfStocks = () => {
     <>
       <Grid>
         <TabContext value={value}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab value='1' label='Stock Report' />
-            <Tab value='2' label='Stock Report Batch Wise' />
-          </TabList>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* <Box sx={{ m: 1 }}>
+
+            </Box> */}
+            <TabList onChange={handleChange} aria-label='simple tabs example'>
+              <Tab value='1' label='Stock Report' />
+              {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
+              <Tab value='3' label='Low stock' />
+              <Tab value='4' label='Expired Medicine' />
+            </TabList>
+          </Box>
           <TabPanel value='1'>
             {loader ? (
               <FallbackSpinner />
@@ -623,68 +828,35 @@ const ListOfStocks = () => {
                 /> */}
                 <Card>
                   <CardHeader
-                    title={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
-                    action={headerAction}
-                  />
-                  <DataGrid
-                    autoHeight
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => {
-                          setSearchValue(event.target.value)
+                    title={
+                      stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
+                    }
 
-                          return handleSearch(event.target.value)
+                    // action={headerAction}
+                  />
+                  <Box>
+                    <div>
+                      {selectedPharmacy.type === 'central' && createForm()}
+
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={changeSwitch}
+                            onChange={handleSwitchChange}
+
+                            // onChange={e => {
+
+                            // }}
+                            // defaultChecked
+                          />
                         }
-                      }
-                    }}
-                    onRowClick={handleStockRowClick}
-                  />
-                </Card>
-              </>
-            )}
-          </TabPanel>
-          <TabPanel value='2'>
-            <>
-              {loader ? (
-                <FallbackSpinner />
-              ) : (
-                <>
-                  <CommonDialogBox
-                    title={'Configure Medicine'}
-                    dialogBoxStatus={show}
-                    formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
-                    close={closeDialog}
-                    show={showDialog}
-                  />
-                  {/* <TableWithFilter
-                    TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
-                    columns={batchWiseColumn}
-                    rows={stockReportBatch}
-                    headerActions={headerAction}
-                  /> */}
-                  <Card>
-                    <CardHeader
-                      title={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
-                      action={headerAction}
-                    />
+                        labelPlacement='start'
+                        label='Batch Wise'
+                      />
+                    </div>
+                  </Box>
+
+                  {changeSwitch ? (
                     <DataGrid
                       autoHeight
                       hideFooterSelectedRowCount
@@ -715,11 +887,77 @@ const ListOfStocks = () => {
                         }
                       }}
                     />
+                  ) : (
+                    <DataGrid
+                      autoHeight
+                      hideFooterSelectedRowCount
+                      disableColumnSelector={true}
+                      pagination
+                      rows={indexedRows === undefined ? [] : indexedRows}
+                      rowCount={total}
+                      columns={columns}
+                      sortingMode='server'
+                      paginationMode='server'
+                      pageSizeOptions={[7, 10, 25, 50]}
+                      paginationModel={paginationModel}
+                      slots={{ toolbar: ServerSideToolbarWithFilter }}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={loading}
+                      slotProps={{
+                        baseButton: {
+                          variant: 'outlined'
+                        },
+                        toolbar: {
+                          value: searchValue,
+                          clearSearch: () => handleSearch('', stockId, storeType),
+                          onChange: event => {
+                            setSearchValue(event.target.value)
+
+                            return handleSearch(event.target.value, stockId, storeType)
+                          }
+                        }
+                      }}
+                      onRowClick={handleStockRowClick}
+                    />
+                  )}
+                </Card>
+              </>
+            )}
+          </TabPanel>
+          {/* <TabPanel value='2'>
+            <>
+              {loader ? (
+                <FallbackSpinner />
+              ) : (
+                <>
+                  <CommonDialogBox
+                    title={'Configure Medicine'}
+                    dialogBoxStatus={show}
+                    formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                    close={closeDialog}
+                    show={showDialog}
+                  />
+                  <TableWithFilter
+                    TableTitle={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                    columns={batchWiseColumn}
+                    rows={stockReportBatch}
+                    headerActions={headerAction}
+                  />
+                  <Card>
+                    <CardHeader
+                      title={stockReportBatch.length > 0 ? 'Stock report batch wise' : 'Stock Report is empty'}
+                      action={headerAction}
+                    />
                   </Card>
                 </>
               )}
+              <ListOfStocksByBatch />
             </>
+          </TabPanel> */}
+          <TabPanel value='3'>
+            <>{loader ? <FallbackSpinner /> : <StockOut />}</>
           </TabPanel>
+          <TabPanel value='4'>{loader ? <FallbackSpinner /> : <ExpiredMedicine />}</TabPanel>
         </TabContext>
       </Grid>
     </>

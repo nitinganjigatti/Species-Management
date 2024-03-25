@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStates, addState, updateStates } from 'src/lib/api/pharmacy/getStates'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+
+import toast from 'react-hot-toast'
 
 // ** MUI Imports
 
@@ -21,8 +23,16 @@ import UserSnackbar from 'src/components/utility/snackbar'
 
 import Error404 from 'src/pages/404'
 
+import { debounce } from 'lodash'
+
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import Card from '@mui/material/Card'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const ListOfStates = () => {
   const [stateList, setStateList] = useState([])
@@ -45,81 +55,75 @@ const ListOfStates = () => {
   })
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, status: null, code: null, short_code: null })
     setResetForm(true)
-    console.log('edit', editParams)
+
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        console.log('while updating', editParams?.id, payload)
-
         response = await updateStates(editParams?.id, payload)
-        console.log('while updating', response)
       } else {
         response = await addState(payload)
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        toast.success(response?.data)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
 
-        await getStatesLists()
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        if (typeof response.data === 'object') {
+          Utility.errorMessageExtractorFromObject(response.data)
+        } else {
+          toast.error(JSON.stringify(response.data))
+        }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(response.data))
     }
   }
 
   const handleEdit = async (id, name, code, short_code, status) => {
-    console.log('in state file', id, name, code, short_code, status)
     setEditParams({ id: id, name: name, code: code, short_code: short_code, status: status })
     setOpenDrawer(true)
   }
 
   /***** Drawer  */
 
-  const getStatesLists = async () => {
-    setLoader(true)
-    const response = await getStates()
-    if (response?.length > 0) {
-      console.log('list', response)
+  // const getStatesLists = async () => {
+  //   setLoader(true)
+  //   const response = await getStates()
+  //   if (response?.length > 0) {
+  //     // response.sort((a, b) => a.id - b.id)
+  //     let listWithId = response
+  //       ? response.map((el, i) => {
+  //           return { ...el, uid: i + 1 }
+  //         })
+  //       : []
+  //     setStateList(listWithId)
+  //     setLoader(false)
+  //   } else {
+  //     setLoader(false)
+  //   }
+  // }
 
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setStateList(listWithId)
-      setLoader(false)
-    } else {
-      setLoader(false)
-    }
-  }
-
-  useEffect(() => {
-    getStatesLists()
-  }, [])
+  // useEffect(() => {
+  //   getStatesLists()
+  // }, [])
 
   const columns = [
     {
@@ -129,7 +133,7 @@ const ListOfStates = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -204,6 +208,88 @@ const ListOfStates = () => {
     }
   ]
 
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getStates({ params: params }).then(res => {
+          debugger
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
+
+  const headerAction = (
+    <div>
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add State' action={() => addEventSidebarOpen()} />}
+    </div>
+  )
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
   return (
     <>
       {pharmacyRole ? (
@@ -212,21 +298,50 @@ const ListOfStates = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <TableWithFilter
+              {/* <TableWithFilter
                 TableTitle={stateList.length > 0 ? 'State List' : 'State list is empty add State'}
                 headerActions={
                   <div>
-                    <AddButton
-                      title={'Add State'}
-                      size='big'
-                      variant='contained'
-                      onClick={() => addEventSidebarOpen()}
-                    ></AddButton>
+                    <AddButton title={'Add State'} action={() => addEventSidebarOpen()}></AddButton>
                   </div>
                 }
                 columns={columns}
                 rows={stateList}
-              />
+              /> */}
+
+              <Card>
+                <CardHeader title='State List' action={headerAction} />
+                <DataGrid
+                  columnVisibilityModel={{
+                    id: false
+                  }}
+                  autoHeight
+                  pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
               <AddStates
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

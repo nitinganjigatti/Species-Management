@@ -1,4 +1,5 @@
 import moment from 'moment'
+import toast from 'react-hot-toast'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -39,11 +40,24 @@ function formatDisplayDate(date) {
   return moment(date).format('DD MMM YYYY')
 }
 
+function errorMessageExtractorFromObject(errorMessages) {
+  for (const key in errorMessages) {
+    if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
+      debugger
+      const errorMessage = errorMessages[key]
+      toast.error(errorMessage)
+
+      // console.log(`${key}: ${errorMessage}`)
+    }
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
   formattedPresentDate,
-  formatDisplayDate
+  formatDisplayDate,
+  errorMessageExtractorFromObject
 }
 
 export default Utility
