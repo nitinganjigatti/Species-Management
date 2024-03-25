@@ -1007,7 +1007,7 @@ const PurchaseItemForm = props => {
                 <Button sx={{ mr: 2 }} type='submit' size='large' variant='contained'>
                   update
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     reset(defaultValues)
                   }}
@@ -1015,7 +1015,7 @@ const PurchaseItemForm = props => {
                   variant='outlined'
                 >
                   Reset
-                </Button>
+                </Button> */}
               </>
             ) : (
               <>
