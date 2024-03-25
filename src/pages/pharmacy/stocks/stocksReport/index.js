@@ -116,7 +116,6 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, storeType }) => {
-      debugger
       if (id) {
         if (storeType === 'local') {
           try {
@@ -242,7 +241,6 @@ const ListOfStocks = () => {
     debounce(async (value, id, storeType) => {
       setSearchValue(value)
       try {
-        debugger
         await getStocksReport({ sort, q: value, column: sortColumn, id, storeType })
       } catch (error) {
         console.error(error)
@@ -371,7 +369,6 @@ const ListOfStocks = () => {
     []
   )
   useEffect(() => {
-    debugger
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
       getStocksReport({
@@ -684,7 +681,6 @@ const ListOfStocks = () => {
             onChange={e => {
               let id = e.target.value
               const type = stores.find(el => el.id === id)?.type || ''
-              debugger
               setStoreType(type)
 
               // console.log('e.target.value', e)
