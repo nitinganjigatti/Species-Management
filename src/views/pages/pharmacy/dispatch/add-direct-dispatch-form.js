@@ -212,11 +212,11 @@ export const AddItemsForm = ({
     // }
     clearErrors('request_item_batch_no')
 
-    if (totalAvailableCount < 0) {
-      setQuantityError(true)
+    // if (totalAvailableCount < 0) {
+    //   setQuantityError(true)
 
-      return
-    }
+    //   return
+    // }
 
     onSubmitData(
       {
