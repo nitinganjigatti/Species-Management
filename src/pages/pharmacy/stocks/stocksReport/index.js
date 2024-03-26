@@ -60,6 +60,7 @@ const ListOfStocks = () => {
   //     paddingBottom: theme.spacing(2)
   //   }
   // }))
+  const { selectedPharmacy } = usePharmacyContext()
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
@@ -87,11 +88,9 @@ const ListOfStocks = () => {
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
   const [changeSwitch, setChangeSwitch] = useState()
-  const [stockType, setStockType] = useState()
+  const [stockType, setStockType] = useState(selectedPharmacy.type)
 
-  const { selectedPharmacy } = usePharmacyContext()
-
-  console.log('selectedPharmacy', selectedPharmacy)
+  // console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -114,12 +113,13 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id }) => {
+    async ({ sort, q, column, id, type }) => {
       if (id) {
         try {
           setLoading(true)
           let result
-          if (stockType === 'local') {
+          if (type === 'local') {
+            console.log('local')
             const params = {
               sort,
               q,
@@ -346,9 +346,14 @@ const ListOfStocks = () => {
     []
   )
   useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  useEffect(() => {
+    console.log('1')
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
-      // setStockType(selectedPharmacy?.type)
+      setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
 
@@ -356,7 +361,8 @@ const ListOfStocks = () => {
         sort,
         q: searchValue,
         column: sortColumn,
-        id: selectedPharmacy?.id
+        id: selectedPharmacy?.id,
+        type: selectedPharmacy?.type
       })
 
       if (changeSwitch) {
@@ -369,16 +375,11 @@ const ListOfStocks = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value])
+  }, [selectedPharmacy.id, value])
 
   useEffect(() => {
+    console.log('2')
     // getStocksReport(selectedPharmacy?.id)
-    getStocksReport({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      id: stockId
-    })
 
     if (changeSwitch) {
       getStocksReportBatchWise({
@@ -386,6 +387,14 @@ const ListOfStocks = () => {
         batchQ: batchSearchValue,
         batchColumn: batchSortColumn,
         id: stockId
+      })
+    } else {
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        type: stockType
       })
     }
   }, [changeSwitch])
@@ -661,10 +670,6 @@ const ListOfStocks = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   const createForm = () => {
     return (
       <>
@@ -686,7 +691,7 @@ const ListOfStocks = () => {
 
               changeSwitch
                 ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
-                : getStocksReport({ sort, q: searchValue, column: sortColumn, id })
+                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, type: type })
             }}
             label='Stores'
             value={stockId}
