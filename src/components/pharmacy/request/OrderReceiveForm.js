@@ -44,6 +44,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import select from 'src/@core/theme/overrides/select'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1003,6 +1004,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             toast.success(result?.msg)
             setSubmitLoader(false)
             closeOrderFormDialog()
+          } else {
+            toast.error(result?.msg)
+            setSubmitLoader(false)
           }
         } catch (error) {
           setSubmitLoader(false)
@@ -1095,47 +1099,56 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 </FormControl>
               </Grid>
             </Grid>
-            {selectedPharmacy.type === 'local' && (
-              <Divider
-                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-              />
-            )}
-            {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
-            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-              <>
-                <LoadingButton
-                  sx={{ float: 'right', my: 4, mx: 2 }}
-                  size='large'
-                  disabled={disableButton() || submitLoader}
-                  variant='contained'
-                  onClick={() => {
-                    if (!submitLoader) {
-                      updateStatus()
-                    }
-                  }}
-                  loading={submitLoader}
-                >
-                  Save
-                </LoadingButton>
-                {console.log('disputeItemDetails', disputeItemDetails)}
-                {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                  <LoadingButton
-                    sx={{ float: 'right', my: 4, mx: 6 }}
-                    size='large'
-                    // disabled={disableButton()}
-                    disabled={submitLoader}
-                    variant='contained'
-                    onClick={() => {
-                      if (!submitLoader) {
-                        bulkStatusUpdate()
-                      }
+            {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
+              <Grid>
+                {selectedPharmacy.type === 'local' && (
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
                     }}
-                    loading={submitLoader}
-                  >
-                    Mark all as Received & Save
-                  </LoadingButton>
+                  />
                 )}
-              </>
+                {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
+                {console.log('selectedPhh', selectedPharmacy.permission.key)}
+
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                  <>
+                    <LoadingButton
+                      sx={{ float: 'right', my: 4, mx: 2 }}
+                      size='large'
+                      disabled={disableButton() || submitLoader}
+                      variant='contained'
+                      onClick={() => {
+                        if (!submitLoader) {
+                          updateStatus()
+                        }
+                      }}
+                      loading={submitLoader}
+                    >
+                      Save
+                    </LoadingButton>
+                    {console.log('disputeItemDetails', disputeItemDetails)}
+                    {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                      <LoadingButton
+                        sx={{ float: 'right', my: 4, mx: 6 }}
+                        size='large'
+                        // disabled={disableButton()}
+                        disabled={submitLoader}
+                        variant='contained'
+                        onClick={() => {
+                          if (!submitLoader) {
+                            bulkStatusUpdate()
+                          }
+                        }}
+                        loading={submitLoader}
+                      >
+                        Mark all as Received & Save
+                      </LoadingButton>
+                    )}
+                  </>
+                ) : null}
+              </Grid>
             ) : null}
           </Grid>
         </Grid>
