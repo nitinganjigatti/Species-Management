@@ -16,9 +16,12 @@ import Icon from 'src/@core/components/icon'
 import { Box, Drawer } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
+
+import toast from 'react-hot-toast'
 
 import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
@@ -31,6 +34,7 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])
@@ -230,7 +234,8 @@ const StorageList = () => {
         response = await addStorage(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -238,11 +243,18 @@ const StorageList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        debugger
+
+        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -304,12 +316,12 @@ const StorageList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>

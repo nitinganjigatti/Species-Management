@@ -20,7 +20,8 @@ import { debounce } from 'lodash'
 
 import Router from 'next/router'
 import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { column } from 'stylis'
 
@@ -30,6 +31,9 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+
+import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ListOfStores = () => {
   const [stores, setStores] = useState([])
@@ -267,7 +271,8 @@ const ListOfStores = () => {
       }
 
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -276,13 +281,21 @@ const ListOfStores = () => {
         // await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+
+        // console.log('test')
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response?.message)
+        } else {
+          toast.error(response?.message)
+        }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -345,9 +358,9 @@ const ListOfStores = () => {
                 pharmacyList={pharmacyList}
                 totalStores={total}
               />
-              {openSnackbar.open ? (
+              {/* {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null}
+              ) : null} */}
             </>
           )}
         </>
