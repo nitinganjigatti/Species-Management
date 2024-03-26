@@ -50,7 +50,8 @@ export default function NewProductList() {
   const handleRequestStatus = async (status, id, productDetails) => {
     const payload = {
       status: status,
-      comments: reasonText ? reasonText : productDetails?.comments
+      comments: productDetails?.comments ? productDetails?.comments : '',
+      reject_reason: reasonText ? reasonText : ' '
     }
 
     try {
@@ -59,25 +60,24 @@ export default function NewProductList() {
         const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
         toast.success(toastMessage)
         setShow(false)
+        await fetchTableData({ sort, q: searchValue, column: sortColumn })
 
         // setStatus(status)
-        if (status === 'Cancelled') {
-          setShow(false)
-          router.reload()
+        // if (status === 'Cancelled') {
+        //   setShow(false)
+        //   router.reload()
 
-          setSubmitLoader(false)
-        } else if (status === 'Rejected') {
-          setShow(false)
-
-          setSubmitLoader(true)
-
-          // setSavedText(reasonText)
-        } else {
-          setSubmitLoader(true)
-          router.push({
-            pathname: '/pharmacy/medicine/add-product/'
-          })
-        }
+        //   setSubmitLoader(false)
+        // } else if (status === 'Rejected') {
+        //   setShow(false)
+        //   setSubmitLoader(true)
+        //   router.reload()
+        // } else {
+        //   setSubmitLoader(true)
+        //   router.push({
+        //     pathname: '/pharmacy/medicine/add-product/'
+        //   })
+        // }
       }
     } catch (error) {
       console.log(error)
@@ -337,7 +337,8 @@ export default function NewProductList() {
                         <div>Product Details - {productDetails?.request_number}</div>
                         {selectedPharmacy.type === 'local' &&
                           (selectedPharmacy.permission.key === 'allow_full_access' ||
-                            selectedPharmacy.permission.key === 'ADD') && (
+                            selectedPharmacy.permission.key === 'ADD') &&
+                          productDetails.status === 'Pending' && (
                             <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                               <IconButton
                                 size='small'
@@ -360,6 +361,7 @@ export default function NewProductList() {
                         detailsData={detailsData}
                         handleRequestStatus={handleRequestStatus}
                         prescriptionImages={prescriptionImages}
+                        reasonText={reasonText}
                         setReasonText={setReasonText}
                         imgUrl={imgUrl}
                         itemId={itemId}
