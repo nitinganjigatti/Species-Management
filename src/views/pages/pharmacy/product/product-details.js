@@ -1,4 +1,4 @@
-import { Button, Grid, TextField, Typography } from '@mui/material'
+import { Button, Card, CardContent, CardHeader, Grid, TextField, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
@@ -17,15 +17,14 @@ export const ProductDetail = ({
   submitLoader,
   handleRequestStatus,
   statusCall,
-  setReasonText
+  savedText,
+  setReasonText,
+  reasonText
 }) => {
-  console.log('product data????', productDetails)
+  console.log('product data????', productDetails, reasonText)
 
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
-  const [status, setStatus] = useState('')
-
-  const [savedText, setSavedText] = useState()
 
   const router = useRouter()
 
@@ -129,7 +128,7 @@ export const ProductDetail = ({
                   </Grid>
                 </Grid>
               )}
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
@@ -137,7 +136,7 @@ export const ProductDetail = ({
               </Grid>
 
               {productDetails?.status !== 'Pending' && (
-                <Grid item xs={12} key={statusCall}>
+                <Grid item xs={6} key={statusCall}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Status
                   </Typography>
@@ -145,12 +144,12 @@ export const ProductDetail = ({
                 </Grid>
               )}
 
-              {savedText && (
-                <Grid item xs={12}>
+              {productDetails?.reject_reason && productDetails?.status === 'Rejected' && (
+                <Grid item xs={6}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Reason Of Rejecting
                   </Typography>
-                  <Typography variant='body2'>{reasonText ? savedText : null}</Typography>
+                  <Typography variant='body2'>{productDetails?.reject_reason}</Typography>
                 </Grid>
               )}
 
@@ -167,7 +166,7 @@ export const ProductDetail = ({
                 {selectedPharmacy.type === 'local'
                   ? (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
-                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', mb: '20px' }}>
                         {productDetails?.status === 'Pending' && (
                           <Button
                             variant='outlined'
@@ -183,7 +182,7 @@ export const ProductDetail = ({
                       </Grid>
                     )
                   : !visibleArea && (
-                      <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
                         {productDetails?.status === 'Pending' && (
                           <LoadingButton
                             loading={submitLoader}
@@ -211,42 +210,50 @@ export const ProductDetail = ({
                       </Grid>
                     )}
               </Grid>
-              <Grid item xs={12} sm={12}>
-                {visibleArea && (
-                  <>
-                    <TextField
-                      fullWidth
-                      id='outlined-basic'
-                      label='Reason of Rejecting'
-                      multiline
-                      rows={4}
-                      onChange={e => setReasonText(e.target.value)}
-                    />
-                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <LoadingButton
-                        sx={{ margin: '3px' }}
-                        size='small'
-                        variant='contained'
-                        loading={submitLoader}
-                        onClick={() => {
-                          handleRequestStatus('Rejected', productDetails.id, productDetails)
-                        }}
-                      >
-                        Submit
-                      </LoadingButton>
-                      <Button
-                        sx={{ margin: '3px' }}
-                        size='small'
-                        onClick={() => {
-                          setVisibleArea(false)
-                        }}
-                      >
-                        Cancel
-                      </Button>
+              {visibleArea && (
+                <Card sx={{ width: '100%', ml: '40px', fontSize: '15px' }}>
+                  <CardContent>
+                    {/* <Typography sx={{ mb: '10px' }}>Reason of Rejection</Typography> */}
+                    <Grid item xs={12} sm={12}>
+                      {visibleArea && (
+                        <>
+                          <TextField
+                            fullWidth
+                            id='outlined-basic'
+                            label='Reason of Rejecting'
+                            multiline
+                            rows={4}
+                            onChange={e => setReasonText(e.target.value)}
+                          />
+                          <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mt: '10px' }}>
+                            <LoadingButton
+                              sx={{ margin: '3px' }}
+                              size='large'
+                              variant='contained'
+                              loading={submitLoader}
+                              onClick={() => {
+                                handleRequestStatus('Rejected', productDetails.id, productDetails)
+                              }}
+                            >
+                              Submit
+                            </LoadingButton>
+                            <Button
+                              sx={{ margin: '3px' }}
+                              variant='outlined'
+                              size='small'
+                              onClick={() => {
+                                setVisibleArea(false)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </Grid>
+                        </>
+                      )}
                     </Grid>
-                  </>
-                )}
-              </Grid>
+                  </CardContent>
+                </Card>
+              )}
             </Grid>
           </div>
         )
