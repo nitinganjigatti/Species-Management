@@ -91,7 +91,7 @@ const ListOfStocks = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  // console.log('selectedPharmacy', selectedPharmacy)
+  console.log('selectedPharmacy', selectedPharmacy)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -116,10 +116,10 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id }) => {
       if (id) {
-        if (stockType === 'local') {
-          try {
-            setLoading(true)
-            // console.log('id', id)
+        try {
+          setLoading(true)
+          let result
+          if (stockType === 'local') {
             const params = {
               sort,
               q,
@@ -128,26 +128,8 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize,
               store_id: id
             }
-            const result = await getLocalStocksReportById(params)
-            if (result.success === true) {
-              setTotal(parseInt(result?.count))
-
-              let listWithId = result.data
-                ? result.data.map((el, i) => {
-                    return { ...el, uid: i + 1 }
-                  })
-                : []
-              setStockReport(loadServerRows(paginationModel.page, listWithId))
-              setLoading(false)
-            }
-          } catch (error) {
-            console.log('error', error)
-            setLoading(false)
-          }
-        } else {
-          try {
-            setLoading(true)
-
+            result = await getLocalStocksReportById(params)
+          } else {
             const params = {
               sort,
               q,
@@ -155,24 +137,22 @@ const ListOfStocks = () => {
               page: paginationModel.page + 1,
               limit: paginationModel.pageSize
             }
-            const result = await getStocksReportById(id, params)
-            // if (result?.data?.length > 0) {
+            result = await getStocksReportById(id, params)
+          }
 
-            setTotal(parseInt(result?.count))
-
-            // result.sort((a, b) => a.id - b.id)
-            let listWithId = result?.data
-              ? result?.data?.map((el, i) => {
+          if (result.success === true) {
+            setTotal(parseInt(result.count))
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
                 })
               : []
             setStockReport(loadServerRows(paginationModel.page, listWithId))
-            // }
-            setLoading(false)
-          } catch (error) {
-            console.log('error', error)
-            setLoading(false)
           }
+          setLoading(false)
+        } catch (error) {
+          console.log('error', error)
+          setLoading(false)
         }
       }
     },
@@ -304,7 +284,7 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
-            console.log('result', result)
+            // console.log('result', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -323,7 +303,7 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
-            console.log('result else', result)
+            // console.log('result else', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -368,6 +348,10 @@ const ListOfStocks = () => {
   useEffect(() => {
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
+      setStockType(selectedPharmacy?.type)
+
+      setStockId(selectedPharmacy?.id)
+
       getStocksReport({
         sort,
         q: searchValue,
@@ -375,7 +359,6 @@ const ListOfStocks = () => {
         id: selectedPharmacy?.id
       })
 
-      setStockId(selectedPharmacy?.id)
       if (changeSwitch) {
         getStocksReportBatchWise({
           batchSort: batchSort,
@@ -386,7 +369,26 @@ const ListOfStocks = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value, changeSwitch])
+  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value])
+
+  useEffect(() => {
+    // getStocksReport(selectedPharmacy?.id)
+    getStocksReport({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      id: stockId
+    })
+
+    if (changeSwitch) {
+      getStocksReportBatchWise({
+        batchSort: batchSort,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId
+      })
+    }
+  }, [changeSwitch])
 
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
