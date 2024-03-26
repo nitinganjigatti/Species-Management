@@ -351,9 +351,9 @@ const AddIngredient = () => {
       <Box>
         <Box>
           <Breadcrumbs aria-label='breadcrumb'>
-            <Link underline='hover' color='inherit' href=''>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
               Ingredients
-            </Link>
+            </Typography>
             <Typography color='text.primary'>{id ? 'Update' : 'Add'} new ingredient</Typography>
           </Breadcrumbs>
         </Box>
