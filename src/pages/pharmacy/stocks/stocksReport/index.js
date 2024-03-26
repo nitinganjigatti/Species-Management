@@ -90,8 +90,6 @@ const ListOfStocks = () => {
   const [changeSwitch, setChangeSwitch] = useState()
   const [stockType, setStockType] = useState(selectedPharmacy.type)
 
-  // console.log('selectedPharmacy', selectedPharmacy)
-
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
@@ -159,54 +157,6 @@ const ListOfStocks = () => {
     [paginationModel]
   )
 
-  // const getStocksReportByStore = useCallback(
-  //   async ({ sort, q, column, id }) => {
-  //     // if (id === undefined) {
-  //     //   // setErrors('Please select Store')
-  //     //   console.log('Please select Store')
-
-  //     //   return
-  //     // } else {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         column,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-  //       const result = await getStocksByBatch(id, params)
-  //       console.log('result', result)
-  //       if (result.success === true && result?.data?.length > 0) {
-  //         setTotal(parseInt(result?.count))
-
-  //         let listWithId = result.data
-  //           ? result.data.map((el, i) => {
-  //               return { ...el, uid: i + 1 }
-  //             })
-  //           : []
-  //         setStockReport(loadServerRows(paginationModel.page, listWithId))
-  //         if (changeSwitch) setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-
-  //         setLoading(false)
-  //       } else {
-  //         setLoading(false)
-  //       }
-  //       if (result?.count === '0') {
-  //         toast.success('There is no stock for this store')
-  //       }
-  //     } catch (error) {
-  //       console.log('error', error)
-  //       setLoading(false)
-  //     }
-
-  //     // }
-  //   },
-  //   [paginationModel, stockId]
-  // )
-
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
@@ -224,44 +174,6 @@ const ListOfStocks = () => {
     }, 1000),
     []
   )
-
-  // const getStocksReport = async id => {
-  //   if (id) {
-  //     if (selectedPharmacy?.type === 'local') {
-  //       try {
-  //         const result = await getLocalStocksReportById()
-  //         console.log('res', result.data)
-  //         if (result.success === true && result.data.length > 0) {
-  //           let listWithId = result.data
-  //             ? result.data.map((el, i) => {
-  //                 return { ...el, uid: i + 1 }
-  //               })
-  //             : []
-  //           setStockReport(listWithId)
-  //         }
-  //       } catch (error) {
-  //         console.log('error', error)
-  //       }
-  //     } else {
-  //       try {
-  //         const result = await getStocksReportById(id)
-  //         if (result?.length > 0) {
-  //           // console.log('stocks', result)
-
-  //           // result.sort((a, b) => a.id - b.id)
-  //           let listWithId = result
-  //             ? result.map((el, i) => {
-  //                 return { ...el, uid: i + 1 }
-  //               })
-  //             : []
-  //           setStockReport(listWithId)
-  //         }
-  //       } catch (error) {
-  //         console.log('error', error)
-  //       }
-  //     }
-  //   }
-  // }
 
   const getStocksReportBatchWise = useCallback(
     async ({ batchSort, batchQ, batchColumn, id }) => {
