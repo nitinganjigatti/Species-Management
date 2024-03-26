@@ -34,12 +34,12 @@ import Icon from 'src/@core/components/icon'
 const schema = yup.object().shape({
   name: yup
     .string()
-    .matches(/^[A-Za-z]+$/, 'State Name must contain only alphabetic characters')
+    .matches(/^[A-Za-z\s]+$/, 'State Name must contain only alphabetic characters')
     .min(3, 'State Name must be at least 3 characters')
     .required('State Name is Required'),
   code: yup
     .string()
-    .matches(/^\d+$/, 'State code must contain only numeric characters')
+    .matches(/^\d{2,}$/, 'State code must contain more than 2 numeric characters')
     .test('is-integer', 'State code must be an integer', value => Number.isInteger(Number(value)))
     .test('greater-than-one', 'State code must be greater than 1', value => Number(value) > 1)
     .typeError('State code must be a number')
@@ -47,6 +47,7 @@ const schema = yup.object().shape({
   short_code: yup
     .string()
     .matches(/^[A-Za-z]+$/, 'State short code must contain only alphabets')
+    .min(2, 'State short code must contain two letters')
     .max(2, "State short code can't exceed two letters")
     .required('State short code is Required'),
   status: yup.string().nullable()
