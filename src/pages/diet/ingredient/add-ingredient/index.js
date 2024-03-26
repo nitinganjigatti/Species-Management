@@ -304,7 +304,12 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.data), severity: 'success' })
+            setOpenSnackbar({
+              ...openSnackbar,
+              open: true,
+              message: JSON?.stringify(res?.message),
+              severity: 'success'
+            })
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
@@ -561,8 +566,8 @@ const AddIngredient = () => {
                               disablePortal
                               id='uom'
                               options={uomList?.length > 0 ? uomList : []}
-                              getOptionLabel={option => option.unit_name}
-                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              getOptionLabel={option => option.name}
+                              isOptionEqualToValue={(option, value) => option?._id === value?._id}
                               onChange={(e, val) => {
                                 if (val === null) {
                                   setDefaultUom(null)
@@ -571,7 +576,7 @@ const AddIngredient = () => {
                                 } else {
                                   setDefaultUom(val)
 
-                                  return onChange(val.id)
+                                  return onChange(val._id)
                                 }
                               }}
                               renderInput={params => (
