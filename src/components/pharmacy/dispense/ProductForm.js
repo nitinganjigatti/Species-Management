@@ -396,7 +396,8 @@ function ProductForm({
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
-                value: item.id
+                value: item.id,
+                stock_type: item.stock_type
               }))
             )
           }
@@ -416,7 +417,8 @@ function ProductForm({
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
-                value: item.id
+                value: item.id,
+                stock_type: item.stock_type
               }))
             )
           }
@@ -432,9 +434,9 @@ function ProductForm({
     console.log('Form errros', errors)
   }
 
-  const callBatchesApi = stock_id => {
+  const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
-      getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type }).then(res => {
+      getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -476,7 +478,8 @@ function ProductForm({
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
-      callBatchesApi(dataForEditRow.stock_id?.value)
+
+      callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
     }
   }, [editMode])
@@ -556,7 +559,7 @@ function ProductForm({
                       value={field?.value}
                       onChange={(event, newValue) => {
                         field.onChange(newValue)
-                        callBatchesApi(newValue?.value)
+                        callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
                         setValue('qty', '')
                       }}

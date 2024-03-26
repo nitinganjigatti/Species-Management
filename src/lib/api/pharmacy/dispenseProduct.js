@@ -39,9 +39,9 @@ export async function getProductList({ params }) {
   return response.data
 }
 
-export async function getBatchList({ ProductId, store_type }) {
+export async function getBatchList({ ProductId, store_type, stock_type }) {
   const response = await axiosGet({
-    url: `${BATCH_LIST}?stock_id=${ProductId}&store_type=${store_type}`,
+    url: `${BATCH_LIST}?stock_id=${ProductId}&store_type=${store_type}&stock_type=${stock_type}`,
     pharmacy: true
   })
 
