@@ -348,7 +348,7 @@ const ListOfStocks = () => {
   useEffect(() => {
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
-      setStockType(selectedPharmacy?.type)
+      // setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
 
