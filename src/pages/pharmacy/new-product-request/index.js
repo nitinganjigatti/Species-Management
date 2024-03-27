@@ -43,10 +43,6 @@ export default function NewProductList() {
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
-  // const handlePopup = () => {
-  //   setStatusCall(prev => !prev)
-  // }
-
   const handleRequestStatus = async (status, id, productDetails) => {
     const payload = {
       status: status,
