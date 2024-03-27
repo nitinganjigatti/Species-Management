@@ -134,7 +134,9 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
-                <Typography variant='body2'>{productDetails?.comments}</Typography>
+                <Typography sx={{ m: '2px' }} variant='body2'>
+                  {productDetails?.comments ? productDetails?.comments : 'NA'}
+                </Typography>
               </Grid>
 
               {productDetails?.status !== 'Pending' && (
