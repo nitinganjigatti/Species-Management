@@ -1,7 +1,7 @@
 import { AuthContext } from 'src/context/AuthContext'
 import { useContext } from 'react'
 
-const composeLabNavigation = () => {
+const ComposeLabNavigation = () => {
   const labTitle = {
     sectionTitle: 'Lab'
   }
@@ -36,6 +36,6 @@ const composeLabNavigation = () => {
   return labNavigationArray
 }
 
-const labNavigation = () => composeLabNavigation()
+const labNavigation = () => ComposeLabNavigation()
 
 export default labNavigation
