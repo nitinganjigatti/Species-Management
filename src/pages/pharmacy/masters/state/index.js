@@ -85,16 +85,17 @@ const ListOfStates = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        if (typeof response.data === 'object') {
-          Utility.errorMessageExtractorFromObject(response.data)
+        debugger
+        if (typeof response.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
         } else {
-          toast.error(JSON.stringify(response.data))
+          toast.error(JSON.stringify(response.message))
         }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      toast.error(JSON.stringify(response.data))
+      toast.error(JSON.stringify(e))
     }
   }
 

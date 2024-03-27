@@ -31,6 +31,7 @@ import {
   List
 } from '@mui/material'
 import { Box, borderRadius } from '@mui/system'
+import { useTheme } from '@mui/material/styles'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import React, { useRef, useState, useEffect, Fragment } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -77,7 +78,7 @@ export default function AddProduct() {
   const [confirmationBox, setConfirmationBox] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
-
+  const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
   useEffect(() => {
@@ -193,7 +194,7 @@ export default function AddProduct() {
 
     data.request_item_detail_id = requestData.join('')
 
-    data.status = data?.status ? data?.status : 'pending'
+    data.status = data?.status ? data?.status : 'Pending'
 
     const filterPrescriptionImages = data?.prescription_images?.map(element => {
       if (typeof element === 'string') {
@@ -211,8 +212,6 @@ export default function AddProduct() {
       const trimImg = data?.product_image.trim()
       const imgName = trimImg.split('/').pop()
       data.product_image = imgName // Set imgName in data.product_image
-
-      return imgName
     }
 
     // handleUpdate(getDetails, data)
@@ -449,7 +448,7 @@ export default function AddProduct() {
           <Grid item xs={12}>
             <Card>
               <CardHeader
-                title='Add Product Form'
+                title={!id ? 'Add Product Form' : 'Edit Product Form'}
                 avatar={
                   <Icon
                     style={{ cursor: 'pointer' }}
@@ -836,15 +835,19 @@ export default function AddProduct() {
                     }}
                   >
                     {id && (
-                      <AddButton
-                        styles={{ color: 'red', border: '1px solid red', margin: '5px' }}
-                        action={() => handleCancelChange()}
-                        title='Cancel'
-                      ></AddButton>
+                      <Button
+                        styles={{ color: theme.palette.error.dark, border: '1px solid red', margin: '5px' }}
+                        onClick={() => handleCancelChange()}
+                        size='large'
+                        variant='outlined'
+                        sx={{ mr: '6px' }}
+                      >
+                        Cancel
+                      </Button>
                     )}
                     <LoadingButton
                       type='submit'
-                      sx={{ marginRight: '8px' }}
+                      sx={{ mr: '8px' }}
                       size='large'
                       variant='contained'
                       disabled={!isValid}

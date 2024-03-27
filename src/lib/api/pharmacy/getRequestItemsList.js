@@ -27,7 +27,7 @@ export async function getAvailableMedicineByMedicineId(id, data, store, productT
   // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
   //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
-    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&stock_type=${productType}`,
+    url: `${BATCH_DETAILS}/${id}`,
     body: data,
     pharmacy
   })
@@ -283,7 +283,7 @@ export async function getAvailableMedicineByMedicineIdToReturn(id, data, store, 
 
   //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
-    url: `${BATCH_DETAILS}?stock_id=${id}&store_type=${store}&stock_type=${productType}&is_return=${is_return}`,
+    url: `${BATCH_DETAILS}/${id}?is_return=${is_return}`,
     body: data,
     pharmacy
   })
