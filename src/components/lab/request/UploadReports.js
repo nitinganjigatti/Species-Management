@@ -91,6 +91,7 @@ const UploadReports = ({
           setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
           fetchRequestDetails()
+          setKey(key + 1)
         } else {
           reset(defaultValues)
           setAlertDefaults({ status: true, message: response?.message, severity: 'error' })

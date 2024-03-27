@@ -107,6 +107,7 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
+  console.log('requestId', requestId)
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
 
@@ -767,7 +768,7 @@ const RequestDetails = () => {
                 labTestId={LabRequestId}
                 medicalRecordId={medicineId}
                 type='lab_test_request'
-                id='0'
+                id={requestId === null ? '0' : requestId}
                 handleCloseUploader={setOpenUploader}
                 setAlertDefaults={setAlertDefaults}
                 handleClosePopover={handleClosePopover}
