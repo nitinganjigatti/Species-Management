@@ -58,7 +58,9 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Type
                 </Typography>
-                <Typography variant='body2'>{item.product_type}</Typography>
+                <Typography variant='body2'>
+                  {item.product_type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
