@@ -61,23 +61,6 @@ export default function NewProductList() {
         toast.success(toastMessage)
         setShow(false)
         await fetchTableData({ sort, q: searchValue, column: sortColumn })
-
-        // setStatus(status)
-        // if (status === 'Cancelled') {
-        //   setShow(false)
-        //   router.reload()
-
-        //   setSubmitLoader(false)
-        // } else if (status === 'Rejected') {
-        //   setShow(false)
-        //   setSubmitLoader(true)
-        //   router.reload()
-        // } else {
-        //   setSubmitLoader(true)
-        //   router.push({
-        //     pathname: '/pharmacy/medicine/add-product/'
-        //   })
-        // }
       }
     } catch (error) {
       console.log(error)
