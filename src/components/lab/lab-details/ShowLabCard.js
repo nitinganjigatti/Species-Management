@@ -3,7 +3,9 @@ import { Avatar, Box, Card, Stack, Typography } from '@mui/material'
 import React from 'react'
 
 const ShowLabCard = ({ data }) => {
-  console.log('data?.image', data?.image)
+  // console.log('data?.image', data?.image)
+
+  // console.log('process.env.NEXT_PUBLIC_BASE_URL', process.env.NEXT_PUBLIC_BASE_URL + 'uploads/')
 
   return (
     <>
@@ -25,7 +27,7 @@ const ShowLabCard = ({ data }) => {
                 height: '100%'
               }}
               variant='square'
-              src={data?.image === 'https://app.antzsystems.com/uploads/' ? '/images/med-lab.png' : data?.image}
+              src={data?.image === process.env.NEXT_PUBLIC_BASE_URL + 'uploads/' ? '/images/med-lab.png' : data?.image}
             />
           </Box>
         </Box>
