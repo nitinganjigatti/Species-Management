@@ -36,7 +36,8 @@ const UserThemeOptions = () => {
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
         tableHeaderBg: '#E8F4F2',
-        secondaryBg: '#7A8684'
+        secondaryBg: '#7A8684',
+        mdAntzNeutral: '#0000000D'
       },
       primary: {
         // light: '#20DE67',
@@ -44,6 +45,10 @@ const UserThemeOptions = () => {
         main: '#37BD69',
         dark: '#006D35',
         contrastText: '#FFF'
+      },
+      formContent: {
+        tertiary: '#FA6140',
+        bg: '#666cff14'
       },
       secondary: {
         light: '#669494',
