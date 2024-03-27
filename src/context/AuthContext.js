@@ -162,8 +162,10 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    debugger
     setUser(null)
     setUserData(null)
+    setSelectedPharmacy('')
     setLoading(false)
   }
 
@@ -269,6 +271,7 @@ const AuthProvider = ({ children }) => {
   const handleLogout = () => {
     setUser(null)
     setUserData(null)
+    setSelectedPharmacy('')
     localStorage.removeItem('userData')
     localStorage.removeItem('userDetails')
     localStorage.removeItem('refreshToken')

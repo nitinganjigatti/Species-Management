@@ -507,7 +507,9 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },

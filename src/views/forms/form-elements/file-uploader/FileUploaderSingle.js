@@ -42,7 +42,7 @@ const FileUploaderSingle = props => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg']
+      'image/*': ['.png', '.jpg', '.jpeg', '.pdf']
     },
     onDrop: acceptedFiles => {
       console.log(acceptedFiles.map(file => Object.assign(file)))

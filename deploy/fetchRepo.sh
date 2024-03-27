@@ -47,15 +47,19 @@ cd $NEW_RELEASE_DIR
 sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 
 rm -f .env;
+# vantara-prod
 if [ $ENV_TO_LOAD == 'development' ]
 then
-  cp -r .env.development .env
+  cp -r env.development .env
 elif [ $ENV_TO_LOAD == 'staging' ]
 then
-  cp -r .env.staging .env
+  cp -r env.staging .env
+# elif [ $ENV_TO_LOAD == 'vantara-prod' ]
+# then
+#   cp -r env.jn .env
 elif [ $ENV_TO_LOAD == 'production' ]
 then
-  cp -r .env.production .env
+  cp -r env.production .env
 fi
 
 

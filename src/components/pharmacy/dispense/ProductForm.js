@@ -21,6 +21,11 @@ import { getBatchList, getProductList } from 'src/lib/api/pharmacy/dispenseProdu
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Spacing from 'src/@core/theme/spacing'
 
 function ProductForm({
   closeDialog,
@@ -48,6 +53,10 @@ function ProductForm({
 
   const [selectedBatches, setSelectedBatches] = useState([])
   const [editBatchQty, setEditBatchQty] = useState(0)
+
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const authData = useContext(AuthContext)
 
   const handleBatchChange = (event, newValue, index) => {
     // Clone the existing array and update the batch for the current index
@@ -387,7 +396,8 @@ function ProductForm({
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
-                value: item.id
+                value: item.id,
+                stock_type: item.stock_type
               }))
             )
           }
@@ -407,7 +417,8 @@ function ProductForm({
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
-                value: item.id
+                value: item.id,
+                stock_type: item.stock_type
               }))
             )
           }
@@ -423,9 +434,9 @@ function ProductForm({
     console.log('Form errros', errors)
   }
 
-  const callBatchesApi = stock_id => {
+  const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
-      getBatchList({ ProductId: stock_id }).then(res => {
+      getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -467,7 +478,8 @@ function ProductForm({
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
-      callBatchesApi(dataForEditRow.stock_id?.value)
+
+      callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
     }
   }, [editMode])
@@ -538,6 +550,7 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
+                      ListboxProps={{ style: { maxHeight: 130 } }}
                       inputProps={{ tabIndex: '6' }}
                       disablePortal
                       noOptionsText='Type to search'
@@ -546,7 +559,7 @@ function ProductForm({
                       value={field?.value}
                       onChange={(event, newValue) => {
                         field.onChange(newValue)
-                        callBatchesApi(newValue?.value)
+                        callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
                         setValue('qty', '')
                       }}
@@ -587,6 +600,7 @@ function ProductForm({
                       render={({ field }) => (
                         <>
                           <Autocomplete
+                            ListboxProps={{ style: { maxHeight: 100 } }}
                             forcePopupIcon={false}
                             inputProps={{ tabIndex: '6' }}
                             disablePortal
@@ -783,7 +797,7 @@ function ProductForm({
           </FormHelperText>
         )}
 
-        <Grid item xs={12} sm={12}>
+        <Grid item xs={12} sm={12} sx={{ mt: '40px' }}>
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>

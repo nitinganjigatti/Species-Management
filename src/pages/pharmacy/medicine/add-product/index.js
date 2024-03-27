@@ -67,7 +67,7 @@ import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import GenericNamesList from '../../settings/generic'
+import GenericNamesList from '../../masters/generic'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -157,6 +157,9 @@ const AddMedicine = () => {
 
   const router = useRouter()
   const { id, action } = router.query
+
+  // const queryParams = new URLSearchParams(window.location.search)
+  // const productDetails = queryParams.get('productDetails')
 
   const { settings } = useSettings()
   const { skin } = settings
@@ -625,8 +628,12 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
+      console.log(payload)
+
       await updateMedicine(payload, id)
     } else {
+      console.log(payload)
+
       await addMedicineToList(payload)
     }
   }

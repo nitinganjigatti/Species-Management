@@ -70,6 +70,7 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
+  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -78,6 +79,24 @@ const PurchaseItemForm = props => {
       label: yup.string().required('Product name is required'),
       stock_type: yup.string().nullable()
     }),
+
+    // purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
+    // purchase_expiry_date: yup
+    //   .date()
+    //   .typeError('Select a valid expiry date')
+    //   .when(['product.stock_type'], (stockType, schema) => {
+    //     console.log('product.stock_type', stockType[0])
+
+    //     return stockType[0] === 'non_medical' ? schema.notRequired() : schema.required('Expiry date is required')
+    //   }),
+
+    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
+      const result =
+        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
+
+      return result
+    }),
+
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
@@ -94,7 +113,6 @@ const PurchaseItemForm = props => {
       })
       .required('Batch number is required'),
 
-    purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
     purchase_unit_price: yup
       .number()
       .typeError('Supplier rate must be a number')
@@ -120,12 +138,12 @@ const PurchaseItemForm = props => {
     purchase_cgst: yup
       .number()
       .typeError('Central GST must be a number')
-      .min(0, 'Central GST must be greater than zero')
+      .min(1, 'Central GST must be greater than zero')
       .required('Central GST is required'),
     purchase_sgst: yup
       .number()
       .typeError('State GST must be a number')
-      .min(0, 'State GST must be greater than zero')
+      .min(1, 'State GST must be greater than zero')
       .required('State GST is required'),
     purchase_igst: yup
       .number()
@@ -415,6 +433,7 @@ const PurchaseItemForm = props => {
   }, [productExpiryDate, expiryDateLoader])
 
   useEffect(() => {
+    debugger
     if (nestedRowMedicine.medicine_name !== '') {
       console.log(optionsMedicineList)
 
@@ -988,7 +1007,7 @@ const PurchaseItemForm = props => {
                 <Button sx={{ mr: 2 }} type='submit' size='large' variant='contained'>
                   update
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     reset(defaultValues)
                   }}
@@ -996,7 +1015,7 @@ const PurchaseItemForm = props => {
                   variant='outlined'
                 >
                   Reset
-                </Button>
+                </Button> */}
               </>
             ) : (
               <>

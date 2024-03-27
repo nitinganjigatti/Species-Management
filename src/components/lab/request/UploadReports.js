@@ -1,0 +1,190 @@
+/* eslint-disable lines-around-comment */
+import { Button, Card, CardContent, CardHeader, Grid, Input, Typography } from '@mui/material'
+import React, { useState } from 'react'
+import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm, Controller } from 'react-hook-form'
+import { LoadingButton } from '@mui/lab'
+import { UploadLabReports } from 'src/lib/api/lab/getLabRequest'
+
+const UploadReports = ({
+  animalID,
+  labTestId,
+  medicalRecordId,
+  type,
+  id,
+  handleCloseUploader,
+  setAlertDefaults,
+  handleClosePopover,
+  fetchRequestDetails
+}) => {
+  const [uploadedImage, setUploadedImage] = useState()
+  const [files, setFiles] = useState([])
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const onImageUpload = async imageData => {
+    setFiles(imageData)
+  }
+
+  const defaultValues = { image: '' }
+
+  const schema = yup.object().shape({
+    image: yup.mixed().required('Please upload a document')
+  })
+
+  const {
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors },
+    trigger,
+    setValue,
+    getValues
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
+
+  const handleSubmitData = async () => {
+    try {
+      const errors = await trigger()
+      if (errors) {
+        handleSubmit(onSubmit)()
+      } else {
+        scrollToTop()
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const onSubmit = async params => {
+    setSubmitting(true)
+
+    const lab_test_files = []
+
+    if (!files[0]) {
+      setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
+      setSubmitting(false)
+    } else {
+      const payload = {
+        medical_record_id: medicalRecordId,
+        animal_id: animalID,
+        lab_test_id: labTestId,
+        lab_test_files: [files[0]],
+        entity_type: type,
+        entity_id: id
+      }
+      // console.log('payload', payload)
+
+      try {
+        const response = await UploadLabReports(payload)
+        if (response?.success) {
+          handleCloseUploader(false)
+          handleClosePopover()
+          reset(defaultValues)
+          setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+          fetchRequestDetails()
+        } else {
+          reset(defaultValues)
+          setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        }
+        // Reset the form after successful submission
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setSubmitting(false)
+      }
+    }
+  }
+
+  const handleCloseSnackBar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
+  }
+  //document uploder
+  // const handleFileChange = event => {
+  //   const file = event.target.files[0]
+  //   setSelectedFile(file)
+  // }
+  const [key, setKey] = useState(0)
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container>
+          <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
+            <Card key={key}>
+              <CardHeader title='Upload File' />
+              <CardContent>
+                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* <Grid item md={4} xs={12} sm={12}>
+            <Card>
+              <CardHeader title='Document Upload' />
+              <CardContent>
+                <Typography variant='h5' gutterBottom>
+                  Drop file here or click to upload
+                </Typography>
+                <Controller
+                  name='document'
+                  control={control}
+                  defaultValue={null}
+                  render={({ field }) => (
+                    <>
+                      <Input
+                        type='file'
+                        onChange={e => {
+                          handleFileChange(e)
+                          field.onChange(e)
+                        }}
+                      />
+                      {errors.document && <Typography color='error'>{errors.document.message}</Typography>}
+                    </>
+                  )}
+                />
+                {selectedFile && (
+                  <div>
+                    <Typography variant='h6' gutterBottom>
+                      Uploaded Document
+                    </Typography>
+                    <Typography>{selectedFile.name}</Typography>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Grid> */}
+        </Grid>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px', gap: 10, marginRight: 15 }}>
+          <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
+            Upload
+          </LoadingButton>
+          <LoadingButton
+            onClick={() => {
+              reset(defaultValues)
+              // setUploadedImage('')
+              setKey(key + 1)
+              setFiles([])
+            }}
+            variant='outlined'
+          >
+            Reset
+          </LoadingButton>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+export default UploadReports

@@ -11,17 +11,23 @@ import { FormControl, FormHelperText } from '@mui/material'
 
 import Grid from '@mui/material/Grid'
 
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+
 import { CardContent } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
-import UserSnackbar from 'src/components/utility/snackbar'
-
-import TableHead from '@mui/material/TableHead'
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
+
 import TableCell from '@mui/material/TableCell'
+import UserSnackbar from 'src/components/utility/snackbar'
+import DialogActions from '@mui/material/DialogActions'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+
+import TableHead from '@mui/material/TableHead'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -99,6 +105,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [totalMedicine, setTotalMedicine] = useState(0)
   const [error, setErrors] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [invalidQty, setInvalidQty] = useState([])
+  const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  const [dispatchItems, setDispatchItems] = useState([])
 
   // const [invalidQty, setInvalidQty] = useState([])
   // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
@@ -784,7 +793,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               </FormHelperText>
                             )}
                             {getValues(`product_batches[${index}].quantityAvailable`) ? (
-                              <FormHelperText sx={{ color: 'error.main' }}>
+                              <FormHelperText sx={{ color: 'primary.main' }}>
                                 Available Quantity:{getValues(`product_batches[${index}].quantityAvailable`)}
                               </FormHelperText>
                             ) : null}
@@ -867,6 +876,63 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </>
             </form>
           </CardContent>
+          <ConfirmDialogBox
+            open={invalidQtyDialog}
+            closeDialog={() => {
+              closeConfirmationDialog()
+            }}
+            action={() => {
+              closeConfirmationDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>
+                      You are trying to full fill higher quantity than it is available in that batch
+                    </DialogContentText>
+                    <Table>
+                      <TableRow>
+                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                        <TableCell>Requested qty</TableCell>
+                      </TableRow>
+                      {invalidQty?.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item?.batch_no}</TableCell>
+                          <TableCell>{item?.quantityAvailable}</TableCell>
+                          <TableCell>{item?.qty}</TableCell>
+                        </TableRow>
+                      ))}
+                    </Table>
+                  </DialogContent>
+                  <DialogContentText sx={{ mb: 1 }}>Confirm to proceed</DialogContentText>
+                  <DialogActions className='dialog-actions-dense'>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      color='primary'
+                      onClick={() => {
+                        handleConfirmDispatch()
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      color='error'
+                      onClick={() => {
+                        closeConfirmationDialog()
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </DialogActions>
+                </>
+              </Box>
+            }
+          />
 
           {/* <ConfirmDialog
             open={invalidQtyDialog}
