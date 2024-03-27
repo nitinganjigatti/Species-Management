@@ -304,7 +304,12 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            setOpenSnackbar({ ...openSnackbar, open: true, message: JSON?.stringify(res?.data), severity: 'success' })
+            setOpenSnackbar({
+              ...openSnackbar,
+              open: true,
+              message: JSON?.stringify(res?.message),
+              severity: 'success'
+            })
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
@@ -346,9 +351,9 @@ const AddIngredient = () => {
       <Box>
         <Box>
           <Breadcrumbs aria-label='breadcrumb'>
-            <Link underline='hover' color='inherit' href=''>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
               Ingredients
-            </Link>
+            </Typography>
             <Typography color='text.primary'>{id ? 'Update' : 'Add'} new ingredient</Typography>
           </Breadcrumbs>
         </Box>
@@ -561,8 +566,8 @@ const AddIngredient = () => {
                               disablePortal
                               id='uom'
                               options={uomList?.length > 0 ? uomList : []}
-                              getOptionLabel={option => option.unit_name}
-                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              getOptionLabel={option => option.name}
+                              isOptionEqualToValue={(option, value) => option?._id === value?._id}
                               onChange={(e, val) => {
                                 if (val === null) {
                                   setDefaultUom(null)
@@ -571,7 +576,7 @@ const AddIngredient = () => {
                                 } else {
                                   setDefaultUom(val)
 
-                                  return onChange(val.id)
+                                  return onChange(val._id)
                                 }
                               }}
                               renderInput={params => (
@@ -763,7 +768,7 @@ const AddIngredient = () => {
                                 <TextField
                                   onChange={e => searchPreparationList(sort, e.target.value, sortColumn)}
                                   {...params}
-                                  label='Preparation Types'
+                                  label='Preparation Types *'
                                   placeholder='Preparation Types'
                                 />
                               )}
