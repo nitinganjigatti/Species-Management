@@ -104,13 +104,13 @@ export const ANIMAL_LIST = 'v1/collection/animal/list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
 
-export const FEED_DETAILS = 'feed-details'
+export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
 
 export const INGREDIENTS_LIST = 'ingredients-list'
 
-export const FEED_TYPE_LIST = 'feed-listing'
+export const FEED_TYPE_LIST = 'listing'
 
 export const ADD_FEED_TYPE = 'add-feed'
 
@@ -118,13 +118,25 @@ export const UPDATE_FEED_TYPE = 'update-feed'
 
 export const INGREDIENT_LIST = 'ingredient-list'
 
-export const INGREDIENTS_DETAIL = 'ingredient-details'
+export const LIST = 'list'
+
+export const INGREDIENTS = 'ingredients'
+
+export const INGREDIENTS_DETAIL = 'details'
 
 export const UOM_LIST = 'uom-list'
 
 export const ADD_INGREDIENT = 'add-ingredient'
 
 export const INGREDIENT_DETAIL = 'ingredient-details'
+
+export const RECIPE_LIST = 'ingredient-recipe-list'
+
+export const DETAILS = 'details'
+
+export const RECIPE = 'recipe'
+
+export const RECIPES = 'recipes'
 
 export const DIET = 'diet'
 

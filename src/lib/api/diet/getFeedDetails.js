@@ -1,20 +1,21 @@
 import {
   FEED_DETAILS,
-  INGREDIENTS_LIST,
+  INGREDIENT_LIST,
   FEED,
   UOM_LIST,
   ADD_INGREDIENT,
   INGREDIENT_DETAIL,
-  UPDATE_INGREDIENT
+  UPDATE_INGREDIENT,
+  DIET
 } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
 export async function getFeedDetails(id) {
-  return await axiosGet({ url: `${FEED_DETAILS}/${id}` })
+  return await axiosGet({ url: `${DIET}/${FEED}/${FEED_DETAILS}/${id}` })
 }
 
 export async function getIngredientsOnFeed(id, params) {
-  return await axiosGet({ url: `${FEED}/${INGREDIENTS_LIST}/${id}`, params })
+  return await axiosGet({ url: `${DIET}/${FEED}/${INGREDIENT_LIST}/${id}`, params })
 }
 
 export async function getUnitsForIngredient({ params }) {

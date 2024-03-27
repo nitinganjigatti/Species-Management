@@ -19,16 +19,17 @@ import {
   Divider,
   IconButton
 } from '@mui/material'
-import IngredientDetailCardview from 'src/views/pages/ingredient/ingredient-detail/cardview'
+import RecipeDetailCardview from 'src/views/pages/recipe/recipe-detail/cardview'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
-import OverviewTabView from 'src/views/pages/ingredient/ingredient-detail/overview-tabview'
+import { getRecipeDetail } from 'src/lib/api/diet/recipe'
+import RecipeOverviewTabView from 'src/views/pages/recipe/recipe-detail/overview-tabview'
 import Icon from 'src/@core/components/icon'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import { deleteIngredient } from 'src/lib/api/diet/getIngredients'
 import toast from 'react-hot-toast'
-import RecipeListTabview from 'src/views/pages/ingredient/ingredient-detail/recipeList-tabview'
+import RecipeListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
+import IngredientsListforRecipeDetail from '../ingredient-list'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -50,19 +51,18 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   },
   '& .MuiTabs-flexContainer': {
     borderRadius: 8,
-    width: '71%',
+    width: '47%',
     backgroundColor: '#E8F4F2'
   }
 }))
 
-const IngredientDetail = () => {
+const RecipeDetail = () => {
   const router = useRouter()
   const { id } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
-  const [recipeListTotal, setRecipeListTotal] = useState(0)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -78,7 +78,8 @@ const IngredientDetail = () => {
 
   const getIngredientsDetailval = async id => {
     try {
-      const response = await getIngredientDetail(id)
+      const response = await getRecipeDetail(id)
+      console.log(response, 'response')
       if (response.data.success === true) {
         setIngredientsDetailsval(response.data.data)
         setLoader(false)
@@ -154,56 +155,57 @@ const IngredientDetail = () => {
           <Grid item xs={12}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
-              <Link underline='hover' color='inherit' href='/diet/ingredient/'>
-                Ingredients
+              <Link underline='hover' color='inherit' href='/diet/recipe/'>
+                Recipe
               </Link>
-              <Typography color='text.primary'>Ingredient Details</Typography>
+              <Typography color='text.primary'>Recipe Details</Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
-              <Card>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-                    <Typography sx={{ fontWeight: 600 }} variant='h6'>
-                      {IngredientsDetailsval.ingredient_name}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                      <Icon icon='bx:pencil' style={{ cursor: 'pointer' }} />
-                      <Icon
-                        icon='material-symbols:delete-outline'
-                        style={{ cursor: 'pointer', marginLeft: '15px' }}
-                        onClick={() => {
-                          handleClickOpen()
-                        }}
-                      />
+              <>
+                <Card>
+                  <CardContent sx={{ mb: 5, mt: 2 }}>
+                    <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+                      <Typography sx={{ fontWeight: 600 }} variant='h6'>
+                        {IngredientsDetailsval.recipe_name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                        <Icon icon='bx:pencil' style={{ cursor: 'pointer' }} />
+                        <Icon
+                          icon='material-symbols:delete-outline'
+                          style={{ cursor: 'pointer', marginLeft: '15px' }}
+                          onClick={() => {
+                            handleClickOpen()
+                          }}
+                        />
+                      </Box>
                     </Box>
-                  </Box>
-                  <Grid container spacing={6} sx={{ mt: 3 }}>
-                    <IngredientDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
+                    <Grid container spacing={6} sx={{ mt: 3 }}>
+                      <RecipeDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
 
-                    <Grid item xs={8}>
-                      <TabContext value={value}>
-                        <TabList onChange={handleChange} aria-label='customized tabs example'>
-                          <Tab value='1' label='OVERVIEW' />
-                          <Tab value='2' label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal} />
-                          <Tab value='3' label='USED IN DIET' />
-                        </TabList>
-                        <TabPanel value='1'>
-                          <OverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
-                        </TabPanel>
-                        <TabPanel value='2'>
-                          <RecipeListTabview
-                            IngredientName={IngredientsDetailsval.ingredient_name}
-                            onTotalChange={setRecipeListTotal}
-                          />
-                        </TabPanel>
-                        <TabPanel value='3'>
-                          <Typography>No Data to show</Typography>
-                        </TabPanel>
-                      </TabContext>
+                      <Grid item xs={8}>
+                        <TabContext value={value}>
+                          <TabList onChange={handleChange} aria-label='customized tabs example'>
+                            <Tab value='1' label='OVERVIEW' />
+                            <Tab value='2' label='USED IN DIET' />
+                          </TabList>
+                          <TabPanel value='1'>
+                            <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
+                          </TabPanel>
+                          <TabPanel value='2'>
+                            <RecipeListTabview IngredientName={IngredientsDetailsval.ingredient_name} />
+                          </TabPanel>
+                        </TabContext>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                <Card sx={{ mt: 5 }}>
+                  <CardContent sx={{ mb: 5, mt: 2 }}>
+                    <IngredientsListforRecipeDetail IngredientsDetailsval={IngredientsDetailsval} />
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Grid>
                 <Typography variant='h6' sx={{ background: '#fff', padding: 8, borderRadius: '6px' }}>
@@ -226,4 +228,4 @@ const IngredientDetail = () => {
   )
 }
 
-export default IngredientDetail
+export default RecipeDetail
