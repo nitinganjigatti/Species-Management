@@ -5,6 +5,7 @@ import LabImg from 'public/images/med-lab.png'
 
 const ShowLabCard = ({ data }) => {
   console.log('data?.image', data?.image)
+
   return (
     <>
       <Card sx={{ px: 5, py: 2 }}>
@@ -25,8 +26,11 @@ const ShowLabCard = ({ data }) => {
                 height: '100%'
               }}
               variant='square'
-              alt={data?.image}
-              src={data?.image ? data?.image : LabImg}
+              src={
+                data?.image === 'https://app.antzsystems.com/uploads/'
+                  ? 'https://5.imimg.com/data5/SELLER/Default/2022/1/YJ/GO/TE/932240/science-lab-supplies.png'
+                  : data?.image
+              }
             />
           </Box>
         </Box>
