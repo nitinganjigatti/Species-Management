@@ -112,12 +112,12 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
+      console.log('paginationModel', paginationModel)
       if (id) {
         try {
           setLoading(true)
           let result
           if (type === 'local') {
-            console.log('local')
             const params = {
               sort,
               q,
@@ -140,6 +140,7 @@ const ListOfStocks = () => {
 
           if (result.success === true) {
             setTotal(parseInt(result.count))
+
             let listWithId = result.data
               ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
@@ -291,6 +292,7 @@ const ListOfStocks = () => {
 
   useEffect(() => {
     console.log('2')
+
     // getStocksReport(selectedPharmacy?.id)
 
     if (changeSwitch) {
@@ -309,7 +311,8 @@ const ListOfStocks = () => {
         type: stockType
       })
     }
-  }, [changeSwitch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
 
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
@@ -424,6 +427,7 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -594,11 +598,13 @@ const ListOfStocks = () => {
               const type = stores.find(el => el.id === id)?.type || ''
 
               setStockType(type)
+
               // console.log('e.target.value', e)
               setStockId(id)
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
+
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
@@ -632,6 +638,7 @@ const ListOfStocks = () => {
 
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
+
     // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
   }
@@ -658,15 +665,7 @@ const ListOfStocks = () => {
       {selectedPharmacy.type === 'central' && createForm()}
 
       <FormControlLabel
-        control={
-          <Switch
-            // onChange={e => {
-            checked={changeSwitch}
-            onChange={handleSwitchChange}
-            // }}
-            // defaultChecked
-          />
-        }
+        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
         labelPlacement='start'
         label='Stock Report Batch Wise'
       />
@@ -718,6 +717,7 @@ const ListOfStocks = () => {
                     title={
                       stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
                     }
+
                     // action={headerAction}
                   />
                   <Box>
@@ -725,15 +725,7 @@ const ListOfStocks = () => {
                       {selectedPharmacy.type === 'central' && createForm()}
 
                       <FormControlLabel
-                        control={
-                          <Switch
-                            // onChange={e => {
-                            checked={changeSwitch}
-                            onChange={handleSwitchChange}
-                            // }}
-                            // defaultChecked
-                          />
-                        }
+                        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
                         labelPlacement='start'
                         label='Batch Wise'
                       />
