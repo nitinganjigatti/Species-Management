@@ -1,11 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getLabList } from 'src/lib/api/lab/addLab'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
@@ -265,6 +262,7 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+
     // console.log('SearchValue', value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }

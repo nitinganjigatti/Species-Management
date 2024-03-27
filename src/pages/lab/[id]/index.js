@@ -1,6 +1,3 @@
-/* eslint-disable react/jsx-key */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
 import {
@@ -16,6 +13,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
+
 // ** MUI Imports
 import { LoadingButton } from '@mui/lab'
 import Typography from '@mui/material/Typography'
@@ -395,6 +393,7 @@ const RequestDetails = () => {
     {
       flex: 0.2,
       minWidth: 10,
+
       // field: 'Action',
       // headerName: 'Action',
 
@@ -628,19 +627,12 @@ const RequestDetails = () => {
 
             <DataGrid
               autoHeight
-              // pagination
               hideFooterPagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              // sortingMode='server'
-              // paginationMode='server'
               getRowId={row => row?.test_id}
-              // pageSizeOptions={[10, 25, 50]}
-              // paginationModel={paginationModel}
-              // onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              // onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -667,6 +659,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {image?.map(item => (
                         <a
+                          key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
@@ -726,6 +719,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {document?.map(item => (
                         <a
+                          key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
@@ -886,7 +880,6 @@ const RequestDetails = () => {
                     <Controller
                       name='lab_name'
                       control={control}
-                      // defaultValue={request[0]?.lab_id || ''}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
@@ -903,6 +896,7 @@ const RequestDetails = () => {
                     />
                     {errors.lab_name && (
                       <FormHelperText
+
                       //  sx={{ color: 'error.main' }}
                       >
                         {errors?.lab_name?.message}
@@ -926,6 +920,7 @@ const RequestDetails = () => {
                           label='Transfer To*'
                           onChange={e => {
                             onChange(e.target.value)
+
                             // setLabType(e.target.value)
                           }}
                           error={Boolean(errors?.replaced_lab_id)}
@@ -968,7 +963,6 @@ const RequestDetails = () => {
                 </Grid>
                 <Box>
                   <LoadingButton
-                    // loading={submitLoader}
                     onClick={handleSubmitData}
                     type='submit'
                     variant='contained'
@@ -1023,6 +1017,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mb: 5 }}>
                       {testImage?.map(item => (
                         <a
+                          key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
@@ -1074,6 +1069,7 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       {testDoc?.map(item => (
                         <a
+                          key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'

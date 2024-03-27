@@ -1,15 +1,34 @@
 import { Icon } from '@iconify/react'
-import { Box, Card, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Card, Stack, Typography } from '@mui/material'
 import React from 'react'
 
 const ShowLabCard = ({ data }) => {
+  // console.log('data?.image', data?.image)
+
+  // console.log('process.env.NEXT_PUBLIC_BASE_URL', process.env.NEXT_PUBLIC_BASE_URL + 'uploads/')
+
   return (
     <>
       <Card sx={{ px: 5, py: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 2 }}>
           <Typography sx={{ fontWeight: 'bold', pb: 4 }}>{data?.lab_name}</Typography>
-          <Box sx={{ maxWidth: 110, height: 100 }}>
-            <img src={data?.image} alt='' style={{ width: '100%', borderRadius: '15px', height: '100%' }} />
+          <Box sx={{ maxWidth: 130, height: 100 }}>
+            {/* <img
+              src={}
+              alt=''
+              style={{ width: '100%', borderRadius: '15px', height: '100%' }}
+            /> */}
+            <Avatar
+              sx={{
+                '& > img': {
+                  objectFit: 'contain'
+                },
+                width: '100%',
+                height: '100%'
+              }}
+              variant='square'
+              src={data?.image === process.env.NEXT_PUBLIC_BASE_URL + 'uploads/' ? '/images/med-lab.png' : data?.image}
+            />
           </Box>
         </Box>
         <hr

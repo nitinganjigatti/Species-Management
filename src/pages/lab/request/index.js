@@ -1,13 +1,10 @@
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getNoOfLab, GetLabReportById, GetLabRequestTestStatusById } from 'src/lib/api/lab/getLabRequest'
-// import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -21,6 +18,7 @@ import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+
 // import Router from 'next/router'
 import Utility from 'src/utility'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
@@ -199,6 +197,7 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
+
       // field: 'Action',
       // headerName: 'Action',
 
@@ -260,6 +259,7 @@ const ListOfRequest = () => {
       console.log('error', error)
     }
   }
+
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
 
@@ -283,6 +283,7 @@ const ListOfRequest = () => {
       const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
 
       setSelectedLab(data)
+
       const params = {
         sort,
         q: searchValue,
@@ -300,6 +301,7 @@ const ListOfRequest = () => {
 
   useEffect(() => {
     oldstoredData()
+
     // setSelectLoader(true)
   }, [])
 
@@ -363,6 +365,7 @@ const ListOfRequest = () => {
     }
     await fetchData(params)
   }
+
   const handleSearch = async value => {
     setSearchValue(value)
     console.log('value', value)
