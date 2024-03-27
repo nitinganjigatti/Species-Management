@@ -468,6 +468,7 @@ const IndividualRequest = () => {
                 setFulfillMedicine({
                   ...params.row
                 })
+
                 // console.log('in fulfill button', params.row)
                 showDialog()
               }}

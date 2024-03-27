@@ -133,6 +133,7 @@ const UserDropdown = props => {
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>
                 {userData?.user?.user_first_name ? userData?.user?.user_first_name : null}
+                {userData?.user?.user_last_name ? userData?.user?.user_last_name : null}
               </Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 {userData?.roles?.role_name ? userData?.roles?.role_name : null}
