@@ -1,34 +1,102 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
-import { getExpiredMedicine } from 'src/lib/api/getStocksReportById'
-import TableWithFilter from 'src/components/TableWithFilter'
+import { getExpiredMedicine } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
-
+import { debounce } from 'lodash'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import Card from '@mui/material/Card'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const ExpiredMedicine = () => {
-  const [stockoutItems, setStockoutItems] = useState([])
+  const [loader, setLoader] = useState(false)
+
+  /***** Server side pagination */
+
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
-  const getStockOutItemsList = async () => {
-    setLoading(true)
-    const response = await getExpiredMedicine()
-    if (response?.length > 0) {
-      let data = response
-      data?.map((obj, i) => (obj['id'] = i + 1))
-      console.log(data)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
-      // debugger
-      setStockoutItems(data)
-      setLoading(false)
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getExpiredMedicine({ params: params }).then(res => {
+          setTotal(parseInt(res?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.list_items))
+        })
+        setLoading(false)
+      } catch (error) {
+        console.log('error', error)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTableData, selectedPharmacy.id])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedPharmacy.id])
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    id: getSlNo(index)
+  }))
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    getStockOutItemsList()
-  }, [])
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
   const columns = [
     {
@@ -47,7 +115,7 @@ const ExpiredMedicine = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_item_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_item_name}
@@ -72,15 +140,18 @@ const ExpiredMedicine = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_qty',
-      headerName: 'Stock',
+      headerName: 'Qty',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -102,7 +173,57 @@ const ExpiredMedicine = () => {
 
   return (
     <>
-      <TableWithFilter TableTitle='Expired Medicine' columns={columns} rows={stockoutItems} />
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <>
+          <Card>
+            <CardHeader title='Expired products' />
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                id: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              total
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+
+              // onRowClick={onRowClick}
+            />
+          </Card>
+        </>
+      )}
     </>
   )
 }

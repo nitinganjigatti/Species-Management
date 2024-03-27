@@ -17,7 +17,7 @@ import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { RadioGroup, FormLabel, Radio } from '@mui/material'
-import { getUnitsById } from 'src/lib/api/getUnits'
+import { getUnitsById } from 'src/lib/api/pharmacy/getUnits'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
@@ -35,6 +35,7 @@ const schema = yup.object().shape({
   unit_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(1, 'UOM must contain at least 1 characters')
     .required('UOM is Required'),
   active: yup.string().nullable()
 })
@@ -137,7 +138,7 @@ const AddUOM = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='UOM Name'
+                  label='UOM Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='UOM Name'

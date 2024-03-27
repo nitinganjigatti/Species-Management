@@ -1,3 +1,6 @@
+import moment from 'moment'
+import toast from 'react-hot-toast'
+
 const formatDate = dateString => {
   if (dateString !== null) {
     const date = new Date(dateString)
@@ -22,9 +25,39 @@ function formatNumber(number) {
   }
 }
 
+function formattedPresentDate() {
+  const date = new Date()
+
+  const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+    .getDate()
+    .toString()
+    .padStart(2, '0')}`
+
+  return formattedDate
+}
+
+function formatDisplayDate(date) {
+  return moment(date).format('DD MMM YYYY')
+}
+
+function errorMessageExtractorFromObject(errorMessages) {
+  for (const key in errorMessages) {
+    if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
+      debugger
+      const errorMessage = errorMessages[key]
+      toast.error(errorMessage)
+
+      // console.log(`${key}: ${errorMessage}`)
+    }
+  }
+}
+
 const Utility = {
   formatDate,
-  formatNumber
+  formatNumber,
+  formattedPresentDate,
+  formatDisplayDate,
+  errorMessageExtractorFromObject
 }
 
 export default Utility

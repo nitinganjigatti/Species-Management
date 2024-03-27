@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { getRackList, addRackList, updateRackList, deleteRackItem } from 'src/lib/api/getRackList'
+import { getRackList, addRackList, updateRackList, deleteRackItem } from 'src/lib/api/pharmacy/getRackList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -20,6 +20,8 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AddButton } from 'src/components/Buttons'
 
 const ListOfRacks = () => {
   const [racks, setRacks] = useState([])
@@ -44,6 +46,8 @@ const ListOfRacks = () => {
     message: ''
   })
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const addEventSidebarOpen = () => {
     console.log('event clicked')
     setEditParams({ id: null, name: null, position: null, store_id: null, shelf: null, status: 'active' })
@@ -67,14 +71,15 @@ const ListOfRacks = () => {
       } else {
         response = await addRackList(payload)
       }
-
+      console.log('rack list', response)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+        getRacksLists()
 
-        await getRacksLists()
+        // await getRacksLists()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -101,43 +106,50 @@ const ListOfRacks = () => {
   const confirmDeleteAction = async () => {
     console.log(deleteRowId)
     const response = await deleteRackItem(deleteRowId)
-    console.log('afterdelte', response)
 
     if (response?.success) {
       handleClose()
-      toast.success(response?.message)
+      toast.success(response?.data)
       getRacksLists()
       setDeleteRowId('')
     } else {
       handleClose()
-      toast.error(response?.message)
+      toast.error(response?.data)
     }
   }
 
   /***** Drawer  */
 
   const getRacksLists = async () => {
-    setLoader(true)
-    const response = await getRackList()
-    if (response?.length > 0) {
-      console.log('list', response)
+    try {
+      setLoader(true)
+      const response = await getRackList()
+      if (response?.length > 0) {
+        console.log('list', response)
 
-      // response.sort((a, b) => a.id - b.id)
-      let listWithId = response
-        ? response.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-        : []
-      setRacks(listWithId)
+        let listWithId = response
+          ? response.map((el, i) => {
+              return { ...el, uid: i + 1 }
+            })
+          : []
+        setRacks(listWithId)
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
       setLoader(false)
-    } else {
-      setLoader(false)
+      console.log('error', error)
     }
   }
 
   useEffect(() => {
     getRacksLists()
   }, [])
+
+  // useEffect(() => {
+  //   getRacksLists()
+  // }, [selectedPharmacy])
 
   const columns = [
     {
@@ -257,12 +269,10 @@ const ListOfRacks = () => {
       ) : (
         <>
           <TableWithFilter
-            TableTitle={racks.length > 0 ? 'Rack List' : 'Rack List is empty add Rack List'}
+            TableTitle='Rack List'
             headerActions={
               <div>
-                <Button onClick={() => addEventSidebarOpen()} size='big' variant='contained'>
-                  Add Rack
-                </Button>
+                <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
               </div>
             }
             columns={columns}

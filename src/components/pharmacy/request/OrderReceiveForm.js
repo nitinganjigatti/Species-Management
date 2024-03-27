@@ -1,188 +1,547 @@
+/* eslint-disable lines-around-comment */
 import React, { forwardRef, useState, useEffect } from 'react'
-
-import TableWithFilter from 'src/components/TableWithFilter'
-import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import DataGrid from 'src/@core/theme/overrides/dataGrid'
-import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
+
 import {
   Grid,
-  Table,
-  TableContainer,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
   TextField,
+  Divider,
   Box,
   Button,
-  Chip,
+  IconButton,
   CardContent,
-  CardHeader,
-  Divider
+  CardHeader
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-
-// ** MUI Imports
-import IconButton from '@mui/material/IconButton'
+import FormHelperText from '@mui/material/FormHelperText'
+import Icon from 'src/@core/components/icon'
+import CircularProgress from '@mui/material/CircularProgress'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Card from '@mui/material/Card'
+import Chip from '@mui/material/Chip'
+import Avatar from '@mui/material/Avatar'
+// ** MUI Imports
+
 import Typography from '@mui/material/Typography'
-import Paper from '@mui/material/Paper'
 import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
-import { useForm, Controller } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
+import {
+  getShipmentOrderDetails,
+  getShipmentStatusList,
+  resolveDisputeItems,
+  getCommentsList
+} from 'src/lib/api/pharmacy/getShipmentList'
 
-import { useRouter } from 'next/router'
-
-import Router from 'next/router'
-import { column } from 'stylis'
-
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
-import { getRequestItemsListById } from 'src/lib/api/getRequestItemsList'
-import { getShipmentOrderDetails } from 'src/lib/api/getShipmentList'
+import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import select from 'src/@core/theme/overrides/select'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-function OrderReceiveForm({ orderId }) {
+
+function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const defaultValues = {
     shipment_id: '',
-    shipment_date: '',
-    traking_information: '',
-    person_shipping: '',
-    shipment_status: '',
-    vehicle_no: '',
-    from_store_name: '',
-    to_store_name: '',
-    shipment_item_details: []
+    // dispatch_id: '',
+    request_id: requestId,
+    comments: '',
+    store_id: '',
+    item_details: [
+      {
+        dispatch_id: '',
+        uid: '',
+        id: '',
+        stock_id: '',
+        stock_name: '',
+        count: '',
+        batch_no: '',
+        from_store: '',
+        to_store: '',
+        from_store_name: '',
+        to_store_name: '',
+        status: '',
+        wrong_count_type: '',
+        wrong_count_number: ''
+      }
+    ]
   }
-  const [values, setValues] = useState(defaultValues)
+
+  const initialRejectPayload = {
+    from_store: '',
+    to_store: '',
+    batch_no: '',
+    stock_id: '',
+    status: '',
+    dispatch_item_id: '',
+    request_id: '',
+    // request_item_id: '',
+    type: '',
+    action: '',
+    comment: '',
+    dispute_id: ''
+  }
+  const [disputeItemDetails, setDisputeItemDetails] = useState({})
+  const [tempDisputeItemDetails, setTempDisputeItemDetails] = useState([])
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [statusOptions, setStatusOptions] = useState([])
+  const [resolveLoader, setResolveLoader] = useState(false)
+  const [disputeDialog, setDisputeDialog] = useState(false)
+  const [commentDialog, setCommentDialog] = useState(false)
+  const [rejectItemsPayload, setRejectItemsPayload] = useState(initialRejectPayload)
+  const [rejectItemsError, setRejectItemsError] = useState(null)
+  const [listComments, setListComments] = useState([])
+  const [wrongCountErr, setWrongCountErr] = useState({})
+
   const [orderData, setOrderData] = useState([])
+  const { selectedPharmacy } = usePharmacyContext()
 
-  const schema = yup.object().shape({
-    shipment_status: yup.string().required('order is required')
-  })
+  const closeDisputeDialog = () => {
+    setDisputeDialog(false)
+    setRejectItemsPayload(initialRejectPayload)
+    setRejectItemsError(null)
+  }
 
-  const {
-    reset,
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onBlur',
-    reValidateMode: 'onChange'
-  })
-  const options = ['Received', 'Broken/damaged', 'Missing', 'Wrong count', 'Expired', 'Shipped']
+  const openDisputeDialog = () => {
+    setDisputeDialog(true)
+  }
+
+  const closeCommentDialog = () => {
+    setCommentDialog(false)
+    setListComments([])
+  }
+
+  const openCommentDialog = () => {
+    setCommentDialog(true)
+  }
+
+  const handleStatusChange = (itemId, event) => {
+    const { name, value } = event.target
+
+    const updatedData = {
+      ...disputeItemDetails,
+      item_details: disputeItemDetails.item_details.map(item =>
+        // item.id === itemId ? { ...item, status: event.target.value } : item
+        item.id === itemId ? { ...item, [name]: value } : item
+      )
+    }
+    console.log('updatedData', updatedData)
+    setDisputeItemDetails(updatedData)
+  }
+
+  const clearStatus = (itemId, event) => {
+    console.log('event', event)
+
+    const updatedData = {
+      ...disputeItemDetails,
+      item_details: disputeItemDetails.item_details.map(item =>
+        item.id === itemId ? { ...item, status: '', wrong_count_type: '', wrong_count_number: '' } : item
+      )
+    }
+    console.log('updatedData', updatedData)
+    setDisputeItemDetails(updatedData)
+  }
+
+  // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
+
+  const getStatusList = async () => {
+    try {
+      const status = await getShipmentStatusList()
+      // console.log('status', status)
+      if (status?.success) {
+        setStatusOptions(status?.data)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const getOrderDetails = async orderId => {
-    // const result = await getdatta()
-    // const response = await getShipmentOrderDetails('52')
+    try {
+      const response = await getShipmentOrderDetails(orderId)
 
-    const response = await getShipmentOrderDetails(orderId)
-    console.log('response', response)
-    console.log('response', response.data)
+      console.log('getOrderDetails', response)
 
-    // const response = getRequestItemsListById('83')
-    console.log('check', response.success === true && response.data !== '')
-    if (response.success === true && response.data !== '') {
-      // setOrderData(response.data)
-      const addStatus = response?.data?.shipment_item_details.map(el => {
-        const data = {
-          id: el.id,
-          shipment_id: el.shipment_id,
-          dispatch_id: el.dispatch_id,
-          dispatch_item_id: el.dispatch_item_id,
-          stock_id: el.stock_id,
-          batch: el.batch,
-          expiry: el.expiry,
-          quantity: el.quantity,
-          created_by: el.created_by,
-          created_at: el.created_at,
-          stock_name: el.stock_name,
-          shipment_status: response?.data?.shipment_status
+      if (response?.success === true && response?.data !== '') {
+        const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
+          const data = {
+            uid: index + 1,
+            id: el?.id,
+            stock_id: el?.stock_id,
+            batch_no: el?.batch,
+            count: el?.quantity,
+            from_store: el?.from_store,
+            to_store: el?.to_store,
+            stock_name: el?.stock_name,
+            from_store_name: el?.from_store_name,
+            to_store_name: el?.to_store_name,
+            status: el.status ? el.status : '',
+            dispatch_id: el?.dispatch_id,
+            dispatch_item_id: el?.dispatch_item_id,
+            wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
+            wrong_count_number: el?.wrong_count_number ? el?.wrong_count_number : '',
+            dispute_status: el?.dispute_status ? el?.dispute_status : '',
+            request_item_id: el?.request_item_id ? el?.request_item_id : '',
+            dispute_id: el?.dispute_id,
+            shipment_id: el?.shipment_id,
+            total_deny_comments: el?.total_deny_comments
+          }
+
+          return data
+        })
+        setOrderData({
+          ...orderData,
+
+          shipping_id: orderId,
+          shipment_id: response?.data?.shipment_id,
+          shipment_date: response?.data?.shipment_date,
+          person_shipping: response?.data?.person_shipping,
+          shipment_status: response?.data?.shipment_status,
+          vehicle_no: response?.data?.vehicle_no,
+          item_details: disputeLineItems
+        })
+        console.log('orderData', orderData)
+        console.log('dispute items response', response)
+
+        const disputesData = {
+          shipment_id: orderId,
+          store_id: response?.data?.shipment_item_details[0]?.from_store,
+          // dispatch_id: response?.data?.dispatch_id,
+          request_id: requestId,
+          item_details: disputeLineItems,
+          comments: response?.data?.comments,
+          delivery_status: response?.data?.delivery_status,
+          dispute_status: response?.data?.dispute_status
         }
-        console.log('updated data', data)
 
-        return data
-      })
-      setOrderData({
-        ...orderData,
-        shipment_id: response?.data?.shipment_id,
-        shipment_date: response?.data?.shipment_date,
-        traking_information: response?.data?.traking_information,
-        person_shipping: response?.data?.person_shipping,
-        shipment_status: response?.data?.shipment_status,
-        vehicle_no: response?.data?.vehicle_no,
-        from_store_name: response?.data?.from_store_name,
-        to_store_name: response?.data?.to_store_name,
-
-        // shipment_item_details: response?.data?.shipment_item_details
-        shipment_item_details: addStatus
-      })
-
-      const data = {
-        shipment_id: response?.data?.shipment_id,
-        shipment_date: response?.data?.shipment_date,
-        traking_information: response?.data?.traking_information,
-        person_shipping: response?.data?.person_shipping,
-        shipment_status: response?.data?.shipment_status,
-        vehicle_no: response?.data?.vehicle_no,
-        from_store_name: response?.data?.from_store_name,
-        to_store_name: response?.data?.to_store_name,
-
-        // shipment_item_details: response?.data?.shipment_item_details
-        shipment_item_details: addStatus
+        setDisputeItemDetails(disputesData)
+        setTempDisputeItemDetails(disputesData)
+      } else {
       }
-      reset(data)
+    } catch (error) {
+      console.log(disputeItemDetails)
+
+      console.log('error', error)
     }
-
-    // if (response.success === true && response.data.length > 0) {
-    //   setOrderData(response.data)
-
-    //   // setLoader(false)
-    // } else {
-    //   // setLoader(false)
-    // }
   }
 
+  function getDisableStatus(id) {
+    if (!Array.isArray(orderData.item_details)) {
+      return
+    }
+    const foundItem = orderData.item_details?.find(item => item.id == id)
+    if (foundItem.status !== '') {
+      return true
+    } else {
+      return false
+    }
+  }
+  function disableButton() {
+    if (disputeItemDetails?.item_details) {
+      const allReceived = disputeItemDetails?.item_details.every(item => item.status === '')
+
+      return allReceived
+    }
+  }
   useEffect(() => {
     if (orderId) {
       getOrderDetails(orderId)
     }
+    getStatusList()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const bulkStatusUpdate = async () => {
+    const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+      // if (item.status === '' || item.status === 'Expired' || item.status === 'Broken') {
+      //   return {
+      //     ...item,
+      //     status: 'Received'
+      //   }
+      // } else {
+      //   return item
+      // }
+
+      return {
+        ...item,
+        status: 'Received'
+      }
+    })
+
+    // setDisputeItemDetails(prevState => ({
+    //   ...prevState,
+    //   item_details: updatedItemDetails
+    // }))
+    const items = disputeItemDetails
+    items['item_details'] = updatedItemDetails
+    setDisputeItemDetails({ ...disputeItemDetails, items })
+    console.log('after update', disputeItemDetails)
+    updateStatus()
+  }
+
+  const resolveItems = async payload => {
+    var itemsToResolve
+    console.log('line data', payload)
+    if (payload?.status === 'Missing') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        request_id: requestId,
+        request_item_id: payload.request_item_id,
+        type: 'resolve',
+        action: 'accept'
+      }
+    }
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        excess_count: payload.wrong_count_number,
+        request_id: requestId,
+        request_item_id: payload.request_item_id,
+        type: 'Excess',
+        action: 'accept'
+      }
+    }
+
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      itemsToResolve = {
+        from_store: payload.from_store,
+        to_store: payload.to_store,
+        batch_no: payload.batch_no,
+        stock_id: payload.stock_id,
+        status: payload.status,
+        dispatch_item_id: payload.dispatch_item_id,
+        shortage_count: payload.wrong_count_number,
+        type: 'Shortage',
+        action: 'accept',
+        request_id: requestId,
+        request_item_id: payload.request_item_id
+      }
+    }
+
+    console.log('payload', itemsToResolve)
+    try {
+      setResolveLoader(true)
+      const resolved = await resolveDisputeItems(itemsToResolve)
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+      } else {
+        setResolveLoader(false)
+      }
+
+      console.log('resolve response ', resolved)
+    } catch (error) {
+      setResolveLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
+  const rejectItems = async payload => {
+    console.log('row datta', payload)
+    if (payload?.status === 'Missing') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'resolve',
+        action: 'deny'
+      })
+    }
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'excess') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        excess_count: payload.wrong_count_number,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Excess',
+        action: 'deny'
+      })
+    }
+
+    if (payload?.status === 'Wrong Count' && payload.wrong_count_type === 'shortage') {
+      setRejectItemsPayload({
+        ...rejectItemsPayload,
+        from_store: payload?.from_store,
+        to_store: payload?.to_store,
+        batch_no: payload?.batch_no,
+        stock_id: payload?.stock_id,
+        status: payload?.status,
+        dispatch_item_id: payload?.dispatch_item_id,
+        request_id: requestId,
+        shortage_count: payload.wrong_count_number,
+        // request_item_id: payload?.request_item_id,
+        dispute_id: payload?.dispute_id,
+        type: 'Shortage',
+        action: 'deny'
+      })
+    }
+
+    console.log('params', payload)
+    openDisputeDialog()
+  }
+
+  const submitRejectItems = async () => {
+    for (let key in rejectItemsPayload) {
+      if (rejectItemsPayload[key] === '' || rejectItemsPayload[key] === null || rejectItemsPayload[key] === undefined) {
+        setRejectItemsError(`The key '${key}' has an empty value.`)
+
+        return
+      }
+    }
+    try {
+      setResolveLoader(true)
+      const resolved = await resolveDisputeItems(rejectItemsPayload)
+      console.log('rejected response', resolved)
+      if (resolved?.success) {
+        setResolveLoader(false)
+        toast.success(resolved?.data)
+        getOrderDetails(orderId)
+        closeDisputeDialog()
+      } else {
+        setResolveLoader(false)
+      }
+
+      console.log('resolve response ', resolved)
+    } catch (error) {
+      setResolveLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
+  const getRejectedCommentsList = async id => {
+    try {
+      const comments = await getCommentsList(id)
+      // setListComments()
+      if (comments.data.length > 0 && comments.success === true) {
+        setListComments(comments)
+        openCommentDialog()
+      }
+      console.log('comments', comments)
+    } catch (error) {
+      console.log('comments error', error)
+    }
+  }
+
+  const verifyStatusInTemp = id => {
+    const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
+    const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
+    const result = verified?.status === verifyInTempData?.status
+
+    return result
+  }
+
+  const commentDialogBox = () => {
+    return (
+      <ConfirmDialogBox
+        open={commentDialog}
+        closeDialog={() => {
+          closeCommentDialog()
+        }}
+        action={closeCommentDialog}
+        content={
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
+            {/* <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+              <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
+            </Box> */}
+            <Box sx={{}}>
+              {listComments?.data?.length > 0 ? (
+                listComments?.data?.map((el, index) => {
+                  return (
+                    <Card key={index} sx={{ mx: 2, mb: 2 }}>
+                      {/* <CardHeader
+                        action={
+                          <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
+                            <Icon icon='mdi:close' />
+                          </IconButton>
+                        }
+                      ></CardHeader> */}
+                      <CardContent>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sx={{ alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
+                            <Typography style={{ fontSize: '12px' }}>
+                              {Utility.formatDisplayDate(el?.created_at)}
+                            </Typography>
+                          </Grid>
+                          <Grid item>
+                            <Typography>{el?.comment}</Typography>
+                          </Grid>
+                        </Grid>
+                        {/* <strong>Shipped From:</strong> */}
+                      </CardContent>
+                      {/* <CardContent>{el?.comment}</CardContent> */}
+                    </Card>
+                  )
+                })
+              ) : (
+                <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
+              )}
+            </Box>
+            {/* <DialogActions className='dialog-actions-dense'>
+              <Button
+                variant='contained'
+                color='error'
+                size='small'
+                onClick={() => {
+                  closeCommentDialog()
+                }}
+              >
+                Close
+              </Button>
+            </DialogActions> */}
+          </Box>
+        }
+      />
+    )
+  }
+
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'Id',
-      renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
     {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
-      headerName: 'Medicine Name',
+      headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -194,11 +553,11 @@ function OrderReceiveForm({ orderId }) {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'batch',
+      field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch}
+          {params.row.batch_no}
         </Typography>
       )
     },
@@ -206,11 +565,11 @@ function OrderReceiveForm({ orderId }) {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'quantity',
-      headerName: 'Quantity',
+      field: 'count',
+      headerName: 'qty',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.quantity}
+          {params.row.count}
         </Typography>
       )
     },
@@ -218,275 +577,586 @@ function OrderReceiveForm({ orderId }) {
     {
       flex: 0.2,
       minWidth: 20,
-      field: '',
-      headerName: 'Action',
+      field: 'from_store_name',
+      headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
       renderCell: params => (
-        // eslint-disable-next-line lines-around-comment
-        // <FormControl fullWidth>
-        //   <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-        //     Status
-        //   </InputLabel>
-        //   <Controller
-        //     name={`shipment_item_details[${params.row.id}].shipment_status`}
-        //     // name='shipment_item_details.shipment_status'
-        //     control={control}
-        //     rules={{ required: true }}
-        //     render={({ field: { value, onChange } }) => (
-        //       <Select
-        //         size='small'
-        //         name={`shipment_item_details[${params.row.id}].shipment_status`}
-        //         // name='shipment_item_details.shipment_status'
-        //         value={value}
-        //         label='Status'
-        //         onChange={e => {
-        //           onChange(e)
-        //         }}
-
-        //         // error={Boolean(errors?.shipment_item_details.shipment_status)}
-        //       >
-        //         {options?.map((item, index) => (
-        //           <MenuItem key={index} value={item}>
-        //             {item}
-        //           </MenuItem>
-        //         ))}
-        //       </Select>
-        //     )}
-        //   />
-        //   {errors?.shipment_item_details.shipment_status && (
-        //     <FormHelperText sx={{ color: 'error.main' }}>
-        //       {errors?.shipment_item_details.shipment_status?.message}
-        //     </FormHelperText>
-        //   )}
-        // </FormControl>
-        <FormControl fullWidth>
-          <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-            Status
-          </InputLabel>
-          <Select
-            size='small'
-            name={`shipment_item_details[${params.row.id}].shipment_status`}
-            value={params.row.shipment_status}
-            label='Status'
-            onChange={e => (params.row.shipment_status = e.target.value)}
-            error={Boolean(errors?.shipment_status)}
-          >
-            {options.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-          {/* Error handling for shipment_status */}
-          {/* {params.row.shipment_item_details.map(
-            (item, index) =>
-              errors?.shipment_item_details?.[index]?.shipment_status && (
-                <Typography key={index} variant='body2' sx={{ color: 'error.main' }}>
-                  {errors?.shipment_item_details?.[index]?.shipment_status?.message}
-                </Typography>
-              )
-          )} */}
-        </FormControl>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+        </Typography>
       )
+    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'to_store_name',
+    //   headerName: 'Shipped To',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.to_store_name}
+    //     </Typography>
+    //   )
+    // },
+
+    {
+      flex: 0.4,
+      minWidth: 200,
+      field: 'status',
+      // headerName: 'Status',
+      headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
+      renderCell: params => {
+        return (
+          <>
+            {selectedPharmacy.type === 'central' ? (
+              <>
+                <Grid
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  <Typography variant='p' sx={{ mx: 2 }}>
+                    {/* {params.row.status === 'Wrong Count' && params?.row?.dispute_status === 'Dispute Pending' ? */}
+                    {params.row.status === 'Wrong Count' ||
+                    params.row.status === 'Shortage - Accepted' ||
+                    params.row.status === 'Excess - Accepted' ||
+                    params?.row?.status === 'Wrong Count - Deny Closed'
+                      ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                          params?.row?.dispute_status === 'Dispute Resolved'
+                            ? '- Accepted'
+                            : params?.row?.status === 'Wrong Count - Deny Closed'
+                            ? '- Denied'
+                            : ''
+                        }`
+                      : params.row.status === 'Missing - Deny Closed'
+                      ? `${
+                          params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
+                        }`
+                      : params?.row?.status}
+                    {/* : params.row.status} */}
+                  </Typography>
+                  {((params?.row?.dispute_status === 'Not Resolved' ||
+                    params?.row?.dispute_status === 'Dispute Pending') &&
+                    params?.row?.status !== 'Wrong Count - Deny Closed' &&
+                    params?.row?.status !== 'Missing - Deny Closed') ||
+                  params?.row?.status === 'Wrong Count - Deny Open' ? (
+                    <>
+                      {resolveLoader ? (
+                        <CircularProgress size={40} />
+                      ) : (
+                        <IconButton
+                          size='large'
+                          aria-label='Accept'
+                          onClick={() => {
+                            resolveItems(params.row)
+                          }}
+                          sx={{ padding: 0 }}
+                          color='success'
+                        >
+                          <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
+                        </IconButton>
+                      )}
+
+                      <IconButton
+                        aria-label='Deny'
+                        onClick={() => {
+                          rejectItems(params.row)
+                        }}
+                        sx={{ padding: 0 }}
+                        size='large'
+                        color='error'
+                      >
+                        <Icon icon='ion:close-circle' />
+                      </IconButton>
+                      <ConfirmDialogBox
+                        open={disputeDialog}
+                        closeDialog={() => {
+                          closeDisputeDialog()
+                        }}
+                        action={closeDisputeDialog}
+                        content={
+                          <Box sx={{ m: 0 }}>
+                            {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
+                            {/* {rejectItemsPayload.length > 0 ? ( */}
+                            <>
+                              <DialogContent>
+                                <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
+                                <FormControl fullWidth>
+                                  <TextField
+                                    id='name'
+                                    autoFocus
+                                    fullWidth
+                                    value={rejectItemsPayload?.comment}
+                                    type='text'
+                                    error={Boolean(rejectItemsError ? rejectItemsError : null)}
+                                    onChange={e => {
+                                      setRejectItemsPayload({
+                                        ...rejectItemsPayload,
+                                        comment: e.target.value
+                                      })
+                                      setRejectItemsError(null)
+                                    }}
+                                    label='Comment'
+                                  />
+
+                                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                                    {rejectItemsError}
+                                  </FormHelperText>
+                                </FormControl>
+                              </DialogContent>
+                              <DialogActions className='dialog-actions-dense'>
+                                <Button
+                                  variant='contained'
+                                  color='error'
+                                  size='small'
+                                  onClick={() => {
+                                    closeDisputeDialog()
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size='small'
+                                  variant='contained'
+                                  color='primary'
+                                  onClick={() => {
+                                    // action()
+                                    console.log('rejectItemsPayload', rejectItemsPayload)
+                                    submitRejectItems()
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                              </DialogActions>
+                            </>
+                            {/* ) : null} */}
+                          </Box>
+                        }
+                      />
+
+                      {/* <IconButton aria-label='Deny' size='small' color='error' variant='contained'></IconButton> */}
+                      {/* <LoadingButton
+                        onClick={() => {
+                          resolveItems(params.row)
+                        }}
+                        variant='contained'
+                        loading={resolveLoader}
+                        startIcon={<Icon icon={'ion:checkmark-circle'}></Icon>}
+                      >
+                        Accept
+                      </LoadingButton>
+
+                      <LoadingButton size='small' color='error' variant='contained'>
+                        Deny
+                      </LoadingButton> */}
+                    </>
+                  ) : null}
+                </Grid>
+              </>
+            ) : (
+              <>
+                {params.row.status === 'Wrong Count' &&
+                (params.row.status === 'Wrong Count - Deny Closed' ||
+                  params?.row?.dispute_status === '' ||
+                  params?.row?.dispute_status === undefined ||
+                  params?.row?.dispute_status === 'Not Resolved' ||
+                  params?.row?.dispute_status === 'Dispute Pending') ? (
+                  <Grid container spacing={2} sx={{ py: 4 }}>
+                    <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FormControl size='small' style={{ width: '100%' }}>
+                        <Select
+                          label=''
+                          // disabled={getDisableStatus(params.row.id)}
+                          name='wrong_count_type'
+                          size='small'
+                          style={{ fontSize: '12px' }}
+                          value={params?.row?.wrong_count_type}
+                          error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
+                          onChange={event => handleStatusChange(params.row.id, event)}
+                        >
+                          <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                            Shortage
+                          </MenuItem>
+                          <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                            Excess
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={5}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                    >
+                      <TextField
+                        // disabled={getDisableStatus(params.row.id)}
+                        id='outlined-size-small'
+                        name='wrong_count_number'
+                        value={params?.row?.wrong_count_number}
+                        error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
+                        size='small'
+                        onChange={event => {
+                          handleStatusChange(params.row.id, event)
+
+                          if (Number(event.target.value) > Number(params?.row?.count)) {
+                            setWrongCountErr(prevErrors => ({
+                              ...prevErrors,
+                              [params.row.uid]: 'Qty exceeds shipped count.'
+                            }))
+                          } else {
+                            setWrongCountErr(prevErrors => {
+                              const newErrors = { ...prevErrors }
+                              delete newErrors[params.row.uid]
+
+                              return newErrors
+                            })
+                          }
+                        }}
+                        inputProps={{ style: { fontSize: 12 } }}
+                      />
+                    </Grid>
+                    <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Button
+                        sx={{ width: 2, maxWidth: 2 }}
+                        // disabled={disableButton()}
+                        onClick={event => {
+                          clearStatus(params.row.id, event)
+                          setWrongCountErr(prevErrors => {
+                            const newErrors = { ...prevErrors }
+                            delete newErrors[params.row.uid]
+
+                            return newErrors
+                          })
+                        }}
+                      >
+                        <Icon
+                          // type='button'
+                          // disabled={disableButton()}
+                          // onClick={event => {
+                          //   clearStatus(params.row.id, event)
+                          // }}
+                          icon='material-symbols-light:close'
+                        />
+                      </Button>
+                    </Grid>
+                    {wrongCountErr[params.row.uid] && (
+                      <FormHelperText sx={{ mx: 4 }} error>
+                        {wrongCountErr[params.row.uid]}
+                      </FormHelperText>
+                    )}
+                  </Grid>
+                ) : (
+                  <Grid container>
+                    {(params.row.status === 'Missing' ||
+                      params.row.status === 'Wrong Count' ||
+                      params.row.status === 'Wrong Count - Deny Closed' ||
+                      params?.row?.status === 'Missing - Deny Closed' ||
+                      verifyStatusInTemp(params.row.id) === false ||
+                      params.row.status === '') &&
+                    (params?.row?.dispute_status === 'Not Resolved' ||
+                      params?.row?.dispute_status === '' ||
+                      params?.row?.dispute_status === undefined ||
+                      params?.row?.dispute_status === 'Dispute Pending') ? (
+                      <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <FormControl fullWidth size='small'>
+                          <Select
+                            // disabled={getDisableStatus(params.row.id)}
+                            fullWidth
+                            placeholder='Status'
+                            name='status'
+                            size='small'
+                            error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                            value={params?.row?.status}
+                            onChange={event => handleStatusChange(params.row.id, event)}
+                          >
+                            {statusOptions?.map((item, index) => (
+                              <MenuItem key={index} value={item?.label}>
+                                {item?.label === 'Broken' || item?.label === 'Expired'
+                                  ? `Received (${item?.label})`
+                                  : item?.label === 'Missing'
+                                  ? `Dispute (${item?.label})`
+                                  : item?.label === 'Wrong Count'
+                                  ? `Dispute (Wrong Qty)`
+                                  : item?.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        {params.row.status === 'Wrong Count - Deny Closed' ||
+                        params?.row?.status === 'Missing - Deny Closed' ||
+                        params?.row?.status === 'Missing - Deny Open' ||
+                        params.row.status === 'Wrong Count - Deny Open' ? (
+                          <>
+                            <Chip
+                              label={params.row.total_deny_comments}
+                              avatar={
+                                <Avatar>
+                                  <Icon icon='iconamoon:comment' />
+                                </Avatar>
+                              }
+                              onClick={() => {
+                                getRejectedCommentsList(params?.row?.dispatch_item_id)
+                              }}
+                              sx={{ padding: 0, mx: 2, alignSelf: 'center' }}
+                            />
+                            {/* <IconButton
+                              aria-label=''
+                              onClick={() => {
+                                getRejectedCommentsList(params?.row?.dispatch_item_id)
+                              }}
+                              sx={{ padding: 0, mx: 2 }}
+                              size='large'
+                              color=''
+                            >
+                              <Icon icon='iconamoon:comment' />
+                            </IconButton> */}
+                            {commentDialogBox()}
+                          </>
+                        ) : null}
+                      </Grid>
+                    ) : (
+                      <Typography variant='p' sx={{ mx: 2 }}>
+                        {/* {params.row.status} */}
+                        {params.row.status === 'Wrong Count' ||
+                        params.row.status === 'Shortage - Accepted' ||
+                        params.row.status === 'Excess - Accepted'
+                          ? `${params?.row?.wrong_count_type} (${params?.row?.wrong_count_number}) ${
+                              params?.row?.dispute_status === 'Dispute Resolved'
+                                ? '- Accepted'
+                                : params?.row?.status === 'Wrong Count - Deny Closed'
+                                ? '- Denied'
+                                : ''
+                            }`
+                          : params.row.status === 'Missing - Deny Closed'
+                          ? `${
+                              params?.row?.dispute_status === 'Dispute Resolved'
+                                ? 'Missing - Accepted'
+                                : 'Missing - Denied'
+                            }`
+                          : params?.row?.status}
+                      </Typography>
+                    )}
+                  </Grid>
+                )}
+              </>
+            )}
+          </>
+        )
+      }
     }
   ]
-  useEffect(() => {}, [orderData.shipment_item_details])
 
-  const updateStatus = async params => {
-    const {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      shipment_item_details
-    } = params
+  async function updateStatus() {
+    if (Object.keys(wrongCountErr).length > 0) {
+      console.error('Cannot submit form due to errors.')
 
-    const payLoad = {
-      shipment_id,
-      shipment_date,
-      traking_information,
-      person_shipping,
-      shipment_status,
-      vehicle_no,
-      from_store_name,
-      to_store_name,
-      shipment_item_details
+      return
     }
-    console.log('payload', payLoad)
-    console.log('orderData', orderData)
+    const isStatusEmpty = disputeItemDetails?.item_details?.some(item => item.status.trim() === '')
+
+    if (isStatusEmpty) {
+      console.error('Please fill in all status fields.')
+
+      return
+    }
+    const receivedItems = disputeItemDetails?.item_details
+
+    console.log('receivedItems: ', receivedItems)
+    console.log('disputeItemDetails3: ', disputeItemDetails)
+
+    if (receivedItems.length > 0) {
+      const finalReceivedItems = receivedItems.map((item, index) => {
+        return {
+          ...item,
+          from_store_id: item.from_store,
+          to_store_id: item.to_store,
+          shipment_item_id: item.id,
+          shipment_date: orderData.shipment_date,
+          person_shipping: orderData.person_shipping,
+          status: orderData.shipment_status,
+          vehicle_no: orderData.vehicle_no,
+          picked_up: orderData.picked_up,
+          request_id: requestId,
+          comments: disputeItemDetails.comments,
+          item_status: item.status
+        }
+      })
+
+      const verifyCount = finalReceivedItems.some(el => {
+        if (el.item_status === 'Wrong Count') {
+          if (el.wrong_count_number === '' || el.wrong_count_type === '') {
+            return false
+          }
+        }
+
+        return true
+      })
+      console.log('final payload', finalReceivedItems)
+      if (verifyCount) {
+        setSubmitLoader(true)
+
+        try {
+          const result = await updateShipmentRequest(orderId, finalReceivedItems)
+
+          if (result?.success) {
+            toast.success(result?.msg)
+            setSubmitLoader(false)
+            closeOrderFormDialog()
+          } else {
+            toast.error(result?.msg)
+            setSubmitLoader(false)
+          }
+        } catch (error) {
+          setSubmitLoader(false)
+
+          toast.error(error?.msg)
+        }
+      }
+    }
   }
 
   return (
     <>
-      <Grid xs={12} sx={{ mx: 'auto' }}>
-        {/* <CardHeader title={`Order received`} /> */}
-        <Grid container xs={12}>
-          {orderData?.shipment_id ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-              <p>{orderData.shipment_id}</p>
-            </Grid>
-          ) : null}
-          {orderData?.from_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}> From Store </h5>
-              <p>{orderData.from_store_name}</p>
-            </Grid>
-          ) : null}
-          {orderData?.shipment_date ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-              <p>{orderData.shipment_date}</p>
-            </Grid>
-          ) : null}
-          {orderData?.vehicle_no ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-              <p>{orderData.vehicle_no}</p>
-            </Grid>
-          ) : null}
-          {orderData?.to_store_name ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-              <p>{orderData.to_store_name}</p>
-            </Grid>
-          ) : null}
+      {disputeItemDetails?.item_details?.length > 0 ? (
+        <Grid container xs={12} sx={{ mx: 'auto' }}>
+          <Grid item xs={12}>
+            <Grid container xs={12}>
+              {orderData?.shipment_id ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
+                  <p>{orderData.shipment_id}</p>
+                </Grid>
+              ) : null}
+              {orderData?.from_store_name ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>From Store </h5>
+                  <p>{orderData.from_store_name}</p>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_date ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
+                  <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
+                </Grid>
+              ) : null}
+              {orderData?.vehicle_no ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
+                  <p>{orderData.vehicle_no}</p>
+                </Grid>
+              ) : null}
+              {orderData?.to_store_name ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>To Store </h5>
+                  <p>{orderData.to_store_name}</p>
+                </Grid>
+              ) : null}
 
-          {orderData?.person_shipping ? (
-            <Grid item md={4} sm={4} xs={4}>
-              <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
-              <p>{orderData.person_shipping}</p>
+              {orderData?.person_shipping ? (
+                <Grid item md={3} sm={3} xs={6}>
+                  <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                  <p>{orderData.person_shipping}</p>
+                </Grid>
+              ) : null}
             </Grid>
-          ) : null}
-        </Grid>
-        {/* <Button
-          variant='contained'
-          onClick={() => {
-            const addStatus = orderData?.shipment_item_details.map(el => {
-              const data = {
-                id: el.id,
-                shipment_id: el.shipment_id,
-                dispatch_id: el.dispatch_id,
-                dispatch_item_id: el.dispatch_item_id,
-                stock_id: el.stock_id,
-                batch: el.batch,
-                expiry: el.expiry,
-                quantity: el.quantity,
-                created_by: el.created_by,
-                created_at: el.created_at,
-                stock_name: el.stock_name,
-                shipment_status: 'Received'
-              }
-              console.log('updated data', data)
 
-              return data
-            })
-            setOrderData({
-              ...orderData,
-              shipment_id: orderData?.shipment_id,
-              shipment_date: orderData?.shipment_date,
-              traking_information: orderData?.traking_information,
-              person_shipping: orderData?.person_shipping,
-              shipment_status: orderData?.shipment_status,
-              vehicle_no: orderData?.vehicle_no,
-              from_store_name: orderData?.from_store_name,
-              to_store_name: orderData?.to_store_name,
+            {disputeItemDetails?.item_details?.length > 0 ? (
+              <>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                />
+                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                  <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+                </Grid>
+              </>
+            ) : null}
 
-              // shipment_item_details: response?.data?.shipment_item_details
-              shipment_item_details: addStatus
-            })
-          }}
-        >
-          Select all
-        </Button> */}
-        {orderData?.shipment_item_details?.length > 0 ? (
-          <>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-              {console.log('collll', orderData?.shipment_item_details)}
-              <TableBasic columns={columns} rows={orderData?.shipment_item_details}></TableBasic>
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    // disabled={disableButton()}
+                    disabled={
+                      selectedPharmacy.type === 'central'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
+                    multiline
+                    rows={3}
+                    type='text'
+                    label='Comment'
+                    value={disputeItemDetails?.comments}
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder='comment'
+                    name='comments'
+                  />
+                </FormControl>
+              </Grid>
             </Grid>
-          </>
-        ) : null}
+            {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
+              <Grid>
+                {selectedPharmacy.type === 'local' && (
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+                )}
+                {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
+                {console.log('selectedPhh', selectedPharmacy.permission.key)}
 
-        <form autoComplete='off' onSubmit={handleSubmit(updateStatus)}>
-          <Grid container items>
-            {/* <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.shipment_status)} id='status'>
-                  Status
-                </InputLabel>
-                <Controller
-                  name='shipment_status'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='shipment_status'
-                      value={value}
-                      label='Status'
-                      onChange={e => {
-                        onChange(e)
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                  <>
+                    <LoadingButton
+                      sx={{ float: 'right', my: 4, mx: 2 }}
+                      size='large'
+                      disabled={disableButton() || submitLoader}
+                      variant='contained'
+                      onClick={() => {
+                        if (!submitLoader) {
+                          updateStatus()
+                        }
                       }}
-                      error={Boolean(errors?.shipment_status)}
+                      loading={submitLoader}
                     >
-                      {options?.map((item, index) => (
-                        <MenuItem key={index} value={item}>
-                          {item}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors?.shipment_status && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.shipment_status?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid> */}
-            <Grid item md={4} sm={4} xs={12} sx={{ mr: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='comment'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      type='text'
-                      label='Comment'
-                      value={value}
-                      onChange={onChange}
-                      placeholder='comment'
-                      error={Boolean(errors.comment)}
-                      name='comment'
-                    />
-                  )}
-                />
-                {errors.comment && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.comment.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+                      Save
+                    </LoadingButton>
+                    {console.log('disputeItemDetails', disputeItemDetails)}
+                    {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                      <LoadingButton
+                        sx={{ float: 'right', my: 4, mx: 6 }}
+                        size='large'
+                        // disabled={disableButton()}
+                        disabled={submitLoader}
+                        variant='contained'
+                        onClick={() => {
+                          if (!submitLoader) {
+                            bulkStatusUpdate()
+                          }
+                        }}
+                        loading={submitLoader}
+                      >
+                        Mark all as Received & Save
+                      </LoadingButton>
+                    )}
+                  </>
+                ) : null}
+              </Grid>
+            ) : null}
           </Grid>
-          <Divider
-            sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-          />
-          <LoadingButton
-            sx={{ float: 'right', my: 4, mx: 6 }}
-            size='large'
-            variant='contained'
-            type='submit'
-
-            // loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
-        </form>
-      </Grid>
+        </Grid>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
     </>
   )
 }

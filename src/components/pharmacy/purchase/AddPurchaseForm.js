@@ -25,19 +25,29 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
+import { debounce } from 'lodash'
+
 import toast from 'react-hot-toast'
+import { useForm, Controller } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-import { getStoreList } from 'src/lib/api/getStoreList'
-import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getMedicineToAddPurchase } from 'src/lib/api/getMedicineBySearch'
-import { addPurchase, getPurchaseListById, updatePurchase } from 'src/lib/api/getPurchaseList'
+// import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
+import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
+import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -50,7 +60,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 const editParamsInitialState = {
   po_no: '',
-  po_date: '',
+  po_date: Utility.formattedPresentDate(),
   store_id: '',
   supplier_id: '',
   description: '',
@@ -61,7 +71,7 @@ const editParamsInitialState = {
   discount_amount: 0,
   discount_percentage: 0,
   net_amount: 0,
-  user: '',
+
   tax_amount: 0
 }
 
@@ -75,12 +85,21 @@ const initialNestedRowMedicine = {
   purchase_expiry_date: '',
   purchase_stock_item_id: '',
   purchase_gst_type: '',
-  purchase_tax_amount: 0
+  purchase_cgst: 0,
+  purchase_sgst: 0,
+  purchase_igst: 0,
+  purchase_cgst_amount: 0,
+  purchase_sgst_amount: 0,
+  purchase_igst_amount: 0
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
+
+const defaultValues = {
+  po_date: Utility.formattedPresentDate()
+}
 
 const AddPurchaseForm = () => {
   // ** Hook
@@ -89,35 +108,72 @@ const AddPurchaseForm = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [show, setShow] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [error, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
 
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [validateDiscount, setValidateDiscount] = useState('')
+  const [expiryDateLoader, setExpiryDateLoader] = useState(false)
+  const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+
+  const [supplierDialog, setSupplierDialog] = useState(false)
+
   const router = useRouter()
   const { id, action } = router.query
+
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const schema = yup.object().shape({
+    // product: yup.string().required('Product name is required'),
+    supplier_id: yup.string().required('Supplier is required'),
+    po_no: yup.string().required('Purchase invoice number is required'),
+    po_date: yup.string().required('Purchase date is required'),
+    description: yup.string()
+  })
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+    getValues,
+    trigger
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
 
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setErrors({})
+    setItemErrors({})
+    setDuplicateMedError('')
+    setOptionsMedicineList([])
   }
 
   const showDialog = () => {
     setShow(true)
   }
 
-  const getStoreType = id => {
-    const foundOStores = stores.find(item => item.id === id)
-    if (foundOStores) {
-      const storeType = foundOStores.type
-      setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
-    }
-  }
+  // const getStoreType = id => {
+  //   const foundOStores = stores.find(item => item.id === id)
+  //   if (foundOStores) {
+  //     const storeType = foundOStores?.type
+  //     setEditParams({ ...editParams, store_id: id, type_of_store: storeType })
+  //   }
+  // }
 
   // local nested items delete
   const removeItemsFroTable = itemId => {
@@ -128,98 +184,133 @@ const AddPurchaseForm = () => {
     setMedicineItemId('')
   }
 
+  const totalLineItemsAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_gross_amount ? row.purchase_gross_amount : 0),
+    0
+  )
+
+  const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
+    0
+  )
+
   const totalLineItemsPurchase = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseInt(row.purchase_purchase_price),
+    (acc, row) => acc + parseFloat(row.purchase_net_amount ? row.purchase_net_amount : 0),
     0
   )
 
-  const calculateTotalTaxAmount = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseInt(row.purchase_tax_amount ? row.purchase_tax_amount : 0),
+  // const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
+  //   0
+  // )
+
+  const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
     0
   )
-  function calculateTaxAmount(gst_name, totalAmount) {
-    if (!gst_name || !totalAmount) {
-      return 0
-    }
 
-    const gstPercentage = parseFloat(gst_name)
-    console.log('gstPercentage', gstPercentage)
-
-    const taxAmount = totalAmount * (gstPercentage / 100)
-
-    // return taxAmount.toFixed(2)
-    return taxAmount
-  }
-
-  const calculateFinalAmount = useCallback(
-    discountValue => {
-      // const calculateFinalAmount = discountValue => {
-      let finalAmount = totalLineItemsPurchase
-      let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
-      let netAmount = 0
-      console.log('before discount', finalAmount)
-      setEditParams({
-        ...editParams,
-        total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-        net_amount: netAmountWithGST ? netAmountWithGST : 0,
-        tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-
-        // purchase_tax_amount: calculateTotalTaxAmount
-      })
-      if (editParams.discount_type === 'P') {
-        netAmount = (netAmountWithGST * discountValue) / 100
-        const discountValueAmount = netAmount
-        const netValueAfterDiscount = netAmountWithGST - netAmount
-        console.log('discountValueAmount', discountValueAmount)
-        console.log('netValueAfterDiscount', netValueAfterDiscount)
-        setEditParams({
-          ...editParams,
-          discount_percentage: discountValue,
-          discount_amount: discountValueAmount,
-          net_amount: netValueAfterDiscount,
-          tax_amount: calculateTotalTaxAmount
-        })
-      } else if (editParams.discount_type === 'F') {
-        const netValueAfterDiscount = netAmountWithGST - discountValue
-        setEditParams({
-          ...editParams,
-          discount_amount: discountValue,
-          discount_percentage: 0,
-          net_amount: netValueAfterDiscount,
-          tax_amount: calculateTotalTaxAmount
-        })
-      }
-    },
-    [totalLineItemsPurchase, editParams]
+  const calculate_cgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_cgst_amount ? row.purchase_cgst_amount : 0),
+    0
   )
-  useEffect(() => {
-    calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalLineItemsPurchase])
 
-  const addItemsToTable = () => {
-    const newData = {
-      medicine_name: nestedRowMedicine.medicine_name,
-      purchase_unit_id: nestedRowMedicine.purchase_unit_id,
-      purchase_qty: nestedRowMedicine.purchase_qty,
-      purchase_unit_price: nestedRowMedicine.purchase_unit_price,
-      purchase_purchase_price: nestedRowMedicine.purchase_purchase_price,
-      purchase_batch_no: nestedRowMedicine.purchase_batch_no,
-      purchase_expiry_date: nestedRowMedicine.purchase_expiry_date,
-      purchase_stock_item_id: nestedRowMedicine.purchase_stock_item_id,
-      purchase_gst_type: nestedRowMedicine.purchase_gst_type,
-      purchase_tax_amount: nestedRowMedicine.purchase_tax_amount
-    }
+  const calculate_sgst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_sgst_amount ? row.purchase_sgst_amount : 0),
+    0
+  )
 
-    const updatedNestedRows = [...editParams.purchase_details, newData]
-    console.log(updatedNestedRows)
+  // const calculate_cgst_tax = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_cgst ? row.purchase_cgst : 0),
+  //   0
+  // )
+
+  // const calculate_sgst_tax = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_sgst ? row.purchase_sgst : 0),
+  //   0
+  // )
+
+  // const calculate_lineItem_discount_percentage = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_discount ? row.purchase_discount : 0),
+  //   0
+  // )
+
+  // function calculateTaxAmount(gst_name, totalAmount) {
+  //   if (!gst_name || !totalAmount) {
+  //     return 0
+  //   }
+
+  //   const gstPercentage = parseFloat(gst_name)
+
+  //   const taxAmount = totalAmount * (gstPercentage / 100)
+
+  //   // return taxAmount.toFixed(2)
+  //   return taxAmount
+  // }
+
+  // const calculateFinalAmount = useCallback(
+  //   discountValue => {
+  //     debugger
+  //     let finalAmount = totalLineItemsPurchase
+  //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
+  //     let netAmount = 0
+  //     setEditParams({
+  //       ...editParams,
+  //       total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
+  //       net_amount: netAmountWithGST ? netAmountWithGST : 0,
+  //       tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
+  //     })
+  //     if (editParams.discount_type === 'P') {
+  //       netAmount = (netAmountWithGST * discountValue) / 100
+  //       const discountValueAmount = netAmount
+  //       const netValueAfterDiscount = netAmountWithGST - netAmount
+  //       setEditParams({
+  //         ...editParams,
+  //         discount_percentage: discountValue,
+  //         discount_amount: discountValueAmount,
+  //         net_amount: netValueAfterDiscount,
+  //         tax_amount: calculateTotalTaxAmount
+  //       })
+  //     } else if (editParams.discount_type === 'F') {
+  //       const netValueAfterDiscount = netAmountWithGST - discountValue
+  //       setEditParams({
+  //         ...editParams,
+  //         discount_amount: discountValue,
+  //         discount_percentage: 0,
+  //         net_amount: netValueAfterDiscount,
+  //         tax_amount: calculateTotalTaxAmount
+  //       })
+  //     }
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [totalLineItemsPurchase, editParams]
+  // )
+  // useEffect(() => {
+  // calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [totalLineItemsPurchase])
+
+  const addItemsToTable = payload => {
+    // const newData = {
+    //   medicine_name: payload.medicine_name,
+    //   purchase_unit_id: payload.purchase_unit_id,
+    //   purchase_qty: payload.purchase_qty,
+    //   purchase_unit_price: payload.purchase_unit_price,
+    //   purchase_purchase_price: payload.purchase_purchase_price,
+    //   purchase_batch_no: payload.purchase_batch_no,
+    //   purchase_expiry_date: payload.purchase_expiry_date,
+    //   purchase_stock_item_id: payload.purchase_stock_item_id,
+    //   purchase_gst_type: payload.purchase_gst_type,
+    //   purchase_tax_amount: payload.purchase_tax_amount
+    // }
+
+    const updatedNestedRows = [...editParams.purchase_details, payload]
     setEditParams({
       ...editParams,
       purchase_details: updatedNestedRows
     })
 
     setNestedRowMedicine(initialNestedRowMedicine)
-    console.log('last', nestedRowMedicine)
+    setShow(false)
   }
   function formatDate(dateString) {
     const date = new Date(dateString)
@@ -243,18 +334,19 @@ const AddPurchaseForm = () => {
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
     }
-    if (!values.purchase_qty) {
+    if (isNaN(parseInt(values.purchase_unit_price)) || parseInt(values.purchase_unit_price) <= 0) {
+      itemErrors.purchase_unit_price = 'This field is required'
+      if (parseInt(values.purchase_unit_price) === 0 || parseInt(values.purchase_unit_price) < 0) {
+        itemErrors.purchase_unit_price = 'Enter valid Price'
+      }
+    }
+    if (isNaN(parseInt(values.purchase_qty)) || parseInt(values.purchase_qty) <= 0) {
       itemErrors.purchase_qty = 'This field is required'
-      if (values.purchase_qty === 0 || values.purchase_qty < 0) {
+      if (parseInt(values.purchase_qty) === 0 || parseInt(values.purchase_qty) < 0) {
         itemErrors.purchase_qty = 'Enter valid Quantity'
       }
     }
-    if (!values.purchase_unit_price) {
-      itemErrors.purchase_unit_price = 'This field is required'
-      if (values.purchase_unit_price === 0 || values.purchase_unit_price < 0) {
-        itemErrors.purchase_unit_price = 'Enter valid price'
-      }
-    }
+
     if (!values.purchase_batch_no) {
       itemErrors.purchase_batch_no = 'This field is required'
     }
@@ -265,91 +357,114 @@ const AddPurchaseForm = () => {
     return itemErrors
   }
 
-  const validateItems = values => {
-    const errors = {}
+  // const validateItems = values => {
+  //   const errors = {}
 
-    if (!values.po_no) {
-      errors.po_no = 'This field is required'
-    }
-    if (!values.store_id) {
-      errors.store_id = 'This field is required'
-    }
-    if (!values.supplier_id) {
-      errors.supplier_id = 'This field is required'
-    }
-    if (!values.po_date) {
-      errors.po_date = 'This field is required'
-    }
+  //   if (!values.po_no) {
+  //     errors.po_no = 'This field is required'
+  //   }
+  //   if (!values.store_id) {
+  //     errors.store_id = 'This field is required'
+  //   }
+  //   if (!values.supplier_id) {
+  //     errors.supplier_id = 'This field is required'
+  //   }
+  //   if (!values.po_date) {
+  //     errors.po_date = 'This field is required'
+  //   }
 
-    return errors
+  //   return errors
+  // }
+
+  const submitItems = payload => {
+    // const HasErrors =
+    //   payload.medicine_name !== '' &&
+    //   payload.purchase_qty !== '' &&
+    //   !isNaN(parseInt(payload.purchase_qty)) &&
+    //   parseInt(payload.purchase_qty) > 0 &&
+    //   payload.purchase_unit_price !== '' &&
+    //   !isNaN(parseInt(payload.purchase_unit_price)) &&
+    //   parseInt(payload.purchase_unit_price) > 0 &&
+    //   payload.purchase_batch_no !== '' &&
+    //   payload.purchase_expiry_date !== ''
+    // if (HasErrors === false) {
+    //   debugger
+    //   setItemErrors(validate(payload))
+
+    //   return
+    // }
+
+    if (!medicineItemId) {
+      const isMedicineAlreadyExists = editParams.purchase_details.some(
+        item =>
+          item.purchase_unit_id === payload.purchase_unit_id && item.purchase_batch_no === payload.purchase_batch_no
+      )
+
+      if (isMedicineAlreadyExists) {
+        setDuplicateMedError('Medicine already exists')
+
+        return
+      }
+      setErrors({})
+      addItemsToTable(payload)
+    } else {
+      updateFormItems(payload)
+    }
   }
 
-  const submitItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_expiry_date
-    if (HasErrors) {
-      setItemErrors(validate(nestedRowMedicine))
-
-      return
-    }
-
-    const isMedicineAlreadyExists = editParams.purchase_details.some(
-      item => item.medicine_name === nestedRowMedicine.medicine_name
-    )
-
-    if (isMedicineAlreadyExists) {
-      setDuplicateMedError('Medicine already exists')
-
-      return
-    }
-    setErrors({})
-    addItemsToTable()
-  }
-
-  const updateTableItems = () => {
+  const updateTableItems = payload => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
-    console.log('beforeupdate editParams', editParams)
 
-    const updatedIndex = updatedState.purchase_details.findIndex(row => row.purchase_unit_id === itemId)
+    const updatedIndex = updatedState.purchase_details.findIndex(
+      row => row.purchase_unit_id === itemId && row.purchase_batch_no === nestedRowMedicine.purchase_batch_no
+    )
 
     if (updatedIndex !== -1) {
       const updatedNestedRows = [...updatedState.purchase_details]
       updatedNestedRows[updatedIndex] = {
         ...updatedNestedRows[updatedIndex],
-        ...nestedRowMedicine
+        ...payload
       }
       updatedState.purchase_details = updatedNestedRows
 
-      console.log('after update editParams', updatedNestedRows)
-
-      console.log('test while update', updatedNestedRows)
       setEditParams(updatedState)
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
+      closeDialog()
     } else {
       console.error('updateTableItems error')
     }
   }
 
-  const updateFormItems = () => {
-    const HasErrors =
-      !nestedRowMedicine.medicine_name ||
-      !nestedRowMedicine.purchase_unit_id ||
-      !nestedRowMedicine.purchase_qty ||
-      !nestedRowMedicine.purchase_unit_price ||
-      !nestedRowMedicine.purchase_batch_no ||
-      !nestedRowMedicine.purchase_purchase_price ||
-      !nestedRowMedicine.purchase_expiry_date
+  const updateFormItems = payload => {
+    // const HasErrors =
+    //   !nestedRowMedicine.medicine_name ||
+    //   !nestedRowMedicine.purchase_unit_id ||
+    //   !nestedRowMedicine.purchase_qty ||
+    //   !nestedRowMedicine.purchase_unit_price ||
+    //   !nestedRowMedicine.purchase_batch_no ||
+    //   !nestedRowMedicine.purchase_purchase_price ||
+    //   !nestedRowMedicine.purchase_expiry_date
 
-    if (HasErrors) {
-      setItemErrors(validate(nestedRowMedicine))
+    // const HasErrors =
+    //   nestedRowMedicine.medicine_name !== '' &&
+    //   nestedRowMedicine.purchase_qty !== '' &&
+    //   !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
+    //   parseInt(nestedRowMedicine.purchase_qty) > 0 &&
+    //   nestedRowMedicine.purchase_unit_price !== '' &&
+    //   !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
+    //   parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
+    //   nestedRowMedicine.purchase_batch_no !== '' &&
+    //   nestedRowMedicine.purchase_expiry_date !== ''
 
-      return
-    }
+    // debugger
+
+    // if (HasErrors === false) {
+    //   setItemErrors(validate(nestedRowMedicine))
+
+    //   return
+    // }
     if (nestedRowMedicine.control_substance === 'yes') {
       if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -358,44 +473,119 @@ const AddPurchaseForm = () => {
       }
     }
     setErrors({})
-    updateTableItems()
+    updateTableItems(payload)
   }
 
-  const handleSubmit = () => {
-    const formHasErrors = !editParams.po_no || !editParams.po_date || !editParams.store_id || !editParams.supplier_id
-    console.log(formHasErrors)
-    if (formHasErrors) {
-      setErrors(validateItems(editParams))
+  const onSubmit = async data => {
+    setSubmitLoader(true)
 
-      return
+    const postData = editParams
+    postData.description = data.description
+    postData.po_date = data.po_date
+    postData.supplier_id = data.supplier_id
+    postData.po_no = data.po_no
+
+    postData.cgst = calculate_cgst_tax_amount
+    postData.sgst = calculate_sgst_tax_amount
+    postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.total_amount = totalLineItemsAmount
+    postData.net_amount = totalLineItemsPurchase
+    // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.discount_amount = totalLineItemsDiscount
+    postData.taxable_amount = totalLineItemsTaxableAmount
+    // postData.discount_percentage = calculate_lineItem_discount_percentage
+
+    if (id) {
+      postData.antz_pharmacy_purchase_id = id
+      const response = await updatePurchase(id, postData)
+
+      if (response?.success) {
+        toast.success(response.message)
+        setSubmitLoader(false)
+        getListOfItemsById(id)
+        Router.push('/pharmacy/purchase/purchase-list/')
+      } else {
+        setSubmitLoader(false)
+        toast.error(response.message)
+      }
+    } else {
+      const response = await addPurchase(postData)
+      if (response?.success) {
+        toast.success(response.message)
+        setEditParams(editParamsInitialState)
+        setSubmitLoader(false)
+        Router.push('/pharmacy/purchase/purchase-list/')
+      } else {
+        setSubmitLoader(false)
+        console.log('response catch purchase', response)
+        if (response.data?.po_no) {
+          toast.error('Purchase number already exist ')
+        }
+        if (response?.message) {
+          toast.error(response.message)
+        }
+      }
     }
-
-    setErrors({})
-    showDialog()
   }
 
-  console.log('getMedicineOptions', optionsMedicineList)
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
+  const handlePurchaseSubmit = async () => {
+    try {
+      const errors = await trigger()
+      if (errors) {
+        showDialog()
+      } else {
+        scrollToTop()
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const getStoresLists = async () => {
-    console.log('function in')
-    // setLoader(true)
-    const response = await getStoreList()
-    console.log('function in')
-    console.log('response', response)
-    if (response?.length > 0) {
-      console.log('list', response)
-      setStores(response)
+    if (selectedPharmacy) {
+      setEditParams({
+        ...editParams,
+        store_id: selectedPharmacy.id,
+        type_of_store: selectedPharmacy.type
+      })
     }
+    // const params = {
+    //   q: 'central',
+    //   column: 'type'
+    // }
+    // try {
+    //   const response = await getStoreList({ params })
+    //   if (response?.success && response?.data?.list_items?.length > 0) {
+    //     setStores(response?.data?.list_items)
+    //     if (response?.data?.list_items?.length === 1) {
+    //       setEditParams({
+    //         ...editParams,
+    //         store_id: response?.data?.list_items[0].id,
+    //         type_of_store: response?.data?.list_items[0].type
+    //       })
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.log('store error', error)
+    // }
   }
 
   const getSuppliersLists = async () => {
-    console.log('function in')
-    // setLoader(true)
-    const response = await getSuppliers()
-    console.log('suppliers response', response)
-    if (response.data.data?.length > 0) {
-      console.log('list', response)
-      setSuppliers(response.data.data)
+    try {
+      const response = await getSuppliers()
+
+      if (response.data.data.list_items?.length > 0) {
+        setSuppliers(response.data.data.list_items)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
     }
   }
 
@@ -403,145 +593,233 @@ const AddPurchaseForm = () => {
     getStoresLists()
     getSuppliersLists()
   }, [])
-  // API calling functions on mount endnd
 
-  console.log('editParams', editParams)
-
-  const handleCustom = async data => {
-    console.log('in custom', data)
+  //  ******
+  const fetchMedicineData = async searchText => {
     try {
-      getSearchValue(data)
-      console.log('Validation successful')
-    } catch (validationErrors) {
-      console.log('Validation failed:', validationErrors)
-    }
-  }
-  async function getSearchValue(searchText, index) {
-    if (searchText !== '') {
-      const searchResults = await getMedicineToAddPurchase(searchText)
-      console.log('in search input ', searchResults)
-      if (searchResults?.length) {
-        console.log(
-          'maped obj',
-          searchResults?.map(item => ({
-            value: item.id,
-            label: item.name,
-            purchase_unit_price: item.supplier_price,
-            tax_type: item.gst_tax ? item.gst_tax : ''
-            // supplier_price: item.supplier_price
-          }))
-        )
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
+      }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
-          searchResults?.map(item => ({
+          searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
-            purchase_unit_price: item.supplier_price,
-            tax_type: item.gst_tax ? item.gst_tax : ''
+            purchase_unit_price: item?.price,
+            tax_type: item.gst_value ? item.gst_value : '',
+            stock_type: item.stock_type
             // supplier_price: item.supplier_price
           }))
         )
       }
+    } catch (e) {
+      console.log('error', e)
+    }
+    // }
+  }
+
+  const getMedicineExpiryDate = async (product_id, batch) => {
+    try {
+      setExpiryDateLoader(true)
+      setProductExpiryDate('')
+      const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+      if (response.success && response.data !== null) {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: response.data.expiry_date
+        }))
+        setProductExpiryDate(response.data.expiry_date)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
+    } finally {
+      setExpiryDateLoader(false)
     }
   }
 
-  const getListOfItemsById = async id => {
-    const result = await getPurchaseListById(id)
-    console.log('data of update values', result)
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.purchase_detailss.map(el => {
-        console.log('elsss', el)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      debugger
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
-        return {
-          id: el.id,
-          medicine_name: el.stock_item_name,
-          purchase_unit_id: el.unit_id,
-          purchase_stock_item_id: el.stock_item_id,
-          // purchase_stock_item_id: el.stock_item_id,
-          purchase_qty: el.qty,
-          purchase_unit_price: el.unit_price,
-          purchase_purchase_price: el.purchase_price,
-          purchase_batch_no: el.batch_no,
-          purchase_expiry_date: el.expiry_date,
-          purchase_gst_type: el.gst_type,
-          purchase_tax_amount: el.tax_amount
+  const checkMedicineExpiryDate = useCallback(
+    debounce(async (id, batch) => {
+      if (id?.trim() !== '' && batch?.trim() !== '') {
+        try {
+          await getMedicineExpiryDate(id, batch)
+        } catch (error) {
+          console.error(error)
         }
-      })
-      console.log('lineItems', lineItems)
-      setEditParams({
-        ...editParams,
-        id: result.data.id,
-        po_no: result.data.po_no,
-        po_date: result.data.po_date,
-        store_id: result.data.store_id,
-        supplier_id: result.data.supplier_id,
-        description: result.data.description,
-        type_of_store: result.data.type_of_store,
-        purchase_details: lineItems,
-        user: result.data.user,
-        total_amount: result.data.total_amount,
-        discount_type: result.data.discount_type ? result.data.discount_type : '',
-        discount_amount: result.data.discount_amount,
-        discount_percentage: result.data.discount_percentage,
-        net_amount: result.data.net_amount,
-        tax_amount: result.data.tax_amount
-      })
+      }
+    }, 500),
+    []
+  )
+
+  const getListOfItemsById = async id => {
+    try {
+      const result = await getPurchaseListById(id)
+      if (result.success === true && result.data !== '') {
+        const lineItems = result.data.purchase_detailss.map(el => {
+          return {
+            ...el,
+            medicine_name: el?.stock_item_name,
+            id: el?.id,
+            stock_type: el?.stock_type
+            // medicine_name: el?.stock_item_name,
+            // stock_type: el?.stock_type,
+            // purchase_batch_no: el?.purchase_batch_no,
+            // purchase_expiry_date: el?.purchase_expiry_date,
+            // purchase_unit_price: el?.purchase_unit_price,
+            // purchase_qty: el?.purchase_qty,
+            // purchase_free_quantity: el?.purchase_free_quantity,
+            // purchase_discount: el?.purchase_discount,
+            // purchase_gst: el?.purchase_gst,
+            // purchase_tax_amount: el?.purchase_tax_amount,
+            // purchase_gross_amount: el?.purchase_gross_amount,
+            // purchase_discount_amount: el?.purchase_discount_amount,
+            // purchase_taxable_amount: el?.purchase_taxable_amount,
+            // purchase_net_amount: el?.purchase_net_amount,
+            // purchase_unit_id: el?.purchase_unit_id
+
+            // medicine_name: el?.stock_item_name,
+            // purchase_unit_id: el?.unit_id,
+            // purchase_stock_item_id: el?.stock_item_id,
+            // // purchase_stock_item_id: el?.stock_item_id,
+            // purchase_qty: el?.purchase_qty,
+            // purchase_unit_price: el?.purchase_unit_price,
+            // purchase_purchase_price: el?.purchase_price,
+            // purchase_batch_no: el?.purchase_batch_no,
+            // purchase_expiry_date: el?.purchase_expiry_date,
+            // purchase_gst_type: el?.gst_type,
+            // purchase_tax_amount: el?.tax_amount
+          }
+        })
+        setEditParams({
+          ...editParams,
+          id: result?.data?.id,
+          po_no: result?.data?.po_no,
+          purchase_batch_no: result?.data?.purchase_batch_no,
+          po_date: result?.data?.po_date,
+          store_id: result?.data?.store_id,
+          supplier_id: result?.data?.supplier_id,
+          description: result?.data?.description,
+          type_of_store: result?.data?.type_of_store,
+          purchase_details: lineItems,
+          total_amount: result?.data?.total_amount,
+          discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
+          discount_amount: result?.data?.discount_amount,
+          discount_percentage: result?.data?.discount_percentage,
+          net_amount: result?.data?.net_amount,
+          tax_amount: result?.data?.tax_amount,
+          taxable_amount: result?.data?.taxable_amount
+        })
+
+        // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+        // setValue('supplier_id', result?.data?.supplier_id)
+        reset({
+          supplier_id: result?.data?.supplier_id,
+          po_date: result?.data?.po_date,
+          po_no: result?.data?.po_no,
+          description: result?.data?.description
+        })
+      }
+    } catch (error) {
+      console.log('purchase error', error)
     }
   }
 
   // ****** edit section //////
-  const editTableData = itemId => {
+  const editTableData = (itemId, index, purchase_batch_no) => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.purchase_details.filter(el => {
-        return el.purchase_unit_id === itemId
+        return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
-      console.log('filtered items while editing', getItems)
+
+      setOptionsMedicineList([
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+      ])
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
         id: getItems[0]?.id,
+        index,
         medicine_name: getItems[0]?.medicine_name,
-        purchase_unit_id: getItems[0].purchase_unit_id,
-        purchase_qty: getItems[0].purchase_qty,
-        purchase_unit_price: getItems[0].purchase_unit_price,
-        purchase_purchase_price: getItems[0].purchase_purchase_price,
-        purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        stock_type: getItems[0]?.stock_type,
+        purchase_unit_id: getItems[0]?.purchase_unit_id,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
-        purchase_gst_type: getItems[0].purchase_gst_type,
-        purchase_tax_amount: getItems[0].purchase_tax_amount
+        purchase_batch_no: getItems[0].purchase_batch_no,
+        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_unit_price: getItems[0].purchase_unit_price,
+        purchase_qty: getItems[0].purchase_qty,
+        purchase_free_quantity: getItems[0].purchase_free_quantity,
+        purchase_discount: getItems[0].purchase_discount,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
+        purchase_igst_amount: getItems[0].purchase_igst_amount,
+        purchase_gross_amount: getItems[0].purchase_gross_amount,
+        purchase_discount_amount: getItems[0].purchase_discount_amount,
+        purchase_taxable_amount: getItems[0].purchase_taxable_amount,
+        purchase_net_amount: getItems[0].purchase_net_amount,
+        purchase_purchase_price: getItems[0].purchase_purchase_price
+
+        // purchase_gst_type: getItems[0].purchase_gst_type,
+        // purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     } else {
-      console.log('in else ', editParams.purchase_details)
-
       const getItems = editParams.purchase_details.filter(el => {
-        return el.purchase_unit_id === itemId
+        return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
-      // console.log('filtered', getItems[0].medicine_name)
-      console.log('filtered', getItems)
-      console.log('file', getItems[0])
-      console.log('nestedRowMedicine', nestedRowMedicine)
-      // const file=[]
+
+      setOptionsMedicineList([
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+      ])
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0]?.medicine_name,
+        stock_type: getItems[0]?.stock_type,
+        index,
         purchase_unit_id: getItems[0].purchase_unit_id,
-        purchase_qty: getItems[0].purchase_qty,
-        purchase_unit_price: getItems[0].purchase_unit_price,
-        purchase_purchase_price: getItems[0].purchase_purchase_price,
-        purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
-        purchase_gst_type: getItems[0].purchase_gst_type,
-        purchase_tax_amount: getItems[0].purchase_tax_amount
+        purchase_batch_no: getItems[0].purchase_batch_no,
+        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_unit_price: getItems[0].purchase_unit_price,
+        purchase_qty: getItems[0].purchase_qty,
+        purchase_free_quantity: getItems[0].purchase_free_quantity,
+        purchase_discount: getItems[0].purchase_discount,
+        purchase_cgst: getItems[0].purchase_cgst,
+        purchase_sgst: getItems[0].purchase_sgst,
+        purchase_igst: getItems[0].purchase_igst,
+        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
+        purchase_igst_amount: getItems[0].purchase_igst_amount,
+        purchase_gross_amount: getItems[0].purchase_gross_amount,
+        purchase_discount_amount: getItems[0].purchase_discount_amount,
+        purchase_taxable_amount: getItems[0].purchase_taxable_amount,
+        purchase_net_amount: getItems[0].purchase_net_amount,
+        purchase_purchase_price: getItems[0].purchase_purchase_price
       })
     }
   }
-  console.log('nestedRowMedicine', nestedRowMedicine)
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
@@ -554,41 +832,39 @@ const AddPurchaseForm = () => {
   // data posting section
 
   const postItemsData = async () => {
-    if (editParams.discount_type !== '') {
-      if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
-        setValidateDiscount('Please enter discount value')
+    // if (editParams.discount_type !== '') {
+    //   if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
+    //     setValidateDiscount('Please enter discount value')
 
-        return
-      }
-    }
+    //     return
+    //   }
+    // }
+
     setSubmitLoader(true)
 
     const postData = editParams
-    postData.total_amount = totalLineItemsPurchase
-    console.log('while posting data', postData)
-    console.log('editParms', editParams)
+    postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
+
     if (id) {
+      postData.antz_pharmacy_purchase_id = id
       const response = await updatePurchase(id, postData)
-      console.log('after posting', response)
 
       if (response?.success) {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchaseList/')
+        Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('test')
         toast.error(response.message)
       }
     } else {
       const response = await addPurchase(postData)
-      console.log('after posting', response)
       if (response?.success) {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchaseList/')
+        Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
         console.log('response catch purchase', response)
@@ -606,286 +882,26 @@ const AddPurchaseForm = () => {
   const createForm = () => {
     return (
       <CardContent>
-        <form
-        // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-        >
-          <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  inputProps={{ tabIndex: '6' }}
-                  disablePortal
-                  id='autocomplete-controlled'
-                  options={optionsMedicineList}
-                  value={nestedRowMedicine.medicine_name}
-                  onChange={(event, newValue) => {
-                    console.log('options', newValue)
-                    // nestedRowMedicine, setNestedRowMedicine
-                    console.log('peices', newValue?.purchase_unit_price)
-                    setNestedRowMedicine({
-                      ...nestedRowMedicine,
-                      medicine_name: newValue?.label,
-                      purchase_unit_id: newValue?.value,
-                      purchase_stock_item_id: newValue?.value,
-                      // purchase_stock_item_id: newValue?.value,
-                      purchase_unit_price: newValue?.purchase_unit_price,
-                      purchase_qty: 0,
-                      purchase_purchase_price: 0,
-                      purchase_gst_type: newValue?.tax_type,
-                      purchase_tax_amount: 0
-
-                      // purchase_purchase_price: newValue?.supplier_price * nestedRowMedicine.purchase_qty
-                    })
-                    setDuplicateMedError('')
-                    setItemErrors({})
-                  }}
-                  onKeyUp={e => {
-                    console.log('eee values', e.target.value)
-                    handleCustom(e.target.value)
-                    setItemErrors({})
-                  }}
-                  renderInput={params => (
-                    <TextField {...params} label='Medicine Name' error={Boolean(itemErrors.medicine_name)} />
-                  )}
-                />
-                {itemErrors.medicine_name && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-                {duplicateMedError && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {duplicateMedError}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              {/* purchase_expiry_date */}
-              <FormControl fullWidth>
-                <SingleDatePicker
-                  fullWidth
-                  date={
-                    nestedRowMedicine.purchase_expiry_date
-                      ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
-                      : null
-                  }
-                  width={'100%'}
-                  value={
-                    nestedRowMedicine.purchase_expiry_date
-                      ? parseFormattedDate(nestedRowMedicine.purchase_expiry_date)
-                      : null
-                  }
-                  name={'Expiry date'}
-                  onChangeHandler={date => {
-                    console.log(date)
-                    // setStores({ ...stores, date: date })
-                    setNestedRowMedicine({
-                      ...nestedRowMedicine,
-                      purchase_expiry_date: formatDate(date)
-                    })
-                    setItemErrors({})
-                  }}
-                  customInput={<CustomInput label='Date' error={Boolean(errors.purchase_expiry_date)} />}
-                />
-                {itemErrors.purchase_expiry_date && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='number'
-                  value={nestedRowMedicine.purchase_qty}
-                  error={Boolean(itemErrors.purchase_qty)}
-                  label='Quantity'
-                  onChange={event => {
-                    const val = parseInt(event.target.value, 10)
-                    const supplierPrice = nestedRowMedicine.purchase_unit_price
-                    const totalPrice = val * supplierPrice
-                    const taxAmount = calculateTaxAmount(nestedRowMedicine.purchase_gst_type, totalPrice)
-                    setNestedRowMedicine({
-                      ...nestedRowMedicine,
-                      purchase_qty: val,
-                      purchase_purchase_price: totalPrice,
-                      purchase_tax_amount: taxAmount
-                    })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  value={nestedRowMedicine.purchase_batch_no}
-                  error={Boolean(itemErrors.purchase_batch_no)}
-                  label='Batch'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_batch_no: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_batch_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  disabled={true}
-                  value={nestedRowMedicine.purchase_unit_price}
-                  error={Boolean(itemErrors.purchase_unit_price)}
-                  label='Supplier rate'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_unit_price: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_unit_price && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='Number'
-                  disabled={true}
-                  value={nestedRowMedicine.purchase_purchase_price}
-                  error={Boolean(itemErrors.purchase_purchase_price)}
-                  label='Total purchase price'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, purchase_purchase_price: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors.purchase_purchase_price && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            {nestedRowMedicine.purchase_gst_type ? (
-              <>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='text'
-                      disabled={true}
-                      value={nestedRowMedicine.purchase_gst_type}
-                      error={Boolean(itemErrors.purchase_gst_type)}
-                      label='GST'
-                      onChange={event => {
-                        setNestedRowMedicine({ ...nestedRowMedicine, purchase_gst_type: event.target.value })
-                        setItemErrors({})
-                      }}
-                    />
-                    {itemErrors.purchase_gst_type && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='number'
-                      disabled={true}
-                      value={nestedRowMedicine.purchase_tax_amount}
-                      error={Boolean(itemErrors.purchase_tax_amount)}
-                      label='Tax amount'
-                      onChange={event => {
-                        setNestedRowMedicine({ ...nestedRowMedicine, purchase_tax_amount: event.target.value })
-                        setItemErrors({})
-                      }}
-                    />
-                    {itemErrors.purchase_tax_amount && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </>
-            ) : null}
-
-            {/* // file uploader */}
-            <Grid item xs={12}>
-              {medicineItemId ? (
-                <>
-                  <Button
-                    onClick={() => {
-                      closeDialog()
-                    }}
-                    size='large'
-                    variant='outlined'
-                    sx={{ mr: 2 }}
-                  >
-                    Done
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      updateFormItems()
-
-                      // submitItems()
-                    }}
-                    size='large'
-                    variant='contained'
-                  >
-                    update
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    onClick={() => {
-                      closeDialog()
-                    }}
-                    size='large'
-                    variant='outlined'
-                    sx={{ mr: 2 }}
-                  >
-                    Done
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      // updateFormItems()
-                      submitItems()
-                    }}
-                    size='large'
-                    variant='contained'
-                  >
-                    Add
-                  </Button>
-                </>
-              )}
-            </Grid>
-          </Grid>
-        </form>
+        <PurchaseItemForm
+          medicineItemId={medicineItemId}
+          optionsMedicineList={optionsMedicineList}
+          searchMedicineData={searchMedicineData}
+          submitItems={submitItems}
+          nestedRowMedicine={nestedRowMedicine}
+          updateFormItems={updateFormItems}
+          purchase_details={editParams.purchase_details}
+          checkMedicineExpiryDate={checkMedicineExpiryDate}
+          productExpiryDate={productExpiryDate}
+          expiryDateLoader={expiryDateLoader}
+        ></PurchaseItemForm>
       </CardContent>
     )
   }
-  // console.log('stores', stores)
-  console.log('nestedRowMedicine', editParams)
+
+  const closeSupplierDialog = () => {
+    getSuppliersLists()
+    setSupplierDialog(false)
+  }
 
   return (
     <Card>
@@ -899,422 +915,418 @@ const AddPurchaseForm = () => {
           alignItems: 'center'
         }}
       >
-        <CardHeader title='Add Purchase' />
-        <Grid>
-          <Button
-            size='big'
-            variant='contained'
-            onClick={() => {
-              Router.push('/pharmacy/purchase/paymentList/')
-            }}
-          >
-            Payment List
-          </Button>
-          <Button
-            sx={{
-              mx: { sm: 6, xs: 'auto' }
-            }}
-            size='big'
-            variant='contained'
-            onClick={() => {
-              Router.push('/pharmacy/purchase/purchaseList/')
-            }}
-          >
-            Purchase List
-          </Button>
-        </Grid>
+        <CardHeader
+          avatar={
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                router.back()
+                // Router.push('/pharmacy/purchase/purchase-list/')
+              }}
+              icon='ep:back'
+            />
+          }
+          title={id ? 'Edit Inventory List' : 'Add Inventory'}
+        />
+
+        <AddButton
+          styles={{ marginRight: 20 }}
+          title='Add Supplier'
+          action={() => {
+            setSupplierDialog(true)
+          }}
+        />
       </Grid>
+
+      <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+        <CardContent>
+          <Grid container spacing={6}>
+            {/* <Grid item xs={12} sm={6}> */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
+                <Controller
+                  name='supplier_id'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      // name='supplier_id'
+                      // value={value}
+                      // onChange={(e, val) => {
+                      //   onChange(e.target.value)
+                      // }}
+                      label='Supplier*'
+                      // disabled={!!id}
+                      error={Boolean(errors.supplier_id)}
+                    >
+                      {suppliers?.map(item => (
+                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
+                          {item.company_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='po_date'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <SingleDatePicker
+                      name='Purchase Date*'
+                      fullWidth
+                      date={value ? parseFormattedDate(value) : null}
+                      width={'100%'}
+                      onChangeHandler={date => {
+                        let formatted = formatDate(date)
+                        onChange(formatted)
+                      }}
+                      customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
+                    />
+                  )}
+                />
+                {errors.po_date && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {errors.po_date.message}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='po_no'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='po_no'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.po_no)}
+                      label='Purchase Invoice Number*'
+                    />
+                  )}
+                />
+                {errors.po_no && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {errors.po_no.message}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto', mb: 5 }}>
+              <FormControl fullWidth>
+                <Controller
+                  name='description'
+                  control={control}
+                  defaultValue=''
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label='Comment'
+                      // onChange={e => {
+                      //   setEditParams({
+                      //     ...editParams,
+                      //     description: e.target.value
+                      //   })
+                      //   setErrors({})
+                      // }}
+                    />
+                  )}
+                />
+                {errors.description && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          </Grid>
+        </CardContent>
+        <CardContent>
+          <Grid container>
+            <Grid
+              item
+              sm={12}
+              xs={12}
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center'
+              }}
+            >
+              <AddButton
+                title='Add Inventory Item'
+                action={() => {
+                  handlePurchaseSubmit()
+                }}
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+        <TableContainer>
+          <Table>
+            <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+              <TableRow>
+                <TableCell width='14%'>Product Name</TableCell>
+                <TableCell width='10%'>Batch</TableCell>
+                <TableCell>Expiry Date</TableCell>
+                <TableCell align='right'>Quantity</TableCell>
+                {/* <TableCell align='right'>Free Quantity</TableCell> */}
+                <TableCell align='right'>Rate</TableCell>
+                <TableCell align='right'>Discount in %</TableCell>
+                <TableCell align='right'>GST in %</TableCell>
+                <TableCell align='right'>Net Amount</TableCell>
+                <TableCell align='right'>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {editParams.purchase_details
+                ? editParams.purchase_details.map((el, index) => {
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>{el.medicine_name}</TableCell>
+                        <TableCell>{el.purchase_batch_no}</TableCell>
+                        <TableCell>
+                          {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
+                        </TableCell>
+                        <TableCell align='right'>{el.purchase_qty}</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
+                        <TableCell align='right'>{el.purchase_unit_price}</TableCell>
+                        <TableCell align='right'>{el.purchase_discount}%</TableCell>
+
+                        <TableCell align='right'>{el.purchase_igst}%</TableCell>
+                        <TableCell align='right'>{el.purchase_net_amount}</TableCell>
+                        <TableCell align='center'>
+                          {el.id ? null : (
+                            <IconButton
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.purchase_unit_id)
+                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                showDialog()
+                              }}
+                            >
+                              <Icon icon='mdi:pencil-outline' />
+                            </IconButton>
+                          )}
+
+                          {id && el.id ? null : (
+                            <IconButton
+                              onClick={() => {
+                                removeItemsFroTable(el.purchase_unit_id)
+                              }}
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                            >
+                              <Icon icon='mdi:delete-outline' />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Grid item xs={6}>
+          {/* {totalQty ? ( */}
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              sm={4}
+              lg={4}
+              sx={{
+                mb: { sm: 0, xs: 4 },
+                mt: { xs: 4 },
+                order: { sm: 2, xs: 1 },
+                marginLeft: 'auto',
+                mr: { sm: 12, xs: 0 }
+              }}
+            >
+              <Card>
+                <CardContent sx={{ pt: 8 }}>
+                  <CalcWrapper>
+                    <Typography variant='body2'>Total Amount :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
+                    </Typography>
+                  </CalcWrapper>
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+                  <CalcWrapper>
+                    <Typography variant='body2'>Discount :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {totalLineItemsDiscount}
+                    </Typography>
+                  </CalcWrapper>
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+                  <CalcWrapper>
+                    <Typography variant='body2'>CGST :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {calculate_cgst_tax_amount}
+                    </Typography>
+                  </CalcWrapper>
+                  <CalcWrapper>
+                    <Typography variant='body2'>SGST :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {calculate_sgst_tax_amount}
+                    </Typography>
+                  </CalcWrapper>
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
+                    }}
+                  />
+
+                  {/* <CalcWrapper>
+                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Discount</InputLabel>
+                        <Select
+                          label='Discount'
+                          value={editParams.discount_type}
+                          onChange={event => {
+                            setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
+                            setErrors({})
+                          }}
+                        >
+                          <MenuItem value='P'>%</MenuItem>
+                          <MenuItem value='F'>₹</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <TextField
+                          type='text'
+                          value={
+                            editParams.discount_type === 'P'
+                              ? editParams.discount_percentage
+                              : editParams.discount_amount
+                          }
+                          label='Discount'
+                          onChange={event => {
+                            const val = event.target.value
+
+                            calculateFinalAmount(val)
+                            setErrors({})
+                            setValidateDiscount('')
+                          }}
+                        />
+                      </FormControl>
+                      {validateDiscount && (
+                        <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
+                          This is required
+                        </FormHelperText>
+                      )}
+                    </Grid>
+                  </Grid>
+                </CalcWrapper>
+                <Divider
+                  sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                /> */}
+                  <CalcWrapper>
+                    <Typography variant='body2'>Grand Total :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {totalLineItemsPurchase}
+                    </Typography>
+                  </CalcWrapper>
+
+                  {/* <Divider
+                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
+                /> */}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+          {/* // ) : null} */}
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+            <LoadingButton
+              disabled={editParams.purchase_details.length > 0 ? false : true}
+              sx={{ marginRight: '8px' }}
+              size='large'
+              type='submit'
+              // onClick={() => {
+              //   postItemsData()
+              // }}
+              variant='contained'
+              loading={submitLoader}
+            >
+              Save
+            </LoadingButton>
+            {id ? null : (
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            )}
+          </Box>
+        </Grid>
+      </form>
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Purchase Item'}
+            title={'Add Inventory Item'}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
             show={showDialog}
           />
         </Grid>
-      </CardContent>
-      <CardContent>
-        <form>
-          <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                  Supplier :
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier</InputLabel>
-                  <Select
-                    value={editParams.supplier_id}
-                    error={Boolean(errors.supplier_id)}
-                    label='Select'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        supplier_id: e.target.value
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {suppliers?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.supplier_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    disabled={id ? true : false}
-                    value={editParams.po_no}
-                    error={Boolean(errors.po_no)}
-                    label='Purchase No'
-                    onChange={e => {
-                      // const val = parseInt(e.target.value, 10)
-
-                      setEditParams({
-                        ...editParams,
-                        po_no: e.target.value
-                      })
-                      setErrors({})
-                    }}
-                  />
-                  {errors.po_no && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    value={editParams.description}
-                    error={Boolean(errors.description)}
-                    label='Comments'
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        description: e.target.value
-                      })
-                      setErrors({})
-                    }}
-                  />
-                  {errors.description && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Store:
-                  </Typography>
-                </Grid>
-                <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.store_id)}>
-                    Store
-                  </InputLabel>
-
-                  <Select
-                    name='state_id'
-                    error={Boolean(errors.store_id)}
-                    value={editParams.store_id}
-                    label='Select'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      // setStores({ ...stores, toStore: e.target.value })
-                      // setEditParams({
-                      //   ...editParams,
-                      //   store_id: e.target.value
-                      // })
-                      getStoreType(e.target.value)
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {stores?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <SingleDatePicker
-                    fullWidth
-                    date={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
-                    width={'100%'}
-                    value={editParams.po_date ? parseFormattedDate(editParams.po_date) : null}
-                    name={'Date'}
-                    onChangeHandler={date => {
-                      console.log(date)
-                      // setStores({ ...stores, date: date })
-                      setEditParams({ ...editParams, po_date: formatDate(date) })
-                      setErrors({})
-                    }}
-                    customInput={<CustomInput label='Date' error={Boolean(errors.po_date)} />}
-                  />
-                  {errors.po_date && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    type='text'
-                    value={editParams.user}
-                    error={Boolean(errors.user)}
-                    label='User'
-                    onChange={event => {
-                      setEditParams({ ...editParams, user: event.target.value })
-
-                      setErrors({})
-                    }}
-                  />
-                  {errors.user && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Grid>
-        </form>
-      </CardContent>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          mb: 4
-        }}
-      >
-        {/* {id ? null : ( */}
-        <Button
-          sx={{
-            mx: { sm: 6, xs: 'auto' }
+        <CommonDialogBox
+          title={'Add Supplier'}
+          dialogBoxStatus={supplierDialog}
+          formComponent={
+            <AddSupplier
+              closeSupplierDialog={() => {
+                closeSupplierDialog()
+              }}
+              supplierDialog={supplierDialog}
+            />
+          }
+          close={() => {
+            setSupplierDialog(false)
           }}
-          onClick={() => {
-            handleSubmit()
+          show={() => {
+            setSupplierDialog(true)
           }}
-          size='big'
-          variant='contained'
-        >
-          Add Purchase Item
-        </Button>
-        {/* )} */}
-      </Grid>
-
-      {/* <Divider
-        sx={{ mt: theme => `${theme.spacing(6.5)} !important`, mb: theme => `${theme.spacing(5.5)} !important` }}
-      /> */}
-      <TableContainer>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-            <TableRow>
-              <TableCell>Medicine Name</TableCell>
-              <TableCell>Batch</TableCell>
-              <TableCell>Expiry Date</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Supplier Rate</TableCell>
-              <TableCell>Total Purchase price</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {editParams.purchase_details
-              ? editParams.purchase_details.map((el, index) => {
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>{el.medicine_name}</TableCell>
-                      <TableCell>{el.purchase_batch_no}</TableCell>
-                      <TableCell>{el.purchase_expiry_date}</TableCell>
-                      <TableCell>{el.purchase_qty}</TableCell>
-                      <TableCell>{el.purchase_unit_price}</TableCell>
-                      <TableCell>{el.purchase_purchase_price}</TableCell>
-
-                      <TableCell>
-                        <IconButton
-                          size='small'
-                          sx={{ mr: 0.5 }}
-                          aria-label='Edit'
-                          onClick={() => {
-                            console.log(el.purchase_unit_id)
-                            setMedicineItemId(el.purchase_unit_id)
-
-                            editTableData(el.purchase_unit_id)
-                            showDialog()
-                          }}
-                        >
-                          <Icon icon='mdi:pencil-outline' />
-                        </IconButton>
-                        {id && el.id ? null : (
-                          <IconButton
-                            onClick={() => {
-                              removeItemsFroTable(el.purchase_unit_id)
-                            }}
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                          >
-                            <Icon icon='mdi:delete-outline' />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              : null}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <CardContent sx={{ pt: 8 }}>
-        {/* {totalQty ? ( */}
-        <Grid container>
-          <Grid
-            item
-            xs={12}
-            sm={3}
-            lg={3}
-            sx={{
-              mb: { sm: 0, xs: 4 },
-              order: { sm: 2, xs: 1 },
-              marginLeft: 'auto',
-              mr: { sm: 12, xs: 0 }
-            }}
-          >
-            <CalcWrapper>
-              <Typography variant='body2'>Sub Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {totalLineItemsPurchase ? totalLineItemsPurchase : editParams.total_amount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>GST :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.tax_amount ? editParams.tax_amount : calculateTotalTaxAmount}
-              </Typography>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <InputLabel>Discount</InputLabel>
-                    <Select
-                      label='Discount'
-                      value={editParams.discount_type}
-                      onChange={event => {
-                        setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
-                        setErrors({})
-                      }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
-                    >
-                      <MenuItem value='P'>%</MenuItem>
-                      <MenuItem value='F'>₹</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='text'
-                      // value={editParams.discount_percentage}
-                      value={
-                        editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount
-                      }
-                      // error={Boolean(itemErrors.discount_amount)}
-                      label='Discount'
-                      onChange={event => {
-                        const val = event.target.value
-
-                        calculateFinalAmount(val)
-                        // setEditParams({ ...editParams, discount_type: val })
-                        setErrors({})
-                        setValidateDiscount('')
-                      }}
-                    />
-                  </FormControl>
-                  {validateDiscount && (
-                    <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
-                      This is required
-                    </FormHelperText>
-                  )}
-                </Grid>
-              </Grid>
-            </CalcWrapper>
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-            <CalcWrapper>
-              <Typography variant='body2'>Grand Total :</Typography>
-              <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                {editParams.net_amount ? editParams.net_amount : totalLineItemsPurchase}
-              </Typography>
-            </CalcWrapper>
-
-            <Divider
-              sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-            />
-          </Grid>
-        </Grid>
-        {/* // ) : null} */}
+        />
       </CardContent>
-
-      <LoadingButton
-        disabled={editParams.purchase_details.length > 0 ? false : true}
-        sx={{ float: 'right', my: 4, mx: 6 }}
-        size='large'
-        onClick={() => {
-          postItemsData()
-        }}
-        variant='contained'
-        loading={submitLoader}
-      >
-        Save
-      </LoadingButton>
     </Card>
   )
 }

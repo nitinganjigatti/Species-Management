@@ -47,9 +47,8 @@ const UserDropdown = props => {
   const { direction } = settings
 
   const getUserData = () => {
-    const result = read('userData')
+    const result = read('userDetails')
 
-    // console.log(result)
     setUserData(result)
   }
 
@@ -101,10 +100,10 @@ const UserDropdown = props => {
         }}
       >
         <Avatar
-          alt='John Doe'
+          alt='Name'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={userData?.user?.profile_pic ? userData?.user?.profile_pic : '/images/avatars/1.png'}
         />
       </Badge>
       <Menu
@@ -125,12 +124,18 @@ const UserDropdown = props => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar
+                alt='Name'
+                src={userData?.user?.profile_pic ? userData?.user?.profile_pic : '/images/avatars/1.png'}
+                sx={{ width: '2.5rem', height: '2.5rem' }}
+              />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{userData ? userData.username : null}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>
+                {userData?.user?.user_first_name ? userData?.user?.user_first_name : null}
+              </Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userData ? userData.role : null}
+                {userData?.roles?.role_name ? userData?.roles?.role_name : null}
               </Typography>
             </Box>
           </Box>

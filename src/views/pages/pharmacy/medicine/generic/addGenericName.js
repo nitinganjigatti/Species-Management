@@ -15,7 +15,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
-import { getGenericsById } from 'src/lib/api/getGenerics'
+import { getGenericsById } from 'src/lib/api/pharmacy/genericNames'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -26,7 +26,11 @@ import Icon from 'src/@core/components/icon'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Generic Name is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .min(3, 'Generic name must contain at least 3 characters ')
+    .required('Generic Name is Required'),
   status: yup.string().required('Status is Required')
 })
 
@@ -125,7 +129,7 @@ const AddGenericName = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Generic</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Generic Name</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -141,7 +145,7 @@ const AddGenericName = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Generic Name'
+                  label='Generic Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Generic Name'

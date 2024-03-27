@@ -22,7 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 
-import { getStorageById } from 'src/lib/api/storage'
+import { getStorageById } from 'src/lib/api/pharmacy/storage'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -36,6 +36,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Storage name must contain at least 3 characters')
     .required('Storage is Required'),
   active: yup.string().nullable()
 })
@@ -141,7 +142,7 @@ const AddStorage = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Storage'
+                  label='Storage*'
                   value={value}
                   onChange={onChange}
                   placeholder='Storage'

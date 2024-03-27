@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
-import { getSuppliers } from 'src/lib/api/getSupplierList'
-import { getSupplierLedger } from 'src/lib/api/getSupplierLedger'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getSupplierLedger } from 'src/lib/api/pharmacy/getSupplierLedger'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner'
@@ -187,26 +187,6 @@ const SupplierLedger = () => {
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:eye-outline' />
-    //       </IconButton>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //       <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:delete-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   // sl,Date,amount,description,type,balance

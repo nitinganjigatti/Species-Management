@@ -20,7 +20,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, Radio } from '@mui/material'
-import { getTaxById } from 'src/lib/api/getGstList'
+import { getTaxById } from 'src/lib/api/pharmacy/getGstList'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'

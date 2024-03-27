@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -14,26 +14,37 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
+import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem } from '@mui/material'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getStoreById } from 'src/lib/api/getStoreList'
+import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
+
+// ** auth context
+
+import { AuthContext } from 'src/context/AuthContext'
 
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('Dosage Form is Required'),
-  type: yup.string().required('Type is Required'),
+  name: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .min(3, 'Pharmacy name must contain at least 3 characters')
+    .required('Pharmacy Name is Required'),
+
+  // type: yup.string().required('Type is Required'),
+  site_id: yup.string().nullable(),
   status: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
   name: '',
   type: '',
+  site_id: '',
   latitude: '',
   logitude: '',
   status: 'active'
@@ -41,10 +52,21 @@ const defaultValues = {
 
 const AddStore = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    pharmacyList,
+    totalStores
+  } = props
 
   // ** States
   const [values, setValues] = useState(defaultValues)
+
+  const authData = useContext(AuthContext)
 
   // const router = useRouter()
   // const { id, action } = router.query
@@ -69,11 +91,12 @@ const AddStore = props => {
   })
 
   const onSubmit = async params => {
-    const { name, type, latitude, logitude, status } = { ...params }
+    const { name, type, site_id, latitude, logitude, status } = { ...params }
 
     const payload = {
       name,
       type,
+      site_id,
       latitude,
       logitude,
       status
@@ -81,7 +104,7 @@ const AddStore = props => {
     await handleSubmitData(payload)
   }
 
-  const getDosage = useCallback(
+  const getStore = useCallback(
     async id => {
       const response = await getStoreById(id)
       if (response?.success) {
@@ -96,13 +119,10 @@ const AddStore = props => {
     if (resetForm) {
       reset(defaultValues)
     }
-
     if (editParams?.id !== null) {
-      console.log()
-
-      getDosage(editParams?.id)
+      getStore(editParams?.id)
     }
-  }, [resetForm, editParams, reset, getDosage])
+  }, [resetForm, editParams, reset, getStore])
 
   const RenderSidebarFooter = () => {
     return (
@@ -130,7 +150,7 @@ const AddStore = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Store</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Pharmacy</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
             size='small'
@@ -153,7 +173,7 @@ const AddStore = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Store Name'
+                  label='Pharmacy Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Store Name'
@@ -164,7 +184,7 @@ const AddStore = props => {
             />
             {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
             <FormLabel>Type</FormLabel>
             <Controller
               name='type'
@@ -192,7 +212,41 @@ const AddStore = props => {
                 {errors?.type?.message}
               </FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
+
+          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+            <FormControl fullWidth sx={{ mb: 6 }}>
+              <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                Site
+              </InputLabel>
+              <Controller
+                name='site_id'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    name='site_id'
+                    value={value}
+                    label='Site'
+                    onChange={onChange}
+                    error={Boolean(errors?.gst_slab)}
+                    labelId='site_id'
+                  >
+                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      return (
+                        <MenuItem key={index} value={item?.site_id}>
+                          {item?.site_name}
+                        </MenuItem>
+                      )
+                    })}
+                  </Select>
+                )}
+              />
+              {errors?.site_id && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+              )}
+            </FormControl>
+          )}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='latitude'
@@ -228,7 +282,7 @@ const AddStore = props => {
             />
           </FormControl>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -258,7 +312,7 @@ const AddStore = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

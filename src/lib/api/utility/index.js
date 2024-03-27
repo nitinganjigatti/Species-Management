@@ -4,8 +4,9 @@ import { readAsync } from '../../../lib/windows/utils'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
-export const GetAPIHeader = async () => {
+export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
+  const selectedPharmacy = await readAsync('selectedStore')
 
   // const header = { 'Content-Type': 'multipart/form-data' }
 
@@ -18,28 +19,34 @@ export const GetAPIHeader = async () => {
     header['Authorization'] = `Bearer ${userDetails?.token}`
   }
 
+  // debugger
+  if (pharmacy) {
+    header['Selectedstore'] = selectedPharmacy?.id
+  }
+
   return header
 }
 
-export const axiosGet = async ({ url, params }) => {
-  const headers = await GetAPIHeader()
+export const axiosGet = async ({ url, params, pharmacy }) => {
+  const headers = await GetAPIHeader({ pharmacy })
   const completeUrl = `${base_url}${url}`
   headers['Content-Type'] = 'application/json'
 
   return axios.get(completeUrl, { headers: headers, params: params })
 }
 
-export const axiosPost = async ({ url, body }) => {
+export const axiosPost = async ({ url, body, pharmacy }) => {
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
-  const headers = await GetAPIHeader()
+  const headers = await GetAPIHeader({ pharmacy })
   headers['Content-Type'] = 'application/json'
 
   return axios.post(completeUrl, body, { headers })
 }
 
-export const axiosFormPost = async ({ url, body }) => {
+export const axiosFormPost = async ({ url, body, pharmacy }) => {
+  debugger
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
-  const headers = await GetAPIHeader()
+  const headers = await GetAPIHeader({ pharmacy })
   headers['Content-Type'] = 'multipart/form-data'
 
   return axios.post(completeUrl, body, { headers })
