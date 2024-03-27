@@ -274,6 +274,7 @@ export default function NewProductList() {
           <Card>
             <CardHeader title='New Product Request List' action={headerAction} />
             <DataGrid
+              sx={{ cursor: 'pointer' }}
               columnVisibilityModel={{
                 id: false
               }}
