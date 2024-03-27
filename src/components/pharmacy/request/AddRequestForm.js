@@ -447,6 +447,7 @@ const AddRequestForm = () => {
 
     if (result.success === true && result.data !== '') {
       console.log('getRequestItemsListById', result.data)
+      debugger
 
       const lineItems = result.data.request_item_details.map(el => {
         return {
@@ -541,6 +542,7 @@ const AddRequestForm = () => {
     postData.total_qty = totalQty
 
     if (id) {
+      debugger
       try {
         const response = await updateRequestItems(id, postData)
 
@@ -774,14 +776,29 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.control_substance_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            control_substance_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.control_substance_file && (
+                    {itemErrors?.control_substance_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.control_substance_file}
                       </FormHelperText>
                     )}
                   </FormControl>
@@ -852,14 +869,29 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.prescription_required_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            prescription_required_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.prescription_required_file && (
+                    {itemErrors?.prescription_required_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.prescription_required_file}
                       </FormHelperText>
                     )}
                   </FormControl>
