@@ -464,11 +464,11 @@ const IndividualRequest = () => {
               }
               variant='contained'
               onClick={() => {
-                console.log('on click full fill dialog', params.row)
+                // console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
-                console.log('in fulfill button', params.row)
+                // console.log('in fulfill button', params.row)
                 showDialog()
               }}
             >
