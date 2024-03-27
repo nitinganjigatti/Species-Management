@@ -78,15 +78,29 @@ export default function NewProductList() {
         </div>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
+      Width: 20,
+      field: 'from_store_name',
+      headerName: 'From Store',
+      renderCell: (params, rowId) => (
+        <div>
+          {console.log('params>>>>>', params)}
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.from_store_name}
+          </Typography>
+        </div>
+      )
+    },
+    {
+      flex: 0.3,
       Width: 20,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '15px' }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -105,7 +119,7 @@ export default function NewProductList() {
         </Typography>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_by',
