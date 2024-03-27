@@ -1,7 +1,6 @@
 import { Icon } from '@iconify/react'
 import { Avatar, Box, Card, Stack, Typography } from '@mui/material'
 import React from 'react'
-import LabImg from 'public/images/med-lab.png'
 
 const ShowLabCard = ({ data }) => {
   console.log('data?.image', data?.image)
@@ -26,11 +25,7 @@ const ShowLabCard = ({ data }) => {
                 height: '100%'
               }}
               variant='square'
-              src={
-                data?.image === 'https://app.antzsystems.com/uploads/'
-                  ? 'https://5.imimg.com/data5/SELLER/Default/2022/1/YJ/GO/TE/932240/science-lab-supplies.png'
-                  : data?.image
-              }
+              src={data?.image === 'https://app.antzsystems.com/uploads/' ? '/images/med-lab.png' : data?.image}
             />
           </Box>
         </Box>
