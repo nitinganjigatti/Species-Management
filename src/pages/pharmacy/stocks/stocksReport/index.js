@@ -79,7 +79,9 @@ const ListOfStocks = () => {
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  const [stockId, setStockId] = useState('')
+  const [stockId, setStockId] = useState(selectedPharmacy?.id)
+
+  // console.log('stockId', stockId)
 
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -88,7 +90,7 @@ const ListOfStocks = () => {
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
   const [changeSwitch, setChangeSwitch] = useState()
-  const [stockType, setStockType] = useState(selectedPharmacy.type)
+  const [stockType, setStockType] = useState(selectedPharmacy?.type)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -112,8 +114,8 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
-      console.log('paginationModel', paginationModel)
       if (id) {
+        console.log('paginationModel', paginationModel)
         try {
           setLoading(true)
           let result
@@ -163,18 +165,6 @@ const ListOfStocks = () => {
     id: `${row.id}_${index}`,
     sl_no: index + 1
   }))
-
-  const handleSearch = useCallback(
-    debounce(async value => {
-      setSearchValue(value)
-      try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id: selectedPharmacy?.id })
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
 
   const getStocksReportBatchWise = useCallback(
     async ({ batchSort, batchQ, batchColumn, id }) => {
@@ -242,33 +232,27 @@ const ListOfStocks = () => {
     sl_no: index + 1
   }))
 
-  const handleBatchSearch = useCallback(
-    debounce(async value => {
-      setBatchSearchValue(value)
-      try {
-        await getStocksReportBatchWise({
-          batchSort: batchSort,
-          batchQ: value,
-          batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
   useEffect(() => {
     getStoresLists()
   }, [])
 
   useEffect(() => {
-    console.log('1')
+    console.log('1 ', selectedPharmacy?.id)
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
       setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
+
+      // console.log('1 ', stockId)
+      console.log('setStockType ', selectedPharmacy?.type)
+      console.log('payload', {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id,
+        type: selectedPharmacy?.type
+      })
 
       getStocksReport({
         sort,
@@ -289,6 +273,11 @@ const ListOfStocks = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
+
+  useEffect(() => {
+    console.log('stockId', stockId)
+    console.log('stockType', stockType)
+  }, [stockId, stockType])
 
   useEffect(() => {
     console.log('2')
@@ -595,12 +584,13 @@ const ListOfStocks = () => {
           <Select
             onChange={e => {
               let id = e.target.value
-              const type = stores.find(el => el.id === id)?.type || ''
 
+              const type = stores.find(el => el.id === id)?.type || ''
               setStockType(type)
 
               // console.log('e.target.value', e)
               setStockId(id)
+              console.log('id', id)
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
@@ -676,6 +666,37 @@ const ListOfStocks = () => {
     setConfigureMedId(params?.row?.stock_item_id)
     showDialog()
   }
+
+  const handleBatchSearch = useCallback(
+    debounce(async value => {
+      setBatchSearchValue(value)
+      try {
+        await getStocksReportBatchWise({
+          batchSort: batchSort,
+          batchQ: value,
+          batchColumn: batchSortColumn,
+          id: stockId
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        console.log('value', value)
+        console.log('payloadsearch', { sort, q: value, column: sortColumn, id: stockId, type: stockType })
+        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   return (
     <>
