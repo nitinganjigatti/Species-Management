@@ -213,7 +213,7 @@ export const ProductDetail = ({
                     )}
               </Grid>
               {visibleArea && (
-                <Card sx={{ width: '100%', ml: '40px', fontSize: '15px' }}>
+                <Card sx={{ width: '100%', ml: '30px' }}>
                   <CardContent>
                     {/* <Typography sx={{ mb: '10px' }}>Reason of Rejection</Typography> */}
                     <Grid item xs={12} sm={12}>
@@ -228,6 +228,17 @@ export const ProductDetail = ({
                             onChange={e => setReasonText(e.target.value)}
                           />
                           <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mt: '10px' }}>
+                            <Button
+                              sx={{ margin: '3px' }}
+                              variant='outlined'
+                              size='large'
+                              onClick={() => {
+                                setVisibleArea(false)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+
                             <LoadingButton
                               sx={{ margin: '3px' }}
                               size='large'
@@ -239,16 +250,6 @@ export const ProductDetail = ({
                             >
                               Submit
                             </LoadingButton>
-                            <Button
-                              sx={{ margin: '3px' }}
-                              variant='outlined'
-                              size='small'
-                              onClick={() => {
-                                setVisibleArea(false)
-                              }}
-                            >
-                              Cancel
-                            </Button>
                           </Grid>
                         </>
                       )}
