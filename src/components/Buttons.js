@@ -13,7 +13,7 @@ function AddButton({ action, title, disabled, styles }) {
       onClick={action ? action : null}
       size='large'
       variant='outlined'
-      startIcon={title !== 'Cancel' && <Icon icon='material-symbols-light:add' />}
+      startIcon={<Icon icon='material-symbols-light:add' />}
       style={{ ...styles }}
     >
       {title ? title : null}

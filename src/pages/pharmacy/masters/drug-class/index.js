@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getSalts, addSalt, updateSalt } from 'src/lib/api/pharmacy/salts'
+import { getDrugClass, addDrug, updateDrug } from 'src/lib/api/pharmacy/getDrugs'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -8,28 +8,33 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
-
+import IconButton from '@mui/material/IconButton'
+import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer } from '@mui/material'
-import Card from '@mui/material/Card'
-import IconButton from '@mui/material/IconButton'
-import UserSnackbar from 'src/components/utility/snackbar'
-
-import { debounce } from 'lodash'
+import { Box } from '@mui/material'
 
 import Router from 'next/router'
-import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
+import { debounce } from 'lodash'
+
+import AddDrugClass from 'src/views/pages/pharmacy/medicine/drugClass/addDrugClass'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import toast from 'react-hot-toast'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
-const Salts = () => {
-  const [saltsList, setSaltsList] = useState([])
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+
+const ListOfDrugs = () => {
+  const [drugClass, setDrugClass] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -44,6 +49,9 @@ const Salts = () => {
   const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -74,8 +82,6 @@ const Salts = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
-
   const columns = [
     {
       flex: 0.05,
@@ -89,10 +95,10 @@ const Salts = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.4,
       minWidth: 20,
       field: 'label',
-      headerName: 'Salt',
+      headerName: 'NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -118,21 +124,21 @@ const Salts = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-                    aria-label='Edit'
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -152,6 +158,7 @@ const Salts = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
+      debugger
       try {
         setLoading(true)
 
@@ -163,12 +170,13 @@ const Salts = () => {
           limit: paginationModel.pageSize
         }
 
-        await getSalts({ params: params }).then(res => {
+        await getDrugClass({ params: params }).then(res => {
+          console.log('rez????', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
-      } catch (e) {
+      } catch {
         setLoading(false)
       }
     },
@@ -176,7 +184,7 @@ const Salts = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy?.id])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -189,6 +197,7 @@ const Salts = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
+      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
@@ -206,10 +215,9 @@ const Salts = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title=' Add Salt' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Drug class' action={() => addEventSidebarOpen()} />}
     </div>
   )
 
@@ -218,12 +226,15 @@ const Salts = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updateSalt(editParams?.id, payload)
+        response = await updateDrug(editParams?.id, payload)
       } else {
-        response = await addSalt(payload)
+        response = await addDrug(payload)
       }
+
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
+
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -231,12 +242,20 @@ const Salts = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      toast.error(JSON.stringify(e))
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -249,14 +268,15 @@ const Salts = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
           ) : (
             <>
               <Card>
-                <CardHeader title='Salts' action={headerAction} />
+                <CardHeader title='Drug Class' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -288,7 +308,7 @@ const Salts = () => {
                   }}
                 />
               </Card>
-              <AddSalts
+              <AddDrugClass
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -297,12 +317,12 @@ const Salts = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>
@@ -315,4 +335,4 @@ const Salts = () => {
   )
 }
 
-export default Salts
+export default ListOfDrugs

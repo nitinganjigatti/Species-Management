@@ -29,6 +29,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Drug class must contain at least 3 characters ')
     .required('Drug Class Name is Required'),
   active: yup.string().required('Status is Required')
 })
@@ -144,7 +145,7 @@ const AddDrugClass = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Drug Class Name'
+                  label='Drug Class Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Drug Class Name'
@@ -163,7 +164,7 @@ const AddDrugClass = props => {
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
+                  <RadioGroup row {...field} name='validation-basic-radio'>
                     <FormControlLabel
                       value='1'
                       label='Active'

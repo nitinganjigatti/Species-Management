@@ -37,7 +37,7 @@ export async function updateRackList(id, payload) {
     const url = `${RACK}/${id}/update`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -54,7 +54,7 @@ export async function updateRackList(id, payload) {
 }
 
 export async function deleteRackItem(id) {
-  const response = await axiosGet({ url: `${RACK}/${id}/delete` })
+  const response = await axiosGet({ url: `${RACK}/${id}/delete`, pharmacy: true })
 
   return response?.data
 }

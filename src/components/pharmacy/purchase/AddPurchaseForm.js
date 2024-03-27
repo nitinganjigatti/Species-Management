@@ -47,6 +47,7 @@ import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
+import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -118,6 +119,9 @@ const AddPurchaseForm = () => {
   const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+
+  const [supplierDialog, setSupplierDialog] = useState(false)
+
   const router = useRouter()
   const { id, action } = router.query
 
@@ -722,7 +726,7 @@ const AddPurchaseForm = () => {
           taxable_amount: result?.data?.taxable_amount
         })
 
-        setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+        // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
         // setValue('supplier_id', result?.data?.supplier_id)
         reset({
           supplier_id: result?.data?.supplier_id,
@@ -894,17 +898,22 @@ const AddPurchaseForm = () => {
     )
   }
 
+  const closeSupplierDialog = () => {
+    getSuppliersLists()
+    setSupplierDialog(false)
+  }
+
   return (
     <Card>
       <Grid
         container
-        // sm={12}
-        // xs={12}
-        // sx={{
-        //   display: 'flex',
-        //   justifyContent: 'space-between',
-        //   alignItems: 'center'
-        // }}
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
       >
         <CardHeader
           avatar={
@@ -917,7 +926,15 @@ const AddPurchaseForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Inventory'
+          title={id ? 'Edit Inventory List' : 'Add Inventory'}
+        />
+
+        <AddButton
+          styles={{ marginRight: 20 }}
+          title='Add Supplier'
+          action={() => {
+            setSupplierDialog(true)
+          }}
         />
       </Grid>
 
@@ -942,7 +959,7 @@ const AddPurchaseForm = () => {
                       //   onChange(e.target.value)
                       // }}
                       label='Supplier*'
-                      disabled={!!id}
+                      // disabled={!!id}
                       error={Boolean(errors.supplier_id)}
                     >
                       {suppliers?.map(item => (
@@ -1093,18 +1110,21 @@ const AddPurchaseForm = () => {
                         <TableCell align='right'>{el.purchase_igst}%</TableCell>
                         <TableCell align='right'>{el.purchase_net_amount}</TableCell>
                         <TableCell align='center'>
-                          <IconButton
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                            aria-label='Edit'
-                            onClick={() => {
-                              setMedicineItemId(el.purchase_unit_id)
-                              editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
-                              showDialog()
-                            }}
-                          >
-                            <Icon icon='mdi:pencil-outline' />
-                          </IconButton>
+                          {el.id ? null : (
+                            <IconButton
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.purchase_unit_id)
+                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                showDialog()
+                              }}
+                            >
+                              <Icon icon='mdi:pencil-outline' />
+                            </IconButton>
+                          )}
+
                           {id && el.id ? null : (
                             <IconButton
                               onClick={() => {
@@ -1264,15 +1284,17 @@ const AddPurchaseForm = () => {
             >
               Save
             </LoadingButton>
-            <Button
-              onClick={() => {
-                setEditParams(editParamsInitialState)
-              }}
-              size='large'
-              variant='outlined'
-            >
-              Reset
-            </Button>
+            {id ? null : (
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            )}
           </Box>
         </Grid>
       </form>
@@ -1286,6 +1308,24 @@ const AddPurchaseForm = () => {
             show={showDialog}
           />
         </Grid>
+        <CommonDialogBox
+          title={'Add Supplier'}
+          dialogBoxStatus={supplierDialog}
+          formComponent={
+            <AddSupplier
+              closeSupplierDialog={() => {
+                closeSupplierDialog()
+              }}
+              supplierDialog={supplierDialog}
+            />
+          }
+          close={() => {
+            setSupplierDialog(false)
+          }}
+          show={() => {
+            setSupplierDialog(true)
+          }}
+        />
       </CardContent>
     </Card>
   )

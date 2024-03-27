@@ -1,36 +1,41 @@
 import React, { useState, useEffect, useCallback } from 'react'
-
-import { getStorage, updateStorage } from 'src/lib/api/pharmacy/storage'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+
+// ** MUI Imports
+import IconButton from '@mui/material/IconButton'
+import Card from '@mui/material/Card'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 
-// ** MUI Imports
-
-import Typography from '@mui/material/Typography'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer } from '@mui/material'
-import Card from '@mui/material/Card'
-import IconButton from '@mui/material/IconButton'
-import UserSnackbar from 'src/components/utility/snackbar'
-
+import { Box } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
-import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
+
+import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
+
+import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { addStorage } from 'src/lib/api/pharmacy/storage'
+import toast from 'react-hot-toast'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
-const StorageList = () => {
-  const [saltsList, setSaltsList] = useState([])
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+
+const ManufacturerList = () => {
+  const [packages, setPackages] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -46,6 +51,9 @@ const StorageList = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return
@@ -55,6 +63,7 @@ const StorageList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
+    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -93,7 +102,7 @@ const StorageList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'Storage',
+      headerName: 'Package',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -119,21 +128,21 @@ const StorageList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
-                    aria-label='Edit'
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -164,12 +173,13 @@ const StorageList = () => {
           limit: paginationModel.pageSize
         }
 
-        await getStorage({ params: params }).then(res => {
+        await getPackages({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
       } catch (e) {
+        console.log(e)
         setLoading(false)
       }
     },
@@ -185,6 +195,8 @@ const StorageList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
+      // setSort('asc')
+      // setSortColumn('label')
     }
   }
 
@@ -207,36 +219,44 @@ const StorageList = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Storage' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Package' action={() => addEventSidebarOpen()} />}
     </div>
   )
 
-  const handleSubmitData = async (payload, id) => {
+  const handleSubmitData = async payload => {
     try {
       setSubmitLoader(true)
       var response
-      if (id !== null) {
-        response = await updateStorage(id, payload)
+      if (editParams?.id !== null) {
+        response = await updatePackage(editParams?.id, payload)
       } else {
-        response = await addStorage(payload)
+        response = await addPackages(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
-
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -249,14 +269,15 @@ const StorageList = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
           ) : (
             <>
               <Card>
-                <CardHeader title='Storage' action={headerAction} />
+                <CardHeader title='Packages' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -282,13 +303,13 @@ const StorageList = () => {
                     },
                     toolbar: {
                       value: searchValue,
-                      clearSearch: () => (searchValue === '' ? null : handleSearch('')),
+                      clearSearch: () => handleSearch(''),
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
                 />
               </Card>
-              <AddStorage
+              <AddPackages
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -297,12 +318,12 @@ const StorageList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>
@@ -315,4 +336,4 @@ const StorageList = () => {
   )
 }
 
-export default StorageList
+export default ManufacturerList

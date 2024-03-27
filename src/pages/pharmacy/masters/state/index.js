@@ -1,66 +1,64 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/api/pharmacy/productForms'
+import { getStates, addState, updateStates } from 'src/lib/api/pharmacy/getStates'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+
+import toast from 'react-hot-toast'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
+
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
-import { debounce } from 'lodash'
+import { Box, Drawer } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
 
-import Router from 'next/router'
-
-import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
-import UserSnackbar from 'src/components/utility/snackbar'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
-const ListOfDosageForms = () => {
-  const [dosageForms, setDosageForms] = useState([])
+import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
+
+import Error404 from 'src/pages/404'
+
+import { debounce } from 'lodash'
+
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import Card from '@mui/material/Card'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+
+const ListOfStates = () => {
+  const [stateList, setStateList] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, active: null }
+  const editParamsInitialState = { id: null, name: null, status: null, code: null, short_code: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
-  const { selectedPharmacy } = usePharmacyContext()
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpenSnackbar(false)
-  }
-
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
 
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null, name: null, active: null })
+    setEditParams({ id: null, name: null, status: null, code: null, short_code: null })
     setResetForm(true)
+
     setOpenDrawer(true)
   }
 
@@ -68,17 +66,73 @@ const ListOfDosageForms = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, active) => {
-    setEditParams({ id: id, name: name, active: active })
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+      if (editParams?.id !== null) {
+        response = await updateStates(editParams?.id, payload)
+      } else {
+        response = await addState(payload)
+      }
+
+      if (response?.success) {
+        toast.success(response?.data)
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        debugger
+        if (typeof response.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(JSON.stringify(response.message))
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      toast.error(JSON.stringify(e))
+    }
+  }
+
+  const handleEdit = async (id, name, code, short_code, status) => {
+    setEditParams({ id: id, name: name, code: code, short_code: short_code, status: status })
     setOpenDrawer(true)
   }
+
+  /***** Drawer  */
+
+  // const getStatesLists = async () => {
+  //   setLoader(true)
+  //   const response = await getStates()
+  //   if (response?.length > 0) {
+  //     // response.sort((a, b) => a.id - b.id)
+  //     let listWithId = response
+  //       ? response.map((el, i) => {
+  //           return { ...el, uid: i + 1 }
+  //         })
+  //       : []
+  //     setStateList(listWithId)
+  //     setLoader(false)
+  //   } else {
+  //     setLoader(false)
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   getStatesLists()
+  // }, [])
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
-      headerName: 'SL No',
+      field: 'uid',
+      headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no)}
@@ -88,15 +142,37 @@ const ListOfDosageForms = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'label',
-      headerName: 'Product Form',
+      field: 'name',
+      headerName: 'STATE NAME',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.label}
+          {params.row.name}
         </Typography>
       )
     },
 
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'code',
+      headerName: 'CODE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.code}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'short_code',
+      headerName: 'SHORT CODE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.short_code}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
@@ -105,7 +181,6 @@ const ListOfDosageForms = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.status}
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
@@ -116,20 +191,20 @@ const ListOfDosageForms = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() =>
+                  handleEdit(params.row.id, params.row.name, params.row.code, params.row.short_code, params.row.status)
+                }
+                aria-label='Edit'
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Box>
+          )}
         </>
       )
     }
@@ -160,13 +235,13 @@ const ListOfDosageForms = () => {
           limit: paginationModel.pageSize
         }
 
-        await getProductFormList({ params: params }).then(res => {
+        await getStates({ params: params }).then(res => {
+          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
         setLoading(false)
       }
     },
@@ -204,40 +279,11 @@ const ListOfDosageForms = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Product Form' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add State' action={() => addEventSidebarOpen()} />}
     </div>
   )
-
-  const handleSubmitData = async payload => {
-    try {
-      setSubmitLoader(true)
-      var response
-      if (editParams?.id !== null) {
-        response = await updateProductForm(editParams?.id, payload)
-      } else {
-        response = await addProductForm(payload)
-      }
-
-      if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-
-        await fetchTableData(sort, searchValue, sortColumn)
-      } else {
-        setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-      }
-    } catch (e) {
-      setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
-    }
-  }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -248,14 +294,25 @@ const ListOfDosageForms = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
           ) : (
             <>
+              {/* <TableWithFilter
+                TableTitle={stateList.length > 0 ? 'State List' : 'State list is empty add State'}
+                headerActions={
+                  <div>
+                    <AddButton title={'Add State'} action={() => addEventSidebarOpen()}></AddButton>
+                  </div>
+                }
+                columns={columns}
+                rows={stateList}
+              /> */}
+
               <Card>
-                <CardHeader title='Product Form List' action={headerAction} />
+                <CardHeader title='State List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -287,7 +344,7 @@ const ListOfDosageForms = () => {
                   }}
                 />
               </Card>
-              <AddProductForm
+              <AddStates
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -296,12 +353,9 @@ const ListOfDosageForms = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
-                status={openSnackbar}
-                message={snackbarMessage}
-                severity={severity}
-                handleClose={handleClose}
-              />
+              {/* {openSnackbar.open ? (
+                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+              ) : null} */}
             </>
           )}
         </>
@@ -314,4 +368,4 @@ const ListOfDosageForms = () => {
   )
 }
 
-export default ListOfDosageForms
+export default ListOfStates

@@ -16,12 +16,21 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import Router from 'next/router'
 import { AddButton } from 'src/components/Buttons'
+import Error404 from 'src/pages/404'
+
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
 
 const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
+  const [loader, setLoader] = useState(false)
+
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const getSupplierList = async () => {
     try {
+      setLoader(true)
       const response = await getSuppliers()
 
       console.log('response', response)
@@ -33,12 +42,15 @@ const Supplier = () => {
         : []
 
       setSupplierList(listWithId)
-    } catch (error) {}
+      setLoader(false)
+    } catch (error) {
+      setLoader(false)
+    }
   }
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/settings/supplier/add-supplier',
+      pathname: '/pharmacy/masters/supplier/add-supplier',
       query: { id: id, action: 'edit' }
     })
   }
@@ -123,17 +135,21 @@ const Supplier = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+        <>
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-          <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+              <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:delete-outline' />
           </IconButton> */}
-        </Box>
+            </Box>
+          )}
+        </>
       )
     }
   ]
@@ -144,21 +160,33 @@ const Supplier = () => {
 
   return (
     <>
-      <TableWithFilter
-        TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
-        headerActions={
-          <div>
-            <AddButton
-              title='Add Supplier'
-              action={() => {
-                Router.push('/pharmacy/settings/supplier/add-supplier')
-              }}
+      {pharmacyRole ? (
+        <>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <TableWithFilter
+              TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
+              headerActions={
+                <div>
+                  <AddButton
+                    title='Add Supplier'
+                    action={() => {
+                      Router.push('/pharmacy/masters/supplier/add-supplier')
+                    }}
+                  />
+                </div>
+              }
+              columns={columns}
+              rows={supplierList}
             />
-          </div>
-        }
-        columns={columns}
-        rows={supplierList}
-      />
+          )}
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }

@@ -1,20 +1,17 @@
 import { STATES } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
-export async function getStates() {
-  const response = await axiosGet({ url: STATES })
-  if (response?.status == 200 && response?.data?.success) {
-    return response.data.data
-  } else {
-    return []
-  }
+export async function getStates({ params }) {
+  const response = await axiosGet({ url: STATES, params: params, pharmacy: true })
+
+  return response.data
 }
 
 export async function addState(payload) {
   try {
     const url = `${STATES}`
     var data = payload
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -30,7 +27,7 @@ export async function addState(payload) {
 }
 
 export async function getStateById(id) {
-  const response = await axiosGet({ url: `${STATES}/${id}/show` })
+  const response = await axiosGet({ url: `${STATES}/${id}/show`, pharmacy: true })
 
   return response?.data
 }
@@ -40,7 +37,7 @@ export async function updateStates(id, payload) {
     const url = `${STATES}/${id}/update`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data })
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {

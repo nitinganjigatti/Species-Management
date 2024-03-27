@@ -107,6 +107,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [rejectItemsError, setRejectItemsError] = useState(null)
   const [listComments, setListComments] = useState([])
   const [orderData, setOrderData] = useState([])
+  const [wrongCountErr, setWrongCountErr] = useState({})
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -762,7 +763,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       value={params?.row?.wrong_count_number}
                       error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
                       size='small'
-                      onChange={event => handleStatusChange(params.row.id, event)}
+                      onChange={event => {
+                        handleStatusChange(params.row.id, event)
+
+                        if (Number(event.target.value) > Number(params?.row?.count)) {
+                          setWrongCountErr(prevErrors => ({
+                            ...prevErrors,
+                            [params.row.uid]: 'Qty exceeds shipped count.'
+                          }))
+                        } else {
+                          setWrongCountErr(prevErrors => {
+                            const newErrors = { ...prevErrors }
+                            delete newErrors[params.row.uid]
+
+                            return newErrors
+                          })
+                        }
+                      }}
                       inputProps={{ style: { fontSize: 12 } }}
                     />
                   </Grid>
@@ -772,6 +789,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       // disabled={disableButton()}
                       onClick={event => {
                         clearStatus(params.row.id, event)
+                        setWrongCountErr(prevErrors => {
+                          const newErrors = { ...prevErrors }
+                          delete newErrors[params.row.uid]
+
+                          return newErrors
+                        })
                       }}
                     >
                       <Icon
@@ -784,6 +807,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       />
                     </Button>
                   </Grid>
+                  {wrongCountErr[params.row.uid] && (
+                    <FormHelperText sx={{ mx: 4 }} error>
+                      {wrongCountErr[params.row.uid]}
+                    </FormHelperText>
+                  )}
                 </Grid>
               ) : (
                 // : (
@@ -903,6 +931,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   ]
 
   async function updateStatus() {
+    console.log('error', wrongCountErr)
+    if (Object.keys(wrongCountErr).length > 0) {
+      console.error('Cannot submit form due to errors.')
+
+      return
+    }
     const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
 
     if (isStatusEmpty) {
@@ -951,7 +985,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         // "comments": "test"
       })
 
-      //setSubmitLoader(true)
       // const finalData = { ...disputeItemDetails, item_details: receivedItems }
       const verifyCount = finalReceivedItems.some(el => {
         if (el.item_status === 'Wrong Count') {
@@ -968,6 +1001,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       console.log('verifyCount', verifyCount)
       if (verifyCount) {
         try {
+          setSubmitLoader(true)
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
           console.log('in block', finalReceivedItems)
 
@@ -1058,26 +1092,32 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             </>
           ) : null}
 
-          <Grid container items>
-            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-              <FormControl fullWidth>
-                <TextField
-                  // disabled={disableButton()}
-                  disabled={selectedPharmacy.type === 'local' ? 'disabled' : null}
-                  multiline
-                  rows={3}
-                  type='text'
-                  label='Comment'
-                  value={disputeItemDetails?.comments}
-                  onChange={e => {
-                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                  }}
-                  placeholder='comment'
-                  name='comments'
-                />
-              </FormControl>
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    value={disputeItemDetails?.comments}
+                    label='Comment'
+                    name='comments'
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder=''
+                    multiline
+                    rows={3}
+                    disabled={
+                      selectedPharmacy.type === 'local'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
+                  />
+                </FormControl>
+              </Grid>
             </Grid>
-          </Grid>
+          ) : null}
           {selectedPharmacy.type === 'central' && (
             <Divider
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStoreList, addStore, updateStore } from 'src/lib/api/pharmacy/getStoreList'
+import { getSalts, addSalt, updateSalt } from 'src/lib/api/pharmacy/salts'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -8,21 +8,24 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
+
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Drawer } from '@mui/material'
+import Card from '@mui/material/Card'
+import IconButton from '@mui/material/IconButton'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
+
 import { debounce } from 'lodash'
 
+import toast from 'react-hot-toast'
+
 import Router from 'next/router'
-import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
-import UserSnackbar from 'src/components/utility/snackbar'
+import AddSalts from 'src/views/pages/pharmacy/medicine/salts/addSalts'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { column } from 'stylis'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
@@ -30,44 +33,54 @@ import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
-const ListOfStores = () => {
-  const [stores, setStores] = useState([])
+const Salts = () => {
+  const [saltsList, setSaltsList] = useState([])
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
-  const editParamsInitialState = { id: null, name: null, status: null }
+  const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  const authData = useContext(AuthContext)
-  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpenSnackbar(false)
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar(status)
+    setSnackbarMessage(message)
+    setSeverity(severity)
+  }
+
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
-    setEditParams({ id: null, name: null, status: null })
+    setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
-    console.log(editParams)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name, active) => {
+    setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
 
@@ -77,55 +90,22 @@ const ListOfStores = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'sl_no',
-      headerName: 'SL ',
+      field: 'id',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'type',
-      headerName: 'TYPE',
+      field: 'label',
+      headerName: 'Salt',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.type}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'name',
-      headerName: 'PHARMACY NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'latitude',
-      headerName: 'LATITUDE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.latitude}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'logitude',
-      headerName: 'LONGITUDE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.logitude}
+          {params.row.label}
         </Typography>
       )
     },
@@ -133,23 +113,11 @@ const ListOfStores = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'site_name',
-      headerName: 'Site Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.site_name}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'status',
+      field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.status}
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
@@ -160,24 +128,22 @@ const ListOfStores = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
                 <IconButton
                   size='small'
                   sx={{ mr: 0.5 }}
-                  onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                  aria-label='Edit'
                 >
                   <Icon icon='mdi:pencil-outline' />
                 </IconButton>
-                {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
-              </Box>
-            )}
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -188,7 +154,7 @@ const ListOfStores = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -208,7 +174,7 @@ const ListOfStores = () => {
           limit: paginationModel.pageSize
         }
 
-        await getStoreList({ params: params }).then(res => {
+        await getSalts({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -250,38 +216,46 @@ const ListOfStores = () => {
   }
 
   const headerAction = (
-    <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+    <div>
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title=' Add Salt' action={() => addEventSidebarOpen()} />}
+    </div>
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updateStore(editParams?.id, payload)
+        response = await updateSalt(editParams?.id, payload)
       } else {
-        payload.type = parseInt(total) > 0 ? 'local' : 'central'
-        response = await addStore(payload)
+        response = await addSalt(payload)
       }
-
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
-        Router.reload()
 
-        // await fetchTableData(sort, searchValue, sortColumn)
+        await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        console.log('test')
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -294,6 +268,7 @@ const ListOfStores = () => {
 
   return (
     <>
+      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -301,10 +276,10 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Pharmacy List' action={headerAction} />
+                <CardHeader title='Salts' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
-                    sl_no: false
+                    id: false
                   }}
                   autoHeight
                   pagination
@@ -333,7 +308,7 @@ const ListOfStores = () => {
                   }}
                 />
               </Card>
-              <AddStore
+              <AddSalts
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -341,12 +316,13 @@ const ListOfStores = () => {
                 resetForm={resetForm}
                 submitLoader={submitLoader}
                 editParams={editParams}
-                pharmacyList={pharmacyList}
-                totalStores={total}
               />
-              {openSnackbar.open ? (
-                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null}
+              {/* <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              /> */}
             </>
           )}
         </>
@@ -359,4 +335,4 @@ const ListOfStores = () => {
   )
 }
 
-export default ListOfStores
+export default Salts

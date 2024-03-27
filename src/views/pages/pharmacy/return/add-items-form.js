@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, get } from 'react-hook-form'
 import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -115,7 +115,11 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
+    debugger
+
+    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
+      ...params
+    }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
     // console.log('params', params)
@@ -135,28 +139,38 @@ export const AddItemsForm = ({
       })
       console.log('Medicine already exists')
 
+      // alert('2')
+
       return
+
+      // alert('3')
     }
     if (request_item_qty > available_item_qty) {
-      const invalidItems = [
-        {
-          request_item_batch_no: request_item_batch_no?.value,
-          request_item_qty,
-          available_item_qty,
-          expiry_date,
-          request_item_medicine_id: request_item?.value,
-          product_name: request_item?.label,
-          priority_item: 'Normal',
-          uuid: nestedMedicine?.uuid
-        }
-      ]
+      setQuantityError(true)
 
-      // console.log('invalid items', invalidItems)
-      setInvalidQty(invalidItems)
+      // const invalidItems = [
+      //   {
+      //     request_item_batch_no: request_item_batch_no?.value,
+      //     request_item_qty,
+      //     available_item_qty,
+      //     expiry_date,
+      //     request_item_medicine_id: request_item?.value,
+      //     product_name: request_item?.label,
+      //     priority_item: 'Normal',
+      //     uuid: nestedMedicine?.uuid
+      //   }
+      // ]
 
-      setInvalidQtyDialog(true)
+      // // console.log('invalid items', invalidItems)
+      // setInvalidQty(invalidItems)
+
+      // setInvalidQtyDialog(true)
+
+      // alert('2')
 
       return
+
+      // alert('3')
     }
 
     // if (request_item_qty > available_item_qty) {
@@ -181,18 +195,20 @@ export const AddItemsForm = ({
     //   return
     // }
     clearErrors('request_item_batch_no')
-    debugger
+
+    // debugger
     if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
       return
     }
     console.log(totalAvailableCount <= 0)
-    if (totalAvailableCount <= 0) {
-      setQuantityError(true)
 
-      return
-    }
+    // if (totalAvailableCount <= 0) {
+    //   setQuantityError(true)
+
+    //   return
+    // }
 
     onSubmitData(
       {
@@ -203,7 +219,8 @@ export const AddItemsForm = ({
         request_item_medicine_id: request_item?.value,
         product_name: request_item?.label,
         priority_item: 'Normal',
-        uuid: nestedMedicine?.uuid
+        uuid: nestedMedicine?.uuid,
+        stock_type
       },
       type
     )
@@ -225,47 +242,12 @@ export const AddItemsForm = ({
   //     type
   //   )
   // }
-  useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      reset({
-        request_item: {
-          label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
-        },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
-        },
-        request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date,
-        available_item_qty: nestedMedicine?.available_item_qty
-      })
-      console.log('nested medicine ', nestedMedicine?.available_item_qty)
-      async function searchMedicine() {
-        await searchMedicineData(nestedMedicine?.request_item_medicine_id)
-      }
-
-      async function searchBatch() {
-        await searchBatchData(nestedMedicine?.request_item_medicine_id)
-      }
-
-      searchMedicine()
-      searchBatch()
-
-      checkTotalCount()
-    } else {
-    }
-    checkTotalCount()
-  }, [])
 
   useEffect(() => {
     checkTotalCount()
   }, [error, totalQuantity])
 
   const checkTotalCount = e => {
-    console.log('nestedMedicine', nestedMedicine)
-
     // console.log('editParams', editParams)
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
@@ -294,24 +276,24 @@ export const AddItemsForm = ({
     setTotalAvailableCount(available_qty)
   }
 
-  useEffect(() => {
-    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      reset({
-        request_item: {
-          label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
-        },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
-        },
-        request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date
-      })
-    } else {
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+  //     reset({
+  //       request_item: {
+  //         label: nestedMedicine?.medicine_name,
+  //         value: nestedMedicine?.request_item_medicine_id
+  //       },
+  //       request_item_batch_no: {
+  //         label: nestedMedicine?.request_item_batch_no,
+  //         value: nestedMedicine?.request_item_batch_no,
+  //         expiry_date: nestedMedicine?.expiry_date
+  //       },
+  //       request_item_qty: nestedMedicine?.request_item_qty,
+  //       expiry_date: nestedMedicine?.expiry_date
+  //     })
+  //   } else {
+  //   }
+  // }, [])
 
   useEffect(() => {
     // setTotalAvailableCount(totalQuantity)
@@ -360,6 +342,42 @@ export const AddItemsForm = ({
   //   setTotalAvailableCount(available_qty)
   // }
 
+  useEffect(() => {
+    if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+      // debugger
+      reset({
+        request_item: {
+          label: nestedMedicine?.medicine_name,
+          value: nestedMedicine?.request_item_medicine_id
+        },
+        request_item_batch_no: {
+          label: nestedMedicine?.request_item_batch_no,
+          value: nestedMedicine?.request_item_batch_no,
+          expiry_date: nestedMedicine?.expiry_date
+        },
+        request_item_qty: nestedMedicine?.request_item_qty,
+        expiry_date: nestedMedicine?.expiry_date,
+        available_item_qty: nestedMedicine?.available_item_qty,
+        stock_type: nestedMedicine?.stock_type
+      })
+      console.log('nested medicine in form', nestedMedicine)
+      async function searchMedicine() {
+        await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+      }
+
+      async function searchBatch() {
+        await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+      }
+
+      searchMedicine()
+      searchBatch()
+
+      checkTotalCount()
+    } else {
+    }
+    checkTotalCount()
+  }, [])
+
   return (
     <>
       {/* <CardContent> */}
@@ -387,13 +405,19 @@ export const AddItemsForm = ({
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
+                      setValue('stock_type', '')
                       setValue('available_item_qty', '')
 
                       if (value !== '' && value !== null) {
-                        searchBatchData(value.value)
+                        // debugger
+                        searchBatchData(value.value, value.stock_type)
+                        setValue('stock_type', value.stock_type)
                       }
                       checkTotalCount()
                     }} // Set selected value
+                    onBlur={async () => {
+                      await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+                    }}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -435,6 +459,7 @@ export const AddItemsForm = ({
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
                       checkTotalCount()
+                      setQuantityError(false)
                     }} // Set selected value
                     loading={batchLoading}
                     noOptionsText='Type to search'
@@ -453,7 +478,7 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'error.main', fontSize: 14, mx: 2 }}>
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
                   Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
@@ -508,29 +533,32 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid> */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='expiry_date'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Expiry Date*'
-                    name='expiry_date'
-                    error={Boolean(errors.expiry_date)}
-                    onChange={onChange}
-                    disabled
-                  />
-                )}
-              >
-                {errors.expiry_date && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                )}
-              </Controller>
-            </FormControl>
-          </Grid>
+
+          {getValues('stock_type') === 'non_medical' ? null : (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='expiry_date'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      label='Expiry Date*'
+                      name='expiry_date'
+                      error={Boolean(errors.expiry_date)}
+                      onChange={onChange}
+                      disabled
+                    />
+                  )}
+                >
+                  {errors.expiry_date && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                  )}
+                </Controller>
+              </FormControl>
+            </Grid>
+          )}
 
           <Grid item xs={12} sm={12} display={'flex'}>
             {/* <Typography>Available Quantity: </Typography>

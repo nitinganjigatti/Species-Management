@@ -1,42 +1,50 @@
-import {
-  Button,
-  FormControl,
-  FormHelperText,
-  Grid,
-  Icon,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography
-} from '@mui/material'
-import React, { useRef, useState, useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
+import { Button, Card, CardContent, CardHeader, Grid, TextField, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/system'
+import { useRouter } from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { addNonExistingProductStatus } from 'src/lib/api/pharmacy/newMedicine'
+import toast from 'react-hot-toast'
+import { LoadingButton } from '@mui/lab'
+import NewProductList from 'src/pages/pharmacy/new-product-request'
 
-export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescriptionImages, productDetails }) => {
+export const ProductDetail = ({
+  setShow,
+  detailsData,
+  prescriptionImages,
+  productDetails,
+  submitLoader,
+  handleRequestStatus,
+  statusCall,
+  savedText,
+  setReasonText,
+  reasonText
+}) => {
+  console.log('product data????', productDetails, reasonText)
+
   const { selectedPharmacy } = usePharmacyContext()
+  const [visibleArea, setVisibleArea] = useState(false)
+
+  const router = useRouter()
+
+  // useEffect(() => {
+  //   if (statusCall) {
+  //     ;<NewProductList />
+  //   }
+  // }, [statusCall])
+
+  // const handlePopup = () => {
+  //   ;() => {
+  //     setStatusCall(prev => !prev)
+  //   }
+  // }
 
   return (
     <Grid>
       {detailsData?.map((item, index) => {
         return (
           <div key={index}>
-            {selectedPharmacy.type === 'local' &&
-              (selectedPharmacy.permission.key === 'allow_full_access' ||
-                selectedPharmacy.permission.key === 'ADD') && (
-                <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                  <Button variant='contained' onClick={() => handleEdit(itemId)}>
-                    Edit
-                  </Button>
-                </Grid>
-              )}
-
             <Grid container spacing={6} sx={{ mb: '30px' }} xs={12}>
               {selectedPharmacy.type === 'central' && (
                 <Grid item xs={6}>
@@ -103,8 +111,6 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
-                        console.log('Item????', item)
-
                         return (
                           <Box key={index}>
                             <Grid>
@@ -122,12 +128,132 @@ export const ProductDetail = ({ detailsData, imgUrl, handleEdit, itemId, prescri
                   </Grid>
                 </Grid>
               )}
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
                 <Typography variant='body2'>{productDetails?.comments}</Typography>
               </Grid>
+
+              {productDetails?.status !== 'Pending' && (
+                <Grid item xs={6} key={statusCall}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Status
+                  </Typography>
+                  <Typography variant='body2'>{productDetails?.status}</Typography>
+                </Grid>
+              )}
+
+              {productDetails?.reject_reason && productDetails?.status === 'Rejected' && (
+                <Grid item xs={6}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Reason Of Rejecting
+                  </Typography>
+                  <Typography variant='body2'>{productDetails?.reject_reason}</Typography>
+                </Grid>
+              )}
+
+              <Grid
+                item
+                xs={12}
+                sm={12}
+                sx={{
+                  position: 'relative',
+                  top: '52px',
+                  left: '33px'
+                }}
+              >
+                {selectedPharmacy.type === 'local'
+                  ? (selectedPharmacy.permission.key === 'allow_full_access' ||
+                      selectedPharmacy.permission.key === 'ADD') && (
+                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', mb: '20px' }}>
+                        {productDetails?.status === 'Pending' && (
+                          <Button
+                            variant='outlined'
+                            sx={{ color: 'error' }}
+                            color='error'
+                            onClick={() => {
+                              handleRequestStatus('Cancelled', productDetails.id, productDetails)
+                            }}
+                          >
+                            Cancel Request
+                          </Button>
+                        )}
+                      </Grid>
+                    )
+                  : !visibleArea && (
+                      <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
+                        {productDetails?.status === 'Pending' && (
+                          <LoadingButton
+                            loading={submitLoader}
+                            sx={{ margin: '2px' }}
+                            variant='outlined'
+                            onClick={() => {
+                              handleRequestStatus('Approved', productDetails.id, productDetails)
+                            }}
+                          >
+                            Approve Request
+                          </LoadingButton>
+                        )}
+                        {productDetails?.status === 'Pending' && (
+                          <LoadingButton
+                            sx={{ margin: '2px', color: 'error' }}
+                            variant='outlined'
+                            color='error'
+                            onClick={() => {
+                              setVisibleArea(true)
+                            }}
+                          >
+                            Reject Request
+                          </LoadingButton>
+                        )}
+                      </Grid>
+                    )}
+              </Grid>
+              {visibleArea && (
+                <Card sx={{ width: '100%', ml: '40px', fontSize: '15px' }}>
+                  <CardContent>
+                    {/* <Typography sx={{ mb: '10px' }}>Reason of Rejection</Typography> */}
+                    <Grid item xs={12} sm={12}>
+                      {visibleArea && (
+                        <>
+                          <TextField
+                            fullWidth
+                            id='outlined-basic'
+                            label='Reason of Rejecting'
+                            multiline
+                            rows={4}
+                            onChange={e => setReasonText(e.target.value)}
+                          />
+                          <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mt: '10px' }}>
+                            <LoadingButton
+                              sx={{ margin: '3px' }}
+                              size='large'
+                              variant='contained'
+                              loading={submitLoader}
+                              onClick={() => {
+                                handleRequestStatus('Rejected', productDetails.id, productDetails)
+                              }}
+                            >
+                              Submit
+                            </LoadingButton>
+                            <Button
+                              sx={{ margin: '3px' }}
+                              variant='outlined'
+                              size='small'
+                              onClick={() => {
+                                setVisibleArea(false)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </Grid>
+                        </>
+                      )}
+                    </Grid>
+                  </CardContent>
+                </Card>
+              )}
             </Grid>
           </div>
         )

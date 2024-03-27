@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import TableWithFilter from 'src/components/TableWithFilter'
+import TableServerSide from 'src/views/table/data-grid/TableServerSide'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -17,19 +18,23 @@ import { Box } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
+import toast from 'react-hot-toast'
 
-import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
+import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
 
-import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
-import UserSnackbar from 'src/components/utility/snackbar'
+// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
 
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+
 const ManufacturerList = () => {
-  const [packages, setPackages] = useState([])
+  const [manufacturers, setManufacturers] = useState({})
   const [loader, setLoader] = useState(false)
 
   /*** Drawer ****/
@@ -45,6 +50,9 @@ const ManufacturerList = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  const authData = useContext(AuthContext)
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return
@@ -54,14 +62,13 @@ const ManufacturerList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
   }
 
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null, name: null, active: null })
+    setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
@@ -74,8 +81,6 @@ const ManufacturerList = () => {
     setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
-
-  /***** Drawer  */
 
   const columns = [
     {
@@ -93,7 +98,7 @@ const ManufacturerList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'Package',
+      headerName: 'Manufacturer',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -119,20 +124,21 @@ const ManufacturerList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                {parseInt(params.row.zoo_id) === 0 ? null : (
-                  <IconButton
-                    size='small'
-                    sx={{ mr: 0.5 }}
-                    onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
-                  >
-                    <Icon icon='mdi:pencil-outline' />
-                  </IconButton>
-                )}
-              </Box>
-            )}
+          {/* {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+          {pharmacyRole && (
+            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+              {parseInt(params.row.zoo_id) === 0 ? null : (
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </>
       )
     }
@@ -159,17 +165,17 @@ const ManufacturerList = () => {
           sort,
           q,
           column,
+
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await getPackages({ params: params }).then(res => {
+        await getManufacturers({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
         setLoading(false)
       }
     },
@@ -209,10 +215,9 @@ const ManufacturerList = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Package' action={() => addEventSidebarOpen()} />
-        )}
+      {/* {selectedPharmacy.type === 'central' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && <AddButton title='Add Manufacturer' action={() => addEventSidebarOpen()} />}
     </div>
   )
 
@@ -221,24 +226,36 @@ const ManufacturerList = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updatePackage(editParams?.id, payload)
+        response = await updateManufacturer(editParams?.id, payload)
       } else {
-        response = await addPackages(payload)
+        response = await addManufacturer(payload)
       }
+
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        toast.success(response?.message)
 
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -251,14 +268,15 @@ const ManufacturerList = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      {pharmacyRole ? (
         <>
           {loader ? (
             <FallbackSpinner />
           ) : (
             <>
               <Card>
-                <CardHeader title='Packages' action={headerAction} />
+                <CardHeader title='Manufacturers' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -290,7 +308,7 @@ const ManufacturerList = () => {
                   }}
                 />
               </Card>
-              <AddPackages
+              <AddManufacturer
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -299,12 +317,12 @@ const ManufacturerList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              <UserSnackbar
+              {/* <UserSnackbar
                 status={openSnackbar}
                 message={snackbarMessage}
                 severity={severity}
                 handleClose={handleClose}
-              />
+              /> */}
             </>
           )}
         </>

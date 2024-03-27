@@ -2,15 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Icon from 'src/@core/components/icon'
-
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -27,6 +22,7 @@ import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineC
 import Utility from 'src/utility'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { DataGrid } from '@mui/x-data-grid'
+import toast from 'react-hot-toast'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
@@ -54,35 +50,12 @@ const ListOfStocksByBatch = () => {
     setShow(true)
   }
 
-  const getStoresLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
-      if (response?.data?.list_items?.length > 0) {
-        response?.data?.list_items?.sort((a, b) => a.id - b.id)
-        setStores(response?.data?.list_items)
-        setLoader(false)
-      } else {
-        setLoader(false)
-      }
-    } catch (error) {
-      setLoader(false)
-      console.log('error', error)
-    }
-  }
-
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id }) => {
-      // if (id === undefined) {
-      //   // setErrors('Please select Store')
-      //   console.log('Please select Store')
-
-      //   return
-      // } else {
       try {
         setLoading(true)
 
@@ -94,7 +67,11 @@ const ListOfStocksByBatch = () => {
           limit: paginationModel.pageSize
         }
         const result = await getStocksByBatch(id, params)
-        if (result.success === true && result.data !== '') {
+        console.log('result', result)
+        if (result?.data?.length === 0) {
+          toast.success('There is no stock for this store')
+        }
+        if (result.success === true && result?.data?.length > 0) {
           setTotal(parseInt(result?.count))
 
           let listWithId = result.data
@@ -104,6 +81,8 @@ const ListOfStocksByBatch = () => {
             : []
           setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
+        } else {
+          setLoading(false)
         }
       } catch (error) {
         console.log('error', error)
@@ -112,7 +91,7 @@ const ListOfStocksByBatch = () => {
 
       // }
     },
-    [paginationModel, stockId]
+    [paginationModel]
   )
 
   const indexedRows = stockReport?.map((row, index) => ({
@@ -140,14 +119,36 @@ const ListOfStocksByBatch = () => {
     []
   )
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+          setStockId(response?.data?.list_items[0].id)
+          getStocksReport({ sort, q: searchValue, column: sortColumn, id: response?.data?.list_items[0].id })
+        }
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
+  }
+
   useEffect(() => {
     if (stockId !== '') {
       getStocksReport({ sort, q: searchValue, column: sortColumn, id: stockId })
     }
   }, [getStocksReport])
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
 
   const columns = [
     {
@@ -310,9 +311,6 @@ const ListOfStocksByBatch = () => {
             labelId='controlled-select-label'
             sx={{ width: '100%' }}
           >
-            <MenuItem value=''>
-              <em>None</em>
-            </MenuItem>
             {stores.length > 0
               ? stores.map(el => {
                   return (
@@ -359,20 +357,12 @@ const ListOfStocksByBatch = () => {
                 close={closeDialog}
                 show={showDialog}
               />
-              {/* <createForm /> */}
-              {/* <TableWithFilter
-                TableTitle={stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
-                inpFields={createForm()}
-                columns={columns}
-                rows={stockReport}
-              /> */}
+
               <Card>
                 <CardHeader
                   title={
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography variant='h6'>
-                        {stockReport.length > 0 ? 'Stock report Store wise' : 'Stock Report is empty'}
-                      </Typography>
+                      <Typography variant='h6'>Stock report Store wise</Typography>
 
                       {createForm()}
                     </Box>

@@ -30,6 +30,8 @@ import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 
 const ReturnRequestList = () => {
+  const { selectedPharmacy } = usePharmacyContext()
+
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -43,14 +45,13 @@ const ReturnRequestList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
 
-  const { selectedPharmacy } = usePharmacyContext()
-
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
 
     setStatus(newValue)
   }
@@ -82,16 +83,26 @@ const ReturnRequestList = () => {
     },
     [paginationModel]
   )
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [fetchTableData, selectedPharmacy, status])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [selectedPharmacy.id])
 
+  useEffect(() => {
+    setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'completed')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn, status)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -130,7 +141,7 @@ const ReturnRequestList = () => {
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'local' &&
+      {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
           <AddButton
             title='Add Return Request'
@@ -150,7 +161,7 @@ const ReturnRequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Returned By' : 'Returned To'
+    return selectedPharmacy?.type === 'central' ? 'Returned By' : 'Returned To'
   }
 
   const columns = [
@@ -360,10 +371,12 @@ const ReturnRequestList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'local' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
             <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}

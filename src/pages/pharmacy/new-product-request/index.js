@@ -14,9 +14,10 @@ import Icon from 'src/@core/components/icon'
 
 // import DeleteIcon from '@mui/icons-material/Delete'
 
-import { Card, CardContent, Grid, debounce } from '@mui/material'
+import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
 
 import {
+  addNonExistingProductStatus,
   deleteNonExistingProduct,
   getNonExistingProductById,
   getNonExistingProductList
@@ -29,15 +30,59 @@ import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import toast from 'react-hot-toast'
 
 export default function NewProductList() {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
   const [productDetails, setProductDetails] = useState({})
+  const [reasonText, setReasonText] = useState('')
+  const [submitLoader, setSubmitLoader] = useState(false)
   const [prescriptionImages, setPrescriptionImages] = useState()
-
+  const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const handlePopup = () => {
+  //   setStatusCall(prev => !prev)
+  // }
+
+  const handleRequestStatus = async (status, id, productDetails) => {
+    const payload = {
+      status: status,
+      comments: productDetails?.comments ? productDetails?.comments : '',
+      reject_reason: reasonText ? reasonText : ' '
+    }
+
+    try {
+      const response = await addNonExistingProductStatus(payload, id)
+      if (response?.success) {
+        const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
+        toast.success(toastMessage)
+        setShow(false)
+        await fetchTableData({ sort, q: searchValue, column: sortColumn })
+
+        // setStatus(status)
+        // if (status === 'Cancelled') {
+        //   setShow(false)
+        //   router.reload()
+
+        //   setSubmitLoader(false)
+        // } else if (status === 'Rejected') {
+        //   setShow(false)
+        //   setSubmitLoader(true)
+        //   router.reload()
+        // } else {
+        //   setSubmitLoader(true)
+        //   router.push({
+        //     pathname: '/pharmacy/medicine/add-product/'
+        //   })
+        // }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const columns = [
     {
@@ -283,27 +328,53 @@ export default function NewProductList() {
           </Card>
 
           {show && (
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={`Product Details - ${productDetails?.request_number}`}
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <ProductDetail
-                      setShow={setShow}
-                      detailsData={detailsData}
-                      prescriptionImages={prescriptionImages}
-                      imgUrl={imgUrl}
-                      itemId={itemId}
-                      handleEdit={handleEdit}
-                      productDetails={productDetails}
-                    />
-                  }
-                  close={() => setShow(false)}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
+            <>
+              <CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>Product Details - {productDetails?.request_number}</div>
+                        {selectedPharmacy.type === 'local' &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') &&
+                          productDetails.status === 'Pending' && (
+                            <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => handleEdit(itemId)}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
+                            </Grid>
+                          )}
+                      </div>
+                    }
+                    dialogBoxStatus={show}
+                    formComponent={
+                      <ProductDetail
+                        setShow={setShow}
+                        statusCall={statusCall}
+                        submitLoader={submitLoader}
+                        detailsData={detailsData}
+                        handleRequestStatus={handleRequestStatus}
+                        prescriptionImages={prescriptionImages}
+                        reasonText={reasonText}
+                        setReasonText={setReasonText}
+                        imgUrl={imgUrl}
+                        itemId={itemId}
+                        handleEdit={handleEdit}
+                        productDetails={productDetails}
+                      />
+                    }
+                    close={() => setShow(false)}
+                    show={() => setShow(true)}
+                  />
+                </Grid>
+              </CardContent>
+            </>
           )}
         </>
       )}
