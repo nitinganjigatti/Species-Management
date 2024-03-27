@@ -7,6 +7,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Users = ({ labId }) => {
   console.log('labId', labId)
+
   const columns = [
     {
       flex: 2.3,
@@ -25,6 +26,7 @@ const Users = ({ labId }) => {
     {
       flex: 0.2,
       minWidth: 20,
+
       // field: 'Action',
       // headerName: 'Action',
       renderCell: params => (
@@ -42,9 +44,11 @@ const Users = ({ labId }) => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
+
   // const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+
   // const [sortColumn, setSortColumn] = useState('label')
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -56,6 +60,7 @@ const Users = ({ labId }) => {
     sl_no: getSlNo(index)
   }))
   const getRowId = row => row?.user_first_name
+
   // const handleSortModel = newModel => {
   //   if (newModel.length) {
   //     setSort(newModel[0].sort)
@@ -89,10 +94,12 @@ const Users = ({ labId }) => {
       LabUsersById(labId)
     }
   }, [])
+
   return (
     <Card>
       <CardHeader
         title='USERS'
+
         //    action={headerAction}
       />
       <DataGrid

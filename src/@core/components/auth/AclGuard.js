@@ -49,6 +49,7 @@ const AclGuard = props => {
       const homeRoute = getPath()
       router?.replace(
         '/dashboard'
+
         // !homeRoute
         //   ? auth?.userData?.roles?.settings?.add_pharmacy
         //     ? '/pharmacy/settings/store-list/'

@@ -41,6 +41,7 @@ const LabDetails = () => {
       labDetailsById(id)
     }
   }, [id])
+
   return (
     <>
       {loader ? (

@@ -107,6 +107,7 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
+  console.log('requestId', requestId)
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
 
@@ -116,6 +117,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
     setSnackbarMessage(message)
@@ -136,6 +138,7 @@ const RequestDetails = () => {
     setStatus(event.target.value)
     console.log('event.target.value', event.target.value)
     const id = params
+
     const payload = {
       status: event.target.value
     }
@@ -171,6 +174,7 @@ const RequestDetails = () => {
     try {
       // Make your API call here
       setLoading(true)
+
       const params = {
         lab_id: Selectedlab_id
       }
@@ -247,6 +251,7 @@ const RequestDetails = () => {
   const handleOpenUploader = () => {
     setOpenUploader(true)
   }
+
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
     console.log('params?.row', params?.row?.attachments?.images)
@@ -763,7 +768,7 @@ const RequestDetails = () => {
                 labTestId={LabRequestId}
                 medicalRecordId={medicineId}
                 type='lab_test_request'
-                id='0'
+                id={requestId === null ? '0' : requestId}
                 handleCloseUploader={setOpenUploader}
                 setAlertDefaults={setAlertDefaults}
                 handleClosePopover={handleClosePopover}
