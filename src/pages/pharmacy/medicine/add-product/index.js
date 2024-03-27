@@ -67,7 +67,7 @@ import { getStorage } from 'src/lib/api/pharmacy/storage'
 import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import GenericNamesList from '../../settings/generic'
+import GenericNamesList from '../../masters/generic'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -110,7 +110,7 @@ const schema = yup.object().shape({
   generic_name_id: yup.string().when('medicine_type', {
     is: val => val !== 'non_medical',
     then: schema => schema.required('Generic name is required'),
-    otherwise: schema => schema.optional()
+    otherwise: schema => schema.optional().nullable()
   }),
   package_type: yup.string().required('Package is required'),
   package_qty: yup.number().typeError('This should be a number').required('Package Quantity is required'),
@@ -155,10 +155,11 @@ const AddMedicine = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  console.log('selecetd store product page', selectedPharmacy)
-
   const router = useRouter()
   const { id, action } = router.query
+
+  // const queryParams = new URLSearchParams(window.location.search)
+  // const productDetails = queryParams.get('productDetails')
 
   const { settings } = useSettings()
   const { skin } = settings
@@ -379,7 +380,6 @@ const AddMedicine = () => {
             tempSalts.push(tempSalt)
           })
         }
-        debugger
         setGenericNameList([
           {
             id: response?.data?.generic_id === null ? '' : response?.data?.generic_id,
@@ -393,6 +393,12 @@ const AddMedicine = () => {
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
         setMedicineType(response.data.stock_type)
+        debugger
+        setDrugsClass(
+          response?.data?.drug_class
+            ? [{ id: response?.data?.drug_class, label: response?.data?.drug_class_label }]
+            : []
+        )
 
         setPackageQuantity(response?.data?.package_qty)
 
@@ -459,7 +465,7 @@ const AddMedicine = () => {
 
   const genericSearch = debounce(async value => {
     try {
-      await getGenericNames({ key: value, active: 1, page: 1, limit: 10 })
+      await getGenericNames({ key: value, active: 1, page: 1, limit: 20 })
     } catch (error) {
       console.error(error)
     }
@@ -467,7 +473,7 @@ const AddMedicine = () => {
 
   const manufacturerSearch = debounce(async value => {
     try {
-      await getManufacturersList({ key: value, active: 1, page: 1, limit: 10 })
+      await getManufacturersList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (error) {
       console.error(error)
     }
@@ -475,7 +481,7 @@ const AddMedicine = () => {
 
   const packageSearch = debounce(async value => {
     try {
-      await getPackagesList({ key: value, active: 1, page: 1, limit: 10 })
+      await getPackagesList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -483,7 +489,7 @@ const AddMedicine = () => {
 
   const unitListSearch = debounce(async value => {
     try {
-      await getUnitsList({ key: value, active: 1, page: 1, limit: 10 })
+      await getUnitsList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -491,7 +497,7 @@ const AddMedicine = () => {
 
   const productFormSearch = debounce(async value => {
     try {
-      await getProductForm({ key: value, active: 1, page: 1, limit: 10 })
+      await getProductForm({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -499,7 +505,7 @@ const AddMedicine = () => {
 
   const saltsListSearch = debounce(async value => {
     try {
-      await getSaltsList({ key: value, active: 1, page: 1, limit: 10 })
+      await getSaltsList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -507,7 +513,7 @@ const AddMedicine = () => {
 
   const drugClassListSearch = debounce(async value => {
     try {
-      await getDrugsClassList({ key: value, active: 1, page: 1, limit: 10 })
+      await getDrugsClassList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
@@ -515,14 +521,14 @@ const AddMedicine = () => {
 
   const storageListSearch = debounce(async value => {
     try {
-      await getStorageList({ key: value, active: 1, page: 1, limit: 10 })
+      await getStorageList({ key: value, active: 1, page: 1, limit: 20 })
     } catch (e) {
       console.log(e)
     }
   }, 500)
 
   useEffect(() => {
-    getGSTList()
+    // getGSTList()
 
     if (id != undefined && action === 'edit') {
       getMedicine(id)
@@ -549,13 +555,14 @@ const AddMedicine = () => {
       setUom([])
       setStorageList([])
 
-      // getManufacturersList({ page: 1, limit: 10 })
-      // getPackagesList({ page: 1, limit: 10 })
-      // getUnitsList({ page: 1, limit: 10 })
-      // getProductForm({ page: 1, limit: 10 })
-      // getSaltsList({ page: 1, limit: 10 })
-      // getDrugsClassList({ page: 1, limit: 10 })
-      // getStorageList({ page: 1, limit: 10 })
+      genericSearch('')
+      manufacturerSearch('')
+      packageSearch('')
+      unitListSearch('')
+      productFormSearch('')
+      saltsListSearch('')
+      drugClassListSearch('')
+      storageListSearch('')
     }
   }, [id, action])
 
@@ -563,6 +570,7 @@ const AddMedicine = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
+    debugger
 
     const {
       medicine_type,
@@ -591,7 +599,6 @@ const AddMedicine = () => {
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
-    debugger
 
     const payload = {
       medicine_type,
@@ -621,20 +628,23 @@ const AddMedicine = () => {
     }
 
     if (id !== undefined && action === 'edit') {
+      console.log(payload)
+
       await updateMedicine(payload, id)
     } else {
+      console.log(payload)
+
       await addMedicineToList(payload)
     }
   }
 
   const handleSubmitData = async () => {
     try {
-      debugger
       const errors = await trigger()
+      const values = getValues()
       if (errors) {
         handleSubmit(onSubmit)()
       } else {
-        debugger
         scrollToTop()
       }
     } catch (error) {
@@ -1134,7 +1144,7 @@ const AddMedicine = () => {
                               <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
                                 <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                   <AddButton
-                                    title='Add Manufacture'
+                                    title='Add Manufacturer'
                                     action={() => {
                                       addNewManufacturer()
                                     }}
@@ -1511,8 +1521,8 @@ const AddMedicine = () => {
                                     disablePortal
                                     id='drug_class'
                                     options={drugsClassList}
-                                    getOptionLabel={option => option.label}
-                                    isOptionEqualToValue={(option, value) => parseInt(option.id) === parseInt(value.id)}
+                                    getOptionLabel={option => option?.label}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultDrugClass(null)

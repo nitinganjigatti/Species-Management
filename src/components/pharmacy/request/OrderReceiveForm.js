@@ -44,6 +44,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import select from 'src/@core/theme/overrides/select'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -100,6 +101,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [rejectItemsPayload, setRejectItemsPayload] = useState(initialRejectPayload)
   const [rejectItemsError, setRejectItemsError] = useState(null)
   const [listComments, setListComments] = useState([])
+  const [wrongCountErr, setWrongCountErr] = useState({})
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
@@ -146,7 +148,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, status: '', wrong_count_type: '', wrong_count_number: '' } : item
       )
     }
-    // debugger
     console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
@@ -170,7 +171,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       const response = await getShipmentOrderDetails(orderId)
 
       console.log('getOrderDetails', response)
-      debugger
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -210,7 +210,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems
         })
-        // debugger
         console.log('orderData', orderData)
         console.log('dispute items response', response)
 
@@ -227,13 +226,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         setDisputeItemDetails(disputesData)
         setTempDisputeItemDetails(disputesData)
-        debugger
       } else {
-        debugger
       }
     } catch (error) {
       console.log(disputeItemDetails)
-      debugger
+
       console.log('error', error)
     }
   }
@@ -289,12 +286,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     items['item_details'] = updatedItemDetails
     setDisputeItemDetails({ ...disputeItemDetails, items })
     console.log('after update', disputeItemDetails)
-    // debugger
     updateStatus()
   }
 
   const resolveItems = async payload => {
-    // debugger
     var itemsToResolve
     console.log('line data', payload)
     if (payload?.status === 'Missing') {
@@ -344,11 +339,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
 
     console.log('payload', itemsToResolve)
-    // debugger
     try {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(itemsToResolve)
-      // debugger
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
@@ -770,7 +763,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   params?.row?.dispute_status === undefined ||
                   params?.row?.dispute_status === 'Not Resolved' ||
                   params?.row?.dispute_status === 'Dispute Pending') ? (
-                  <Grid container spacing={2}>
+                  <Grid container spacing={2} sx={{ py: 4 }}>
                     <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FormControl size='small' style={{ width: '100%' }}>
                         <Select
@@ -804,7 +797,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         value={params?.row?.wrong_count_number}
                         error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
                         size='small'
-                        onChange={event => handleStatusChange(params.row.id, event)}
+                        onChange={event => {
+                          handleStatusChange(params.row.id, event)
+
+                          if (Number(event.target.value) > Number(params?.row?.count)) {
+                            setWrongCountErr(prevErrors => ({
+                              ...prevErrors,
+                              [params.row.uid]: 'Qty exceeds shipped count.'
+                            }))
+                          } else {
+                            setWrongCountErr(prevErrors => {
+                              const newErrors = { ...prevErrors }
+                              delete newErrors[params.row.uid]
+
+                              return newErrors
+                            })
+                          }
+                        }}
                         inputProps={{ style: { fontSize: 12 } }}
                       />
                     </Grid>
@@ -814,6 +823,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         // disabled={disableButton()}
                         onClick={event => {
                           clearStatus(params.row.id, event)
+                          setWrongCountErr(prevErrors => {
+                            const newErrors = { ...prevErrors }
+                            delete newErrors[params.row.uid]
+
+                            return newErrors
+                          })
                         }}
                       >
                         <Icon
@@ -826,6 +841,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         />
                       </Button>
                     </Grid>
+                    {wrongCountErr[params.row.uid] && (
+                      <FormHelperText sx={{ mx: 4 }} error>
+                        {wrongCountErr[params.row.uid]}
+                      </FormHelperText>
+                    )}
                   </Grid>
                 ) : (
                   <Grid container>
@@ -929,6 +949,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   ]
 
   async function updateStatus() {
+    if (Object.keys(wrongCountErr).length > 0) {
+      console.error('Cannot submit form due to errors.')
+
+      return
+    }
     const isStatusEmpty = disputeItemDetails?.item_details?.some(item => item.status.trim() === '')
 
     if (isStatusEmpty) {
@@ -970,6 +995,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       })
       console.log('final payload', finalReceivedItems)
       if (verifyCount) {
+        setSubmitLoader(true)
+
         try {
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
 
@@ -977,6 +1004,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             toast.success(result?.msg)
             setSubmitLoader(false)
             closeOrderFormDialog()
+          } else {
+            toast.error(result?.msg)
+            setSubmitLoader(false)
           }
         } catch (error) {
           setSubmitLoader(false)
@@ -1048,7 +1078,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 <FormControl fullWidth>
                   <TextField
                     // disabled={disableButton()}
-                    disabled={selectedPharmacy.type === 'central' ? 'disabled' : null}
+                    disabled={
+                      selectedPharmacy.type === 'central'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
                     multiline
                     rows={3}
                     type='text'
@@ -1063,42 +1099,56 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 </FormControl>
               </Grid>
             </Grid>
-            {selectedPharmacy.type === 'local' && (
-              <Divider
-                sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-              />
-            )}
-            {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
-            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-              <>
-                <LoadingButton
-                  sx={{ float: 'right', my: 4, mx: 2 }}
-                  size='large'
-                  disabled={disableButton()}
-                  variant='contained'
-                  onClick={() => {
-                    updateStatus()
-                  }}
-                  loading={submitLoader}
-                >
-                  Save
-                </LoadingButton>
-                {console.log('disputeItemDetails', disputeItemDetails)}
-                {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                  <LoadingButton
-                    sx={{ float: 'right', my: 4, mx: 6 }}
-                    size='large'
-                    // disabled={disableButton()}
-                    variant='contained'
-                    onClick={() => {
-                      bulkStatusUpdate()
+            {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
+              <Grid>
+                {selectedPharmacy.type === 'local' && (
+                  <Divider
+                    sx={{
+                      mt: theme => `${theme.spacing(5)} !important`,
+                      mb: theme => `${theme.spacing(3)} !important`
                     }}
-                    loading={submitLoader}
-                  >
-                    Mark all as Received & Save
-                  </LoadingButton>
+                  />
                 )}
-              </>
+                {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
+                {console.log('selectedPhh', selectedPharmacy.permission.key)}
+
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                  <>
+                    <LoadingButton
+                      sx={{ float: 'right', my: 4, mx: 2 }}
+                      size='large'
+                      disabled={disableButton() || submitLoader}
+                      variant='contained'
+                      onClick={() => {
+                        if (!submitLoader) {
+                          updateStatus()
+                        }
+                      }}
+                      loading={submitLoader}
+                    >
+                      Save
+                    </LoadingButton>
+                    {console.log('disputeItemDetails', disputeItemDetails)}
+                    {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                      <LoadingButton
+                        sx={{ float: 'right', my: 4, mx: 6 }}
+                        size='large'
+                        // disabled={disableButton()}
+                        disabled={submitLoader}
+                        variant='contained'
+                        onClick={() => {
+                          if (!submitLoader) {
+                            bulkStatusUpdate()
+                          }
+                        }}
+                        loading={submitLoader}
+                      >
+                        Mark all as Received & Save
+                      </LoadingButton>
+                    )}
+                  </>
+                ) : null}
+              </Grid>
             ) : null}
           </Grid>
         </Grid>

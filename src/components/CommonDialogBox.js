@@ -31,7 +31,8 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
       scroll='body'
       onClose={() => close()}
       TransitionComponent={Transition}
-      onBackdropClick={() => close()}
+
+      // onBackdropClick={() => close()}
     >
       <Card>
         {/* <Grid
@@ -42,14 +43,16 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
             alignItems: 'center'
           }}
         > */}
-        <CardHeader
-          title={title ? title : null}
-          action={
-            <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
-              <Icon icon='mdi:close' />
-            </IconButton>
-          }
-        />
+        {title && (
+          <CardHeader
+            title={title ? title : null}
+            action={
+              <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
+            }
+          />
+        )}
 
         <CardContent
 

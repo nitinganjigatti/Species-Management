@@ -28,7 +28,7 @@ const ListOfPurchase = () => {
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
@@ -140,7 +140,7 @@ const ListOfPurchase = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'po_no',
-      headerName: 'PURCHASE NO',
+      headerName: 'Invoice NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.po_no}
@@ -161,69 +161,16 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'total_amount',
+      field: 'net_amount',
       headerName: 'Purchase Amount',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_amount}
+          {params?.row?.net_amount}
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'tax_amount',
-    //   headerName: 'TAX AMOUNT',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.tax_amount}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'discount_amount',
-    //   headerName: 'DISCOUNT AMOUNT',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.discount_amount}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <>
-    //       {selectedPharmacy.type === 'central' &&
-    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-    //           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //             <IconButton
-    //               size='small'
-    //               sx={{ mr: 0.5 }}
-    //               onClick={() => {
-    //                 handleEdit(params.row.id)
-    //               }}
-    //             >
-    //               <Icon icon='mdi:pencil-outline' />
-    //             </IconButton>
-    //           </Box>
-    //         )}
-    //     </>
-    //   )
-    // }
   ]
 
   const handleHeaderAction = () => {
@@ -232,7 +179,7 @@ const ListOfPurchase = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Purchase' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
     </div>
   )
 
@@ -253,7 +200,7 @@ const ListOfPurchase = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Purchase List' action={headerAction} />
+              <CardHeader title='Inventory List' action={headerAction} />
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {

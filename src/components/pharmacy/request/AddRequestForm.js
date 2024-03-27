@@ -25,7 +25,9 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
-
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -43,9 +45,16 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import {
+  addRequestItems,
+  getRequestItemsListById,
+  updateRequestItems,
+  // deleteLineItem,
+  cancelRequestItems
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -58,8 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -100,8 +108,12 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
+  // const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -117,6 +129,14 @@ const AddRequestForm = () => {
     return storeType
   }
 
+  const openCancelDialog = () => {
+    setCancelRequestDialog(true)
+  }
+
+  const closeCancelDialog = () => {
+    setCancelRequestDialog(false)
+  }
+
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
@@ -128,7 +148,7 @@ const AddRequestForm = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.request_item_medicine_id != itemId
     })
@@ -177,6 +197,7 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
+    console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -184,12 +205,24 @@ const AddRequestForm = () => {
     if (!values.request_item_qty) {
       itemErrors.request_item_qty = 'This field is required'
     }
+    // if (Number(values.request_item_qty) === 0 || Number(values.request_item_qty) < 0) {
+    //   itemErrors.request_item_qty = 'Enter valid Quantity '
+    // }
+    if (!values.request_item_qty) {
+      itemErrors.request_item_qty = 'This field is required'
+    }
+
+    if (Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+      itemErrors.request_item_qty = 'Enter valid Quantity'
+    }
+
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-    if (!values.control_substance_file) {
-      itemErrors.control_substance_file = 'This field is required'
-    }
+
+    // if (!values.control_substance_file) {
+    //   itemErrors.control_substance_file = 'This field is required'
+    // }
     // if (values.control_substance) {
     if (values.control_substance === true) {
       if (values.control_substance_file.length === 0) {
@@ -198,6 +231,7 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
+    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -220,13 +254,19 @@ const AddRequestForm = () => {
 
   const submitItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // || !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
+
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
+
     if (nestedRowMedicine.control_substance === true) {
       if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -269,11 +309,17 @@ const AddRequestForm = () => {
     } else {
       console.error('updateTableItems error')
     }
+    closeDialog()
   }
 
   const updateFormItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
@@ -330,33 +376,28 @@ const AddRequestForm = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 10
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-      } catch (e) {
-        console.log('error', e)
+    try {
+      var params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false
+          }))
+        )
+        setItemErrors({})
+      }
+    } catch (e) {
+      console.log('error', e)
     }
   }
 
@@ -370,6 +411,10 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData('')
+  }, [])
   //  ****** debounce
 
   const getListOfItemsById = async id => {
@@ -386,7 +431,8 @@ const AddRequestForm = () => {
           control_substance: el.control_substance === '0' ? false : true,
           control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
           id: el.id,
-          request_item_detail_id: el.id
+          request_item_detail_id: el.id,
+          dispatch_item_id: el.dispatch_item_id
         }
       })
 
@@ -463,7 +509,7 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -478,12 +524,53 @@ const AddRequestForm = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/request/individual-request/?id=${response?.data}`)
+          Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
         }
       } catch (error) {
+        console.log('error', error)
+      }
+    }
+  }
+
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
+
+  const cancelRequest = async id => {
+    console.log('id', id)
+    if (id) {
+      try {
+        const result = await cancelRequestItems(id)
+        console.log('cancelRequest result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
+          Router.push(`/pharmacy/request/request-list/`)
+        } else {
+          toast.error(result.data)
+        }
+      } catch (error) {
+        toast.error(error.data)
         console.log('error', error)
       }
     }
@@ -520,8 +607,16 @@ const AddRequestForm = () => {
                     searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
+                  onBlur={() => {
+                    fetchMedicineData('')
+                  }}
                   renderInput={params => (
-                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField
+                      {...params}
+                      placeholder='Search & Select'
+                      label='Product Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
                   )}
                 />
                 {itemErrors.medicine_name && (
@@ -549,9 +644,10 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                 />
-                {itemErrors.request_item_qty && (
+                {itemErrors?.request_item_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {/* This field is required */}
+                    {itemErrors?.request_item_qty}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -668,7 +764,7 @@ const AddRequestForm = () => {
                       sx={{ mr: 2 }}
                       onClick={() => {
                         updateFormItems()
-                        closeDialog()
+                        // closeDialog()
                         // submitItems()
                       }}
                       size='large'
@@ -740,7 +836,7 @@ const AddRequestForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Request Item'
+          title={id ? 'Edit Request' : 'Add Request'}
         />
       </Grid>
       <CardContent>
@@ -843,6 +939,7 @@ const AddRequestForm = () => {
               <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
+                    disabled={true}
                     fullWidth
                     date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     width={'100%'}
@@ -897,8 +994,8 @@ const AddRequestForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
+            {editParams?.request_item_details
+              ? editParams?.request_item_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -910,7 +1007,7 @@ const AddRequestForm = () => {
                         ) : null}
                       </TableCell>
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
-                        {el.priority_item}
+                        {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>
 
                       <TableCell>{el.request_item_qty}</TableCell>
@@ -925,22 +1022,41 @@ const AddRequestForm = () => {
 
                             editTableData(el.request_item_medicine_id)
                             showDialog()
-                            // }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id && el.request_item_detail_id ? null : (
+                        <IconButton
+                          onClick={() => {
+                            // if (editParams?.request_item_details?.length === 1) {
+                            //   openCancelDialog()
+                            // } else {
+                            removeItemsFromTable(el.request_item_medicine_id)
+                            // }
+                          }}
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                        >
+                          <Icon icon='mdi:delete-outline' />
+                        </IconButton>
+
+                        {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
-                              removeItemsFroTable(el.request_item_medicine_id)
+                              console.log('line items', el)
+
+                              if (editParams?.request_item_details?.length === 1) {
+                                openCancelDialog()
+                              } else {
+                                removeItemsFromTable(el.request_item_medicine_id)
+                              }
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
                           >
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
-                        )}
+                        ) : null} */}
                       </TableCell>
                     </TableRow>
                   )
@@ -980,6 +1096,17 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          {id ? (
+            <>
+              <RequestCancelButton
+                title='Cancel Request'
+                action={() => {
+                  openCancelDialog()
+                  // setEditParams(editParamsInitialState)
+                }}
+              />
+            </>
+          ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
             sx={{ marginRight: '8px' }}
@@ -992,17 +1119,149 @@ const AddRequestForm = () => {
           >
             Save
           </LoadingButton>
-          <Button
-            onClick={() => {
-              setEditParams(editParamsInitialState)
-            }}
-            size='large'
-            variant='outlined'
-          >
-            Reset
-          </Button>
+          {id ? null : (
+            <Button
+              onClick={() => {
+                setEditParams(editParamsInitialState)
+              }}
+              size='large'
+              variant='outlined'
+            >
+              Reset
+            </Button>
+          )}
         </Box>
       </Grid>
+      {/* <ConfirmDialogBox
+        open={deleteDialog}
+        closeDialog={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        action={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    setDeleteDialog(false)
+                    setDeleteItemId(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    deleteLineItemFromDb(deleteItemId)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      /> */}
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request */}
+                  Are you sure you want to cancel this request?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Yes
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
     </Card>
   )
 }

@@ -1,6 +1,40 @@
-export const USER_SIGN_IN = 'https://app.antzsystems.com/api/v1/auth/login'
+export const USER_SIGN_IN = 'https://app.antzsystems.com/v1/auth/login'
+
+export const getUserByLabId = 'antz/lab/users'
+
+export const getSitesByLabId = 'antz/labs/lab-sites'
+
+export const LabFileDelete = 'delete-lab-test-file'
+
+export const GetLabNo = 'user-lab-list'
+
+export const PostTransfer = '/antz/transfer/lab-tests'
+
+export const uploadLabReports = 'medical/add-lab-test-files'
+
+export const updateStatus = '/antz/update/lab-tests-status'
+
+export const GetLabReport = 'lab-report'
+
+export const GetTestsStatusById = 'lab-report-stats'
+
+export const GetRequestPopUpById = 'antz/request/lab-tests'
+
+export const RequestDetails = 'antz/request/tests'
+
+export const AddLAB = 'antz/labs/create-lab'
+
+export const AllLabSample = 'antz/get-sample-tests'
+
+export const GetLab = 'antz/labs/list-labs'
+
+export const LabEditGetById = 'antz/labs/show-lab/'
+
+export const UpdateLab = 'antz/labs/update-lab/'
 
 export const USER_REFRESH_TOKEN_API = 'v1/auth/refreshtoken'
+
+export const USER_REFRESH_TOKEN_ = 'v1/auth/refreshtoken'
 
 export const SUPPLIER = 'supplier'
 
@@ -38,11 +72,15 @@ export const UOM = 'uom'
 
 export const MEDICINE = 'stock'
 
+export const MEDICINES_STOCK = 'nonexisting-stock'
+
 export const SHIPMENT = 'shipment'
 
 export const DEBIT_NOTE = 'purchase-return'
 
 export const DISPATCH = 'dispatch'
+
+export const DISPATCH_ITEM = 'dispatchItem'
 
 export const DISPATCH_VALIDATION = 'dispatch-validation'
 
@@ -87,3 +125,15 @@ export const DIRECT_DISPATCH = 'direct-dispatch'
 export const DENIED_COMMENTS = 'deny-comments'
 
 export const CHECK_BATCH = 'check-batch'
+
+export const DISPENSE_LIST = 'dispense-item'
+
+export const USER_LIST = 'user/listing'
+
+export const PRODUCT_LIST = 'v1/pharma/stock/list'
+
+export const BATCH_LIST = 'batch-details'
+
+export const ANIMAL_LIST = 'v1/collection/animal/list'
+
+export const SUBMIT_DISPENSE = 'dispense-item'

@@ -63,12 +63,12 @@ const RequestList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-      console.log('status', status)
       try {
         setLoading(true)
 
@@ -95,6 +95,7 @@ const RequestList = () => {
         setLoading(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
   useEffect(() => {
@@ -132,8 +133,7 @@ const RequestList = () => {
     var data = params.row
 
     Router.push({
-      pathname: '/pharmacy/request/individual-request/',
-      query: { id: data.id, request_number: data.request_number }
+      pathname: `/pharmacy/request/${data?.id}`
     })
   }
 
@@ -319,7 +319,16 @@ const RequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
+            {/*  When the items are shipped - For local pharmacy */}
+            {params?.row?.delivery_status === 'Not Delivered' &&
+              (params?.row?.request_status === '' || !params?.row?.request_status) &&
+              params?.row?.shipping_status === 'Fully Shipped' && (
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              )}
           </div>
+          {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
       )
     }
@@ -448,11 +457,17 @@ const RequestList = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
+            <Tab
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='completed'>{tableData()}</TabPanel>
+
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
           <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>

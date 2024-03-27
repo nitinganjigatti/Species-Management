@@ -33,6 +33,7 @@ const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
+  const { selectedPharmacy } = usePharmacyContext()
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -41,9 +42,8 @@ const DirectDispatchList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  console.log('selectedPharmacy?.type', selectedPharmacy?.type)
   const [status, setStatus] = useState('pending')
-
-  const { selectedPharmacy } = usePharmacyContext()
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,7 +51,7 @@ const DirectDispatchList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
-
+    setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
 
@@ -83,10 +83,16 @@ const DirectDispatchList = () => {
     },
     [paginationModel]
   )
+
+  useEffect(() => {
+    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'completed')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+  }, [status, fetchTableData])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
@@ -126,8 +132,7 @@ const DirectDispatchList = () => {
     console.log('params.row', params.row)
 
     Router.push({
-      pathname: '/pharmacy/direct-dispatch/individual-direct-dispatch/',
-      query: { id: data.id, request_number: data.request_number }
+      pathname: `/pharmacy/direct-dispatch/${data?.id}`
     })
   }
 
@@ -362,10 +367,12 @@ const DirectDispatchList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'central' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
 
             <Tab
               value='completed'
@@ -375,12 +382,18 @@ const DirectDispatchList = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
+            <Tab
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
+
           <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
