@@ -164,7 +164,7 @@ export default function AddProduct() {
       reset({
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
-        quantity: res?.data?.quantity,
+        quantity: res?.data?.request_item_details[0].quantity,
         priority: res?.data?.request_item_details[0].priority,
         product_type: res?.data?.request_item_details[0].product_type,
         product_name: res?.data?.request_item_details[0].product_name,
