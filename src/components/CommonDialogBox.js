@@ -21,18 +21,16 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
+const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth }) => {
   return (
     <Dialog
-      fullWidth
+      fullWidth={noWidth ? false : true}
       open={dialogBoxStatus}
       maxWidth='md'
       height='auto'
       scroll='body'
       onClose={() => close()}
       TransitionComponent={Transition}
-
-      // onBackdropClick={() => close()}
     >
       <Card>
         {/* <Grid
