@@ -1,3 +1,6 @@
+import { AuthContext } from 'src/context/AuthContext'
+import { useContext } from 'react'
+
 const composeLabNavigation = () => {
   const labTitle = {
     sectionTitle: 'Lab'
@@ -15,11 +18,20 @@ const composeLabNavigation = () => {
     icon: 'solar:clipboard-list-line-duotone'
   }
 
+  const authData = useContext(AuthContext)
+  const addlabPermission = authData?.userData?.roles?.settings?.add_lab
+  const labList = authData?.userData?.modules?.lab_data?.lab
+  console.log('addlabPermission', addlabPermission)
+
   const labNavigationArray = []
 
-  labNavigationArray.push(labTitle)
-
-  labNavigationArray.push(lab, request)
+  if (labList?.length > 0) {
+    labNavigationArray.push(labTitle)
+    labNavigationArray.push(lab, request)
+  } else if (addlabPermission) {
+    labNavigationArray.push(labTitle)
+    labNavigationArray.push(lab)
+  }
 
   return labNavigationArray
 }
