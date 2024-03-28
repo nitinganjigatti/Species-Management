@@ -99,7 +99,9 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().email().required(),
+  email: yup.string().required(),
+
+  // email: yup.string().email().required(),
 
   // password: yup.string().min(5).required()
   password: yup.string().required()
@@ -282,7 +284,7 @@ const LoginPage = () => {
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
-                      placeholder='admin@materialize.com'
+                      placeholder='Enter your user name or email'
                     />
                   )}
                 />
