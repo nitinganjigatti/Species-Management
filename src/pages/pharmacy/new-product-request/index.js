@@ -66,13 +66,13 @@ export default function NewProductList() {
   const columns = [
     {
       flex: 0.2,
-      Width: 20,
+      Width: 10,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
           {console.log('params>>>>>', params)}
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
             {params?.row?.request_number}
           </Typography>
         </div>
@@ -85,8 +85,7 @@ export default function NewProductList() {
       headerName: 'From Store',
       renderCell: (params, rowId) => (
         <div>
-          {console.log('params>>>>>', params)}
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
             {params?.row?.from_store_name}
           </Typography>
         </div>
@@ -100,7 +99,7 @@ export default function NewProductList() {
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary', fontSize: '15px' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -114,7 +113,7 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.priority}
         </Typography>
       )
@@ -123,22 +122,22 @@ export default function NewProductList() {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_by',
-      headerName: 'Requested By User',
+      headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.requested_user_name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
       minWidth: 20,
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
               {item?.quantity}
             </Typography>
           ))}
@@ -147,23 +146,23 @@ export default function NewProductList() {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.status}
         </Typography>
       )

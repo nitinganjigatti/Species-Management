@@ -647,7 +647,7 @@ export default function AddProduct() {
                         <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
                         {console.log('imgSrc', imgSrc)}
-                        {imgSrc !== '' && (
+                        {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{
                               display: 'flex'
@@ -688,7 +688,7 @@ export default function AddProduct() {
                             name='product_image'
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
-                          {imgSrc === '' && (
+                          {(imgSrc === '' || imgSrc === null) && (
                             <AddButton
                               title=' Upload Image'
                               styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
