@@ -301,6 +301,7 @@ const ComposeNavigation = () => {
   // if (labList) {
   const labNav = labNavigation()
   navigationArray.push(...labNav)
+
   // }
 
   return navigationArray
