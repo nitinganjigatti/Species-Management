@@ -718,6 +718,7 @@ export default function AddProduct() {
                       {confirmationBox && (
                         <Grid>
                           <CommonDialogBox
+                            noWidth
                             dialogBoxStatus={confirmationBox}
                             formComponent={<ConfirmationBox setConfirmationBox={setConfirmationBox} />}
                             show={() => setConfirmationBox(true)}
