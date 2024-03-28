@@ -150,7 +150,7 @@ export default function NewProductList() {
       flex: 0.2,
       minWidth: 20,
       field: 'created_at',
-      headerName: 'Created DateTime',
+      headerName: 'CREATED Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params?.row?.created_at)}
