@@ -85,8 +85,8 @@ const IndividualRequest = () => {
   const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
 
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
-  const base_image_url = '/uploads/control_substance/'
+  // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  // const base_image_url = '/uploads/control_substance/'
 
   const getRequestItemLists = async id => {
     setLoader(true)
@@ -464,11 +464,12 @@ const IndividualRequest = () => {
               }
               variant='contained'
               onClick={() => {
-                console.log('on click full fill dialog', params.row)
+                // console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
-                console.log('in fulfill button', params.row)
+
+                // console.log('in fulfill button', params.row)
                 showDialog()
               }}
             >
@@ -501,7 +502,7 @@ const IndividualRequest = () => {
             <IconButton
               size='small'
               onClick={() => {
-                window.open(`${base_url}${base_image_url}${params?.row?.control_substance_file}`, '_blank')
+                window.open(params?.row?.control_substance_file, '_blank')
               }}
               aria-label='Attachment'
             >

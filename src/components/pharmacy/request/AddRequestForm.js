@@ -89,7 +89,9 @@ const initialNestedRowMedicine = {
   request_item_leaf_id: '',
   priority_item: 'Normal',
   control_substance: false,
-  control_substance_file: ''
+  control_substance_file: '',
+  prescription_required: false,
+  prescription_required_file: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -168,6 +170,8 @@ const AddRequestForm = () => {
       priority_item: nestedRowMedicine.priority_item,
       control_substance: nestedRowMedicine.control_substance,
       control_substance_file: nestedRowMedicine.control_substance_file,
+      prescription_required: nestedRowMedicine.prescription_required,
+      prescription_required_file: nestedRowMedicine.prescription_required_file,
       request_item_leaf_id: ''
     }
 
@@ -229,6 +233,11 @@ const AddRequestForm = () => {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
+    if (values.prescription_required === true) {
+      if (values.prescription_required_file.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     // itemErrors.control_substance = 'This field is required'
     // }
     console.log('itemErrors', itemErrors)
@@ -269,6 +278,13 @@ const AddRequestForm = () => {
 
     if (nestedRowMedicine.control_substance === true) {
       if (nestedRowMedicine.control_substance_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
+    }
+    if (nestedRowMedicine.prescription_required === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
 
         return
@@ -333,6 +349,13 @@ const AddRequestForm = () => {
         return
       }
     }
+    if (nestedRowMedicine.prescription_required === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
+    }
     setErrors({})
     updateTableItems()
   }
@@ -391,7 +414,9 @@ const AddRequestForm = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
-            control_substance: item.controlled_substance === '1' ? true : false
+            control_substance: item.controlled_substance === '1' ? true : false,
+
+            prescription_required: item.prescription_required === '1' ? true : false
           }))
         )
         setItemErrors({})
@@ -421,6 +446,9 @@ const AddRequestForm = () => {
     const result = await getRequestItemsListById(id)
 
     if (result.success === true && result.data !== '') {
+      console.log('getRequestItemsListById', result.data)
+      debugger
+
       const lineItems = result.data.request_item_details.map(el => {
         return {
           request_item_medicine_id: el.stock_item_id,
@@ -430,11 +458,15 @@ const AddRequestForm = () => {
           priority_item: el.priority,
           control_substance: el.control_substance === '0' ? false : true,
           control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
+          prescription_required: el.prescription_required === '0' ? false : true,
+          prescription_required_file: el.prescription_required_file !== '' ? el.prescription_required_file : '',
+
           id: el.id,
           request_item_detail_id: el.id,
           dispatch_item_id: el.dispatch_item_id
         }
       })
+      console.log('lineItems', lineItems)
 
       setEditParams({
         ...editParams,
@@ -466,6 +498,9 @@ const AddRequestForm = () => {
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
         control_substance_file: getItems[0].control_substance_file,
+        prescription_required: getItems[0].prescription_required,
+        prescription_required_file: getItems[0].prescription_required_file,
+
         id: getItems[0].id
       })
     } else {
@@ -479,9 +514,14 @@ const AddRequestForm = () => {
         request_item_medicine_id: getItems[0].request_item_medicine_id,
         // id: getItems[0].id,
         request_item_qty: getItems[0].request_item_qty,
-        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
         priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance
+        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
+        control_substance: getItems[0].control_substance,
+        prescription_required_file: getItems[0].prescription_required_file
+          ? getItems[0].prescription_required_file
+          : '',
+
+        prescription_required: getItems[0].prescription_required
       })
     }
   }
@@ -502,6 +542,7 @@ const AddRequestForm = () => {
     postData.total_qty = totalQty
 
     if (id) {
+      debugger
       try {
         const response = await updateRequestItems(id, postData)
 
@@ -598,7 +639,8 @@ const AddRequestForm = () => {
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
                       request_item_medicine_id: newValue?.value,
-                      control_substance: newValue?.control_substance
+                      control_substance: newValue?.control_substance,
+                      prescription_required: newValue?.prescription_required
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -713,12 +755,7 @@ const AddRequestForm = () => {
                   ) : (
                     <Chip
                       label={nestedRowMedicine.control_substance_file}
-                      avatar={
-                        <Avatar
-                          alt='image'
-                          src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
-                        />
-                      }
+                      avatar={<Avatar alt='image' src={nestedRowMedicine?.control_substance_file} />}
                       onDelete={() => {
                         setNestedRowMedicine({
                           ...nestedRowMedicine,
@@ -731,7 +768,7 @@ const AddRequestForm = () => {
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
+                  <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
                   <FormControl fullWidth>
                     <TextField
                       type='file'
@@ -739,20 +776,129 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.control_substance_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            control_substance_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.control_substance_file && (
+                    {itemErrors?.control_substance_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.control_substance_file}
                       </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
               )
             ) : null}
+            {nestedRowMedicine.prescription_required === true ? (
+              nestedRowMedicine.prescription_required_file ? (
+                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                  {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
+                    <Chip
+                      label={nestedRowMedicine.prescription_required_file?.name}
+                      color='secondary'
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          prescription_required_file: ''
+                        })
+                      }}
+                      deleteIcon={<Icon icon='mdi:delete-outline' />}
+                    />
+                  ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
+                    nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
+                    <>
+                      <Chip
+                        label={nestedRowMedicine.prescription_required_file?.name}
+                        avatar={
+                          <Avatar
+                            alt={nestedRowMedicine.prescription_required_file?.name}
+                            src={
+                              nestedRowMedicine.prescription_required_file
+                                ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                                : ''
+                            }
+                          />
+                        }
+                        onDelete={() => {
+                          setNestedRowMedicine({
+                            ...nestedRowMedicine,
+                            // control_substance: false,
+                            prescription_required_file: ''
+                          })
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Chip
+                      label={nestedRowMedicine.prescription_required_file}
+                      avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          prescription_required_file: ''
+                        })
+                      }}
+                    />
+                  )}
+                </Grid>
+              ) : (
+                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                  <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='file'
+                      accept='.pdf, .jpeg, .jpg, .png'
+                      error={Boolean(itemErrors.prescription_required_file)}
+                      // label='Attach prescription'
+                      onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
+                        // setItemErrors({})
+                        const file = e.target.files[0]
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            prescription_required_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
+                      }}
+                    />
+                    {itemErrors?.prescription_required_file && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        {itemErrors?.prescription_required_file}
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              )
+            ) : null}
+
             {/* // file uploader */}
 
             {/* <Grid item xs={12}> */}
@@ -1001,9 +1147,13 @@ const AddRequestForm = () => {
                       <TableCell>
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
                           {el.medicine_name}
+                          {console.log('el', el)}
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
+                        ) : null}{' '}
+                        {el.prescription_required ? (
+                          <CustomChip label='PR' skin='light' color='success' size='small' />
                         ) : null}
                       </TableCell>
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>

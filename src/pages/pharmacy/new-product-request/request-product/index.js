@@ -107,7 +107,7 @@ export default function AddProduct() {
     product_name: '',
     generic_name: '',
     product_image: '',
-    quantity: '1',
+    quantity: '',
     priority: 'Normal',
     salts: [],
     status: 'pending'
@@ -157,6 +157,7 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
+      console.log('Product', res.data)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
