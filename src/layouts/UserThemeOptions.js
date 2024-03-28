@@ -37,7 +37,9 @@ const UserThemeOptions = () => {
         tooltipBg: '#262732',
         tableHeaderBg: '#E8F4F2',
         secondaryBg: '#7A8684',
-        mdAntzNeutral: '#0000000D'
+        mdAntzNeutral: '#0000000D',
+        OnSurfaceVariant: '#44544A',
+        neutralSecondary: '##7A8684'
       },
       primary: {
         // light: '#20DE67',
