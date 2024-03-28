@@ -608,10 +608,11 @@ const AddRequestForm = () => {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
         } else {
-          toast.error(result.data)
+          closeCancelDialog()
+          toast.error(result?.data?.data)
         }
       } catch (error) {
-        toast.error(error.data)
+        toast.error(error?.data)
         console.log('error', error)
       }
     }
