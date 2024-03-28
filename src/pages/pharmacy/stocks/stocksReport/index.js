@@ -61,7 +61,7 @@ const ListOfStocks = () => {
   //   }
   // }))
   const { selectedPharmacy } = usePharmacyContext()
-
+  console.log('helo')
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
@@ -81,7 +81,7 @@ const ListOfStocks = () => {
 
   const [stockId, setStockId] = useState(selectedPharmacy?.id)
 
-  // console.log('stockId', stockId)
+  console.log('stockId', stockId)
 
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -115,7 +115,7 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
       if (id) {
-        console.log('paginationModel', paginationModel)
+        console.log('id callback', id)
         try {
           setLoading(true)
           let result
@@ -157,7 +157,7 @@ const ListOfStocks = () => {
         }
       }
     },
-    [paginationModel]
+    [paginationModel, stockId]
   )
 
   const indexedRows = stockReport?.map((row, index) => ({
@@ -273,11 +273,6 @@ const ListOfStocks = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
-
-  useEffect(() => {
-    console.log('stockId', stockId)
-    console.log('stockType', stockType)
-  }, [stockId, stockType])
 
   useEffect(() => {
     console.log('2')
@@ -588,9 +583,9 @@ const ListOfStocks = () => {
               const type = stores.find(el => el.id === id)?.type || ''
               setStockType(type)
 
-              // console.log('e.target.value', e)
               setStockId(id)
               console.log('id', id)
+              console.log('type', type)
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
@@ -695,7 +690,7 @@ const ListOfStocks = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [getStocksReport]
   )
 
   return (
