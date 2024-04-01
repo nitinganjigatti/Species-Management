@@ -362,7 +362,11 @@ export default function NewProductList() {
                         productDetails={productDetails}
                       />
                     }
-                    close={() => setShow(false)}
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
                     show={() => setShow(true)}
                   />
                 </Grid>
