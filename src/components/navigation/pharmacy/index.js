@@ -93,6 +93,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const stockReport = {
+    icon: 'bi:boxes',
     title: 'Stock report',
     path: '/pharmacy/stocks/stocksReport'
   }
@@ -230,7 +231,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, escrow)
+    // stockParent.children.push(stockReport)
     settingsParent.children.push(
       rackList
 
@@ -249,7 +250,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
-      stockParent,
+      stockReport,
       requestListing,
       returnListing,
       directDispatchList,
@@ -263,7 +264,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
     returnParent.children.push(returnListing)
-    stockParent.children.push(stockReport, escrow)
+
+    // stockParent.children.push(stockReport, escrow)
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
@@ -275,7 +277,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       dispense,
 
       nonExistingProductRequestList,
-      stockParent,
+      stockReport,
 
       settingsParent
     )
