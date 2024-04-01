@@ -206,8 +206,10 @@ function AddDispense() {
           setProductArrayUi([])
           Router.push({
             pathname: `/pharmacy/dispense/${res?.data}`
+
             // query: { id: res?.data }
           })
+
           // Router.push('/pharmacy/dispense')
         } else {
           setSubmitLoading(false)
