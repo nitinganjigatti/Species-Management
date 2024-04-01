@@ -212,17 +212,21 @@ export default function AddProduct() {
 
     data.status = data?.status ? data?.status : 'Pending'
 
-    const filterPrescriptionImages = data?.prescription_images?.map(element => {
-      if (typeof element === 'string') {
-        const trimElement = element.trim()
-        const imageName = trimElement.split('/').pop()
+    if (data.prescription_images.length > 0) {
+      const filterPrescriptionImages = data?.prescription_images?.map(element => {
+        if (typeof element === 'string') {
+          const trimElement = element.trim()
+          const imageName = trimElement.split('/').pop()
 
-        return imageName
-      } else {
-        return element
-      }
-    })
-    data.prescription_images = filterPrescriptionImages
+          return imageName
+        } else {
+          return element
+        }
+      })
+      data.prescription_images = filterPrescriptionImages
+    } else {
+      data.prescription_images = []
+    }
 
     if (typeof data?.product_image === 'string') {
       const trimImg = data?.product_image.trim()
