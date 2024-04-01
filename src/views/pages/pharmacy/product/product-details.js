@@ -41,7 +41,7 @@ export const ProductDetail = ({
   // }
 
   return (
-    <Grid>
+    <Grid sx={{ cursor: 'pointer' }}>
       {detailsData?.map((item, index) => {
         return (
           <div key={index}>

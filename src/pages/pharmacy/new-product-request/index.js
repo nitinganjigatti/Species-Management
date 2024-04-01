@@ -284,7 +284,7 @@ export default function NewProductList() {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card sx={{ cursor: 'pointer' }}>
             <CardHeader title='New Product Request List' action={headerAction} />
             <DataGrid
               sx={{ cursor: 'pointer' }}
