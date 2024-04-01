@@ -83,7 +83,12 @@ export default function AddProduct() {
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
-      .then(res => setStoreList(res?.data?.list_items))
+      .then(res => {
+        setStoreList(res?.data?.list_items)
+        if (res?.data?.list_items.length > 0) {
+          setValue('from_store', res?.data?.list_items[0].id)
+        }
+      })
       .catch(err => console.log(err))
   }, [])
 
@@ -100,7 +105,7 @@ export default function AddProduct() {
   })
 
   const defaultValues = {
-    from_store: 38,
+    from_store: '',
     comment: '',
     prescription_images: [],
     product_type: '',
@@ -647,7 +652,7 @@ export default function AddProduct() {
                         <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
                         {console.log('imgSrc', imgSrc)}
-                        {imgSrc !== '' && (
+                        {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{
                               display: 'flex'
@@ -688,7 +693,7 @@ export default function AddProduct() {
                             name='product_image'
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
-                          {imgSrc === '' && (
+                          {(imgSrc === '' || imgSrc === null) && (
                             <AddButton
                               title=' Upload Image'
                               styles={{ zIndex: 0, position: 'absolute', left: '0px' }}

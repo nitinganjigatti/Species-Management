@@ -114,7 +114,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         close()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)

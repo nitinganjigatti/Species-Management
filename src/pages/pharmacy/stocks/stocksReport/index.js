@@ -40,6 +40,7 @@ import Select from '@mui/material/Select'
 import FormHelperText from '@mui/material/FormHelperText'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ExpiredMedicine from '../expired-medicine'
+import Escrow from '../escrow'
 
 const ListOfStocks = () => {
   // const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -60,7 +61,7 @@ const ListOfStocks = () => {
   //     paddingBottom: theme.spacing(2)
   //   }
   // }))
-
+  const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
@@ -78,7 +79,9 @@ const ListOfStocks = () => {
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  const [stockId, setStockId] = useState('')
+  const [stockId, setStockId] = useState(selectedPharmacy?.id)
+
+  console.log('stockId', stockId)
 
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -86,13 +89,8 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState(false)
-
-  const [storeType, setStoreType] = useState()
-
-  const { selectedPharmacy } = usePharmacyContext()
-
-  // console.log('selectedPharmacy', selectedPharmacy)
+  const [changeSwitch, setChangeSwitch] = useState()
+  const [stockType, setStockType] = useState(selectedPharmacy?.type)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -115,13 +113,13 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id, storeType }) => {
+    async ({ sort, q, column, id, type }) => {
       if (id) {
-        if (storeType === 'local') {
-          try {
-            setLoading(true)
-
-            // console.log('id', id)
+        console.log('id callback', id)
+        try {
+          setLoading(true)
+          let result
+          if (type === 'local') {
             const params = {
               sort,
               q,
@@ -130,26 +128,8 @@ const ListOfStocks = () => {
               limit: paginationModel.pageSize,
               store_id: id
             }
-            const result = await getLocalStocksReportById(params)
-            if (result.success === true) {
-              setTotal(parseInt(result?.count))
-
-              let listWithId = result.data
-                ? result.data.map((el, i) => {
-                    return { ...el, uid: i + 1 }
-                  })
-                : []
-              setStockReport(loadServerRows(paginationModel.page, listWithId))
-              setLoading(false)
-            }
-          } catch (error) {
-            console.log('error', error)
-            setLoading(false)
-          }
-        } else {
-          try {
-            setLoading(true)
-
+            result = await getLocalStocksReportById(params)
+          } else {
             const params = {
               sort,
               q,
@@ -157,135 +137,34 @@ const ListOfStocks = () => {
               page: paginationModel.page + 1,
               limit: paginationModel.pageSize
             }
-            const result = await getStocksReportById(id, params)
+            result = await getStocksReportById(id, params)
+          }
 
-            // if (result?.data?.length > 0) {
+          if (result.success === true) {
+            setTotal(parseInt(result.count))
 
-            setTotal(parseInt(result?.count))
-
-            // result.sort((a, b) => a.id - b.id)
-            let listWithId = result?.data
-              ? result?.data?.map((el, i) => {
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
                   return { ...el, uid: i + 1 }
                 })
               : []
             setStockReport(loadServerRows(paginationModel.page, listWithId))
-
-            // }
-            setLoading(false)
-          } catch (error) {
-            console.log('error', error)
-            setLoading(false)
           }
+          setLoading(false)
+        } catch (error) {
+          console.log('error', error)
+          setLoading(false)
         }
       }
     },
-    [paginationModel]
+    [paginationModel, stockId]
   )
-
-  // const getStocksReportByStore = useCallback(
-  //   async ({ sort, q, column, id }) => {
-  //     // if (id === undefined) {
-  //     //   // setErrors('Please select Store')
-  //     //   console.log('Please select Store')
-
-  //     //   return
-  //     // } else {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         column,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-  //       const result = await getStocksByBatch(id, params)
-  //       console.log('result', result)
-  //       if (result.success === true && result?.data?.length > 0) {
-  //         setTotal(parseInt(result?.count))
-
-  //         let listWithId = result.data
-  //           ? result.data.map((el, i) => {
-  //               return { ...el, uid: i + 1 }
-  //             })
-  //           : []
-  //         setStockReport(loadServerRows(paginationModel.page, listWithId))
-  //         if (changeSwitch) setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-
-  //         setLoading(false)
-  //       } else {
-  //         setLoading(false)
-  //       }
-  //       if (result?.count === '0') {
-  //         toast.success('There is no stock for this store')
-  //       }
-  //     } catch (error) {
-  //       console.log('error', error)
-  //       setLoading(false)
-  //     }
-
-  //     // }
-  //   },
-  //   [paginationModel, stockId]
-  // )
 
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
     sl_no: index + 1
   }))
-
-  const handleSearch = useCallback(
-    debounce(async (value, id, storeType) => {
-      setSearchValue(value)
-      try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id, storeType })
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  // const getStocksReport = async id => {
-  //   if (id) {
-  //     if (selectedPharmacy?.type === 'local') {
-  //       try {
-  //         const result = await getLocalStocksReportById()
-  //         console.log('res', result.data)
-  //         if (result.success === true && result.data.length > 0) {
-  //           let listWithId = result.data
-  //             ? result.data.map((el, i) => {
-  //                 return { ...el, uid: i + 1 }
-  //               })
-  //             : []
-  //           setStockReport(listWithId)
-  //         }
-  //       } catch (error) {
-  //         console.log('error', error)
-  //       }
-  //     } else {
-  //       try {
-  //         const result = await getStocksReportById(id)
-  //         if (result?.length > 0) {
-  //           // console.log('stocks', result)
-
-  //           // result.sort((a, b) => a.id - b.id)
-  //           let listWithId = result
-  //             ? result.map((el, i) => {
-  //                 return { ...el, uid: i + 1 }
-  //               })
-  //             : []
-  //           setStockReport(listWithId)
-  //         }
-  //       } catch (error) {
-  //         console.log('error', error)
-  //       }
-  //     }
-  //   }
-  // }
 
   const getStocksReportBatchWise = useCallback(
     async ({ batchSort, batchQ, batchColumn, id }) => {
@@ -308,6 +187,7 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
+            // console.log('result', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -326,6 +206,7 @@ const ListOfStocks = () => {
         try {
           const result = await getStocksByBatch(id, batchParams)
           if (result.success === true) {
+            // console.log('result else', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -351,36 +232,36 @@ const ListOfStocks = () => {
     sl_no: index + 1
   }))
 
-  const handleBatchSearch = useCallback(
-    debounce(async value => {
-      setBatchSearchValue(value)
-      try {
-        await getStocksReportBatchWise({
-          batchSort: batchSort,
-          batchQ: value,
-          batchColumn: batchSortColumn,
-          id: selectedPharmacy?.id,
-          storeType
-        })
-      } catch (error) {
-        console.error(error)
-        console.log('test')
-      }
-    }, 1000),
-    []
-  )
   useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  useEffect(() => {
+    console.log('1 ', selectedPharmacy?.id)
     if (selectedPharmacy?.id !== '' || undefined) {
       // getStocksReport(selectedPharmacy?.id)
+      setStockType(selectedPharmacy?.type)
+
+      setStockId(selectedPharmacy?.id)
+
+      // console.log('1 ', stockId)
+      console.log('setStockType ', selectedPharmacy?.type)
+      console.log('payload', {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: selectedPharmacy?.id,
+        type: selectedPharmacy?.type
+      })
+
       getStocksReport({
         sort,
         q: searchValue,
         column: sortColumn,
         id: selectedPharmacy?.id,
-        storeType: selectedPharmacy?.type
+        type: selectedPharmacy?.type
       })
 
-      setStockId(selectedPharmacy?.id)
       if (changeSwitch) {
         getStocksReportBatchWise({
           batchSort: batchSort,
@@ -390,11 +271,36 @@ const ListOfStocks = () => {
           storeType: selectedPharmacy?.type
         })
       }
-      setStoreType(selectedPharmacy?.type)
+
+      // setStoreType(selectedPharmacy?.type)
       setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value, changeSwitch])
+  }, [selectedPharmacy.id, value])
+
+  useEffect(() => {
+    console.log('2')
+
+    // getStocksReport(selectedPharmacy?.id)
+
+    if (changeSwitch) {
+      getStocksReportBatchWise({
+        batchSort: batchSort,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId
+      })
+    } else {
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
 
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
@@ -668,10 +574,6 @@ const ListOfStocks = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   const createForm = () => {
     return (
       <>
@@ -681,11 +583,13 @@ const ListOfStocks = () => {
           <Select
             onChange={e => {
               let id = e.target.value
-              const type = stores.find(el => el.id === id)?.type || ''
-              setStoreType(type)
 
-              // console.log('e.target.value', e)
+              const type = stores.find(el => el.id === id)?.type || ''
+              setStockType(type)
+
               setStockId(id)
+              console.log('id', id)
+              console.log('type', type)
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
@@ -693,8 +597,8 @@ const ListOfStocks = () => {
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
-                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id, storeType: type })
-                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, storeType: type })
+                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
+                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, type: type })
             }}
             label='Stores'
             value={stockId}
@@ -751,15 +655,7 @@ const ListOfStocks = () => {
       {selectedPharmacy.type === 'central' && createForm()}
 
       <FormControlLabel
-        control={
-          <Switch
-            checked={changeSwitch}
-            onChange={handleSwitchChange}
-
-            // }}
-            // defaultChecked
-          />
-        }
+        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
         labelPlacement='start'
         label='Stock Report Batch Wise'
       />
@@ -771,26 +667,36 @@ const ListOfStocks = () => {
     showDialog()
   }
 
-  useEffect(() => {
-    if (selectedPharmacy?.id !== '' || undefined) {
-      // getStocksReport(selectedPharmacy?.id)
-      getStocksReport({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        id: selectedPharmacy?.id
-      })
+  const handleBatchSearch = useCallback(
+    debounce(async value => {
+      setBatchSearchValue(value)
+      try {
+        await getStocksReportBatchWise({
+          batchSort: batchSort,
+          batchQ: value,
+          batchColumn: batchSortColumn,
+          id: stockId
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
-      setStockId(selectedPharmacy?.id)
-      getStocksReportBatchWise({
-        batchSort: batchSort,
-        batchQ: batchSearchValue,
-        batchColumn: batchSortColumn,
-        id: selectedPharmacy?.id
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, getStocksReport, getStocksReportBatchWise, value])
+  const handleSearch = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        console.log('value', value)
+        console.log('payloadsearch', { sort, q: value, column: sortColumn, id: stockId, type: stockType })
+        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [getStocksReport]
+  )
 
   return (
     <>
@@ -805,6 +711,8 @@ const ListOfStocks = () => {
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Medicine' />
+
+              <Tab value='5' label='Escrow' />
             </TabList>
           </Box>
           <TabPanel value='1'>
@@ -840,17 +748,7 @@ const ListOfStocks = () => {
                       {selectedPharmacy.type === 'central' && createForm()}
 
                       <FormControlLabel
-                        control={
-                          <Switch
-                            checked={changeSwitch}
-                            onChange={handleSwitchChange}
-
-                            // onChange={e => {
-
-                            // }}
-                            // defaultChecked
-                          />
-                        }
+                        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
                         labelPlacement='start'
                         label='Batch Wise'
                       />
@@ -959,6 +857,7 @@ const ListOfStocks = () => {
             <>{loader ? <FallbackSpinner /> : <StockOut />}</>
           </TabPanel>
           <TabPanel value='4'>{loader ? <FallbackSpinner /> : <ExpiredMedicine />}</TabPanel>
+          <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>
     </>

@@ -92,6 +92,7 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
+      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({

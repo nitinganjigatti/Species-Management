@@ -73,7 +73,9 @@ const ListOfRacks = () => {
       }
       console.log('rack list', response)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+        toast.success(response?.data)
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -82,12 +84,15 @@ const ListOfRacks = () => {
         // await getRacksLists()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
