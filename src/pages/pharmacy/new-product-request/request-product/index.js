@@ -115,6 +115,7 @@ export default function AddProduct() {
     if (values && values.product_type === 'non_medical') {
       return commonSchema.concat(nonMedicalSchema)
     }
+
     return commonSchema.concat(medicalSchema)
   })
 
