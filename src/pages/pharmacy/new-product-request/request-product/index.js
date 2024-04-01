@@ -59,6 +59,7 @@ import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ConfirmationBox } from 'src/utility/Confirm-dialog-box'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 export default function AddProduct() {
   const [storeList, setStoreList] = useState([])
@@ -728,7 +729,7 @@ export default function AddProduct() {
 
                         {/* {imgSrc === '' && ( */}
                       </Grid>
-                      {confirmationBox && (
+                      {/* {confirmationBox && (
                         <Grid>
                           <CommonDialogBox
                             noWidth
@@ -737,6 +738,15 @@ export default function AddProduct() {
                             show={() => setConfirmationBox(true)}
                           />
                         </Grid>
+                      )} */}
+                      {confirmationBox && (
+                        <ConfirmDialog
+                          title={'Confirmation'}
+                          open={() => setConfirmationBox(true)}
+                          content={'Are you sure you want to make changes?'}
+                          closeDialog={() => setConfirmationBox(false)}
+                          action={() => router.push('/pharmacy/new-product-request/')}
+                        />
                       )}
                       {/* salt composition */}
 
