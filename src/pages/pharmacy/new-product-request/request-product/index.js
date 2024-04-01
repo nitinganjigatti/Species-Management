@@ -92,16 +92,30 @@ export default function AddProduct() {
       .catch(err => console.log(err))
   }, [])
 
-  const schema = yup.object().shape({
+  const commonSchema = yup.object().shape({
     from_store: yup.string().required('Store Name is required'),
     product_type: yup.string().required('Product type is required'),
     product_name: yup.string().required('Product name is required'),
-    generic_name: yup.string().required('Generic name is required'),
     quantity: yup
       .number()
       .typeError('Quantity must be a number')
       .required('Quantity is required')
       .moreThan(0, 'Quantity must be greater than 0')
+  })
+
+  const nonMedicalSchema = yup.object().shape({
+    generic_name: yup.string().notRequired()
+  })
+
+  const medicalSchema = yup.object().shape({
+    generic_name: yup.string().required('Generic name is required')
+  })
+
+  const schema = yup.lazy(values => {
+    if (values && values.product_type === 'non_medical') {
+      return commonSchema.concat(nonMedicalSchema)
+    }
+    return commonSchema.concat(medicalSchema)
   })
 
   const defaultValues = {
@@ -146,9 +160,6 @@ export default function AddProduct() {
     setPrescriptionImage([...imagesList, ...newImages])
     setPreviousPrescriptionLength(true)
   }
-
-  console.log('prescriptionImafes>>>>>', prescriptionImage)
-  console.log('getValues???', getValues())
 
   const removeselectedImage = selectedindex => {
     if (prescriptionImage.length > 0) {
@@ -296,13 +307,6 @@ export default function AddProduct() {
       console.error('An error occurred:', error)
     }
   }
-
-  // const handleUpdate = (item, data) => {
-  //   // if (item?.request_item_details?.request_item_detail_id) {
-  //   //   // Use optional chaining consistently
-  //   //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
-  //   // }
-  // }
 
   const handleCancelDialogBox = () => {
     if (isDirty) {
