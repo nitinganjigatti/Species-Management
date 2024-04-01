@@ -198,7 +198,6 @@ export default function AddProduct() {
 
   const onSubmit = async data => {
     const dataChild = [...dataChildValues]
-
     const requestData = dataChild?.map((item, index) => {
       return item?.request_item_detail_id
     })
@@ -228,7 +227,7 @@ export default function AddProduct() {
     if (typeof data?.product_image === 'string') {
       const trimImg = data?.product_image.trim()
       const imgName = trimImg.split('/').pop()
-      data.product_image = imgName // Set imgName in data.product_image
+      data.product_image = imgName
     }
 
     let {
