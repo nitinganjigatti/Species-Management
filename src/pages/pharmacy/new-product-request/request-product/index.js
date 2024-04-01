@@ -199,7 +199,6 @@ export default function AddProduct() {
 
   const onSubmit = async data => {
     const dataChild = [...dataChildValues]
-
     const requestData = dataChild?.map((item, index) => {
       return item?.request_item_detail_id
     })
@@ -214,22 +213,26 @@ export default function AddProduct() {
 
     data.status = data?.status ? data?.status : 'Pending'
 
-    const filterPrescriptionImages = data?.prescription_images?.map(element => {
-      if (typeof element === 'string') {
-        const trimElement = element.trim()
-        const imageName = trimElement.split('/').pop()
+    if (data.prescription_images.length > 0) {
+      const filterPrescriptionImages = data?.prescription_images?.map(element => {
+        if (typeof element === 'string') {
+          const trimElement = element.trim()
+          const imageName = trimElement.split('/').pop()
 
-        return imageName
-      } else {
-        return element
-      }
-    })
-    data.prescription_images = filterPrescriptionImages
+          return imageName
+        } else {
+          return element
+        }
+      })
+      data.prescription_images = filterPrescriptionImages
+    } else {
+      data.prescription_images = []
+    }
 
     if (typeof data?.product_image === 'string') {
       const trimImg = data?.product_image.trim()
       const imgName = trimImg.split('/').pop()
-      data.product_image = imgName // Set imgName in data.product_image
+      data.product_image = imgName
     }
 
     let {
@@ -455,7 +458,7 @@ export default function AddProduct() {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <CardContent>
                   <Grid container spacing={6}>
-                    <Grid item xs={12} sm={6}>
+                    {/* <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <InputLabel>From Store Name*</InputLabel>
                         <Controller
@@ -478,96 +481,86 @@ export default function AddProduct() {
                           <FormHelperText sx={{ color: 'error.main' }}>{errors?.from_store?.message}</FormHelperText>
                         )}
                       </FormControl>
-                    </Grid>
+                    </Grid> */}
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <Controller
-                          name='comment'
+                          name='product_name'
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => <TextField {...field} label='Comment' multiline rows={1} />}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Product Name*'
+                              name='product_name'
+                              error={Boolean(errors.product_name)}
+                              onChange={onChange}
+                              placeholder='Product Name'
+                            />
+                          )}
                         />
+                        {errors?.product_name && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Select Product Type*</InputLabel>
+                        <Controller
+                          name='product_type'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='product_type'
+                              value={value}
+                              label='Select Product Type*'
+                              onChange={onChange}
+                              error={Boolean(errors?.product_type)}
+                            >
+                              <MenuItem value='allopathy'>Allopathy</MenuItem>
+                              <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                              <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='non_medical'>Non Medical</MenuItem>
+                            </Select>
+                          )}
+                        />
+                        {errors?.product_type && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_type?.message}</FormHelperText>
+                        )}
                       </FormControl>
                     </Grid>
                   </Grid>
                   <Grid container mt={4} xs={12}>
                     <Grid container spacing={6}>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Select Product Type*</InputLabel>
-                          <Controller
-                            name='product_type'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Select
-                                name='product_type'
-                                value={value}
-                                label='Select Product Type*'
-                                onChange={onChange}
-                                error={Boolean(errors?.product_type)}
-                              >
-                                <MenuItem value='allopathy'>Allopathy</MenuItem>
-                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                                <MenuItem value='unani'>Unani</MenuItem>
-                                <MenuItem value='non_medical'>Non Medical</MenuItem>
-                              </Select>
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name='generic_name'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Generic Name*'
+                                  name='generic_name'
+                                  error={Boolean(errors.generic_name)}
+                                  onChange={onChange}
+                                  placeholder='Generic Name'
+                                />
+                              )}
+                            />
+                            {errors?.generic_name && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.generic_name.message}
+                              </FormHelperText>
                             )}
-                          />
-                          {errors?.product_type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.product_type?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='product_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Product Name*'
-                                name='product_name'
-                                error={Boolean(errors.product_name)}
-                                onChange={onChange}
-                                placeholder='Product Name'
-                              />
-                            )}
-                          />
-                          {errors?.product_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='generic_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Generic Name*'
-                                name='generic_name'
-                                error={Boolean(errors.generic_name)}
-                                onChange={onChange}
-                                placeholder='Generic Name'
-                              />
-                            )}
-                          />
-                          {errors?.generic_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      {}
-
+                          </FormControl>
+                        </Grid>
+                      }
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                           <Controller
@@ -588,6 +581,47 @@ export default function AddProduct() {
                           {errors?.quantity && (
                             <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
                           )}
+                        </FormControl>
+                      </Grid>
+
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>From Store Name*</InputLabel>
+                            <Controller
+                              name='from_store'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field }) => (
+                                <Select {...field} label='From Store Name'>
+                                  {storeList?.map((item, index) => {
+                                    return (
+                                      <MenuItem key={index} value={item?.id}>
+                                        {item?.name}
+                                      </MenuItem>
+                                    )
+                                  })}
+                                </Select>
+                              )}
+                            />
+                            {errors?.from_store && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.from_store?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                      }
+                      {}
+
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='comment'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => <TextField {...field} label='Comment' multiline rows={1} />}
+                          />
                         </FormControl>
                       </Grid>
 
