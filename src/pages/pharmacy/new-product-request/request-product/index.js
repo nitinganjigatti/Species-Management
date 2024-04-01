@@ -83,7 +83,12 @@ export default function AddProduct() {
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
-      .then(res => setStoreList(res?.data?.list_items))
+      .then(res => {
+        setStoreList(res?.data?.list_items)
+        if (res?.data?.list_items.length > 0) {
+          setValue('from_store', res?.data?.list_items[0].id)
+        }
+      })
       .catch(err => console.log(err))
   }, [])
 
@@ -100,7 +105,7 @@ export default function AddProduct() {
   })
 
   const defaultValues = {
-    from_store: 38,
+    from_store: '',
     comment: '',
     prescription_images: [],
     product_type: '',
