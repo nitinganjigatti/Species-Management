@@ -244,7 +244,6 @@ const ListOfStocks = () => {
 
       setStockId(selectedPharmacy?.id)
 
-      // console.log('1 ', stockId)
       console.log('setStockType ', selectedPharmacy?.type)
       console.log('payload', {
         sort,
