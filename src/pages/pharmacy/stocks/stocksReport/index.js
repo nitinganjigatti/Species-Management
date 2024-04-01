@@ -40,6 +40,7 @@ import Select from '@mui/material/Select'
 import FormHelperText from '@mui/material/FormHelperText'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ExpiredMedicine from '../expired-medicine'
+import Escrow from '../escrow'
 
 const ListOfStocks = () => {
   // const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -626,6 +627,7 @@ const ListOfStocks = () => {
 
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
+    setSearchValue('')
 
     // setValue(event.target.checked ? '2' : '1')
     // console.log('value', value)
@@ -709,6 +711,8 @@ const ListOfStocks = () => {
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Medicine' />
+
+              <Tab value='5' label='Escrow' />
             </TabList>
           </Box>
           <TabPanel value='1'>
@@ -853,6 +857,7 @@ const ListOfStocks = () => {
             <>{loader ? <FallbackSpinner /> : <StockOut />}</>
           </TabPanel>
           <TabPanel value='4'>{loader ? <FallbackSpinner /> : <ExpiredMedicine />}</TabPanel>
+          <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>
     </>
