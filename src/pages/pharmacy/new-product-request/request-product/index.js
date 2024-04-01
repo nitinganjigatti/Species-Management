@@ -232,26 +232,6 @@ export default function AddProduct() {
       data.product_image = imgName // Set imgName in data.product_image
     }
 
-    // handleUpdate(getDetails, data)
-    // const requestDetailsData = {
-    //   product_type: data?.product_type,
-    //   product_name: data?.product_name,
-    //   generic_name: data?.generic_name,
-    //   priority: data?.priority,
-    //   quantity: data?.quantity,
-    //   product_image: data?.product_image,
-    //   salts: JSON.stringify([]),
-    //   status: data?.status
-    // }
-
-    // const saltValues = data.salts
-
-    // const filterSaltValues = saltValues?.map(item => ({
-    //   salt_id: item.salt_id,
-    //   salt_qty: item.salt_qty
-    // }))
-    // data.salts = JSON.stringify(filterSaltValues)
-
     let {
       from_store,
       comment,
@@ -304,7 +284,6 @@ export default function AddProduct() {
       } else {
       }
     } catch (error) {
-      // Handle the error as needed
       console.error('An error occurred:', error)
     }
   }
@@ -506,16 +485,7 @@ export default function AddProduct() {
                           name='comment'
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              label='Comment'
-                              multiline
-                              rows={1}
-
-                              // error={Boolean(errors.medicine_name)}
-                            />
-                          )}
+                          render={({ field }) => <TextField {...field} label='Comment' multiline rows={1} />}
                         />
                       </FormControl>
                     </Grid>
