@@ -1056,7 +1056,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
               {orderData?.person_shipping ? (
                 <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                  <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
                   <p>{orderData.person_shipping}</p>
                 </Grid>
               ) : null}

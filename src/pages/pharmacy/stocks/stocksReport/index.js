@@ -392,7 +392,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_qty',
-      headerName: 'QTY.IN STORE',
+      headerName: 'QTY IN STORE',
       type: 'number',
       align: 'right',
       renderCell: params => (

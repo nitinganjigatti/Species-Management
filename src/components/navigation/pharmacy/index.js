@@ -94,7 +94,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const stockReport = {
     icon: 'bi:boxes',
-    title: 'Stock report',
+    title: 'Stock Report',
     path: '/pharmacy/stocks/stocksReport'
   }
 
@@ -141,7 +141,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const drugClass = {
-    title: 'Drug class',
+    title: 'Drug Class',
     path: '/pharmacy/masters/drug-class'
   }
 
@@ -171,12 +171,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const storeList = {
-    title: 'Pharmacy list',
+    title: 'Pharmacy List',
     path: '/pharmacy/masters/store-list'
   }
 
   const supplierList = {
-    title: 'Supplier list',
+    title: 'Supplier List',
     path: '/pharmacy/masters/supplier/supplier-list'
   }
 
@@ -191,7 +191,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const rackList = {
-    title: 'Rack list',
+    title: 'Rack List',
     path: '/pharmacy/store/rackList'
   }
 
