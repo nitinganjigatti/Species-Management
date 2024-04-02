@@ -9,9 +9,11 @@ import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
+import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
 
 // ** MUI Imports
@@ -26,11 +28,17 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
+import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import { useTheme } from '@mui/material/styles'
 
 // Styled TabList component
 
 const IngredientsList = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
+
+  /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -41,6 +49,10 @@ const IngredientsList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
 
+  //const [status, setStatus] = useState('all')
+  const [statusCheckval, setstatusCheckval] = useState(false)
+  const [dialog, setDialog] = useState(false)
+  const [check, setCheck] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -48,6 +60,10 @@ const IngredientsList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setStatus(newValue)
+  }
+
+  const onClose = () => {
+    setDialog(false)
   }
 
   const fetchTableData = useCallback(
@@ -118,6 +134,10 @@ const IngredientsList = () => {
       <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
+      </Button>
+      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={() => setDialog(true)}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Pop
       </Button>
     </div>
   )
@@ -350,7 +370,29 @@ const IngredientsList = () => {
         ) : (
           <Card>
             <CardHeader title='Ingredients' action={headerAction} />
-
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {

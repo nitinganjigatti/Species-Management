@@ -1,12 +1,20 @@
 import { useState } from 'react'
-import { Grid, Box, Typography, Chip, Divider, Avatar } from '@mui/material'
+import { Grid, Box, Typography, Chip, Divider, Avatar, CardContent } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import Drawer from '@mui/material/Drawer'
+import ActivityLogs from 'src/pages/diet/ingredient/activityLogs'
 
 const OverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
   const toggleExpanded = () => {
     setExpanded(!expanded)
+  }
+  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+
+  const handleSidebarClose = () => {
+    setActivitySidebarOpen(false)
   }
 
   const convertToTitleCase = str => {
@@ -92,8 +100,24 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
           </Typography>
 
           <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
-            <Typography sx={{ color: '#000000', my: 3 }}>Activity Log</Typography>
+            <Typography onClick={() => setActivitySidebarOpen(true)} sx={{ color: '#000000', my: 3 }}>
+              Activity Log
+            </Typography>
             <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px' }} />
+            <Drawer
+              anchor='right'
+              open={activitySidebarOpen}
+              ModalProps={{ keepMounted: true }}
+              sx={{ '& .MuiDrawer-paper': { width: ['100%', 520] }, height: '100vh' }}
+            >
+              <CardContent>
+                <ActivityLogs
+                  searchValue={searchValue}
+                  setSearchValue={setSearchValue}
+                  handleSidebarClose={handleSidebarClose}
+                />
+              </CardContent>
+            </Drawer>
           </Box>
         </Box>
       </div>
