@@ -42,7 +42,6 @@ const DirectDispatchList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  console.log('selectedPharmacy?.type', selectedPharmacy?.type)
   const [status, setStatus] = useState('pending')
 
   function loadServerRows(currentPage, data) {

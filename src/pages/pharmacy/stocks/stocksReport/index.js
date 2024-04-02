@@ -414,6 +414,31 @@ const ListOfStocks = () => {
           {params.row.store_name}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_config',
+      headerName: 'Rack & Shelf',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <>
+          {params?.row?.stock_config ? (
+            params?.row?.stock_config?.map(el => {
+              return (
+                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                  {el.rack},{el.shelf}
+                </Typography>
+              )
+            })
+          ) : (
+            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+              NA
+            </Typography>
+          )}
+        </>
+      )
     }
 
     // {
@@ -506,7 +531,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_qty',
-      headerName: 'QTY.IN STORE',
+      headerName: 'QTY IN STORE',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -516,20 +541,6 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'purchase_price',
-    //   headerName: 'STOCK PURCHASE PRICE',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.purchase_price}
-    //     </Typography>
-    //   )
-    // }
 
     // {
     //   flex: 0.2,
