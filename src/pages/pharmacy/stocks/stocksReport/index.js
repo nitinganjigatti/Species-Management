@@ -586,7 +586,6 @@ const ListOfStocks = () => {
 
               const type = stores.find(el => el.id === id)?.type || ''
               setStockType(type)
-
               setStockId(id)
               console.log('id', id)
               console.log('type', type)
@@ -663,8 +662,10 @@ const ListOfStocks = () => {
   )
 
   const handleStockRowClick = params => {
-    setConfigureMedId(params?.row?.stock_item_id)
-    showDialog()
+    if (selectedPharmacy?.id === stockId) {
+      setConfigureMedId(params?.row?.stock_item_id)
+      showDialog()
+    }
   }
 
   const handleBatchSearch = useCallback(
@@ -723,7 +724,9 @@ const ListOfStocks = () => {
                 <CommonDialogBox
                   title={'Configure Medicine'}
                   dialogBoxStatus={show}
-                  formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                  formComponent={
+                    <StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} close={closeDialog} />
+                  }
                   close={closeDialog}
                   show={showDialog}
                 />

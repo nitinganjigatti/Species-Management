@@ -42,7 +42,7 @@ import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 //   shelf_id: yup.string().required('Shelf is required')
 // })
 
-const StockMedicineConfigure = ({ configureMedId, storeId }) => {
+const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   // console.log('configureMedId', configureMedId)
   // console.log('storeId', storeId)
 
@@ -160,6 +160,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
           configureMedicine(configureMedId)
 
           reset(defaultValues)
+          close()
         } else {
           toast.error(result.data.config)
         }
@@ -179,6 +180,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
           setDeleteRowId('')
 
           reset(defaultValues)
+          close()
         } else {
           toast.error(result.data.config)
         }
@@ -203,6 +205,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
         configureMedicine(configureMedId)
 
         reset(defaultValues)
+        close()
       } else {
         toast.error(result.data.config)
       }
