@@ -110,7 +110,7 @@ export const FEED = 'feed'
 
 export const INGREDIENTS_LIST = 'ingredients-list'
 
-export const FEED_TYPE_LIST = 'listing'
+export const LISTING = 'listing'
 
 export const ADD_FEED_TYPE = 'add-feed'
 
@@ -155,3 +155,7 @@ export const ADD_PREPARATION_TYPE = 'diet/preparations/add-preparation'
 export const GET_PREPARATION_TYPEBY_ID = 'diet/preparations/show'
 
 export const UPDATE_PREPARATION_TYPE = 'diet/preparations/update-preparation'
+
+export const PREPARATIONS = 'preparations'
+
+export const ADD = 'add'

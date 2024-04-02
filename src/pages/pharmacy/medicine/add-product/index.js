@@ -938,7 +938,7 @@ const AddMedicine = () => {
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
                     />
-
+                    {console.log(fields, 'fields')}
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>

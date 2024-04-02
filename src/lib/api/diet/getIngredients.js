@@ -1,7 +1,7 @@
 import {
   INGREDIENTS_DETAIL,
   DIET,
-  INGREDIENT,
+  PREPARATIONS,
   UPDATE_STATUS,
   DELETE,
   RECIPE_LIST,
@@ -13,6 +13,12 @@ import { axiosGet, axiosPost } from '../utility'
 
 export async function getIngredientList({ params }) {
   const response = await axiosGet({ url: `${DIET}/${INGREDIENTS}/${LIST}`, params })
+
+  return response.data
+}
+
+export async function getPreparationTypeList(id) {
+  const response = await axiosGet({ url: `${DIET}/${PREPARATIONS}/${INGREDIENTS}/${id}` })
 
   return response.data
 }

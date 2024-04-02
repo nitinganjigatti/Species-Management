@@ -39,7 +39,7 @@ const IngredientsList = () => {
   const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState('')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -60,8 +60,8 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-          //status
+          limit: paginationModel.pageSize,
+          status
         }
 
         await getIngredientList({ params: params }).then(res => {
@@ -402,21 +402,13 @@ const IngredientsList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
-            <Tab value='active' label={<TabBadge label='Active' totalCount={status === 'active' ? total : null} />} />
-            <Tab
-              value='inactive'
-              label={<TabBadge label='Inactive' totalCount={status === 'inactive' ? total : null} />}
-            />
-            {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            /> */}
+            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
           </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
-          {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+          <TabPanel value=''>{tableData()}</TabPanel>
+          <TabPanel value='1'>{tableData()}</TabPanel>
+          <TabPanel value='0'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
     </>

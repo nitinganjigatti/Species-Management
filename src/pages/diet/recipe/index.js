@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -13,6 +11,7 @@ import TabList from '@mui/lab/TabList'
 import moment from 'moment'
 import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
+import { getRecipeList } from 'src/lib/api/diet/recipe'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -33,13 +32,14 @@ const RecipeList = () => {
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sortBy, setSortBy] = useState('desc')
+  const [sortColumn, setSortColumn] = useState('created_at')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+  const [searchColumns, setSearchColumns] = useState('recipe_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState('')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,20 +51,21 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
+    async (sortBy, q, sortColumn, searchColumns, status) => {
       try {
         setLoading(true)
 
         const params = {
-          sort,
+          sortBy,
           q,
           sortColumn,
+          searchColumns,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-          //status
+          limit: paginationModel.pageSize,
+          status
         }
 
-        await getIngredientList({ params: params }).then(res => {
+        await getRecipeList({ params: params }).then(res => {
           console.log('response', res)
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
@@ -83,7 +84,7 @@ const RecipeList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
+    fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
   }, [fetchTableData, status])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -94,18 +95,19 @@ const RecipeList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setsortColumning(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      setSortBy(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      //setSearchColumns(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, searchColumns, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sortBy, q, sortColumn, searchColumns, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sortBy, q, sortColumn, searchColumns, status)
       } catch (error) {
         console.error(error)
       }
@@ -130,7 +132,7 @@ const RecipeList = () => {
       const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
       console.log(response, 'response')
       if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumning, status)
+        fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -142,8 +144,8 @@ const RecipeList = () => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
+                    Ingredient {'REP' + rowData.id} has been successfully{' '}
+                    {newIsActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
               </Box>
@@ -172,7 +174,7 @@ const RecipeList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sortBy, value, sortColumn, searchColumns, status)
   }
 
   const columns = [
@@ -190,22 +192,21 @@ const RecipeList = () => {
     {
       flex: 0.5,
       minWidth: 30,
-      field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      field: 'recipe_name',
+      headerName: 'RECIPE',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Recipe Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+            src={params.row.recipe_image ? params.row.recipe_image : null}
           >
-            {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
+            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.ingredient_name ? params.row.ingredient_name : '-'}
+              {params.row.recipe_name ? params.row.recipe_name : '-'}
             </Typography>
           </Box>
         </Box>
@@ -215,37 +216,37 @@ const RecipeList = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'RECIPE ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id ? 'ING' + params.row.id : '-'}
+          {params.row.id ? 'REP' + params.row.id : '-'}
         </Typography>
       )
     },
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'calorie',
-      headerName: 'CALORIES',
+      field: 'total_kcal',
+      headerName: 'KCAL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.calorie ? params.row.calorie + ' Kcal' : '-'}
+          {params.row.total_kcal ? params.row.total_kcal + ' Kcal' : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 20,
-      field: 'protein',
-      headerName: 'PREPARATION TYPES',
+      field: 'ingredient_name',
+      headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <Tooltip
             title={
-              params.row.preparation_types && params.row.preparation_types.length > 0
-                ? params.row.preparation_types.map(preparation => (
-                    <div style={{ padding: '4px' }} key={preparation.label}>
-                      {preparation.label}
+              params.row.ingredients && params.row.ingredients.length > 0
+                ? params.row.ingredients.map(preparation => (
+                    <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
+                      {preparation.ingredient_name}
                     </div>
                   ))
                 : '-'
@@ -254,7 +255,7 @@ const RecipeList = () => {
             placement='right'
             // style={{ background: '#1F515B' }}
           >
-            <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
+            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
           </Tooltip>
         </Typography>
       )
@@ -266,7 +267,6 @@ const RecipeList = () => {
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
             variant='square'
             alt='Medicine Image'
@@ -305,7 +305,7 @@ const RecipeList = () => {
       minWidth: 20,
       field: 'switch',
       headerName: '',
-      disableColumnMenu: true, // Exclude from column menu
+      disableColumnMenu: true,
       renderCell: params => (
         <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
           <Switch
@@ -402,21 +402,13 @@ const RecipeList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
-            <Tab value='active' label={<TabBadge label='Active' totalCount={status === 'active' ? total : null} />} />
-            <Tab
-              value='inactive'
-              label={<TabBadge label='Inactive' totalCount={status === 'inactive' ? total : null} />}
-            />
-            {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            /> */}
+            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
           </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
-          {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+          <TabPanel value=''>{tableData()}</TabPanel>
+          <TabPanel value='1'>{tableData()}</TabPanel>
+          <TabPanel value='0'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
     </>

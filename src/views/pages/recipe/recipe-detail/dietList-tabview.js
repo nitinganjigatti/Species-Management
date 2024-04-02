@@ -111,10 +111,58 @@ const DietListTabview = ({ IngredientName }) => {
 
   const columns = [
     {
-      flex: 0.5,
+      flex: 0.3,
       minWidth: 40,
       field: 'recipe_name',
-      headerName: 'RECIPE',
+      headerName: 'DIET',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* {renderClient(params)} */}
+          <Avatar
+            variant='square'
+            alt='Recipe Image'
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.recipe_image ? params.row.recipe_image : null}
+          >
+            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.recipe_name ? params.row.recipe_name : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 40,
+      field: 'recipe_nameb',
+      headerName: 'Ingredients',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* {renderClient(params)} */}
+          <Avatar
+            variant='square'
+            alt='Recipe Image'
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.recipe_image ? params.row.recipe_image : null}
+          >
+            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.recipe_name ? params.row.recipe_name : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 40,
+      field: 'recipe_namea',
+      headerName: 'Recipes',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -138,21 +186,10 @@ const DietListTabview = ({ IngredientName }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'kcal',
-      headerName: 'KCAL',
+      headerName: 'MEALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.kcal ? params.row.kcal + ' ' + 'Kcal' : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'ingredient_count',
-      headerName: 'NO OF INGREDIENTS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ingredient_count ? params.row.ingredient_count : '-'}
         </Typography>
       )
     }

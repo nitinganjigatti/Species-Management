@@ -50,7 +50,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   },
   '& .MuiTabs-flexContainer': {
     borderRadius: 8,
-    width: '71%',
+    width: '511px',
     backgroundColor: '#E8F4F2'
   }
 }))

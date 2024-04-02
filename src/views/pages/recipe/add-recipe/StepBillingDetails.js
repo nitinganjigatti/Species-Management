@@ -1,223 +1,289 @@
-// ** React Imports
-import { useState } from 'react'
-
-// ** MUI Components
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import InputAdornment from '@mui/material/InputAdornment'
-
-// ** Third Party Imports
-import Payment from 'payment'
-
-// ** Icon Imports
+import { Card, CardContent, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
-// ** Custom Components Imports
-import CustomRadioIcons from 'src/@core/components/custom-radio/icons'
-
-// ** Util Import
-import { formatCVC, formatExpirationDate, formatCreditCardNumber } from 'src/@core/utils/format'
-
-// ** Styles Import
+import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
 
-const data = [
-  {
-    value: 'basic',
-    title: <Typography variant='h5'>Basic</Typography>,
-    content: (
-      <Box sx={{ my: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-        <Typography sx={{ textAlign: 'center', color: 'text.secondary' }}>
-          A simple start for start ups & Students
+const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
+  const columns = [
+    {
+      flex: 0.5,
+      minWidth: 30,
+      field: 'ingredient_name',
+      headerName: 'Ingredient Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ingredient_name}
         </Typography>
-        <Box sx={{ mt: 2, display: 'flex' }}>
-          <Typography component='sup' sx={{ mt: 1.5, color: 'primary.main', alignSelf: 'flex-start' }}>
-            $
-          </Typography>
-          <Typography component='span' sx={{ fontSize: '2rem', color: 'primary.main' }}>
-            0
-          </Typography>
-          <Typography component='sub' sx={{ mb: 1.5, alignSelf: 'flex-end', color: 'text.disabled' }}>
-            /month
-          </Typography>
-        </Box>
-      </Box>
-    )
-  },
-  {
-    isSelected: true,
-    value: 'standard',
-    title: <Typography variant='h5'>Standard</Typography>,
-    content: (
-      <Box sx={{ my: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-        <Typography sx={{ textAlign: 'center', color: 'text.secondary' }}>For small to medium businesses</Typography>
-        <Box sx={{ mt: 2, display: 'flex' }}>
-          <Typography component='sup' sx={{ mt: 1.5, color: 'primary.main', alignSelf: 'flex-start' }}>
-            $
-          </Typography>
-          <Typography component='span' sx={{ fontSize: '2rem', fontWeight: 500, color: 'primary.main' }}>
-            99
-          </Typography>
-          <Typography component='sub' sx={{ mb: 1.5, alignSelf: 'flex-end', color: 'text.disabled' }}>
-            /month
-          </Typography>
-        </Box>
-      </Box>
-    )
-  },
-  {
-    value: 'enterprise',
-    title: <Typography variant='h5'>Enterprise</Typography>,
-    content: (
-      <Box sx={{ my: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-        <Typography sx={{ textAlign: 'center', color: 'text.secondary' }}>
-          Solution for enterprise & organizations
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 10,
+      field: 'ingredient_id',
+      headerName: 'Ingredient ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ingredient_id}
         </Typography>
-        <Box sx={{ mt: 2, display: 'flex' }}>
-          <Typography component='sup' sx={{ mt: 1.5, color: 'primary.main', alignSelf: 'flex-start' }}>
-            $
-          </Typography>
-          <Typography component='span' sx={{ fontSize: '2rem', color: 'primary.main' }}>
-            499
-          </Typography>
-          <Typography component='sub' sx={{ mb: 1.5, alignSelf: 'flex-end', color: 'text.disabled' }}>
-            /month
-          </Typography>
-        </Box>
-      </Box>
-    )
-  }
-]
-
-const StepBillingDetails = ({ handlePrev }) => {
-  const initialSelected = data.filter(item => item.isSelected)[data.filter(item => item.isSelected).length - 1].value
-
-  // ** State
-  const [cvc, setCvc] = useState('')
-  const [name, setName] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cardNumber, setCardNumber] = useState('')
-  const [selectedRadio, setSelectedRadio] = useState(initialSelected)
-
-  const handleInputChange = ({ target }) => {
-    if (target.name === 'cardNumber') {
-      target.value = formatCreditCardNumber(target.value, Payment)
-      setCardNumber(target.value)
-    } else if (target.name === 'expiry') {
-      target.value = formatExpirationDate(target.value)
-      setExpiry(target.value)
-    } else if (target.name === 'cvc') {
-      target.value = formatCVC(target.value, cardNumber, Payment)
-      setCvc(target.value)
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'feed_type_label',
+      headerName: 'Feed Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.feed_type_label}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'quantity',
+      headerName: 'Quantity',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.quantity}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'preparation_name',
+      headerName: 'Preparation Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.preparation_name}
+        </Typography>
+      )
     }
-  }
+  ]
 
-  const handleRadioChange = prop => {
-    if (typeof prop === 'string') {
-      setSelectedRadio(prop)
-    } else {
-      setSelectedRadio(prop.target.value)
-    }
-  }
+  const rowsPercentage = formData.by_percentage.map((ingredient, index) => ({
+    id: index + 1, // Unique ID for each row
+    ...ingredient
+  }))
+
+  const rowsQuantity = formData.by_quantity.map((ingredient, index) => ({
+    id: index + 1,
+    ...ingredient
+  }))
 
   return (
     <>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant='h5'>Select Plan</Typography>
-        <Typography sx={{ color: 'text.secondary' }}>Select plan as per your requirement</Typography>
-      </Box>
+      <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
+        <Box sx={{ mb: 1, px: 5, mt: 2, float: 'left' }}>
+          <Typography variant='h6'>Preview</Typography>
+        </Box>
 
-      <Grid container spacing={5}>
-        {data.map((item, index) => (
-          <CustomRadioIcons
-            key={index}
-            data={data[index]}
-            selected={selectedRadio}
-            name='custom-radios-plan'
-            gridProps={{ sm: 4, xs: 12 }}
-            handleChange={handleRadioChange}
-          />
-        ))}
+        <Grid container spacing={5}>
+          {console.log(formData, 'formData')}
+          <Grid item xs={12}>
+            <>
+              <Card sx={{ boxShadow: 'none' }}>
+                <CardContent sx={{ mt: 0 }}>
+                  <Grid container spacing={6}>
+                    <Grid item xs={4}>
+                      <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
+                        <div
+                          item
+                          md={3}
+                          xs={12}
+                          style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
+                        >
+                          <CardContent
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 0
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '100%'
+                              }}
+                            >
+                              {formData?.recipe_image?.length > 0 ? (
+                                formData.recipe_image?.map(file => (
+                                  <Avatar
+                                    variant='square'
+                                    key={file.name}
+                                    alt={file.name}
+                                    sx={{
+                                      width: '100%',
+                                      height: '100%'
+                                    }}
+                                    src={URL.createObjectURL(file)}
+                                  ></Avatar>
+                                ))
+                              ) : (
+                                <Avatar
+                                  variant='square'
+                                  sx={{
+                                    width: '100%',
+                                    height: '100%'
+                                  }}
+                                  src={'/icons/recipedummy.svg'}
+                                ></Avatar>
+                              )}
+                            </div>
+                          </CardContent>
+                        </div>
+                        <CardContent>
+                          <Box
+                            sx={{
+                              width: '100%',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                                Portion size
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                                {formData.portion_size + ' ' + 'g'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box
+                            sx={{
+                              width: '100%',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              my: 3
+                            }}
+                          >
+                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                                Ingredients used
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                                {formData.by_percentage.length + formData.by_quantity.length + ' nos'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box
+                            sx={{
+                              width: '100%',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              my: 3
+                            }}
+                          >
+                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                                Calories per 100gms
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                                {formData.kcal + ' Kcal'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
 
-        <Grid item xs={12} sx={{ pt: theme => `${theme.spacing(11.5)} !important` }}>
-          <Typography variant='h5'>Payment Information</Typography>
-          <Typography sx={{ color: 'text.secondary' }}>Enter your card information</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <FormControl fullWidth>
-            <TextField
-              fullWidth
-              name='cardNumber'
-              value={cardNumber}
-              autoComplete='off'
-              label='Card Number'
-              onChange={handleInputChange}
-              placeholder='0000 0000 0000 0000'
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            name='name'
-            value={name}
-            autoComplete='off'
-            label='Name on Card'
-            placeholder='John Doe'
-            onChange={e => setName(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <TextField
-            fullWidth
-            name='expiry'
-            label='Expiry'
-            value={expiry}
-            placeholder='MM/YY'
-            onChange={handleInputChange}
-            inputProps={{ maxLength: '5' }}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <TextField
-            fullWidth
-            name='cvc'
-            label='CVC'
-            value={cvc}
-            autoComplete='off'
-            onChange={handleInputChange}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='start' sx={{ '& svg': { cursor: 'pointer' } }}>
-                  <Tooltip title='Card Verification Value'>
-                    <Box sx={{ display: 'flex' }}>
-                      <Icon icon='mdi:help-circle-outline' fontSize={20} />
-                    </Box>
-                  </Tooltip>
-                </InputAdornment>
-              )
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Button
-              color='secondary'
-              variant='contained'
-              onClick={handlePrev}
-              startIcon={<Icon icon='mdi:chevron-left' fontSize={20} />}
-            >
-              Previous
-            </Button>
-            <Button color='success' variant='contained' onClick={() => alert('Submitted..!!')}>
-              Submit
-            </Button>
-          </Box>
+                    <Grid item xs={8}>
+                      <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
+                      <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
+                        {formData.desc ? formData.desc : 'No Description to show'}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+
+              <Card sx={{ boxShadow: 'none' }}>
+                <CardContent sx={{ mb: 5, mt: 2 }}>
+                  <Card sx={{ boxShadow: 'none' }}>
+                    <CardHeader title='Ingredient by percentage' />
+
+                    <DataGrid
+                      sx={{
+                        '.MuiDataGrid-cell:focus': {
+                          outline: 'none'
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                          cursor: 'pointer'
+                        }
+                      }}
+                      columnVisibilityModel={{
+                        sl_no: false
+                      }}
+                      autoHeight
+                      rows={rowsPercentage}
+                      columns={columns}
+                      hideFooter={true}
+                    />
+                    <CardHeader title='Ingredient by Quantity' sx={{ mt: 8 }} />
+                    <DataGrid
+                      sx={{
+                        '.MuiDataGrid-cell:focus': {
+                          outline: 'none'
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                          cursor: 'pointer'
+                        }
+                      }}
+                      columnVisibilityModel={{
+                        sl_no: false
+                      }}
+                      autoHeight
+                      hideFooterSelectedRowCount
+                      disableColumnSelector={true}
+                      hideFooter={true}
+                      rows={rowsQuantity}
+                      columns={columns}
+                    />
+                  </Card>
+                </CardContent>
+              </Card>
+            </>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+              <Button
+                color='secondary'
+                variant='outlined'
+                onClick={handlePrev}
+                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                sx={{ mr: 6 }}
+              >
+                Go back
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                variant='contained'
+                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+              >
+                Submit
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
       </Grid>
     </>
