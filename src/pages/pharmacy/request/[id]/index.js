@@ -1064,7 +1064,6 @@ const IndividualRequest = () => {
                     )
                   }
                 />
-
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>

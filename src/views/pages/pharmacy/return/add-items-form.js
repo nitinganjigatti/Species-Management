@@ -47,11 +47,20 @@ const schema = yup.object().shape({
     label: yup.string().required('Product Name is required'),
     value: yup.string().required('Product Name is required')
   }),
-  request_item_batch_no: yup.object().shape({
-    label: yup.string().required('Batch no is required'),
-    value: yup.string().required('Batch no is required'),
-    expiry_date: yup.string().required('Batch no is required')
-  }),
+
+  // request_item_batch_no: yup.object().shape({
+  //   label: yup.string().required('Batch no is required'),
+  //   value: yup.string().required('Batch no is required'),
+  //   expiry_date: yup.string().required('Batch no is required')
+  // }),
+  request_item_batch_no: yup
+    .mixed()
+    .required('Batch no is required')
+    .test('is-object-with-properties', 'Batch no is required', value => {
+      return (
+        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+      )
+    }),
   request_item_qty: yup
     .number()
     .typeError('Quantity must be a number')
@@ -573,6 +582,7 @@ export const AddItemsForm = ({
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
+          {console.log('request_item_batch_no', getValues('request_item_batch_no'))}
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'}>
             <Button type='submit' variant='contained'>
               Save

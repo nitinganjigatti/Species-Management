@@ -284,7 +284,7 @@ export default function NewProductList() {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card sx={{ cursor: 'pointer' }}>
             <CardHeader title='New Product Request List' action={headerAction} />
             <DataGrid
               sx={{ cursor: 'pointer' }}
@@ -362,7 +362,11 @@ export default function NewProductList() {
                         productDetails={productDetails}
                       />
                     }
-                    close={() => setShow(false)}
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
                     show={() => setShow(true)}
                   />
                 </Grid>

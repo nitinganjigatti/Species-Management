@@ -41,7 +41,7 @@ export const ProductDetail = ({
   // }
 
   return (
-    <Grid>
+    <Grid sx={{ cursor: 'pointer' }}>
       {detailsData?.map((item, index) => {
         return (
           <div key={index}>
@@ -72,7 +72,7 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Generic Name
                 </Typography>
-                <Typography variant='body2'>{item.generic_name}</Typography>
+                <Typography variant='body2'>{item.generic_name ? item.generic_name : 'NA'}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>

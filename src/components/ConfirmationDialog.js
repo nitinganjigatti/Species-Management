@@ -1,7 +1,7 @@
 // ** React Imports
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
-import { Button, DialogActions, DialogContentText } from '@mui/material'
+import { Button, DialogActions, DialogContentText, DialogTitle } from '@mui/material'
 import { Box } from '@mui/system'
 
 const ConfirmDialog = ({ title, closeDialog, open, action, content }) => {
@@ -16,16 +16,17 @@ const ConfirmDialog = ({ title, closeDialog, open, action, content }) => {
           }
         }}
       >
-        <DialogContentText sx={{ textAlign: 'center', pt: 3 }}>{title}</DialogContentText>
+        <DialogTitle id='alert-dialog-title'>{title}</DialogTitle>
+        {/* <DialogContentText sx={{ textAlign: 'center', pt: 3 }}>{title}</DialogContentText> */}
         <DialogContent>{content}</DialogContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 7 }}>
-          <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText>
+        <Box sx={{ display: 'flex', gap: 7 }}>
+          {/* <DialogContentText sx={{ ml: 5 }}>Confirm to proceed</DialogContentText> */}
           <DialogActions className='dialog-actions-dense'>
-            <Box sx={{ display: 'flex', gap: 4, mt: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
-              <Button variant='contained' onClick={() => action()}>
+            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+              <Button sx={{ mr: 2 }} variant='contained' size='small' onClick={() => action()}>
                 Confirm
               </Button>
-              <Button variant='outlined' onClick={() => closeDialog()}>
+              <Button variant='outlined' size='small' onClick={() => closeDialog()}>
                 Close
               </Button>
             </Box>

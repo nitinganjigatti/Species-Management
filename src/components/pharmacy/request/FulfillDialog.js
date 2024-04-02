@@ -40,6 +40,8 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
+import { useRouter } from 'next/router'
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
   const defaultValues = {
@@ -127,6 +129,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //   setDispatchItems([])
   //   setInvalidQty([])
   // }
+  const router = useRouter()
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -850,7 +853,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
                   </Grid>
                 )}
+                {batchItems.length === 0 ? (
+                  <Grid item xs={12} sx={{ my: 2 }}>
+                    <Typography color={'error.main'}>This product is out of stock</Typography>
+                  </Grid>
+                ) : null}
+                {console.log('batch ', batchItems)}
                 <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                  {batchItems.length === 0 ? (
+                    <AddButton
+                      styles={{ marginRight: 4 }}
+                      action={() => {
+                        router.push({
+                          pathname: '/pharmacy/purchase/add-purchase/'
+                        })
+                      }}
+                      title='Add Item'
+                    />
+                  ) : null}
                   <LoadingButton
                     size='large'
                     variant='contained'
