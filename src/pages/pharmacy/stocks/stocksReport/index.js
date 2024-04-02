@@ -757,16 +757,14 @@ const ListOfStocks = () => {
 
                     // action={headerAction}
                   />
-                  <Box>
-                    <div>
-                      {selectedPharmacy.type === 'central' && createForm()}
+                  <Box sx={{ ml: 3 }}>
+                    {selectedPharmacy.type === 'central' && createForm()}
 
-                      <FormControlLabel
-                        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
-                        labelPlacement='start'
-                        label='Batch Wise'
-                      />
-                    </div>
+                    <FormControlLabel
+                      control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
+                      labelPlacement='start'
+                      label='Batch Wise'
+                    />
                   </Box>
 
                   {changeSwitch ? (
