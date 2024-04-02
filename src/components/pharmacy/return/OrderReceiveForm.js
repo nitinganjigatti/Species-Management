@@ -1075,7 +1075,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
             {orderData?.person_shipping ? (
               <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
                 <p>{orderData.person_shipping}</p>
               </Grid>
             ) : null}
@@ -1124,38 +1124,42 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             />
           )}
           {console.log('disputeItemDetails?.delivery_status ', disputeItemDetails?.delivery_status)}
-          {disputeItemDetails?.delivery_status !== 'Delivered'
-            ? selectedPharmacy.type === 'central' && (
-                <>
-                  <LoadingButton
-                    sx={{ float: 'right', my: 4, mx: 2 }}
-                    size='large'
-                    disabled={disableButton()}
-                    variant='contained'
-                    onClick={() => {
-                      updateStatus()
-                    }}
-                    loading={submitLoader}
-                  >
-                    Save
-                  </LoadingButton>
-                  {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                    <LoadingButton
-                      sx={{ float: 'right', my: 4, mx: 6 }}
-                      size='large'
-                      // disabled={disableButton()}
-                      variant='contained'
-                      onClick={() => {
-                        bulkStatusUpdate()
-                      }}
-                      loading={submitLoader}
-                    >
-                      Mark all as Received & Save
-                    </LoadingButton>
-                  )}
-                </>
-              )
-            : null}
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <>
+              {disputeItemDetails?.delivery_status !== 'Delivered'
+                ? selectedPharmacy.type === 'central' && (
+                    <>
+                      <LoadingButton
+                        sx={{ float: 'right', my: 4, mx: 2 }}
+                        size='large'
+                        disabled={disableButton()}
+                        variant='contained'
+                        onClick={() => {
+                          updateStatus()
+                        }}
+                        loading={submitLoader}
+                      >
+                        Save
+                      </LoadingButton>
+                      {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                        <LoadingButton
+                          sx={{ float: 'right', my: 4, mx: 6 }}
+                          size='large'
+                          // disabled={disableButton()}
+                          variant='contained'
+                          onClick={() => {
+                            bulkStatusUpdate()
+                          }}
+                          loading={submitLoader}
+                        >
+                          Mark all as Received & Save
+                        </LoadingButton>
+                      )}
+                    </>
+                  )
+                : null}{' '}
+            </>
+          ) : null}
         </Grid>
       </Grid>
     </>
