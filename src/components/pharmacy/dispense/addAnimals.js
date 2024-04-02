@@ -378,7 +378,9 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                     </Avatar>
                   </Box>
                   <Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 18 }}>{item.animal_id}</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
+                      {item.local_identifier_name ? item.local_identifier_name + ' : ' + item.local_id : item.animal_id}
+                    </Typography>
                     <Typography sx={{ fontWeight: 600 }}>{item?.default_common_name}</Typography>
                     <Typography sx={{ fontWeight: 400 }}>Encl:{item?.enclosure_id}</Typography>
                     <Typography sx={{ fontWeight: 400 }}>Sec: {item?.section_name}</Typography>
