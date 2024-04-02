@@ -35,7 +35,11 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
-        tableHeaderBg: '#E8F4F2'
+        tableHeaderBg: '#E8F4F2',
+        secondaryBg: '#7A8684',
+        mdAntzNeutral: '#0000000D',
+        OnSurfaceVariant: '#44544A',
+        neutralSecondary: '##7A8684'
       },
       primary: {
         // light: '#20DE67',
@@ -43,6 +47,10 @@ const UserThemeOptions = () => {
         main: '#37BD69',
         dark: '#006D35',
         contrastText: '#FFF'
+      },
+      formContent: {
+        tertiary: '#FA6140',
+        bg: '#666cff14'
       },
       secondary: {
         light: '#669494',
@@ -124,6 +132,14 @@ const UserThemeOptions = () => {
           },
           backdrop: {
             backgroundColor: '#1f515bb5'
+          }
+        }
+      },
+      MuiButton: {
+        styleOverrides: {
+          outlined: {
+            color: '#38bd69',
+            border: '1px solid #8080806b'
           }
         }
       }

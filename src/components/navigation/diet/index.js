@@ -15,7 +15,31 @@ const composeDietNavigation = () => {
     icon: 'arcticons:recipe-keeper'
   }
 
-  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList]
+  const dietList = {
+    title: 'Diet',
+    path: '/diet/diet',
+    icon: 'arcticons:recipe-keeper'
+  }
+
+  // const recipeList = {
+  //   title: 'Recipe',
+  //   path: '/diet/recipe',
+  //   icon: <img src='/icons/recipe.svg' alt='Grocery Icon' />
+  // }
+  const settingsParent = {
+    title: 'Setting',
+    path: '/diet/settings',
+    icon: 'uil:setting',
+    children: []
+  }
+
+  const preparationTypes = {
+    title: 'Preparation Types',
+    path: '/diet/settings/preparation-types'
+  }
+
+  settingsParent.children.push(preparationTypes)
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, settingsParent]
 
   return dietNavigation
 }

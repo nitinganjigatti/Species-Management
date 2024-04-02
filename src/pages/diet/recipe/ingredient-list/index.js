@@ -9,15 +9,17 @@ import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider, TextField } from '@mui/material'
 import toast from 'react-hot-toast'
+import IconButton from '@mui/material/IconButton'
+import ClearIcon from '@mui/icons-material/Clear'
+import SearchIcon from '@mui/icons-material/Search'
+import InputAdornment from '@mui/material/InputAdornment'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
+
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -28,117 +30,43 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
-import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
-import { useTheme } from '@mui/material/styles'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // Styled TabList component
 
-const IngredientsList = () => {
-  const theme = useTheme()
+const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [loader, setLoader] = useState(false)
-
-  /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  const [rowsqn, setrowsqn] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
-  const [statusCheckval, setstatusCheckval] = useState(false)
-  const [dialog, setDialog] = useState(false)
-  const [check, setCheck] = useState(false)
-  function loadServerRows(currentPage, data) {
-    return data
-  }
+  const [status, setStatus] = useState('active')
+  const [rowsPercentage, setRowsPercentage] = useState([])
+  const [rowsQuantity, setRowsQuantity] = useState([])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
     setStatus(newValue)
   }
 
-  const onClose = () => {
-    setDialog(false)
-  }
-
-  const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
-      try {
-        setLoading(true)
-
-        const params = {
-          sort,
-          q,
-          sortColumn,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-          //status
-        }
-
-        await getIngredientList({ params: params }).then(res => {
-          console.log('response', res)
-          // Generate uid field based on the index
-          let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
-      }
-    },
-    [paginationModel]
-  )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
-  }, [fetchTableData, status])
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setsortColumning(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
-    }
-  }
-
-  const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(sort, q, sortColumn, status)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const headerAction = (
-    <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={() => setDialog(true)}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Pop
-      </Button>
-    </div>
-  )
+    // Filter ingredients by percentage
+    const filteredPercentage = IngredientsDetailsval?.ingredient_by_percentage.filter(ingredient =>
+      ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase())
+    )
+    // Filter ingredients by quantity
+    const filteredQuantity = IngredientsDetailsval?.ingredient_by_quantity.filter(ingredient =>
+      ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase())
+    )
+    setRowsPercentage(filteredPercentage)
+    setRowsQuantity(filteredQuantity)
+    setTotal(filteredPercentage.length + filteredQuantity.length)
+  }, [IngredientsDetailsval, searchValue])
 
   const handleSwitchChange = async (event, rowData) => {
     console.log(event.target.checked, 'lll')
@@ -190,7 +118,12 @@ const IngredientsList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+  }
+
+  const handleClearSearch = () => {
+    setSearchValue('')
+    setRowsPercentage([])
+    setRowsQuantity([])
   }
 
   const columns = [
@@ -360,43 +293,20 @@ const IngredientsList = () => {
     </div>
   )
 
-  const tableData = () => {
+  const tableDataPercentage = () => {
     return (
       <>
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <CardHeader title='Ingredients' action={headerAction} />
-            <ConfirmationDialog
-              // icon={'mdi:delete'}
-              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
-              iconColor={'#ff3838'}
-              title={'Are you sure you want to delete this ingredient?'}
-              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
-              formComponent={
-                <ConfirmationCheckBox
-                  title={'This ingredient is part of 15 recipes and 10 diets.'}
-                  label={'Deactivate this ingredient in all records'}
-                  description={
-                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
-                  }
-                  color={theme.palette.formContent?.tertiary}
-                  value={check}
-                  setValue={setCheck}
-                />
-              }
-              dialogBoxStatus={dialog}
-              onClose={onClose}
-              ConfirmationText={'Delete'}
-              confirmAction={onClose}
-            />
+          <Card sx={{ boxShadow: 'none' }}>
+            <CardHeader title='Ingredient by percentage' />
+
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
@@ -404,31 +314,60 @@ const IngredientsList = () => {
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
               autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+              rows={rowsPercentage}
+              rowCount={rowsPercentage.length}
               columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
               loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
+              hideFooter={true}
+              //slots={{ toolbar: ServerSideToolbarWithFilter }}
+              //   slotProps={{
+              //     baseButton: {
+              //       variant: 'outlined'
+              //     },
+              //     toolbar: {
+              //       value: searchValue,
+              //       clearSearch: () => handleSearch(''),
+              //       onChange: event => handleSearch(event.target.value)
+              //     }
+              //   }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
+  const tableDataQuantity = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ boxShadow: 'none', mt: 12 }}>
+            <CardHeader title='Ingredient by quantity' />
+
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
                 },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
                 }
               }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              autoHeight
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              hideFooter={true}
+              rows={rowsQuantity}
+              rowCount={rowsQuantity.length}
+              columns={columns}
+              loading={loading}
               onCellClick={onCellClick}
             />
           </Card>
@@ -440,27 +379,48 @@ const IngredientsList = () => {
   return (
     <>
       <Grid>
+        {/* Ingredients header */}
+        <Typography variant='h5' gutterBottom>
+          Ingredients
+        </Typography>
+        <Grid item sx={{ float: 'right' }}>
+          <TextField
+            placeholder='Search ingredients'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            sx={{ width: '250px', height: '20px' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: searchValue && (
+                <IconButton onClick={handleClearSearch}>
+                  <ClearIcon />
+                </IconButton>
+              )
+            }}
+          />
+        </Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
-            <Tab value='active' label={<TabBadge label='Active' totalCount={status === 'active' ? total : null} />} />
-            <Tab
-              value='inactive'
-              label={<TabBadge label='Inactive' totalCount={status === 'inactive' ? total : null} />}
-            />
-            {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            /> */}
+            <Tab value='active' label='Active' />
+            <Tab value='inactive' label='Inactive' />
           </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
-          {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+
+          <TabPanel value='active'>
+            {tableDataPercentage()}
+            {tableDataQuantity()}
+          </TabPanel>
+          <TabPanel value='inactive'>
+            {tableDataPercentage()}
+            {tableDataQuantity()}
+          </TabPanel>
         </TabContext>
       </Grid>
     </>
   )
 }
 
-export default IngredientsList
+export default IngredientsListforRecipeDetail

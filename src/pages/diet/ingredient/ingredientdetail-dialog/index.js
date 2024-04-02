@@ -12,6 +12,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import Router from 'next/router'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -106,7 +107,13 @@ const IngredientDetailDialog = ({ open, handleClose, setOpen, IngredientRowVal }
               handleClickOpen()
             }}
           />
-          <Icon icon='bx:pencil' style={{ float: 'right', cursor: 'pointer' }} />
+          <Icon
+            onClick={() =>
+              Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: IngredientRowVal?.id } })
+            }
+            icon='bx:pencil'
+            style={{ float: 'right', cursor: 'pointer' }}
+          />
         </DialogTitle>
 
         <DialogContent>
