@@ -381,7 +381,7 @@ const IngredientsList = () => {
                   description={
                     'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
                   }
-                  color={theme.palette.formContent.tertiary}
+                  color={theme.palette.formContent?.tertiary}
                   value={check}
                   setValue={setCheck}
                 />

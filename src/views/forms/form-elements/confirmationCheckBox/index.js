@@ -8,7 +8,7 @@ const ConfirmationCheckBox = ({ color, label, value, setValue, title, descriptio
   return (
     <Box
       sx={{
-        backgroundColor: color ? color + '0D' : theme.palette.formContent.bg,
+        backgroundColor: color ? color + '0D' : theme.palette.formContent?.bg,
         padding: '16px',
         borderRadius: '4px'
       }}
