@@ -391,7 +391,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_qty',
-      headerName: 'QTY.IN STORE',
+      headerName: 'QTY IN STORE',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -585,7 +585,6 @@ const ListOfStocks = () => {
 
               const type = stores.find(el => el.id === id)?.type || ''
               setStockType(type)
-
               setStockId(id)
               console.log('id', id)
               console.log('type', type)
@@ -662,8 +661,10 @@ const ListOfStocks = () => {
   )
 
   const handleStockRowClick = params => {
-    setConfigureMedId(params?.row?.stock_item_id)
-    showDialog()
+    if (selectedPharmacy?.id === stockId) {
+      setConfigureMedId(params?.row?.stock_item_id)
+      showDialog()
+    }
   }
 
   const handleBatchSearch = useCallback(
@@ -722,7 +723,9 @@ const ListOfStocks = () => {
                 <CommonDialogBox
                   title={'Configure Medicine'}
                   dialogBoxStatus={show}
-                  formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                  formComponent={
+                    <StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} close={closeDialog} />
+                  }
                   close={closeDialog}
                   show={showDialog}
                 />

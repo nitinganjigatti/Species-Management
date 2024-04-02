@@ -531,7 +531,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'person_shipping',
-      headerName: 'Person Shipping',
+      headerName: 'Driver Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
@@ -614,7 +614,7 @@ const IndividualReturnRequest = () => {
       flex: 0.2,
       Width: 40,
       field: 'person_shipping',
-      headerName: 'Person shipping',
+      headerName: 'Driver Name',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
