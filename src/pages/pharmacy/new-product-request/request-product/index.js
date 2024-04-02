@@ -200,6 +200,7 @@ export default function AddProduct() {
 
   const onSubmit = async data => {
     const dataChild = [...dataChildValues]
+
     const requestData = dataChild?.map((item, index) => {
       return item?.request_item_detail_id
     })
