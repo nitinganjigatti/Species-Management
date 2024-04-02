@@ -8,6 +8,7 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import AddRack from 'src/views/pages/pharmacy/store/rack/addRack'
 import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 import toast from 'react-hot-toast'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -263,10 +264,6 @@ const ListOfRacks = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-
   return (
     <>
       {loader ? (
@@ -283,11 +280,13 @@ const ListOfRacks = () => {
             columns={columns}
             rows={racks}
           />
-          <DialogConfirmation
-            handleClose={handleClose}
-            action={confirmDeleteAction}
+
+          <ConfirmDialog
+            closeDialog={handleClose}
             open={open}
-            message={'Are you sure to delete'}
+            title='Confirmation'
+            action={confirmDeleteAction}
+            content='Are you sure want to delete?'
           />
           <AddRack
             drawerWidth={400}

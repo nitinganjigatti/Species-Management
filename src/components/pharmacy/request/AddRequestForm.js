@@ -447,7 +447,6 @@ const AddRequestForm = () => {
 
     if (result.success === true && result.data !== '') {
       console.log('getRequestItemsListById', result.data)
-      debugger
 
       const lineItems = result.data.request_item_details.map(el => {
         return {
@@ -542,7 +541,6 @@ const AddRequestForm = () => {
     postData.total_qty = totalQty
 
     if (id) {
-      debugger
       try {
         const response = await updateRequestItems(id, postData)
 
