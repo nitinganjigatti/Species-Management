@@ -62,18 +62,6 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
         ''
       )}
       <div>
-        <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600', my: 4 }}>Preparation Types</Typography>
-        <Grid container spacing={1}>
-          {IngredientsDetailsval.preparation_types?.length === 0 || IngredientsDetailsval.preparation_types === null ? (
-            <Typography sx={{ fontSize: 14 }}>No preparation types to show</Typography>
-          ) : (
-            IngredientsDetailsval.preparation_types?.map((value, index) => (
-              <Grid item key={index}>
-                <Chip label={value.label} sx={{ m: 0.75, background: '#DDEBE9' }} />
-              </Grid>
-            ))
-          )}
-        </Grid>
         <Divider sx={{ mt: 4, borderColor: '#C3CEC7' }} />
         <Box className='demo-space-x' sx={{ display: 'flex' }}>
           <Avatar

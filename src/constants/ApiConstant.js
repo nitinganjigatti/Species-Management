@@ -110,7 +110,7 @@ export const FEED = 'feed'
 
 export const INGREDIENTS_LIST = 'ingredients-list'
 
-export const FEED_TYPE_LIST = 'listing'
+export const LISTING = 'listing'
 
 export const ADD_FEED_TYPE = 'diet/feed/add'
 

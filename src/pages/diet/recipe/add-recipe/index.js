@@ -1,45 +1,140 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
-import { Box, Card, CardContent, FormControlLabel, Switch, Divider } from '@mui/material'
+import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
-import Typography from '@mui/material/Typography'
-
 // ** Step Components
 import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
 import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
+import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import IconButton from '@mui/material/IconButton'
+import toast from 'react-hot-toast'
 
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
-
-// ** Styled Components
 import StepperWrapper from 'src/@core/styles/mui/stepper'
+import { getUnitsForRecipe, addNewRecipe } from 'src/lib/api/diet/recipe'
+import Router from 'next/router'
 
 const steps = [
   {
-    title: 'Account',
-    subtitle: 'Account Details'
+    title: 'Basic Information',
+    subtitle: 'Enter details'
   },
   {
-    title: 'Personal',
-    subtitle: 'Enter Information'
+    title: 'Add Ingredients',
+    subtitle: 'Enter details'
   },
   {
-    title: 'Billing',
-    subtitle: 'Payment Details'
+    title: 'Preview',
+    subtitle: 'Preview & Submit'
   }
 ]
 
 const AddRecipe = () => {
-  // ** States
   const [activeStep, setActiveStep] = useState(0)
+  const [uomList, setUom] = useState([])
+  const [IngredientTypeList, setIngredientTypeList] = useState([])
+  const [formData, setFormData] = useState({
+    recipe_name: '',
+    portion_size: '',
+    portion_uom_id: '',
+    nutrional_value: '',
+    nutrional_uom_id: '',
+    kcal: '',
+    recipe_image: '',
+    by_percentage: [
+      {
+        ingredient_id: '',
+        ingredient_name: '',
+        feed_type_label: '',
+        quantity: '',
+        preparation_type_id: '',
+        preparation_name: ''
+      }
+    ],
+    by_quantity: [
+      {
+        ingredient_id: '',
+        ingredient_name: '',
+        feed_type_label: '',
+        uom_id: '',
+        quantity: '',
+        preparation_type_id: '',
+        preparation_name: ''
+      }
+    ],
+    desc: ''
+  })
 
-  // Handle Stepper
-  const handleNext = () => {
+  const getUnitsList = async () => {
+    try {
+      const params = {
+        type: ['length', 'weight'],
+        page: 1
+      }
+      await getUnitsForRecipe({ params: params }).then(res => {
+        setUom(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const IngredientTypeListSearch = debounce(async value => {
+    try {
+      await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const callIngredientTypeList = async ({ status, page, limit, q }) => {
+    try {
+      const params = {
+        //status,
+        q,
+        //active: 1,
+        page,
+        limit
+      }
+      await getIngredientList({ params: params }).then(res => {
+        setIngredientTypeList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const handleCancelIconClick = async () => {
+    setFormData(prevData => ({
+      ...prevData,
+      by_quantity: prevData.by_quantity.map(item => ({
+        ...item,
+        ingredient_id: '',
+        ingredient_name: '',
+        feed_type_label: ''
+      }))
+    }))
+    callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
+  }
+
+  useEffect(() => {
+    getUnitsList()
+    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+  }, [])
+
+  const handleNext = data => {
+    // setFormData(prevData => ({
+    //   ...prevData,
+    //   ...newData
+    // }))
+    setFormData({ ...formData, ...data })
     setActiveStep(activeStep + 1)
   }
 
@@ -49,24 +144,155 @@ const AddRecipe = () => {
     }
   }
 
+  // const handleBasicDetailsChange = (name, value) => {
+  //   setFormData(prevData => ({
+  //     ...prevData,
+  //     [name]: value
+  //   }))
+  // }
+
+  const handleIngredientChange = (name, value, ingredient, index) => {
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
+      ingredients: {
+        ...prevData.ingredients,
+        byPercentage: prevData.ingredients.byPercentage.map((item, i) =>
+          i === index ? { ...item, ingredient_id: ingredient.value } : item
+        ),
+        byQuantity: prevData.ingredients.byQuantity.map((item, i) =>
+          i === index ? { ...item, ingredient_id: ingredient.value } : item
+        )
+      }
+    }))
+  }
+
+  const updateFormData = newData => {
+    setFormData(prevData => ({
+      ...prevData,
+      ...newData
+    }))
+  }
+
+  const handleStepBillingSubmit = async () => {
+    const numericFormData = {
+      ...formData,
+      portion_size: parseInt(formData.portion_size),
+      portion_uom_id: parseInt(formData.portion_uom_id),
+      nutrional_value: parseInt(formData.nutrional_value),
+      nutrional_uom_id: parseInt(formData.nutrional_uom_id),
+      kcal: parseInt(formData.kcal),
+      by_percentage: JSON.stringify(
+        formData.by_percentage.map(item => ({
+          ingredient_id: parseInt(item.ingredient_id),
+          quantity: parseFloat(item.quantity),
+          preparation_type_id: parseInt(item.preparation_type_id)
+        }))
+      ),
+      by_quantity: JSON.stringify(
+        formData.by_quantity.map(item => ({
+          ingredient_id: parseInt(item.ingredient_id),
+          uom_id: parseInt(item.uom_id),
+          quantity: parseFloat(item.quantity),
+          preparation_type_id: parseInt(item.preparation_type_id)
+        }))
+      )
+    }
+
+    // Remove unnecessary fields from formData
+    const cleanedFormData = {
+      ...numericFormData,
+      by_percentage: numericFormData.by_percentage,
+      by_quantity: numericFormData.by_quantity,
+      recipe_image: numericFormData.recipe_image[0]
+    }
+
+    console.log(cleanedFormData, 'cleanedFormData')
+    console.log(formData.recipe_image, 'raghu')
+    const apival = await addNewRecipe(cleanedFormData)
+    console.log(apival, 'apival')
+    if (apival.success === true) {
+      Router.push(`/diet/recipe`)
+      return toast(
+        t => (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+              <div>
+                <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                  Success!
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  Recipe added successfully
+                </Typography>
+              </div>
+            </Box>
+            <IconButton
+              onClick={() => toast.dismiss(t.id)}
+              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            >
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+        ),
+        {
+          style: {
+            minWidth: '450px',
+            minHeight: '130px'
+          }
+        }
+      )
+    }
+  }
+
   const getStepContent = step => {
     switch (step) {
       case 0:
-        return <StepBasicDetails handleNext={handleNext} />
+        return (
+          <StepBasicDetails
+            handleNext={handleNext}
+            formData={formData}
+            //onChange={handleBasicDetailsChange}
+            updateFormData={updateFormData}
+            uomList={uomList}
+          />
+        )
       case 1:
-        return <StepAddIngredients handleNext={handleNext} handlePrev={handlePrev} />
+        return (
+          <StepAddIngredients
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            handleIngredientChange={handleIngredientChange}
+            updateFormData={updateFormData}
+            formData={formData}
+            uomList={uomList}
+            IngredientTypeList={IngredientTypeList}
+            IngredientTypeListSearch={IngredientTypeListSearch}
+            onCancelIconClick={handleCancelIconClick}
+          />
+        )
       case 2:
-        return <StepBillingDetails handlePrev={handlePrev} />
+        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }
   }
 
   const renderContent = () => {
+    console.log(formData, 'formdat')
     return getStepContent(activeStep)
   }
   return (
     <>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography color='inherit'>Diet</Typography>
+        <Link underline='hover' color='inherit' href='/diet/recipe/'>
+          Recipe
+        </Link>
+        <Typography color='text.primary'>Add new recipe</Typography>
+      </Breadcrumbs>
+      {console.log(formData, 'ppp')}
       <Card>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -75,25 +301,9 @@ const AddRecipe = () => {
                 Add New Recipe
               </Typography>
               <Typography sx={{ mb: 1, fontSize: 14 }}>
-                Please provide the statndard unit, unit of measurement,water percentage, and dry ingredient proportions
-                for this <br /> ingredient prior to processing.
+                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
+                proportions for this <br /> ingredient prior to processing.
               </Typography>
-            </div>
-            <div style={{ width: '10%', float: 'left' }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                  //checked={status}
-                  // onChange={e => {
-                  //   // console.log('e.target.checked', e.target.checked)
-                  //   setStatus(Number(e.target.checked))
-                  //   onStatusChange(e)
-                  // }}
-                  />
-                }
-                label=' Active '
-                labelPlacement='start'
-              />
             </div>
           </div>
         </CardContent>

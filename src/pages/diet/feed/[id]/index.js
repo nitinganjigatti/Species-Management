@@ -80,7 +80,7 @@ const FeedDetails = () => {
     try {
       const response = await getIngredientsOnFeed(id, {
         q: query,
-        page_no: page + 1,
+        page: page + 1,
         searchColumns: sortColumning,
         limit: rowsPerPage
       })
@@ -100,6 +100,11 @@ const FeedDetails = () => {
   useEffect(() => {
     if (id) {
       getFeedDetailsList(id)
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (id) {
       getIngredientsonFeedList(id, searchQuery, page, rowsPerPage)
     }
   }, [id, searchQuery, page, rowsPerPage])
@@ -278,7 +283,7 @@ const FeedDetails = () => {
                           <TableFooter>
                             <TableRow>
                               <TablePagination
-                                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: ingredientsCount }]}
                                 colSpan={3}
                                 count={ingredientsCount}
                                 rowsPerPage={rowsPerPage}

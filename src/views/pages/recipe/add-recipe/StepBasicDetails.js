@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** MUI Components
 import Box from '@mui/material/Box'
@@ -7,88 +7,323 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
 import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import InputAdornment from '@mui/material/InputAdornment'
-import { Divider, CardContent } from '@mui/material'
+import Autocomplete from '@mui/material/Autocomplete'
+import { Divider, CardContent, FormHelperText } from '@mui/material'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
+import { useForm } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { Controller } from 'react-hook-form'
 
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-const StepBasicDetails = ({ handleNext }) => {
+const defaultValues = {
+  recipe_name: '',
+  portion_size: '',
+  portion_uom_id: '',
+  nutrional_value: '',
+  nutrional_uom_id: '',
+  kcal: ''
+}
+
+const schema = yup.object().shape({
+  recipe_name: yup.string().required('Recipe name is required'),
+  portion_size: yup.string().required('Portion size is required'),
+  portion_uom_id: yup.string().required('Unit of measurement is required'),
+  nutrional_value: yup.string().required('Nutritional values are required'),
+  nutrional_uom_id: yup.string().required('Unit of measurement is required'),
+  kcal: yup.string().required('Total calories are required')
+})
+
+const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   // ** States
-  const [values, setValues] = useState({
-    showPassword: false,
-    showConfirmPassword: false
+  const [uploadedImage, setUploadedImage] = useState(null)
+  const router = useRouter()
+  const {
+    reset,
+    control,
+    handleSubmit,
+    clearErrors,
+    formState: { errors }
+  } = useForm({
+    mode: 'all',
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
   })
-  const [files, setFiles] = useState([])
 
-  const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword })
+  const handleImageUpload = imageData => {
+    setUploadedImage(imageData)
   }
 
-  const handleClickShowConfirmPassword = () => {
-    setValues({ ...values, showConfirmPassword: !values.showConfirmPassword })
+  useEffect(() => {
+    if (formData) {
+      setUploadedImage(formData.recipe_image)
+    }
+  }, [formData])
+
+  useEffect(() => {
+    if (formData) {
+      reset(formData)
+    }
+  }, [formData, reset])
+
+  const onSubmit = async data => {
+    window.scrollTo(0, 0)
+    // Clear any existing errors
+    Object.keys(defaultValues).forEach(field => {
+      clearErrors(field)
+    })
+
+    try {
+      await schema.validate(data, { abortEarly: false })
+      const imageData = await handleImageUpload()
+      console.log(imageData, 'imageData')
+      // Merge the image data with other form data
+      const formDataWithImage = {
+        ...data,
+        recipe_image: uploadedImage
+      }
+      handleNext(formDataWithImage)
+      console.log(formDataWithImage, 'data')
+    } catch (validationErrors) {
+      validationErrors.inner.forEach(error => {
+        setError(error.path, { message: error.message })
+      })
+    }
   }
 
-  const onImageUpload = async imageData => {
-    setFiles(imageData)
+  const cancelBack = () => {
+    Router.push('/diet/recipe/')
   }
 
+  console.log(errors, 'nknn')
+  console.log(uploadedImage, 'uploadedImage')
+  console.log(formData, 'formdata')
   return (
     <>
       <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
-        <Typography variant='h6'>Add basic details</Typography>
+        <Typography variant='h6'>Recipe details</Typography>
       </Box>
 
-      <Grid container spacing={5} sx={{ px: 5 }}>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField label='Recipe name' placeholder='johndoe' />
-          </FormControl>
-        </Grid>
-        <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 7, width: '98%', ml: 5 }} />
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField type='number' label='Enter Standard Unit (Yield)' placeholder='' />
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField type='number' label='Select Unit of Measurement (UOM)' placeholder='' />
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField type='number' label='Total calories for 100 gms' placeholder='' />
-          </FormControl>
-        </Grid>
-        <Divider sx={{ pb: 1, mt: 7, width: '98%', ml: 5 }} />
-        <Grid item xs={6}>
-          <CardContent sx={{ px: 0 }}>
-            <CustomFileUploaderSingle onImageUpload={onImageUpload} />
-          </CardContent>
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
-            <Button
-              color='secondary'
-              variant='outlined'
-              startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
-              sx={{ mr: 6 }}
-            >
-              Cancel
-            </Button>
-            <Button variant='contained' onClick={handleNext} endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-              Next
-            </Button>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={5} sx={{ px: 5 }}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='recipe_name'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Recipe name'
+                    name='recipe_name'
+                    error={Boolean(errors.recipe_name)}
+                    onChange={onChange}
+                  />
+                )}
+              />
+              {errors.recipe_name && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth>
+                <Controller
+                  name='portion_size'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      type='number'
+                      label='Portion size'
+                      name='portion_size'
+                      error={Boolean(errors.portion_size)}
+                      onChange={onChange}
+                      placeholder=''
+                    />
+                  )}
+                />
+                {errors.portion_size && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.portion_size?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={3.7}>
+              <FormControl fullWidth>
+                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                {console.log(uomList, 'uomList')}
+                <Controller
+                  name='portion_uom_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Autocomplete
+                      value={uomList.find(option => option._id === value) || null} // Set the value based on the selected _id
+                      disablePortal
+                      id='portion_uom_id'
+                      options={uomList || []} // Ensure that options are set to uomList or an empty array
+                      getOptionLabel={option => option.name}
+                      isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          return onChange('') // If null is selected, set the value to an empty string
+                        } else {
+                          return onChange(val._id) // Set the value to the selected _id
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Select unit of measurement (UOM)'
+                          placeholder='Search & Select'
+                          error={Boolean(errors.portion_uom_id)}
+                        />
+                      )}
+                    />
+                  )}
+                />
+
+                {errors?.portion_uom_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.portion_uom_id?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+
+          <Box sx={{ mb: 1, px: 5, mt: 3, float: 'left' }}>
+            <Typography variant='h6'>Calories</Typography>
           </Box>
+          <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth>
+                <Controller
+                  name='nutrional_value'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      type='number'
+                      label='Enter nutritional values per'
+                      name='nutrional_value'
+                      error={Boolean(errors.nutrional_value)}
+                      onChange={onChange}
+                      placeholder=''
+                    />
+                  )}
+                />
+                {errors.nutrional_value && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nutrional_value?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={3.2}>
+              <FormControl fullWidth>
+                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                {console.log(uomList, 'uomList')}
+                <Controller
+                  name='nutrional_uom_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Autocomplete
+                      value={uomList.find(option => option._id === value) || null} // Set the value based on the selected _id
+                      disablePortal
+                      id='nutrional_uom_id'
+                      options={uomList || []} // Ensure that options are set to uomList or an empty array
+                      getOptionLabel={option => option.name}
+                      isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          return onChange('') // If null is selected, set the value to an empty string
+                        } else {
+                          return onChange(val._id) // Set the value to the selected _id
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Unit of measurement (UOM)'
+                          placeholder='Search & Select'
+                          error={Boolean(errors.nutrional_uom_id)}
+                        />
+                      )}
+                    />
+                  )}
+                />
+
+                {errors?.nutrional_uom_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nutrional_uom_id?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth>
+                <Controller
+                  name='kcal'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      type='number'
+                      label='Total calories for 100 gms'
+                      name='kcal'
+                      error={Boolean(errors.kcal)}
+                      onChange={onChange}
+                      placeholder=''
+                    />
+                  )}
+                />
+                {errors.kcal && <FormHelperText sx={{ color: 'error.main' }}>{errors?.kcal?.message}</FormHelperText>}
+              </FormControl>
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+
+          <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+            <Typography variant='h6'>Add image</Typography>
+          </Box>
+          {console.log(uploadedImage, 'uploadedImage')}
+          <Grid item xs={6} sx={{ pt: 0 }}>
+            <CardContent sx={{ px: 0, paddingTop: 2 }}>
+              <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
+            </CardContent>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+              <Button
+                color='secondary'
+                variant='outlined'
+                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                sx={{ mr: 6 }}
+                onClick={cancelBack}
+              >
+                Cancel
+              </Button>
+              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+                Next
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      </form>
     </>
   )
 }

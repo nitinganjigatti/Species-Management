@@ -47,7 +47,9 @@ const IngredientsList = () => {
   const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState('')
+
+  //const [status, setStatus] = useState('all')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -74,18 +76,20 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-          //status
+          limit: paginationModel.pageSize,
+          status
         }
 
         await getIngredientList({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
+
           // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
@@ -149,6 +153,7 @@ const IngredientsList = () => {
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -222,7 +227,7 @@ const IngredientsList = () => {
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
               {params.row.ingredient_name ? params.row.ingredient_name : '-'}
             </Typography>
           </Box>
@@ -270,6 +275,7 @@ const IngredientsList = () => {
             }
             arrow
             placement='right'
+
             // style={{ background: '#1F515B' }}
           >
             <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
@@ -308,7 +314,7 @@ const IngredientsList = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
@@ -442,21 +448,13 @@ const IngredientsList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
-            <Tab value='active' label={<TabBadge label='Active' totalCount={status === 'active' ? total : null} />} />
-            <Tab
-              value='inactive'
-              label={<TabBadge label='Inactive' totalCount={status === 'inactive' ? total : null} />}
-            />
-            {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            /> */}
+            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
           </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
-          {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+          <TabPanel value=''>{tableData()}</TabPanel>
+          <TabPanel value='1'>{tableData()}</TabPanel>
+          <TabPanel value='0'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
     </>

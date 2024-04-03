@@ -21,11 +21,11 @@ const composeDietNavigation = () => {
     icon: 'arcticons:recipe-keeper'
   }
 
-  // const recipeList = {
-  //   title: 'Recipe',
-  //   path: '/diet/recipe',
-  //   icon: <img src='/icons/recipe.svg' alt='Grocery Icon' />
-  // }
+  const recipeList = {
+    title: 'Recipe',
+    path: '/diet/recipe',
+    icon: <img src='/icons/recipe.svg' alt='Grocery Icon' />
+  }
   const settingsParent = {
     title: 'Setting',
     path: '/diet/settings',
@@ -39,7 +39,7 @@ const composeDietNavigation = () => {
   }
 
   settingsParent.children.push(preparationTypes)
-  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, settingsParent]
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, recipeList, settingsParent]
 
   return dietNavigation
 }

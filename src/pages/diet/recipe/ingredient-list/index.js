@@ -128,21 +128,10 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
-    {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      headerName: 'INGREDIENT NAME',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -163,7 +152,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'id',
       headerName: 'INGREDIENT ID',
@@ -174,115 +163,54 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       )
     },
     {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'feed_type',
+      headerName: 'FEED TYPE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
+          {params.row.feed_type ? params.row.feed_type : '-'}
+        </Typography>
+      )
+    },
+    {
       flex: 0.3,
       minWidth: 10,
-      field: 'calorie',
-      headerName: 'CALORIES',
+      field: 'protein',
+      headerName: 'QUANTITY',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.calorie ? params.row.calorie + ' Kcal' : '-'}
+          {'no data'}
         </Typography>
       )
     },
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'protein',
-      headerName: 'PREPARATION TYPES',
+      field: 'feed_typea',
+      headerName: 'PREPARATION TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <Tooltip
-            title={
-              params.row.preparation_types && params.row.preparation_types.length > 0
-                ? params.row.preparation_types.map(preparation => (
-                    <div style={{ padding: '4px' }} key={preparation.label}>
-                      {preparation.label}
-                    </div>
-                  ))
-                : '-'
-            }
-            arrow
-            placement='right'
-            // style={{ background: '#1F515B' }}
-          >
-            <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
-          </Tooltip>
+        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
+          {'no data'}
         </Typography>
-      )
-    },
-    {
-      flex: 0.6,
-      minWidth: 60,
-      field: 'user_name',
-      headerName: 'CREATED BY',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.created_by_user?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'switch',
-      headerName: '',
-      disableColumnMenu: true, // Exclude from column menu
-      renderCell: params => (
-        <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <Switch
-            checked={params.row.active === '0' ? false : true}
-            onChange={event => handleSwitchChange(event, params.row)}
-            fontSize={2}
-          />
-        </Box>
       )
     }
   ]
 
-  const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
+  // const onCellClick = params => {
+  //   console.log(params, 'params')
+  //   const clickedColumn = params.field !== 'switch'
 
-    if (clickedColumn) {
-      const data = params.row
+  //   if (clickedColumn) {
+  //     const data = params.row
 
-      Router.push({
-        pathname: `/diet/ingredient/${data?.id}`
-      })
-    } else {
-      return
-    }
-  }
+  //     Router.push({
+  //       pathname: `/diet/ingredient/${data?.id}`
+  //     })
+  //   } else {
+  //     return
+  //   }
+  // }
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -331,7 +259,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               //       onChange: event => handleSearch(event.target.value)
               //     }
               //   }}
-              onCellClick={onCellClick}
+              // onCellClick={onCellClick}
             />
           </Card>
         )}
@@ -368,7 +296,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               rowCount={rowsQuantity.length}
               columns={columns}
               loading={loading}
-              onCellClick={onCellClick}
+              // onCellClick={onCellClick}
             />
           </Card>
         )}
