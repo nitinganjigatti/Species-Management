@@ -251,7 +251,7 @@ const FeedDetails = () => {
                                     <Avatar variant='round' src={row.image ? row.image : ''} />
                                     <Box sx={{ display: 'flex', flexDirection: 'column', mx: 2 }}>
                                       <Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
-                                        {row.created_by ? row.created_by : ''}
+                                        {row.created_by_user?.user_name ? row.created_by_user?.user_name : ''}
                                       </Typography>
                                       <Typography
                                         variant='caption'

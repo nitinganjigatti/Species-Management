@@ -6,7 +6,9 @@ import {
   ADD_INGREDIENT,
   INGREDIENT_DETAIL,
   UPDATE_INGREDIENT,
-  DIET
+  DIET,
+  LIST,
+  UOM
 } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
@@ -19,7 +21,7 @@ export async function getIngredientsOnFeed(id, params) {
 }
 
 export async function getUnitsForIngredient({ params }) {
-  const response = await axiosGet({ url: `${UOM_LIST}`, params })
+  const response = await axiosGet({ url: `${DIET}/${UOM}/${LIST}`, params })
 
   return response.data
 }

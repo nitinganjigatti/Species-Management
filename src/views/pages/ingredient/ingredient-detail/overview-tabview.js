@@ -112,6 +112,7 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
             >
               <CardContent>
                 <ActivityLogs
+                  IngredientsDetailsval={IngredientsDetailsval}
                   searchValue={searchValue}
                   setSearchValue={setSearchValue}
                   handleSidebarClose={handleSidebarClose}

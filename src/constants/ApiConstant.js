@@ -124,8 +124,6 @@ export const INGREDIENTS = 'ingredients'
 
 export const INGREDIENTS_DETAIL = 'details'
 
-export const UOM_LIST = 'uom-list'
-
 export const ADD_INGREDIENT = 'add-ingredient'
 
 export const INGREDIENT_DETAIL = 'ingredient-details'
