@@ -1,7 +1,7 @@
-import { Avatar, Grid, Typography } from '@mui/material'
+import { Avatar, Grid, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineItem from '@mui/lab/TimelineItem'
@@ -37,14 +37,14 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
     }
   })
 
-  const getActivityLogs = async () => {
+  const getActivityLogs = async searchVal => {
     try {
       const params = {
         activity_type_id: IngredientsDetailsval?.id,
         activity_type: 'ingredient',
         page_no,
         limit,
-        search_term: searchValue
+        search_term: searchVal || searchValue
       }
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
@@ -74,6 +74,17 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
       })
     }
   }
+
+  const activityLogSearch = useCallback(
+    debounce(async value => {
+      try {
+        await getActivityLogs(value)
+      } catch (e) {
+        console.log(e)
+      }
+    }, 500),
+    []
+  )
 
   useEffect(() => {
     getActivityLogs()
@@ -128,7 +139,10 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
           InputProps={{
             startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
           }}
-          onChange={e => setSearchValue(e.target.value)}
+          onChange={e => {
+            setSearchValue(e.target.value)
+            activityLogSearch(e.target.value)
+          }}
         />
       </Box>
       {activitydata?.length > 0 ? (
