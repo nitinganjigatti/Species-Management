@@ -10,7 +10,6 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { XcelExporter } from 'src/utility/Xcel-exporter'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
 
