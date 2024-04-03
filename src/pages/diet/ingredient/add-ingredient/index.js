@@ -56,6 +56,7 @@ const AddIngredient = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [options, setOptions] = useState(false)
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
@@ -144,6 +145,7 @@ const AddIngredient = () => {
       clearErrors('ingredientImg')
     }
   }
+
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('ingredientImg', '')
@@ -165,6 +167,7 @@ const AddIngredient = () => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   const callFeedTypeList = async ({ status, page_no, limit, q }) => {
     try {
       const params = {
@@ -181,6 +184,7 @@ const AddIngredient = () => {
       console.log(e)
     }
   }
+
   const feedTypeListSearch = debounce(async value => {
     try {
       await callFeedTypeList({ status: 1, page_no: 1, limit: 20, q: value })
@@ -269,6 +273,7 @@ const AddIngredient = () => {
       calorie,
       preparation_types: JSON?.stringify(preprationTypes?.map(i => Number(i?.id)))
     }
+
     // console.log('submit', params)
     // console.log('payload', payload)
     if (id) {
@@ -283,6 +288,7 @@ const AddIngredient = () => {
               message: JSON?.stringify(res?.message),
               severity: 'success'
             })
+
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
@@ -310,6 +316,7 @@ const AddIngredient = () => {
               message: JSON?.stringify(res?.message),
               severity: 'success'
             })
+
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
@@ -443,6 +450,7 @@ const AddIngredient = () => {
                                   return onChange('')
                                 } else {
                                   setDefaultFeedType(val)
+
                                   return onChange(val?.id)
                                 }
                               }}
@@ -526,7 +534,7 @@ const AddIngredient = () => {
                     <Divider />
                   </Box>
 
-                  <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Types of measurement</Typography>
+                  <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                     <Grid item md={5.9}>
                       <FormControl fullWidth>

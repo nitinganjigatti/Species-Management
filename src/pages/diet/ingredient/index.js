@@ -82,12 +82,14 @@ const IngredientsList = () => {
 
         await getIngredientList({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
+
           // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
@@ -151,6 +153,7 @@ const IngredientsList = () => {
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -224,7 +227,7 @@ const IngredientsList = () => {
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
               {params.row.ingredient_name ? params.row.ingredient_name : '-'}
             </Typography>
           </Box>
@@ -272,6 +275,7 @@ const IngredientsList = () => {
             }
             arrow
             placement='right'
+
             // style={{ background: '#1F515B' }}
           >
             <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
@@ -310,7 +314,7 @@ const IngredientsList = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>

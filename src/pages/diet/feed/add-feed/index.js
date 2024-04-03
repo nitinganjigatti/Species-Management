@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -30,11 +31,13 @@ const AddFeedType = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
     message: ''
   })
+
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
     name: yup.string().required('Feed Name is Required')
@@ -76,15 +79,18 @@ const AddFeedType = () => {
         setImgSrc(reader?.result)
       }
       setDisplayFile(files[0]?.name)
+
       // setValue('feedImg', reader?.result)
       reader?.readAsDataURL(files[0])
       setValue('feedImg', files[0])
       clearErrors('feedImg')
     }
   }
+
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('feedImg', '')
+
     // setDisplayFile('')
   }
 
@@ -112,6 +118,7 @@ const AddFeedType = () => {
       feed_type_key: name,
       feed_type_image: getValues('feedImg')
     }
+
     // console.log('submit', payload)
     if (id) {
       try {
@@ -154,19 +161,20 @@ const AddFeedType = () => {
       </Box>
     )
   }
+
   return (
     <Card>
       <CardContent>
-        <Typography sx={{ mb: 1 }} variant='h6'>
-          {id ? 'Update Feed' : ' Add New Feed'}
+        <Typography sx={{ mb: '20px' }} variant='h6'>
+          {id ? 'Update Feed Type' : 'New Feed Type'}
         </Typography>
-        <Typography sx={{ mb: 1 }}>
+        {/* <Typography sx={{ mb: 1 }}>
           {id ? 'Update Feed type' : 'Add New Feed type'} and write some description for it
-        </Typography>
+        </Typography> */}
 
         <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
           {/* {editParams?.id !== null ? ( */}
-          <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
+          {/* <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
             <Controller
               name='status'
               control={control}
@@ -193,7 +201,7 @@ const AddFeedType = () => {
                 This field is required
               </FormHelperText>
             )}
-          </FormControl>
+          </FormControl> */}
           <FormControl sx={{ width: '50%', mb: 6 }}>
             <Controller
               name='name'
@@ -201,10 +209,10 @@ const AddFeedType = () => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Feed Name'
+                  label='Feed Type*'
                   value={value}
                   onChange={onChange}
-                  placeholder='Feed Name'
+                  placeholder='Enter Feed Type'
                   error={Boolean(errors.name)}
                   name='name'
                 />
