@@ -180,8 +180,9 @@ const ExpiredMedicine = () => {
             ['Expiry date']: el?.expiry_date
           }
         })
-        console.log('data', data)
-        Utility.exportToCSV(data, 'Expired Medicine items')
+
+        // console.log('data', data)
+        Utility.exportToCSV(data, 'Expired Medicines ')
       }
       console.log('excel', result)
       setExcelLoader(false)
@@ -219,7 +220,7 @@ const ExpiredMedicine = () => {
                       getDataToExport()
                     }}
                     loader={excelLoader}
-                    title='Expired medicine'
+                    title='Download'
                   />
                 </Box>
               }
