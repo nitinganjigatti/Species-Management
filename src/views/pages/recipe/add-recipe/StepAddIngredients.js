@@ -184,7 +184,6 @@ const StepAddIngredients = ({
         onClick={() => {
           removeIngredients(index)
         }}
-        className='checkraghu'
       >
         <Icon icon='material-symbols:cancel' />
       </Box>
@@ -199,7 +198,6 @@ const StepAddIngredients = ({
         onClick={() => {
           removeByQuantity(index)
         }}
-        className='checkraghu'
       >
         <Icon icon='material-symbols:cancel' />
       </Box>

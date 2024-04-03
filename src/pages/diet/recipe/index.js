@@ -24,7 +24,7 @@ import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
+import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 
 // Styled TabList component
 
@@ -125,11 +125,9 @@ const RecipeList = () => {
   )
 
   const handleSwitchChange = async (event, rowData) => {
-    console.log(event.target.checked, 'lll')
-    console.log(rowData, 'rowData')
     const newIsActive = event.target.checked ? 1 : 0
     try {
-      const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
+      const response = await updateRecipeStatus(rowData?.id, { status: newIsActive })
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
@@ -144,8 +142,7 @@ const RecipeList = () => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'REP' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'activated' : 'deactivated'}
+                    Recipe {'REP' + rowData.id} has been successfully {newIsActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
               </Box>

@@ -124,7 +124,7 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
             }}
             className='ppp'
           >
-            <div className='raghu' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
+            <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
               <div style={{ border: '2px dotted #D8D8DD', padding: '20px', borderRadius: '4px', marginRight: '14px' }}>
                 <Icon icon='fluent:image-add-20-regular' style={{ fontSize: '40px' }} />
               </div>

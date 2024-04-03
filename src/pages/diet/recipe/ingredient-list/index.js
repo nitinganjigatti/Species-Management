@@ -154,7 +154,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     {
       flex: 0.4,
       minWidth: 10,
-      field: 'id',
+      field: 'ingredient_id',
       headerName: 'INGREDIENT ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -187,7 +187,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'feed_typea',
+      field: 'feed_typeaa',
       headerName: 'PREPARATION TYPE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
@@ -243,22 +243,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
                 sl_no: false
               }}
               autoHeight
-              rows={rowsPercentage}
+              rows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
               rowCount={rowsPercentage.length}
               columns={columns}
               loading={loading}
               hideFooter={true}
-              //slots={{ toolbar: ServerSideToolbarWithFilter }}
-              //   slotProps={{
-              //     baseButton: {
-              //       variant: 'outlined'
-              //     },
-              //     toolbar: {
-              //       value: searchValue,
-              //       clearSearch: () => handleSearch(''),
-              //       onChange: event => handleSearch(event.target.value)
-              //     }
-              //   }}
               // onCellClick={onCellClick}
             />
           </Card>
@@ -292,7 +281,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               hideFooter={true}
-              rows={rowsQuantity}
+              rows={rowsQuantity.map((row, index) => ({ ...row, id: index }))}
               rowCount={rowsQuantity.length}
               columns={columns}
               loading={loading}

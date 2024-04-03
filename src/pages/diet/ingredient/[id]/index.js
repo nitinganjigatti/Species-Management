@@ -216,6 +216,7 @@ const IngredientDetail = () => {
             handleClosenew={handleClosenew}
             action={confirmDeleteAction}
             open={deleteDialogBox}
+            type='ingredient'
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }

@@ -18,8 +18,9 @@ import toast from 'react-hot-toast'
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
-import { getUnitsForRecipe, addNewRecipe } from 'src/lib/api/diet/recipe'
+import { getUnitsForRecipe, addNewRecipe, getRecipeDetail } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
+import { useRouter } from 'next/router'
 
 const steps = [
   {
@@ -37,6 +38,8 @@ const steps = [
 ]
 
 const AddRecipe = () => {
+  const router = useRouter()
+  const { id } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
@@ -124,10 +127,30 @@ const AddRecipe = () => {
     callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
   }
 
+  const getIngredientsDetailval = async id => {
+    try {
+      const response = await getRecipeDetail(id)
+      console.log(response, 'response')
+      if (response.data.success === true && response.data.data !== null) {
+        setFormData(response.data.data)
+      } else {
+      }
+    } catch (error) {
+      console.log('Feed list', error)
+    }
+  }
+
   useEffect(() => {
     getUnitsList()
     callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
+
+  useEffect(() => {
+    console.log(id, 'id')
+    if (id) {
+      getIngredientsDetailval(id)
+    }
+  }, [id])
 
   const handleNext = data => {
     // setFormData(prevData => ({
@@ -177,24 +200,30 @@ const AddRecipe = () => {
   const handleStepBillingSubmit = async () => {
     const numericFormData = {
       ...formData,
-      portion_size: parseInt(formData.portion_size),
-      portion_uom_id: parseInt(formData.portion_uom_id),
-      nutrional_value: parseInt(formData.nutrional_value),
-      nutrional_uom_id: parseInt(formData.nutrional_uom_id),
-      kcal: parseInt(formData.kcal),
+      // portion_size: parseInt(formData.portion_size),
+      // portion_uom_id: parseInt(formData.portion_uom_id),
+      // nutrional_value: parseInt(formData.nutrional_value),
+      // nutrional_uom_id: parseInt(formData.nutrional_uom_id),
+      // kcal: parseInt(formData.kcal),
       by_percentage: JSON.stringify(
         formData.by_percentage.map(item => ({
           ingredient_id: parseInt(item.ingredient_id),
-          quantity: parseFloat(item.quantity),
-          preparation_type_id: parseInt(item.preparation_type_id)
+          ingredient_name: item.ingredient_name,
+          feed_type_label: item.feed_type_label,
+          quantity: parseInt(item.quantity),
+          preparation_type_id: parseInt(item.preparation_type_id),
+          preparation_name: item.preparation_name
         }))
       ),
       by_quantity: JSON.stringify(
         formData.by_quantity.map(item => ({
           ingredient_id: parseInt(item.ingredient_id),
+          ingredient_name: item.ingredient_name,
+          feed_type_label: item.feed_type_label,
           uom_id: parseInt(item.uom_id),
-          quantity: parseFloat(item.quantity),
-          preparation_type_id: parseInt(item.preparation_type_id)
+          quantity: parseInt(item.quantity),
+          preparation_type_id: parseInt(item.preparation_type_id),
+          preparation_name: item.preparation_name
         }))
       )
     }
@@ -208,7 +237,6 @@ const AddRecipe = () => {
     }
 
     console.log(cleanedFormData, 'cleanedFormData')
-    console.log(formData.recipe_image, 'raghu')
     const apival = await addNewRecipe(cleanedFormData)
     console.log(apival, 'apival')
     if (apival.success === true) {

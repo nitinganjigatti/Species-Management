@@ -15,7 +15,7 @@ import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
+import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
@@ -38,10 +38,10 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { active: isActive })
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: isActive })
       console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/ingredient`)
+        Router.push(`/diet/recipe`)
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -53,7 +53,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + IngredientsDetailsval.id} has been successfully{' '}
+                    Recipe {'REP' + IngredientsDetailsval.id} has been successfully{' '}
                     {isActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
@@ -163,7 +163,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.feed_type + ' ' + 'g'}
+                {IngredientsDetailsval.portion_size + ' ' + 'g'}
               </Typography>
             </Box>
           </Box>
@@ -205,7 +205,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.kcal + ' Kcal'}
+                {IngredientsDetailsval.total_kcal + ' Kcal'}
               </Typography>
             </Box>
           </Box>
@@ -215,7 +215,8 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
         handleClosenew={handleClosenew}
         action={confirmDeleteAction}
         open={deleteDialogBox}
-        message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Ingredient?</span>}
+        type='recipe'
+        message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Recipe?</span>}
       />
     </Grid>
   )
