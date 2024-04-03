@@ -84,8 +84,7 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          // debugger
-          console.log('response', res)
+          // console.log('response', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })

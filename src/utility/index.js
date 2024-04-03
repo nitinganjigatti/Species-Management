@@ -1,5 +1,7 @@
 import moment from 'moment'
 import toast from 'react-hot-toast'
+import FileSaver from 'file-saver'
+import * as XLSX from 'xlsx'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -52,12 +54,25 @@ function errorMessageExtractorFromObject(errorMessages) {
   }
 }
 
+function exportToCSV(tableData, fileName) {
+  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+  const fileExtension = '.xlsx'
+  if (tableData?.length > 0) {
+    const ws = XLSX.utils.json_to_sheet(tableData)
+    const wb = { Sheets: { data: ws }, SheetNames: ['data'] }
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const data = new Blob([excelBuffer], { type: fileType })
+    FileSaver.saveAs(data, fileName + fileExtension)
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
   formattedPresentDate,
   formatDisplayDate,
-  errorMessageExtractorFromObject
+  errorMessageExtractorFromObject,
+  exportToCSV
 }
 
 export default Utility

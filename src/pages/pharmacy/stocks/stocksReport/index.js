@@ -43,24 +43,6 @@ import ExpiredMedicine from '../expired-medicine'
 import Escrow from '../escrow'
 
 const ListOfStocks = () => {
-  // const TabList = styled(MuiTabList)(({ theme }) => ({
-  //   '& .MuiTabs-indicator': {
-  //     display: 'none'
-  //   },
-  //   '& .Mui-selected': {
-  //     backgroundColor: theme.palette.primary.main,
-  //     color: 'white'
-
-  //     // color: theme.palette.common.white
-  //   },
-  //   '& .MuiTab-root': {
-  //     minHeight: 38,
-  //     minWidth: 110,
-  //     borderRadius: 8,
-  //     paddingTop: theme.spacing(2),
-  //     paddingBottom: theme.spacing(2)
-  //   }
-  // }))
   const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
@@ -378,7 +360,7 @@ const ListOfStocks = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'min_qty',
-      headerName: 'MIN QTY',
+      headerName: 'Reorder Level',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -402,19 +384,19 @@ const ListOfStocks = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'store_name',
-      headerName: 'Store Name',
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.store_name}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'store_name',
+    //   headerName: 'Store Name',
+    //   align: 'right',
+    //   headerAlign: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.store_name}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -536,7 +518,6 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {params.row.stock_qty} */}
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
@@ -700,8 +681,8 @@ const ListOfStocks = () => {
     debounce(async value => {
       setSearchValue(value)
       try {
-        console.log('value', value)
-        console.log('payloadsearch', { sort, q: value, column: sortColumn, id: stockId, type: stockType })
+        // console.log('value', value)
+        // console.log('payload search', { sort, q: value, column: sortColumn, id: stockId, type: stockType })
         await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
       } catch (error) {
         console.error(error)
@@ -820,11 +801,11 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: searchValue,
-                          clearSearch: () => handleSearch('', stockId, storeType),
+                          clearSearch: () => handleSearch('', stockId, stockType),
                           onChange: event => {
                             setSearchValue(event.target.value)
 
-                            return handleSearch(event.target.value, stockId, storeType)
+                            return handleSearch(event.target.value, stockId, stockType)
                           }
                         }
                       }}
