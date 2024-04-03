@@ -46,6 +46,7 @@ const AddPreparationType = props => {
     reset,
     control,
     setValue,
+    watch,
     clearErrors,
     handleSubmit,
     formState: { errors }
@@ -80,6 +81,7 @@ const AddPreparationType = props => {
   )
 
   useEffect(() => {
+    reset()
     if (resetForm) {
       reset(defaultValues)
     }
@@ -92,7 +94,13 @@ const AddPreparationType = props => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+        <LoadingButton
+          disabled={watch('label') === ''}
+          size='large'
+          type='submit'
+          variant='contained'
+          loading={submitLoader}
+        >
           {editParams?.id !== null ? 'Edit' : 'Add'}
         </LoadingButton>
       </Fragment>
@@ -117,7 +125,7 @@ const AddPreparationType = props => {
       >
         <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Preparation Type</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+          <IconButton size='small' onClick={() => handleSidebarClose()} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Box>

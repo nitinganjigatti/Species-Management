@@ -7,7 +7,8 @@ import {
   RECIPE_LIST,
   INGREDIENTS,
   LIST,
-  RECIPE
+  RECIPE,
+  REPARATION_ACTIVITY_LOGS
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -57,4 +58,8 @@ export async function deleteIngredient(id) {
 
 export async function getRecipeListonIngredientDtl(id, params) {
   return await axiosGet({ url: `${DIET}/${RECIPE}/${RECIPE_LIST}/${id}`, params })
+}
+
+export async function getDietActivityLogs(params) {
+  return await axiosGet({ url: `${REPARATION_ACTIVITY_LOGS}`, params })
 }

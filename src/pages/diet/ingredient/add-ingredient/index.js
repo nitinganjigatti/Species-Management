@@ -7,10 +7,12 @@ import {
   CardHeader,
   CircularProgress,
   Divider,
+  Drawer,
   FormControl,
   FormControlLabel,
   FormHelperText,
   Grid,
+  IconButton,
   Switch,
   TextField,
   Typography,
@@ -35,8 +37,9 @@ import {
 } from 'src/lib/api/diet/getFeedDetails'
 import UserSnackbar from 'src/components/utility/snackbar'
 import Router, { useRouter } from 'next/router'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { addPreparationType, getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import FallbackSpinner from 'src/@core/components/spinner'
+import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
 
 const AddIngredient = () => {
   const theme = useTheme()
@@ -52,15 +55,23 @@ const AddIngredient = () => {
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [preparationTypeSubmitLoader, setPreparationTypeSubmitLoader] = useState(false)
   const [sort, setSort] = useState('asc')
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [options, setOptions] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
     message: ''
   })
+
+  const handleSidebarClose = () => {
+    setOpenDrawer(false)
+  }
 
   const defaultValues = {
     active: 1,
@@ -144,6 +155,7 @@ const AddIngredient = () => {
       clearErrors('ingredientImg')
     }
   }
+
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('ingredientImg', '')
@@ -165,6 +177,7 @@ const AddIngredient = () => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   const callFeedTypeList = async ({ status, page_no, limit, q }) => {
     try {
       const params = {
@@ -181,6 +194,7 @@ const AddIngredient = () => {
       console.log(e)
     }
   }
+
   const feedTypeListSearch = debounce(async value => {
     try {
       await callFeedTypeList({ status: 1, page_no: 1, limit: 20, q: value })
@@ -269,6 +283,7 @@ const AddIngredient = () => {
       calorie,
       preparation_types: JSON?.stringify(preprationTypes?.map(i => Number(i?.id)))
     }
+
     // console.log('submit', params)
     // console.log('payload', payload)
     if (id) {
@@ -283,6 +298,7 @@ const AddIngredient = () => {
               message: JSON?.stringify(res?.message),
               severity: 'success'
             })
+
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
@@ -310,6 +326,7 @@ const AddIngredient = () => {
               message: JSON?.stringify(res?.message),
               severity: 'success'
             })
+
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
@@ -327,6 +344,36 @@ const AddIngredient = () => {
         setSubmitLoader(false)
         console.log('error', error)
       }
+    }
+  }
+
+  const setAlertDefaults = ({ message, severity, status }) => {
+    setOpenSnackbar({ ...openSnackbar, open: status, message: JSON?.stringify(message), severity: severity })
+  }
+
+  const handlePreparationSubmitData = async payload => {
+    try {
+      setPreparationTypeSubmitLoader(true)
+      var response
+
+      response = await addPreparationType(payload)
+
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        setPreparationTypeSubmitLoader(false)
+        handleSidebarClose()
+
+        await getPreparationList(sort, searchValue, sortColumn)
+      } else {
+        setPreparationTypeSubmitLoader(false)
+        handleSidebarClose()
+
+        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+      }
+    } catch (e) {
+      setPreparationTypeSubmitLoader(false)
+      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
     }
   }
 
@@ -443,6 +490,7 @@ const AddIngredient = () => {
                                   return onChange('')
                                 } else {
                                   setDefaultFeedType(val)
+
                                   return onChange(val?.id)
                                 }
                               }}
@@ -526,7 +574,7 @@ const AddIngredient = () => {
                     <Divider />
                   </Box>
 
-                  <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Types of measurement</Typography>
+                  <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                     <Grid item md={5.9}>
                       <FormControl fullWidth>
@@ -743,7 +791,23 @@ const AddIngredient = () => {
                     <Divider />
                   </Box>
 
-                  <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
+                  <Box sx={{ mt: '32px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <Typography sx={{ fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
+                    <Box sx={{ display: 'flex', gap: '5px', alignItems: 'center' }} onClick={() => setOpenDrawer(true)}>
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          verticalAlign: 'middle',
+                          color: theme.palette.primary.main,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Add preparation types
+                      </Typography>
+                      <Icon fontSize={28} color={theme.palette.primary.main} icon='system-uicons:button-add' />
+                    </Box>
+                  </Box>
 
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                     <Grid item md={5.9}>
@@ -826,6 +890,15 @@ const AddIngredient = () => {
             </Card>
           </form>
         )}
+        <AddPreparationType
+          drawerWidth={400}
+          addEventSidebarOpen={openDrawer}
+          handleSidebarClose={handleSidebarClose}
+          handleSubmitData={handlePreparationSubmitData}
+          resetForm={resetForm}
+          submitLoader={preparationTypeSubmitLoader}
+          editParams={{ id: null, label: null, active: null }}
+        />
       </Box>
     </>
   )
