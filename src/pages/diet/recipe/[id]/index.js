@@ -51,7 +51,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   },
   '& .MuiTabs-flexContainer': {
     borderRadius: 8,
-    width: '47%',
+    width: '342px',
     backgroundColor: '#E8F4F2'
   }
 }))
@@ -80,7 +80,7 @@ const RecipeDetail = () => {
     try {
       const response = await getRecipeDetail(id)
       console.log(response, 'response')
-      if (response.data.success === true) {
+      if (response.data.success === true && response.data.data !== null) {
         setIngredientsDetailsval(response.data.data)
         setLoader(false)
       } else {
@@ -199,12 +199,15 @@ const RecipeDetail = () => {
                     </Grid>
                   </CardContent>
                 </Card>
-
-                <Card sx={{ mt: 5 }}>
-                  <CardContent sx={{ mb: 5, mt: 2 }}>
-                    <IngredientsListforRecipeDetail IngredientsDetailsval={IngredientsDetailsval} />
-                  </CardContent>
-                </Card>
+                {value === '1' ? (
+                  <Card sx={{ mt: 5 }}>
+                    <CardContent sx={{ mb: 5, mt: 2 }}>
+                      <IngredientsListforRecipeDetail IngredientsDetailsval={IngredientsDetailsval} />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  ''
+                )}
               </>
             ) : (
               <Grid>

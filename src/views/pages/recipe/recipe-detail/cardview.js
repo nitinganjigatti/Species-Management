@@ -92,37 +92,29 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              padding: 0
             }}
           >
             <div
               style={{
-                background: '#fff',
-                borderRadius: '8px',
-                padding: '18px',
-                width: '120px',
-                height: '120px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
+                width: '100%',
+                height: '100%'
               }}
             >
               <Avatar
                 variant='square'
                 alt='Ingredient Image'
                 sx={{
-                  width: 70,
-                  height: 70,
-                  background: '#fff'
+                  width: '100%',
+                  height: '100%'
                 }}
-                src={IngredientsDetailsval.ingredient_image ? IngredientsDetailsval.ingredient_image : null}
-              >
-                {IngredientsDetailsval.ingredient_image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
-              </Avatar>
+                src={IngredientsDetailsval.recipe_image ? IngredientsDetailsval.recipe_image : '/icons/recipedummy.svg'}
+              ></Avatar>
             </div>
           </CardContent>
         </div>
-        <Divider sx={{ mt: 3, mx: 4, borderColor: '#C3CEC7' }} />
+        {/* <Divider sx={{ mt: 3, mx: 4, borderColor: '#C3CEC7' }} /> */}
         <CardContent>
           <Box
             sx={{
@@ -136,7 +128,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                REP000123
+                {'REP' + IngredientsDetailsval.id}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -192,7 +184,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                nos
+                {IngredientsDetailsval.total_ingredients + ' nos'}
               </Typography>
             </Box>
           </Box>
@@ -213,7 +205,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                Kcal
+                {IngredientsDetailsval.kcal + ' Kcal'}
               </Typography>
             </Box>
           </Box>

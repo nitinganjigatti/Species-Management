@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -36,9 +36,9 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
   }
 }))
 
-const CustomFileUploaderSingle = props => {
+const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedImagenew }) => {
   // ** State
-  const [files, setFiles] = useState([])
+  const [uploadedImage, setUploadedImage] = useState(imageData || [])
 
   // ** Hook
   const { getRootProps, getInputProps } = useDropzone({
@@ -47,17 +47,24 @@ const CustomFileUploaderSingle = props => {
       'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
-      console.log(acceptedFiles.map(file => Object.assign(file)))
-      props?.onImageUpload(acceptedFiles.map(file => Object.assign(file)))
-      setFiles(acceptedFiles.map(file => Object.assign(file)))
+      const file = acceptedFiles
+      setUploadedImage(file)
+      onImageUpload(file)
     }
   })
-
+  console.log(uploadedImage, 'lll')
   const handleimage = e => {
-    alert('hi')
+    setUploadedImage([])
+    onImageUpload(null)
   }
-
-  const img = files.map(file => (
+  useEffect(() => {
+    if (uploadedImagenew) {
+      setUploadedImage(uploadedImagenew)
+    } else {
+      setUploadedImage([])
+    }
+  }, [uploadedImagenew])
+  const img = uploadedImage?.map(file => (
     <div
       style={{
         borderRadius: '12px',
@@ -90,7 +97,10 @@ const CustomFileUploaderSingle = props => {
 
   return (
     <>
-      <Box {...getRootProps({ className: 'dropzone' })} sx={files.length ? { position: 'absolute', width: '34%' } : {}}>
+      <Box
+        {...getRootProps({ className: 'dropzone' })}
+        sx={uploadedImage.length ? { position: 'absolute', width: '34%' } : {}}
+      >
         <input {...getInputProps()} />
         <Box
           sx={{
@@ -126,8 +136,9 @@ const CustomFileUploaderSingle = props => {
           </Box>
         </Box>
       </Box>
-      {files.length > 0 || (props?.image !== '' && props.image !== undefined) ? (
-        files.length > 0 ? (
+      {console.log(uploadedImage, 'uploadedImage')}
+      {uploadedImage.length > 0 || (props?.image !== '' && props?.image !== undefined) ? (
+        uploadedImage.length > 0 ? (
           img
         ) : (
           <img
