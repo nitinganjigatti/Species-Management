@@ -103,11 +103,12 @@ const Diet = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [Dietdata, setDietData] = useState(Data)
+  const [filterStatusData, setFilterStatusData] = useState(Dietdata)
   const [searchValue, setSearchValue] = useState('')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState('2')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -117,9 +118,23 @@ const Diet = () => {
     return data
   }
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
+  // const handleChange = (event, newValue) => {
+  //   console.log('newAv>:>>>>', newValue)
+  //   setTotal(0)
+  //   setStatus(newValue)
+  // }
+
+  const handleStatusChange = (event, newValue) => {
+    debugger
     setStatus(newValue)
+
+    const newData = [...Dietdata]
+    if (newValue === '2') {
+      setFilterStatusData(newData)
+    } else {
+      const filterList = newData?.filter(item => item.active === newValue)
+      setFilterStatusData(filterList)
+    }
   }
 
   const onClose = () => {
@@ -130,6 +145,7 @@ const Diet = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, sortColumn, status) => {
+      debugger
       try {
         setLoading(true)
 
@@ -138,8 +154,8 @@ const Diet = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-          //status
+          limit: paginationModel.pageSize,
+          status
         }
 
         await getIngredientList({ params: params }).then(res => {
@@ -166,7 +182,7 @@ const Diet = () => {
   }, [fetchTableData, status])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = Dietdata?.map((row, index) => ({
+  const indexedRows = filterStatusData?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -250,8 +266,20 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
+    debugger
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+    const newValue = [...Dietdata]
+
+    // Check if the search value is empty
+    if (value.trim() === '') {
+      setFilterStatusData(newValue) // Set filterStatusData to original Dietdata
+    } else {
+      const filterSearchList = newValue?.filter(item =>
+        item.diet_name.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
+      )
+      setFilterStatusData(filterSearchList)
+      searchTableData(sort, value, sortColumning, status)
+    }
   }
 
   const columns = [
@@ -279,13 +307,7 @@ const Diet = () => {
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
             src={params.row.ingredient_image ? params.row.ingredient_image : null}
           >
-            {params.row.ingredient_image ? null : (
-              <img
-                src='https://www.shutterstock.com/image-photo/ripe-mango-isolated-on-white-260nw-1297537549.jpg'
-                width={30}
-                height={30}
-              />
-            )}
+            {params.row.ingredient_image ? null : <img src={params.row.diet_image} width={30} height={30} />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -414,6 +436,15 @@ const Diet = () => {
     }
   }
 
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
   const tableData = () => {
     return (
       <>
@@ -490,15 +521,18 @@ const Diet = () => {
     <>
       <Grid>
         <TabContext value={status}>
-          <TabList onChange={handleChange}>
+          <TabList onChange={handleStatusChange}>
+            <Tab value='2' label={<TabBadge label='All' totalCount={status === '2' ? 3 : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? 2 : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? 1 : null} />} />
             {/* <Tab
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             /> */}
           </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
+          <TabPanel value='2'>{tableData()}</TabPanel>
+          <TabPanel value='1'>{tableData()}</TabPanel>
+          <TabPanel value='0'>{tableData()}</TabPanel>
           {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
         </TabContext>
       </Grid>
