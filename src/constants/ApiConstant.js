@@ -124,9 +124,9 @@ export const INGREDIENTS = 'ingredients'
 
 export const INGREDIENTS_DETAIL = 'details'
 
-export const ADD_INGREDIENT = 'add-ingredient'
+export const ADD_INGREDIENT = 'diet/ingredients/add'
 
-export const INGREDIENT_DETAIL = 'ingredient-details'
+export const INGREDIENT_DETAIL = 'diet/ingredients/details'
 
 export const RECIPE_LIST = 'ingredient-recipe-list'
 
@@ -144,7 +144,7 @@ export const INGREDIENT = 'ingredient'
 
 export const UPDATE_STATUS = 'update-status'
 
-export const UPDATE_INGREDIENT = 'update-ingredient'
+export const UPDATE_INGREDIENT = 'diet/ingredients/update'
 
 export const PREPARATION_LIST = 'diet/preparations/list'
 
