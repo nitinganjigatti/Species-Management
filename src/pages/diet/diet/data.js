@@ -6,8 +6,9 @@ export const Data = [
     diet_text: 'DIET-00123',
     meals: '3',
     recipies: '15',
-    species: 'Macaw...+15',
-    animals: 'Glaucous Mac...+15 more',
+    recipes_data: ['Cooking', 'Uncooked'],
+    species: 'Macawso',
+    animals: 'Glaucous Macawso',
     active: '1',
     createdAt: '10/02/2024'
   },
@@ -18,8 +19,9 @@ export const Data = [
     diet_text: 'DIET-00124',
     meals: '3',
     recipies: '15',
-    species: 'Macaw...+15',
-    animals: 'Glaucous Mac...+15 more',
+    recipes_data: ['Cooking', 'Chooped', 'Dry'],
+    species: 'Macawso',
+    animals: 'Glaucous Macawso',
     active: '0',
     createdAt: '12/02/2024'
   },
@@ -30,8 +32,9 @@ export const Data = [
     diet_text: 'DIET-00125',
     meals: '3',
     recipies: '15',
-    species: 'Macaw...+15',
-    animals: 'Glaucous Mac...+15 more',
+    recipes_data: ['Cooking', 'Chopped'],
+    species: 'Macawso',
+    animals: 'Glaucous Macawso',
     active: '1',
     createdAt: '12/02/2024'
   }

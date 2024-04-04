@@ -1,61 +1,3 @@
-// import {
-//   Button,
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   Grid,
-//   IconButton,
-//   InputAdornment,
-//   TextField,
-//   Typography
-// } from '@mui/material'
-// import Icon from 'src/@core/components/icon'
-// import { Box } from '@mui/system'
-// import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-// import React, { useState } from 'react'
-// import { DataGrid } from '@mui/x-data-grid'
-
-// const Diet = () => {
-//   const [total, setTotal] = useState(0)
-//   const [sort, setSort] = useState('desc')
-//   const [rows, setRows] = useState([])
-//   const [searchValue, setSearchValue] = useState('')
-//   const [sortColumning, setsortColumning] = useState('ingredient_name')
-//   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-//   const [loading, setLoading] = useState(false)
-//   const [status, setStatus] = useState('all')
-//   const [statusCheckval, setstatusCheckval] = useState(false)
-//   const [dialog, setDialog] = useState(false)
-//   const [check, setCheck] = useState(false)
-
-//   return (
-//     <Grid>
-//       <Card>
-//         <CardContent>
-//           <Grid sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-//             <Typography sx={{ fontWeight: 600 }} variant='h6'>
-//               Diet
-//             </Typography>
-//             <Box>
-//               <Button size='small' variant='contained'>
-//                 <Icon icon='mdi:add' fontSize='20' />
-//                 &nbsp; Add New
-//               </Button>
-//             </Box>
-//           </Grid>
-//           <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
-//             <Box></Box>
-//             <Box sx={{ mt: 3 }}>
-
-//             </Box>
-//           </Grid>
-//         </CardContent>
-//       </Card>
-//     </Grid>
-//   )
-// }
-// export default Diet
-
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
@@ -71,7 +13,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Tooltip, Switch, Divider, Select, MenuItem } from '@mui/material'
 import toast from 'react-hot-toast'
 
 // ** MUI Imports
@@ -361,11 +303,31 @@ const Diet = () => {
       field: 'Species',
       headerName: 'Species',
       renderCell: params => (
+        // console.log('rows.params >>', params.row.species)
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.species ? params.row.species : '-'}
+          {params.row.species ? params.row.species.substring(0, 5) + '..' + ',' : '-'}
+
+          <Tooltip
+            title={
+              params.row.recipes_data && params.row.recipes_data.length > 0
+                ? params.row.recipes_data.map((data, index) => (
+                    <div style={{ padding: '4px' }} key={index}>
+                      {data}
+                    </div>
+                  ))
+                : ''
+            }
+            arrow
+            placement='right'
+
+            // style={{ background: '#1F515B' }}
+          >
+            <span style={{ color: 'grey' }}>+15</span>
+          </Tooltip>
         </Typography>
       )
     },
+
     {
       flex: 0.4,
       minWidth: 10,
@@ -373,7 +335,24 @@ const Diet = () => {
       headerName: 'Animals',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.animals ? params.row.animals : '-'}
+          {params.row.animals ? params.row.animals.substring(0, 11) + '..' + ',' : '-'}
+          <Tooltip
+            title={
+              params.row.recipes_data && params.row.recipes_data.length > 0
+                ? params.row.recipes_data.map((data, index) => (
+                    <div style={{ padding: '4px' }} key={index}>
+                      {data}
+                    </div>
+                  ))
+                : ''
+            }
+            arrow
+            placement='right'
+
+            // style={{ background: '#1F515B' }}
+          >
+            <span style={{ color: 'grey' }}>15 more</span>
+          </Tooltip>
         </Typography>
       )
     },
@@ -419,7 +398,7 @@ const Diet = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'switch',
-      headerName: '',
+      headerName: 'Status',
       disableColumnMenu: true, // Exclude from column menu
       renderCell: params => (
         <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
@@ -471,8 +450,14 @@ const Diet = () => {
                   <Typography variant='body2'>Show</Typography>
                 </Grid>
                 <Grid>
-                  <Select sx={{ width: '80px', height: '40px', borderRadius: '10px' }} value={selectedValue}>
+                  <Select
+                    sx={{ width: '80px', height: '40px', borderRadius: '10px' }}
+                    value={selectedValue}
+                    onChange={e => setSelectedValue(e.target.value)}
+                  >
                     <MenuItem value='10'>10</MenuItem>
+                    <MenuItem value='20'>20</MenuItem>
+                    <MenuItem value='30'>30</MenuItem>
                     {/* Add other options here */}
                   </Select>
                 </Grid>
