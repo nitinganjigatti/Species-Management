@@ -52,3 +52,9 @@ export async function updateStore(id, payload) {
     return error
   }
 }
+
+export async function checkCentralPharmacy() {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/check`, pharmacy: true })
+
+  return response.data
+}

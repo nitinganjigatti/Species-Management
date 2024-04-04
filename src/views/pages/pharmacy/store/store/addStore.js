@@ -176,7 +176,7 @@ const AddStore = props => {
                   label='Pharmacy Name*'
                   value={value}
                   onChange={onChange}
-                  placeholder='Store Name'
+                  placeholder='Pharmacy Name'
                   error={Boolean(errors.name)}
                   name='name'
                 />

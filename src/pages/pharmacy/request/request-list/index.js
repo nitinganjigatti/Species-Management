@@ -84,8 +84,7 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          // debugger
-          console.log('response', res)
+          // console.log('response', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -171,9 +170,10 @@ const RequestList = () => {
       field: 'sl_no',
       headerName: 'SL',
 
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
+          {/* {params.row.sl_no} */}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -185,7 +185,7 @@ const RequestList = () => {
       headerName: '',
       type: 'number',
       align: 'left',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.priority !== null ? (
             <Box sx={{ color: 'error.main' }}>
