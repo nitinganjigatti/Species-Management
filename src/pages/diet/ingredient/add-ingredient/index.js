@@ -20,7 +20,6 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import Link from '@mui/material/Link'
 import { useTheme } from '@mui/material/styles'
 import { Controller, useForm } from 'react-hook-form'
 import * as yup from 'yup'
@@ -40,6 +39,7 @@ import Router, { useRouter } from 'next/router'
 import { addPreparationType, getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import FallbackSpinner from 'src/@core/components/spinner'
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
+import { useDropzone } from 'react-dropzone'
 
 const AddIngredient = () => {
   const theme = useTheme()
@@ -393,6 +393,26 @@ const AddIngredient = () => {
     />
   )
 
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: false,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    onDrop: acceptedFiles => {
+      const reader = new FileReader()
+      const files = acceptedFiles
+      if (files && files.length !== 0) {
+        reader.onload = () => {
+          setImgSrc(reader?.result)
+        }
+        setDisplayFile(files[0]?.name)
+        reader?.readAsDataURL(files[0])
+        setValue('ingredientImg', files[0])
+        clearErrors('ingredientImg')
+      }
+    }
+  })
+
   return (
     <>
       <Box>
@@ -414,7 +434,7 @@ const AddIngredient = () => {
               <CardHeader
                 sx={{ paddingBottom: 0, marginX: 1 }}
                 title={id ? 'Update Ingredient' : 'Add New Ingredient'}
-                action={headerAction}
+                action={id ? headerAction : null}
               />
               <CardContent>
                 <Typography sx={{ width: '70%', fontSize: 14 }}>
@@ -576,7 +596,7 @@ const AddIngredient = () => {
 
                   <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                    <Grid item md={5.9}>
+                    <Grid item md={3.9}>
                       <FormControl fullWidth>
                         <Controller
                           name='nutritionalValuesPer'
@@ -602,7 +622,7 @@ const AddIngredient = () => {
                         )}
                       </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={5.9}>
+                    <Grid item xs={12} md={3.9}>
                       <FormControl fullWidth>
                         <Controller
                           name='uom'
@@ -643,8 +663,11 @@ const AddIngredient = () => {
                         )}
                       </FormControl>
                     </Grid>
-                    <Grid item md={5.9}>
-                      <FormControl sx={{ mt: '20px' }} fullWidth>
+                    <Grid item md={3.9}>
+                      <FormControl
+                        //  sx={{ mt: '20px' }}
+                        fullWidth
+                      >
                         <Controller
                           name='calorie'
                           control={control}
@@ -713,6 +736,7 @@ const AddIngredient = () => {
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                     <Grid item md={5.9}>
                       <input
+                        // {...getInputProps()}
                         type='file'
                         accept='image/*'
                         onChange={e => handleInputImageChange(e)}
@@ -722,6 +746,7 @@ const AddIngredient = () => {
                       />
 
                       <Box
+                        {...getRootProps({ className: 'dropzone' })}
                         onClick={handleAddImageClick}
                         sx={{
                           display: 'flex',
@@ -810,7 +835,7 @@ const AddIngredient = () => {
                   </Box>
 
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                    <Grid item md={5.9}>
+                    <Grid item md={12}>
                       <FormControl sx={{ mb: 6 }} fullWidth>
                         <Controller
                           name='preprationTypes'

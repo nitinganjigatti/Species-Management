@@ -53,7 +53,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
             ...openSnackbar,
             open: true,
             message: JSON.stringify(res?.message),
-            severity: 'error'
+            severity: 'success'
           })
         } else {
           setOpenSnackbar({
@@ -194,17 +194,58 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
               <Timeline>
                 {item?.date_activity?.map((item, index) => (
                   <TimelineItem key={index}>
-                    <TimelineSeparator>
+                    <TimelineSeparator
+                      sx={{
+                        '& span': { backgroundColor: item.action === 'activated' ? theme.palette.primary.main : null }
+                      }}
+                    >
                       {/* <TimelineDot color='success' /> */}
-                      <Box sx={{ border: '1px solid ', height: '25px', borderRadius: '4px' }}>
-                        <Icon icon={'mdi:clipboard'} />
+                      <Box
+                        sx={{
+                          border: '1px solid ',
+                          borderColor: item.action === 'activated' ? theme.palette.primary.main : null,
+                          backgroundColor: item.action === 'activated' ? theme.palette.primary.main : null,
+                          boxSizing: 'border-box',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon
+                          height={'16px'}
+                          width={'16px'}
+                          icon={
+                            item.action === 'activated'
+                              ? 'mdi:clipboard-outline'
+                              : item.action === 'deactivated'
+                              ? 'mdi:clipboard-off-outline'
+                              : item.action === 'Swapped'
+                              ? 'material-symbols:repeat'
+                              : null
+                          }
+                          color={item.action === 'activated' ? '#fff' : null}
+                          // style={item.action === 'Swapped' ? { transform: 'rotateY(180deg)' } : null}
+                        />
                       </Box>
                       <TimelineConnector />
                     </TimelineSeparator>
                     <TimelineContent sx={{ py: 0, mb: '20px' }}>
                       <Typography
                         variant='body2'
-                        sx={{ mr: 2, fontSize: 16, fontWeight: 500, lineHeight: 'normal', mb: '12px' }}
+                        sx={{
+                          mr: 2,
+                          fontSize: 16,
+                          fontWeight: 500,
+                          lineHeight: 'normal',
+                          mb: '12px',
+                          color:
+                            item.action === 'activated'
+                              ? theme.palette.primary.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                        }}
                       >
                         {item.action}
                       </Typography>
