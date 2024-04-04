@@ -494,7 +494,7 @@ function AddDispense() {
                 <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
                   <Button
                     sx={{ width: '100px', height: '40px' }}
-                    disabled={productArrayUi?.length === 0 || errors.user_id || animals_s.length === 0 || submitLoading}
+                    disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
                     type='submit'
                     variant='contained'
                   >

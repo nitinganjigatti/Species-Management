@@ -152,7 +152,7 @@ function SelectPharmacy() {
           >
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
-                <MenuList id='split-button-menu'>
+                <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll' }}>
                   {options?.map((option, index) => (
                     <MenuItem
                       key={index}
