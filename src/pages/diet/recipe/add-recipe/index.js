@@ -18,7 +18,7 @@ import toast from 'react-hot-toast'
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
-import { getUnitsForRecipe, addNewRecipe, getRecipeDetail } from 'src/lib/api/diet/recipe'
+import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 
@@ -58,7 +58,7 @@ const AddRecipe = () => {
         feed_type_label: '',
         quantity: '',
         preparation_type_id: '',
-        preparation_name: ''
+        preparation_type: ''
       }
     ],
     by_quantity: [
@@ -69,7 +69,7 @@ const AddRecipe = () => {
         uom_id: '',
         quantity: '',
         preparation_type_id: '',
-        preparation_name: ''
+        preparation_type: ''
       }
     ],
     desc: ''
@@ -132,14 +132,41 @@ const AddRecipe = () => {
       const response = await getRecipeDetail(id)
       console.log(response, 'response')
       if (response.data.success === true && response.data.data !== null) {
-        setFormData(response.data.data)
-      } else {
+        const data = response.data.data
+
+        const convertedData = {
+          ...data,
+          by_percentage: data.by_percentage.map(item => ({
+            ...item,
+            ingredient_id: String(item.ingredient_id),
+            preparation_type_id: String(item.preparation_type_id)
+          })),
+          by_quantity: data.by_quantity.map(item => ({
+            ...item,
+            ingredient_id: String(item.ingredient_id),
+            preparation_type_id: String(item.preparation_type_id),
+            uom_id: String(item.uom_id)
+          }))
+        }
+
+        // Filter out the keys that were initially set in formData
+        const initialKeys = Object.keys(formData)
+        const updatedData = {}
+        Object.keys(convertedData).forEach(key => {
+          if (initialKeys.includes(key)) {
+            updatedData[key] = convertedData[key]
+          }
+        })
+
+        setFormData(prevData => ({
+          ...prevData,
+          ...updatedData
+        }))
       }
     } catch (error) {
       console.log('Feed list', error)
     }
   }
-
   useEffect(() => {
     getUnitsList()
     callIngredientTypeList({ status: 1, page: 1, limit: 10 })
@@ -198,79 +225,155 @@ const AddRecipe = () => {
   }
 
   const handleStepBillingSubmit = async () => {
-    const numericFormData = {
-      ...formData,
-      // portion_size: parseInt(formData.portion_size),
-      // portion_uom_id: parseInt(formData.portion_uom_id),
-      // nutrional_value: parseInt(formData.nutrional_value),
-      // nutrional_uom_id: parseInt(formData.nutrional_uom_id),
-      // kcal: parseInt(formData.kcal),
-      by_percentage: JSON.stringify(
-        formData.by_percentage.map(item => ({
-          ingredient_id: parseInt(item.ingredient_id),
-          ingredient_name: item.ingredient_name,
-          feed_type_label: item.feed_type_label,
-          quantity: parseInt(item.quantity),
-          preparation_type_id: parseInt(item.preparation_type_id),
-          preparation_name: item.preparation_name
-        }))
-      ),
-      by_quantity: JSON.stringify(
-        formData.by_quantity.map(item => ({
-          ingredient_id: parseInt(item.ingredient_id),
-          ingredient_name: item.ingredient_name,
-          feed_type_label: item.feed_type_label,
-          uom_id: parseInt(item.uom_id),
-          quantity: parseInt(item.quantity),
-          preparation_type_id: parseInt(item.preparation_type_id),
-          preparation_name: item.preparation_name
-        }))
-      )
-    }
-
-    // Remove unnecessary fields from formData
-    const cleanedFormData = {
-      ...numericFormData,
-      by_percentage: numericFormData.by_percentage,
-      by_quantity: numericFormData.by_quantity,
-      recipe_image: numericFormData.recipe_image[0]
-    }
-
-    console.log(cleanedFormData, 'cleanedFormData')
-    const apival = await addNewRecipe(cleanedFormData)
-    console.log(apival, 'apival')
-    if (apival.success === true) {
-      Router.push(`/diet/recipe`)
-      return toast(
-        t => (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
-              <div>
-                <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                  Success!
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant='body2' sx={{ color: '#44544A' }}>
-                  Recipe added successfully
-                </Typography>
-              </div>
-            </Box>
-            <IconButton
-              onClick={() => toast.dismiss(t.id)}
-              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-            >
-              <Icon icon='mdi:close' fontSize={24} />
-            </IconButton>
-          </Box>
+    if (!id) {
+      const numericFormData = {
+        ...formData,
+        by_percentage: JSON.stringify(
+          formData.by_percentage.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
         ),
-        {
-          style: {
-            minWidth: '450px',
-            minHeight: '130px'
+        by_quantity: JSON.stringify(
+          formData.by_quantity.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            uom_id: item.uom_id,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        )
+      }
+
+      // Remove unnecessary fields from formData
+      const updatedFormData = {
+        ...numericFormData,
+        by_percentage: numericFormData.by_percentage,
+        by_quantity: numericFormData.by_quantity,
+        recipe_image: numericFormData.recipe_image[0]
+      }
+
+      console.log(updatedFormData, 'updatedFormData')
+      const apival = await addNewRecipe(updatedFormData)
+      console.log(apival, 'apival')
+      if (apival.success === true) {
+        Router.push(`/diet/recipe`)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Recipe added successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
           }
-        }
-      )
+        )
+      }
+    } else {
+      const numericFormData = {
+        ...formData,
+        by_percentage: JSON.stringify(
+          formData.by_percentage.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        ),
+        by_quantity: JSON.stringify(
+          formData.by_quantity.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            uom_id: item.uom_id,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        )
+      }
+
+      const updatedFormData = {
+        ...numericFormData,
+        by_percentage: numericFormData.by_percentage,
+        by_quantity: numericFormData.by_quantity
+      }
+      console.log(formData.recipe_image, 'klkl')
+      if (formData.recipe_image === null) {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else if (typeof formData.recipe_image === 'string') {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else {
+        updatedFormData.recipe_image = formData.recipe_image[0]
+        updatedFormData.remove_current_image = '1'
+      }
+
+      console.log(updatedFormData, 'updatedFormData')
+      const apival = await updateRecipe(id, updatedFormData)
+      console.log(apival, 'apival')
+      if (apival.success === true) {
+        Router.push(`/diet/recipe`)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Recipe updated successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      }
     }
   }
 
@@ -318,7 +421,8 @@ const AddRecipe = () => {
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>
-        <Typography color='text.primary'>Add new recipe</Typography>
+        {console.log(id, 'id')}
+        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new recipe'}</Typography>
       </Breadcrumbs>
       {console.log(formData, 'ppp')}
       <Card>
@@ -326,7 +430,7 @@ const AddRecipe = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography sx={{ mb: 1 }} variant='h6'>
-                Add New Recipe
+                {id ? 'Edit Recipe' : 'Add New Recipe'}
               </Typography>
               <Typography sx={{ mb: 1, fontSize: 14 }}>
                 Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient

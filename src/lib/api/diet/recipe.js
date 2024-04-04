@@ -1,4 +1,15 @@
-import { DETAILS, DIET, RECIPES, UOM, LIST, LISTING, ADD, DELETE, UPDATE_STATUS } from '../../../constants/ApiConstant'
+import {
+  DETAILS,
+  DIET,
+  RECIPES,
+  UOM,
+  LIST,
+  LISTING,
+  ADD,
+  DELETE,
+  UPDATE_STATUS,
+  UPDATE
+} from '../../../constants/ApiConstant'
 import { axiosGet, axiosFormPost, axiosPost } from '../utility'
 
 export async function getRecipeList({ params }) {
@@ -48,6 +59,20 @@ export async function deleteRecipe(id) {
 export async function updateRecipeStatus(id, payload) {
   try {
     const response = await axiosPost({ url: `${DIET}/${RECIPES}/${UPDATE_STATUS}/${id}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function updateRecipe(id, payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${RECIPES}/${UPDATE}/${id}`, body: payload })
 
     return response?.data
   } catch (error) {

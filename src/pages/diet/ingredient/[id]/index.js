@@ -167,7 +167,13 @@ const IngredientDetail = () => {
                       {IngredientsDetailsval.ingredient_name}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                      <Icon icon='bx:pencil' style={{ cursor: 'pointer' }} />
+                      <Icon
+                        icon='bx:pencil'
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
+                        }}
+                      />
                       <Icon
                         icon='material-symbols:delete-outline'
                         style={{ cursor: 'pointer', marginLeft: '15px' }}
@@ -183,9 +189,21 @@ const IngredientDetail = () => {
                     <Grid item xs={8}>
                       <TabContext value={value}>
                         <TabList onChange={handleChange} aria-label='customized tabs example'>
-                          <Tab value='1' label='OVERVIEW' />
-                          <Tab value='2' label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal} />
-                          <Tab value='3' label='USED IN DIET' />
+                          <Tab
+                            style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                            value='1'
+                            label='OVERVIEW'
+                          />
+                          <Tab
+                            style={{ borderRadius: 0 }}
+                            value='2'
+                            label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                          />
+                          <Tab
+                            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                            value='3'
+                            label='USED IN DIET'
+                          />
                         </TabList>
                         <TabPanel value='1'>
                           <OverviewTabView IngredientsDetailsval={IngredientsDetailsval} />

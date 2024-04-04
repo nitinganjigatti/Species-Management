@@ -32,12 +32,12 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Recipe name is required'),
-  portion_size: yup.string().required('Portion size is required'),
-  portion_uom_id: yup.string().required('Unit of measurement is required'),
-  nutrional_value: yup.string().required('Nutritional values are required'),
-  nutrional_uom_id: yup.string().required('Unit of measurement is required'),
-  kcal: yup.string().required('Total calories are required')
+  recipe_name: yup.string().required('Recipe name is required')
+  //portion_size: yup.string().required('Portion size is required')
+  // portion_uom_id: yup.string().required('Unit of measurement is required'),
+  // nutrional_value: yup.string().required('Nutritional values are required'),
+  // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
+  // kcal: yup.string().required('Total calories are required')
 })
 
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
@@ -124,7 +124,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 render={({ field: { value, onChange } }) => (
                   <TextField
                     value={value}
-                    label='Recipe name'
+                    label='Recipe name *'
                     name='recipe_name'
                     error={Boolean(errors.recipe_name)}
                     onChange={onChange}
@@ -152,6 +152,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       error={Boolean(errors.portion_size)}
                       onChange={onChange}
                       placeholder=''
+                      onInput={e => {
+                        if (e.target.value < 0) {
+                          e.target.value = ''
+                        }
+                      }}
                     />
                   )}
                 />
@@ -160,7 +165,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3.7}>
+            <Grid item xs={12} sm={3.17}>
               <FormControl fullWidth>
                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                 {console.log(uomList, 'uomList')}
@@ -170,17 +175,17 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <Autocomplete
-                      value={uomList.find(option => option._id === value) || null} // Set the value based on the selected _id
+                      value={uomList.find(option => option._id === value) || null}
                       disablePortal
                       id='portion_uom_id'
-                      options={uomList || []} // Ensure that options are set to uomList or an empty array
+                      options={uomList || []}
                       getOptionLabel={option => option.name}
                       isOptionEqualToValue={(option, value) => option?._id === value?._id}
                       onChange={(e, val) => {
                         if (val === null) {
-                          return onChange('') // If null is selected, set the value to an empty string
+                          return onChange('')
                         } else {
-                          return onChange(val._id) // Set the value to the selected _id
+                          return onChange(val._id)
                         }
                       }}
                       renderInput={params => (
@@ -223,6 +228,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       error={Boolean(errors.nutrional_value)}
                       onChange={onChange}
                       placeholder=''
+                      onInput={e => {
+                        if (e.target.value < 0) {
+                          e.target.value = ''
+                        }
+                      }}
                     />
                   )}
                 />
@@ -241,17 +251,17 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <Autocomplete
-                      value={uomList.find(option => option._id === value) || null} // Set the value based on the selected _id
+                      value={uomList.find(option => option._id === value) || null}
                       disablePortal
                       id='nutrional_uom_id'
-                      options={uomList || []} // Ensure that options are set to uomList or an empty array
+                      options={uomList || []}
                       getOptionLabel={option => option.name}
                       isOptionEqualToValue={(option, value) => option?._id === value?._id}
                       onChange={(e, val) => {
                         if (val === null) {
-                          return onChange('') // If null is selected, set the value to an empty string
+                          return onChange('')
                         } else {
-                          return onChange(val._id) // Set the value to the selected _id
+                          return onChange(val._id)
                         }
                       }}
                       renderInput={params => (
@@ -286,6 +296,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       error={Boolean(errors.kcal)}
                       onChange={onChange}
                       placeholder=''
+                      onInput={e => {
+                        if (e.target.value < 0) {
+                          e.target.value = ''
+                        }
+                      }}
                     />
                   )}
                 />

@@ -19,6 +19,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -27,6 +28,11 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 
 // Styled TabList component
+
+const roleColors = {
+  active: 'success',
+  inactive: 'error'
+}
 
 const RecipeList = () => {
   const [loader, setLoader] = useState(false)
@@ -127,7 +133,7 @@ const RecipeList = () => {
   const handleSwitchChange = async (event, rowData) => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
-      const response = await updateRecipeStatus(rowData?.id, { status: newIsActive })
+      const response = await updateRecipeStatus(rowData?.id, { active: newIsActive })
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
@@ -299,20 +305,42 @@ const RecipeList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 20,
-      field: 'switch',
-      headerName: '',
-      disableColumnMenu: true,
+      minWidth: 10,
+      field: 'status',
+      headerName: 'STATUS',
       renderCell: params => (
-        <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <Switch
-            checked={params.row.active === '0' ? false : true}
-            onChange={event => handleSwitchChange(event, params.row)}
-            fontSize={2}
-          />
-        </Box>
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
       )
     }
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'switch',
+    //   headerName: '',
+    //   disableColumnMenu: true,
+    //   renderCell: params => (
+    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+    //       <Switch
+    //         checked={params.row.active === '0' ? false : true}
+    //         onChange={event => handleSwitchChange(event, params.row)}
+    //         fontSize={2}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const onCellClick = params => {
