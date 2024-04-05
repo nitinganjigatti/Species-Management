@@ -135,7 +135,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.quantity ? params.row.quantity : '-'}
+          {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
         </Typography>
       )
     },

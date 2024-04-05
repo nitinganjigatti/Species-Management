@@ -233,7 +233,7 @@ const AddRecipe = () => {
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
-            quantity: item.quantity,
+            quantity: parseFloat(item.quantity).toFixed(2),
             preparation_type_id: parseInt(item.preparation_type_id),
             preparation_type: item.preparation_type
           }))
@@ -268,7 +268,7 @@ const AddRecipe = () => {
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                 <div>
                   <Typography sx={{ fontWeight: 500 }} variant='h5'>
                     Success!
@@ -303,7 +303,7 @@ const AddRecipe = () => {
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
-            quantity: item.quantity,
+            quantity: parseFloat(item.quantity).toFixed(2),
             preparation_type_id: parseInt(item.preparation_type_id),
             preparation_type: item.preparation_type
           }))
@@ -347,7 +347,7 @@ const AddRecipe = () => {
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                 <div>
                   <Typography sx={{ fontWeight: 500 }} variant='h5'>
                     Success!

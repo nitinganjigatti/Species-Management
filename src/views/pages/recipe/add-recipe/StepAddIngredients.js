@@ -10,11 +10,13 @@ import { FormHelperText } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
-import { IconButton } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
+import { Divider } from '@mui/material'
 import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -92,7 +94,6 @@ const StepAddIngredients = ({
   ]
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
-
   const {
     reset,
     control,
@@ -129,12 +130,6 @@ const StepAddIngredients = ({
   })
 
   const addIngredientsButton = () => {
-    console.log(fieldsIngredients, 'klklkl')
-    const totalQuantityval = fieldsIngredients.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
-    const exceeds100 = totalQuantityval > 100
-    console.log(exceeds100, 'totalQuantity')
-    console.log(totalQuantityval, 'totalQuantityval')
-
     return (
       <>
         <Typography
@@ -160,12 +155,16 @@ const StepAddIngredients = ({
           <Icon icon='material-symbols:add' />
           ADD NEW INGREDIENT
         </Typography>
-        {exceeds100 && (
-          <FormHelperText sx={{ color: 'error.main', ml: 4 }}>Total percentage exceeds 100</FormHelperText>
-        )}
       </>
     )
   }
+
+  const calculateTotalQuantity = () => {
+    const byPercentageValues = getValues('by_percentage')
+    const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
+    return totalQuantity
+  }
+
   const addQuantityButton = () => {
     return (
       <Typography
@@ -254,19 +253,53 @@ const StepAddIngredients = ({
 
   const onSubmit = async data => {
     console.log(data, 'data')
-    window.scrollTo(0, 0)
-    // Clear any existing errors
-    Object.keys(defaultValues).forEach(field => {
-      clearErrors(field)
-    })
-
-    try {
-      await schema.validate(data, { abortEarly: false })
-      handleNext(data)
-    } catch (validationErrors) {
-      validationErrors.inner.forEach(error => {
-        setError(error.path, { message: error.message })
+    if (calculateTotalQuantity() > 100) {
+      window.scrollTo(0, 0)
+      return toast(
+        t => (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Icon icon='jam:alert-f' style={{ marginRight: '20px', fontSize: 50, color: 'rgb(255 0 0 / 80%)' }} />
+              <div>
+                <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                  Alert!
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  Please review and adjust percentages before adding new ingredients
+                </Typography>
+              </div>
+            </Box>
+            <IconButton
+              onClick={() => toast.dismiss(t.id)}
+              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            >
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+        ),
+        {
+          style: {
+            minWidth: '450px',
+            minHeight: '130px'
+          }
+        }
+      )
+    } else {
+      window.scrollTo(0, 0)
+      // Clear any existing errors
+      Object.keys(defaultValues).forEach(field => {
+        clearErrors(field)
       })
+
+      try {
+        await schema.validate(data, { abortEarly: false })
+        handleNext(data)
+      } catch (validationErrors) {
+        validationErrors.inner.forEach(error => {
+          setError(error.path, { message: error.message })
+        })
+      }
     }
   }
 
@@ -315,14 +348,15 @@ const StepAddIngredients = ({
   }, [formData])
 
   const handleEquilizerClick = () => {
-    const numIngredients = fieldsIngredients.length
+    const byPercentageValues = getValues('by_percentage')
+    console.log(byPercentageValues, 'byPercentageValues')
+    const numIngredients = byPercentageValues.length
     const equalDistribution = 100 / numIngredients
-    const updatedIngredients = fieldsIngredients.map((ingredient, index) => ({
-      ...ingredient,
-      quantity: equalDistribution.toString() // Convert to string if needed
-    }))
 
-    // Set the updated ingredients array
+    const updatedIngredients = byPercentageValues.map(ingredient => ({
+      ...ingredient,
+      quantity: equalDistribution.toString()
+    }))
     setFormValue('by_percentage', updatedIngredients)
   }
 
@@ -341,7 +375,23 @@ const StepAddIngredients = ({
                 <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {ingredient.label}{' '}
-                    {/* {ingredient.label === 'Quantity' && <Icon icon='mdi:equal-box' onClick={handleEquilizerClick} />} */}
+                    <span style={{ fontSize: '12px', color: '#588980db', textTransform: 'lowercase' }}>
+                      {' '}
+                      {ingredient.label === 'Quantity' ? (
+                        calculateTotalQuantity() === 0 ? (
+                          '(0% Left)'
+                        ) : calculateTotalQuantity() >= 100 ? (
+                          <span style={{ fontSize: '12px', color: '#37BD69', textTransform: 'lowercase' }}>
+                            (100% Done)
+                          </span>
+                        ) : (
+                          `(${100 - calculateTotalQuantity()}% Left)`
+                        )
+                      ) : (
+                        ''
+                      )}
+                    </span>
+                    {ingredient.label === 'Quantity' && <Icon icon='mdi:equal-box' onClick={handleEquilizerClick} />}
                   </div>
                 </Typography>
               </Grid>
@@ -375,6 +425,7 @@ const StepAddIngredients = ({
                                 setFormValue(`by_percentage[${index}].ingredient_name`, '')
                                 setFormValue(`by_percentage[${index}].feed_type_label`, '')
                                 //setPreparationTypeListPercentage([])
+                                setFormValue(`by_percentage[${index}].preparation_type`, '')
                               } else {
                                 onChange(val?.id)
                                 setFormValue(`by_percentage[${index}].ingredient_name`, val?.ingredient_name)
@@ -385,6 +436,7 @@ const StepAddIngredients = ({
                                 //   setpreparationTypeList([])
                                 // }
                                 handlecheck(val?.id, index, 'by_percentage')
+                                setFormValue(`by_percentage[${index}].preparation_type`, '')
                               }
                             }}
                             onKeyUp={e => {
@@ -428,7 +480,13 @@ const StepAddIngredients = ({
                             type='number'
                             label='Enter Quantity (%)*'
                             name={`by_percentage[${index}].quantity`}
-                            onChange={onChange}
+                            onChange={e => {
+                              onChange(e)
+                              const totalQuantity = calculateTotalQuantity()
+                              // Update the state or do whatever you need with the total quantity
+                              console.log('Total Quantity:', totalQuantity)
+                              trigger(`by_percentage[${index}].quantity`)
+                            }}
                             placeholder=''
                             onInput={e => {
                               if (e.target.value < 0) {
@@ -449,6 +507,23 @@ const StepAddIngredients = ({
                         <FormHelperText sx={{ color: 'error.main' }}>
                           {errors.by_percentage[index].quantity?.message}
                         </FormHelperText>
+                      )}
+                      {index === fieldsIngredients.length - 1 && (
+                        <Grid item xs={12} sm={12}>
+                          <span
+                            style={{
+                              paddingTop: '15px',
+                              float: 'left',
+                              color: '#ff0000cc',
+                              paddingLeft: '12px',
+                              fontSize: '14px'
+                            }}
+                          >
+                            {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
+                              ? "you've hit 100% limit"
+                              : ''}
+                          </span>
+                        </Grid>
                       )}
                     </FormControl>
                   </Grid>
