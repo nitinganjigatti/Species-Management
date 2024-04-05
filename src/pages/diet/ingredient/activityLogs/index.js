@@ -247,7 +247,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
                               : theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {item.action}
+                        {item.title}
                       </Typography>
 
                       <Box
@@ -282,7 +282,8 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
                                 color: theme.palette.customColors.neutralSecondary
                               }}
                             >
-                              {item.title}
+                              {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
+                              &nbsp; Ingredient
                             </Typography>
                           </Box>
                         </Box>

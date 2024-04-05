@@ -1,22 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import {
-  Avatar,
-  Button,
-  Card,
-  CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  CircularProgress,
-  TablePagination,
-  TableFooter,
-  IconButton
-} from '@mui/material'
+import { Avatar, Button, Card, CardContent, Typography, CircularProgress } from '@mui/material'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
@@ -24,34 +7,83 @@ import { debounce } from 'lodash'
 import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
 import { getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
 import format from 'date-fns/format'
-import PropTypes from 'prop-types'
-import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const FeedDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const [FeedDetailsValue, setFeedDetails] = useState([])
-  const [IngredientsList, setIngredientsList] = useState([])
-  const [ingredientsCount, setingredientsCount] = useState('')
   const [loader, setLoader] = useState(true)
-  const [tableLoader, settableLoader] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('ASC')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [page, setPage] = useState(0)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - IngredientsList.length) : 0
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-    settableLoader(true)
+  function loadServerRows(currentPage, data) {
+    return data
   }
 
-  const handleChangeRowsPerPage = event => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
+  const columns = [
+    {
+      flex: 0.1,
+      minWidth: 30,
+      field: 'id',
+      headerName: 'SL',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.5,
+      minWidth: 30,
+      field: 'ingredient_name',
+      headerName: 'INGREDIENTS',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Avatar variant='square' src={params?.row?.ingredient_image ? params?.row?.ingredient_image : ''} />
+          {params?.row?.ingredient_name ? params?.row?.ingredient_name : ''}
+        </Box>
+      )
+    },
+    {
+      flex: 0.7,
+      minWidth: 10,
+      field: 'created_by_user',
+      headerName: 'ADDED BY',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
+          <Avatar variant='round' src={params?.row?.image ? params?.row?.image : ''} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', mx: 2 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
+              {params?.row?.created_by_user?.user_name ? params?.row?.created_by_user?.user_name : ''}
+            </Typography>
+            <Typography variant='caption' sx={{ color: 'text.disabled', color: 'rgb(76 78 100 / 56%)' }}>
+              Added on {format(new Date(params?.row?.created_at ? params?.row?.created_at : ''), 'MM/dd/yyyy')}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      field: 'status',
+      headerName: '',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
+          <Icon color='#a7a7a7' icon='mdi:eye-outline' />
+        </Box>
+      )
+    }
+  ]
 
   const convertToTitleCase = str => {
     if (!str) return ''
@@ -69,31 +101,10 @@ const FeedDetails = () => {
         setFeedDetails(response.data.data)
         setLoader(false)
       }
+      setLoader(false)
     } catch (error) {
       console.log('Feed list', error)
       setLoader(false)
-    }
-  }
-
-  // Function to fetch ingredients based on feed
-  const getIngredientsonFeedList = async (id, query, page, limit) => {
-    try {
-      const response = await getIngredientsOnFeed(id, {
-        q: query,
-        page: page + 1,
-        searchColumns: sortColumning,
-        limit: rowsPerPage
-      })
-      if (response.data.success === true) {
-        setIngredientsList(response.data.data.result)
-        setingredientsCount(response.data.data.total_count)
-        setLoader(false)
-        settableLoader(false)
-      }
-    } catch (error) {
-      console.log('Ingredient list', error)
-      setLoader(false)
-      settableLoader(false)
     }
   }
 
@@ -103,77 +114,77 @@ const FeedDetails = () => {
     }
   }, [id])
 
+  ///////////////////////////////////////////////////////////////////
+
+  // const onCellClick = params => {
+  //   // Router.push({ pathname: `/diet/feed/${id}`, query: { id: params?.id } })
+  //   Router.push({ pathname: `/diet/feed/${params?.id}` })
+  // }
+
+  const getIngredientsonFeedList = useCallback(
+    async (q, sortColumning) => {
+      if (id) {
+        try {
+          setLoading(true)
+
+          await getIngredientsOnFeed(id, {
+            q,
+            page: paginationModel.page + 1,
+            searchColumns: sortColumning,
+            limit: paginationModel.pageSize
+          }).then(res => {
+            if (res?.data?.success) {
+              let listWithId = res.data?.data?.result.map((el, i) => {
+                return { ...el, id: i + 1 }
+              })
+              setTotal(parseInt(res?.data?.data?.total_count))
+              setRows(loadServerRows(paginationModel.page, listWithId))
+            } else {
+              console.log('err', res)
+            }
+          })
+          setLoading(false)
+        } catch (e) {
+          setLoading(false)
+        }
+      }
+    },
+    [paginationModel]
+  )
   useEffect(() => {
-    if (id) {
-      getIngredientsonFeedList(id, searchQuery, page, rowsPerPage)
+    getIngredientsonFeedList(searchValue, sortColumning)
+  }, [id, getIngredientsonFeedList])
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setsortColumning(newModel[0].field)
+      getIngredientsonFeedList(searchValue, newModel[0].field)
+    } else {
     }
-  }, [id, searchQuery, page, rowsPerPage])
+  }
 
   const searchTableData = useCallback(
-    debounce(async ({ q }) => {
-      setSearchQuery(q) // Update searchQuery state
+    debounce(async (q, sortColumn) => {
+      try {
+        await getIngredientsonFeedList(q, sortColumn)
+      } catch (error) {
+        console.error(error)
+      }
     }, 1000),
     []
   )
 
-  const handleSearch = async value => {
-    setSearchQuery(value)
-    searchTableData(value)
-    await searchTableData({ q: value, searchColumns: sortColumning })
-  }
-
-  function TablePaginationActions(props) {
-    const theme = useTheme()
-    const { count, page, rowsPerPage, onPageChange } = props
-
-    const handleFirstPageButtonClick = event => {
-      onPageChange(event, 0)
-    }
-
-    const handleBackButtonClick = event => {
-      onPageChange(event, page - 1)
-    }
-
-    const handleNextButtonClick = event => {
-      onPageChange(event, page + 1)
-    }
-
-    const handleLastPageButtonClick = event => {
-      onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1))
-    }
-
-    return (
-      <Box sx={{ flexShrink: 0, ml: 2.5 }}>
-        <IconButton onClick={handleFirstPageButtonClick} disabled={page === 0} aria-label='first page'>
-          {theme.direction === 'rtl' ? <Icon icon='mdi:last-page' /> : <Icon icon='mdi:first-page' />}
-        </IconButton>
-        <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label='previous page'>
-          {theme.direction === 'rtl' ? (
-            <Icon icon='mdi:keyboard-arrow-right' />
-          ) : (
-            <Icon icon='mdi:keyboard-arrow-left' />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleNextButtonClick}
-          disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-          aria-label='next page'
-        >
-          {theme.direction === 'rtl' ? (
-            <Icon icon='mdi:keyboard-arrow-left' />
-          ) : (
-            <Icon icon='mdi:keyboard-arrow-right' />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleLastPageButtonClick}
-          disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-          aria-label='last page'
-        >
-          {theme.direction === 'rtl' ? <Icon icon='mdi:first-page' /> : <Icon icon='mdi:last-page' />}
-        </IconButton>
-      </Box>
-    )
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(value, sortColumning)
   }
 
   return (
@@ -200,114 +211,61 @@ const FeedDetails = () => {
             </Card>
             <Card sx={{ mt: 6 }}>
               <CardContent>
-                <Box sx={{ display: 'flex', my: 7, height: '32px', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
                   <Typography sx={{ fontWeight: 600 }} variant='h6'>
                     Ingredients
                   </Typography>
-                  <Button sx={{ px: 7, py: 5, ml: 34 }} size='small' variant='contained'>
+                  <Button
+                    onClick={() => Router.push('/diet/ingredient/add-ingredient')}
+                    sx={{ px: 7, py: 5, ml: 34 }}
+                    size='small'
+                    variant='contained'
+                  >
                     <Icon icon='mdi:add' fontSize={20} />
                     &nbsp; Add ingredient
                   </Button>
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search ingredient'
-                    InputProps={{
-                      startAdornment: (
-                        <Icon style={{ marginRight: 7 }} color='#a7a7a7' icon='mdi:search' fontSize={18} />
-                      )
-                    }}
-                    sx={{ '& input': { py: 2 } }}
-                    value={searchQuery}
-                    onChange={event => handleSearch(event.target.value)}
-                    type='search'
-                  />
                 </Box>
-                {tableLoader ? ( // Render loader only when loader state is true
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <>
-                    {IngredientsList.length === 0 ? (
-                      <Typography variant='subtitle1' sx={{ my: '10%', textAlign: 'center' }}>
-                        No data to show
-                      </Typography>
-                    ) : (
-                      <TableContainer sx={{ border: '1px solid #e8ebf1' }}>
-                        <Table aria-label='simple table'>
-                          <TableHead>
-                            <TableRow sx={{ height: '56px', backgroundColor: '#E8F4F2' }}>
-                              <TableCell>Ingredients</TableCell>
-                              <TableCell>Added by</TableCell>
-                              <TableCell align='right'></TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {IngredientsList.map(row => (
-                              <TableRow key={row.ingredient_name}>
-                                <TableCell sx={{ pr: 10 }}>
-                                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                    <Avatar variant='square' src={row.ingredient_image ? row.ingredient_image : ''} />
-                                    {row.ingredient_name ? row.ingredient_name : ''}
-                                  </Box>
-                                </TableCell>
-                                <TableCell>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
-                                    <Avatar variant='round' src={row.image ? row.image : ''} />
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', mx: 2 }}>
-                                      <Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
-                                        {row.created_by_user?.user_name ? row.created_by_user?.user_name : ''}
-                                      </Typography>
-                                      <Typography
-                                        variant='caption'
-                                        sx={{ color: 'text.disabled', color: 'rgb(76 78 100 / 56%)' }}
-                                      >
-                                        Added on {format(new Date(row.created_at ? row.created_at : ''), 'MM/dd/yyyy')}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                </TableCell>
-                                <TableCell>
-                                  <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
-                                    <Icon color='#a7a7a7' icon='mdi:eye-outline' />
-                                  </Box>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                            {/* {emptyRows > 0 && (
-                          <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                          </TableRow>
-                        )} */}
-                          </TableBody>
-                          <TableFooter>
-                            <TableRow>
-                              <TablePagination
-                                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: ingredientsCount }]}
-                                colSpan={3}
-                                count={ingredientsCount}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                slotProps={{
-                                  select: {
-                                    inputProps: {
-                                      'aria-label': 'rows per page'
-                                    },
-                                    native: true
-                                  }
-                                }}
-                                onPageChange={handleChangePage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                ActionsComponent={TablePaginationActions}
-                              />
-                            </TableRow>
-                          </TableFooter>
-                        </Table>
-                      </TableContainer>
-                    )}
-                  </>
-                )}
               </CardContent>
+              <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl_no: false
+                }}
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                // onCellClick={onCellClick}
+              />
             </Card>
           </Grid>
         </Grid>
