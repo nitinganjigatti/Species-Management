@@ -77,6 +77,7 @@ export default function AddProduct() {
   const [previousPrescriptionLength, setPreviousPrescriptionLength] = useState(false)
   const [imgSrcChange, setImgSrcChange] = useState(false)
   const [confirmationBox, setConfirmationBox] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
   const theme = useTheme()
@@ -199,6 +200,7 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
+    setSubmitLoader(true)
     const dataChild = [...dataChildValues]
 
     const requestData = dataChild?.map((item, index) => {
@@ -281,15 +283,17 @@ export default function AddProduct() {
       }
 
       if (response?.success) {
+        reset()
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
 
         router.push('/pharmacy/new-product-request/')
-        reset()
       } else {
+        setSubmitLoader(false)
       }
     } catch (error) {
       console.error('An error occurred:', error)
+      setSubmitLoader(false)
     }
   }
 
@@ -457,7 +461,7 @@ export default function AddProduct() {
                 }
               />
 
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                 <CardContent>
                   <Grid container spacing={6}>
                     {/* <Grid item xs={12} sm={6}>
@@ -874,6 +878,7 @@ export default function AddProduct() {
                     )}
                     <LoadingButton
                       type='submit'
+                      loading={submitLoader}
                       sx={{ mr: '8px' }}
                       size='large'
                       variant='contained'
