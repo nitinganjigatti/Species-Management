@@ -34,6 +34,7 @@ import {
   getUnitsForIngredient,
   updateIngredients
 } from 'src/lib/api/diet/getFeedDetails'
+import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
 import UserSnackbar from 'src/components/utility/snackbar'
 import Router, { useRouter } from 'next/router'
 import { addPreparationType, getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
@@ -107,7 +108,7 @@ const AddIngredient = () => {
   useEffect(() => {
     if (id) {
       setLoading(true)
-      getIngredientDetails(id).then(res => {
+      getIngredientDetail(id).then(res => {
         // console.log('res', res?.data)
         if (res?.success) {
           setValue('ingredientName', res?.data?.ingredient_name)

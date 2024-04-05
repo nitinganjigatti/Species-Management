@@ -10,7 +10,7 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid, Avatar } from '@mui/material'
 
-const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => {
+const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type }) => {
   const [checked, setChecked] = useState(false)
   const handleChange = event => {
     setChecked(event.target.checked)
@@ -57,12 +57,17 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
             marginBottom: '15px'
           }}
         >
-          <img src='/icons/grocery.svg' alt='Grocery Icon' width='40' height='40' />
+          {type === 'ingredient' ? (
+            <img src='/icons/grocery.svg' alt='Grocery Icon' width='40' height='40' />
+          ) : (
+            <img src='/icons/grocery.svg' alt='Grocery Icon' width='40' height='40' />
+          )}
         </span>
         <DialogTitle id='alert-dialog-title'>
           {message}
           <Typography sx={{ mt: 2 }}>
-            Deactivating this ingredient prevents its addition to new <br /> recipes or diets.
+            Deactivating this {type === 'ingredient' ? 'ingredient' : 'recipe'} prevents its addition to new <br />{' '}
+            {type === 'ingredient' ? 'recipes or diets.' : 'diets'}
           </Typography>
         </DialogTitle>
 
@@ -78,14 +83,15 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
           }}
         >
           <Typography sx={{ color: '#FA6140', pt: 6, fontSize: 14, fontWeight: 600 }}>
-            This ingredient is part of 15 recipes and 10 diets.
+            This {type === 'ingredient' ? 'ingredient' : 'recipe'} is part of{' '}
+            {type === 'ingredient' ? ' 15 recipes and 10 diets.' : '20 diets.'}
           </Typography>
           <Grid>
             <Typography sx={{ fontSize: 15 }}>
               <FormControlLabel
                 label={
                   <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
-                    Deactivate this ingredient in all records
+                    Deactivate this {type === 'ingredient' ? 'ingredient' : 'recipe'} in all records
                   </span>
                 }
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
@@ -93,7 +99,7 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => 
             </Typography>
             <Grid item>
               <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
-                Option to swap it with another ingredient is still possible
+                Option to swap it with another {type === 'ingredient' ? 'ingredient' : 'recipe'} is still possible
               </Typography>
             </Grid>
           </Grid>

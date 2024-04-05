@@ -13,8 +13,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -32,14 +33,14 @@ import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 
-// Styled TabList component
+const roleColors = {
+  active: 'success',
+  inactive: 'error'
+}
 
 const IngredientsList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
-
-  /***** Server side pagination */
-
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -48,8 +49,6 @@ const IngredientsList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
-
-  //const [status, setStatus] = useState('all')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -158,7 +157,7 @@ const IngredientsList = () => {
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                 <div>
                   <Typography sx={{ fontWeight: 500 }} variant='h5'>
                     Success!
@@ -326,20 +325,42 @@ const IngredientsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 20,
-      field: 'switch',
-      headerName: '',
-      disableColumnMenu: true, // Exclude from column menu
+      minWidth: 10,
+      field: 'status',
+      headerName: 'STATUS',
       renderCell: params => (
-        <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <Switch
-            checked={params.row.active === '0' ? false : true}
-            onChange={event => handleSwitchChange(event, params.row)}
-            fontSize={2}
-          />
-        </Box>
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
       )
     }
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'switch',
+    //   headerName: '',
+    //   disableColumnMenu: true, // Exclude from column menu
+    //   renderCell: params => (
+    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+    //       <Switch
+    //         checked={params.row.active === '0' ? false : true}
+    //         onChange={event => handleSwitchChange(event, params.row)}
+    //         fontSize={2}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const onCellClick = params => {

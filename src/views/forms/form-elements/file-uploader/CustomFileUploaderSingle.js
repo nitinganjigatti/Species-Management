@@ -28,14 +28,6 @@ const Img = styled('img')(({ theme }) => ({
   }
 }))
 
-// Styled component for the heading inside the dropzone area
-const HeadingTypography = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(5),
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: theme.spacing(4)
-  }
-}))
-
 const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedImagenew }) => {
   // ** State
   const [uploadedImage, setUploadedImage] = useState(imageData || [])
@@ -59,41 +51,15 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
   }
   useEffect(() => {
     if (uploadedImagenew) {
-      setUploadedImage(uploadedImagenew)
+      if (typeof uploadedImagenew === 'string') {
+        setUploadedImage([uploadedImagenew])
+      } else {
+        setUploadedImage(uploadedImagenew)
+      }
     } else {
       setUploadedImage([])
     }
   }, [uploadedImagenew])
-  const img = uploadedImage?.map(file => (
-    <div
-      style={{
-        borderRadius: '12px',
-        width: '135px',
-        height: '135px',
-        position: 'relative',
-        left: '96%',
-        background: '#E8F4F2',
-        padding: '20px'
-      }}
-    >
-      <img
-        key={file.name}
-        alt={file.name}
-        className='single-file-image'
-        src={URL.createObjectURL(file)}
-        style={{
-          height: '100%',
-          width: '100%',
-          borderRadius: '50%'
-        }}
-      />
-      <Icon
-        onClick={handleimage}
-        style={{ position: 'absolute', right: '0px', top: '0px', cursor: 'pointer' }}
-        icon='basil:cancel-solid'
-      />
-    </div>
-  ))
 
   return (
     <>
@@ -124,7 +90,7 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
             }}
             className='ppp'
           >
-            <div className='raghu' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
+            <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
               <div style={{ border: '2px dotted #D8D8DD', padding: '20px', borderRadius: '4px', marginRight: '14px' }}>
                 <Icon icon='fluent:image-add-20-regular' style={{ fontSize: '40px' }} />
               </div>
@@ -137,19 +103,40 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
         </Box>
       </Box>
       {console.log(uploadedImage, 'uploadedImage')}
-      {uploadedImage.length > 0 || (props?.image !== '' && props?.image !== undefined) ? (
-        uploadedImage.length > 0 ? (
-          img
-        ) : (
+      {uploadedImage.length > 0 ? (
+        <div
+          style={{
+            borderRadius: '12px',
+            width: '135px',
+            height: '135px',
+            position: 'relative',
+            left: '96%',
+            background: '#E8F4F2',
+            padding: '20px'
+          }}
+        >
           <img
-            alt='Medicine Picture'
-            className='single-file-image'
-            src={`${props?.image}`}
-            style={{ maxHeight: '300px', maxWidth: '300px', objectFit: 'contain' }}
+            alt='Uploaded Image'
+            src={typeof uploadedImage[0] === 'string' ? uploadedImage[0] : URL.createObjectURL(uploadedImage[0])}
+            style={{
+              height: '100%',
+              width: '100%',
+              borderRadius: '50%'
+            }}
           />
-        )
+          <Icon
+            onClick={handleimage}
+            style={{ position: 'absolute', right: '0px', top: '0px', cursor: 'pointer' }}
+            icon='basil:cancel-solid'
+          />
+        </div>
       ) : (
-        ''
+        <Box
+          {...getRootProps({ className: 'dropzone' })}
+          sx={uploadedImage.length ? { position: 'absolute', width: '34%' } : {}}
+        >
+          {/* Dropzone content */}
+        </Box>
       )}
     </>
   )

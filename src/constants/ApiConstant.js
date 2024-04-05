@@ -155,3 +155,9 @@ export const GET_PREPARATION_TYPEBY_ID = 'diet/preparations/show'
 export const UPDATE_PREPARATION_TYPE = 'diet/preparations/update'
 
 export const REPARATION_ACTIVITY_LOGS = 'diet/activity/list'
+
+export const PREPARATIONS = 'preparations'
+
+export const ADD = 'add'
+
+export const UPDATE = 'update'
