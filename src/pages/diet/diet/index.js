@@ -245,11 +245,14 @@ const Diet = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
           <Avatar
+            variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', borderRadius: '10px' }}
             src={params.row.ingredient_image ? params.row.ingredient_image : null}
           >
-            {params.row.ingredient_image ? null : <img src={params.row.diet_image} width={30} height={30} />}
+            {params.row.ingredient_image ? null : (
+              <img src={params.row.diet_image} width={30} height={30} style={{ borderRadius: '20px' }} />
+            )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
