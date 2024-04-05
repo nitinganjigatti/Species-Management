@@ -317,7 +317,7 @@ const ReturnRequestList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Return request List' action={headerAction} />
+              <CardHeader title='Return Request List' action={headerAction} />
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {

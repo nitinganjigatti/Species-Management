@@ -308,10 +308,7 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader
-                title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
-                action={headerAction}
-              />
+              <CardHeader title={'Direct Dispatch List'} action={headerAction} />
 
               <DataGrid
                 sx={{
