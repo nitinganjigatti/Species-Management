@@ -59,7 +59,7 @@ const FeedTypes = () => {
         await getFeedTypeList(params).then(res => {
           if (res?.success) {
             let listWithId = res.data.result.map((el, i) => {
-              return { ...el, id: i + 1 }
+              return { ...el, id: el?.id }
             })
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, listWithId))
