@@ -60,7 +60,7 @@ const RequestList = () => {
   const [status, setStatus] = useState('pending')
   const [filterSwitch, setFilterSwitch] = useState(false)
 
-  const [selectDays, setSelectDays] = useState()
+  const [selectDays, setSelectDays] = useState('all')
 
   const [filterDates, setFilterDates] = useState({
     startDate: '',
@@ -83,15 +83,14 @@ const RequestList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status, startDate, endDate) => {
-      console.log('filter dates', filterDates)
-      console.log('argg..', startDate, endDate)
+      var params = {}
+
       try {
         setLoading(true)
-        let params = {}
         if (
           ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
-          ((filterDates.startDate !== '' || filterDates.startDate !== undefined) &&
-            (filterDates.endDate !== '' || filterDates.endDate !== undefined))
+          ((filterDates?.startDate !== '' || filterDates?.startDate !== undefined) &&
+            (filterDates?.endDate !== '' || filterDates?.endDate !== undefined))
         ) {
           params = {
             type: 'request',
@@ -101,8 +100,8 @@ const RequestList = () => {
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
             status: filterSwitch === true ? 'completed' : status,
-            pending_days_start: startDate ? startDate : filterDates.startDate,
-            pending_days_end: endDate ? endDate : filterDates.endDate
+            pending_days_start: startDate ? startDate : filterDates?.startDate,
+            pending_days_end: endDate ? endDate : filterDates?.endDate
           }
         } else {
           params = {
@@ -116,10 +115,7 @@ const RequestList = () => {
           }
         }
 
-        // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
-
         await getRequestItemsList({ params: params }).then(res => {
-          // console.log('response', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -133,14 +129,10 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    // if()
-    // fetchTableData(sort, searchValue, sortColumn, status)
-    if (filterSwitch === true) {
-      fetchTableData(sort, searchValue, sortColumn, 'completed', filterDates.startDate, filterDates.endDate)
-    } else {
-      fetchTableData(sort, searchValue, sortColumn, status, filterDates.startDate, filterDates.endDate)
-    }
-  }, [fetchTableData, status, selectedPharmacy.id])
+    const currentStatus = filterSwitch ? 'completed' : status
+
+    fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
+  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -214,11 +206,6 @@ const RequestList = () => {
 
   const handleSwitchChange = event => {
     setFilterSwitch(event.target.checked)
-    if (event.target.checked === true) {
-      fetchTableData(sort, searchValue, sortColumn, 'completed', filterDates.startDate, filterDates.endDate)
-    } else {
-      fetchTableData(sort, searchValue, sortColumn, 'all', filterDates.startDate, filterDates.endDate)
-    }
   }
 
   const filterByDays = days => {
@@ -227,10 +214,6 @@ const RequestList = () => {
       const selectedDays = parseInt(days)
       let startDate
       let endDate
-      console.log('days', selectedDays)
-      debugger
-      console.log('current date', Utility.formattedPresentDate())
-      console.log('fast date', Utility.getPreviousDaysDate(currentDate, selectedDays))
 
       switch (selectedDays) {
         case 3:
@@ -249,28 +232,31 @@ const RequestList = () => {
           endDate = Utility.getPreviousDaysDate(currentDate, 7)
           setFilterDates({ startDate, endDate })
           break
+        case 16:
+          startDate = Utility.getPreviousDaysDate(currentDate, 16)
+          endDate = Utility.getPreviousDaysDate(currentDate, 1)
+          setFilterDates({ startDate, endDate })
+          break
         default:
           startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
           endDate = Utility.formattedPresentDate()
           setFilterDates({ startDate, endDate })
           break
       }
-      console.log('Start date:', startDate)
-      console.log('End date:', endDate)
     } else {
       setFilterDates({ startDate: '', endDate: '' })
-    }
-
-    // fetchTableData(sort, searchValue, sortColumn, status, startDate, endDate)
-  }
-  useEffect(() => {
-    console.log('Updated filterDates:', filterDates)
-
-    if (filterDates.startDate && filterDates.endDate) {
-      fetchTableData(sort, searchValue, sortColumn, status, filterDates.startDate, filterDates.endDate)
-    } else {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
+  }
+  useEffect(() => {
+    const currentStatus = filterSwitch ? 'completed' : status
+
+    if (filterDates.startDate && filterDates.endDate) {
+      fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
+    } else {
+      fetchTableData(sort, searchValue, sortColumn, currentStatus)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterDates])
 
   const columns = [
@@ -351,7 +337,7 @@ const RequestList = () => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.request_date)}
+          {Utility.daysFromToday(params.row.request_date)}
         </Typography>
       )
     },
@@ -503,38 +489,40 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader title='Request List' action={headerAction} />
-            {status === 'all' ? (
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mr: 7 }}>
-                <FormControlLabel
-                  control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
-                  labelPlacement='end'
-                  label='Completed'
-                />
-              </Box>
-            ) : null}
-            <div>
-              <FormControl size='big'>
-                <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  value={selectDays}
-                  label='Filter by days'
-                  onChange={e => {
-                    filterByDays(e.target.value)
-                    setSelectDays(e.target.value)
+            <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}>
+                <FormControl size='big'>
+                  <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
+                  <Select
+                    size='small'
+                    value={selectDays}
+                    label='Filter by days'
+                    onChange={e => {
+                      filterByDays(e.target.value)
+                      setSelectDays(e.target.value)
+                    }}
+                  >
+                    <MenuItem value='all'>All</MenuItem>
+                    <MenuItem value='3'>3 Days</MenuItem>
+                    <MenuItem value='7'>3 to 7 Days </MenuItem>
+                    <MenuItem value='15'>7 to 15 Days</MenuItem>
+                    <MenuItem value='16'>15 Days</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={6}>
+                {status === 'all' ? (
+                  <Box sx={{ mr: 4 }}>
+                    <FormControlLabel
+                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                    />
+                  </Box>
+                ) : null}
+              </Grid>
+            </Grid>
 
-                    console.log('eee', e.target.value)
-                  }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='3'>3 Days</MenuItem>
-                  <MenuItem value='7'>3 to 7 Days </MenuItem>
-                  <MenuItem value='15'>7 to 15 Days</MenuItem>
-                  <MenuItem value='15'>15 Days</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {

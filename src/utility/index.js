@@ -70,9 +70,19 @@ function getPreviousDaysDate(todayDate, days) {
   const date = new Date(todayDate.getTime())
   date.setDate(date.getDate() - days)
   const previousDate = moment(date).format('YYYY-MM-DD')
-  console.log('previous function date', previousDate)
 
   return previousDate
+}
+function daysFromToday(inputDate) {
+  const today = moment()
+  const targetDate = moment(inputDate, 'YYYY-MM-DD')
+
+  const differenceInDays = targetDate.diff(today, 'days')
+  if (Math.abs(differenceInDays) === 0) {
+    return 'Today'
+  } else {
+    return `${Math.abs(differenceInDays)} Days`
+  }
 }
 
 const Utility = {
@@ -82,7 +92,8 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
-  getPreviousDaysDate
+  getPreviousDaysDate,
+  daysFromToday
 }
 
 export default Utility
