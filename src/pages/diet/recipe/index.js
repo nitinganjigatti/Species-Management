@@ -46,12 +46,14 @@ const RecipeList = () => {
   }
 
   const handleChange = (event, newValue) => {
+    debugger
     setTotal(0)
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
     async (sortBy, q, sortColumn, searchColumns, status) => {
+      debugger
       try {
         setLoading(true)
 
@@ -86,6 +88,7 @@ const RecipeList = () => {
   useEffect(() => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
   }, [fetchTableData, status])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -317,6 +320,8 @@ const RecipeList = () => {
       )
     }
   ]
+
+  console.log('total Count ?>>>', total)
 
   const onCellClick = params => {
     console.log(params, 'params')
