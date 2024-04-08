@@ -1,5 +1,16 @@
-import { DETAILS, DIET, RECIPES, UOM, LIST, LISTING, ADD } from '../../../constants/ApiConstant'
-import { axiosGet, axiosFormPost } from '../utility'
+import {
+  DETAILS,
+  DIET,
+  RECIPES,
+  UOM,
+  LIST,
+  LISTING,
+  ADD,
+  DELETE,
+  UPDATE_STATUS,
+  UPDATE
+} from '../../../constants/ApiConstant'
+import { axiosGet, axiosFormPost, axiosPost } from '../utility'
 
 export async function getRecipeList({ params }) {
   const response = await axiosGet({ url: `${DIET}/${RECIPES}/${LISTING}`, params })
@@ -20,6 +31,48 @@ export async function getUnitsForRecipe({ params }) {
 export async function addNewRecipe(payload) {
   try {
     const response = await axiosFormPost({ url: `${DIET}/${RECIPES}/${ADD}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function deleteRecipe(id) {
+  try {
+    const response = await axiosPost({ url: `${DIET}/${RECIPES}/${DELETE}/${id}` })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function updateRecipeStatus(id, payload) {
+  try {
+    const response = await axiosPost({ url: `${DIET}/${RECIPES}/${UPDATE_STATUS}/${id}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function updateRecipe(id, payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${RECIPES}/${UPDATE}/${id}`, body: payload })
 
     return response?.data
   } catch (error) {

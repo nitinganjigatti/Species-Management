@@ -100,10 +100,10 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
           </Typography>
 
           <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
-            <Typography onClick={() => setActivitySidebarOpen(true)} sx={{ color: '#000000', my: 3 }}>
+            <Typography onClick={() => setActivitySidebarOpen(true)} sx={{ color: '#000000', my: 3, fontSize: 14 }}>
               Activity Log
             </Typography>
-            <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px' }} />
+            <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
             <Drawer
               anchor='right'
               open={activitySidebarOpen}

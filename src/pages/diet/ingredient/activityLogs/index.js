@@ -1,7 +1,7 @@
-import { Avatar, Grid, Typography } from '@mui/material'
+import { Avatar, Grid, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineItem from '@mui/lab/TimelineItem'
@@ -37,14 +37,14 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
     }
   })
 
-  const getActivityLogs = async () => {
+  const getActivityLogs = async searchVal => {
     try {
       const params = {
         activity_type_id: IngredientsDetailsval?.id,
         activity_type: 'ingredient',
         page_no,
         limit,
-        search_term: searchValue
+        search_term: searchVal || searchValue
       }
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
@@ -53,7 +53,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
             ...openSnackbar,
             open: true,
             message: JSON.stringify(res?.message),
-            severity: 'error'
+            severity: 'success'
           })
         } else {
           setOpenSnackbar({
@@ -74,6 +74,17 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
       })
     }
   }
+
+  const activityLogSearch = useCallback(
+    debounce(async value => {
+      try {
+        await getActivityLogs(value)
+      } catch (e) {
+        console.log(e)
+      }
+    }, 500),
+    []
+  )
 
   useEffect(() => {
     getActivityLogs()
@@ -128,7 +139,10 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
           InputProps={{
             startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
           }}
-          onChange={e => setSearchValue(e.target.value)}
+          onChange={e => {
+            setSearchValue(e.target.value)
+            activityLogSearch(e.target.value)
+          }}
         />
       </Box>
       {activitydata?.length > 0 ? (
@@ -180,19 +194,60 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
               <Timeline>
                 {item?.date_activity?.map((item, index) => (
                   <TimelineItem key={index}>
-                    <TimelineSeparator>
+                    <TimelineSeparator
+                      sx={{
+                        '& span': { backgroundColor: item.action === 'activated' ? theme.palette.primary.main : null }
+                      }}
+                    >
                       {/* <TimelineDot color='success' /> */}
-                      <Box sx={{ border: '1px solid ', height: '25px', borderRadius: '4px' }}>
-                        <Icon icon={'mdi:clipboard'} />
+                      <Box
+                        sx={{
+                          border: '1px solid ',
+                          borderColor: item.action === 'activated' ? theme.palette.primary.main : null,
+                          backgroundColor: item.action === 'activated' ? theme.palette.primary.main : null,
+                          boxSizing: 'border-box',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon
+                          height={'16px'}
+                          width={'16px'}
+                          icon={
+                            item.action === 'activated'
+                              ? 'mdi:clipboard-outline'
+                              : item.action === 'deactivated'
+                              ? 'mdi:clipboard-off-outline'
+                              : item.action === 'Swapped'
+                              ? 'material-symbols:repeat'
+                              : null
+                          }
+                          color={item.action === 'activated' ? '#fff' : null}
+                          // style={item.action === 'Swapped' ? { transform: 'rotateY(180deg)' } : null}
+                        />
                       </Box>
                       <TimelineConnector />
                     </TimelineSeparator>
                     <TimelineContent sx={{ py: 0, mb: '20px' }}>
                       <Typography
                         variant='body2'
-                        sx={{ mr: 2, fontSize: 16, fontWeight: 500, lineHeight: 'normal', mb: '12px' }}
+                        sx={{
+                          mr: 2,
+                          fontSize: 16,
+                          fontWeight: 500,
+                          lineHeight: 'normal',
+                          mb: '12px',
+                          color:
+                            item.action === 'activated'
+                              ? theme.palette.primary.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                        }}
                       >
-                        {item.action}
+                        {item.title}
                       </Typography>
 
                       <Box
@@ -227,7 +282,8 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
                                 color: theme.palette.customColors.neutralSecondary
                               }}
                             >
-                              {item.title}
+                              {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
+                              &nbsp; Ingredient
                             </Typography>
                           </Box>
                         </Box>

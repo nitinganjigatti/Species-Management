@@ -2,319 +2,287 @@ import {
   Avatar,
   Button,
   Card,
-  CardContent,
-  FormControlLabel,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TextField,
   Typography,
-  TablePagination,
-  IconButton,
   debounce,
-  InputAdornment,
-  CircularProgress
+  CardHeader,
+  Grid,
+  Tab,
+  Chip,
+  IconButton,
+  Divider
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState } from 'react'
 import Router from 'next/router'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
+import { DataGrid } from '@mui/x-data-grid'
+import CustomChip from 'src/@core/components/mui/chip'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import toast from 'react-hot-toast'
 
 const FeedTypes = () => {
-  const theme = useTheme()
-  const [page_no, setPage_no] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [searchColumns, setSearchColumns] = useState('feed_type_name')
-  const [sortBy, setSortBy] = useState('ASC')
-  const [searchValue, setSearchValue] = useState('')
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('ASC')
+  const [sortColumning, setsortColumning] = useState('feed_type_name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [feedRows, setFeedRows] = useState([])
-  const [status, setStatus] = useState(1)
-  const [totalFeeds, setTotalFeeds] = useState(0)
+  const [status, setStatus] = useState('')
+  const [searchValue, setSearchValue] = useState('')
 
-  const handleChangePage = (event, newPage) => {
-    setLoading(true)
-    getFeedTypeList({ page: newPage, limit, q: searchValue, searchColumns, status }).then(res => {
-      setFeedRows(res?.data?.result)
-      setTotalFeeds(res?.data?.total_count)
-      setLoading(false)
-    })
-    setPage_no(newPage)
+  function loadServerRows(currentPage, data) {
+    return data
   }
 
-  const handleChangeRowsPerPage = event => {
-    setLoading(true)
-    setLimit(parseInt(event.target.value, 10))
-    getFeedTypeList({ page: 1, limit: event.target.value, q: searchValue, searchColumns, status }).then(res => {
-      setFeedRows(res?.data?.result)
-      setTotalFeeds(res?.data?.total_count)
-      setLoading(false)
-    })
-    setPage_no(1)
+  const handleChange = (event, newValue) => {
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setStatus(newValue)
   }
 
-  function TablePaginationActions(props) {
-    const theme = useTheme()
-    const { count, page, rowsPerPage, onPageChange } = props
+  const fetchTableData = useCallback(
+    async (sort, q, sortColumn, status) => {
+      try {
+        setLoading(true)
 
-    const handleBackButtonClick = event => {
-      onPageChange(event, page - 1)
+        const params = {
+          sort,
+          q,
+          sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          status
+        }
+
+        await getFeedTypeList(params).then(res => {
+          if (res?.success) {
+            let listWithId = res.data.result.map((el, i) => {
+              return { ...el, id: el?.id }
+            })
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, listWithId))
+          } else {
+            return toast(
+              t => (
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
+                    <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        Success!
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant='body2' sx={{ color: '#44544A' }}>
+                        {res?.message}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <IconButton
+                    onClick={() => toast.dismiss(t.id)}
+                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
+                </Box>
+              ),
+              {
+                style: {
+                  minWidth: '450px',
+                  minHeight: '130px'
+                }
+              }
+            )
+          }
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumning, status)
+  }, [fetchTableData, status])
+
+  const columns = [
+    {
+      flex: 0.05,
+      minWidth: 30,
+      field: 'id',
+      headerName: 'SL',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 30,
+      field: 'feed_type_name',
+      headerName: 'FEEDS',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+          {params.row.feed_type_name}
+        </Box>
+      )
+    },
+    {
+      flex: 0.7,
+      minWidth: 10,
+      field: 'desc',
+      headerName: 'DESCRIPTION',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.desc}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      field: 'active',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
+      )
     }
+  ]
 
-    const handleNextButtonClick = event => {
-      onPageChange(event, page + 1)
+  const onCellClick = params => {
+    // Router.push({ pathname: `/diet/feed/${id}`, query: { id: params?.id } })
+    Router.push({ pathname: `/diet/feed/${params?.id}` })
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setsortColumning(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+    } else {
     }
+  }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, sortColumn, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, sortColumn, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumning, status)
+  }
+
+  const headerAction = (
+    <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; NEW
+      </Button>
+    </Box>
+  )
+
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
+  const tableData = () => {
     return (
-      <Box sx={{ flexShrink: 0, ml: 2.5 }}>
-        <span>
-          Page {page_no} of {Math.ceil(count / rowsPerPage)}
-        </span>
-        <IconButton onClick={handleBackButtonClick} disabled={page === 1} aria-label='previous page'>
-          {theme.direction === 'rtl' ? (
-            <Icon icon='mdi:keyboard-arrow-right' />
-          ) : (
-            <Icon icon='mdi:keyboard-arrow-left' />
-          )}
-        </IconButton>
-        <IconButton
-          onClick={handleNextButtonClick}
-          disabled={page >= Math.ceil(count / rowsPerPage)}
-          aria-label='next page'
-        >
-          {theme.direction === 'rtl' ? (
-            <Icon icon='mdi:keyboard-arrow-left' />
-          ) : (
-            <Icon icon='mdi:keyboard-arrow-right' />
-          )}
-        </IconButton>
-      </Box>
+      <Card>
+        <CardHeader title='Feed Types' action={headerAction} />
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          slots={{ toolbar: ServerSideToolbarWithFilter }}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+          onCellClick={onCellClick}
+        />
+      </Card>
     )
   }
 
-  const handleSearch = useCallback(
-    debounce(async value => {
-      setPage_no(1)
-      setSearchValue(value)
-      try {
-        setLoading(true)
-        await getFeedTypeList({ page: 1, limit, q: value, sortBy, searchColumns, status }).then(res => {
-          setFeedRows(res?.data?.result)
-          setTotalFeeds(res?.data?.total_count)
-          setLoading(false)
-        })
-      } catch (error) {
-        setLoading(false)
-        console.error(error)
-      }
-    }, 500),
-    []
-  )
-
-  const handleClear = useCallback(
-    debounce(async () => {
-      try {
-        setSearchValue('')
-        setFeedRows([])
-        setTotalFeeds(0)
-        setPage_no(1)
-        setLoading(true)
-        await getFeedTypeList({ page: 1, limit, q: '', sortBy, searchColumns, status }).then(res => {
-          setFeedRows(res?.data?.result)
-          setTotalFeeds(res?.data?.total_count)
-          setLoading(false)
-        })
-      } catch (error) {
-        setLoading(false)
-        console.error(error)
-      }
-    }, 500),
-    []
-  )
-
-  const onStatusChange = async e => {
-    setPage_no(1)
-    try {
-      setLoading(true)
-      await getFeedTypeList({
-        page: 1,
-        limit,
-        q: searchValue,
-        sortBy,
-        searchColumns,
-        status: Number(e?.target?.checked)
-      }).then(res => {
-        setFeedRows(res?.data?.result)
-        setTotalFeeds(res?.data?.total_count)
-        setLoading(false)
-      })
-    } catch (error) {
-      setLoading(false)
-      console.error(error)
-    }
-  }
-
-  useEffect(() => {
-    try {
-      setLoading(true)
-      getFeedTypeList({ page: page_no, limit, status }).then(res => {
-        // console.log('first', res?.data?.result)
-        setFeedRows(res?.data?.result)
-        setTotalFeeds(res?.data?.total_count)
-        setLoading(false)
-      })
-    } catch (error) {
-      setLoading(false)
-      console.log('feed type list error', error)
-    }
-  }, [])
-
-  const onRowClick = id => {
-    console.log(id, 'id')
-    Router.push({
-      pathname: `/diet/feed/${id}`
-    })
-  }
-
   return (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontWeight: 600 }} variant='h6'>
-            Feed Types
-          </Typography>
-          <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
-            <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; NEW
-          </Button>
-        </Box>
-        <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={status}
-                onChange={e => {
-                  // console.log('e.target.checked', e.target.checked)
-                  setStatus(Number(e.target.checked))
-                  onStatusChange(e)
-                }}
-              />
-            }
-            label='Show Active Only'
-          />
-          <TextField
-            value={searchValue}
-            variant='outlined'
-            placeholder='Search feed'
-            InputProps={{
-              startAdornment: <Icon style={{ marginRight: 10 }} color='#a7a7a7' icon='mdi:search' fontSize={20} />,
-              endAdornment: (
-                <InputAdornment sx={{ m: 3 }} position='end'>
-                  {searchValue && (
-                    <IconButton edge='end' onClick={handleClear}>
-                      &#10005;
-                    </IconButton>
-                  )}
-                </InputAdornment>
-              )
-            }}
-            onChange={event => {
-              setSearchValue(event.target.value)
-              handleSearch(event.target.value)
-            }}
-            sx={{ '& input': { py: 2 } }}
-          />
-        </Box>
-
-        <TableContainer sx={{ border: '1px solid #e8ebf1' }}>
-          <Table aria-label='simple table'>
-            <TableHead>
-              <TableRow sx={{ height: '56px', backgroundColor: theme.palette.customColors.tableHeaderBg }}>
-                <TableCell>Feeds</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell align='right'></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <Box
-                  sx={{
-                    paddingY: '14px',
-                    width: '301%',
-                    textAlign: 'center',
-                    backgroundColor: theme.palette?.customColors?.lightBg
-                  }}
-                >
-                  <CircularProgress color={theme?.palette?.customColors?.primary?.light} />
-                </Box>
-              ) : feedRows?.length > 0 ? (
-                feedRows?.map(item => (
-                  <TableRow key={item.id}>
-                    <TableCell sx={{ pr: 10 }}>
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        <Avatar variant='square' src={item?.image} alt={item.id} />
-                        {item.feed_type_name}
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ textAlign: 'justify', pr: 40 }}>{item.desc}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Icon
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => onRowClick(item.id)}
-                          color='#a7a7a7'
-                          icon='mdi:eye-outline'
-                        />
-                        <Icon
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => Router.push({ pathname: '/diet/feed/add-feed', query: { id: item.id } })}
-                          color='#a7a7a7'
-                          icon='mdi:edit'
-                        />
-                        {/* <Icon color='#a7a7a7' icon='mdi:dots-vertical' /> */}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : null}
-            </TableBody>
-            {loading ? null : (
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    sx={{
-                      '& .css-re6ba-MuiTablePagination-selectLabel': {
-                        // display: 'none'
-                      },
-                      '& .css-1twleqn-MuiInputBase-root-MuiTablePagination-select': {
-                        // display: 'none'
-                      },
-                      '& .css-nbjgsh-MuiTablePagination-displayedRows': {
-                        display: 'none'
-                      }
-                    }}
-                    count={totalFeeds}
-                    rowsPerPage={limit}
-                    page={page_no}
-                    onPageChange={handleChangePage}
-                    ActionsComponent={TablePaginationActions}
-                    rowsPerPageOptions={[5, 10, 20]}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                  />
-                </TableRow>
-              </TableFooter>
-            )}
-          </Table>
-        </TableContainer>
-      </CardContent>
-    </Card>
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+          <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+          <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+        </TabList>
+        <TabPanel value=''>{tableData()}</TabPanel>
+        <TabPanel value='1'>{tableData()}</TabPanel>
+        <TabPanel value='0'>{tableData()}</TabPanel>
+      </TabContext>
+    </Grid>
   )
 }
 

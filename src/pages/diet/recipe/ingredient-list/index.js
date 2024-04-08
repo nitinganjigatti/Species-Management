@@ -56,65 +56,19 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
 
   useEffect(() => {
     // Filter ingredients by percentage
-    const filteredPercentage = IngredientsDetailsval?.ingredient_by_percentage.filter(ingredient =>
-      ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase())
+    const filteredPercentage = IngredientsDetailsval?.by_percentage.filter(
+      ingredient =>
+        ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
     // Filter ingredients by quantity
-    const filteredQuantity = IngredientsDetailsval?.ingredient_by_quantity.filter(ingredient =>
-      ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase())
+    const filteredQuantity = IngredientsDetailsval?.by_quantity.filter(
+      ingredient =>
+        ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
     setRowsPercentage(filteredPercentage)
     setRowsQuantity(filteredQuantity)
     setTotal(filteredPercentage.length + filteredQuantity.length)
-  }, [IngredientsDetailsval, searchValue])
-
-  const handleSwitchChange = async (event, rowData) => {
-    console.log(event.target.checked, 'lll')
-    console.log(rowData, 'rowData')
-    const newIsActive = event.target.checked ? 1 : 0
-    try {
-      const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
-      console.log(response, 'response')
-      if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumning, status)
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
-      } else {
-        alert('something went wrong')
-      }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
-  }
+  }, [IngredientsDetailsval, searchValue, status])
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -135,6 +89,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
+          {console.log(params, 'params')}
           <Avatar
             variant='square'
             alt='Medicine Image'
@@ -154,11 +109,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     {
       flex: 0.4,
       minWidth: 10,
-      field: 'id',
+      field: 'ingredient_id',
       headerName: 'INGREDIENT ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id ? 'ING' + params.row.id : '-'}
+          {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
         </Typography>
       )
     },
@@ -169,29 +124,29 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       headerName: 'FEED TYPE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
-          {params.row.feed_type ? params.row.feed_type : '-'}
+          {params.row.feed_type_label ? params.row.feed_type_label : '-'}
         </Typography>
       )
     },
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'protein',
+      field: 'quantity',
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {'no data'}
+          {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
         </Typography>
       )
     },
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'feed_typea',
+      field: 'preparation_type',
       headerName: 'PREPARATION TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
-          {'no data'}
+        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.preparation_type}>
+          {params.row.preparation_type ? params.row.preparation_type : '-'}
         </Typography>
       )
     }
@@ -243,22 +198,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
                 sl_no: false
               }}
               autoHeight
-              rows={rowsPercentage}
+              rows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
               rowCount={rowsPercentage.length}
               columns={columns}
               loading={loading}
               hideFooter={true}
-              //slots={{ toolbar: ServerSideToolbarWithFilter }}
-              //   slotProps={{
-              //     baseButton: {
-              //       variant: 'outlined'
-              //     },
-              //     toolbar: {
-              //       value: searchValue,
-              //       clearSearch: () => handleSearch(''),
-              //       onChange: event => handleSearch(event.target.value)
-              //     }
-              //   }}
               // onCellClick={onCellClick}
             />
           </Card>
@@ -292,7 +236,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               hideFooter={true}
-              rows={rowsQuantity}
+              rows={rowsQuantity.map((row, index) => ({ ...row, id: index }))}
               rowCount={rowsQuantity.length}
               columns={columns}
               loading={loading}

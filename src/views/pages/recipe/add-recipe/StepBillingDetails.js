@@ -50,18 +50,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       headerName: 'Quantity',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.quantity}
+          {parseFloat(params.row.quantity).toFixed(2)}
         </Typography>
       )
     },
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'preparation_name',
+      field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.preparation_name}
+          {params.row.preparation_type}
         </Typography>
       )
     }
@@ -113,28 +113,32 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                                 height: '100%'
                               }}
                             >
-                              {formData?.recipe_image?.length > 0 ? (
-                                formData.recipe_image?.map(file => (
+                              {Array.isArray(formData.recipe_image) && formData.recipe_image.length > 0 ? (
+                                formData.recipe_image.map(file => (
                                   <Avatar
-                                    variant='square'
                                     key={file.name}
+                                    variant='square'
                                     alt={file.name}
                                     sx={{
                                       width: '100%',
                                       height: '100%'
                                     }}
                                     src={URL.createObjectURL(file)}
-                                  ></Avatar>
+                                  />
                                 ))
                               ) : (
                                 <Avatar
                                   variant='square'
+                                  src={
+                                    typeof formData.recipe_image === 'string'
+                                      ? formData.recipe_image
+                                      : '/icons/recipedummy.svg'
+                                  }
                                   sx={{
                                     width: '100%',
                                     height: '100%'
                                   }}
-                                  src={'/icons/recipedummy.svg'}
-                                ></Avatar>
+                                />
                               )}
                             </div>
                           </CardContent>

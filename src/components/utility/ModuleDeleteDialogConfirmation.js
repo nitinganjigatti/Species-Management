@@ -10,7 +10,7 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid } from '@mui/material'
 
-const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action }) => {
+const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action, type }) => {
   const [checked, setChecked] = useState(false)
   const handleChange = event => {
     setChecked(event.target.checked)
@@ -54,12 +54,17 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action 
             marginBottom: '15px'
           }}
         >
-          <Icon icon='mdi:warning-outline' style={{ cursor: 'pointer', fontSize: '63px', color: '#E93353' }} />
+          {type === 'ingredient' ? (
+            <Icon icon='mdi:warning-outline' style={{ cursor: 'pointer', fontSize: '63px', color: '#E93353' }} />
+          ) : (
+            <Icon icon='mdi:warning-outline' style={{ cursor: 'pointer', fontSize: '63px', color: '#E93353' }} />
+          )}
         </span>
         <DialogTitle id='alert-dialog-title'>
           {message}
           <Typography sx={{ mt: 2 }}>
-            This ingredient has been used in 15 recipes and <br /> 10 diets, so deletion isn't allowed.
+            This {type === 'ingredient' ? 'ingredient' : 'recipe'} has been used in{' '}
+            {type === 'ingredient' ? '15 recipes and 10 diets' : '10 diets'}, <br /> so deletion isn't allowed.
           </Typography>
         </DialogTitle>
 
@@ -79,7 +84,7 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action 
               <FormControlLabel
                 label={
                   <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
-                    Deactivate this ingredient in all records
+                    Deactivate this {type === 'ingredient' ? 'ingredient' : 'recipe'} in all records
                   </span>
                 }
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
@@ -87,8 +92,9 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action 
             </Typography>
             <Grid item>
               <Typography sx={{ fontSize: 14, pl: 7, pb: 6 }}>
-                Deactivating this ingredient prevents its addition to <br /> new recipes or diets, but you can swap it{' '}
-                <br /> with another ingredient.
+                Deactivating this {type === 'ingredient' ? 'ingredient' : 'recipe'} prevents its addition to <br /> new{' '}
+                {type === 'ingredient' ? 'recipes or' : ''} diets, but you can swap it{' '}
+                {type === 'ingredient' ? <br /> : ''} with another {type === 'ingredient' ? 'ingredient' : 'recipe'}.
               </Typography>
             </Grid>
           </Grid>
