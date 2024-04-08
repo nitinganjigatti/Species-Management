@@ -252,7 +252,6 @@ const StepAddIngredients = ({
   }, [formData, reset])
 
   const ScrollToFieldError = ({ errors }) => {
-    console.log(errors, 'errors')
     useEffect(() => {
       if (!errors) return
 
@@ -262,18 +261,20 @@ const StepAddIngredients = ({
       let index = -1
       if (firstErrorField?.startsWith('by_percentage')) {
         index = fieldsIngredients.findIndex((_, index) => {
-          return firstErrorField.startsWith(`by_percentage[${index}]`)
+          return firstErrorField === `by_percentage[${index}].ingredient_id`
         })
       } else if (firstErrorField?.startsWith('by_quantity')) {
         index = fieldsByQuantity.findIndex((_, index) => {
-          return firstErrorField.startsWith(`by_quantity[${index}]`)
+          return firstErrorField === `by_quantity[${index}].ingredient_id`
         })
       }
 
       console.log('Index of Error Field:', index)
       console.log(firstErrorField, 'firstErrorField')
       if (index !== -1) {
+        alert('hi')
         const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
+        console.log('Error Element:', errorElement)
         if (errorElement) {
           errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
