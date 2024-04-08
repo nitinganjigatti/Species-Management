@@ -912,7 +912,7 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -920,7 +920,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 ) : (
                   <>
@@ -935,7 +935,7 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -943,7 +943,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>
