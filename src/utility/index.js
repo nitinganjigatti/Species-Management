@@ -66,13 +66,23 @@ function exportToCSV(tableData, fileName) {
   }
 }
 
+function getPreviousDaysDate(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() - days)
+  const previousDate = moment(date).format('YYYY-MM-DD')
+  console.log('previous function date', previousDate)
+
+  return previousDate
+}
+
 const Utility = {
   formatDate,
   formatNumber,
   formattedPresentDate,
   formatDisplayDate,
   errorMessageExtractorFromObject,
-  exportToCSV
+  exportToCSV,
+  getPreviousDaysDate
 }
 
 export default Utility

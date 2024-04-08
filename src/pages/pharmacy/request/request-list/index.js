@@ -31,6 +31,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Badge from '@mui/material/Badge'
 import Utility from 'src/utility'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import moment from 'moment'
 
 // Styled TabList component
 
@@ -56,6 +58,14 @@ const RequestList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
+  const [filterSwitch, setFilterSwitch] = useState(false)
+
+  const [selectDays, setSelectDays] = useState()
+
+  const [filterDates, setFilterDates] = useState({
+    startDate: '',
+    endDate: ''
+  })
 
   function loadServerRows(currentPage, data) {
     return data
@@ -63,25 +73,50 @@ const RequestList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
+
+    setFilterDates({ startDate: '', endDate: '' })
+    setSelectDays('all')
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column, status, startDate, endDate) => {
+      console.log('filter dates', filterDates)
+      console.log('argg..', startDate, endDate)
       try {
         setLoading(true)
-
-        const params = {
-          // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
-          type: 'request',
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          status
+        let params = {}
+        if (
+          ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
+          ((filterDates.startDate !== '' || filterDates.startDate !== undefined) &&
+            (filterDates.endDate !== '' || filterDates.endDate !== undefined))
+        ) {
+          params = {
+            type: 'request',
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            status: filterSwitch === true ? 'completed' : status,
+            pending_days_start: startDate ? startDate : filterDates.startDate,
+            pending_days_end: endDate ? endDate : filterDates.endDate
+          }
+        } else {
+          params = {
+            type: 'request',
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            status: filterSwitch === true ? 'completed' : status
+          }
         }
+
+        // type: selectedPharmacy.type === 'local' ? 'request' : 'receive',
 
         await getRequestItemsList({ params: params }).then(res => {
           // console.log('response', res)
@@ -98,8 +133,15 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
+    // if()
+    // fetchTableData(sort, searchValue, sortColumn, status)
+    if (filterSwitch === true) {
+      fetchTableData(sort, searchValue, sortColumn, 'completed', filterDates.startDate, filterDates.endDate)
+    } else {
+      fetchTableData(sort, searchValue, sortColumn, status, filterDates.startDate, filterDates.endDate)
+    }
   }, [fetchTableData, status, selectedPharmacy.id])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -111,7 +153,14 @@ const RequestList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(
+        newModel[0].sort,
+        searchValue,
+        newModel[0].field,
+        status,
+        filterDates.startDate,
+        filterDates.endDate
+      )
     } else {
     }
   }
@@ -120,7 +169,7 @@ const RequestList = () => {
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column, status)
+        await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate)
       } catch (error) {
         console.error(error)
       }
@@ -162,6 +211,67 @@ const RequestList = () => {
   const getRequestedText = () => {
     return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
   }
+
+  const handleSwitchChange = event => {
+    setFilterSwitch(event.target.checked)
+    if (event.target.checked === true) {
+      fetchTableData(sort, searchValue, sortColumn, 'completed', filterDates.startDate, filterDates.endDate)
+    } else {
+      fetchTableData(sort, searchValue, sortColumn, 'all', filterDates.startDate, filterDates.endDate)
+    }
+  }
+
+  const filterByDays = days => {
+    if (days !== 'all') {
+      const currentDate = new Date()
+      const selectedDays = parseInt(days)
+      let startDate
+      let endDate
+      console.log('days', selectedDays)
+      debugger
+      console.log('current date', Utility.formattedPresentDate())
+      console.log('fast date', Utility.getPreviousDaysDate(currentDate, selectedDays))
+
+      switch (selectedDays) {
+        case 3:
+          startDate = Utility.getPreviousDaysDate(currentDate, 3)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+        case 7:
+          startDate = Utility.getPreviousDaysDate(currentDate, 7)
+          endDate = Utility.getPreviousDaysDate(currentDate, 3)
+          setFilterDates({ startDate, endDate })
+
+          break
+        case 15:
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = Utility.getPreviousDaysDate(currentDate, 7)
+          setFilterDates({ startDate, endDate })
+          break
+        default:
+          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+      }
+      console.log('Start date:', startDate)
+      console.log('End date:', endDate)
+    } else {
+      setFilterDates({ startDate: '', endDate: '' })
+    }
+
+    // fetchTableData(sort, searchValue, sortColumn, status, startDate, endDate)
+  }
+  useEffect(() => {
+    console.log('Updated filterDates:', filterDates)
+
+    if (filterDates.startDate && filterDates.endDate) {
+      fetchTableData(sort, searchValue, sortColumn, status, filterDates.startDate, filterDates.endDate)
+    } else {
+      fetchTableData(sort, searchValue, sortColumn, status)
+    }
+  }, [filterDates])
 
   const columns = [
     {
@@ -393,7 +503,38 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader title='Request List' action={headerAction} />
+            {status === 'all' ? (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mr: 7 }}>
+                <FormControlLabel
+                  control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                  labelPlacement='end'
+                  label='Completed'
+                />
+              </Box>
+            ) : null}
+            <div>
+              <FormControl size='big'>
+                <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
+                <Select
+                  labelId='demo-simple-select-label'
+                  id='demo-simple-select'
+                  value={selectDays}
+                  label='Filter by days'
+                  onChange={e => {
+                    filterByDays(e.target.value)
+                    setSelectDays(e.target.value)
 
+                    console.log('eee', e.target.value)
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='3'>3 Days</MenuItem>
+                  <MenuItem value='7'>3 to 7 Days </MenuItem>
+                  <MenuItem value='15'>7 to 15 Days</MenuItem>
+                  <MenuItem value='15'>15 Days</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -449,10 +590,15 @@ const RequestList = () => {
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-            <Tab
+            {/* <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            /> */}
+            <Tab
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />
+
             <Tab
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
@@ -464,7 +610,8 @@ const RequestList = () => {
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='completed'>{tableData()}</TabPanel>
+          {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
 
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
