@@ -11,8 +11,8 @@ import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 
-// import { Box } from '@mui/system'
-// import { ExcelExportButton } from 'src/components/Buttons'
+import { Box } from '@mui/system'
+import { ExcelExportButton } from 'src/components/Buttons'
 
 const ExpiredMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -27,7 +27,7 @@ const ExpiredMedicine = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
-  // const [excelLoader, setExcelLoader] = useState(false)
+  const [excelLoader, setExcelLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -146,6 +146,17 @@ const ExpiredMedicine = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -170,28 +181,28 @@ const ExpiredMedicine = () => {
     }
   ]
 
-  // const getDataToExport = async () => {
-  //   try {
-  //     setExcelLoader(true)
-  //     const result = await getExpiredMedicine({ params: '' })
+  const getDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+      const result = await getExpiredMedicine({ params: '' })
 
-  //     if (result?.list_items.length > 0) {
-  //       const data = result?.list_items.map(el => {
-  //         return {
-  //           ['Medicine Name']: el?.stock_item_name,
-  //           ['Expiry date']: el?.expiry_date
-  //         }
-  //       })
+      if (result?.list_items.length > 0) {
+        const data = result?.list_items.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_item_name,
+            ['Supplier name']: el?.supplier_name
+          }
+        })
 
-  //       Utility.exportToCSV(data, 'Expired Medicines ')
-  //     }
-  //     setExcelLoader(false)
-  //   } catch (error) {
-  //     setExcelLoader(false)
+        Utility.exportToCSV(data, 'Expired Medicines ')
+      }
+      setExcelLoader(false)
+    } catch (error) {
+      setExcelLoader(false)
 
-  //     console.log('error', error)
-  //   }
-  // }
+      console.log('error', error)
+    }
+  }
 
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
@@ -213,18 +224,17 @@ const ExpiredMedicine = () => {
           <Card>
             <CardHeader
               title='Expired products'
-
-              // action={
-              //   <Box sx={{ mx: 2 }}>
-              //     <ExcelExportButton
-              //       action={() => {
-              //         getDataToExport()
-              //       }}
-              //       loader={excelLoader}
-              //       title='Download'
-              //     />
-              //   </Box>
-              // }
+              action={
+                <Box sx={{ mx: 2 }}>
+                  <ExcelExportButton
+                    action={() => {
+                      getDataToExport()
+                    }}
+                    loader={excelLoader}
+                    title='Download'
+                  />
+                </Box>
+              }
             />
 
             <DataGrid
