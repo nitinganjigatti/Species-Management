@@ -141,17 +141,19 @@ const ListOfRacks = () => {
         setRacks(listWithId)
         setLoader(false)
       } else {
+        setRacks([])
         setLoader(false)
       }
     } catch (error) {
       setLoader(false)
+      setRacks([])
       console.log('error', error)
     }
   }
 
   useEffect(() => {
     getRacksLists()
-  }, [])
+  }, [selectedPharmacy.id])
 
   // useEffect(() => {
   //   getRacksLists()
@@ -264,22 +266,22 @@ const ListOfRacks = () => {
     }
   ]
 
+  const addRackButton = (
+    <div>
+      {(selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+        selectedPharmacy?.permission?.pharmacy_module === 'ADD') && (
+        <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
+      )}
+    </div>
+  )
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle='Rack List'
-            headerActions={
-              <div>
-                <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
-              </div>
-            }
-            columns={columns}
-            rows={racks}
-          />
+          <TableWithFilter TableTitle='Rack List' headerActions={addRackButton} columns={columns} rows={racks} />
 
           <ConfirmDialog
             closeDialog={handleClose}
