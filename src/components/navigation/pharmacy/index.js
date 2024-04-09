@@ -259,6 +259,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       nonExistingProductRequestList,
       settingsParent
     )
+
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy?.permission?.dispense_medicine
+    ) {
+      pharmacyNavigationArray.splice(5, 0, dispense)
+    }
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -274,21 +281,19 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       directDispatchList,
-      dispense,
 
       nonExistingProductRequestList,
       stockReport,
 
       settingsParent
     )
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy?.permission?.dispense_medicine
+    ) {
+      pharmacyNavigationArray.splice(4, 0, dispense)
+    }
   }
-
-  // debugger
-
-  // if (pharmacyRole && selectedPharmacy === '') {
-  //   settingsParent.children.push(storeList)
-  //   pharmacyNavigationArray.push(settingsParent)
-  // }
 
   if (pharmacyRole) {
     mastersParent.children.push(
@@ -306,8 +311,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
     pharmacyNavigationArray.push(mastersParent)
   }
-
-  // console.log(pharmacyNavigationArray)
 
   return pharmacyNavigationArray
 }

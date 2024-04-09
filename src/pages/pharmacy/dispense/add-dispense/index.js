@@ -229,8 +229,8 @@ function AddDispense() {
 
   return (
     <>
-      {selectedPharmacy.type === 'local' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+      {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.dispense_medicine ? (
         <Card>
           <Dialog
             fullWidth
