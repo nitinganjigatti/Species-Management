@@ -385,7 +385,8 @@ const AddRequestForm = () => {
       if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
-        if (response?.data?.list_items?.length === 1) {
+
+        if (id === undefined) {
           setEditParams({
             ...editParams,
             from_store_id: response?.data?.list_items[0].id,
@@ -522,10 +523,9 @@ const AddRequestForm = () => {
   }
 
   useEffect(() => {
-    if (id != undefined && action === 'edit') {
+    if (id !== undefined && action === 'edit') {
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
 
   // ****** edit section //////
@@ -912,7 +912,7 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -920,7 +920,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 ) : (
                   <>
@@ -935,7 +935,7 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -943,7 +943,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>

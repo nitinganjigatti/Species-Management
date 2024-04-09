@@ -55,8 +55,8 @@ const schema = yup.object().shape({
   // }),
   request_item_batch_no: yup
     .mixed()
-    .required('Batch no is required')
-    .test('is-object-with-properties', 'Batch no is required', value => {
+    .required('Batch number is required')
+    .test('is-object-with-properties', 'Batch number is required', value => {
       return (
         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
       )
