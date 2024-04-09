@@ -73,7 +73,12 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     showQtyForm === true
       ? (schema = yup.object().shape({
           store_id: yup.string().required('Store is required'),
-          min_qty: yup.string().required('Min qty is required')
+          min_qty: yup
+            .string()
+            .required('Min qty is required')
+            .test('is-number', 'Min qty must be a number', value => {
+              return /^\d+$/.test(value)
+            })
         }))
       : (schema = yup.object().shape({
           rack_id: yup.string().required('Rack is required'),
@@ -91,7 +96,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'all',
     reValidateMode: 'onChange'
   })
 
@@ -518,7 +523,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <TextField
-                        type='number'
+                        type='text'
                         label='Minimum Qty'
                         value={value}
                         onChange={onChange}

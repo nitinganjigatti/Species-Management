@@ -1239,7 +1239,7 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-          {id ? (
+          {id && editParams?.request_item_details?.length > 0 ? (
             <>
               <RequestCancelButton
                 title='Cancel Request'
