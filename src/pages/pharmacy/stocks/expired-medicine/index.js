@@ -194,7 +194,7 @@ const ExpiredMedicine = () => {
           }
         })
 
-        Utility.exportToCSV(data, 'Expired Medicines ')
+        Utility.exportToCSV(data, 'Expired Products')
       }
       setExcelLoader(false)
     } catch (error) {
