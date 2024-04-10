@@ -1,10 +1,11 @@
-import { Card, CardHeader, Typography } from '@mui/material'
+import { Card, CardHeader, Grid, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 function Escrow() {
   const [loader, setLoader] = useState(false)
@@ -15,6 +16,7 @@ function Escrow() {
   const [sortColumn, setSortColumn] = useState('name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [stockType, setStockType] = useState('all')
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -106,11 +108,28 @@ function Escrow() {
           {params.row.batch_no}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'no_of_days_exist',
+      headerName: 'Exist from',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.no_of_days_exist === '0'
+            ? 'Today'
+            : params.row.no_of_days_exist === null
+            ? 'NA'
+            : `${params.row.no_of_days_exist} Days`}
+        </Typography>
+      )
     }
+
+    // no_of_days_exist
   ]
 
   const fetchScrewTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column, type }) => {
       try {
         setLoading(true)
 
@@ -119,9 +138,11 @@ function Escrow() {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          type
         }
         await getScrewList({ params: params }).then(res => {
+          // console.log('response', res)
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
@@ -136,7 +157,7 @@ function Escrow() {
   )
 
   useEffect(() => {
-    fetchScrewTableData({ sort, q: searchValue, column: sortColumn })
+    fetchScrewTableData({ sort, q: searchValue, column: sortColumn, stockType })
   }, [fetchScrewTableData])
 
   const handleSortModel = async newModel => {
@@ -153,6 +174,19 @@ function Escrow() {
     sl_no: getSlNo(index)
   }))
 
+  const filterByStockType = type => {
+    if (type === 'all') {
+      fetchScrewTableData({ sort, q: searchValue, column: sortColumn })
+    } else {
+      fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
+    }
+  }
+
+  // useEffect(() => {
+  //   console.log('alert')
+  //   fetchScrewTableData({ sort, q: searchValue, column: sortColumn, stockType })
+  // }, [stockType])
+
   const handleSearch = async value => {
     setSearchValue(value)
     await fetchScrewTableData({ sort, q: value, column: sortColumn })
@@ -166,6 +200,22 @@ function Escrow() {
         <>
           <Card>
             <CardHeader title='Escrow List' />
+            <FormControl size='small' sx={{ ml: 4, my: 2 }}>
+              <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
+              <Select
+                size='small'
+                value={stockType}
+                label='Filter by stock type'
+                onChange={e => {
+                  filterByStockType(e.target.value)
+                  setStockType(e.target.value)
+                }}
+              >
+                <MenuItem value='all'>All</MenuItem>
+                <MenuItem value='transit'>Transit</MenuItem>
+                <MenuItem value='dispute'>Dispute</MenuItem>
+              </Select>
+            </FormControl>
 
             <DataGrid
               autoHeight

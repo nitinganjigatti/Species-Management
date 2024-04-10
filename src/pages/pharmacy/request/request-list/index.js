@@ -491,7 +491,7 @@ const RequestList = () => {
             <CardHeader title='Request List' action={headerAction} />
             <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}>
-                <FormControl size='big'>
+                <FormControl size='small'>
                   <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
                   <Select
                     size='small'
