@@ -258,9 +258,9 @@ const ListOfStores = () => {
     <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
   )
 
-  const checkCentralPharmacyExists = async () => {
+  const checkPharmacy = async () => {
     try {
-      var response = await checkCentralStore()
+      var response = await checkCentralPharmacy()
 
       return response?.success
     } catch (e) {
@@ -276,12 +276,14 @@ const ListOfStores = () => {
 
       var response
       if (editParams?.id !== null) {
-        //response = await updateStore(editParams?.id, payload)
+        response = await updateStore(editParams?.id, payload)
       } else {
-        var pharmacyCheck = await checkCentralPharmacyExists()
+        var pharmacyCheck = await checkPharmacy()
 
         if (typeof pharmacyCheck === 'boolean') {
           payload.type = pharmacyCheck ? 'local' : 'central'
+          console.log('Pharmacy')
+
           response = await addStore(payload)
         } else {
           throw "Sorry.. Can't add pharmacy right now"
