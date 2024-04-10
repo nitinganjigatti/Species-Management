@@ -52,6 +52,8 @@ const DirectDispatchList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
+
     setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
@@ -67,7 +69,7 @@ const DirectDispatchList = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          status: filterSwitch === true ? 'completed' : status
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
@@ -89,12 +91,6 @@ const DirectDispatchList = () => {
     setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
-
-  useEffect(() => {
-    const currentStatus = filterSwitch ? 'completed' : status
-    fetchTableData(sort, searchValue, sortColumn, currentStatus)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
@@ -136,6 +132,12 @@ const DirectDispatchList = () => {
   const handleSwitchChange = event => {
     setFilterSwitch(event.target.checked)
   }
+  useEffect(() => {
+    const currentStatus = filterSwitch ? 'completed' : status
+    const tabStatus = status === 'all' ? currentStatus : status
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
 
   const onRowClick = params => {
     var data = params.row

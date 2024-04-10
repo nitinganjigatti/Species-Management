@@ -112,6 +112,17 @@ function Escrow() {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'status',
+      headerName: 'Stock Related To ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (

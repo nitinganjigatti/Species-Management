@@ -70,7 +70,7 @@ const ReturnRequestList = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          status: filterSwitch === true ? 'completed' : status
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getRequestReturnList({ params: params }).then(res => {
@@ -102,11 +102,6 @@ const ReturnRequestList = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
 
-  useEffect(() => {
-    const currentStatus = filterSwitch ? 'completed' : status
-    fetchTableData(sort, searchValue, sortColumn, currentStatus)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -140,6 +135,12 @@ const ReturnRequestList = () => {
   const handleSwitchChange = event => {
     setFilterSwitch(event.target.checked)
   }
+  useEffect(() => {
+    const currentStatus = filterSwitch ? 'completed' : status
+    const tabStatus = status === 'all' ? currentStatus : status
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
 
   const onRowClick = params => {
     var data = params.row
