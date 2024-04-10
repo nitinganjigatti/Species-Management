@@ -166,7 +166,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const state = {
-    title: 'State',
+    title: 'State List',
     path: '/pharmacy/masters/state'
   }
 

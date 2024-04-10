@@ -749,7 +749,7 @@ export default function AddProduct() {
                         <ConfirmDialog
                           title={'Confirmation'}
                           open={() => setConfirmationBox(true)}
-                          content={'Are you sure you want to make changes?'}
+                          content={'Are you sure you want to cancel?'}
                           closeDialog={() => setConfirmationBox(false)}
                           action={() => router.push('/pharmacy/new-product-request/')}
                         />
