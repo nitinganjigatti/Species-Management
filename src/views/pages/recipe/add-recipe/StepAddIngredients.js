@@ -251,39 +251,6 @@ const StepAddIngredients = ({
     }
   }, [formData, reset])
 
-  const ScrollToFieldError = ({ errors }) => {
-    useEffect(() => {
-      if (!errors) return
-
-      const firstErrorField = Object.keys(errors)[0]
-      console.log('First Error Field:', firstErrorField)
-
-      let index = -1
-      if (firstErrorField?.startsWith('by_percentage')) {
-        index = fieldsIngredients.findIndex((_, index) => {
-          return firstErrorField === `by_percentage[${index}].ingredient_id`
-        })
-      } else if (firstErrorField?.startsWith('by_quantity')) {
-        index = fieldsByQuantity.findIndex((_, index) => {
-          return firstErrorField === `by_quantity[${index}].ingredient_id`
-        })
-      }
-
-      console.log('Index of Error Field:', index)
-      console.log(firstErrorField, 'firstErrorField')
-      if (index !== -1) {
-        alert('hi')
-        const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
-        console.log('Error Element:', errorElement)
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }
-    }, [errors, fieldsIngredients, fieldsByQuantity])
-
-    return null
-  }
-
   const onSubmit = async data => {
     console.log(data, 'data')
     if (calculateTotalQuantity() > 100) {
@@ -380,6 +347,29 @@ const StepAddIngredients = ({
     })
   }, [formData])
 
+  const ScrollToFieldError = ({ errors, index }) => {
+    // if (!errors) return
+    const firstErrorField = Object.keys(errors)[0]
+    console.log('First Error Field:', firstErrorField)
+    console.log(errors)
+    if (firstErrorField === 'by_percentage') {
+      const errorElement = document.getElementById('test' + index)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        // errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        window.scroll(0, 250)
+      }
+    } else if (firstErrorField === 'by_quantity') {
+      const errorElement = document.getElementById('testnew' + index)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        //errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        window.scrollTo(0, 700)
+      }
+    }
+    return null
+  }
+
   const handleEquilizerClick = () => {
     const byPercentageValues = getValues('by_percentage')
     console.log(byPercentageValues, 'byPercentageValues')
@@ -397,7 +387,6 @@ const StepAddIngredients = ({
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <ScrollToFieldError errors={errors} />
         {console.log(fieldsIngredients, 'fieldsIngredients')}
         <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
           <Box sx={{ mb: 4, px: 5, mt: 2, float: 'left' }}>
@@ -435,7 +424,8 @@ const StepAddIngredients = ({
           <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsIngredients.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id}>
+                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
+                  <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={3.6}>
                     {console.log(IngredientTypeList, 'IngredientTypeList')}
                     <FormControl fullWidth>
@@ -632,7 +622,8 @@ const StepAddIngredients = ({
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsByQuantity.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id}>
+                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
+                  <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={2.9}>
                     <FormControl fullWidth>
                       <Controller
