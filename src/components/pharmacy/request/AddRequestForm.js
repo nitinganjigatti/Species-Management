@@ -1264,8 +1264,14 @@ const AddRequestForm = () => {
           </LoadingButton>
           {id ? null : (
             <Button
+              disabled={editParams.request_item_details.length > 0 ? false : true}
               onClick={() => {
-                setEditParams(editParamsInitialState)
+                setEditParams({
+                  ...editParams,
+                  total_qty: '',
+                  request_item_details: []
+                })
+                // setEditParams(editParamsInitialState)
               }}
               size='large'
               variant='outlined'

@@ -264,6 +264,8 @@ const ReturnRequestList = () => {
             {params.row.shipping_status === 'Partially Shipped' && (
               <Box sx={{ color: 'warning.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                {/* added for partial shipping */}
+                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
               </Box>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (

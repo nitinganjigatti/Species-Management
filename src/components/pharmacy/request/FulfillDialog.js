@@ -97,6 +97,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  const batchQty = watch('product_batches')
+
   console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
@@ -683,9 +685,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         return onChange('')
                                       } else {
                                         const expiryDate = val.expiry_date
+                                        const quantity = parseInt(val?.qty)
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
-                                        watch(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
+                                        setValue(`product_batches[${index}].quantityAvailable`, quantity)
+                                        watch(`product_batches[${index}].quantityAvailable`)
 
                                         // const allValues = getValues()
 
@@ -795,6 +798,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 {errors?.product_batches?.[index]?.qty?.message}
                               </FormHelperText>
                             )}
+                            {console.log('product batches', getValues(`product_batches[${index}].quantityAvailable`))}
                             {getValues(`product_batches[${index}].quantityAvailable`) ? (
                               <FormHelperText sx={{ color: 'primary.main' }}>
                                 Available Quantity:{getValues(`product_batches[${index}].quantityAvailable`)}
