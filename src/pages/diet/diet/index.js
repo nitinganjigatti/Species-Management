@@ -196,7 +196,7 @@ const Diet = () => {
 
   const headerAction = (
     <div>
-      <Button size='small' variant='contained'>
+      <Button size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
