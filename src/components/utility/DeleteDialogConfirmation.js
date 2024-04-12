@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Button from '@mui/material/Button'
@@ -10,7 +10,7 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid, Avatar } from '@mui/material'
 
-const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type }) => {
+const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, message, action, type }) => {
   const [checked, setChecked] = useState(false)
   const handleChange = event => {
     setChecked(event.target.checked)
@@ -19,6 +19,7 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
     handleClosenew()
     setChecked(false)
   }
+
   return (
     <Fragment>
       <Dialog
@@ -57,7 +58,7 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
             marginBottom: '15px'
           }}
         >
-          {type === 'ingredient' ? (
+          {type === 'ingredient' || 'feed' ? (
             <img src='/icons/grocery.svg' alt='Grocery Icon' width='40' height='40' />
           ) : (
             <img src='/icons/grocery.svg' alt='Grocery Icon' width='40' height='40' />
@@ -66,8 +67,9 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
         <DialogTitle id='alert-dialog-title'>
           {message}
           <Typography sx={{ mt: 2 }}>
-            Deactivating this {type === 'ingredient' ? 'ingredient' : 'recipe'} prevents its addition to new <br />{' '}
-            {type === 'ingredient' ? 'recipes or diets.' : 'diets'}
+            {active === '1' ? 'Deactivating' : 'Activating'} this{' '}
+            {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} prevents its addition to new{' '}
+            <br /> {type === 'ingredient' ? 'recipes or diets.' : 'diets'}
           </Typography>
         </DialogTitle>
 
@@ -83,15 +85,20 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
           }}
         >
           <Typography sx={{ color: '#FA6140', pt: 6, fontSize: 14, fontWeight: 600 }}>
-            This {type === 'ingredient' ? 'ingredient' : 'recipe'} is part of{' '}
-            {type === 'ingredient' ? ' 15 recipes and 10 diets.' : '20 diets.'}
+            This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
+            {type === 'ingredient'
+              ? ' 15 recipes and 10 diets.'
+              : type === 'feed'
+              ? `${typeCount}  Ingredients`
+              : '20 diets.'}
           </Typography>
           <Grid>
             <Typography sx={{ fontSize: 15 }}>
               <FormControlLabel
                 label={
                   <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
-                    Deactivate this {type === 'ingredient' ? 'ingredient' : 'recipe'} in all records
+                    {active === '1' ? 'Deactivate' : 'Activate'} this{' '}
+                    {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} in all records
                   </span>
                 }
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
@@ -99,7 +106,8 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
             </Typography>
             <Grid item>
               <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
-                Option to swap it with another {type === 'ingredient' ? 'ingredient' : 'recipe'} is still possible
+                Option to swap it with another{' '}
+                {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is still possible
               </Typography>
             </Grid>
           </Grid>
@@ -118,10 +126,11 @@ const DeleteDialogConfirmation = ({ handleClosenew, open, message, action, type 
             sx={{ width: 200, mr: 3 }}
             onClick={() => {
               action()
+              setChecked(false)
             }}
             disabled={checked === true ? false : true}
           >
-            Deactivate
+            {active === '1' ? 'Deactivate' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>
