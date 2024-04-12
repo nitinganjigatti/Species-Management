@@ -29,9 +29,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
+import ActivityLogs from './activityLogs'
 import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
-import ActivityLogs from 'src/@core/components/activityLogs'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -91,7 +91,8 @@ const FeedDetails = () => {
       const response = await feedStatusChange({ status: 0 }, FeedDetailsValue?.id)
       if (response.success === true) {
         setstatusDialog(false)
-        setIsActive(isActive == '1' ? '0' : '1')
+        setIsActive('0')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -127,11 +128,13 @@ const FeedDetails = () => {
       }
     } catch (error) {}
   }
+
   const confirmDeleteAction = async () => {
     try {
       const response = await feedDelete(FeedDetailsValue?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -164,6 +167,7 @@ const FeedDetails = () => {
         )
       } else {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -208,6 +212,7 @@ const FeedDetails = () => {
   }
 
   const [expanded, setExpanded] = useState(false)
+
   const toggleExpanded = () => {
     setExpanded(!expanded)
   }
@@ -384,9 +389,9 @@ const FeedDetails = () => {
           <Grid item xs={12}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
+              <Link underline='hover' color='inherit' href='/diet/feed/'>
                 Feed
-              </Typography>
+              </Link>
               <Typography color='text.primary'>Feed Details</Typography>
             </Breadcrumbs>
             <>
@@ -408,7 +413,7 @@ const FeedDetails = () => {
                         icon='material-symbols:delete-outline'
                         style={{ cursor: 'pointer', marginLeft: '15px' }}
                         onClick={() => {
-                          if (Number(FeedDetailsValue?.ingredients) > 0) {
+                          if (isActive == '1' && Number(FeedDetailsValue?.ingredients) > 0) {
                             setstatusDialog(true)
                           } else {
                             setDeleteDialogBox(true)
@@ -511,7 +516,7 @@ const FeedDetails = () => {
                               </Box>
                             </Box>
                           </div>
-                          {/* <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
+                          <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
                             <Drawer
                               anchor='right'
                               open={activitySidebarOpen}
@@ -524,18 +529,16 @@ const FeedDetails = () => {
                                 }
                               }}
                             >
-                              <CardContent> */}
-                          <ActivityLogs
-                            activitySidebarOpen={activitySidebarOpen}
-                            activity_type='feedType'
-                            detailsValue={FeedDetailsValue}
-                            searchValue={activitySearchValue}
-                            setSearchValue={setActivitySearchValue}
-                            handleSidebarClose={handleSidebarClose}
-                          />
-                          {/* </CardContent>
+                              <CardContent>
+                                <ActivityLogs
+                                  FeedDetailsValue={FeedDetailsValue}
+                                  searchValue={activitySearchValue}
+                                  setSearchValue={setActivitySearchValue}
+                                  handleSidebarClose={handleSidebarClose}
+                                />
+                              </CardContent>
                             </Drawer>
-                          </Box> */}
+                          </Box>
                         </TabPanel>
                         <TabPanel sx={{ p: 0, pt: 2 }} value='2'>
                           <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
@@ -609,7 +612,6 @@ const FeedDetails = () => {
                     action={confirmStatusAction}
                     open={statusDialog}
                     type='feed'
-                    active={isActive == '1'}
                     message={
                       <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                         Deletion isn't possible!

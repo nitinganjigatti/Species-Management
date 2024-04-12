@@ -1,5 +1,6 @@
 // ** React Imports
 import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Button from '@mui/material/Button'
@@ -10,6 +11,7 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid, Avatar } from '@mui/material'
 
+const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, message, action, type }) => {
 const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, message, action, type }) => {
   const [checked, setChecked] = useState(false)
   const handleChange = event => {
@@ -130,7 +132,7 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
             }}
             disabled={checked === true ? false : true}
           >
-            {active === 1 ? 'Activate' : 'Deactivate'}
+            {active === '1' ? 'Deactivate' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>
