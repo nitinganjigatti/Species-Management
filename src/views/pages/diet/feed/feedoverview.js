@@ -1,121 +1,188 @@
-import { Avatar, Button, Card, CardContent, Typography } from '@mui/material'
-
+import { Avatar, Card, Divider, CardContent, FormControlLabel, Switch, Typography } from '@mui/material'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import CardActions from '@mui/material/CardActions'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
 // ** Custom Components
-import CustomChip from 'src/@core/components/mui/chip'
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import { useRouter } from 'next/router'
 import Router from 'next/router'
-
 // ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import { feedStatusChange } from 'src/lib/api/diet/getFeedDetails'
+import IconButton from '@mui/material/IconButton'
 
-const data = {
-  id: 1,
-  role: 'maintainer',
-  status: 'active',
-  username: 'gslixby0',
-  avatarColor: 'primary',
-  country: 'El Salvador',
-  company: 'Yotz PVT LTD',
-  contact: '(479) 232-9151',
-  currentPlan: 'enterprise',
-  fullName: 'Commercial feed',
-  email: 'gslixby0@abc.net.au',
-  avatar: '/images/avatars/4.png'
-}
+const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
+  // const [isActive, setIsActive] = useState(FeedDetailsValue?.active || '0')
+  const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
+  const [confirmDialogBox, setConfirmDialogBox] = useState(false)
 
-const roleColors = {
-  active: 'success',
-  inactive: 'error'
-}
+  const handleClosenew = () => {
+    setConfirmDialogBox(false)
+    // setIsActive(FeedDetailsValue.active)
+  }
+  useEffect(() => {
+    setIsActive(FeedDetailsValue?.active)
+  }, [FeedDetailsValue])
 
-const FeedOverview = ({ FeedDetailsValue }) => {
-  const handleEditClickOpen = () => setOpenEdit(true)
-  const router = useRouter()
+  const handleSwitchChange = async event => {
+    const newIsActive = event.target.checked ? 1 : 0
+    setActivePayload(newIsActive)
+    // setIsActive(newIsActive)
+    setConfirmDialogBox(true)
+  }
 
-  const convertToTitleCase = str => {
-    if (!str) return ''
+  const confirmStatusAction = async () => {
+    try {
+      setConfirmDialogBox(false)
+      const response = await feedStatusChange({ status: activePayload }, FeedDetailsValue?.id)
 
-    const firstLetter = str.charAt(0).toUpperCase()
-    const restOfWord = str.slice(1).toLowerCase()
-
-    return firstLetter + restOfWord
+      console.log(response, 'response')
+      if (response.success === true) {
+        setIsActive(isActive == '0' ? '1' : '0')
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {response.message}
+                    {/* Recipe {'REP' + FeedDetailsValue.id} has been successfully{' '}
+                    {isActive === 1 ? 'activated' : 'deactivated'} */}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {}
   }
 
   if (FeedDetailsValue) {
     return (
-      <Grid item xs={4}>
-        <Card>
-          <CardContent sx={{ pt: 10, display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-            <Typography variant='h6' sx={{ mb: 10 }}>
-              Feed Type
-            </Typography>
-            {console.log(FeedDetailsValue, 'FeedDetailsValue')}
-            <CustomAvatar
-              src={FeedDetailsValue.feed_type_image ? FeedDetailsValue.feed_type_image : ''}
-              variant='rounded'
-              alt={FeedDetailsValue.feed_type_name}
-              sx={{ width: 120, height: 120, fontWeight: 400, mb: 4 }}
-            />
-            <Typography variant='h7' sx={{ mb: 2, fontWeight: 500 }}>
-              {convertToTitleCase(FeedDetailsValue.feed_type_name)}
-            </Typography>
-            <CustomChip
-              skin='light'
-              size='small'
-              label={FeedDetailsValue.active === '1' ? 'Active' : 'InActive'}
-              color={FeedDetailsValue?.active === '1' ? roleColors.active : roleColors.inactive}
-              sx={{
-                height: 20,
-                fontWeight: 600,
-                borderRadius: '5px',
-                fontSize: '0.875rem',
-                textTransform: 'capitalize',
-                '& .MuiChip-label': { mt: -0.25 }
-              }}
-            />
-          </CardContent>
-
-          <CardContent sx={{ my: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'left', justifyContent: 'left' }}>
-              <Box sx={{ mr: 8, display: 'flex', alignItems: 'left' }}>
-                {FeedDetailsValue.image ? (
-                  <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
-                    <Avatar sx={{ width: 24, height: 24 }} src={FeedDetailsValue.image} />
-                  </CustomAvatar>
-                ) : (
-                  <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3 }}>
-                    <Icon icon='arcticons:recipe-keeper' />
-                  </CustomAvatar>
-                )}
-                <div>
-                  <Typography variant='h6' sx={{ lineHeight: 1.9 }}>
-                    {FeedDetailsValue.ingredients} Ingredients
-                  </Typography>
-                  {/* <Typography variant='body2'>Task Done</Typography> */}
+      <>
+        <Grid item xs={4}>
+          <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
+            <div
+              item
+              md={3}
+              xs={12}
+              style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
+            >
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%'
+                  }}
+                >
+                  <Avatar
+                    variant='square'
+                    alt={FeedDetailsValue.image}
+                    sx={{
+                      width: '100%',
+                      height: '100%'
+                    }}
+                    src={FeedDetailsValue.image ? FeedDetailsValue.image : '/icons/recipedummy.svg'}
+                  ></Avatar>
                 </div>
+              </CardContent>
+            </div>
+            <CardContent sx={{ py: 0 }}>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}
+              >
+                <Box sx={{}}></Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          // checked={FeedDetailsValue.active === '1' ? true : false}
+                          checked={isActive === '1' ? true : false}
+                          onChange={handleSwitchChange}
+                          fontSize={2}
+                        />
+                      }
+                      labelPlacement='start'
+                      label={isActive === '1' ? 'Active' : 'InActive'}
+                    />
+                  </Grid>
+                </Box>
               </Box>
-            </Box>
-          </CardContent>
-
-          <CardActions
-            sx={{ display: 'flex', justifyContent: 'center' }}
-            onClick={() => Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })}
-          >
-            <Button variant='outlined' sx={{ mr: 2, mt: 2, pl: 40, pr: 40 }}>
-              Edit
-            </Button>
-          </CardActions>
-        </Card>
-      </Grid>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  my: 3
+                }}
+              >
+                <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                    Ingredients used
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                    {FeedDetailsValue.ingredients + ' nos'}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+          <DeleteDialogConfirmation
+            handleClosenew={handleClosenew}
+            action={confirmStatusAction}
+            open={confirmDialogBox}
+            typeCount={FeedDetailsValue?.ingredients}
+            type='feed'
+            active={isActive}
+            message={
+              <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type?
+              </span>
+            }
+          />
+        </Grid>
+      </>
     )
   } else {
     return null
