@@ -251,39 +251,6 @@ const StepAddIngredients = ({
     }
   }, [formData, reset])
 
-  const ScrollToFieldError = ({ errors }) => {
-    useEffect(() => {
-      if (!errors) return
-
-      const firstErrorField = Object.keys(errors)[0]
-      console.log('First Error Field:', firstErrorField)
-
-      let index = -1
-      if (firstErrorField?.startsWith('by_percentage')) {
-        index = fieldsIngredients.findIndex((_, index) => {
-          return firstErrorField === `by_percentage[${index}].ingredient_id`
-        })
-      } else if (firstErrorField?.startsWith('by_quantity')) {
-        index = fieldsByQuantity.findIndex((_, index) => {
-          return firstErrorField === `by_quantity[${index}].ingredient_id`
-        })
-      }
-
-      console.log('Index of Error Field:', index)
-      console.log(firstErrorField, 'firstErrorField')
-      if (index !== -1) {
-        alert('hi')
-        const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
-        console.log('Error Element:', errorElement)
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }
-    }, [errors, fieldsIngredients, fieldsByQuantity])
-
-    return null
-  }
-
   const onSubmit = async data => {
     console.log(data, 'data')
     if (calculateTotalQuantity() > 100) {
@@ -421,7 +388,6 @@ const StepAddIngredients = ({
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <ScrollToFieldError errors={errors} />
         {console.log(fieldsIngredients, 'fieldsIngredients')}
         <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
           <Box sx={{ mb: 4, px: 5, mt: 2, float: 'left' }}>

@@ -7,7 +7,9 @@ import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
+
 // ** Step Components
+import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
@@ -20,7 +22,6 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 
 const steps = [
   {
@@ -30,6 +31,10 @@ const steps = [
   {
     title: 'Add Quantity',
     subtitle: 'Enter details'
+  },
+  {
+    title: 'Preview',
+    subtitle: 'Preview & Submit'
   }
 ]
 
@@ -39,6 +44,7 @@ const AddDiet = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+
   const [formData, setFormData] = useState({
     recipe_name: '',
     portion_size: '',
@@ -98,6 +104,7 @@ const AddDiet = () => {
       const params = {
         //status,
         q,
+
         //active: 1,
         page,
         limit
@@ -260,6 +267,7 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -339,6 +347,7 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -387,7 +396,7 @@ const AddDiet = () => {
         )
       case 1:
         return (
-          <StepPreviewDiet
+          <StepAddIngredients
             handleNext={handleNext}
             handlePrev={handlePrev}
             handleIngredientChange={handleIngredientChange}
@@ -399,8 +408,8 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
-      //   case 2:
-      //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+      case 2:
+        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }
@@ -408,8 +417,10 @@ const AddDiet = () => {
 
   const renderContent = () => {
     console.log(formData, 'formdat')
+
     return getStepContent(activeStep)
   }
+
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
@@ -426,12 +437,18 @@ const AddDiet = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography variant='h6'>{id ? 'Edit Recipe' : 'Add New Diet'}</Typography>
+              {/* <Typography sx={{ mb: 1, fontSize: 14 }}>
+                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
+                proportions for this <br /> ingredient prior to processing.
+              </Typography> */}
             </div>
           </div>
         </CardContent>
 
+        {/* <Divider sx={{ mx: '20px !important', pb: 1 }} /> */}
+
         <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
-          <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
+          <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
             {steps.map((step, index) => {
               return (
                 <Step key={index}>

@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
-import { Divider, CardContent, FormHelperText, Card, CardHeader, Avatar } from '@mui/material'
+import { Divider, CardContent, FormHelperText, Card, CardHeader } from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
 import { useForm, useFieldArray } from 'react-hook-form'
@@ -21,9 +21,6 @@ import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploade
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
-import AddIngredients from 'src/components/diet/AddIngredients'
 
 const defaultValues = {
   recipe_name: '',
@@ -36,6 +33,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   recipe_name: yup.string().required('Recipe name is required')
+
   //portion_size: yup.string().required('Portion size is required')
   // portion_uom_id: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
@@ -46,9 +44,8 @@ const schema = yup.object().shape({
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
-  const [openIngredient, setOpenIngredient] = useState(false)
-  const [OpenIngredientchoice, setOpenIngredientchoice] = useState(false)
   const router = useRouter()
+
   const recipes = [
     { label: 'No' },
     { label: 'Recipe' },
@@ -56,6 +53,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const ingredients = [
     { label: 'No' },
     { label: 'Ingredient' },
@@ -63,6 +61,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const {
     reset,
     control,
@@ -119,21 +118,9 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     return null
   }
 
-  const handleAddIngerdientChoice = () => {
-    setOpenIngredientchoice(true)
-  }
-
-  const handleAddIngerdient = () => {
-    setOpenIngredient(true)
-  }
-
-  const handleSidebarClose = () => {
-    setOpenIngredient(false)
-    setOpenIngredientchoice(false)
-  }
-
   const onSubmit = async data => {
     window.scrollTo(0, 0)
+
     // Clear any existing errors
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
@@ -143,6 +130,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
+
       // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
@@ -205,6 +193,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
 
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -230,6 +219,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -391,7 +381,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Select time - from'
+                              label='Unit of measurement (UOM)'
                               placeholder='Search & Select'
                               error={Boolean(errors.nutrional_uom_id)}
                             />
@@ -416,7 +406,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                         <TextField
                           value={value}
                           type='number'
-                          label='Select time - to'
+                          label='Total calories for 100 gms'
                           name='kcal'
                           error={Boolean(errors.kcal)}
                           onChange={onChange}
@@ -626,297 +616,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 </Grid>
               </Grid>
 
-              <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                  <Typography variant='h6'>Ingredients with choice</Typography>
-                </Box>
-
-                <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
-                  <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                    {ingredients.map((ingredient, index) => (
-                      <Grid
-                        item
-                        xs={12}
-                        sm={
-                          ingredient.label === 'No'
-                            ? 0.5
-                            : ingredient.label === 'Ingredient'
-                            ? 2.2
-                            : ingredient.label === 'Prep types'
-                            ? 1.5
-                            : 3.7
-                        }
-                        key={index}
-                        sx={{ py: 4, px: 2, textAlign: 'center' }}
-                      >
-                        <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-
-                    <Grid
-                      container
-                      sx={{ background: '#00afd633', padding: '0px 0px 15px 15px', borderRadius: '8px', mt: 3 }}
-                    >
-                      <Grid item>
-                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                          <CardContent
-                            sx={{
-                              gap: 3,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: '14px'
-                            }}
-                          >
-                            <Avatar
-                              variant='square'
-                              alt='Medicine Image'
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                mr: 1,
-                                background: '#E8F4F2',
-                                padding: '2px',
-                                borderRadius: '4px'
-                              }}
-                              src={null}
-                            >
-                              {null ?? <Icon icon='healthicons:fruits-outline' />}
-                            </Avatar>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <span>Apple</span>
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>ING011112</span>
-
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>Unchopped</span>
-                            </Box>
-                            <Icon style={{ position: 'relative', left: '28%' }} icon='iconoir:cancel' />
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item>
-                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                          <CardContent
-                            sx={{
-                              gap: 3,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: '14px'
-                            }}
-                          >
-                            <Avatar
-                              variant='square'
-                              alt='Medicine Image'
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                mr: 1,
-                                background: '#E8F4F2',
-                                padding: '2px',
-                                borderRadius: '4px'
-                              }}
-                              src={null}
-                            >
-                              {null ?? <Icon icon='healthicons:fruits-outline' />}
-                            </Avatar>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <span>Apple</span>
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>ING011112</span>
-
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>Unchopped</span>
-                            </Box>
-                            <Icon style={{ position: 'relative', left: '28%' }} icon='iconoir:cancel' />
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item>
-                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                          <CardContent
-                            sx={{
-                              gap: 3,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: '14px'
-                            }}
-                          >
-                            <Avatar
-                              variant='square'
-                              alt='Medicine Image'
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                mr: 1,
-                                background: '#E8F4F2',
-                                padding: '2px',
-                                borderRadius: '4px'
-                              }}
-                              src={null}
-                            >
-                              {null ?? <Icon icon='healthicons:fruits-outline' />}
-                            </Avatar>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <span>Apple</span>
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>ING011112</span>
-
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>Unchopped</span>
-                            </Box>
-                            <Icon style={{ position: 'relative', left: '28%' }} icon='iconoir:cancel' />
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item>
-                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                          <CardContent
-                            sx={{
-                              gap: 3,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: '14px'
-                            }}
-                          >
-                            <Avatar
-                              variant='square'
-                              alt='Medicine Image'
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                mr: 1,
-                                background: '#E8F4F2',
-                                padding: '2px',
-                                borderRadius: '4px'
-                              }}
-                              src={null}
-                            >
-                              {null ?? <Icon icon='healthicons:fruits-outline' />}
-                            </Avatar>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <span>Apple</span>
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>ING011112</span>
-
-                              <span style={{ color: '#7A8684', fontSize: 13 }}>Unchopped</span>
-                            </Box>
-                            <Icon style={{ position: 'relative', left: '28%' }} icon='iconoir:cancel' />
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item>
-                        <Card sx={{ width: '100px', height: '90px', mr: 4, boxShadow: 'none', mt: 3, padding: 3 }}>
-                          <CardContent
-                            sx={{
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: 2
-                            }}
-                            onClick={handleAddIngerdientChoice}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <Icon
-                                style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
-                                icon='material-symbols:add'
-                              />
-
-                              <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>Add</span>
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5 }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-
               <Grid sx={{ pb: 12 }}>
                 <Typography
                   sx={{
@@ -945,7 +644,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={handleAddIngerdient}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT
@@ -963,7 +661,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={handleAddIngerdientChoice}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT WITH CHOICE
@@ -1001,26 +698,22 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
           </Card>
         ))}
 
-        <Card sx={{ mt: 8 }}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 7, mr: 6 }}>
-              <Button
-                color='secondary'
-                variant='outlined'
-                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
-                sx={{ mr: 6 }}
-                onClick={cancelBack}
-              >
-                Cancel
-              </Button>
-              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                Next
-              </Button>
-            </Box>
-          </Grid>
-        </Card>
-        <AddIngredientswithChoice open={OpenIngredientchoice} handleSidebarClose={handleSidebarClose} />
-        <AddIngredients open={openIngredient} handleSidebarClose={handleSidebarClose} />
+        <Grid item xs={12}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+            <Button
+              color='secondary'
+              variant='outlined'
+              startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+              sx={{ mr: 6 }}
+              onClick={cancelBack}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+              Next
+            </Button>
+          </Box>
+        </Grid>
       </form>
     </>
   )
