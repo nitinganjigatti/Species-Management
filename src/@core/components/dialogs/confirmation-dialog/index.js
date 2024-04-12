@@ -20,20 +20,30 @@ const ConfirmationDialog = ({
   const theme = useTheme()
   return (
     <Dialog
-      fullWidth
+      // fullWidth
       open={dialogBoxStatus}
       maxWidth='sm'
       height='auto'
       scroll='body'
+      disableEscapeKeyDown
+      aria-labelledby='alert-dialog-title'
+      aria-describedby='alert-dialog-description'
       onClose={() => onClose()}
       onBackdropClick={() => onClose()}
+      sx={{
+        '& .MuiDialog-paper': {
+          backgroundColor: '#fff',
+          padding: 8,
+          textAlign: 'center'
+        }
+      }}
     >
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
           gap: '32px',
-          padding: '40px',
+          // padding: '40px',
           alignItems: 'center'
         }}
       >

@@ -59,7 +59,7 @@ const FeedTypes = () => {
         await getFeedTypeList(params).then(res => {
           if (res?.success) {
             let listWithId = res.data.result.map((el, i) => {
-              return { ...el, id: el?.id }
+              return { ...el, uid: i + 1 }
             })
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, listWithId))
@@ -115,7 +115,7 @@ const FeedTypes = () => {
       headerName: 'SL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
