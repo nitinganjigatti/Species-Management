@@ -3,7 +3,7 @@
 /* eslint-disable lines-around-comment */
 import React, { useState } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox } from '@mui/material'
+import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
@@ -154,15 +154,47 @@ const AddIngredients = props => {
 
       // Check if cut size and its dropdown are not empty
       if (!cutSizeValue || !sizeValue) {
-        // Show toast or alert for required fields
-        return
+        return toast(t => (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+              <div>
+                <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                  Cut Size is required
+                </Typography>
+              </div>
+            </Box>
+            <IconButton
+              onClick={() => toast.dismiss(t.id)}
+              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            >
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+        ))
       }
     }
 
     // Check if any required field is empty
     if (!feedType || selectedDays.length === 0) {
-      // Show toast or alert for required fields
-      return
+      return toast(t => (
+        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+            <div>
+              <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                Feed type & Feeding days is required
+              </Typography>
+            </div>
+          </Box>
+          <IconButton
+            onClick={() => toast.dismiss(t.id)}
+            style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+          >
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+      ))
     }
 
     // Prepare the object to store values
@@ -367,88 +399,97 @@ const AddIngredients = props => {
 
                 {/* bottom part */}
                 {/* {showBottom === index  */}
-                {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? (
-                  <>
-                    <Box sx={{ m: 2 }}>
-                      {selectFeed[item.id] === 'chopped' ? (
-                        <>
-                          <Divider />
-                          <Stack direction='row' sx={{ py: 3, alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography>Enter cut size</Typography>
-                            <Box sx={{ width: '178.5px' }}>
-                              <FormControl fullWidth>
-                                <TextField
-                                  size='small'
-                                  placeholder='Add Size'
-                                  variant='outlined'
-                                  {...props}
-                                  onChange={e => seCutSize(e.target.value)}
-                                />
-                              </FormControl>
-                            </Box>
-                            <Box sx={{ width: '178.5px' }}>
-                              <FormControl fullWidth>
-                                <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
-                                  <MenuItem value='' disabled>
-                                    Cm
-                                  </MenuItem>
-                                  <MenuItem value='chopped'>CM</MenuItem>
-                                  <MenuItem value='unchopped'>M</MenuItem>
-                                  <MenuItem value='option-3'>Option-3</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Box>
-                          </Stack>
-                        </>
-                      ) : null}
+                {/* {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? ( */}
+                <>
+                  <Box
+                    sx={{
+                      m: 2,
+                      display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                        ? 'block'
+                        : ' none',
+                      transitionProperty: 'display',
+                      transitionDuration: '13s'
+                    }}
+                  >
+                    {selectFeed[item.id] === 'chopped' ? (
+                      <>
+                        <Divider />
+                        <Stack direction='row' sx={{ py: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography>Enter cut size</Typography>
+                          <Box sx={{ width: '178.5px' }}>
+                            <FormControl fullWidth>
+                              <TextField
+                                size='small'
+                                placeholder='Add Size'
+                                variant='outlined'
+                                {...props}
+                                onChange={e => seCutSize(e.target.value)}
+                              />
+                            </FormControl>
+                          </Box>
+                          <Box sx={{ width: '178.5px' }}>
+                            <FormControl fullWidth>
+                              <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
+                                <MenuItem value='' disabled>
+                                  Cm
+                                </MenuItem>
+                                <MenuItem value='chopped'>CM</MenuItem>
+                                <MenuItem value='unchopped'>M</MenuItem>
+                                <MenuItem value='option-3'>Option-3</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                      </>
+                    ) : null}
+
+                    <Divider />
+                    <Box>
+                      <Typography sx={{ py: 4 }}>Feeding Days</Typography>
+
+                      <Stack direction='row' gap={3} mb={2}>
+                        {item?.days?.map(day => (
+                          <Box
+                            key={day.id}
+                            onClick={event => handleDayClick(day.id, item.id)}
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 'bold',
+                              bgcolor: day.isActive ? '#203e56' : '#dedede',
+                              borderRadius: 5,
+                              p: 2,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                bgcolor: '#203e56',
+                                color: 'white'
+                              },
+                              color: day.isActive ? 'white' : 'black'
+                            }}
+                          >
+                            {day?.title}
+                          </Box>
+                        ))}
+                      </Stack>
 
                       <Divider />
-                      <Box>
-                        <Typography sx={{ py: 4 }}>Feeding Days</Typography>
 
-                        <Stack direction='row' gap={3} mb={2}>
-                          {item?.days?.map(day => (
-                            <Box
-                              key={day.id}
-                              onClick={event => handleDayClick(day.id, item.id)}
-                              sx={{
-                                fontSize: 11,
-                                fontWeight: 'bold',
-                                bgcolor: day.isActive ? '#203e56' : '#dedede',
-                                borderRadius: 5,
-                                p: 2,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                  bgcolor: '#203e56',
-                                  color: 'white'
-                                },
-                                color: day.isActive ? 'white' : 'black'
-                              }}
-                            >
-                              {day?.title}
-                            </Box>
-                          ))}
-                        </Stack>
-
-                        <Divider />
-
-                        <Box sx={{ py: 3 }}>
-                          {' '}
-                          <FormControl fullWidth>
-                            <TextField
-                              placeholder='Add Remarks (optional)'
-                              variant='outlined'
-                              {...props}
-                              onChange={handleAddRemarks}
-                            />
-                          </FormControl>
-                        </Box>
+                      <Box sx={{ py: 3 }}>
+                        {' '}
+                        <FormControl fullWidth>
+                          <TextField
+                            placeholder='Add Remarks (optional)'
+                            variant='outlined'
+                            {...props}
+                            onChange={handleAddRemarks}
+                          />
+                        </FormControl>
                       </Box>
                     </Box>
-                  </>
-                ) : null}
+                  </Box>
+                </>
+                {/* ) : null} */}
               </Box>
             ))}
           </>
