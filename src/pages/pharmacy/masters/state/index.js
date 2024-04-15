@@ -145,7 +145,7 @@ const ListOfStates = () => {
       field: 'name',
       headerName: 'STATE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {params.row.name}
         </Typography>
       )
@@ -155,7 +155,9 @@ const ListOfStates = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'code',
-      headerName: 'CODE',
+      headerName: 'STATE CODE',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.code}
@@ -168,7 +170,7 @@ const ListOfStates = () => {
       field: 'short_code',
       headerName: 'SHORT CODE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'uppercase' }}>
           {params.row.short_code}
         </Typography>
       )
@@ -315,7 +317,7 @@ const ListOfStates = () => {
                 <CardHeader title='State List' action={headerAction} />
                 <DataGrid
                   columnVisibilityModel={{
-                    id: false
+                    uid: false
                   }}
                   autoHeight
                   pagination

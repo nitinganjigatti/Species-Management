@@ -795,12 +795,28 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         id='outlined-size-small'
                         name='wrong_count_number'
                         value={params?.row?.wrong_count_number}
-                        error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
+                        error={Boolean(
+                          params?.row?.wrong_count_number === '' || parseInt(params.row.wrong_count_number, 10) < 0
+                        )}
                         size='small'
                         onChange={event => {
                           handleStatusChange(params.row.id, event)
 
-                          if (Number(event.target.value) > Number(params?.row?.count)) {
+                          const inputValue = event.target.value
+                          const countValue = Number(params?.row?.count)
+                          const inputValueNumber = Number(inputValue)
+
+                          if (inputValue.trim() === '') {
+                            setWrongCountErr(prevErrors => ({
+                              ...prevErrors,
+                              [params.row.uid]: 'This field is required'
+                            }))
+                          } else if (inputValueNumber <= 0) {
+                            setWrongCountErr(prevErrors => ({
+                              ...prevErrors,
+                              [params.row.uid]: 'Number must be positive'
+                            }))
+                          } else if (params?.row?.wrong_count_type === 'shortage' && inputValueNumber > countValue) {
                             setWrongCountErr(prevErrors => ({
                               ...prevErrors,
                               [params.row.uid]: 'Qty exceeds shipped count.'

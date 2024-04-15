@@ -20,6 +20,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -44,6 +45,7 @@ const ReturnRequestList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,6 +53,7 @@ const ReturnRequestList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
 
     setStatus(newValue)
@@ -67,7 +70,7 @@ const ReturnRequestList = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          status
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getRequestReturnList({ params: params }).then(res => {
@@ -95,14 +98,10 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'completed')
+    setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'shipped')
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
 
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -112,9 +111,10 @@ const ReturnRequestList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
+      const currentStatus = filterSwitch ? 'completed' : status
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
     } else {
     }
   }
@@ -122,14 +122,25 @@ const ReturnRequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      const currentStatus = filterSwitch ? 'completed' : status
       try {
-        await fetchTableData(sort, q, column, status)
+        await fetchTableData(sort, q, column, currentStatus)
       } catch (error) {
         console.error(error)
       }
     }, 1000),
     []
   )
+
+  const handleSwitchChange = event => {
+    setFilterSwitch(event.target.checked)
+  }
+  useEffect(() => {
+    const currentStatus = filterSwitch ? 'completed' : status
+    const tabStatus = status === 'all' ? currentStatus : status
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
 
   const onRowClick = params => {
     var data = params.row
@@ -253,6 +264,8 @@ const ReturnRequestList = () => {
             {params.row.shipping_status === 'Partially Shipped' && (
               <Box sx={{ color: 'warning.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                {/* added for partial shipping */}
+                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
               </Box>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
@@ -317,7 +330,16 @@ const ReturnRequestList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Return request List' action={headerAction} />
+              <CardHeader title='Return Request List' action={headerAction} />
+              {status === 'all' ? (
+                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                  <FormControlLabel
+                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -378,8 +400,8 @@ const ReturnRequestList = () => {
               />
             ) : null}
             <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />
             <Tab
               value='disputed'
@@ -393,7 +415,7 @@ const ReturnRequestList = () => {
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
 

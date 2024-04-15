@@ -97,6 +97,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
   console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
@@ -672,44 +673,28 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     onChange={(e, val) => {
                                       console.log('valllll', val)
 
+                                      // if (val === null) {
+                                      //   setValue(`product_batches[${index}].expiry_date`, '')
+
+                                      //   return onChange('')
+                                      // } else {
+                                      //   debugger
+                                      //   const expiryDate = val.expiry_date
+                                      //   const quantity = parseInt(val?.qty)
+                                      //   setValue(`product_batches[${index}].expiry_date`, expiryDate)
+                                      //   setValue(`product_batches[${index}].quantityAvailable`, quantity)
+
+                                      //   return onChange(val.batch_no)
+                                      // }
                                       if (val === null) {
-                                        //setDefaultProductForm(undefined)
-                                        // var saltComposition = defaultSalts
-                                        // saltComposition[index] = null
-                                        // setDefaultSalts(saltComposition)
-
                                         setValue(`product_batches[${index}].expiry_date`, '')
-
-                                        return onChange('')
+                                        setValue(`product_batches[${index}].quantityAvailable`, '')
+                                        onChange('')
                                       } else {
-                                        const expiryDate = val.expiry_date
-                                        setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
-                                        watch(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
-
-                                        // const allValues = getValues()
-
-                                        // const selectedBatchCount = allValues?.product_batches?.reduce(
-                                        //   (count, batch) => {
-                                        //     return count + (batch.batch_no === val.batch_no ? 1 : 0)
-                                        //   },
-                                        //   0
-                                        // )
-
-                                        // if (selectedBatchCount > 0) {
-                                        //
-                                        //   setError(`product_batches[${index}].batch_no`, {
-                                        //     type: 'manual',
-                                        //     message: 'Batch number is already selected'
-                                        //   })
-                                        // }
-
-                                        // var saltComposition = defaultSalts
-                                        // saltComposition[index] = { batch_no: val.batch_no }
-
-                                        // setDefaultSalts(saltComposition)
-
-                                        return onChange(val.batch_no)
+                                        const { expiry_date, qty } = val
+                                        setValue(`product_batches[${index}].expiry_date`, expiry_date)
+                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(qty))
+                                        onChange(val.batch_no)
                                       }
                                     }}
                                     renderInput={params => {
@@ -795,9 +780,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 {errors?.product_batches?.[index]?.qty?.message}
                               </FormHelperText>
                             )}
-                            {getValues(`product_batches[${index}].quantityAvailable`) ? (
+                            {}
+
+                            {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
                               <FormHelperText sx={{ color: 'primary.main' }}>
-                                Available Quantity:{getValues(`product_batches[${index}].quantityAvailable`)}
+                                Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
                               </FormHelperText>
                             ) : null}
                           </FormControl>

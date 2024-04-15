@@ -22,6 +22,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -43,6 +44,7 @@ const DirectDispatchList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -50,6 +52,8 @@ const DirectDispatchList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
+
     setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
@@ -65,7 +69,7 @@ const DirectDispatchList = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          status
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
@@ -84,14 +88,9 @@ const DirectDispatchList = () => {
   )
 
   useEffect(() => {
-    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'completed')
+    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
-
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
@@ -107,9 +106,11 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
+      const currentStatus = filterSwitch ? 'completed' : status
+
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
     } else {
     }
   }
@@ -117,14 +118,26 @@ const DirectDispatchList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      const currentStatus = filterSwitch ? 'completed' : status
+
       try {
-        await fetchTableData(sort, q, column, status)
+        await fetchTableData(sort, q, column, currentStatus)
       } catch (error) {
         console.error(error)
       }
     }, 1000),
     []
   )
+
+  const handleSwitchChange = event => {
+    setFilterSwitch(event.target.checked)
+  }
+  useEffect(() => {
+    const currentStatus = filterSwitch ? 'completed' : status
+    const tabStatus = status === 'all' ? currentStatus : status
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
 
   const onRowClick = params => {
     var data = params.row
@@ -244,6 +257,8 @@ const DirectDispatchList = () => {
             {params.row.shipping_status === 'Partially Shipped' && (
               <Box sx={{ color: 'warning.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                {/* added for partial shipping */}
+                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
               </Box>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
@@ -308,11 +323,16 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader
-                title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
-                action={headerAction}
-              />
-
+              <CardHeader title={'Direct Dispatch List'} action={headerAction} />
+              {status === 'all' ? (
+                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                  <FormControlLabel
+                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -374,8 +394,8 @@ const DirectDispatchList = () => {
             ) : null}
 
             <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />
             <Tab
               value='disputed'
@@ -389,7 +409,7 @@ const DirectDispatchList = () => {
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
 
