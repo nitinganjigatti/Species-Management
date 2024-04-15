@@ -6,6 +6,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -33,6 +34,7 @@ import Badge from '@mui/material/Badge'
 import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import moment from 'moment'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 
 // Styled TabList component
 
@@ -57,7 +59,9 @@ const RequestList = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [stores, setStores] = useState([])
   const [status, setStatus] = useState('pending')
+  const [filterByStoreId, setFilterByStoreId] = useState('')
   const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [selectDays, setSelectDays] = useState('all')
@@ -74,6 +78,7 @@ const RequestList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
+    setFilterByStoreId('')
     setPaginationModel({ page: 0, pageSize: 10 })
 
     setFilterDates({ startDate: '', endDate: '' })
@@ -81,8 +86,26 @@ const RequestList = () => {
     setStatus(newValue)
   }
 
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
+  }
+
   const fetchTableData = useCallback(
-    async (sort, q, column, status, startDate, endDate) => {
+    async (sort, q, column, status, startDate, endDate, filterByStoreId) => {
       var params = {}
 
       try {
@@ -101,7 +124,8 @@ const RequestList = () => {
             limit: paginationModel.pageSize,
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
-            pending_days_end: endDate ? endDate : filterDates?.endDate
+            pending_days_end: endDate ? endDate : filterDates?.endDate,
+            search_store: filterByStoreId
           }
         } else {
           params = {
@@ -131,8 +155,16 @@ const RequestList = () => {
   useEffect(() => {
     const currentStatus = filterSwitch ? 'completed' : status
 
-    fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
-  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch])
+    fetchTableData(
+      sort,
+      searchValue,
+      sortColumn,
+      currentStatus,
+      filterDates.startDate,
+      filterDates.endDate,
+      filterByStoreId
+    )
+  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -151,7 +183,8 @@ const RequestList = () => {
         newModel[0].field,
         status,
         filterDates.startDate,
-        filterDates.endDate
+        filterDates.endDate,
+        filterByStoreId
       )
     } else {
     }
@@ -161,7 +194,7 @@ const RequestList = () => {
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate)
+        await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
       } catch (error) {
         console.error(error)
       }
@@ -258,6 +291,10 @@ const RequestList = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterDates])
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
 
   const columns = [
     {
@@ -398,6 +435,8 @@ const RequestList = () => {
             {params.row.shipping_status === 'Partially Shipped' && (
               <Box sx={{ color: 'warning.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                {/* added for partial shipping */}
+                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
               </Box>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
@@ -509,7 +548,31 @@ const RequestList = () => {
                     <MenuItem value='16'>15 Days</MenuItem>
                   </Select>
                 </FormControl>
+                {selectedPharmacy.type === 'central' ? (
+                  <FormControl size='small' sx={{ mx: 4 }}>
+                    <InputLabel id='demo-simple-select-label'>Filter by Stores</InputLabel>
+                    <Select
+                      size='small'
+                      value={filterByStoreId}
+                      label='Filter by Stores'
+                      onChange={e => {
+                        setFilterByStoreId(e.target.value)
+                      }}
+                    >
+                      {stores.length > 0
+                        ? stores.map(store => {
+                            return (
+                              <MenuItem key={store?.id} value={store?.id}>
+                                {store?.name}
+                              </MenuItem>
+                            )
+                          })
+                        : null}
+                    </Select>
+                  </FormControl>
+                ) : null}
               </Grid>
+              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid>
               <Grid item xs={12} sm={6} md={6}>
                 {status === 'all' ? (
                   <Box sx={{ mr: 4 }}>

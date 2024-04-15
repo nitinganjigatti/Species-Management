@@ -96,6 +96,8 @@ const ListOfStocks = () => {
 
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
+      let storeId = id === 'all' ? '' : id
+
       if (id) {
         console.log('id callback', id)
         try {
@@ -108,8 +110,10 @@ const ListOfStocks = () => {
               column,
               page: paginationModel.page + 1,
               limit: paginationModel.pageSize,
-              store_id: id
+              store_id: storeId
             }
+
+            // debugger
             result = await getLocalStocksReportById(params)
           } else {
             const params = {
@@ -119,7 +123,10 @@ const ListOfStocks = () => {
               page: paginationModel.page + 1,
               limit: paginationModel.pageSize
             }
-            result = await getStocksReportById(id, params)
+
+            // debugger
+
+            result = await getStocksReportById(storeId, params)
           }
 
           if (result.success === true) {
@@ -399,8 +406,8 @@ const ListOfStocks = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'stock_config',
-      headerName: 'Rack & Shelf',
+      field: 'rack_info',
+      headerName: 'Rack',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -409,7 +416,33 @@ const ListOfStocks = () => {
             params?.row?.stock_config?.map(el => {
               return (
                 <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.rack},{el.shelf}
+                  {el.rack}
+                </Typography>
+              )
+            })
+          ) : (
+            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+              NA
+            </Typography>
+          )}
+        </>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_config',
+      headerName: 'Shelf',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <>
+          {params?.row?.stock_config ? (
+            params?.row?.stock_config?.map(el => {
+              return (
+                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                  {el.shelf}
                 </Typography>
               )
             })
@@ -576,6 +609,7 @@ const ListOfStocks = () => {
               let id = e.target.value
 
               const type = stores.find(el => el.id === id)?.type || ''
+
               setStockType(type)
               setStockId(id)
               console.log('id', id)
@@ -583,12 +617,13 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
+              let storeId = id === 'all' ? null : id
 
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
-                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id })
-                : getStocksReport({ sort, q: searchValue, column: sortColumn, id, type: type })
+                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, storeId })
+                : getStocksReport({ sort, q: searchValue, column: sortColumn, storeId, type: type })
             }}
             label='Stores'
             value={stockId}
@@ -597,6 +632,7 @@ const ListOfStocks = () => {
             sx={{ width: '100%' }}
             size='small'
           >
+            <MenuItem value='all'>All</MenuItem>
             {stores.length > 0
               ? stores.map(el => {
                   // console.log('el', el.type)
