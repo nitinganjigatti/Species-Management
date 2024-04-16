@@ -1,9 +1,9 @@
 /* eslint-disable padding-line-between-statements */
 /* eslint-disable newline-before-return */
 /* eslint-disable lines-around-comment */
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition } from '@mui/material'
+import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
@@ -12,6 +12,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
 import { margin } from '@mui/system'
 import toast from 'react-hot-toast'
+import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 const AddIngredients = props => {
   const { open, handleSidebarClose } = props
@@ -79,9 +80,7 @@ const AddIngredients = props => {
     setRemarks(event.target.value)
   }
 
-  // handle click days
   const [foods, setFoods] = useState(FoodData)
-  console.log('foods', foods)
 
   // Handle click on the days
 
@@ -131,6 +130,7 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
+  console.log('selectedCard', selectedCard)
 
   const handelCardSelection = item => {
     const feedType = selectFeed[item.id] || ''
@@ -249,26 +249,126 @@ const AddIngredients = props => {
     )
   }
 
+  const [ingredientList, setIngredientList] = useState([])
+  console.log('ingredientList', ingredientList)
+  let [ingredientPage, setIngredientPage] = useState(1)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  const [sort, setSort] = useState('desc')
+
+  useEffect(() => {
+    try {
+      // const currentAnimalFilterValue = animalFilterValueRef.current
+
+      const params = { page: ingredientPage, q: searchValue, sort }
+      getIngredientList({ params }).then(res => {
+        console.log('res', res)
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          // setOpen(true)
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }, [])
+
+  const handleScroll = async e => {
+    const container = e.target
+    console.log(
+      'container.scrollHeight',
+      container.scrollHeight,
+      '  container.scrollTop',
+      container.scrollTop,
+      'container.clientHeight ',
+      container.clientHeight
+    )
+
+    // Check if the user has reached the bottom
+    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      // User has reached the bottom, perform your action here
+      console.log('if')
+      setIngredientPage(++ingredientPage)
+      setReachedEnd(true)
+      try {
+        // const currentAnimalFilterValue = animalFilterValueRef.current
+
+        const params = { page: ingredientPage, q: searchValue, sort }
+        await getIngredientList({ params }).then(res => {
+          // {
+          //   // sort,
+          //   q,
+          //   sortColumn,
+          //   page: ingredientPage,
+          //   limit: paginationModel.pageSize,
+          //   status
+          // }
+          // currentAnimalFilterValue
+          console.log('res', res)
+          if (res?.data?.result?.length > 0) {
+            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+            setReachedEnd(false)
+          } else {
+            setReachedEnd(false)
+            // setOpen(true)
+          }
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
+  const searchData = useCallback(
+    debounce(async search => {
+      console.log('search')
+      if (searchValue != ' ') {
+        try {
+          // const currentAnimalFilterValue = animalFilterValueRef.current
+          const params = { page: ingredientPage, q: search, sort }
+          await getIngredientList({ params }).then(res => {
+            if (res?.data?.result.length > 0) {
+              setIngredientList(res?.data?.result)
+              setIngredientPage(1)
+            }
+          })
+        } catch (error) {
+          // console.error(error)
+          setIngredientPage(1)
+        }
+      }
+    }, 500),
+
+    [searchValue]
+  )
+
   return (
     <>
       <Drawer
         anchor='right'
         open={open}
+        // onScroll={handleScroll}
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
           position: 'relative',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          bgcolor: '#dbe0de',
+          gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: '#dbe0de', p: 3, gap: '24px' }}>
+        {/* <Box sx={{ bgcolor: '#dbe0de', gap: '24px' }} onScroll={handleScroll}> */}
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255)
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px'
 
               //   backgroundColor: 'background.default',
             }}
@@ -287,7 +387,9 @@ const AddIngredients = props => {
               </IconButton>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4, px: '24px' }}
+          >
             <Box sx={{ width: '306px' }}>
               <TextField
                 value={searchValue}
@@ -296,6 +398,7 @@ const AddIngredients = props => {
                   startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
                 }}
                 placeholder='Search'
+                onKeyUp={e => searchData(e.target.value)}
                 onChange={e => {
                   setSearchValue(e.target.value)
                 }}
@@ -318,187 +421,228 @@ const AddIngredients = props => {
               </FormControl>
             </Box>
           </Box>
+        </Box>
 
-          {/* Card View */}
+        {/* Card View */}
 
-          <>
-            {foods?.map((item, index) => (
+        <Box sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }} onScroll={handleScroll}>
+          {ingredientList?.map((item, index) => (
+            <Box
+              key={item?.id}
+              sx={{
+                bgcolor: 'white',
+                mx: '24px',
+                borderRadius: '8px',
+                my: 4,
+                ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                  border: '2px solid #37bd69' // Change border color when isVisible is true
+                })
+              }}
+              onClick={event => handelShowBottom(event, item, index)}
+            >
               <Box
-                key={item?.id}
                 sx={{
-                  bgcolor: 'white',
-                  mx: 2,
-                  borderRadius: 1,
-                  my: 3,
-                  ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                    border: '2px solid #37bd69' // Change border color when isVisible is true
-                  })
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  ml: 2
                 }}
-                onClick={event => handelShowBottom(event, item, index)}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'flex-start',
-                    px: 2,
-                    py: 2
-                  }}
-                >
-                  {selectedCard.some(card => card.id === item.id) ? (
-                    // Render checkbox icon if card is selected
-                    <Box onClick={() => handelCardSelection(item)}>
-                      <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                    </Box>
-                  ) : (
-                    // Render image if card is not selected
-                    <Box sx={{ ml: 4, mr: 4, mt: 5 }} onClick={() => handelCardSelection(item)}>
-                      <img
-                        src={item?.image}
-                        style={{ width: '100%', borderRadius: 10, width: 60, height: 60 }}
-                        alt='ingredient'
-                      />
-                    </Box>
-                  )}
-                  <Box sx={{ p: 1, width: '100%' }}>
-                    <Typography variant='h6'>{item?.name}</Typography>
-                    <Stack
-                      direction='row'
-                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                    >
-                      <Typography>Id - 1234</Typography>
-                      <Typography>Feed Type - Egg</Typography>
-                    </Stack>
-                    <Stack
-                      direction='row'
-                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                    >
-                      <Typography>Preparation-Type</Typography>
-
-                      <Box sx={{ width: 200 }}>
-                        <FormControl fullWidth>
-                          {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
-                          <Select
-                            size='small'
-                            value={selectFeed[item.id] || ''}
-                            onChange={e => handleChangeFeed(e, item.id)}
-                            displayEmpty
-                          >
-                            <MenuItem value='' disabled>
-                              Select
-                            </MenuItem>
-                            <MenuItem value='chopped'>Chopped</MenuItem>
-                            <MenuItem value='unchopped'>Unchopped</MenuItem>
-                            <MenuItem value='option-3'>Option-3</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    </Stack>
+                {selectedCard.some(card => card.id === item.id) ? (
+                  // Render checkbox icon if card is selected
+                  <Box onClick={() => handelCardSelection(item)}>
+                    <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
                   </Box>
-                </Box>
-
-                {/* bottom part */}
-                {/* {showBottom === index  */}
-                {/* {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? ( */}
-                <>
+                ) : (
+                  // Render image if card is not selected
                   <Box
                     sx={{
-                      m: 2,
-                      display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
-                        ? 'block'
-                        : ' none',
-                      transitionProperty: 'display',
-                      transitionDuration: '13s'
+                      width: '68px',
+                      height: '68px',
+                      borderRadius: 1,
+                      bgcolor: '#E8F4F2',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      mt: 4,
+                      ml: 3,
+                      mr: 4,
+                      p: 3
                     }}
+                    onClick={() => handelCardSelection(item)}
                   >
-                    {selectFeed[item.id] === 'chopped' ? (
-                      <>
-                        <Divider />
-                        <Stack direction='row' sx={{ py: 3, alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography>Enter cut size</Typography>
-                          <Box sx={{ width: '178.5px' }}>
-                            <FormControl fullWidth>
-                              <TextField
-                                size='small'
-                                placeholder='Add Size'
-                                variant='outlined'
-                                {...props}
-                                onChange={e => seCutSize(e.target.value)}
-                              />
-                            </FormControl>
-                          </Box>
-                          <Box sx={{ width: '178.5px' }}>
-                            <FormControl fullWidth>
-                              <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
-                                <MenuItem value='' disabled>
-                                  Cm
-                                </MenuItem>
-                                <MenuItem value='chopped'>CM</MenuItem>
-                                <MenuItem value='unchopped'>M</MenuItem>
-                                <MenuItem value='option-3'>Option-3</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Box>
-                        </Stack>
-                      </>
-                    ) : null}
+                    <img
+                      src='https://media.istockphoto.com/id/1457433817/photo/group-of-healthy-food-for-flexitarian-diet.jpg?s=612x612&w=0&k=20&c=v48RE0ZNWpMZOlSp13KdF1yFDmidorO2pZTu2Idmd3M='
+                      style={{ width: '100%', borderRadius: 20, width: 40, height: 40 }}
+                      alt='ingredient'
+                    />
+                  </Box>
+                )}
+                <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
+                  <Typography variant='h6'>{item?.ingredient_name}</Typography>
+                  <Stack
+                    direction='row'
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                  >
+                    <Typography>Id - 1234</Typography>
+                    <Typography>Feed Type - Egg</Typography>
+                  </Stack>
+                  <Stack
+                    direction='row'
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                  >
+                    <Typography>Preparation-Type</Typography>
+
+                    <Box sx={{ width: 200 }}>
+                      <FormControl fullWidth>
+                        {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
+                        <Select
+                          size='small'
+                          value={selectFeed[item.id] || ''}
+                          onChange={e => handleChangeFeed(e, item.id)}
+                          displayEmpty
+                        >
+                          <MenuItem value='' disabled>
+                            Select
+                          </MenuItem>
+                          <MenuItem value='chopped'>Chopped</MenuItem>
+                          <MenuItem value='unchopped'>Unchopped</MenuItem>
+                          <MenuItem value='option-3'>Option-3</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Box>
+
+              {/* bottom part */}
+              {/* {showBottom === index  */}
+              {/* {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? ( */}
+              <>
+                <Box
+                  sx={{
+                    p: 3,
+                    display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                      ? 'block'
+                      : ' none',
+                    transitionProperty: 'display',
+                    transitionDuration: '13s'
+                  }}
+                >
+                  {selectFeed[item.id] === 'chopped' ? (
+                    <>
+                      <Divider mt={-2} />
+                      <Stack
+                        direction='row'
+                        sx={{ py: 4, px: 2, alignItems: 'center', justifyContent: 'space-between' }}
+                      >
+                        <Typography>Enter cut size</Typography>
+                        <Box sx={{ width: '160.5px' }}>
+                          <FormControl fullWidth>
+                            <TextField
+                              size='small'
+                              placeholder='Add Size'
+                              variant='outlined'
+                              {...props}
+                              onChange={e => seCutSize(e.target.value)}
+                            />
+                          </FormControl>
+                        </Box>
+                        <Box sx={{ width: '160.5px' }}>
+                          <FormControl fullWidth>
+                            <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
+                              <MenuItem value='' disabled>
+                                Cm
+                              </MenuItem>
+                              <MenuItem value='chopped'>CM</MenuItem>
+                              <MenuItem value='unchopped'>M</MenuItem>
+                              <MenuItem value='option-3'>Option-3</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      </Stack>
+                    </>
+                  ) : null}
+
+                  <Divider />
+                  <Box>
+                    <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+
+                    <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
+                      {item?.days?.map(day => (
+                        <Box
+                          key={day.id}
+                          onClick={event => handleDayClick(day.id, item.id)}
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            bgcolor: day.isActive ? '#203e56' : '#dedede',
+                            borderRadius: 5,
+                            p: 2,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              bgcolor: '#203e56',
+                              color: 'white'
+                            },
+                            color: day.isActive ? 'white' : 'black'
+                          }}
+                        >
+                          {day?.title}
+                        </Box>
+                      ))}
+                    </Stack>
 
                     <Divider />
-                    <Box>
-                      <Typography sx={{ py: 4 }}>Feeding Days</Typography>
 
-                      <Stack direction='row' gap={3} mb={2}>
-                        {item?.days?.map(day => (
-                          <Box
-                            key={day.id}
-                            onClick={event => handleDayClick(day.id, item.id)}
-                            sx={{
-                              fontSize: 11,
-                              fontWeight: 'bold',
-                              bgcolor: day.isActive ? '#203e56' : '#dedede',
-                              borderRadius: 5,
-                              p: 2,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                bgcolor: '#203e56',
-                                color: 'white'
-                              },
-                              color: day.isActive ? 'white' : 'black'
-                            }}
-                          >
-                            {day?.title}
-                          </Box>
-                        ))}
-                      </Stack>
+                    <Box sx={{ pt: 3 }}>
+                      {' '}
+                      <FormControl fullWidth>
+                        {/* {remarks && ( */}
+                        {/* <InputLabel id='demo-simple-select-label' shrink={remarks}>
+                          Add Remarks
+                        </InputLabel> */}
+                        {/* )} */}
 
-                      <Divider />
-
-                      <Box sx={{ py: 3 }}>
-                        {' '}
-                        <FormControl fullWidth>
-                          <TextField
-                            placeholder='Add Remarks (optional)'
-                            variant='outlined'
-                            {...props}
-                            onChange={handleAddRemarks}
-                          />
-                        </FormControl>
-                      </Box>
+                        <TextField
+                          sx={{ pt: 1 }}
+                          id='demo-simple-select-label'
+                          placeholder='Add Remarks (optional)'
+                          variant='standard'
+                          InputProps={{ disableUnderline: true }}
+                          {...props}
+                          onChange={handleAddRemarks}
+                        />
+                      </FormControl>
                     </Box>
                   </Box>
-                </>
-                {/* ) : null} */}
-              </Box>
-            ))}
-          </>
+                </Box>
+              </>
+              {/* ) : null} */}
+            </Box>
+          ))}
         </Box>
-        <Box sx={{ height: '122px', position: 'sticky', bottom: 0, px: 4, py: 5, bgcolor: 'white' }}>
-          <Button fullWidth variant='contained' onClick={() => handleAllSelect()}>
+
+        <Box
+          sx={{
+            height: '122px',
+            width: '100%',
+            maxWidth: '562px',
+            position: 'fixed',
+            bottom: 0,
+            px: 4,
+            bgcolor: 'white',
+            alignItems: 'center',
+            justifyContent: 'center',
+            display: 'flex'
+          }}
+        >
+          <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
             ADD INGREDIENT - {selectedCard?.length} SELECTED
           </Button>
         </Box>
+        {/* </Box> */}
       </Drawer>
     </>
   )
