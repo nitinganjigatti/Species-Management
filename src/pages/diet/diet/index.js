@@ -139,11 +139,13 @@ const Diet = () => {
           sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
+
           //status
         }
 
         await getIngredientList({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
@@ -207,9 +209,12 @@ const Diet = () => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
       const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
+
       console.log(response, 'response')
+
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
