@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
@@ -32,6 +33,7 @@ import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
+import AddIngredients from 'src/components/diet/AddIngredients'
 
 const roleColors = {
   active: 'success',
@@ -52,6 +54,8 @@ const IngredientsList = () => {
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
+
+  const [openIngredient, setOpenIngredient] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -130,15 +134,27 @@ const IngredientsList = () => {
     []
   )
 
+  const handleAddIngerdient = () => {
+    setOpenIngredient(true)
+  }
+
+  const handleSidebarClose = () => {
+    setOpenIngredient(false)
+  }
+
   const headerAction = (
     <div>
       <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={() => setDialog(true)}>
+      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Pop
+      </Button>
+
+      <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
+        &nbsp; Test Button
       </Button>
     </div>
   )
@@ -345,6 +361,7 @@ const IngredientsList = () => {
         />
       )
     }
+
     // {
     //   flex: 0.3,
     //   minWidth: 20,
@@ -478,6 +495,8 @@ const IngredientsList = () => {
           <TabPanel value='0'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>
+
+      <AddIngredients open={openIngredient} handleSidebarClose={handleSidebarClose} />
     </>
   )
 }
