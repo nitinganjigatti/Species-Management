@@ -161,7 +161,6 @@ const RequestList = () => {
     debugger
 
     // setStatus(currentPageStatus ? currentPageStatus : status)
-
     const currentStatus = filterSwitch ? 'completed' : status
 
     fetchTableData(
@@ -457,10 +456,19 @@ const RequestList = () => {
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
-                <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  {/* added for partial shipping */}
-                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
-                </Box>
+                {params.row.request_status === 'Received' ||
+                params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Wrong Count - Accepted' ? (
+                  <Box sx={{ color: 'success.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
+                  </Box>
+                ) : (
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                )}
               </>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (

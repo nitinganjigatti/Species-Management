@@ -85,6 +85,7 @@ const IndividualRequest = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   // const { id, request_number, currentPageStatus, currentTotal, currentPage, currentLimit } = router.query
+
   const { id, request_number } = router.query
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`

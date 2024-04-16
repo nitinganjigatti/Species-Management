@@ -38,12 +38,19 @@ const schema = yup.object().shape({
     .min(3, 'State Name must be at least 3 characters')
     .required('State Name is Required'),
   code: yup
+
+    // .string()
+    // .matches(/^\d{2,}$/, 'State code must contain more than 2 numeric characters')
+    // .test('is-integer', 'State code must be an integer', value => Number.isInteger(Number(value)))
+    // .test('greater-than-one', 'State code must be greater than 1', value => Number(value) <= 0)
+    // .typeError('State code must be a number')
+    // .required('State code is Required'),
     .string()
-    .matches(/^\d{2,}$/, 'State code must contain more than 2 numeric characters')
+    .matches(/^(0[1-9]|[1-9]\d*)$/, 'State code must greater than 0')
     .test('is-integer', 'State code must be an integer', value => Number.isInteger(Number(value)))
-    .test('greater-than-one', 'State code must be greater than 1', value => Number(value) > 1)
-    .typeError('State code must be a number')
-    .required('State code is Required'),
+    .test('valid-range', 'State code must be greater than 9', value => Number(value) > 0)
+    .typeError('State code must be a numeric value')
+    .required('State code is required'),
   short_code: yup
     .string()
     .matches(/^[A-Za-z]+$/, 'State short code must contain only alphabets')

@@ -153,19 +153,19 @@ const ListOfMedicine = () => {
           />
         </Badge>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'active',
-    //   headerName: 'STATUS',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
-    //     </Typography>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'active',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
+        </Typography>
+      )
+    }
 
     // {
     //   flex: 0.2,
@@ -218,38 +218,40 @@ const ListOfMedicine = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState('1')
+  const [statusFilter, setStatusFilter] = useState(true)
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-      debugger
-      const activeStatus = status || statusFilter
+      let params = {}
+      const activeStatus = status ?? statusFilter
       try {
         setLoading(true)
-
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+        if (activeStatus === 'all') {
+          params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize
+          }
+        } else {
+          params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            active: activeStatus
+          }
         }
-        console.log('status', activeStatus)
+
         await getMedicineList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
-            // if (activeStatus === 'all') {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-
-            // } else {
-            //   setTotal(parseInt(res?.data?.total_count))
-            //   const filterByStatus = res?.data?.list_items.filter(item => item.active === activeStatus)
-            //   console.log('filterByStatus', filterByStatus)
-            //   setRows(loadServerRows(paginationModel.page, filterByStatus))
-            // }
           }
         })
         setLoading(false)
@@ -265,7 +267,7 @@ const ListOfMedicine = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, column, status: statusFilter })
       } catch (error) {
         console.error(error)
       }
@@ -274,7 +276,7 @@ const ListOfMedicine = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn, statusFilter })
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
@@ -286,14 +288,13 @@ const ListOfMedicine = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
   }
 
-  // const handleStatusFilterChange = async newFilter => {
-  //   setStatusFilter(newFilter)
-
-  //   await fetchTableData({ sort, q: searchValue, column: sortColumn, newFilter })
-  // }
+  const handleStatusFilterChange = newFilter => {
+    setStatusFilter(newFilter)
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
+  }
 
   const headerAction = (
     <div>
@@ -342,7 +343,7 @@ const ListOfMedicine = () => {
               />
               <Card>
                 <CardHeader title='Product List' action={headerAction} />
-                {/* <Grid container sx={{ display: 'flex' }}>
+                <Grid container sx={{ display: 'flex' }}>
                   <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
                     <FormControl fullWidth size='small'>
                       <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
@@ -352,18 +353,15 @@ const ListOfMedicine = () => {
                         label='Filter by Status'
                         onChange={e => {
                           handleStatusFilterChange(e.target.value)
-
-                          // filterByDays(e.target.value)
-                          // setSelectDays(e.target.value)
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value='1'>Active</MenuItem>
-                        <MenuItem value='0'>In-active </MenuItem>
+                        <MenuItem value={true}>Active</MenuItem>
+                        <MenuItem value={false}>In-Active </MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
-                </Grid> */}
+                </Grid>
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
