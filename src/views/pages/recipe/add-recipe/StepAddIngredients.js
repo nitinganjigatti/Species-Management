@@ -304,6 +304,7 @@ const StepAddIngredients = ({
   }
 
   const handlecheck = async (ingredientId, index, section) => {
+    console.log(ingredientId, 'ingredientId')
     try {
       const response = await getPreparationTypeList(ingredientId)
       if (response.success === true) {

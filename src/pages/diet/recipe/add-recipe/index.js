@@ -21,6 +21,7 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
+import AddToasterforSuccess from 'src/components/AddSuccessToaster'
 
 const steps = [
   {
@@ -264,36 +265,7 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe added successfully
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        return toast(t => <AddToasterforSuccess type='Recipe' />)
       }
     } else {
       const numericFormData = {
@@ -343,36 +315,7 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe updated successfully
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        return toast(t => <AddToasterforSuccess type='Recipe' id={id} />)
       }
     }
   }
