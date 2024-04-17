@@ -13,20 +13,24 @@ import Divider from '@mui/material/Divider'
 import { margin } from '@mui/system'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 
 const AddIngredients = props => {
   const { open, handleSidebarClose } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
-
-  const [showBottom, setShowBottom] = useState([])
-
   const [cutSize, seCutSize] = useState('')
   const [size, setSize] = useState('')
   const [visibility, setVisibility] = useState([])
+
+  const [ingredientList, setIngredientList] = useState([])
+  console.log('ingredientList', ingredientList)
+  let [ingredientPage, setIngredientPage] = useState(1)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  const [sort, setSort] = useState('desc')
+  const [uom, setUom] = useState([])
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -80,52 +84,110 @@ const AddIngredients = props => {
     setRemarks(event.target.value)
   }
 
-  const [foods, setFoods] = useState(FoodData)
-
   // Handle click on the days
+  // const [day, setDay] = useState(ingredientList)
 
-  const handleDayClick = (id, cardId) => {
-    setFoods(prevFoods =>
-      prevFoods.map(food => {
-        if (food.id === cardId) {
-          if (id === '0') {
-            // Toggle all days for the specific card
-            const allActive = !food.days.every(day => day.isActive)
-            return {
-              ...food,
-              days: food.days.map(day => ({ ...day, isActive: allActive }))
-            }
-          } else {
-            // Toggle the clicked day
-            const updatedDays = food.days.map(day => {
-              if (day.id === id) {
-                return { ...day, isActive: !day.isActive }
-              }
-              return day
-            })
+  // const handleDayClick = (id, cardId) => {
+  //   setDay(prevFoods =>
+  //     prevFoods.map(food => {
+  //       if (food.id === cardId) {
+  //         if (id === '0') {
+  //           // Toggle all days for the specific card
+  //           const allActive = !food.days.every(day => day.isActive)
+  //           return {
+  //             ...food,
+  //             days: food.days.map(day => ({ ...day, isActive: allActive }))
+  //           }
+  //         } else {
+  //           // Toggle the clicked day
+  //           const updatedDays = food.days.map(day => {
+  //             if (day.id === id) {
+  //               return { ...day, isActive: !day.isActive }
+  //             }
+  //             return day
+  //           })
 
-            // Check if all individual days are active, then activate "ALL" button
-            const allIndividualDaysActive = updatedDays.slice(1).every(day => day.isActive)
-            const allActive = allIndividualDaysActive || updatedDays[0].isActive
+  //           // Check if all individual days are active, then activate "ALL" button
+  //           const allIndividualDaysActive = updatedDays.slice(1).every(day => day.isActive)
+  //           const allActive = allIndividualDaysActive || updatedDays[0].isActive
 
-            // Check if "ALL" button is already active and any individual day is clicked again
-            if (updatedDays[0].isActive && !allIndividualDaysActive) {
-              // Toggle all days to false
-              return {
-                ...food,
-                days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: false } : day))
-              }
-            }
+  //           // Check if "ALL" button is already active and any individual day is clicked again
+  //           if (updatedDays[0].isActive && !allIndividualDaysActive) {
+  //             // Toggle all days to false
+  //             return {
+  //               ...food,
+  //               days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: false } : day))
+  //             }
+  //           }
 
-            return {
-              ...food,
-              days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: allActive } : day))
-            }
-          }
+  //           return {
+  //             ...food,
+  //             days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: allActive } : day))
+  //           }
+  //         }
+  //       }
+  //       return food
+  //     })
+  //   )
+  // }
+
+  const [selectedDays, setSelectedDays] = useState([])
+  console.log('selectedDays', selectedDays)
+
+  const handleDayClick = (dayId, dayName, cardId) => {
+    let cardInfo = selectedDays.find(item => item.cardId === cardId)
+    if (!cardInfo) {
+      cardInfo = { cardId, days: [] }
+    }
+
+    // Check if the clicked day is "All"
+    if (dayId === 0) {
+      const allDaysSelected = cardInfo.days.filter(item => item.dayId !== 0).length === 7
+
+      // If all individual days are selected, remove all days
+      if (allDaysSelected) {
+        cardInfo.days = []
+      } else {
+        // If not all individual days are selected, select all days
+        cardInfo.days = []
+        for (let i = 1; i <= 7; i++) {
+          const day = Day.find(day => day.id === i)
+          cardInfo.days.push({ dayId: day.id, dayName: day.name })
         }
-        return food
-      })
-    )
+        // Also add the "All" day
+        cardInfo.days.push({ dayId: 0, dayName: 'All' })
+      }
+    } else {
+      // Check if the clicked day is already selected for the card
+      const index = cardInfo.days.findIndex(item => item.dayId === dayId)
+
+      // If not selected, add the day
+      if (index === -1) {
+        cardInfo.days.push({ dayId, dayName })
+      } else {
+        // If selected, remove the day
+        cardInfo.days.splice(index, 1)
+      }
+
+      // Check if "All" is selected and deselect if any individual day is deselected
+      if (dayId !== 0) {
+        const allDayIndex = cardInfo.days.findIndex(item => item.dayId === 0)
+        if (allDayIndex !== -1) {
+          cardInfo.days.splice(allDayIndex, 1)
+        }
+      }
+    }
+
+    // If all individual days are selected but the "All" option is not selected, add "All"
+    const allSelected = cardInfo.days.length === 7 && !cardInfo.days.some(day => day.dayId === 0)
+    if (allSelected) {
+      const allDay = Day.find(day => day.id === 0)
+      cardInfo.days.push({ dayId: 0, dayName: 'All' })
+    }
+
+    const updatedSelectedDays = selectedDays.filter(item => item.cardId !== cardId)
+    updatedSelectedDays.push(cardInfo)
+    setSelectedDays(updatedSelectedDays)
   }
 
   // card selection
@@ -133,27 +195,35 @@ const AddIngredients = props => {
   console.log('selectedCard', selectedCard)
 
   const handelCardSelection = item => {
+    // Get the selected feed value for the current item
     const feedType = selectFeed[item.id] || ''
+
+    // Get the remarks value
     const remarksData = remarks || ''
 
-    // Get unique selected days
-    const selectedDaysSet = new Set()
-    foods.forEach(food => {
-      food.days.forEach(day => {
-        if (day.isActive) {
-          selectedDaysSet.add(day.title)
-        }
-      })
-    })
-    const selectedDays = Array.from(selectedDaysSet)
+    // Get the selected days for the current item
+    const selectedDaysForItem = Day.filter(day =>
+      selectedDays.some(
+        selectedDay =>
+          selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+      )
+    )
 
-    // Check if feedType is "chopped"
+    // Prepare the object to store values
+    const boxValues = {
+      id: item.id,
+      name: item.ingredient_name,
+      feedType: feedType,
+      selectedDays: selectedDaysForItem.map(day => day.name),
+      remarks: remarksData
+    }
+
+    // Include cut size and its dropdown only if feedType is "chopped"
     if (feedType === 'chopped') {
       const cutSizeValue = cutSize || ''
       const sizeValue = size || ''
-
-      // Check if cut size and its dropdown are not empty
       if (!cutSizeValue || !sizeValue) {
+        // Display a message if cut size or its dropdown is empty
         return toast(t => (
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -173,40 +243,8 @@ const AddIngredients = props => {
           </Box>
         ))
       }
-    }
-
-    // Check if any required field is empty
-    if (!feedType || selectedDays.length === 0) {
-      return toast(t => (
-        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-            <div>
-              <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                Feed type & Feeding days is required
-              </Typography>
-            </div>
-          </Box>
-          <IconButton
-            onClick={() => toast.dismiss(t.id)}
-            style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-          >
-            <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
-        </Box>
-      ))
-    }
-
-    // Prepare the object to store values
-    const boxValues = {
-      id: item.id,
-      name: item.name,
-      feedType: feedType,
-      selectedDays: selectedDays,
-      remarks: remarksData,
-
-      // Include cut size and its dropdown only if feedType is "chopped"
-      ...(feedType === 'chopped' && { cutSize: cutSize, size: size })
+      boxValues.cutSize = cutSizeValue
+      boxValues.size = sizeValue
     }
 
     // Check if the boxValues already exist in selectedCard
@@ -249,13 +287,9 @@ const AddIngredients = props => {
     )
   }
 
-  const [ingredientList, setIngredientList] = useState([])
-  console.log('ingredientList', ingredientList)
-  let [ingredientPage, setIngredientPage] = useState(1)
-  const [reachedEnd, setReachedEnd] = useState(false)
-  const [sort, setSort] = useState('desc')
-
   useEffect(() => {
+    getUnitsList()
+
     try {
       // const currentAnimalFilterValue = animalFilterValueRef.current
 
@@ -275,16 +309,24 @@ const AddIngredients = props => {
     }
   }, [])
 
+  // uom
+
+  const getUnitsList = async () => {
+    try {
+      const params = {
+        type: ['length', 'weight'],
+        page: 1
+      }
+      await getUnitsForRecipe({ params: params }).then(res => {
+        setUom(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const handleScroll = async e => {
     const container = e.target
-    console.log(
-      'container.scrollHeight',
-      container.scrollHeight,
-      '  container.scrollTop',
-      container.scrollTop,
-      'container.clientHeight ',
-      container.clientHeight
-    )
 
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
@@ -344,6 +386,10 @@ const AddIngredients = props => {
     [searchValue]
   )
 
+  // useEffect(() => {
+  //   handelCardSelection()
+  // }, [selectFeed, selectedDays, remarks, cutSize, size])
+
   return (
     <>
       <Drawer
@@ -360,7 +406,6 @@ const AddIngredients = props => {
           gap: '24px'
         }}
       >
-        {/* <Box sx={{ bgcolor: '#dbe0de', gap: '24px' }} onScroll={handleScroll}> */}
         <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
@@ -484,7 +529,7 @@ const AddIngredients = props => {
                     direction='row'
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                   >
-                    <Typography>Id - 1234</Typography>
+                    <Typography>Id - {item?.id}</Typography>
                     <Typography>Feed Type - Egg</Typography>
                   </Stack>
                   <Stack
@@ -552,11 +597,13 @@ const AddIngredients = props => {
                           <FormControl fullWidth>
                             <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
                               <MenuItem value='' disabled>
-                                Cm
+                                Select
                               </MenuItem>
-                              <MenuItem value='chopped'>CM</MenuItem>
-                              <MenuItem value='unchopped'>M</MenuItem>
-                              <MenuItem value='option-3'>Option-3</MenuItem>
+                              {uom?.map(unit => (
+                                <MenuItem key={unit.id} value={unit.name}>
+                                  {unit.name}
+                                </MenuItem>
+                              ))}
                             </Select>
                           </FormControl>
                         </Box>
@@ -569,14 +616,21 @@ const AddIngredients = props => {
                     <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
 
                     <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
-                      {item?.days?.map(day => (
+                      {Day?.map(day => (
                         <Box
                           key={day.id}
-                          onClick={event => handleDayClick(day.id, item.id)}
+                          onClick={event => handleDayClick(day.id, day.name, item.id)}
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: day.isActive ? '#203e56' : '#dedede',
+                            // bgcolor: day.isActive ? '#203e56' : '#dedede',
+                            bgcolor: selectedDays.some(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+                            )
+                              ? '#203e56'
+                              : '#dedede',
                             borderRadius: 5,
                             p: 2,
                             justifyContent: 'center',
@@ -586,10 +640,16 @@ const AddIngredients = props => {
                               bgcolor: '#203e56',
                               color: 'white'
                             },
-                            color: day.isActive ? 'white' : 'black'
+                            color: selectedDays.some(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+                            )
+                              ? 'white'
+                              : 'black'
                           }}
                         >
-                          {day?.title}
+                          {day?.name}
                         </Box>
                       ))}
                     </Stack>
@@ -642,7 +702,6 @@ const AddIngredients = props => {
             ADD INGREDIENT - {selectedCard?.length} SELECTED
           </Button>
         </Box>
-        {/* </Box> */}
       </Drawer>
     </>
   )
@@ -650,84 +709,13 @@ const AddIngredients = props => {
 
 export default AddIngredients
 
-const FoodData = [
-  {
-    id: 1,
-    name: 'Egg',
-    image:
-      'https://media.istockphoto.com/id/520889612/photo/boiled-eggs-in-bowl.jpg?s=612x612&w=0&k=20&c=wwes11nnPnZu7IFz6SSSjhsfoBK-ZcTFsqH9Em72ClA=',
-    days: [
-      { title: 'ALL', id: '0', isActive: false },
-      { title: 'Mon', id: '1', isActive: false },
-      { title: 'Tue', id: '2', isActive: false },
-      { title: 'Wed', id: '3', isActive: false },
-      { title: 'Thu', id: '4', isActive: false },
-      { title: 'Fri', id: '5', isActive: false },
-      { title: 'Sat', id: '6', isActive: false },
-      { title: 'Sun', id: '7', isActive: false }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Apple',
-    image:
-      'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8Nnx8fGVufDB8fHx8fA%3D%3D',
-    days: [
-      { title: 'ALL', id: '0', isActive: false },
-      { title: 'Mon', id: '1', isActive: false },
-      { title: 'Tue', id: '2', isActive: false },
-      { title: 'Wed', id: '3', isActive: false },
-      { title: 'Thu', id: '4', isActive: false },
-      { title: 'Fri', id: '5', isActive: false },
-      { title: 'Sat', id: '6', isActive: false },
-      { title: 'Sun', id: '7', isActive: false }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Papaya',
-    image: 'https://organicbazar.net/cdn/shop/products/Untitled-design-2022-12-08T182126.753.jpg?v=1694167597',
-    days: [
-      { title: 'ALL', id: '0', isActive: false },
-      { title: 'Mon', id: '1', isActive: false },
-      { title: 'Tue', id: '2', isActive: false },
-      { title: 'Wed', id: '3', isActive: false },
-      { title: 'Thu', id: '4', isActive: false },
-      { title: 'Fri', id: '5', isActive: false },
-      { title: 'Sat', id: '6', isActive: false },
-      { title: 'Sun', id: '7', isActive: false }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Chicken',
-    image: 'https://cdn.pixabay.com/photo/2020/02/15/04/19/chicken-4849979_1280.jpg',
-    days: [
-      { title: 'ALL', id: '0', isActive: false },
-      { title: 'Mon', id: '1', isActive: false },
-      { title: 'Tue', id: '2', isActive: false },
-      { title: 'Wed', id: '3', isActive: false },
-      { title: 'Thu', id: '4', isActive: false },
-      { title: 'Fri', id: '5', isActive: false },
-      { title: 'Sat', id: '6', isActive: false },
-      { title: 'Sun', id: '7', isActive: false }
-    ]
-  },
-
-  {
-    id: 5,
-    name: 'WaterMelon',
-    image:
-      'https://post.healthline.com/wp-content/uploads/2019/09/watermelon-fruit-sliced-1296x728-header-1296x728.jpg',
-    days: [
-      { title: 'ALL', id: '0', isActive: false },
-      { title: 'Mon', id: '1', isActive: false },
-      { title: 'Tue', id: '2', isActive: false },
-      { title: 'Wed', id: '3', isActive: false },
-      { title: 'Thu', id: '4', isActive: false },
-      { title: 'Fri', id: '5', isActive: false },
-      { title: 'Sat', id: '6', isActive: false },
-      { title: 'Sun', id: '7', isActive: false }
-    ]
-  }
+const Day = [
+  { id: 0, name: 'All', isActive: false },
+  { id: 1, name: 'Mon', isActive: false },
+  { id: 2, name: 'Tue', isActive: false },
+  { id: 3, name: 'Wed', isActive: false },
+  { id: 4, name: 'Thrs', isActive: false },
+  { id: 5, name: 'Fri', isActive: false },
+  { id: 6, name: 'Sat', isActive: false },
+  { id: 7, name: 'Sun', isActive: false }
 ]
