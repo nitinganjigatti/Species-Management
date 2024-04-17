@@ -13,7 +13,8 @@ import {
   Button,
   IconButton,
   CardContent,
-  CardHeader
+  CardHeader,
+  Tooltip
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -544,9 +545,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.stock_name}
-          </Typography>
+          <Tooltip title={params.row.stock_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -580,9 +583,16 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       field: 'from_store_name',
       headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
-        </Typography>
+        <div>
+          <Tooltip
+            title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
     // {

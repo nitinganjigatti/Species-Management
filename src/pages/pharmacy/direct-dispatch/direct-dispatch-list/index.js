@@ -23,6 +23,7 @@ import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -59,7 +60,7 @@ const DirectDispatchList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
 
@@ -67,8 +68,8 @@ const DirectDispatchList = () => {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          page: page ? page : paginationModel.page + 1,
+          limit: limit ? limit : paginationModel.pageSize,
           status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
@@ -76,6 +77,7 @@ const DirectDispatchList = () => {
           if (res.success) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('dispatchPageStatus')
           }
         })
         setLoading(false)
@@ -133,9 +135,26 @@ const DirectDispatchList = () => {
     setFilterSwitch(event.target.checked)
   }
   useEffect(() => {
-    const currentStatus = filterSwitch ? 'completed' : status
-    const tabStatus = status === 'all' ? currentStatus : status
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    const statusIsThere = read('dispatchPageStatus')
+
+    // console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      // debugger
+      setStatus(statusIsThere.currentStatus)
+      setFilterSwitch(statusIsThere.filterSwitch)
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      const currentStatus = filterSwitch ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, fetchTableData, filterSwitch])
 
@@ -146,6 +165,18 @@ const DirectDispatchList = () => {
     Router.push({
       pathname: `/pharmacy/direct-dispatch/${data?.id}`
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      filterSwitch: filterSwitch
+    }
+
+    write('dispatchPageStatus', currentPageData)
   }
 
   const headerAction = (
