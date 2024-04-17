@@ -3,21 +3,22 @@
 /* eslint-disable lines-around-comment */
 import React, { useState } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition } from '@mui/material'
+import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Card, CardContent } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
+import { Add, Remove } from '@mui/icons-material'
 import { margin } from '@mui/system'
 import toast from 'react-hot-toast'
 
-const AddIngredients = props => {
+const AddIngredientswithChoice = props => {
   const { open, handleSidebarClose } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-
+  const [count, setCount] = useState(1)
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
 
@@ -77,6 +78,13 @@ const AddIngredients = props => {
   const handleAddRemarks = event => {
     event.stopPropagation()
     setRemarks(event.target.value)
+  }
+  const handleIncrement = () => {
+    setCount(prevCount => prevCount + 1)
+  }
+
+  const handleDecrement = () => {
+    setCount(prevCount => (prevCount > 1 ? prevCount - 1 : prevCount))
   }
 
   // handle click days
@@ -279,7 +287,7 @@ const AddIngredients = props => {
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Add Ingredients</Typography>
+              <Typography variant='h6'>Select Multiple Items</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
@@ -303,7 +311,7 @@ const AddIngredients = props => {
             </Box>
             <Box sx={{ width: '184px' }}>
               <FormControl fullWidth>
-                <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
+                <InputLabel id='demo-simple-select-label'>Feed type</InputLabel>
                 <Select
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
@@ -442,51 +450,6 @@ const AddIngredients = props => {
                         </Stack>
                       </>
                     ) : null}
-
-                    <Divider />
-                    <Box>
-                      <Typography sx={{ py: 4 }}>Feeding Days</Typography>
-
-                      <Stack direction='row' gap={3} mb={2}>
-                        {item?.days?.map(day => (
-                          <Box
-                            key={day.id}
-                            onClick={event => handleDayClick(day.id, item.id)}
-                            sx={{
-                              fontSize: 11,
-                              fontWeight: 'bold',
-                              bgcolor: day.isActive ? '#203e56' : '#dedede',
-                              borderRadius: 5,
-                              p: 2,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                bgcolor: '#203e56',
-                                color: 'white'
-                              },
-                              color: day.isActive ? 'white' : 'black'
-                            }}
-                          >
-                            {day?.title}
-                          </Box>
-                        ))}
-                      </Stack>
-
-                      <Divider />
-
-                      <Box sx={{ py: 3 }}>
-                        {' '}
-                        <FormControl fullWidth>
-                          <TextField
-                            placeholder='Add Remarks (optional)'
-                            variant='outlined'
-                            {...props}
-                            onChange={handleAddRemarks}
-                          />
-                        </FormControl>
-                      </Box>
-                    </Box>
                   </Box>
                 </>
                 {/* ) : null} */}
@@ -494,9 +457,72 @@ const AddIngredients = props => {
             ))}
           </>
         </Box>
-        <Box sx={{ height: '122px', position: 'sticky', bottom: 0, px: 4, py: 5, bgcolor: 'white' }}>
-          <Button fullWidth variant='contained' onClick={() => handleAllSelect()}>
-            ADD INGREDIENT - {selectedCard?.length} SELECTED
+
+        <Box sx={{ height: '180px', position: 'sticky', bottom: 0, px: 4, py: 5, bgcolor: 'white' }}>
+          <Card sx={{ boxShadow: 'none' }}>
+            <Typography variant='h6'>5 items selected</Typography>
+            <Typography style={{ float: 'left', marginTop: '20px' }}>Enter minimum choice</Typography>
+            <Box
+              display='flex'
+              alignItems='center'
+              sx={{ border: '1px solid #C3CEC7', width: '22%', borderRadius: '5px', float: 'right', marginTop: '15px' }}
+            >
+              <IconButton onClick={handleDecrement}>
+                <Remove />
+              </IconButton>
+              <Typography variant='h5' align='center' sx={{ color: '#37BD69' }}>
+                {count}
+              </Typography>
+              <IconButton onClick={handleIncrement}>
+                <Add />
+              </IconButton>
+            </Box>
+            <Box sx={{ mt: 12, mb: 8 }}>
+              <Typography sx={{ py: 4 }}>Feeding Days</Typography>
+              {console.log(foods, 'foods')}
+
+              <Stack direction='row' gap={3} mb={2}>
+                {foods?.map(item =>
+                  item.days.map(day => (
+                    <Box
+                      key={day.id}
+                      onClick={event => handleDayClick(day.id, item.id)}
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 'bold',
+                        bgcolor: day.isActive ? '#203e56' : '#dedede',
+                        borderRadius: 5,
+                        p: 2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          bgcolor: '#203e56',
+                          color: 'white'
+                        },
+                        color: day.isActive ? 'white' : 'black'
+                      }}
+                    >
+                      {day.title}
+                    </Box>
+                  ))
+                )}
+              </Stack>
+              <Box sx={{ py: 3 }}>
+                {' '}
+                <FormControl fullWidth>
+                  <TextField
+                    placeholder='Add Remarks (optional)'
+                    variant='outlined'
+                    {...props}
+                    onChange={handleAddRemarks}
+                  />
+                </FormControl>
+              </Box>
+            </Box>
+          </Card>
+          <Button fullWidth variant='contained' onClick={() => handleAllSelect()} sx={{ mb: 10 }}>
+            ADD to Meal - {selectedCard?.length} SELECTED
           </Button>
         </Box>
       </Drawer>
@@ -504,7 +530,7 @@ const AddIngredients = props => {
   )
 }
 
-export default AddIngredients
+export default AddIngredientswithChoice
 
 const FoodData = [
   {

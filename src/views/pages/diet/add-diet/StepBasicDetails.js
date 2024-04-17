@@ -22,6 +22,8 @@ import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploade
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
+import AddIngredients from 'src/components/diet/AddIngredients'
 
 const defaultValues = {
   recipe_name: '',
@@ -44,6 +46,8 @@ const schema = yup.object().shape({
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
+  const [openIngredient, setOpenIngredient] = useState(false)
+  const [OpenIngredientchoice, setOpenIngredientchoice] = useState(false)
   const router = useRouter()
   const recipes = [
     { label: 'No' },
@@ -113,6 +117,19 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     }, [errors])
 
     return null
+  }
+
+  const handleAddIngerdientChoice = () => {
+    setOpenIngredientchoice(true)
+  }
+
+  const handleAddIngerdient = () => {
+    setOpenIngredient(true)
+  }
+
+  const handleSidebarClose = () => {
+    setOpenIngredient(false)
+    setOpenIngredientchoice(false)
   }
 
   const onSubmit = async data => {
@@ -840,6 +857,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                               justifyContent: 'flex-start',
                               padding: 2
                             }}
+                            onClick={handleAddIngerdientChoice}
                           >
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                               <Icon
@@ -927,6 +945,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
+                  onClick={handleAddIngerdient}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT
@@ -944,6 +963,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
+                  onClick={handleAddIngerdientChoice}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT WITH CHOICE
@@ -981,22 +1001,26 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
           </Card>
         ))}
 
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
-            <Button
-              color='secondary'
-              variant='outlined'
-              startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
-              sx={{ mr: 6 }}
-              onClick={cancelBack}
-            >
-              Cancel
-            </Button>
-            <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-              Next
-            </Button>
-          </Box>
-        </Grid>
+        <Card sx={{ mt: 8 }}>
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 7, mr: 6 }}>
+              <Button
+                color='secondary'
+                variant='outlined'
+                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                sx={{ mr: 6 }}
+                onClick={cancelBack}
+              >
+                Cancel
+              </Button>
+              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+                Next
+              </Button>
+            </Box>
+          </Grid>
+        </Card>
+        <AddIngredientswithChoice open={OpenIngredientchoice} handleSidebarClose={handleSidebarClose} />
+        <AddIngredients open={openIngredient} handleSidebarClose={handleSidebarClose} />
       </form>
     </>
   )
