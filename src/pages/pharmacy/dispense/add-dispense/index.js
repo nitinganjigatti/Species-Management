@@ -18,7 +18,8 @@ import {
   TableRow,
   TextField,
   Box,
-  Dialog
+  Dialog,
+  CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
@@ -33,6 +34,7 @@ import Router from 'next/router'
 import AddAnimals from '../../../../components/pharmacy/dispense/addAnimals'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import UserSnackbar from 'src/components/utility/snackbar'
 
 function AddDispense() {
   const [currentDate] = useState(() => {
@@ -51,6 +53,8 @@ function AddDispense() {
   const [productArrayUi, setProductArrayUi] = useState([])
   const [productArray, setProductArray] = useState([])
 
+  const [submitLoading, setSubmitLoading] = useState(false)
+
   const [editMode, setEditMode] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [dataForEditRow, setDataForEditRow] = useState({})
@@ -58,6 +62,12 @@ function AddDispense() {
   const [addedProcuctQty, setAddedProductQty] = useState(0)
 
   const [openDrawer, setOpenDrawer] = useState(false)
+
+  const [openSnackbar, setOpenSnackbar] = useState({
+    open: false,
+    severity: '',
+    message: ''
+  })
 
   const handleSidebarClose = () => {
     setOpenDrawer(false)
@@ -180,26 +190,47 @@ function AddDispense() {
       animal_id: animals_s.map(i => i?.animal_id),
       dispense_item_details: productArray
     }
-    await submitDispense(payload).then(res => {
-      if (res?.success) {
-        reset()
-        setProductArray([])
-        setProductArrayUi([])
-        Router.push({
-          pathname: `/pharmacy/dispense/${res?.data}`
+    setSubmitLoading(true)
+    try {
+      await submitDispense(payload).then(res => {
+        if (res?.success) {
+          reset()
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: JSON.stringify(res?.message),
+            severity: 'success'
+          })
+          setSubmitLoading(false)
+          setProductArray([])
+          setProductArrayUi([])
+          Router.push({
+            pathname: `/pharmacy/dispense/${res?.data}`
 
-          // query: { id: res?.data }
-        })
+            // query: { id: res?.data }
+          })
 
-        // Router.push('/pharmacy/dispense')
-      }
-    })
+          // Router.push('/pharmacy/dispense')
+        } else {
+          setSubmitLoading(false)
+          setOpenSnackbar({
+            ...openSnackbar,
+            open: true,
+            message: JSON.stringify(res?.message),
+            severity: 'error'
+          })
+        }
+      })
+    } catch (error) {
+      setOpenSnackbar({ ...openSnackbar, open: true, message: JSON.stringify(error), severity: 'error' })
+      setSubmitLoading(false)
+    }
   }
 
   return (
     <>
-      {selectedPharmacy.type === 'local' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+      {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.dispense_medicine ? (
         <Card>
           <Dialog
             fullWidth
@@ -462,15 +493,29 @@ function AddDispense() {
               <Grid item xs={12} sm={12} md={6}>
                 <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
                   <Button
-                    disabled={productArrayUi?.length === 0 || animals_s.length === 0 || errors.user_id}
+                    sx={{ width: '100px', height: '40px' }}
+                    disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
                     type='submit'
                     variant='contained'
                   >
-                    Submit
+                    {submitLoading ? <CircularProgress size={'16px'} /> : 'Submit'}
                   </Button>
                 </Grid>
               </Grid>
             </CardContent>
+            {openSnackbar.open ? (
+              <UserSnackbar
+                handleClose={() =>
+                  setOpenSnackbar({
+                    ...openSnackbar,
+                    open: false
+                  })
+                }
+                severity={openSnackbar?.severity}
+                status={true}
+                message={openSnackbar?.message}
+              />
+            ) : null}
           </form>
           <AddAnimals
             drawerWidth={400}

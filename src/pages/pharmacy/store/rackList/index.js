@@ -8,6 +8,7 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import AddRack from 'src/views/pages/pharmacy/store/rack/addRack'
 import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 import toast from 'react-hot-toast'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -73,7 +74,9 @@ const ListOfRacks = () => {
       }
       console.log('rack list', response)
       if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+        toast.success(response?.data)
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -82,12 +85,15 @@ const ListOfRacks = () => {
         // await getRacksLists()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
+
+        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+
+      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -135,17 +141,19 @@ const ListOfRacks = () => {
         setRacks(listWithId)
         setLoader(false)
       } else {
+        setRacks([])
         setLoader(false)
       }
     } catch (error) {
       setLoader(false)
+      setRacks([])
       console.log('error', error)
     }
   }
 
   useEffect(() => {
     getRacksLists()
-  }, [])
+  }, [selectedPharmacy.id])
 
   // useEffect(() => {
   //   getRacksLists()
@@ -258,9 +266,14 @@ const ListOfRacks = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  const addRackButton = (
+    <div>
+      {(selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+        selectedPharmacy?.permission?.pharmacy_module === 'ADD') && (
+        <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
+      )}
+    </div>
+  )
 
   return (
     <>
@@ -268,21 +281,14 @@ const ListOfRacks = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter
-            TableTitle='Rack List'
-            headerActions={
-              <div>
-                <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
-              </div>
-            }
-            columns={columns}
-            rows={racks}
-          />
-          <DialogConfirmation
-            handleClose={handleClose}
-            action={confirmDeleteAction}
+          <TableWithFilter TableTitle='Rack List' headerActions={addRackButton} columns={columns} rows={racks} />
+
+          <ConfirmDialog
+            closeDialog={handleClose}
             open={open}
-            message={'Are you sure to delete'}
+            title='Confirmation'
+            action={confirmDeleteAction}
+            content='Are you sure want to delete?'
           />
           <AddRack
             drawerWidth={400}

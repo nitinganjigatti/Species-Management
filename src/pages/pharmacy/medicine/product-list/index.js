@@ -25,6 +25,7 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
+import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -47,11 +48,18 @@ const ListOfMedicine = () => {
     setShow(true)
   }
 
-  const handleEdit = async id => {
-    Router.push({
-      pathname: '/pharmacy/medicine/add-product',
-      query: { id: id, action: 'edit' }
-    })
+  const handleEdit = async row => {
+    console.log('row', row)
+    debugger
+    if (
+      selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
+    ) {
+      Router.push({
+        pathname: '/pharmacy/medicine/add-product',
+        query: { id: row?.row?.id, action: 'edit' }
+      })
+    }
   }
 
   const columns = [
@@ -113,17 +121,17 @@ const ListOfMedicine = () => {
       )
     },
 
-    // {
-    //   flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'created_at',
-    //   headerName: 'Date',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDate(params.row.created_at)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.3,
+      minWidth: 20,
+      field: 'created_at',
+      headerName: 'Product Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_type}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       minWidth: 20,
@@ -146,6 +154,7 @@ const ListOfMedicine = () => {
         </Badge>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -156,48 +165,49 @@ const ListOfMedicine = () => {
           {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-
-      renderCell: params => (
-        <>
-          {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box>
-                <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-              </Box>
-            )}
-        </>
-
-        // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
-        //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-        //     <Icon icon='mdi:pencil-outline' />
-        //   </IconButton>
-        //   {/* <IconButton
-        //     size='small'
-        //     onClick={() => {
-        //       setConfigureMedId(params.row.id)
-        //       showDialog()
-        //     }}
-        //   >
-        //     <Icon icon='grommet-icons:configure' />
-        //   </IconButton> */}
-        //   {/* <IconButton size='small'>
-        //     <Icon icon='mdi:eye-outline' />
-        //   </IconButton>
-
-        //   <IconButton size='small'>
-        //     <Icon icon='mdi:file' />
-        //   </IconButton> */}
-        // </Box>)}
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <>
+    //       {selectedPharmacy.type === 'central' &&
+    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+    //           <Box>
+    //             <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+    //               <Icon icon='mdi:pencil-outline' />
+    //             </IconButton>
+    //           </Box>
+    //         )}
+    //     </>
+
+    //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
+    //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+    //     //     <Icon icon='mdi:pencil-outline' />
+    //     //   </IconButton>
+    //     //   {/* <IconButton
+    //     //     size='small'
+    //     //     onClick={() => {
+    //     //       setConfigureMedId(params.row.id)
+    //     //       showDialog()
+    //     //     }}
+    //     //   >
+    //     //     <Icon icon='grommet-icons:configure' />
+    //     //   </IconButton> */}
+    //     //   {/* <IconButton size='small'>
+    //     //     <Icon icon='mdi:eye-outline' />
+    //     //   </IconButton>
+
+    //     //   <IconButton size='small'>
+    //     //     <Icon icon='mdi:file' />
+    //     //   </IconButton> */}
+    //     // </Box>)}
+    //   )
+    // }
   ]
 
   /***** Serverside pagination */
@@ -208,26 +218,41 @@ const ListOfMedicine = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState(true)
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column, status }) => {
+      let params = {}
+      const activeStatus = status ?? statusFilter
       try {
         setLoading(true)
-
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+        if (activeStatus === 'all') {
+          params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize
+          }
+        } else {
+          params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            active: activeStatus
+          }
         }
 
         await getMedicineList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          if (res?.success === true && res?.data?.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -242,7 +267,7 @@ const ListOfMedicine = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, column, status: statusFilter })
       } catch (error) {
         console.error(error)
       }
@@ -251,7 +276,7 @@ const ListOfMedicine = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
@@ -263,7 +288,12 @@ const ListOfMedicine = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
+  }
+
+  const handleStatusFilterChange = newFilter => {
+    setStatusFilter(newFilter)
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
   }
 
   const headerAction = (
@@ -313,6 +343,25 @@ const ListOfMedicine = () => {
               />
               <Card>
                 <CardHeader title='Product List' action={headerAction} />
+                <Grid container sx={{ display: 'flex' }}>
+                  <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
+                    <FormControl fullWidth size='small'>
+                      <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
+                      <Select
+                        size='small'
+                        value={statusFilter}
+                        label='Filter by Status'
+                        onChange={e => {
+                          handleStatusFilterChange(e.target.value)
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        <MenuItem value={true}>Active</MenuItem>
+                        <MenuItem value={false}>In-Active </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
                 <DataGrid
                   columnVisibilityModel={{
                     id: false
@@ -347,6 +396,7 @@ const ListOfMedicine = () => {
                       }
                     }
                   }}
+                  onRowClick={handleEdit}
                 />
               </Card>
             </>

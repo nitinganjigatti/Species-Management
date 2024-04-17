@@ -144,10 +144,8 @@ function Dispense() {
 
   return (
     <>
-      {selectedPharmacy.type === 'local' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' ||
-        selectedPharmacy.permission.key === 'ADD' ||
-        selectedPharmacy.permission.key === 'VIEW') ? (
+      {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.dispense_medicine ? (
         <Card>
           <Grid
             container
@@ -163,19 +161,18 @@ function Dispense() {
               <CardHeader title='Dispense' />
             </Grid>
             <Grid sx={{ mx: 5 }} item>
-              {selectedPharmacy.type === 'local' &&
-                (selectedPharmacy.permission.key === 'allow_full_access' ||
-                  selectedPharmacy.permission.key === 'ADD') && (
-                  <AddButton
-                    title='Add Dispense'
-                    action={() => {
-                      Router.push('/pharmacy/dispense/add-dispense')
-                    }}
-                    sx={{
-                      mr: 6
-                    }}
-                  />
-                )}
+              {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+                selectedPharmacy.permission.dispense_medicine) && (
+                <AddButton
+                  title='Add Dispense'
+                  action={() => {
+                    Router.push('/pharmacy/dispense/add-dispense')
+                  }}
+                  sx={{
+                    mr: 6
+                  }}
+                />
+              )}
             </Grid>
           </Grid>
           <DataGrid

@@ -353,7 +353,9 @@ const ListOfStocksByBatch = () => {
               <CommonDialogBox
                 title={'Configure Medicine'}
                 dialogBoxStatus={show}
-                formComponent={<StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} />}
+                formComponent={
+                  <StockMedicineConfigure configureMedId={configureMedId} storeId={stockId} close={closeDialog} />
+                }
                 close={closeDialog}
                 show={showDialog}
               />

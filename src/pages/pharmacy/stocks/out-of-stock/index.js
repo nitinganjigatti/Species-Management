@@ -15,6 +15,9 @@ import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import { FormControlLabel, Switch } from '@mui/material'
+import { ExcelExportButton } from 'src/components/Buttons'
+import { Box } from '@mui/system'
+import Utility from 'src/utility'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -30,6 +33,7 @@ const StockOut = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
+  const [excelLoader, setExcelLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -133,28 +137,29 @@ const StockOut = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'batch_no',
-    //   headerName: 'Batch',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.batch_no}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'generic_name',
-    //   headerName: 'GENERIC NAME',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.generic_name}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'min_qty',
+      headerName: 'Reorder level',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.min_qty}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,
@@ -167,6 +172,58 @@ const StockOut = () => {
     //     </Typography>
     //   )
     // },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_qty',
+      headerName: 'Qty',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_qty}
+        </Typography>
+      )
+    }
+  ]
+
+  const outOfStocksColumn = [
+    {
+      flex: 0.05,
+      Width: 40,
+      alignItems: 'right',
+      field: 'id',
+      headerName: 'SL',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_item_name',
+      headerName: 'Product Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_item_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,
@@ -205,6 +262,29 @@ const StockOut = () => {
     setStatus(event.target.checked ? 'out_of_stock' : 'low_stock')
   }
 
+  const getDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+      const result = await getStockOutItems({ params: '' })
+
+      if (result?.list_items.length > 0) {
+        const data = result?.list_items.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_item_name,
+            ['Supplier name']: el?.supplier_name
+          }
+        })
+
+        Utility.exportToCSV(data, 'Stock out Products')
+      }
+      setExcelLoader(false)
+    } catch (error) {
+      setExcelLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
   const headerAction = (
     <div>
       <FormControlLabel
@@ -212,6 +292,17 @@ const StockOut = () => {
         labelPlacement='start'
         label='Out Of Stock'
       />
+      {status === 'out_of_stock' ? (
+        <Box sx={{ mx: 2 }}>
+          <ExcelExportButton
+            action={() => {
+              getDataToExport()
+            }}
+            loader={excelLoader}
+            title='Download'
+          />
+        </Box>
+      ) : null}
     </div>
   )
 
@@ -313,7 +404,7 @@ const StockOut = () => {
             rows={indexedRows === undefined ? [] : indexedRows}
             rowCount={total}
             total
-            columns={columns}
+            columns={status === 'low_stock' ? columns : outOfStocksColumn}
             sortingMode='server'
             paginationMode='server'
             pageSizeOptions={[7, 10, 25, 50]}

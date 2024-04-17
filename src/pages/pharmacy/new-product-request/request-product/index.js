@@ -59,6 +59,7 @@ import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ConfirmationBox } from 'src/utility/Confirm-dialog-box'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 export default function AddProduct() {
   const [storeList, setStoreList] = useState([])
@@ -76,6 +77,7 @@ export default function AddProduct() {
   const [previousPrescriptionLength, setPreviousPrescriptionLength] = useState(false)
   const [imgSrcChange, setImgSrcChange] = useState(false)
   const [confirmationBox, setConfirmationBox] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
   const theme = useTheme()
@@ -83,15 +85,19 @@ export default function AddProduct() {
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
-      .then(res => setStoreList(res?.data?.list_items))
+      .then(res => {
+        setStoreList(res?.data?.list_items)
+        if (res?.data?.list_items.length > 0) {
+          setValue('from_store', res?.data?.list_items[0].id)
+        }
+      })
       .catch(err => console.log(err))
   }, [])
 
-  const schema = yup.object().shape({
+  const commonSchema = yup.object().shape({
     from_store: yup.string().required('Store Name is required'),
     product_type: yup.string().required('Product type is required'),
     product_name: yup.string().required('Product name is required'),
-    generic_name: yup.string().required('Generic name is required'),
     quantity: yup
       .number()
       .typeError('Quantity must be a number')
@@ -99,15 +105,31 @@ export default function AddProduct() {
       .moreThan(0, 'Quantity must be greater than 0')
   })
 
+  const nonMedicalSchema = yup.object().shape({
+    generic_name: yup.string().notRequired()
+  })
+
+  const medicalSchema = yup.object().shape({
+    generic_name: yup.string().required('Generic name is required')
+  })
+
+  const schema = yup.lazy(values => {
+    if (values && values.product_type === 'non_medical') {
+      return commonSchema.concat(nonMedicalSchema)
+    }
+
+    return commonSchema.concat(medicalSchema)
+  })
+
   const defaultValues = {
-    from_store: 38,
+    from_store: '',
     comment: '',
     prescription_images: [],
     product_type: '',
     product_name: '',
     generic_name: '',
     product_image: '',
-    quantity: '1',
+    quantity: '',
     priority: 'Normal',
     salts: [],
     status: 'pending'
@@ -142,9 +164,6 @@ export default function AddProduct() {
     setPreviousPrescriptionLength(true)
   }
 
-  console.log('prescriptionImafes>>>>>', prescriptionImage)
-  console.log('getValues???', getValues())
-
   const removeselectedImage = selectedindex => {
     if (prescriptionImage.length > 0) {
       const list = [...prescriptionImage]
@@ -157,6 +176,7 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
+      console.log('Product', res.data)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
@@ -164,7 +184,7 @@ export default function AddProduct() {
       reset({
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
-        quantity: res?.data?.quantity,
+        quantity: res?.data?.request_item_details[0].quantity,
         priority: res?.data?.request_item_details[0].priority,
         product_type: res?.data?.request_item_details[0].product_type,
         product_name: res?.data?.request_item_details[0].product_name,
@@ -180,6 +200,7 @@ export default function AddProduct() {
   }
 
   const onSubmit = async data => {
+    setSubmitLoader(true)
     const dataChild = [...dataChildValues]
 
     const requestData = dataChild?.map((item, index) => {
@@ -196,43 +217,27 @@ export default function AddProduct() {
 
     data.status = data?.status ? data?.status : 'Pending'
 
-    const filterPrescriptionImages = data?.prescription_images?.map(element => {
-      if (typeof element === 'string') {
-        const trimElement = element.trim()
-        const imageName = trimElement.split('/').pop()
+    if (data.prescription_images.length > 0) {
+      const filterPrescriptionImages = data?.prescription_images?.map(element => {
+        if (typeof element === 'string') {
+          const trimElement = element.trim()
+          const imageName = trimElement.split('/').pop()
 
-        return imageName
-      } else {
-        return element
-      }
-    })
-    data.prescription_images = filterPrescriptionImages
+          return imageName
+        } else {
+          return element
+        }
+      })
+      data.prescription_images = filterPrescriptionImages
+    } else {
+      data.prescription_images = []
+    }
 
     if (typeof data?.product_image === 'string') {
       const trimImg = data?.product_image.trim()
       const imgName = trimImg.split('/').pop()
-      data.product_image = imgName // Set imgName in data.product_image
+      data.product_image = imgName
     }
-
-    // handleUpdate(getDetails, data)
-    // const requestDetailsData = {
-    //   product_type: data?.product_type,
-    //   product_name: data?.product_name,
-    //   generic_name: data?.generic_name,
-    //   priority: data?.priority,
-    //   quantity: data?.quantity,
-    //   product_image: data?.product_image,
-    //   salts: JSON.stringify([]),
-    //   status: data?.status
-    // }
-
-    // const saltValues = data.salts
-
-    // const filterSaltValues = saltValues?.map(item => ({
-    //   salt_id: item.salt_id,
-    //   salt_qty: item.salt_qty
-    // }))
-    // data.salts = JSON.stringify(filterSaltValues)
 
     let {
       from_store,
@@ -278,25 +283,19 @@ export default function AddProduct() {
       }
 
       if (response?.success) {
+        reset()
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
 
         router.push('/pharmacy/new-product-request/')
-        reset()
       } else {
+        setSubmitLoader(false)
       }
     } catch (error) {
-      // Handle the error as needed
       console.error('An error occurred:', error)
+      setSubmitLoader(false)
     }
   }
-
-  // const handleUpdate = (item, data) => {
-  //   // if (item?.request_item_details?.request_item_detail_id) {
-  //   //   // Use optional chaining consistently
-  //   //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
-  //   // }
-  // }
 
   const handleCancelDialogBox = () => {
     if (isDirty) {
@@ -462,10 +461,10 @@ export default function AddProduct() {
                 }
               />
 
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                 <CardContent>
                   <Grid container spacing={6}>
-                    <Grid item xs={12} sm={6}>
+                    {/* <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <InputLabel>From Store Name*</InputLabel>
                         <Controller
@@ -488,105 +487,86 @@ export default function AddProduct() {
                           <FormHelperText sx={{ color: 'error.main' }}>{errors?.from_store?.message}</FormHelperText>
                         )}
                       </FormControl>
-                    </Grid>
+                    </Grid> */}
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <Controller
-                          name='comment'
+                          name='product_name'
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => (
+                          render={({ field: { value, onChange } }) => (
                             <TextField
-                              {...field}
-                              label='Comment'
-                              multiline
-                              rows={1}
-
-                              // error={Boolean(errors.medicine_name)}
+                              value={value}
+                              label='Product Name*'
+                              name='product_name'
+                              error={Boolean(errors.product_name)}
+                              onChange={onChange}
+                              placeholder='Product Name'
                             />
                           )}
                         />
+                        {errors?.product_name && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Select Product Type*</InputLabel>
+                        <Controller
+                          name='product_type'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='product_type'
+                              value={value}
+                              label='Select Product Type*'
+                              onChange={onChange}
+                              error={Boolean(errors?.product_type)}
+                            >
+                              <MenuItem value='allopathy'>Allopathy</MenuItem>
+                              <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                              <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='non_medical'>Non Medical</MenuItem>
+                            </Select>
+                          )}
+                        />
+                        {errors?.product_type && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_type?.message}</FormHelperText>
+                        )}
                       </FormControl>
                     </Grid>
                   </Grid>
                   <Grid container mt={4} xs={12}>
                     <Grid container spacing={6}>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Select Product Type*</InputLabel>
-                          <Controller
-                            name='product_type'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Select
-                                name='product_type'
-                                value={value}
-                                label='Select Product Type*'
-                                onChange={onChange}
-                                error={Boolean(errors?.product_type)}
-                              >
-                                <MenuItem value='allopathy'>Allopathy</MenuItem>
-                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                                <MenuItem value='unani'>Unani</MenuItem>
-                                <MenuItem value='non_medical'>Non Medical</MenuItem>
-                              </Select>
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name='generic_name'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Generic Name*'
+                                  name='generic_name'
+                                  error={Boolean(errors.generic_name)}
+                                  onChange={onChange}
+                                  placeholder='Generic Name'
+                                />
+                              )}
+                            />
+                            {errors?.generic_name && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.generic_name.message}
+                              </FormHelperText>
                             )}
-                          />
-                          {errors?.product_type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.product_type?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='product_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Product Name*'
-                                name='product_name'
-                                error={Boolean(errors.product_name)}
-                                onChange={onChange}
-                                placeholder='Product Name'
-                              />
-                            )}
-                          />
-                          {errors?.product_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='generic_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Generic Name*'
-                                name='generic_name'
-                                error={Boolean(errors.generic_name)}
-                                onChange={onChange}
-                                placeholder='Generic Name'
-                              />
-                            )}
-                          />
-                          {errors?.generic_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      {}
-
+                          </FormControl>
+                        </Grid>
+                      }
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                           <Controller
@@ -607,6 +587,47 @@ export default function AddProduct() {
                           {errors?.quantity && (
                             <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
                           )}
+                        </FormControl>
+                      </Grid>
+
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>From Store Name*</InputLabel>
+                            <Controller
+                              name='from_store'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field }) => (
+                                <Select {...field} label='From Store Name'>
+                                  {storeList?.map((item, index) => {
+                                    return (
+                                      <MenuItem key={index} value={item?.id}>
+                                        {item?.name}
+                                      </MenuItem>
+                                    )
+                                  })}
+                                </Select>
+                              )}
+                            />
+                            {errors?.from_store && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.from_store?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                      }
+                      {}
+
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='comment'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => <TextField {...field} label='Comment' multiline rows={1} />}
+                          />
                         </FormControl>
                       </Grid>
 
@@ -646,7 +667,7 @@ export default function AddProduct() {
                         <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
                         {console.log('imgSrc', imgSrc)}
-                        {imgSrc !== '' && (
+                        {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{
                               display: 'flex'
@@ -687,7 +708,7 @@ export default function AddProduct() {
                             name='product_image'
                             style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
                           />
-                          {imgSrc === '' && (
+                          {(imgSrc === '' || imgSrc === null) && (
                             <AddButton
                               title=' Upload Image'
                               styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
@@ -714,14 +735,24 @@ export default function AddProduct() {
 
                         {/* {imgSrc === '' && ( */}
                       </Grid>
-                      {confirmationBox && (
+                      {/* {confirmationBox && (
                         <Grid>
                           <CommonDialogBox
+                            noWidth
                             dialogBoxStatus={confirmationBox}
                             formComponent={<ConfirmationBox setConfirmationBox={setConfirmationBox} />}
                             show={() => setConfirmationBox(true)}
                           />
                         </Grid>
+                      )} */}
+                      {confirmationBox && (
+                        <ConfirmDialog
+                          title={'Confirmation'}
+                          open={() => setConfirmationBox(true)}
+                          content={'Are you sure you want to cancel?'}
+                          closeDialog={() => setConfirmationBox(false)}
+                          action={() => router.push('/pharmacy/new-product-request/')}
+                        />
                       )}
                       {/* salt composition */}
 
@@ -847,6 +878,7 @@ export default function AddProduct() {
                     )}
                     <LoadingButton
                       type='submit'
+                      loading={submitLoader}
                       sx={{ mr: '8px' }}
                       size='large'
                       variant='contained'

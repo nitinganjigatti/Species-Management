@@ -41,7 +41,7 @@ export const ProductDetail = ({
   // }
 
   return (
-    <Grid>
+    <Grid sx={{ cursor: 'pointer' }}>
       {detailsData?.map((item, index) => {
         return (
           <div key={index}>
@@ -58,7 +58,9 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Type
                 </Typography>
-                <Typography variant='body2'>{item.product_type}</Typography>
+                <Typography variant='body2'>
+                  {item.product_type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
@@ -70,7 +72,7 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Generic Name
                 </Typography>
-                <Typography variant='body2'>{item.generic_name}</Typography>
+                <Typography variant='body2'>{item.generic_name ? item.generic_name : 'NA'}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
@@ -132,7 +134,9 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
-                <Typography variant='body2'>{productDetails?.comments}</Typography>
+                <Typography sx={{ m: '2px' }} variant='body2'>
+                  {productDetails?.comments ? productDetails?.comments : 'NA'}
+                </Typography>
               </Grid>
 
               {productDetails?.status !== 'Pending' && (
@@ -211,7 +215,7 @@ export const ProductDetail = ({
                     )}
               </Grid>
               {visibleArea && (
-                <Card sx={{ width: '100%', ml: '40px', fontSize: '15px' }}>
+                <Card sx={{ width: '100%', ml: '30px' }}>
                   <CardContent>
                     {/* <Typography sx={{ mb: '10px' }}>Reason of Rejection</Typography> */}
                     <Grid item xs={12} sm={12}>
@@ -226,6 +230,17 @@ export const ProductDetail = ({
                             onChange={e => setReasonText(e.target.value)}
                           />
                           <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mt: '10px' }}>
+                            <Button
+                              sx={{ margin: '3px' }}
+                              variant='outlined'
+                              size='large'
+                              onClick={() => {
+                                setVisibleArea(false)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+
                             <LoadingButton
                               sx={{ margin: '3px' }}
                               size='large'
@@ -237,16 +252,6 @@ export const ProductDetail = ({
                             >
                               Submit
                             </LoadingButton>
-                            <Button
-                              sx={{ margin: '3px' }}
-                              variant='outlined'
-                              size='small'
-                              onClick={() => {
-                                setVisibleArea(false)
-                              }}
-                            >
-                              Cancel
-                            </Button>
                           </Grid>
                         </>
                       )}

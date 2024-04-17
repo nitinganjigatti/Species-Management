@@ -286,7 +286,8 @@ const ComposeNavigation = () => {
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const labList = authData?.userData?.modules?.lab_data?.lab
-  console.log('labList', labList)
+
+  // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
