@@ -35,6 +35,7 @@ import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import moment from 'moment'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { useRouter } from 'next/router'
 
 // Styled TabList component
 
@@ -42,6 +43,10 @@ const RequestList = () => {
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  const router = useRouter()
+
+  // const { id, request_number, currentPageStatus, currentTotal, currentPage, currentLimit } = router.query
 
   const handleEdit = id => {
     Router.push({
@@ -153,6 +158,9 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
+    debugger
+
+    // setStatus(currentPageStatus ? currentPageStatus : status)
     const currentStatus = filterSwitch ? 'completed' : status
 
     fetchTableData(
@@ -207,6 +215,13 @@ const RequestList = () => {
 
     Router.push({
       pathname: `/pharmacy/request/${data?.id}`
+
+      // query: {
+      //   currentPageStatus: status,
+      //   currentTotal: total,
+      //   currentPage: paginationModel.page + 1,
+      //   currentLimit: paginationModel.pageSize
+      // }
     })
   }
 
@@ -282,7 +297,11 @@ const RequestList = () => {
     }
   }
   useEffect(() => {
+    // setStatus(currentPageStatus ? currentPageStatus : status)
+
     const currentStatus = filterSwitch ? 'completed' : status
+
+    // const currentStatus = filterSwitch ? 'completed' : status
 
     if (filterDates.startDate && filterDates.endDate) {
       fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
@@ -433,11 +452,24 @@ const RequestList = () => {
               </Box>
             )}
             {params.row.shipping_status === 'Partially Shipped' && (
-              <Box sx={{ color: 'warning.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-                {/* added for partial shipping */}
-                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
-              </Box>
+              <>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+                {params.row.request_status === 'Received' ||
+                params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Wrong Count - Accepted' ? (
+                  <Box sx={{ color: 'success.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
+                  </Box>
+                ) : (
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                )}
+              </>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -528,9 +560,9 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader title='Request List' action={headerAction} />
-            <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}>
-                <FormControl size='small'>
+            <Grid container sx={{ display: 'flex' }}>
+              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
+                <FormControl fullWidth size='small'>
                   <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
                   <Select
                     size='small'
@@ -548,10 +580,13 @@ const RequestList = () => {
                     <MenuItem value='16'>15 Days</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
                 {selectedPharmacy.type === 'central' ? (
-                  <FormControl size='small' sx={{ mx: 4 }}>
-                    <InputLabel id='demo-simple-select-label'>Filter by Stores</InputLabel>
+                  <FormControl fullWidth size='small'>
+                    <InputLabel fullWidth>Filter by Stores</InputLabel>
                     <Select
+                      fullWidth
                       size='small'
                       value={filterByStoreId}
                       label='Filter by Stores'
@@ -572,10 +607,11 @@ const RequestList = () => {
                   </FormControl>
                 ) : null}
               </Grid>
-              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid>
-              <Grid item xs={12} sm={6} md={6}>
+
+              {/* <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid> */}
+              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' ? (
-                  <Box sx={{ mr: 4 }}>
+                  <Box sx={{ float: 'right' }}>
                     <FormControlLabel
                       control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'

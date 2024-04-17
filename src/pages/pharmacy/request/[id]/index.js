@@ -83,6 +83,9 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const { id, request_number, currentPageStatus, currentTotal, currentPage, currentLimit } = router.query
+
   const { id, request_number } = router.query
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -1042,7 +1045,18 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/request/request-list/')
+                        Router.push({
+                          pathname: '/pharmacy/request/request-list/'
+
+                          // query: {
+                          //   currentPageStatus: currentPageStatus,
+                          //   currentTotal: currentTotal,
+                          //   currentPage: currentPage,
+                          //   currentLimit: currentLimit
+                          // }
+                        })
+
+                        // Router.push('/pharmacy/request/request-list/')
                       }}
                       icon='ep:back'
                     />

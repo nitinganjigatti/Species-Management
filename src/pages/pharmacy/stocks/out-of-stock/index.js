@@ -137,28 +137,29 @@ const StockOut = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'batch_no',
-    //   headerName: 'Batch',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.batch_no}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'generic_name',
-    //   headerName: 'GENERIC NAME',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.generic_name}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'min_qty',
+      headerName: 'Reorder level',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.min_qty}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,
@@ -219,7 +220,7 @@ const StockOut = () => {
       headerName: 'Supplier Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name}
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
     },

@@ -193,9 +193,11 @@ const ListOfStocks = () => {
         }
       } else {
         try {
+          debugger
           const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true) {
-            // console.log('result else', result)
+
+          if (result?.success === true) {
+            console.log('result else', result)
             setBatchTotal(parseInt(result?.count))
 
             let listWithId = result.data
@@ -203,6 +205,7 @@ const ListOfStocks = () => {
                   return { ...el, uid: i + 1 }
                 })
               : []
+            console.log('listWithId', listWithId)
             setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
             setBatchLoading(false)
           }

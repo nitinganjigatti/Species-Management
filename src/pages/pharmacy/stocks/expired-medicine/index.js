@@ -150,7 +150,7 @@ const ExpiredMedicine = () => {
       headerName: 'Supplier name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name}
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
     },
