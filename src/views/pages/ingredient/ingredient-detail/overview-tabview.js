@@ -3,7 +3,7 @@ import { Grid, Box, Typography, Chip, Divider, Avatar, CardContent } from '@mui/
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
-import ActivityLogs from 'src/pages/diet/ingredient/activityLogs'
+import ActivityLogs from 'src/@core/components/activityLogs'
 
 const OverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
@@ -104,21 +104,15 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
               Activity Log
             </Typography>
             <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
-            <Drawer
-              anchor='right'
-              open={activitySidebarOpen}
-              ModalProps={{ keepMounted: true }}
-              sx={{ '& .MuiDrawer-paper': { width: ['100%', 520] }, height: '100vh' }}
-            >
-              <CardContent>
-                <ActivityLogs
-                  IngredientsDetailsval={IngredientsDetailsval}
-                  searchValue={searchValue}
-                  setSearchValue={setSearchValue}
-                  handleSidebarClose={handleSidebarClose}
-                />
-              </CardContent>
-            </Drawer>
+
+            <ActivityLogs
+              activitySidebarOpen={activitySidebarOpen}
+              activity_type='ingredient'
+              detailsValue={IngredientsDetailsval}
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
+              handleSidebarClose={handleSidebarClose}
+            />
           </Box>
         </Box>
       </div>
