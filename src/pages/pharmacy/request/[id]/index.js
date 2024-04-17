@@ -32,7 +32,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -83,6 +83,7 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
   const { id, request_number } = router.query
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -365,7 +366,11 @@ const IndividualRequest = () => {
               textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
             }}
           >
-            {params.row.stock_name}
+            <Tooltip title={params.row.stock_name} placement='top'>
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                {params.row.stock_name}
+              </Typography>
+            </Tooltip>
           </Typography>
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -614,9 +619,14 @@ const IndividualRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             <div>{params.row.medicin_name}</div>
-          </Typography>
+          </Typography> */}
         </div>
       )
     },
@@ -1042,7 +1052,9 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/request/request-list/')
+                        Router.push({
+                          pathname: '/pharmacy/request/request-list/'
+                        })
                       }}
                       icon='ep:back'
                     />

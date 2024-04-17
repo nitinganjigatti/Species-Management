@@ -24,7 +24,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Tooltip } from '@mui/material'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 
@@ -35,6 +35,7 @@ import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import moment from 'moment'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 // Styled TabList component
 
@@ -80,7 +81,6 @@ const RequestList = () => {
     setFilterSwitch(false)
     setFilterByStoreId('')
     setPaginationModel({ page: 0, pageSize: 10 })
-
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setStatus(newValue)
@@ -105,7 +105,7 @@ const RequestList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status, startDate, endDate, filterByStoreId) => {
+    async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
       var params = {}
 
       try {
@@ -120,8 +120,8 @@ const RequestList = () => {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
             pending_days_end: endDate ? endDate : filterDates?.endDate,
@@ -142,6 +142,7 @@ const RequestList = () => {
         await getRequestItemsList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          remove('requestPageStatus')
         })
         setLoading(false)
       } catch (e) {
@@ -153,17 +154,37 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    const currentStatus = filterSwitch ? 'completed' : status
+    const statusIsThere = read('requestPageStatus')
+    console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      debugger
+      setStatus(statusIsThere.currentStatus)
+      setFilterSwitch(statusIsThere.filterSwitch)
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.startDate,
+        statusIsThere.endDate,
+        statusIsThere.filterByStoreId,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      // setStatus(requestPageStatus ? requestPageStatus : status)
+      const currentStatus = filterSwitch ? 'completed' : status
 
-    fetchTableData(
-      sort,
-      searchValue,
-      sortColumn,
-      currentStatus,
-      filterDates.startDate,
-      filterDates.endDate,
-      filterByStoreId
-    )
+      fetchTableData(
+        sort,
+        searchValue,
+        sortColumn,
+        currentStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+    }
   }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -208,6 +229,21 @@ const RequestList = () => {
     Router.push({
       pathname: `/pharmacy/request/${data?.id}`
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      filterByStoreId: filterByStoreId,
+      filterSwitch: filterSwitch
+    }
+
+    write('requestPageStatus', currentPageData)
   }
 
   const headerAction = (
@@ -282,7 +318,11 @@ const RequestList = () => {
     }
   }
   useEffect(() => {
+    // setStatus(requestPageStatus ? requestPageStatus : status)
+
     const currentStatus = filterSwitch ? 'completed' : status
+
+    // const currentStatus = filterSwitch ? 'completed' : status
 
     if (filterDates.startDate && filterDates.endDate) {
       fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
@@ -362,7 +402,6 @@ const RequestList = () => {
       headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {params.row.from_store} */}
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
@@ -433,11 +472,24 @@ const RequestList = () => {
               </Box>
             )}
             {params.row.shipping_status === 'Partially Shipped' && (
-              <Box sx={{ color: 'warning.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-                {/* added for partial shipping */}
-                <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
-              </Box>
+              <>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+                {params.row.request_status === 'Received' ||
+                params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Wrong Count - Accepted' ? (
+                  <Box sx={{ color: 'success.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
+                  </Box>
+                ) : (
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    {/* added for partial shipping */}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                )}
+              </>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -528,9 +580,9 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader title='Request List' action={headerAction} />
-            <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}>
-                <FormControl size='small'>
+            <Grid container sx={{ display: 'flex' }}>
+              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
+                <FormControl fullWidth size='small'>
                   <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
                   <Select
                     size='small'
@@ -548,10 +600,13 @@ const RequestList = () => {
                     <MenuItem value='16'>15 Days</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
                 {selectedPharmacy.type === 'central' ? (
-                  <FormControl size='small' sx={{ mx: 4 }}>
-                    <InputLabel id='demo-simple-select-label'>Filter by Stores</InputLabel>
+                  <FormControl fullWidth size='small'>
+                    <InputLabel fullWidth>Filter by Stores</InputLabel>
                     <Select
+                      fullWidth
                       size='small'
                       value={filterByStoreId}
                       label='Filter by Stores'
@@ -572,10 +627,11 @@ const RequestList = () => {
                   </FormControl>
                 ) : null}
               </Grid>
-              <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid>
-              <Grid item xs={12} sm={6} md={6}>
+
+              {/* <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid> */}
+              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' ? (
-                  <Box sx={{ mr: 4 }}>
+                  <Box sx={{ float: 'right' }}>
                     <FormControlLabel
                       control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
