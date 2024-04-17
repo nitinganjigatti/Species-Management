@@ -9,7 +9,6 @@ import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
 
 // ** Step Components
-import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
@@ -22,6 +21,7 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
+import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 
 const steps = [
   {
@@ -396,7 +396,7 @@ const AddDiet = () => {
         )
       case 1:
         return (
-          <StepAddIngredients
+          <StepPreviewDiet
             handleNext={handleNext}
             handlePrev={handlePrev}
             handleIngredientChange={handleIngredientChange}
@@ -437,15 +437,9 @@ const AddDiet = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography variant='h6'>{id ? 'Edit Recipe' : 'Add New Diet'}</Typography>
-              {/* <Typography sx={{ mb: 1, fontSize: 14 }}>
-                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
-                proportions for this <br /> ingredient prior to processing.
-              </Typography> */}
             </div>
           </div>
         </CardContent>
-
-        {/* <Divider sx={{ mx: '20px !important', pb: 1 }} /> */}
 
         <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
           <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
