@@ -391,7 +391,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Unit of measurement (UOM)'
+                              label='Select time - from'
                               placeholder='Search & Select'
                               error={Boolean(errors.nutrional_uom_id)}
                             />
@@ -416,7 +416,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                         <TextField
                           value={value}
                           type='number'
-                          label='Total calories for 100 gms'
+                          label='Select time - to'
                           name='kcal'
                           error={Boolean(errors.kcal)}
                           onChange={onChange}
