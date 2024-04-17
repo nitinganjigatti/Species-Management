@@ -10,7 +10,7 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid } from '@mui/material'
 
-const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action, type }) => {
+const ModuleDeleteDialogConfirmation = ({ active, handleClosenew, open, message, action, type }) => {
   const [checked, setChecked] = useState(false)
   const handleChange = event => {
     setChecked(event.target.checked)
@@ -84,7 +84,8 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action,
               <FormControlLabel
                 label={
                   <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
-                    Deactivate this {type === 'ingredient' ? 'ingredient' : 'recipe'} in all records
+                    {active ? 'Deactivate' : 'Activate'} this {type === 'ingredient' ? 'ingredient' : 'recipe'} in all
+                    records
                   </span>
                 }
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
@@ -92,8 +93,8 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action,
             </Typography>
             <Grid item>
               <Typography sx={{ fontSize: 14, pl: 7, pb: 6 }}>
-                Deactivating this {type === 'ingredient' ? 'ingredient' : 'recipe'} prevents its addition to <br /> new{' '}
-                {type === 'ingredient' ? 'recipes or' : ''} diets, but you can swap it{' '}
+                {active ? 'Deactivating' : 'Activating'} this {type === 'ingredient' ? 'ingredient' : 'recipe'} prevents
+                its addition to <br /> new {type === 'ingredient' ? 'recipes or' : ''} diets, but you can swap it{' '}
                 {type === 'ingredient' ? <br /> : ''} with another {type === 'ingredient' ? 'ingredient' : 'recipe'}.
               </Typography>
             </Grid>
@@ -113,10 +114,13 @@ const ModuleDeleteDialogConfirmation = ({ handleClosenew, open, message, action,
             sx={{ width: 200, mr: 3 }}
             onClick={() => {
               action()
+              setTimeout(() => {
+                setChecked(false)
+              }, 2000)
             }}
             disabled={checked === true ? false : true}
           >
-            Deactivate
+            {active ? 'Deactivate' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>
