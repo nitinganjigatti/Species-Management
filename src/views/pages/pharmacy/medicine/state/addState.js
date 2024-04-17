@@ -175,12 +175,12 @@ const AddStates = props => {
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='code'
+              name='State Code'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Code*'
+                  label='State Code*'
                   type='number'
                   value={value}
                   onChange={onChange}

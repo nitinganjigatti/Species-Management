@@ -24,7 +24,7 @@ import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -332,10 +332,14 @@ const IndividualRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.stock_name}
-          </Typography>
-          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+          <div>
+            <Tooltip title={params?.row?.stock_name} placement='top'>
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                {params?.row?.stock_name}
+              </Typography>
+            </Tooltip>
+          </div>
+          {!isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
           ) : null}
         </div>
