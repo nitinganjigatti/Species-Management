@@ -412,7 +412,7 @@ const Diet = () => {
       const data = params.row
 
       Router.push({
-        pathname: `/diet/ingredient/${data?.id}`
+        pathname: `/diet/diet/${data?.id}`
       })
     } else {
       return

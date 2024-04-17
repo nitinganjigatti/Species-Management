@@ -30,10 +30,6 @@ const steps = [
   {
     title: 'Add Quantity',
     subtitle: 'Enter details'
-  },
-  {
-    title: 'Preview',
-    subtitle: 'Preview & Submit'
   }
 ]
 
@@ -403,8 +399,8 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
-      case 2:
-        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+      //   case 2:
+      //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }
@@ -435,7 +431,7 @@ const AddDiet = () => {
         </CardContent>
 
         <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
-          <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
+          <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
