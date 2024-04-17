@@ -55,9 +55,11 @@ const ListOfPurchase = () => {
         }
 
         await getPurchaseList({ params: params }).then(res => {
-          console.log('getPurchaseList', res)
-          setTotal(parseInt(res?.count))
-          setRows(loadServerRows(paginationModel.page, res?.data))
+          // console.log('getPurchaseList', res)
+          if (res?.success === true && res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+          }
         })
         setLoading(false)
       } catch (error) {

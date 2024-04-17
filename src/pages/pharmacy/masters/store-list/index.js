@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStoreList, addStore, updateStore } from 'src/lib/api/pharmacy/getStoreList'
+import { getStoreList, addStore, updateStore, checkCentralPharmacy } from 'src/lib/api/pharmacy/getStoreList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -258,32 +258,44 @@ const ListOfStores = () => {
     <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
   )
 
+  const checkPharmacy = async () => {
+    try {
+      var response = await checkCentralPharmacy()
+
+      return response?.success
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const handleSubmitData = async payload => {
     console.log('payload', payload)
+
     try {
       setSubmitLoader(true)
+
       var response
       if (editParams?.id !== null) {
         response = await updateStore(editParams?.id, payload)
       } else {
-        payload.type = parseInt(total) > 0 ? 'local' : 'central'
-        response = await addStore(payload)
+        var pharmacyCheck = await checkPharmacy()
+
+        if (typeof pharmacyCheck === 'boolean') {
+          payload.type = pharmacyCheck ? 'local' : 'central'
+          response = await addStore(payload)
+        } else {
+          throw "Sorry.. Can't add pharmacy right now"
+        }
       }
 
       if (response?.success) {
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
         Router.reload()
-
-        // await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-
-        // console.log('test')
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response?.message)
         } else {
@@ -294,8 +306,6 @@ const ListOfStores = () => {
       console.log(e)
       setSubmitLoader(false)
       toast.error(JSON.stringify(e))
-
-      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 

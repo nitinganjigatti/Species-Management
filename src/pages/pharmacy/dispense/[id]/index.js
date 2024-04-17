@@ -139,8 +139,8 @@ const IndividualDispense = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'local' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+      {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.dispense_medicine ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Grid container gap={3} justifyContent={'space-between'} alignItems={'stretch'}>
             <Grid item xs={12} md={6.4}>

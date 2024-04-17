@@ -83,6 +83,9 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const { id, request_number, currentPageStatus, currentTotal, currentPage, currentLimit } = router.query
+
   const { id, request_number } = router.query
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -92,6 +95,7 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
+      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -468,6 +472,7 @@ const IndividualRequest = () => {
                 setFulfillMedicine({
                   ...params.row
                 })
+
                 // console.log('in fulfill button', params.row)
                 showDialog()
               }}
@@ -637,7 +642,9 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -739,7 +746,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'person_shipping',
-      headerName: 'Person Shipping',
+      headerName: 'Driver Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
@@ -823,7 +830,7 @@ const IndividualRequest = () => {
   //     flex: 0.2,
   //     Width: 40,
   //     field: 'person_shipping',
-  //     headerName: 'Person shipping',
+  //     headerName: 'Driver Name',
   //     renderCell: (params, rowId) => (
   //       <div>
   //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -1038,7 +1045,18 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/request/request-list/')
+                        Router.push({
+                          pathname: '/pharmacy/request/request-list/'
+
+                          // query: {
+                          //   currentPageStatus: currentPageStatus,
+                          //   currentTotal: currentTotal,
+                          //   currentPage: currentPage,
+                          //   currentLimit: currentLimit
+                          // }
+                        })
+
+                        // Router.push('/pharmacy/request/request-list/')
                       }}
                       icon='ep:back'
                     />
@@ -1062,7 +1080,6 @@ const IndividualRequest = () => {
                     )
                   }
                 />
-
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>

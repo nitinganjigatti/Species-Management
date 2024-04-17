@@ -224,7 +224,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
 
           // setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
         } else {
-          toast.error(response.data)
+          toast.error(response.message)
 
           // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
         }

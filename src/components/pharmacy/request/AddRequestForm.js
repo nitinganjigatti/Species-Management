@@ -201,7 +201,7 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
-    console.log('validate', values.request_item_qty)
+    // console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -382,11 +382,11 @@ const AddRequestForm = () => {
     try {
       //params: { q: 'central', column: 'type' }
       const response = await getStoreList({ params: { q: 'central', column: 'type' } })
-      console.log('stores', response?.data?.list_items[0])
       if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
-        if (response?.data?.list_items?.length === 1) {
+
+        if (id === undefined) {
           setEditParams({
             ...editParams,
             from_store_id: response?.data?.list_items[0].id,
@@ -444,28 +444,25 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
+    // console.log('result', result)
 
-    if (result.success === true && result.data !== '') {
-      console.log('getRequestItemsListById', result.data)
-
-      const lineItems = result.data.request_item_details.map(el => {
+    if (result?.success === true && result?.data?.request_item_details?.length > 0) {
+      const lineItems = result?.data?.request_item_details.map(el => {
         return {
-          request_item_medicine_id: el.stock_item_id,
-          medicine_name: el.stock_name,
-          request_item_qty: el.qty,
-          request_item_leaf_id: el.stock_item_id,
-          priority_item: el.priority,
-          control_substance: el.control_substance === '0' ? false : true,
-          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-          prescription_required: el.prescription_required === '0' ? false : true,
-          prescription_required_file: el.prescription_required_file !== '' ? el.prescription_required_file : '',
-
-          id: el.id,
-          request_item_detail_id: el.id,
-          dispatch_item_id: el.dispatch_item_id
+          request_item_medicine_id: el?.stock_item_id,
+          medicine_name: el?.stock_name,
+          request_item_qty: el?.qty,
+          request_item_leaf_id: el?.stock_item_id,
+          priority_item: el?.priority,
+          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
+          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
+          id: el?.id,
+          request_item_detail_id: el?.id,
+          dispatch_item_id: el?.dispatch_item_id
         }
       })
-      console.log('lineItems', lineItems)
 
       setEditParams({
         ...editParams,
@@ -526,10 +523,9 @@ const AddRequestForm = () => {
   }
 
   useEffect(() => {
-    if (id != undefined && action === 'edit') {
+    if (id !== undefined && action === 'edit') {
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
 
   // ****** edit section //////
@@ -597,19 +593,19 @@ const AddRequestForm = () => {
   // }
 
   const cancelRequest = async id => {
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelRequestItems(id)
-        console.log('cancelRequest result', result)
+        // console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
         } else {
-          toast.error(result.data)
+          closeCancelDialog()
+          toast.error(result?.data?.data)
         }
       } catch (error) {
-        toast.error(error.data)
+        toast.error(error?.data)
         console.log('error', error)
       }
     }
@@ -774,14 +770,29 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.control_substance_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            control_substance_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.control_substance_file && (
+                    {itemErrors?.control_substance_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.control_substance_file}
                       </FormHelperText>
                     )}
                   </FormControl>
@@ -852,14 +863,29 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.prescription_required_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            prescription_required_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.prescription_required_file && (
+                    {itemErrors?.prescription_required_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.prescription_required_file}
                       </FormHelperText>
                     )}
                   </FormControl>
@@ -886,7 +912,7 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -894,7 +920,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 ) : (
                   <>
@@ -909,7 +935,7 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -917,7 +943,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>
@@ -1115,7 +1141,6 @@ const AddRequestForm = () => {
                       <TableCell>
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
                           {el.medicine_name}
-                          {console.log('el', el)}
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -1214,7 +1239,7 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-          {id ? (
+          {id && editParams?.request_item_details?.length > 0 ? (
             <>
               <RequestCancelButton
                 title='Cancel Request'
@@ -1239,8 +1264,14 @@ const AddRequestForm = () => {
           </LoadingButton>
           {id ? null : (
             <Button
+              disabled={editParams.request_item_details.length > 0 ? false : true}
               onClick={() => {
-                setEditParams(editParamsInitialState)
+                setEditParams({
+                  ...editParams,
+                  total_qty: '',
+                  request_item_details: []
+                })
+                // setEditParams(editParamsInitialState)
               }}
               size='large'
               variant='outlined'
