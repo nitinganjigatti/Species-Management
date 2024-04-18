@@ -90,6 +90,7 @@ import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
+import { getDietList } from 'src/lib/api/diet/dietList'
 
 // Styled TabList component
 
@@ -126,8 +127,6 @@ const Diet = () => {
     setDialog(false)
   }
 
-  console.log('Total Data>>>>>', Dietdata)
-
   const fetchTableData = useCallback(
     async (sort, q, sortColumn, status) => {
       try {
@@ -143,14 +142,17 @@ const Diet = () => {
           //status
         }
 
-        await getIngredientList({ params: params }).then(res => {
+        await getDietList({ params: params }).then(res => {
           console.log('response', res)
+
+          // setDietData(res?.data?.result)
 
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
+
           setRows(loadServerRows(paginationModel.page, listWithId))
 
           // setstatusCheckval(res?.data?.result.map(all => all.active))
@@ -168,7 +170,7 @@ const Diet = () => {
   }, [fetchTableData, status])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = Dietdata?.map((row, index) => ({
+  const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -264,10 +266,10 @@ const Diet = () => {
       flex: 0.05,
       Width: 40,
       field: 'uid',
-      headerName: 'No ',
+      headerName: 'SL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -282,15 +284,15 @@ const Diet = () => {
           <Avatar
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
-            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+            src={params.row.diet_image ? params.row.diet_image : null}
           >
-            {params.row.ingredient_image ? null : (
+            {/* {params.row.ingredient_image ? null : (
               <img
                 src='https://www.shutterstock.com/image-photo/ripe-mango-isolated-on-white-260nw-1297537549.jpg'
                 width={30}
                 height={30}
               />
-            )}
+            )} */}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -311,7 +313,7 @@ const Diet = () => {
       headerName: 'Meals',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.meals ? params.row.meals : '-'}
+          {params.row.num_meals ? params.row.num_meals : '-'}
         </Typography>
       )
     },
@@ -322,7 +324,7 @@ const Diet = () => {
       headerName: 'Recipes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.recipies ? params.row.recipies : '-'}
+          {params.row.recipe ? params.row.recipe : '-'}
         </Typography>
       )
     },
