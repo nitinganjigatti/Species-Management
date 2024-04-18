@@ -186,7 +186,6 @@ function AddDispense() {
   const submitForm = async data => {
     const payload = {
       user_id: getValues('user_id.value'),
-      animal_count: 10,
       animal_id: animals_s.map(i => i?.animal_id),
       dispense_item_details: productArray
     }
