@@ -127,7 +127,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     return null
   }
 
-  const handleAddIngerdientChoice = () => {
+  const handleAddIngerdientChoice = val => {
     setOpenIngredientchoice(true)
   }
 
@@ -858,7 +858,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={handleAddIngerdientChoice}
+                  onClick={() => handleAddIngerdientChoice('add')}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT WITH CHOICE
