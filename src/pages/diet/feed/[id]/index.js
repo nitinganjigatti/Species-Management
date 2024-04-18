@@ -1,19 +1,67 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Avatar, Button, Card, CardContent, Typography, CircularProgress } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Divider,
+  Card,
+  CardContent,
+  Typography,
+  CircularProgress,
+  Breadcrumbs,
+  Link
+} from '@mui/material'
+import toast from 'react-hot-toast'
+import IconButton from '@mui/material/IconButton'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
-import { getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
+import { feedDelete, feedStatusChange, getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
 import format from 'date-fns/format'
 import Router, { useRouter } from 'next/router'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import moment from 'moment'
+import Drawer from '@mui/material/Drawer'
+import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
+import ActivityLogs from 'src/@core/components/activityLogs'
+
+// Styled TabList component
+const TabList = styled(MuiTabList)(({ theme }) => ({
+  '& .MuiTabs-indicator': {
+    display: 'none'
+  },
+  '& .Mui-selected': {
+    backgroundColor: theme.palette.primary.main,
+    color: '#fff!important',
+    fontWeight: 500
+  },
+  '& .MuiTab-root': {
+    minHeight: 38,
+    minWidth: 170,
+    borderRadius: 8,
+    padding: 14,
+    color: '#7A8684',
+    fontWeight: 500
+  },
+  '& .MuiTabs-flexContainer': {
+    borderRadius: 8,
+    width: '342px',
+    backgroundColor: '#E8F4F2'
+  }
+}))
 
 const FeedDetails = () => {
   const router = useRouter()
   const { id } = router.query
+  const [value, setValue] = useState('1')
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [loader, setLoader] = useState(true)
 
@@ -21,9 +69,152 @@ const FeedDetails = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('ASC')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
+
+  const [deleteDialogBox, setDeleteDialogBox] = useState(false)
+  const [statusDialog, setstatusDialog] = useState(false)
+
+  const [isActive, setIsActive] = useState(FeedDetailsValue?.active || '0')
+
+  const onClose = () => {
+    setDeleteDialogBox(false)
+  }
+
+  const handleClosenew = () => {
+    setstatusDialog(false)
+  }
+
+  const confirmStatusAction = async () => {
+    try {
+      const response = await feedStatusChange({ status: 0 }, FeedDetailsValue?.id)
+      if (response.success === true) {
+        setstatusDialog(false)
+        setIsActive(isActive == '1' ? '0' : '1')
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {response.message}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {}
+  }
+  const confirmDeleteAction = async () => {
+    try {
+      const response = await feedDelete(FeedDetailsValue?.id)
+      if (response.success === true) {
+        setDeleteDialogBox(false)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {response.message}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        setDeleteDialogBox(false)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:error' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Error!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {response.message}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      }
+    } catch (error) {
+      console.log('dfghj', error)
+    }
+  }
+
+  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
+  const [activitySearchValue, setActivitySearchValue] = useState('')
+
+  const handleSidebarClose = () => {
+    setActivitySidebarOpen(false)
+  }
+
+  const [expanded, setExpanded] = useState(false)
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -114,13 +305,6 @@ const FeedDetails = () => {
     }
   }, [id])
 
-  ///////////////////////////////////////////////////////////////////
-
-  // const onCellClick = params => {
-  //   // Router.push({ pathname: `/diet/feed/${id}`, query: { id: params?.id } })
-  //   Router.push({ pathname: `/diet/feed/${params?.id}` })
-  // }
-
   const getIngredientsonFeedList = useCallback(
     async (q, sortColumning) => {
       if (id) {
@@ -197,76 +381,255 @@ const FeedDetails = () => {
         </CardContent>
       ) : (
         <Grid container spacing={6}>
-          <FeedOverview FeedDetailsValue={FeedDetailsValue} />
-          <Grid item xs={8}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontWeight: 600 }} variant='h6'>
-                    Description
-                  </Typography>
-                </Box>
-                <div style={{ fontSize: '12px' }}>{convertToTitleCase(FeedDetailsValue.desc)}</div>
-              </CardContent>
-            </Card>
-            <Card sx={{ mt: 6 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontWeight: 600 }} variant='h6'>
-                    Ingredients
-                  </Typography>
-                  <Button
-                    onClick={() => Router.push('/diet/ingredient/add-ingredient')}
-                    sx={{ px: 7, py: 5, ml: 34 }}
-                    size='small'
-                    variant='contained'
-                  >
-                    <Icon icon='mdi:add' fontSize={20} />
-                    &nbsp; Add ingredient
-                  </Button>
-                </Box>
-              </CardContent>
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+          <Grid item xs={12}>
+            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+              <Typography color='inherit'>Diet</Typography>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
+                Feed
+              </Typography>
+              <Typography color='text.primary'>Feed Details</Typography>
+            </Breadcrumbs>
+            <>
+              <Card>
+                <CardContent sx={{ my: 2 }}>
+                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontWeight: 600 }} variant='h6'>
+                      {FeedDetailsValue?.feed_type_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                      <Icon
+                        icon='bx:pencil'
+                        style={{ cursor: 'pointer' }}
+                        onClick={() =>
+                          Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
+                        }
+                      />
+                      <Icon
+                        icon='material-symbols:delete-outline'
+                        style={{ cursor: 'pointer', marginLeft: '15px' }}
+                        onClick={() => {
+                          if (Number(FeedDetailsValue?.ingredients) > 0) {
+                            setstatusDialog(true)
+                          } else {
+                            setDeleteDialogBox(true)
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                  <Grid container spacing={6} sx={{ mt: 3 }}>
+                    <FeedOverview isActive={isActive} setIsActive={setIsActive} FeedDetailsValue={FeedDetailsValue} />
+                    <Grid item xs={8}>
+                      <TabContext value={value}>
+                        <TabList onChange={handleChange} aria-label='customized tabs example'>
+                          <Tab
+                            style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                            value='1'
+                            label='OVERVIEW'
+                          />
+                          <Tab
+                            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                            value='2'
+                            label='USED INGREDIENTS'
+                          />
+                        </TabList>
+                        <TabPanel sx={{ paddingLeft: 0 }} value='1'>
+                          {FeedDetailsValue.desc ? (
+                            <div>
+                              <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+                              <Typography
+                                variant='body2'
+                                sx={{
+                                  width: '100%',
+                                  color: '#7A8684',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: expanded ? 'unset' : 3,
+                                  WebkitBoxOrient: 'vertical',
+                                  transition: 'max-height 2s ease-in-out',
+                                  maxHeight: expanded ? '1000px' : '60px'
+                                }}
+                              >
+                                {convertToTitleCase(FeedDetailsValue?.desc)}
+                              </Typography>
+                              {FeedDetailsValue?.desc?.length > 180 ? (
+                                <Typography
+                                  onClick={toggleExpanded}
+                                  sx={{
+                                    mt: 1,
+                                    fontWeight: '600',
+                                    fontSize: '13px',
+                                    textDecoration: 'underline',
+                                    color: '#000',
+                                    cursor: 'pointer',
+                                    float: 'right',
+                                    paddingBottom: '30px'
+                                  }}
+                                >
+                                  {expanded ? 'View less' : 'View more'}
+                                </Typography>
+                              ) : (
+                                ''
+                              )}
+                            </div>
+                          ) : (
+                            ''
+                          )}
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                // onCellClick={onCellClick}
-              />
-            </Card>
+                          <div>
+                            <Divider sx={{ mt: 4, borderColor: '#C3CEC7' }} />
+                            <Box className='demo-space-x' sx={{ display: 'flex' }}>
+                              <Avatar
+                                src={
+                                  FeedDetailsValue?.created_by_user
+                                    ? FeedDetailsValue.created_by_user?.profile_pic
+                                    : undefined
+                                }
+                                alt={
+                                  FeedDetailsValue?.created_by_user
+                                    ? FeedDetailsValue?.created_by_user?.user_name
+                                    : 'User'
+                                }
+                              >
+                                {!FeedDetailsValue.created_by_user ? <Icon icon='mdi:user' /> : null}
+                              </Avatar>
+                              <Typography sx={{ color: '#000000' }}>
+                                {FeedDetailsValue?.created_by_user ? FeedDetailsValue?.created_by_user?.user_name : '-'}{' '}
+                                <br />
+                                <div style={{ color: '#44544A', fontSize: 12, margin: 0 }}>
+                                  {'Created on' + ' ' + moment(FeedDetailsValue?.created_at).format('DD/MM/YYYY')}
+                                </div>
+                              </Typography>
+
+                              <Box
+                                onClick={() => setActivitySidebarOpen(true)}
+                                sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
+                              >
+                                <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+                                <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
+                              </Box>
+                            </Box>
+                          </div>
+                          {/* <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
+                            <Drawer
+                              anchor='right'
+                              open={activitySidebarOpen}
+                              ModalProps={{ keepMounted: true }}
+                              sx={{
+                                '& .MuiDrawer-paper': { width: ['100%', 520] },
+                                height: '100vh',
+                                '& .css-e1dg5m-MuiCardContent-root': {
+                                  pt: 0
+                                }
+                              }}
+                            >
+                              <CardContent> */}
+                          <ActivityLogs
+                            activitySidebarOpen={activitySidebarOpen}
+                            activity_type='feedType'
+                            detailsValue={FeedDetailsValue}
+                            searchValue={activitySearchValue}
+                            setSearchValue={setActivitySearchValue}
+                            handleSidebarClose={handleSidebarClose}
+                          />
+                          {/* </CardContent>
+                            </Drawer>
+                          </Box> */}
+                        </TabPanel>
+                        <TabPanel sx={{ p: 0, pt: 2 }} value='2'>
+                          <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Ingredients</Typography>
+                            <Button
+                              onClick={() => Router.push('/diet/ingredient/add-ingredient')}
+                              sx={{ px: 7, py: 5, ml: 34 }}
+                              size='small'
+                              variant='contained'
+                            >
+                              <Icon icon='mdi:add' fontSize={20} />
+                              &nbsp; Add ingredient
+                            </Button>
+                          </Box>
+                          <DataGrid
+                            sx={{
+                              '.MuiDataGrid-cell:focus': {
+                                outline: 'none'
+                              },
+                              '& .MuiDataGrid-row:hover': {
+                                cursor: 'pointer'
+                              },
+                              '& .css-1tg25fo': {
+                                paddingRight: 0
+                              }
+                            }}
+                            columnVisibilityModel={{
+                              sl_no: false
+                            }}
+                            hideFooterSelectedRowCount
+                            disableColumnSelector={true}
+                            autoHeight
+                            pagination
+                            rows={indexedRows === undefined ? [] : indexedRows}
+                            rowCount={total}
+                            columns={columns}
+                            sortingMode='server'
+                            paginationMode='server'
+                            pageSizeOptions={[5, 10, 25, 50]}
+                            paginationModel={paginationModel}
+                            onSortModelChange={handleSortModel}
+                            slots={{
+                              toolbar: ServerSideToolbarWithFilter,
+                              searchField: {
+                                '& div .css-1tg25fo': {
+                                  backgroundColor: 'lightblue',
+                                  paddingRight: 9
+                                }
+                              }
+                            }}
+                            onPaginationModelChange={setPaginationModel}
+                            loading={loading}
+                            slotProps={{
+                              baseButton: {
+                                variant: 'outlined'
+                              },
+                              toolbar: {
+                                value: searchValue,
+                                clearSearch: () => handleSearch(''),
+                                onChange: event => handleSearch(event.target.value)
+                              }
+                            }}
+                          />
+                        </TabPanel>
+                      </TabContext>
+                    </Grid>
+                  </Grid>
+
+                  <ModuleDeleteDialogConfirmation
+                    handleClosenew={handleClosenew}
+                    action={confirmStatusAction}
+                    open={statusDialog}
+                    type='feed'
+                    active={isActive == '1'}
+                    message={
+                      <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                        Deletion isn't possible!
+                      </span>
+                    }
+                  />
+
+                  <ConfirmationDialog
+                    icon={'mdi:delete'}
+                    iconColor={'#ff3838'}
+                    title={'Are you sure you want to delete this Feed?'}
+                    // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+                    dialogBoxStatus={deleteDialogBox}
+                    onClose={onClose}
+                    ConfirmationText={'Delete'}
+                    confirmAction={confirmDeleteAction}
+                  />
+                </CardContent>
+              </Card>
+            </>
           </Grid>
         </Grid>
       )}

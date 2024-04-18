@@ -75,6 +75,22 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     }
   }, [formData, reset])
 
+  const ScrollToFieldError = ({ errors }) => {
+    console.log(errors, 'errors')
+    useEffect(() => {
+      if (!errors) return
+      console.log(Object.keys(errors)[0], 'check')
+      const firstErrorField = Object.keys(errors)[0]
+      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, [errors])
+
+    return null
+  }
+
   const onSubmit = async data => {
     window.scrollTo(0, 0)
     // Clear any existing errors
@@ -114,6 +130,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        <ScrollToFieldError errors={errors} />
         <Grid container spacing={5} sx={{ px: 5 }}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>

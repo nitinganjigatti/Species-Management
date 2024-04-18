@@ -304,6 +304,7 @@ const StepAddIngredients = ({
   }
 
   const handlecheck = async (ingredientId, index, section) => {
+    console.log(ingredientId, 'ingredientId')
     try {
       const response = await getPreparationTypeList(ingredientId)
       if (response.success === true) {
@@ -346,6 +347,29 @@ const StepAddIngredients = ({
       }
     })
   }, [formData])
+
+  const ScrollToFieldError = ({ errors, index }) => {
+    // if (!errors) return
+    const firstErrorField = Object.keys(errors)[0]
+    console.log('First Error Field:', firstErrorField)
+    console.log(errors)
+    if (firstErrorField === 'by_percentage') {
+      const errorElement = document.getElementById('test' + index)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        // errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        window.scroll(0, 250)
+      }
+    } else if (firstErrorField === 'by_quantity') {
+      const errorElement = document.getElementById('testnew' + index)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        //errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        window.scrollTo(0, 700)
+      }
+    }
+    return null
+  }
 
   const handleEquilizerClick = () => {
     const byPercentageValues = getValues('by_percentage')
@@ -401,7 +425,8 @@ const StepAddIngredients = ({
           <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsIngredients.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id}>
+                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
+                  <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={3.6}>
                     {console.log(IngredientTypeList, 'IngredientTypeList')}
                     <FormControl fullWidth>
@@ -598,7 +623,8 @@ const StepAddIngredients = ({
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsByQuantity.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id}>
+                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
+                  <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={2.9}>
                     <FormControl fullWidth>
                       <Controller

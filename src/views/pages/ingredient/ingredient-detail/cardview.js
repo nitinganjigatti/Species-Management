@@ -17,6 +17,7 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import ToasterforSuccess from 'src/components/SuccessToaster'
 
 const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
   const router = useRouter()
@@ -42,37 +43,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + IngredientsDetailsval.id} has been successfully{' '}
-                    {isActive === 1 ? 'activated' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
       } else {
         alert('something went wrong')
       }
@@ -212,6 +183,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
         action={confirmDeleteAction}
         open={deleteDialogBox}
         type='ingredient'
+        active={isActive}
         message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Ingredient?</span>}
       />
     </Grid>

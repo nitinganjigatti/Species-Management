@@ -8,8 +8,7 @@ import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
 // ** Step Components
-import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
-import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
+import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import IconButton from '@mui/material/IconButton'
@@ -21,7 +20,7 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import AddToasterforSuccess from 'src/components/AddSuccessToaster'
+import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 
 const steps = [
   {
@@ -29,16 +28,12 @@ const steps = [
     subtitle: 'Enter details'
   },
   {
-    title: 'Add Ingredients',
+    title: 'Add Quantity',
     subtitle: 'Enter details'
-  },
-  {
-    title: 'Preview',
-    subtitle: 'Preview & Submit'
   }
 ]
 
-const AddRecipe = () => {
+const AddDiet = () => {
   const router = useRouter()
   const { id } = router.query
   const [activeStep, setActiveStep] = useState(0)
@@ -265,7 +260,36 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-        return toast(t => <AddToasterforSuccess type='Recipe' />)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Recipe added successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
       }
     } else {
       const numericFormData = {
@@ -315,7 +339,36 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-        return toast(t => <AddToasterforSuccess type='Recipe' id={id} />)
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Recipe updated successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
       }
     }
   }
@@ -334,7 +387,7 @@ const AddRecipe = () => {
         )
       case 1:
         return (
-          <StepAddIngredients
+          <StepPreviewDiet
             handleNext={handleNext}
             handlePrev={handlePrev}
             handleIngredientChange={handleIngredientChange}
@@ -346,8 +399,8 @@ const AddRecipe = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
-      case 2:
-        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+      //   case 2:
+      //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }
@@ -361,32 +414,24 @@ const AddRecipe = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Diet</Typography>
-        <Link underline='hover' color='inherit' href='/diet/recipe/'>
-          Recipe
+        <Link underline='hover' color='inherit' href='/diet/diet/'>
+          Diet
         </Link>
         {console.log(id, 'id')}
-        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new recipe'}</Typography>
+        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new diet'}</Typography>
       </Breadcrumbs>
       {console.log(formData, 'ppp')}
-      <Card>
+      <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
-              <Typography sx={{ mb: 1 }} variant='h6'>
-                {id ? 'Edit Recipe' : 'Add New Recipe'}
-              </Typography>
-              <Typography sx={{ mb: 1, fontSize: 14 }}>
-                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
-                proportions for this <br /> ingredient prior to processing.
-              </Typography>
+              <Typography variant='h6'>{id ? 'Edit Recipe' : 'Add New Diet'}</Typography>
             </div>
           </div>
         </CardContent>
 
-        <Divider sx={{ mx: '20px !important', pb: 1 }} />
-
-        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}>
-          <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
+        <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
+          <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
@@ -404,10 +449,10 @@ const AddRecipe = () => {
             })}
           </Stepper>
         </StepperWrapper>
-        {renderContent()}
       </Card>
+      {renderContent()}
     </>
   )
 }
 
-export default AddRecipe
+export default AddDiet

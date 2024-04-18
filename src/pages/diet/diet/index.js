@@ -17,6 +17,7 @@ import moment from 'moment'
 import { Avatar, Button, Box, Tooltip, Switch, Divider, Select, MenuItem } from '@mui/material'
 import toast from 'react-hot-toast'
 import NotesIcon from '@mui/icons-material/Notes'
+
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
@@ -108,6 +109,7 @@ const Diet = () => {
 
         await getRecipeList({ params: params }).then(res => {
           console.log('response 1111', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
@@ -163,7 +165,7 @@ const Diet = () => {
 
   const headerAction = (
     <div>
-      <Button size='small' variant='contained'>
+      <Button size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
@@ -176,9 +178,12 @@ const Diet = () => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
       const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
+
       console.log(response, 'response')
+
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -311,6 +316,7 @@ const Diet = () => {
             }
             arrow
             placement='right'
+
             // style={{ background: '#1F515B' }}
           >
             <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
@@ -384,7 +390,7 @@ const Diet = () => {
       const data = params.row
 
       Router.push({
-        pathname: `/diet/ingredient/${data?.id}`
+        pathname: `/diet/diet/${data?.id}`
       })
     } else {
       return
