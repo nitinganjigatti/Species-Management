@@ -35,7 +35,6 @@ import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationChec
 import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
-import { getRecipeList } from 'src/lib/api/diet/recipe'
 import DescriptionIcon from '@mui/icons-material/Description'
 
 // Styled TabList component
@@ -67,7 +66,6 @@ const Diet = () => {
   }
 
   const handleChange = (event, newValue) => {
-    debugger
     setTotal(0)
     setStatus(newValue)
   }
@@ -91,7 +89,6 @@ const Diet = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, searchColumns, sortColumn, status) => {
-      debugger
       try {
         setLoading(true)
 
@@ -109,7 +106,7 @@ const Diet = () => {
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
 
-          // setDietData(res?.data?.result)
+          setDietData(res?.data?.result)
 
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
@@ -225,7 +222,6 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
-    debugger
     setSearchValue(value)
     const newValue = [...Dietdata]
 
@@ -237,7 +233,7 @@ const Diet = () => {
         item.diet_name.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
       )
       setFilterStatusData(filterSearchList)
-      searchTableData(sort, value, sortColumning, searchColumns, status)
+      searchTableData(sort, value, searchColumns, status)
     }
   }
 
@@ -250,6 +246,7 @@ const Diet = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
+          {console.log(params.row)}
         </Typography>
       )
     },
@@ -257,7 +254,7 @@ const Diet = () => {
       flex: 0.5,
       minWidth: 30,
       field: 'recipe_name',
-      headerName: 'RECIPE',
+      headerName: 'Diet',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -265,18 +262,10 @@ const Diet = () => {
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
             src={params.row.diet_image ? params.row.diet_image : null}
-          >
-            {/* {params.row.ingredient_image ? null : (
-              <img
-                src='https://www.shutterstock.com/image-photo/ripe-mango-isolated-on-white-260nw-1297537549.jpg'
-                width={30}
-                height={30}
-              />
-            )} */}
-          </Avatar>
+          ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
+              {params.row.diet_name ? params.row.diet_name : '-'}
             </Typography>
           </Box>
         </Box>
@@ -285,8 +274,8 @@ const Diet = () => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'id',
-      headerName: 'RECIPE ID',
+      field: 'no_meals',
+      headerName: 'No meals',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.num_meals ? params.row.num_meals : '-'}
@@ -296,41 +285,42 @@ const Diet = () => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'total_kcal',
-      headerName: 'KCAL',
+      field: 'no_recipe',
+      headerName: 'No Recipe',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.recipe ? params.row.recipe : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'ingredient_name',
-      headerName: 'NO OF INGREDIENTS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <Tooltip
-            title={
-              params.row.ingredients && params.row.ingredients.length > 0
-                ? params.row.ingredients.map(preparation => (
-                    <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
-                      {preparation.ingredient_name}
-                    </div>
-                  ))
-                : '-'
-            }
-            arrow
-            placement='right'
 
-            // style={{ background: '#1F515B' }}
-          >
-            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
-          </Tooltip>
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'ingredient_name',
+    //   headerName: 'NO OF INGREDIENTS',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       <Tooltip
+    //         title={
+    //           params.row.ingredients && params.row.ingredients.length > 0
+    //             ? params.row.ingredients.map(preparation => (
+    //                 <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
+    //                   {preparation.ingredient_name}
+    //                 </div>
+    //               ))
+    //             : '-'
+    //         }
+    //         arrow
+    //         placement='right'
+
+    //         // style={{ background: '#1F515B' }}
+    //       >
+    //         <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
+    //       </Tooltip>
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.6,
       minWidth: 60,
@@ -350,10 +340,10 @@ const Diet = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user?.profile_pic ? (
+            {params.row.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
+                src={params.row.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -362,7 +352,7 @@ const Diet = () => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
@@ -370,23 +360,24 @@ const Diet = () => {
           </Box>
         </Box>
       )
-    },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'switch',
-      headerName: '',
-      disableColumnMenu: true,
-      renderCell: params => (
-        <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <Switch
-            checked={params.row.active === '0' ? false : true}
-            onChange={event => handleSwitchChange(event, params.row)}
-            fontSize={2}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'switch',
+    //   headerName: '',
+    //   disableColumnMenu: true,
+    //   renderCell: params => (
+    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
+    //       <Switch
+    //         checked={params.row.active === '0' ? false : true}
+    //         onChange={event => handleSwitchChange(event, params.row)}
+    //         fontSize={2}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const onCellClick = params => {

@@ -79,8 +79,8 @@ const IngredientDetail = () => {
   const getIngredientsDetailval = async id => {
     try {
       const response = await getIngredientDetail(id)
-      if (response.data.success === true) {
-        setIngredientsDetailsval(response.data.data)
+      if (response.success === true) {
+        setIngredientsDetailsval(response.data)
         setLoader(false)
       } else {
         setLoader(false)
@@ -105,6 +105,7 @@ const IngredientDetail = () => {
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

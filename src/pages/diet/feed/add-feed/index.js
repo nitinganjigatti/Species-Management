@@ -119,7 +119,7 @@ const AddFeedType = () => {
       feed_type_image: getValues('feedImg')
     }
 
-    // console.log('submit', payload)
+    console.log('submit', payload)
     if (id) {
       try {
         await updateFeedType({ ...payload }, id).then(res => {

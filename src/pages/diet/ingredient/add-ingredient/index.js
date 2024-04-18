@@ -52,6 +52,7 @@ const AddIngredient = () => {
   const [uomList, setUom] = useState([])
   const [FeedTypeList, setFeedTypeList] = useState([])
   const [defaultUom, setDefaultUom] = useState(null)
+  console.log('defaultUom', defaultUom)
   const [defaultFeedType, setDefaultFeedType] = useState(null)
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
@@ -121,9 +122,12 @@ const AddIngredient = () => {
           setValue('waterPercentage', res?.data?.water_percentage)
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
           setValue('nutritionalValuesPer', res?.data?.standard_unit)
+          console.log('res?.data?.standard_unit', res?.data?.standard_unit)
+          console.log('res?.data?.uom', res?.data?.uom)
+          console.log('res?', res)
           setDefaultUom({
             id: res?.data?.uom_id,
-            unit_name: res?.data?.uom
+            name: res?.data?.uom
           })
           setValue('uom', res?.data?.uom_id)
           setValue('calorie', res?.data?.calorie)
