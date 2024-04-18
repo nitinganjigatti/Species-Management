@@ -366,19 +366,19 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'min_qty',
-      headerName: 'Reorder Level',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.min_qty}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'min_qty',
+    //   headerName: 'Reorder Level',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.min_qty}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,

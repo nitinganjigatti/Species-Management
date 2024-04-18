@@ -143,6 +143,7 @@ const AddRequestForm = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setItemErrors({})
   }
 
   const showDialog = () => {

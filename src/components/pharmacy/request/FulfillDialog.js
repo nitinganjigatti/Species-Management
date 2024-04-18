@@ -481,8 +481,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // var tempDefaultSalts = defaultSalts
             // tempDefaultSalts[index] = undefined
             // setDefaultSalts(tempDefaultSalts)
-            remove(index)
-            insert(index, {})
+
+            if (fields?.length > 1) {
+              remove(index)
+            } else {
+              remove(index)
+              insert(index, {})
+            }
           }}
           icon='material-symbols-light:close'
         />
