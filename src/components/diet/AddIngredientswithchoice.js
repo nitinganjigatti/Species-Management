@@ -1,7 +1,4 @@
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable newline-before-return */
-/* eslint-disable lines-around-comment */
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Drawer from '@mui/material/Drawer'
 import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Card, CardContent } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -15,7 +12,7 @@ import { margin } from '@mui/system'
 import toast from 'react-hot-toast'
 
 const AddIngredientswithChoice = props => {
-  const { open, handleSidebarClose } = props
+  const { open, handleSidebarClose, setSelectedCard } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
   const [count, setCount] = useState(1)
@@ -23,7 +20,6 @@ const AddIngredientswithChoice = props => {
   const [remarks, setRemarks] = useState('')
 
   const [showBottom, setShowBottom] = useState([])
-
   const [cutSize, seCutSize] = useState('')
   const [size, setSize] = useState('')
   const [visibility, setVisibility] = useState([])
@@ -138,7 +134,7 @@ const AddIngredientswithChoice = props => {
   }
 
   // card selection
-  const [selectedCard, setSelectedCard] = useState([])
+  const [selectedCard, setSelectedCardState] = useState([])
   console.log(selectedCard, 'selectedCard')
   const handelCardSelection = item => {
     const feedType = selectFeed[item.id] || ''
@@ -209,6 +205,7 @@ const AddIngredientswithChoice = props => {
     const boxValues = {
       id: item.id,
       name: item.name,
+      image: item.image,
       feedType: feedType,
       selectedDays: selectedDays,
       remarks: remarksData,
@@ -221,14 +218,19 @@ const AddIngredientswithChoice = props => {
     const index = selectedCard.findIndex(card => card.id === item.id)
     if (index !== -1) {
       // Remove the existing entry
-      setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
+      setSelectedCardState(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
       // Add new entry
-      setSelectedCard(prevValues => [...prevValues, boxValues])
+      setSelectedCardState(prevValues => [...prevValues, boxValues])
     }
   }
 
+  useEffect(() => {
+    setSelectedCard(selectedCard)
+  }, [selectedCard, setSelectedCard])
+
   const handleAllSelect = () => {
+    setSelectedCard([])
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

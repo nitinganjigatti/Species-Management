@@ -39,6 +39,7 @@ const AddDiet = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+  const [selectedCard, setSelectedCard] = useState([])
   const [formData, setFormData] = useState({
     recipe_name: '',
     portion_size: '',
@@ -70,6 +71,10 @@ const AddDiet = () => {
     ],
     desc: ''
   })
+
+  const handleSelectedCardChange = card => {
+    setSelectedCard(card)
+  }
 
   const getUnitsList = async () => {
     try {
@@ -383,6 +388,8 @@ const AddDiet = () => {
             //onChange={handleBasicDetailsChange}
             updateFormData={updateFormData}
             uomList={uomList}
+            setSelectedCard={handleSelectedCardChange}
+            selectedCard={selectedCard}
           />
         )
       case 1:
