@@ -62,7 +62,7 @@ const RequestList = () => {
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
   const [status, setStatus] = useState('pending')
-  const [filterByStoreId, setFilterByStoreId] = useState('')
+  const [filterByStoreId, setFilterByStoreId] = useState('all')
   const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [selectDays, setSelectDays] = useState('all')
@@ -125,7 +125,7 @@ const RequestList = () => {
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
             pending_days_end: endDate ? endDate : filterDates?.endDate,
-            search_store: filterByStoreId
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         } else {
           params = {
@@ -614,6 +614,7 @@ const RequestList = () => {
                         setFilterByStoreId(e.target.value)
                       }}
                     >
+                      <MenuItem value='all'>All</MenuItem>
                       {stores.length > 0
                         ? stores.map(store => {
                             return (
