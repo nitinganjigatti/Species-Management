@@ -1,67 +1,10 @@
-// import {
-//   Button,
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   Grid,
-//   IconButton,
-//   InputAdornment,
-//   TextField,
-//   Typography
-// } from '@mui/material'
-// import Icon from 'src/@core/components/icon'
-// import { Box } from '@mui/system'
-// import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-// import React, { useState } from 'react'
-// import { DataGrid } from '@mui/x-data-grid'
-
-// const Diet = () => {
-//   const [total, setTotal] = useState(0)
-//   const [sort, setSort] = useState('desc')
-//   const [rows, setRows] = useState([])
-//   const [searchValue, setSearchValue] = useState('')
-//   const [sortColumning, setsortColumning] = useState('ingredient_name')
-//   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-//   const [loading, setLoading] = useState(false)
-//   const [status, setStatus] = useState('all')
-//   const [statusCheckval, setstatusCheckval] = useState(false)
-//   const [dialog, setDialog] = useState(false)
-//   const [check, setCheck] = useState(false)
-
-//   return (
-//     <Grid>
-//       <Card>
-//         <CardContent>
-//           <Grid sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-//             <Typography sx={{ fontWeight: 600 }} variant='h6'>
-//               Diet
-//             </Typography>
-//             <Box>
-//               <Button size='small' variant='contained'>
-//                 <Icon icon='mdi:add' fontSize='20' />
-//                 &nbsp; Add New
-//               </Button>
-//             </Box>
-//           </Grid>
-//           <Grid sx={{ display: 'flex', justifyContent: 'space-between' }}>
-//             <Box></Box>
-//             <Box sx={{ mt: 3 }}>
-
-//             </Box>
-//           </Grid>
-//         </CardContent>
-//       </Card>
-//     </Grid>
-//   )
-// }
-// export default Diet
-
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
+import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
@@ -71,8 +14,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, FormControlLabel, Box, Switch, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Tooltip, Switch, Divider, Select, MenuItem } from '@mui/material'
 import toast from 'react-hot-toast'
+import NotesIcon from '@mui/icons-material/Notes'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -90,6 +34,8 @@ import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
+import { getRecipeList } from 'src/lib/api/diet/recipe'
+import DescriptionIcon from '@mui/icons-material/Description'
 
 // Styled TabList component
 
@@ -103,11 +49,13 @@ const Diet = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [Dietdata, setDietData] = useState(Data)
+  const [filterStatusData, setFilterStatusData] = useState(Dietdata)
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+  const [sortColumn, setSortColumn] = useState('created_at')
+  const [searchColumns, setSearchColumns] = useState('recipe_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState('')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -118,9 +66,23 @@ const Diet = () => {
   }
 
   const handleChange = (event, newValue) => {
+    debugger
     setTotal(0)
     setStatus(newValue)
   }
+
+  // const handleStatusChange = (event, newValue) => {
+  //   debugger
+  //   setStatus(newValue)
+
+  //   const newData = [...Dietdata]
+  //   if (newValue === '2') {
+  //     setFilterStatusData(newData)
+  //   } else {
+  //     const filterList = newData?.filter(item => item.active === newValue)
+  //     setFilterStatusData(filterList)
+  //   }
+  // }
 
   const onClose = () => {
     setDialog(false)
@@ -129,28 +91,31 @@ const Diet = () => {
   console.log('Total Data>>>>>', Dietdata)
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
+    async (sort, q, searchColumns, sortColumn, status) => {
+      debugger
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
+          searchColumns,
           sortColumn,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
 
-          //status
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          status
         }
 
-        await getIngredientList({ params: params }).then(res => {
-          console.log('response', res)
+        await getRecipeList({ params: params }).then(res => {
+          console.log('response 1111', res)
 
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
+
           setRows(loadServerRows(paginationModel.page, listWithId))
 
           // setstatusCheckval(res?.data?.result.map(all => all.active))
@@ -163,12 +128,15 @@ const Diet = () => {
     },
     [paginationModel]
   )
+  console.log('total <<<', total)
+
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
+    fetchTableData(sort, searchValue, sortColumn, searchColumns, status)
   }, [fetchTableData, status])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = Dietdata?.map((row, index) => ({
+  const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -176,17 +144,18 @@ const Diet = () => {
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
-      setsortColumning(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      setSortColumn(newModel[0].field)
+
+      fetchTableData(newModel[0].sort, searchValue, searchColumns, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, sortColumn, searchColumns, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, sortColumn, searchColumns, status)
       } catch (error) {
         console.error(error)
       }
@@ -255,8 +224,20 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
+    debugger
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+    const newValue = [...Dietdata]
+
+    // Check if the search value is empty
+    if (value.trim() === '') {
+      setFilterStatusData(newValue) // Set filterStatusData to original Dietdata
+    } else {
+      const filterSearchList = newValue?.filter(item =>
+        item.diet_name.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
+      )
+      setFilterStatusData(filterSearchList)
+      searchTableData(sort, value, sortColumning, searchColumns, status)
+    }
   }
 
   const columns = [
@@ -264,98 +245,92 @@ const Diet = () => {
       flex: 0.05,
       Width: 40,
       field: 'uid',
-      headerName: 'No ',
+      headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
     {
       flex: 0.5,
       minWidth: 30,
-      field: 'ingredient_name',
-      headerName: 'Diet ',
+      field: 'recipe_name',
+      headerName: 'RECIPE',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
-            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+            variant='square'
+            alt='Recipe Image'
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.recipe_image ? params.row.recipe_image : null}
           >
-            {params.row.ingredient_image ? null : (
-              <img
-                src='https://www.shutterstock.com/image-photo/ripe-mango-isolated-on-white-260nw-1297537549.jpg'
-                width={30}
-                height={30}
-              />
-            )}
+            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.diet_name ? params.row.diet_name : '-'}
-            </Typography>
-            <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '12px' }}>
-              {params.row.diet_text}
+              {params.row.recipe_name ? params.row.recipe_name : '-'}
             </Typography>
           </Box>
         </Box>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 10,
       field: 'id',
-      headerName: 'Meals',
+      headerName: 'RECIPE ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.meals ? params.row.meals : '-'}
+          {params.row.id ? 'REP' + params.row.id : '-'}
         </Typography>
       )
     },
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'Recipes',
-      headerName: 'Recipes',
+      field: 'total_kcal',
+      headerName: 'KCAL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.recipies ? params.row.recipies : '-'}
+          {params.row.total_kcal ? params.row.total_kcal + ' Kcal' : '-'}
         </Typography>
       )
     },
     {
       flex: 0.3,
       minWidth: 20,
-      field: 'Species',
-      headerName: 'Species',
+      field: 'ingredient_name',
+      headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.species ? params.row.species : '-'}
+          <Tooltip
+            title={
+              params.row.ingredients && params.row.ingredients.length > 0
+                ? params.row.ingredients.map(preparation => (
+                    <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
+                      {preparation.ingredient_name}
+                    </div>
+                  ))
+                : '-'
+            }
+            arrow
+            placement='right'
+
+            // style={{ background: '#1F515B' }}
+          >
+            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
+          </Tooltip>
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'Animals',
-      headerName: 'Animals',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.animals ? params.row.animals : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
+      flex: 0.6,
       minWidth: 60,
-      field: 'CREATED',
-      headerName: 'CREATED ',
+      field: 'user_name',
+      headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
             variant='square'
             alt='Medicine Image'
@@ -379,8 +354,11 @@ const Diet = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
+              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+            </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.createdAt ? moment(params.row.createdAt).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -391,7 +369,7 @@ const Diet = () => {
       minWidth: 20,
       field: 'switch',
       headerName: '',
-      disableColumnMenu: true, // Exclude from column menu
+      disableColumnMenu: true,
       renderCell: params => (
         <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
           <Switch
@@ -419,6 +397,15 @@ const Diet = () => {
     }
   }
 
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
   const tableData = () => {
     return (
       <>
@@ -432,15 +419,39 @@ const Diet = () => {
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>Show</Typography>
                 </Grid>
+
                 <Grid>
-                  <Select sx={{ width: '80px', height: '40px', borderRadius: '10px' }} value={selectedValue}>
+                  <Select
+                    sx={{ width: '80px', height: '40px', borderRadius: '10px' }}
+                    value={selectedValue}
+                    onChange={e => setSelectedValue(e.target.value)}
+                  >
                     <MenuItem value='10'>10</MenuItem>
+                    <MenuItem value='20'>20</MenuItem>
+                    <MenuItem value='30'>30</MenuItem>
                     {/* Add other options here */}
                   </Select>
                 </Grid>
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>entries</Typography>
                 </Grid>
+              </Grid>
+              <Grid>
+                <TabList
+                  onChange={handleChange}
+                  sx={{ position: 'relative', top: '20px', left: '10px', cursor: 'pointer' }}
+                >
+                  <DescriptionIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />
+                  <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+                  <SpeakerNotesOffIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />
+                  <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+                  <NotesIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />{' '}
+                  <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+                  {/* <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+            /> */}
+                </TabList>
               </Grid>
 
               <DataGrid
@@ -494,16 +505,16 @@ const Diet = () => {
   return (
     <>
       <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange}>
-            {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            /> */}
-          </TabList>
-          <TabPanel value='all'>{tableData()}</TabPanel>
-          <TabPanel value='active'>{tableData()}</TabPanel>
-          <TabPanel value='inactive'>{tableData()}</TabPanel>
+        <TabContext sx={{ cursor: 'pointer' }} value={status}>
+          <TabPanel sx={{ cursor: 'pointer' }} value='1'>
+            {tableData()}
+          </TabPanel>
+          <TabPanel sx={{ cursor: 'pointer' }} value='0'>
+            {tableData()}
+          </TabPanel>
+          <TabPanel sx={{ cursor: 'pointer' }} value=''>
+            {tableData()}
+          </TabPanel>
           {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
         </TabContext>
       </Grid>
