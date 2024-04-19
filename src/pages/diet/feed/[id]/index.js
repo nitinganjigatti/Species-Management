@@ -92,6 +92,7 @@ const FeedDetails = () => {
       if (response.success === true) {
         setstatusDialog(false)
         setIsActive(isActive == '1' ? '0' : '1')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -127,11 +128,13 @@ const FeedDetails = () => {
       }
     } catch (error) {}
   }
+
   const confirmDeleteAction = async () => {
     try {
       const response = await feedDelete(FeedDetailsValue?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -164,6 +167,7 @@ const FeedDetails = () => {
         )
       } else {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -208,6 +212,7 @@ const FeedDetails = () => {
   }
 
   const [expanded, setExpanded] = useState(false)
+
   const toggleExpanded = () => {
     setExpanded(!expanded)
   }

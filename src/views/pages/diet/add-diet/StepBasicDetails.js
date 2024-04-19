@@ -42,6 +42,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   recipe_name: yup.string().required('Recipe name is required')
+
   //portion_size: yup.string().required('Portion size is required')
   // portion_uom_id: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
@@ -57,6 +58,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const [toValue, setToValue] = useState(null)
   const [OpenIngredientchoice, setOpenIngredientchoice] = useState(false)
   const router = useRouter()
+
   const recipes = [
     { label: 'No' },
     { label: 'Recipe' },
@@ -64,6 +66,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const ingredients = [
     { label: 'No' },
     { label: 'Ingredient' },
@@ -71,6 +74,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const {
     reset,
     control,
@@ -142,6 +146,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const onSubmit = async data => {
     window.scrollTo(0, 0)
+
     // Clear any existing errors
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
@@ -151,6 +156,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
+
       // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
@@ -213,6 +219,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}

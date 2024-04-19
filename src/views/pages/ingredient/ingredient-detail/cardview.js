@@ -28,6 +28,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
     setDeleteDialogBox(false)
     setIsActive(IngredientsDetailsval.active)
   }
+
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
     setIsActive(newIsActive)
@@ -43,6 +44,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
+
         return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
       } else {
         alert('something went wrong')
@@ -86,9 +88,9 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
                   height: 70,
                   background: '#fff'
                 }}
-                src={IngredientsDetailsval.ingredient_image ? IngredientsDetailsval.ingredient_image : null}
+                src={IngredientsDetailsval.image ? IngredientsDetailsval.image : null}
               >
-                {IngredientsDetailsval.ingredient_image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
+                {IngredientsDetailsval.image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
               </Avatar>
             </div>
           </CardContent>

@@ -19,6 +19,7 @@ const AddIngredients = props => {
   const { open, handleSidebarClose } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
+  console.log('selectedFeed', selectFeed)
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
   const [cutSize, seCutSize] = useState('')
@@ -66,16 +67,22 @@ const AddIngredients = props => {
     setFeed(event.target.value)
   }
 
-  const handleChangeFeed = (event, itemId) => {
+  const handleChangeFeed = (event, item) => {
     const { value } = event.target
+    // Find the selected feed type object
+    const selectedFeedType = item.preparation_types.find(type => type.id === value)
+    // Update the state with the ID and name of the selected feed type
     setSelectFeed(prevState => ({
       ...prevState,
-      [itemId]: value
+      [item.id]: {
+        id: selectedFeedType.id,
+        name: selectedFeedType.label
+      }
     }))
   }
-
   const handleChangeSize = event => {
     event.stopPropagation()
+    console.log('event.target.value', event.target.value)
     setSize(event.target.value)
   }
 
@@ -213,7 +220,7 @@ const AddIngredients = props => {
     const boxValues = {
       id: item.id,
       name: item.ingredient_name,
-      feedType: feedType,
+      feedTypeId: feedType,
       selectedDays: selectedDaysForItem.map(day => day.name),
       remarks: remarksData
     }
@@ -244,7 +251,7 @@ const AddIngredients = props => {
         ))
       }
       boxValues.cutSize = cutSizeValue
-      boxValues.size = sizeValue
+      boxValues.uomId = sizeValue
     }
 
     // Check if the boxValues already exist in selectedCard
@@ -319,6 +326,7 @@ const AddIngredients = props => {
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
+        console.log('res?.data?result', res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -543,16 +551,18 @@ const AddIngredients = props => {
                         {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
                         <Select
                           size='small'
-                          value={selectFeed[item.id] || ''}
-                          onChange={e => handleChangeFeed(e, item.id)}
+                          value={selectFeed[item.id]?.id || ''}
+                          onChange={e => handleChangeFeed(e, item)}
                           displayEmpty
                         >
                           <MenuItem value='' disabled>
                             Select
                           </MenuItem>
-                          <MenuItem value='chopped'>Chopped</MenuItem>
-                          <MenuItem value='unchopped'>Unchopped</MenuItem>
-                          <MenuItem value='option-3'>Option-3</MenuItem>
+                          {item.preparation_types.map(preparationType => (
+                            <MenuItem key={preparationType.key} value={preparationType.id}>
+                              {preparationType.label}
+                            </MenuItem>
+                          ))}
                         </Select>
                       </FormControl>
                     </Box>
@@ -574,7 +584,7 @@ const AddIngredients = props => {
                     transitionDuration: '13s'
                   }}
                 >
-                  {selectFeed[item.id] === 'chopped' ? (
+                  {selectFeed[item.id]?.name === 'Chopped' ? (
                     <>
                       <Divider mt={-2} />
                       <Stack
@@ -600,7 +610,7 @@ const AddIngredients = props => {
                                 Select
                               </MenuItem>
                               {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit.name}>
+                                <MenuItem key={unit.id} value={unit._id}>
                                   {unit.name}
                                 </MenuItem>
                               ))}

@@ -7,6 +7,7 @@ import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
+
 // ** Step Components
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
@@ -131,6 +132,7 @@ const AddDiet = () => {
       const params = {
         //status,
         q,
+
         //active: 1,
         page,
         limit
@@ -293,6 +295,7 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -372,6 +375,7 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -434,6 +438,7 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
+
       //   case 2:
       //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
@@ -443,8 +448,10 @@ const AddDiet = () => {
 
   const renderContent = () => {
     console.log(formData, 'formdat')
+
     return getStepContent(activeStep)
   }
+
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
