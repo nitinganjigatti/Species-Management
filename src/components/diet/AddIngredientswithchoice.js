@@ -226,11 +226,14 @@ const AddIngredientswithChoice = props => {
   }
 
   useEffect(() => {
-    setSelectedCard(selectedCard)
-  }, [selectedCard, setSelectedCard])
-
+    if (setSelectedCard) {
+      setSelectedCardState(selectedCard)
+    }
+  }, [setSelectedCard])
+  console.log(setSelectedCard, 'setSelectedCard')
   const handleAllSelect = () => {
-    setSelectedCard([])
+    setSelectedCard(selectedCard)
+
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

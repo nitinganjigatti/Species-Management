@@ -92,7 +92,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     remove: removeIngredients
   } = useFieldArray({
     control,
-    name: 'by_percentage'
+    name: 'add_meal'
   })
 
   const handleImageUpload = imageData => {
@@ -236,7 +236,12 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   }
 
   const removeCancelIcon = val => {
-    setSelectedCard(prevSelectedCard => prevSelectedCard.filter(item => item.id !== val.id))
+    setSelectedCard(prevSelectedCard => {
+      // Filter out the item with the specified ID
+      const updatedSelectedCard = prevSelectedCard.filter(item => item.id !== val.id)
+      // Update the state with the filtered array
+      return updatedSelectedCard
+    })
   }
 
   console.log(errors, 'nknn')

@@ -41,21 +41,50 @@ const AddDiet = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
   const [formData, setFormData] = useState({
-    recipe_name: '',
-    portion_size: '',
-    portion_uom_id: '',
-    nutrional_value: '',
-    nutrional_uom_id: '',
-    kcal: '',
-    recipe_image: '',
-    by_percentage: [
+    diet_name: '',
+    diet_type: '',
+    diet_image: '',
+    desc: '',
+    add_meal: [
       {
-        ingredient_id: '',
-        ingredient_name: '',
-        feed_type_label: '',
-        quantity: '',
-        preparation_type_id: '',
-        preparation_type: ''
+        meal_name: '',
+        meal_from_time: '',
+        meal_to_time: '',
+        notes: '',
+        recipe: [
+          {
+            recipe_id: '',
+            days_of_week: [],
+            remarks: '',
+            meal_type: [
+              {
+                meal_value_header: '',
+                quantity: '',
+                meal_value_uom_id: '',
+                notes: ''
+              }
+            ]
+          }
+        ],
+        ingredient: [
+          {
+            ingredient_id: '',
+            preparation_type_id: '',
+            preparation_type: '',
+            feed_cut_size: '',
+            feed_uom_id: '',
+            days_of_week: [],
+            remarks: '',
+            meal_type: [
+              {
+                meal_value_header: '',
+                quantity: '',
+                meal_value_uom_id: '',
+                notes: ''
+              }
+            ]
+          }
+        ]
       }
     ],
     by_quantity: [
@@ -68,8 +97,7 @@ const AddDiet = () => {
         preparation_type_id: '',
         preparation_type: ''
       }
-    ],
-    desc: ''
+    ]
   })
 
   const handleSelectedCardChange = card => {
@@ -137,7 +165,7 @@ const AddDiet = () => {
 
         const convertedData = {
           ...data,
-          by_percentage: data.by_percentage.map(item => ({
+          add_meal: data.add_meal.map(item => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id)
@@ -229,8 +257,8 @@ const AddDiet = () => {
     if (!id) {
       const numericFormData = {
         ...formData,
-        by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+        add_meal: JSON.stringify(
+          formData.add_meal.map(item => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -255,7 +283,7 @@ const AddDiet = () => {
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
+        add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity,
         recipe_image: numericFormData.recipe_image[0]
       }
@@ -299,8 +327,8 @@ const AddDiet = () => {
     } else {
       const numericFormData = {
         ...formData,
-        by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+        add_meal: JSON.stringify(
+          formData.add_meal.map(item => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -324,7 +352,7 @@ const AddDiet = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
+        add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity
       }
       console.log(formData.recipe_image, 'klkl')
