@@ -175,7 +175,7 @@ const AddStates = props => {
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='State Code'
+              name='code'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
