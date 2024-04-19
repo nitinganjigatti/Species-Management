@@ -14,12 +14,13 @@ import { margin } from '@mui/system'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
+import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 
 const AddIngredients = props => {
   const { open, handleSidebarClose } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-  console.log('selectedFeed', selectFeed)
+
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
   const [cutSize, seCutSize] = useState('')
@@ -32,6 +33,7 @@ const AddIngredients = props => {
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   const [uom, setUom] = useState([])
+  const [feedType, setFeedType] = useState([])
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -63,8 +65,25 @@ const AddIngredients = props => {
     })
   }
 
-  const handleChange = event => {
+  const handleChangeTopFeed = async event => {
     setFeed(event.target.value)
+
+    try {
+      // const currentAnimalFilterValue = animalFilterValueRef.current
+
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: 69 }
+      await getIngredientList({ params }).then(res => {
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          // setOpen(true)
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const handleChangeFeed = (event, item) => {
@@ -82,7 +101,7 @@ const AddIngredients = props => {
   }
   const handleChangeSize = event => {
     event.stopPropagation()
-    console.log('event.target.value', event.target.value)
+
     setSize(event.target.value)
   }
 
@@ -139,7 +158,6 @@ const AddIngredients = props => {
   // }
 
   const [selectedDays, setSelectedDays] = useState([])
-  console.log('selectedDays', selectedDays)
 
   const handleDayClick = (dayId, dayName, cardId) => {
     let cardInfo = selectedDays.find(item => item.cardId === cardId)
@@ -199,7 +217,6 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
-  console.log('selectedCard', selectedCard)
 
   const handelCardSelection = item => {
     // Get the selected feed value for the current item
@@ -302,7 +319,6 @@ const AddIngredients = props => {
 
       const params = { page: ingredientPage, q: searchValue, sort }
       getIngredientList({ params }).then(res => {
-        console.log('res', res)
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
           setReachedEnd(false)
@@ -316,6 +332,22 @@ const AddIngredients = props => {
     }
   }, [])
 
+  // Top Feed Type
+  const fetchData = async () => {
+    const params = {}
+    try {
+      const response = await getPreparationTypeList()
+
+      setFeedType(response?.data?.result)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   // uom
 
   const getUnitsList = async () => {
@@ -326,7 +358,6 @@ const AddIngredients = props => {
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
-        console.log('res?.data?result', res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -339,7 +370,7 @@ const AddIngredients = props => {
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
       // User has reached the bottom, perform your action here
-      console.log('if')
+
       setIngredientPage(++ingredientPage)
       setReachedEnd(true)
       try {
@@ -356,7 +387,7 @@ const AddIngredients = props => {
           //   status
           // }
           // currentAnimalFilterValue
-          console.log('res', res)
+
           if (res?.data?.result?.length > 0) {
             setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
@@ -373,7 +404,6 @@ const AddIngredients = props => {
 
   const searchData = useCallback(
     debounce(async search => {
-      console.log('search')
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
@@ -465,11 +495,13 @@ const AddIngredients = props => {
                   id='demo-simple-select'
                   value={feed}
                   label='Feed'
-                  onChange={handleChange}
+                  onChange={handleChangeTopFeed}
                 >
-                  <MenuItem value={1}>feed 1</MenuItem>
-                  <MenuItem value={2}>feed 2</MenuItem>
-                  <MenuItem value={3}>feed 3</MenuItem>
+                  {feedType?.map(feedList => (
+                    <MenuItem key={feedList?.key} value={feedList?.id}>
+                      {feedList?.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
@@ -478,7 +510,11 @@ const AddIngredients = props => {
 
         {/* Card View */}
 
-        <Box sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }} onScroll={handleScroll}>
+        <Box
+          key={feed}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          onScroll={handleScroll}
+        >
           {ingredientList?.map((item, index) => (
             <Box
               key={item?.id}
