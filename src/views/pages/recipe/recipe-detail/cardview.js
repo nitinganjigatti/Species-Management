@@ -28,6 +28,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
     setDeleteDialogBox(false)
     setIsActive(IngredientsDetailsval.active)
   }
+
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
     setIsActive(newIsActive)
@@ -43,6 +44,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} />)
       } else {
         alert('something went wrong')

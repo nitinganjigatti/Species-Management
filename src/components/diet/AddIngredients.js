@@ -203,7 +203,7 @@ const AddIngredients = props => {
 
   const handelCardSelection = item => {
     // Get the selected feed value for the current item
-    const feedType = selectFeed[item.id] || ''
+    const feedType = selectFeed[item.id]?.name || ''
 
     // Get the remarks value
     const remarksData = remarks || ''
@@ -226,7 +226,7 @@ const AddIngredients = props => {
     }
 
     // Include cut size and its dropdown only if feedType is "chopped"
-    if (feedType === 'chopped') {
+    if (feedType === 'Chopped') {
       const cutSizeValue = cutSize || ''
       const sizeValue = size || ''
       if (!cutSizeValue || !sizeValue) {

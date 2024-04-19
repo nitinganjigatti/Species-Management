@@ -25,7 +25,7 @@ import toast from 'react-hot-toast'
 const FeedTypes = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('ASC')
+  const [sort, setSort] = useState('desc')
   const [sortColumning, setsortColumning] = useState('feed_type_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)

@@ -19,12 +19,14 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, FeedDet
   const [activitydata, setActivityData] = useState([])
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(20)
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
     message: ''
   })
   const theme = useTheme()
+
   // Styled Timeline component
   const Timeline = styled(MuiTimeline)({
     paddingLeft: 0,
@@ -49,12 +51,6 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, FeedDet
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
           setActivityData(res?.data?.data)
-          setOpenSnackbar({
-            ...openSnackbar,
-            open: true,
-            message: JSON.stringify(res?.message),
-            severity: 'success'
-          })
         } else {
           setOpenSnackbar({
             ...openSnackbar,
@@ -66,6 +62,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, FeedDet
       })
     } catch (error) {
       console.log('error', error)
+
       setOpenSnackbar({
         ...openSnackbar,
         open: true,
@@ -231,6 +228,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, FeedDet
                               : null
                           }
                           color={item.action === 'activated' ? '#fff' : null}
+
                           // style={item.action === 'Swapped' ? { transform: 'rotateY(180deg)' } : null}
                         />
                       </Box>
@@ -287,7 +285,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, FeedDet
                               }}
                             >
                               {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
-                              &nbsp; Ingredient
+                              Ingredient
                             </Typography>
                           </Box>
                         </Box>

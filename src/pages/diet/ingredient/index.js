@@ -237,9 +237,9 @@ const IngredientsList = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+            src={params.row.image ? params.row.image : null}
           >
-            {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
+            {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
