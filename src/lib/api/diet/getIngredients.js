@@ -25,7 +25,9 @@ export async function getPreparationTypeList(id) {
 }
 
 export async function getIngredientDetail(id) {
-  return await axiosGet({ url: `${DIET}/${INGREDIENTS}/${INGREDIENTS_DETAIL}/${id}` })
+  const response = await axiosGet({ url: `${DIET}/${INGREDIENTS}/${INGREDIENTS_DETAIL}/${id}` })
+
+  return response.data
 }
 
 export async function updateIngredientStatus(id, payload) {

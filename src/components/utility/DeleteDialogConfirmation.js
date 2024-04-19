@@ -12,9 +12,11 @@ import { Card, Typography, FormControlLabel, Checkbox, Grid, Avatar } from '@mui
 
 const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, message, action, type }) => {
   const [checked, setChecked] = useState(false)
+
   const handleChange = event => {
     setChecked(event.target.checked)
   }
+
   const handleNoClick = () => {
     handleClosenew()
     setChecked(false)

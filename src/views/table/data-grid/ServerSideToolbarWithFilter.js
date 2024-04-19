@@ -15,9 +15,8 @@ const ServerSideToolbarWithFilter = props => {
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        p: theme => theme.spacing(2, 5, 4, 5),
-        float: 'right'
+        justifyContent: 'flex-end',
+        p: theme => theme.spacing(2, 5, 4, 5)
       }}
     >
       {/* <GridToolbarFilterButton /> */}

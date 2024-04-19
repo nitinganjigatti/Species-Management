@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -91,6 +92,7 @@ const StepPreviewDiet = ({
   handleIngredientChange
 }) => {
   const ingredients = [{ label: ' Ingredients' }, { label: 'Quantity' }, { label: 'Preparation Type' }]
+
   const ingredientsbyqun = [
     { label: ' Ingredients' },
     { label: 'Quantity' },
@@ -99,11 +101,13 @@ const StepPreviewDiet = ({
   ]
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
+
   const {
     reset,
     control,
     handleSubmit,
     clearErrors,
+
     //formState: { errors },
     trigger,
     getValues,
@@ -111,6 +115,7 @@ const StepPreviewDiet = ({
   } = useForm({
     defaultValues,
     shouldUnregister: false,
+
     //resolver: yupResolver(schema),
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -167,6 +172,7 @@ const StepPreviewDiet = ({
   const calculateTotalQuantity = () => {
     const byPercentageValues = getValues('by_percentage')
     const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
+
     return totalQuantity
   }
 
@@ -197,8 +203,10 @@ const StepPreviewDiet = ({
       </Typography>
     )
   }
+
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -213,6 +221,7 @@ const StepPreviewDiet = ({
 
   const removebyQuantityButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -276,12 +285,14 @@ const StepPreviewDiet = ({
             setPreparationTypeListPercentage(prevList => {
               const newList = [...prevList]
               newList[index] = response.data.result
+
               return newList
             })
           } else if (section === 'by_quantity') {
             setPreparationTypeListQuantity(prevList => {
               const newList = [...prevList]
               newList[index] = response.data.result
+
               return newList
             })
           }
@@ -328,6 +339,7 @@ const StepPreviewDiet = ({
         window.scrollTo(0, 700)
       }
     }
+
     return null
   }
 
@@ -514,6 +526,7 @@ const StepPreviewDiet = ({
                       sx={{
                         borderBottom: '1px solid #C3CEC7',
                         pb: '32px',
+
                         // pr: '16px',
                         pt: index === 0 ? null : '32px'
                       }}

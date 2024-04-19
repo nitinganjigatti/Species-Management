@@ -1,11 +1,15 @@
 import { Avatar, Card, Divider, CardContent, FormControlLabel, Switch, Typography } from '@mui/material'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
 // ** Custom Components
 import Router from 'next/router'
+
 // ** Utils Import
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -20,6 +24,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
 
   const handleClosenew = () => {
     setConfirmDialogBox(false)
+
     // setIsActive(FeedDetailsValue.active)
   }
   useEffect(() => {
@@ -29,6 +34,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
     setActivePayload(newIsActive)
+
     // setIsActive(newIsActive)
     setConfirmDialogBox(true)
   }
@@ -41,6 +47,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
       console.log(response, 'response')
       if (response.success === true) {
         setIsActive(isActive == '0' ? '1' : '0')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
