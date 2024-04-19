@@ -132,7 +132,8 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
             }}
             disabled={checked === true ? false : true}
           >
-            {active === 1 ? 'Activate' : 'Deactivate'}
+            {/* {active === 1 ? 'Activate' : 'Deactivate'} */}
+            {active === '1' ? 'Deactivate' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>
