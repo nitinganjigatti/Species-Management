@@ -226,10 +226,8 @@ const AddIngredientswithChoice = props => {
   }
 
   useEffect(() => {
-    if (setSelectedCard) {
-      setSelectedCardState(selectedCard)
-    }
-  }, [setSelectedCard])
+    // setSelectedCard(selectedCard)
+  }, [selectedCard, setSelectedCard])
   console.log(setSelectedCard, 'setSelectedCard')
   const handleAllSelect = () => {
     setSelectedCard(selectedCard)
