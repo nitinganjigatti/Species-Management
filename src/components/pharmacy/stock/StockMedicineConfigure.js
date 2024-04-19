@@ -158,7 +158,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
       try {
         const payload = { rack_id, store_id, shelf_id }
         const result = await updateMedicineConfig(payload, configureMedId, config_id)
-        if (result.success == true) {
+        if (result?.success == true) {
           // console.log('result', result)
           toast.success(result.data)
           setDeleteRowId('')
@@ -488,7 +488,16 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                   </Button>
                 ) : null}
 
-                <LoadingButton sx={{ my: 4 }} size='medium' variant='contained' type='submit' loading={submitLoader}>
+                <LoadingButton
+                  sx={{ my: 4 }}
+                  size='medium'
+                  variant='contained'
+                  type='submit'
+                  onClick={() => {
+                    setQtyForm(false)
+                  }}
+                  loading={submitLoader}
+                >
                   Configure medicine
                 </LoadingButton>
               </Grid>
@@ -521,7 +530,16 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={12}>
-                <LoadingButton sx={{ my: 4 }} size='medium' variant='contained' type='submit' loading={submitLoader}>
+                <LoadingButton
+                  sx={{ my: 4 }}
+                  size='medium'
+                  variant='contained'
+                  type='submit'
+                  onClick={() => {
+                    setQtyForm(true)
+                  }}
+                  loading={submitLoader}
+                >
                   Save
                 </LoadingButton>
               </Grid>
