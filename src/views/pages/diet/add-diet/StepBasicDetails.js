@@ -32,19 +32,58 @@ import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoi
 import AddIngredients from 'src/components/diet/AddIngredients'
 
 const defaultValues = {
-  recipe_name: '',
-  portion_size: '',
-  portion_uom_id: '',
-  nutrional_value: '',
-  nutrional_uom_id: '',
-  kcal: ''
+  diet_name: '',
+  diet_type: '',
+  diet_image: '',
+  desc: '',
+  add_meal: [
+    {
+      meal_name: '',
+      meal_from_time: '',
+      meal_to_time: '',
+      notes: '',
+      recipe: [
+        {
+          recipe_id: '',
+          days_of_week: [],
+          remarks: '',
+          meal_type: [
+            {
+              meal_value_header: '',
+              quantity: '',
+              meal_value_uom_id: '',
+              notes: ''
+            }
+          ]
+        }
+      ],
+      ingredient: [
+        {
+          ingredient_id: '',
+          preparation_type_id: '',
+          preparation_type: '',
+          feed_cut_size: '',
+          feed_uom_id: '',
+          days_of_week: [],
+          remarks: '',
+          meal_type: [
+            {
+              meal_value_header: '',
+              quantity: '',
+              meal_value_uom_id: '',
+              notes: ''
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Recipe name is required')
-
+  diet_name: yup.string().required('Recipe name is required')
   //portion_size: yup.string().required('Portion size is required')
-  // portion_uom_id: yup.string().required('Unit of measurement is required'),
+  // diet_type: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
   // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
   // kcal: yup.string().required('Total calories are required')
@@ -54,11 +93,12 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
   const [openIngredient, setOpenIngredient] = useState(false)
-  const [fromValue, setFromValue] = useState(null)
   const [toValue, setToValue] = useState(null)
   const [OpenIngredientchoice, setOpenIngredientchoice] = useState(false)
+  const [childStateValue, setChildStateValue] = useState([])
+  const [allSelectedValues, setAllSelectedValues] = useState([])
+  const [checkid, setcheckid] = useState('')
   const router = useRouter()
-
   const recipes = [
     { label: 'No' },
     { label: 'Recipe' },
@@ -66,7 +106,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
-
   const ingredients = [
     { label: 'No' },
     { label: 'Ingredient' },
@@ -74,7 +113,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
-
   const {
     reset,
     control,
@@ -103,9 +141,30 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     setUploadedImage(imageData)
   }
 
+  // Function to handle changes in child state
+  const handleChildStateChange = value => {
+    setChildStateValue(value)
+
+    // Remove duplicates from the new value based on id and valueid
+    const uniqueValues = value.filter(
+      (val, index, self) => index === self.findIndex(v => v.id === val.id && v.valueid === val.valueid)
+    )
+
+    // Update allSelectedValues with unique values
+    setAllSelectedValues(prevState => {
+      // Filter out duplicates from the previous state
+      const filteredPrevState = prevState.filter(
+        prevVal => !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal.id && uniqueVal.valueid === prevVal.valueid)
+      )
+
+      // Combine unique values from the new value with filtered previous state
+      return [...filteredPrevState, ...uniqueValues]
+    })
+  }
+
   useEffect(() => {
     if (formData) {
-      setUploadedImage(formData.recipe_image)
+      setUploadedImage(formData.diet_image)
     }
   }, [formData])
 
@@ -114,6 +173,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
       reset(formData)
     }
   }, [formData, reset])
+
+  useEffect(() => {
+    // Filter allSelectedValues based on checkid
+    const filteredValues = allSelectedValues.filter(value => value.valueid === checkid)
+    // Update childStateValue with the filtered values
+    setChildStateValue(filteredValues)
+  }, [checkid, allSelectedValues])
 
   const ScrollToFieldError = ({ errors }) => {
     console.log(errors, 'errors')
@@ -135,9 +201,18 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     setOpenIngredientchoice(true)
   }
 
-  const handleAddIngerdient = () => {
+  const handleAddIngerdient = (val, id, index) => {
     setOpenIngredient(true)
+    setcheckid(val.id)
+
+    // Update childStateValue with objects having matching valueid
+    setChildStateValue(prevState => {
+      const newState = prevState.filter(item => item.valueid === val.id)
+      return newState
+    })
   }
+
+  console.log(fieldsIngredients, 'fields')
 
   const handleSidebarClose = () => {
     setOpenIngredient(false)
@@ -146,7 +221,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const onSubmit = async data => {
     window.scrollTo(0, 0)
-
     // Clear any existing errors
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
@@ -156,11 +230,10 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
-
       // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
-        recipe_image: uploadedImage
+        diet_image: uploadedImage
       }
       handleNext(formDataWithImage)
       console.log(formDataWithImage, 'data')
@@ -176,6 +249,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   }
 
   const addIngredientsButton = () => {
+    console.log(childStateValue, 'childStateValue')
     return (
       <>
         <Grid
@@ -192,9 +266,55 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
           }}
           onClick={() => {
             appendIngredients({
-              ingredient_id: '',
-              quantity: '',
-              preparation_type_id: ''
+              meal_name: '',
+              meal_from_time: '',
+              meal_to_time: '',
+              notes: '',
+              ingredient: fieldsIngredients.map((field, i) => {
+                const matchingChildState = childStateValue.find((child, j) =>
+                  i === j ? child.valueid === field.id : null
+                )
+                if (matchingChildState) {
+                  // Map child state values to the fieldsIngredients
+                  return {
+                    ...matchingChildState,
+                    ingredient_id: '',
+                    preparation_type_id: '',
+                    preparation_type: '',
+                    feed_cut_size: '',
+                    feed_uom_id: '',
+                    days_of_week: [],
+                    remarks: '',
+                    meal_type: [
+                      {
+                        meal_value_header: '',
+                        quantity: '',
+                        meal_value_uom_id: '',
+                        notes: ''
+                      }
+                    ]
+                  }
+                } else {
+                  // If no matching child state found, return empty ingredient object
+                  return {
+                    ingredient_id: '',
+                    preparation_type_id: '',
+                    preparation_type: '',
+                    feed_cut_size: '',
+                    feed_uom_id: '',
+                    days_of_week: [],
+                    remarks: '',
+                    meal_type: [
+                      {
+                        meal_value_header: '',
+                        quantity: '',
+                        meal_value_uom_id: '',
+                        notes: ''
+                      }
+                    ]
+                  }
+                }
+              })
             })
           }}
         >
@@ -219,7 +339,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const removeIngredientButton = index => {
     console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -242,12 +361,15 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     }
   }
 
-  const removeCancelIcon = val => {
-    setSelectedCard(prevSelectedCard => {
-      // Filter out the item with the specified ID
-      const updatedSelectedCard = prevSelectedCard.filter(item => item.id !== val.id)
-      // Update the state with the filtered array
-      return updatedSelectedCard
+  const removeingClick = ingredientIdToRemove => {
+    // Filter out the ingredient with the specified ID from childStateValue
+    setChildStateValue(prevSelectedCard => {
+      const filteredChildStateValue = prevSelectedCard.filter(ingredient => ingredient.id !== ingredientIdToRemove)
+      // Update setAllSelectedValues by removing the same object from allSelectedValues
+      setAllSelectedValues(prevAllSelectedValues => {
+        return prevAllSelectedValues.filter(ingredient => ingredient.id !== ingredientIdToRemove)
+      })
+      return filteredChildStateValue
     })
   }
 
@@ -255,7 +377,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')
-  console.log(setSelectedCard, 'setSelectedCard')
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -268,21 +389,21 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <Controller
-                  name='recipe_name'
+                  name='diet_name'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
                       label='Diet name *'
-                      name='recipe_name'
-                      error={Boolean(errors.recipe_name)}
+                      name='diet_name'
+                      error={Boolean(errors.diet_name)}
                       onChange={onChange}
                     />
                   )}
                 />
-                {errors.recipe_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
+                {errors.diet_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_name?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -292,14 +413,14 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                 {console.log(uomList, 'uomList')}
                 <Controller
-                  name='portion_uom_id'
+                  name='diet_type'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <Autocomplete
                       value={uomList.find(option => option._id === value) || null}
                       disablePortal
-                      id='portion_uom_id'
+                      id='diet_type'
                       options={uomList || []}
                       getOptionLabel={option => option.name}
                       isOptionEqualToValue={(option, value) => option?._id === value?._id}
@@ -315,15 +436,15 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                           {...params}
                           label='Diet Type *'
                           placeholder='Search & Select'
-                          error={Boolean(errors.portion_uom_id)}
+                          error={Boolean(errors.diet_type)}
                         />
                       )}
                     />
                   )}
                 />
 
-                {errors?.portion_uom_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.portion_uom_id?.message}</FormHelperText>
+                {errors?.diet_type && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -367,7 +488,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                 <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
-                      name='nutrional_value'
+                      name={`add_meal[${index}].meal_name`}
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
@@ -375,7 +496,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                           value={value}
                           type='text'
                           label='Meal name (Optional) '
-                          name='nutrional_value'
+                          name={`add_meal[${index}].meal_name`}
                           error={Boolean(errors.nutrional_value)}
                           onChange={onChange}
                           placeholder=''
@@ -395,19 +516,14 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                 <Grid item xs={12} sm={3.2}>
                   <FormControl fullWidth>
                     {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                    {console.log(uomList, 'uomList')}
                     <Controller
-                      name='nutrional_uom_id'
+                      name={`add_meal[${index}].meal_from_time`}
                       control={control}
                       rules={{ required: true }}
-                      render={({ field: { onChange } }) => (
+                      render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          {console.log(fromValue?.$d, 'value')}
-                          <TimePicker
-                            label='Select time - from'
-                            value={fromValue}
-                            onChange={newValue => setFromValue(newValue)}
-                          />
+                          {console.log(value?.$d, 'vvv')}
+                          <TimePicker label='Select time - from' value={value?.$d} onChange={onChange} />
                         </LocalizationProvider>
                       )}
                     />
@@ -421,17 +537,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                 <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
-                      name='kcal'
+                      name={`add_meal[${index}].meal_to_time`}
                       control={control}
                       rules={{ required: true }}
-                      render={({ field: { onChange } }) => (
+                      render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                           {console.log(toValue?.$d, 'value')}
-                          <TimePicker
-                            label='Select time - to'
-                            value={toValue}
-                            onChange={newValue => setToValue(newValue)}
-                          />
+                          <TimePicker label='Select time - to' value={value?.$d} onChange={onChange} />
                         </LocalizationProvider>
                       )}
                     />
@@ -546,92 +658,66 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                       </Grid>
                     ))}
                   </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-                    <Icon style={{ position: 'relative', left: '1%' }} icon='iconoir:cancel' />
-                  </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5 }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-                    <Icon style={{ position: 'relative', left: '1%' }} icon='iconoir:cancel' />
-                  </Grid>
+                  {allSelectedValues.length > 0 ? (
+                    allSelectedValues.map(all => {
+                      const matchingField = all.valueid === field.id
+                      console.log(matchingField, 'matchingField')
+                      if (matchingField) {
+                        return (
+                          <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }}>
+                            <Grid item xs={12} sm={0.5}>
+                              <Typography>1</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={2.2}>
+                              <Typography>{all.name}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
+                              <Typography>5</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={3.7}>
+                              <Grid container spacing={7} sx={{ pl: 2 }}>
+                                <Grid item>
+                                  <Typography>M</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>T</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>W</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>T</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>F</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>S</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <Typography>S</Typography>
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                            <Grid item xs={12} sm={3.7}>
+                              <Grid sx={{ pl: 7 }}>
+                                <Typography>5</Typography>
+                              </Grid>
+                            </Grid>
+                            <Icon
+                              onClick={() => removeingClick(all.id)}
+                              style={{ position: 'relative', left: '1%' }}
+                              icon='iconoir:cancel'
+                            />
+                          </Grid>
+                        )
+                      }
+                    })
+                  ) : (
+                    <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                      No Records to show
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
 
@@ -852,7 +938,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={handleAddIngerdient}
+                  onClick={() => handleAddIngerdient(field, index)}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT
@@ -926,12 +1012,17 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
             </Box>
           </Grid>
         </Card>
-        <AddIngredientswithChoice
-          open={OpenIngredientchoice}
+        <AddIngredientswithChoice open={OpenIngredientchoice} handleSidebarClose={handleSidebarClose} />
+        <AddIngredients
+          open={openIngredient}
           handleSidebarClose={handleSidebarClose}
-          setSelectedCard={setSelectedCard}
+          onChange={handleChildStateChange}
+          onRemove={removeingClick}
+          childStateValue={childStateValue}
+          checkid={checkid}
+          allSelectedValues={allSelectedValues}
+          setAllSelectedValues={setAllSelectedValues}
         />
-        <AddIngredients open={openIngredient} handleSidebarClose={handleSidebarClose} />
       </form>
     </>
   )

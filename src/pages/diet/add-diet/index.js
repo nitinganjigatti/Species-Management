@@ -287,7 +287,7 @@ const AddDiet = () => {
         ...numericFormData,
         add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity,
-        recipe_image: numericFormData.recipe_image[0]
+        diet_image: numericFormData.diet_image[0]
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -358,15 +358,15 @@ const AddDiet = () => {
         add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity
       }
-      console.log(formData.recipe_image, 'klkl')
-      if (formData.recipe_image === null) {
-        delete updatedFormData.recipe_image
+      console.log(formData.diet_image, 'klkl')
+      if (formData.diet_image === null) {
+        delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
-      } else if (typeof formData.recipe_image === 'string') {
-        delete updatedFormData.recipe_image
+      } else if (typeof formData.diet_image === 'string') {
+        delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.recipe_image = formData.recipe_image[0]
+        updatedFormData.diet_image = formData.diet_image[0]
         updatedFormData.remove_current_image = '1'
       }
 

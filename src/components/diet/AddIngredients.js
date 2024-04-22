@@ -16,7 +16,7 @@ import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 
 const AddIngredients = props => {
-  const { open, handleSidebarClose } = props
+  const { open, handleSidebarClose, onChange, childStateValue, checkid, allSelectedValues } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
   console.log('selectedFeed', selectFeed)
@@ -199,8 +199,6 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
-  console.log('selectedCard', selectedCard)
-
   const handelCardSelection = item => {
     // Get the selected feed value for the current item
     const feedType = selectFeed[item.id] || ''
@@ -222,7 +220,8 @@ const AddIngredients = props => {
       name: item.ingredient_name,
       feedTypeId: feedType,
       selectedDays: selectedDaysForItem.map(day => day.name),
-      remarks: remarksData
+      remarks: remarksData,
+      valueid: checkid
     }
 
     // Include cut size and its dropdown only if feedType is "chopped"
@@ -265,7 +264,19 @@ const AddIngredients = props => {
     }
   }
 
+  const removeingClick = () => {
+    // Call the function passed from the parent component
+    props.removeingClick(item) // Pass the item to be removed
+  }
+
+  // useEffect(() => {
+  //   const filteredSelectedCard = selectedCard.filter(card => card.valueid === checkid)
+  //   setSelectedCard(filteredSelectedCard)
+  // }, [checkid])
+
   const handleAllSelect = () => {
+    setSelectedCard(selectedCard)
+    onChange(selectedCard)
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -371,6 +382,18 @@ const AddIngredients = props => {
     }
   }
 
+  useEffect(() => {
+    // Filter out duplicates based on id and valueid
+    const uniqueSelectedValues = allSelectedValues.filter(
+      (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
+    )
+    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
+    // Compare uniqueSelectedValues with checkid
+    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
+    // Update selectedCard with matched objects, or set to an empty array if no match found
+    setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
+  }, [allSelectedValues, checkid])
+
   const searchData = useCallback(
     debounce(async search => {
       console.log('search')
@@ -394,10 +417,21 @@ const AddIngredients = props => {
     [searchValue]
   )
 
+  useEffect(() => {
+    setSelectedCard(childStateValue)
+  }, [childStateValue])
+
+  // useEffect(() => {
+  //   if (childStateValue) {
+  //     setSelectedCard(childStateValue)
+  //   }
+  // }, [childStateValue])
+
   // useEffect(() => {
   //   handelCardSelection()
   // }, [selectFeed, selectedDays, remarks, cutSize, size])
 
+  console.log('selectedCard', selectedCard)
   return (
     <>
       <Drawer

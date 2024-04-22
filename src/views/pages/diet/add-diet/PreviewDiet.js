@@ -13,11 +13,9 @@ import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { schedule } from 'src/pages/diet/diet/[id]/data'
 import { Controller } from 'react-hook-form'
-import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
-import { CardContent, Avatar } from '@mui/material'
+import { CardContent, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import { Divider, Card } from '@mui/material'
-import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
@@ -101,7 +99,9 @@ const StepPreviewDiet = ({
   ]
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
-
+  const [open, setOpen] = useState(false)
+  const handleClickOpen = () => setOpen(true)
+  const handleClosed = () => setOpen(false)
   const {
     reset,
     control,
@@ -303,21 +303,21 @@ const StepPreviewDiet = ({
     }
   }
 
-  useEffect(() => {
-    formData.by_percentage.forEach((item, index) => {
-      if (item.ingredient_id) {
-        handlecheck(item.ingredient_id, index, 'by_percentage')
-      }
-    })
-  }, [formData])
+  // useEffect(() => {
+  //   formData.by_percentage.forEach((item, index) => {
+  //     if (item.ingredient_id) {
+  //       handlecheck(item.ingredient_id, index, 'by_percentage')
+  //     }
+  //   })
+  // }, [formData])
 
-  useEffect(() => {
-    formData.by_quantity.forEach((item, index) => {
-      if (item.ingredient_id) {
-        handlecheck(item.ingredient_id, index, 'by_quantity')
-      }
-    })
-  }, [formData])
+  // useEffect(() => {
+  //   formData.by_quantity.forEach((item, index) => {
+  //     if (item.ingredient_id) {
+  //       handlecheck(item.ingredient_id, index, 'by_quantity')
+  //     }
+  //   })
+  // }, [formData])
 
   const ScrollToFieldError = ({ errors, index }) => {
     // if (!errors) return
@@ -426,6 +426,101 @@ const StepPreviewDiet = ({
           <Card sx={{ boxShadow: 'none', px: 5 }}>
             <Grid sx={{ overflowX: 'auto' }} value='full'>
               <Typography variant='h6'>Enter Values for Meals</Typography>
+              <Typography variant='h6' onClick={handleClickOpen}>
+                Test
+              </Typography>
+              <Dialog
+                open={open}
+                onClose={handleClosed}
+                aria-labelledby='customized-dialog-title'
+                sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
+              >
+                <DialogTitle
+                  id='customized-dialog-title'
+                  sx={{ p: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <Typography variant='h6'>Add Value</Typography>
+                  <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
+                </DialogTitle>
+                <DialogContent>
+                  {/* <Typography variant='h6'>Add Value</Typography> */}
+                  <Grid container spacing={5} sx={{ mt: 1 }}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='diet_name'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Diet name *'
+                              name='diet_name'
+                              //error={Boolean(errors.diet_name)}
+                              onChange={onChange}
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                        {console.log(uomList, 'uomList')}
+                        <Controller
+                          name='diet_type'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Autocomplete
+                              //value={uomList.find(option => option._id === value) || null}
+                              disablePortal
+                              id='diet_type'
+                              // options={uomList || []}
+                              //getOptionLabel={option => option.name}
+                              //isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                              renderInput={params => (
+                                <TextField
+                                  {...params}
+                                  label='Diet Type *'
+                                  placeholder='Search & Select'
+                                  // error={Boolean(errors.diet_type)}
+                                />
+                              )}
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sx={{ pt: 5 }}>
+                      <Controller
+                        name='desc'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            multiline
+                            fullWidth
+                            value={value}
+                            label='Enter Notes '
+                            name='desc'
+                            // error={Boolean(errors.desc)}
+                            onChange={onChange}
+                            id='textarea-outlined'
+                            rows={3}
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sx={{ textAlign: 'center', mb: 3 }}>
+                      <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
+                        ADD Quantity
+                      </Button>{' '}
+                    </Grid>
+                  </Grid>
+                </DialogContent>
+              </Dialog>
               <Grid sx={{ p: 0, pt: '24px' }} container>
                 <Grid md={8} item>
                   <Grid
