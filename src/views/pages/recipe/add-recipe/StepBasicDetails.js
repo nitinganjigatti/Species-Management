@@ -33,6 +33,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   recipe_name: yup.string().required('Recipe name is required')
+
   //portion_size: yup.string().required('Portion size is required')
   // portion_uom_id: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
@@ -44,11 +45,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
   const router = useRouter()
+
   const {
     reset,
     control,
     handleSubmit,
     clearErrors,
+    watch,
     formState: { errors }
   } = useForm({
     mode: 'all',
@@ -58,6 +61,8 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  const cal = watch('nutrional_value')
 
   const handleImageUpload = imageData => {
     setUploadedImage(imageData)
@@ -93,6 +98,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
 
   const onSubmit = async data => {
     window.scrollTo(0, 0)
+
     // Clear any existing errors
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
@@ -102,6 +108,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
+
       // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
@@ -123,6 +130,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
+
   return (
     <>
       <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
@@ -308,7 +316,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     <TextField
                       value={value}
                       type='number'
-                      label='Total calories for 100 gms'
+                      label={`Total calories for ${cal ? cal : '100'} gms`}
                       name='kcal'
                       error={Boolean(errors.kcal)}
                       onChange={onChange}

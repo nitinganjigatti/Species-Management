@@ -13,7 +13,13 @@ import {
   Button,
   Divider,
   Paper,
-  styled
+  styled,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -25,38 +31,47 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { schedule } from './data'
 
-const ScrollContainer = styled('div')({
-  overflowX: 'auto',
-  flexWrap: 'nowrap',
-  scrollbarWidth: '10px', // For Firefox
-  '::-webkit-scrollbar': {
-    width: '0', // Hide scrollbar by default
-    height: '0'
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: '#ccc',
-    borderRadius: '2px'
-  },
-  '&:hover': {
-    '::-webkit-scrollbar': {
-      width: '4px', // Show scrollbar on hover
-      height: '1px'
-    }
-  }
-})
-
 const DietDetail = () => {
   const router = useRouter()
   const theme = useTheme()
   const { id } = router.query
   const [loader, setLoader] = useState(false)
-  const [value, setValue] = useState('one')
+  const [value, setValue] = useState('full')
+
+  let startArry = []
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
 
-  // const classes = useStyles()
+  const useStyles = styled({
+    table: {
+      minWidth: 650
+    },
+    sticky: {
+      position: 'sticky',
+      left: 0,
+      background: 'white',
+      boxShadow: '5px 2px 5px grey',
+      borderRight: '2px solid black'
+    }
+  })
+
+  const CustomScrollbar = styled('div')({
+    overflowX: 'auto', // or 'scroll'
+    '&::-webkit-scrollbar': {
+      width: 10, // specify your desired width
+      height: 4 // specify your desired height
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: 'transparent' // customize track color if needed
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'lightgray', // customize thumb color if needed
+      borderRadius: 5 // specify border radius
+    }
+  })
+  const classes = useStyles()
   return (
     <>
       {loader ? (
@@ -80,7 +95,14 @@ const DietDetail = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
                   You have added{' '}
-                  <span style={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#8479F9' }}>
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      fontSize: '20px',
+                      lineHeight: '24.2px',
+                      color: theme.palette.primary.main
+                    }}
+                  >
                     {' '}
                     13 species{' '}
                   </span>{' '}
@@ -106,205 +128,290 @@ const DietDetail = () => {
                     <Tab value='six' label='Saturday' />
                     <Tab value='seven' label='Sunday' />
                   </TabList>
-                  <TabPanel sx={{ overflowX: 'auto' }} value='full'>
-                    <Grid sx={{ p: 0, pt: '24px' }} container>
-                      <Grid md={8} item>
-                        <Grid
-                          container
-                          sx={{
-                            alignItems: 'center',
-                            height: '40px',
-                            backgroundColor: '#C1D3D04D'
-                          }}
-                        >
-                          <Grid sx={{ position: 'sticky', left: 10, zIndex: 100 }} md={2} item>
-                            <Typography
+                  <TabPanel sx={{ overflowX: 'auto', pb: 0 }} value='full'>
+                    <CustomScrollbar
+                      style={{
+                        maxWidth: '100%'
+                      }}
+                    >
+                      <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell
                               sx={{
+                                border: 'none',
+                                height: '40px',
+                                backgroundColor: '#C1D3D04D',
                                 pl: '16px',
-                                fontSize: '12px',
-                                lineHeight: '16px',
-                                fontWeight: 600
+                                py: 0,
+                                width: '180px',
+                                position: 'sticky',
+                                left: 0
+                              }}
+                              className={classes.sticky}
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: '12px',
+                                  lineHeight: '16px',
+                                  fontWeight: 600
+                                }}
+                              >
+                                TIME
+                              </Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                height: '40px',
+                                backgroundColor: '#fff',
+                                position: 'sticky',
+                                left: '180px',
+                                p: 0,
+                                width: '700px'
                               }}
                             >
-                              TIME
-                            </Typography>
-                          </Grid>
-                          <Grid md={10} item>
-                            <Typography sx={{ fontSize: '12px', lineHeight: '16px', fontWeight: 600 }}>
-                              MEAL DETAILS
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-
-                      <Grid item md={4}>
-                        {/* <ScrollContainer> */}
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            height: '40px'
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              px: 6,
-                              backgroundColor: '#C1D3D099',
-                              minWidth: '110px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              borderRight: '1px solid #C3CEC7'
-                            }}
-                          >
-                            <Typography>COMMON</Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              backgroundColor: '#C1D3D099',
-                              minWidth: '110px',
-                              px: 6,
-                              display: 'flex',
-                              alignItems: 'center',
-                              borderRight: '1px solid #C3CEC7'
-                            }}
-                          >
-                            <Typography>MALE</Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              px: 6,
-                              backgroundColor: '#C1D3D099',
-                              minWidth: '110px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              borderRight: '1px solid #C3CEC7'
-                            }}
-                          >
-                            <Typography>FEMALE</Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              px: 6,
-                              backgroundColor: '#C1D3D099',
-                              minWidth: '110px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              borderRight: '1px solid #C3CEC7'
-                            }}
-                          >
-                            <Typography>Kid</Typography>
-                          </Box>
-                        </Box>
-                        {/* </ScrollContainer> */}
-                      </Grid>
-                    </Grid>
-
-                    <Box sx={{ mt: '16px' }}>
-                      {schedule.length > 0 &&
-                        schedule.map((item, index) => (
-                          <Grid
-                            key={index}
-                            container
-                            sx={{
-                              borderBottom: '1px solid #C3CEC7',
-                              pb: '32px',
-                              // pr: '16px',
-                              pt: index === 0 ? null : '32px'
-                            }}
-                          >
-                            <Grid sx={{ position: 'sticky', zIndex: 100, left: 0 }} md={1.5} item>
-                              <Box sx={{ width: '80%' }}>
-                                <Box sx={{ borderRadius: '25px', border: `2px dotted #00AFD6`, py: '5px', px: '4px' }}>
-                                  <Typography
-                                    sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {item?.startTime}
-                                  </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                  <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
-                                </Box>
-
-                                <Box sx={{ borderRadius: '25px', border: `2px dotted #00AFD6`, py: '5px', px: '4px' }}>
-                                  <Typography
-                                    sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {item?.endTime}
-                                  </Typography>
-                                </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  height: '100%',
+                                  backgroundColor: '#C1D3D04D'
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: '12px',
+                                    lineHeight: '16px',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  MEAL DETAILS
+                                </Typography>
                               </Box>
-                            </Grid>
-                            <Grid md={10.5} item>
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {item?.items?.map((item, index) => (
-                                  <Grid sx={{ justifyContent: 'space-between' }} container>
-                                    <Grid sx={{}} xs={7.3}>
-                                      <Box
-                                        key={index}
-                                        sx={{
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          backgroundColor: '#E1F9ED',
-                                          borderRadius: '8px',
-                                          p: '12px',
-                                          gap: '16px'
-                                        }}
-                                      >
-                                        <Box>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>COMMON</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>MALE</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>FEMALE</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>KID</Typography>
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {schedule?.map((itemd, index) => {
+                            const startTimes = itemd.startTime
+                            const endTimes = itemd.endTime
+                            const ind = index
+                            return (
+                              <>
+                                {itemd?.items?.map((item, index) => {
+                                  let first = startArry.indexOf(itemd.startTime) === -1
+                                  startArry = [...startArry, itemd.startTime]
+                                  return (
+                                    <TableRow
+                                      sx={{
+                                        borderBottom: first || ind == schedule.length - 1 ? '1px solid #C3CEC7' : 'none'
+                                      }}
+                                      key={index}
+                                    >
+                                      {first ? (
+                                        <TableCell
+                                          sx={{
+                                            position: 'sticky',
+                                            left: 0,
+                                            width: '180px',
+                                            border: 'none',
+                                            pl: 0,
+                                            pr: '36px'
+                                          }}
+                                          component='th'
+                                          scope='row'
+                                        >
                                           <Box
                                             sx={{
-                                              display: 'flex',
-                                              flexDirection: 'column',
-                                              gap: '12px'
+                                              borderRadius: '25px',
+                                              border: `2px dotted #00AFD6`,
+                                              py: '5px',
+                                              px: '4px'
                                             }}
                                           >
-                                            <Box sx={{ display: 'flex' }}>
-                                              {item?.category && (
-                                                <Typography
-                                                  sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 600,
-                                                    fontSize: '16px'
-                                                  }}
-                                                >
-                                                  {item?.category}
-                                                </Typography>
-                                              )}
-                                              {item?.prep && (
-                                                <Typography
-                                                  sx={{
-                                                    color: '#7A8684',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
-                                                  }}
-                                                >
-                                                  &nbsp;-&nbsp; {item?.prep}
-                                                </Typography>
-                                              )}
-                                            </Box>
+                                            <Typography
+                                              sx={{
+                                                textAlign: 'center',
+                                                color: '#00AFD6',
+                                                fontWeight: 500,
+                                                fontSize: '16px',
+                                                lineHeight: '19.36px'
+                                              }}
+                                            >
+                                              {startTimes}
+                                            </Typography>
+                                          </Box>
+                                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Box
+                                              sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}
+                                            ></Box>
+                                          </Box>
 
-                                            {item?.ingredient?.length > 0 && (
-                                              <Box
-                                                sx={{
-                                                  display: 'flex',
-                                                  gap: '24px'
-                                                }}
-                                              >
-                                                {item?.ingredient?.map((item, index) => (
-                                                  <Box key={index} sx={{ display: 'flex' }}>
+                                          <Box
+                                            sx={{
+                                              borderRadius: '25px',
+                                              border: `2px dotted #00AFD6`,
+                                              py: '5px',
+                                              px: '4px'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                textAlign: 'center',
+                                                color: '#00AFD6',
+                                                fontWeight: 500,
+                                                fontSize: '16px',
+                                                lineHeight: '19.36px'
+                                              }}
+                                            >
+                                              {endTimes}
+                                            </Typography>
+                                          </Box>
+                                        </TableCell>
+                                      ) : (
+                                        <TableCell sx={{ border: 'none' }}></TableCell>
+                                      )}
+
+                                      <TableCell
+                                        sx={{
+                                          position: 'sticky',
+                                          left: '180px',
+                                          border: 'none',
+                                          backgroundColor: '#fff'
+                                        }}
+                                      >
+                                        <Box
+                                          key={index}
+                                          sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            backgroundColor: '#E1F9ED',
+                                            borderRadius: '8px',
+                                            p: '12px',
+                                            gap: '16px'
+                                          }}
+                                        >
+                                          <Box>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px'
+                                              }}
+                                            >
+                                              <Box sx={{ display: 'flex' }}>
+                                                {item?.category && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '16px'
+                                                    }}
+                                                  >
+                                                    {item?.category}
+                                                  </Typography>
+                                                )}
+                                                {item?.prep && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#7A8684',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    &nbsp;-&nbsp; {item?.prep}
+                                                  </Typography>
+                                                )}
+                                              </Box>
+
+                                              {item?.ingredient?.length > 0 && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.ingredient?.map((item, index) => (
+                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#1F515B',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item.name}&nbsp;
+                                                      </Typography>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#000',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 600,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item?.percentage}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
+                                                </Box>
+                                              )}
+                                              {(item?.preparationType || item?.desc) && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.preparationType && (
                                                     <Typography
                                                       sx={{
                                                         color: '#1F515B',
@@ -313,207 +420,267 @@ const DietDetail = () => {
                                                         fontSize: '14px'
                                                       }}
                                                     >
-                                                      {item.name}&nbsp;
+                                                      {item?.preparationType}
                                                     </Typography>
+                                                  )}
+                                                  {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#000',
+                                                        color: '#1F515B',
                                                         lineHeight: '16.94px',
-                                                        fontWeight: 600,
+                                                        fontWeight: 400,
                                                         fontSize: '14px'
                                                       }}
                                                     >
-                                                      {item?.percentage}
+                                                      {item?.desc}
+                                                    </Typography>
+                                                  )}
+                                                </Box>
+                                              )}
+                                              {item?.remarks && (
+                                                <Box
+                                                  sx={{
+                                                    backgroundColor: '#0000000d',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    p: '12px',
+                                                    borderRadius: '8px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    Remarks
+                                                  </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {item?.remarks}
+                                                  </Typography>
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          </Box>
+                                          {item?.days?.length > 0 && (
+                                            <>
+                                              {/* <Divider /> */}
+                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                {item?.days?.map((item, index) => (
+                                                  <Box
+                                                    key={index}
+                                                    sx={{
+                                                      width: '48px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: '#0000000d',
+                                                      display: 'center',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: '#44544A'
+                                                      }}
+                                                    >
+                                                      {item}
                                                     </Typography>
                                                   </Box>
                                                 ))}
                                               </Box>
-                                            )}
-                                            {(item?.preparationType || item?.desc) && (
-                                              <Box
-                                                sx={{
-                                                  display: 'flex',
-                                                  gap: '24px'
-                                                }}
-                                              >
-                                                {item?.preparationType && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#1F515B',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    {item?.preparationType}
-                                                  </Typography>
-                                                )}
-                                                {item?.desc && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#1F515B',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    {item?.desc}
-                                                  </Typography>
-                                                )}
-                                              </Box>
-                                            )}
-                                            {item?.remarks && (
-                                              <Box
-                                                sx={{
-                                                  backgroundColor: '#0000000d',
-                                                  display: 'flex',
-                                                  flexDirection: 'column',
-                                                  gap: '4px',
-                                                  p: '12px',
-                                                  borderRadius: '8px'
-                                                }}
-                                              >
-                                                <Typography
-                                                  sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 600,
-                                                    fontSize: '14px'
-                                                  }}
-                                                >
-                                                  Remarks
-                                                </Typography>
-                                                <Typography
-                                                  sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
-                                                  }}
-                                                >
-                                                  {item?.remarks}
-                                                </Typography>
-                                              </Box>
-                                            )}
-                                          </Box>
+                                            </>
+                                          )}
                                         </Box>
-                                        {item?.days?.length > 0 && (
-                                          <>
-                                            <Divider />
-                                            <Box sx={{ display: 'flex', gap: '12px' }}>
-                                              {item?.days?.map((item, index) => (
-                                                <Box
-                                                  key={index}
-                                                  sx={{
-                                                    width: '48px',
-                                                    height: '32px',
-                                                    borderRadius: '16px',
-                                                    backgroundColor: '#0000000d',
-                                                    display: 'center',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center'
-                                                  }}
-                                                >
-                                                  <Typography
-                                                    sx={{
-                                                      fontWeight: 400,
-                                                      fontSize: '13px',
-                                                      lineHeight: '18px',
-                                                      color: '#44544A'
-                                                    }}
-                                                  >
-                                                    {item}
-                                                  </Typography>
-                                                </Box>
-                                              ))}
-                                            </Box>
-                                          </>
-                                        )}
-                                      </Box>
-                                    </Grid>
-                                    <Grid sx={{ alignSelf: 'stretch' }} xs={4.5} item>
-                                      {/* <ScrollContainer sx={{ height: '100%' }}> */}
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          height: '100%'
+                                      </TableCell>
+
+                                      <TableCell
+                                        style={{
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none',
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px'
                                         }}
                                       >
-                                        {item?.mealCategory?.common && (
-                                          <Box
-                                            sx={{
-                                              left: 0,
-                                              minWidth: '110px',
-                                              height: '100%',
-                                              mx: '8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              borderRadius: '8px',
-                                              backgroundColor: '#0000000d'
-                                            }}
-                                          >
-                                            <Typography>{item?.mealCategory?.common}</Typography>
-                                          </Box>
-                                        )}
-                                        {item?.mealCategory?.male && (
-                                          <Box
-                                            sx={{
-                                              minWidth: '110px',
-                                              height: '100%',
-                                              mx: '8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              borderRadius: '8px',
-                                              backgroundColor: '#0000000d'
-                                            }}
-                                          >
-                                            <Typography>{item?.mealCategory?.male}</Typography>
-                                          </Box>
-                                        )}
-                                        {item?.mealCategory?.female && (
-                                          <Box
-                                            sx={{
-                                              minWidth: '110px',
-                                              height: '100%',
-                                              mx: '8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              borderRadius: '8px',
-                                              backgroundColor: '#0000000d'
-                                            }}
-                                          >
-                                            <Typography>{item?.mealCategory?.female}</Typography>
-                                          </Box>
-                                        )}
-                                        {item?.mealCategory?.kid && (
-                                          <Box
-                                            sx={{
-                                              minWidth: '110px',
-                                              height: '100%',
-                                              mx: '8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              borderRadius: '8px',
-                                              backgroundColor: '#0000000d'
-                                            }}
-                                          >
-                                            <Typography>{item?.mealCategory?.kid}</Typography>
-                                          </Box>
-                                        )}
-                                      </Box>
-                                      {/* </ScrollContainer> */}
-                                    </Grid>
-                                  </Grid>
-                                ))}
-                              </Box>
-                            </Grid>
-                          </Grid>
-                        ))}
-                    </Box>
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {item?.mealCategory?.common && (
+                                            <Box
+                                              sx={{
+                                                backgroundColor: '#0000000d',
+                                                p: '10px',
+                                                width: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                borderRadius: '8px',
+                                                height: '100%'
+                                              }}
+                                            >
+                                              <Typography
+                                                sx={{
+                                                  color: '#000',
+                                                  lineHeight: '16.94px',
+                                                  fontWeight: 400,
+                                                  fontSize: '14px'
+                                                }}
+                                              >
+                                                {item?.mealCategory?.common}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {item?.mealCategory?.male && (
+                                            <Box
+                                              sx={{
+                                                backgroundColor: '#0000000d',
+                                                p: '10px',
+                                                width: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                borderRadius: '8px',
+                                                height: '100%'
+                                              }}
+                                            >
+                                              <Typography
+                                                sx={{
+                                                  color: '#000',
+                                                  lineHeight: '16.94px',
+                                                  fontWeight: 400,
+                                                  fontSize: '14px'
+                                                }}
+                                              >
+                                                {item?.mealCategory?.male}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {item?.mealCategory?.female && (
+                                            <Box
+                                              sx={{
+                                                backgroundColor: '#0000000d',
+                                                p: '10px',
+                                                width: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                borderRadius: '8px',
+                                                height: '100%'
+                                              }}
+                                            >
+                                              <Typography
+                                                sx={{
+                                                  color: '#000',
+                                                  lineHeight: '16.94px',
+                                                  fontWeight: 400,
+                                                  fontSize: '14px'
+                                                }}
+                                              >
+                                                {item?.mealCategory?.female}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {item?.mealCategory?.kid && (
+                                            <Box
+                                              sx={{
+                                                backgroundColor: '#0000000d',
+                                                // mx: '5px',
+                                                p: '10px',
+                                                width: '100%',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                borderRadius: '8px',
+                                                height: '100%'
+                                              }}
+                                            >
+                                              <Typography
+                                                sx={{
+                                                  color: '#000',
+                                                  lineHeight: '16.94px',
+                                                  fontWeight: 400,
+                                                  fontSize: '14px'
+                                                }}
+                                              >
+                                                {item?.mealCategory?.kid}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                    </TableRow>
+                                  )
+                                })}
+                              </>
+                            )
+                          })}
+                        </TableBody>
+                      </Table>
+                    </CustomScrollbar>
                   </TabPanel>
                   <TabPanel value='one'>
                     <Typography>
@@ -526,6 +693,15 @@ const DietDetail = () => {
                     </Typography>
                   </TabPanel>
                 </TabContext>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
+                  Remarks
+                </Typography>
+                <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                  {' '}
+                  <span>1.&nbsp;</span>Offer 2 times a week larger piece on tree trunk with bark
+                </Typography>
               </Box>
             </Card>
           </Box>

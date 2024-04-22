@@ -5,6 +5,7 @@ import moment from 'moment'
 
 const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
+
   const toggleExpanded = () => {
     setExpanded(!expanded)
   }
@@ -17,6 +18,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
 
     return firstLetter + restOfWord
   }
+
   return (
     <Grid>
       {IngredientsDetailsval.desc ? (
@@ -42,14 +44,11 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
             <Typography
               onClick={toggleExpanded}
               sx={{
-                mt: 1,
                 fontWeight: '600',
                 fontSize: '13px',
                 textDecoration: 'underline',
                 color: '#000',
-                cursor: 'pointer',
-                float: 'right',
-                paddingBottom: '30px'
+                cursor: 'pointer'
               }}
             >
               {expanded ? 'View less' : 'View more'}

@@ -19,12 +19,14 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
   const [activitydata, setActivityData] = useState([])
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(20)
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
     message: ''
   })
   const theme = useTheme()
+
   // Styled Timeline component
   const Timeline = styled(MuiTimeline)({
     paddingLeft: 0,
@@ -49,6 +51,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
           setActivityData(res?.data?.data)
+          console.log('res?.data?.data', res?.data?.data)
           setOpenSnackbar({
             ...openSnackbar,
             open: true,
@@ -227,6 +230,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
                               : null
                           }
                           color={item.action === 'activated' ? '#fff' : null}
+
                           // style={item.action === 'Swapped' ? { transform: 'rotateY(180deg)' } : null}
                         />
                       </Box>
@@ -283,7 +287,7 @@ const ActivityLogs = ({ handleSidebarClose, searchValue, setSearchValue, Ingredi
                               }}
                             >
                               {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
-                              &nbsp; Ingredient
+                              Ingredient
                             </Typography>
                           </Box>
                         </Box>

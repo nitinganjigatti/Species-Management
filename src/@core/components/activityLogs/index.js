@@ -256,6 +256,8 @@ const ActivityLogs = ({
                                     ? 'material-symbols:repeat'
                                     : item.action === 'edited'
                                     ? 'material-symbols:edit'
+                                    : item.action === 'deleted'
+                                    ? 'ic:baseline-delete'
                                     : null
                                 }
                                 color={item.action === 'activated' ? '#fff' : null}

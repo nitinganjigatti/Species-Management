@@ -106,6 +106,7 @@ const RecipeDetail = () => {
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
