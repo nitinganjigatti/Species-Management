@@ -33,6 +33,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { debounce } from 'lodash'
+import toast from 'react-hot-toast'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -51,7 +52,7 @@ import Error404 from 'src/pages/404'
 import { addMedicine, getMedicineById, updateMedicineById } from 'src/lib/api/pharmacy/getMedicineList'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import UserSnackbar from 'src/components/utility/snackbar'
-import { getGenerics } from 'src/lib/api/pharmacy/genericNames'
+import { getGenerics, addGenericName } from 'src/lib/api/pharmacy/genericNames'
 import { getDosageFormList } from 'src/lib/api/pharmacy/productForms'
 import { getUnits } from 'src/lib/api/pharmacy/getUnits'
 import { getDrugs } from 'src/lib/api/pharmacy/getDrugs'
@@ -68,6 +69,7 @@ import { addManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import GenericNamesList from '../../masters/generic'
+import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -208,6 +210,9 @@ const AddMedicine = () => {
   const [resetForm, setResetForm] = useState(false)
   const editParamsInitialState = { id: null, name: null, active: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [genericsDrawerMenu, setGenericsDrawerMenu] = useState(false)
+  const [genericsMenuLoader, setGenericsDrawerMenuLoader] = useState(false)
 
   const getManufacturersList = async ({ key, page, limit }) => {
     try {
@@ -446,6 +451,35 @@ const AddMedicine = () => {
     } catch (e) {
       console.log(e)
       setLoader(false)
+    }
+  }
+
+  const addGenericsHandleSubmitData = async payload => {
+    console.log('payload.data', payload)
+    try {
+      setGenericsDrawerMenuLoader(true)
+      var response = await addGenericName(payload)
+      if (response?.success) {
+        toast.success(response?.message)
+        genericSearch('')
+        setGenericsDrawerMenuLoader(false)
+        handleSidebarClose()
+      } else {
+        handleSidebarClose()
+
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+          setGenericsDrawerMenuLoader(false)
+        } else {
+          toast.error(response.message)
+          setGenericsDrawerMenuLoader(false)
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      handleSidebarClose()
+      setGenericsDrawerMenuLoader(false)
+      toast.error(JSON.stringify(e))
     }
   }
 
@@ -867,10 +901,16 @@ const AddMedicine = () => {
     setOpenSalt(false)
     setResetForm(true)
     setPopupLoader(false)
+    setGenericsDrawerMenu(false)
   }
 
   const addNewManufacturer = () => {
     setOpenManufacturer(true)
+    setResetForm(false)
+  }
+
+  const addNewGenericNameSidebarOpen = () => {
+    setGenericsDrawerMenu(true)
     setResetForm(false)
   }
 
@@ -1037,56 +1077,67 @@ const AddMedicine = () => {
                           </Grid>
 
                           {medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={6}>
-                              <FormControl fullWidth>
-                                <Controller
-                                  name='generic_name_id'
-                                  control={control}
-                                  rules={{ required: true }}
-                                  render={({ field: { value, onChange } }) => (
-                                    <Autocomplete
-                                      disablePortal
-                                      id='generic_name_id'
-                                      value={defaultGenericName}
-                                      options={genericNameList}
-                                      getOptionLabel={option => option.name}
-                                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                      onChange={(e, val) => {
-                                        // setDefaultManufacturer(val)
+                            <>
+                              <Grid item xs={12} sm={6}>
+                                <FormControl fullWidth>
+                                  <Controller
+                                    name='generic_name_id'
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field: { value, onChange } }) => (
+                                      <Autocomplete
+                                        disablePortal
+                                        id='generic_name_id'
+                                        value={defaultGenericName}
+                                        options={genericNameList}
+                                        getOptionLabel={option => option.name}
+                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                        onChange={(e, val) => {
+                                          // setDefaultManufacturer(val)
+                                          if (val === null) {
+                                            setDefaultGenericName(val)
 
-                                        if (val === null) {
-                                          setDefaultGenericName(val)
+                                            return onChange('')
+                                          } else {
+                                            setDefaultGenericName(val)
 
-                                          return onChange('')
-                                        } else {
-                                          setDefaultGenericName(val)
+                                            return onChange(val.id)
+                                          }
+                                        }}
+                                        onKeyUp={e => {
+                                          genericSearch(e.target.value)
 
-                                          return onChange(val.id)
-                                        }
-                                      }}
-                                      onKeyUp={e => {
-                                        genericSearch(e.target.value)
-
-                                        // getManufacturersList({ key: e.target.value })
-                                      }}
-                                      renderInput={params => (
-                                        <TextField
-                                          {...params}
-                                          label='Generic Name*'
-                                          placeholder='Search & Select'
-                                          error={Boolean(errors.generic_name_id)}
-                                        />
-                                      )}
-                                    />
+                                          // getManufacturersList({ key: e.target.value })
+                                        }}
+                                        renderInput={params => (
+                                          <TextField
+                                            {...params}
+                                            label='Generic Name*'
+                                            placeholder='Search & Select'
+                                            error={Boolean(errors.generic_name_id)}
+                                          />
+                                        )}
+                                      />
+                                    )}
+                                  />
+                                  {errors?.generic_name_id && (
+                                    <FormHelperText sx={{ color: 'error.main' }}>
+                                      {errors?.generic_name_id?.message}
+                                    </FormHelperText>
                                   )}
-                                />
-                                {errors?.generic_name_id && (
-                                  <FormHelperText sx={{ color: 'error.main' }}>
-                                    {errors?.generic_name_id?.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            </Grid>
+                                </FormControl>
+                              </Grid>
+                              <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                                <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                                  <AddButton
+                                    title='Add Generic Name'
+                                    action={() => {
+                                      addNewGenericNameSidebarOpen()
+                                    }}
+                                  />
+                                </Box>
+                              </Grid>
+                            </>
                           )}
 
                           <Grid item xs={12} sm={12}>
@@ -1890,6 +1941,15 @@ const AddMedicine = () => {
                 handleSubmitData={handleSalt}
                 resetForm={resetForm}
                 submitLoader={popupLoader}
+                editParams={editParams}
+              />
+              <AddGenericName
+                drawerWidth={400}
+                addEventSidebarOpen={genericsDrawerMenu}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={addGenericsHandleSubmitData}
+                resetForm={resetForm}
+                submitLoader={genericsMenuLoader}
                 editParams={editParams}
               />
             </>
