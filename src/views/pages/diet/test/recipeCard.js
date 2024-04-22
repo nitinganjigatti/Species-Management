@@ -15,6 +15,7 @@ import { Stack } from '@mui/system'
 
 const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   const [remarks, setRemarks] = useState('')
+
   const Day = [
     { id: 0, name: 'All', isActive: false },
     { id: 1, name: 'Mon', isActive: false },
@@ -25,8 +26,6 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
     { id: 6, name: 'Sat', isActive: false },
     { id: 7, name: 'Sun', isActive: false }
   ]
-
-  console.log('rows>>>>>', rows)
 
   const [selectedDays, setSelectedDays] = useState([])
   console.log('selectedDays', selectedDays, remarks)
@@ -84,65 +83,46 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   console.log('Selected Days ??', selectedDays)
 
   const handleCardClick = item => {
-    debugger
-    // Check if the item is already selected
-    // const selectedIndex = selectedCard.indexOf(item)
-    const remarksData = remarks || ''
-
-    const selectedDaysForItem = Day.filter(day =>
-      selectedDays.some(
-        selectedDay =>
-          selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
-      )
-    )
-
     const index = selectedCard.findIndex(card => card.id === item.id)
-    if (index === -1) {
-      // If not selected, add it to the selectedCard array
-      setSelectedCard(prevValues => [
-        ...prevValues,
-        {
-          item: item,
-          id: item.id,
-          selectedDays: selectedDays,
-          remarks: remarksData
-        }
-      ])
+    if (index !== -1) {
+      setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
-      // If selected, remove it from the selectedCard array
-      const newSelectedCard = [...selectedCard]
-      newSelectedCard.splice(index, 1)
-      setSelectedCard(newSelectedCard)
+      setSelectedCard(prevValues => [...prevValues, item])
     }
-
-    // Prepare the object to store values
   }
 
-  // const handleClick = (item, index, e) => {
-  //   console.log('dfdm', e.target.value)
-  //   const newSelectedCard = [...selectedCard]
-  //   const selectedItem = newSelectedCard.find(selectedItem => selectedItem.id === item.id)
-
-  //   if (selectedItem) {
-  //     selectedItem.selected_remarks = e.target.value
-  //   }
-
-  //   setSelectedCard(newSelectedCard)
-
-  //   setExpandedIndex(prevState =>
-  //     prevState.includes(index) ? prevState.filter(i => i !== index) : [...prevState, index]
-  //   )
-  // }
   const handleSelected = () => {
     console.log('Selected Data', selectedCard)
+    const filterItem = selectedCard.map(item => {
+      const selectedDaysForItem = Day.filter(day =>
+        selectedDays.some(
+          selectedDay =>
+            selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+        )
+      )
+      let boxValues = {
+        ...item,
+        selectedDays: selectedDaysForItem
+      }
+      return boxValues
+    })
+    setSelectedCard(filterItem)
   }
+  console.log('SelectedCard >>', selectedCard)
 
-  const handleAddRemarks = event => {
-    event.stopPropagation()
-    setRemarks(event.target.value)
+  const handleAddRemarks = (event, cardId) => {
+    const updatedCards = selectedCard.map(item => {
+      if (item.id === cardId) {
+        return {
+          ...item,
+          remarks: event.target.value
+        }
+      }
+      return item
+    })
+
+    setSelectedCard(updatedCards)
   }
-
-  console.log('remarks >>', remarks)
   return (
     <Box>
       <Box>
@@ -293,7 +273,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                         multiline
                         rows={expandedIndex.includes(index) ? 3 : 1}
                         // onClick={e => handleClick(item, index, e)}
-                        onChange={handleAddRemarks}
+                        onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         variant='outlined'
                         fullWidth
