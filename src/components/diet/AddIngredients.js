@@ -3,7 +3,19 @@
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition, debounce } from '@mui/material'
+import {
+  Box,
+  IconButton,
+  Typography,
+  TextField,
+  Stack,
+  Button,
+  Checkbox,
+  Transition,
+  debounce,
+  LinearProgress,
+  CircularProgress
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
@@ -18,7 +30,7 @@ import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTyp
 
 const AddIngredients = props => {
   const { open, handleSidebarClose, setSelectedIngredient } = props
-  const [feed, setFeed] = React.useState('')
+  const [feed, setFeed] = useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
   const [searchValue, setSearchValue] = useState('')
@@ -66,19 +78,17 @@ const AddIngredients = props => {
   }
 
   const handleChangeTopFeed = async event => {
+    setReachedEnd(true)
     setFeed(event.target.value)
 
     try {
-      // const currentAnimalFilterValue = animalFilterValueRef.current
-
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: 69 }
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
-          // setOpen(true)
         }
       })
     } catch (error) {
@@ -273,10 +283,9 @@ const AddIngredients = props => {
 
   useEffect(() => {
     getUnitsList()
+    setReachedEnd(true)
 
     try {
-      // const currentAnimalFilterValue = animalFilterValueRef.current
-
       const params = { page: ingredientPage, q: searchValue, sort }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
@@ -284,7 +293,6 @@ const AddIngredients = props => {
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
-          // setOpen(true)
         }
       })
     } catch (error) {
@@ -334,26 +342,13 @@ const AddIngredients = props => {
       setIngredientPage(++ingredientPage)
       setReachedEnd(true)
       try {
-        // const currentAnimalFilterValue = animalFilterValueRef.current
-
         const params = { page: ingredientPage, q: searchValue, sort }
         await getIngredientList({ params }).then(res => {
-          // {
-          //   // sort,
-          //   q,
-          //   sortColumn,
-          //   page: ingredientPage,
-          //   limit: paginationModel.pageSize,
-          //   status
-          // }
-          // currentAnimalFilterValue
-
           if (res?.data?.result?.length > 0) {
             setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
           } else {
             setReachedEnd(false)
-            // setOpen(true)
           }
         })
       } catch (error) {
@@ -680,6 +675,11 @@ const AddIngredients = props => {
               {/* ) : null} */}
             </Box>
           ))}
+          {reachedEnd ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+              <CircularProgress sx={{ mb: 10 }} />{' '}
+            </Box>
+          ) : null}
         </Box>
 
         <Box
