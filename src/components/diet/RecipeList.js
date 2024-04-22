@@ -23,7 +23,6 @@ const RecipeList = props => {
   const [sort, setSort] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  // const [selectedCard, setSelectedCard] = useState([])
 
   console.log('paginationModel ??', paginationModel)
 
