@@ -17,7 +17,7 @@ import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 
 const AddIngredients = props => {
-  const { open, handleSidebarClose } = props
+  const { open, handleSidebarClose, setSelectedIngredient } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -274,6 +274,7 @@ const AddIngredients = props => {
     // Check if the boxValues already exist in selectedCard
     const index = selectedCard.findIndex(card => card.id === item.id)
     if (index !== -1) {
+      setSelectedCard
       // Remove the existing entry
       setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
@@ -283,6 +284,7 @@ const AddIngredients = props => {
   }
 
   const handleAllSelect = () => {
+    setSelectedIngredient(selectedCard)
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -54,6 +54,8 @@ const IngredientsList = () => {
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
+  const [selectedIngredient, setSelectedIngredient] = useState()
+  console.log('selectedIngredient', selectedIngredient)
 
   const [openIngredient, setOpenIngredient] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -496,7 +498,11 @@ const IngredientsList = () => {
         </TabContext>
       </Grid>
 
-      <AddIngredients open={openIngredient} handleSidebarClose={handleSidebarClose} />
+      <AddIngredients
+        open={openIngredient}
+        handleSidebarClose={handleSidebarClose}
+        setSelectedIngredient={setSelectedIngredient}
+      />
     </>
   )
 }
