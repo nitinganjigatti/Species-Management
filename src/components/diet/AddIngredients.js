@@ -8,9 +8,9 @@ import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
+import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
-import { margin } from '@mui/system'
+
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
@@ -110,53 +110,6 @@ const AddIngredients = props => {
     setRemarks(event.target.value)
   }
 
-  // Handle click on the days
-  // const [day, setDay] = useState(ingredientList)
-
-  // const handleDayClick = (id, cardId) => {
-  //   setDay(prevFoods =>
-  //     prevFoods.map(food => {
-  //       if (food.id === cardId) {
-  //         if (id === '0') {
-  //           // Toggle all days for the specific card
-  //           const allActive = !food.days.every(day => day.isActive)
-  //           return {
-  //             ...food,
-  //             days: food.days.map(day => ({ ...day, isActive: allActive }))
-  //           }
-  //         } else {
-  //           // Toggle the clicked day
-  //           const updatedDays = food.days.map(day => {
-  //             if (day.id === id) {
-  //               return { ...day, isActive: !day.isActive }
-  //             }
-  //             return day
-  //           })
-
-  //           // Check if all individual days are active, then activate "ALL" button
-  //           const allIndividualDaysActive = updatedDays.slice(1).every(day => day.isActive)
-  //           const allActive = allIndividualDaysActive || updatedDays[0].isActive
-
-  //           // Check if "ALL" button is already active and any individual day is clicked again
-  //           if (updatedDays[0].isActive && !allIndividualDaysActive) {
-  //             // Toggle all days to false
-  //             return {
-  //               ...food,
-  //               days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: false } : day))
-  //             }
-  //           }
-
-  //           return {
-  //             ...food,
-  //             days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: allActive } : day))
-  //           }
-  //         }
-  //       }
-  //       return food
-  //     })
-  //   )
-  // }
-
   const [selectedDays, setSelectedDays] = useState([])
 
   const handleDayClick = (dayId, dayName, cardId) => {
@@ -217,6 +170,7 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
+  console.log('selectedCard', selectedCard)
 
   const handelCardSelection = item => {
     // Get the selected feed value for the current item
@@ -233,6 +187,30 @@ const AddIngredients = props => {
       )
     )
 
+    // Validation checks
+    if (!feedType) {
+      // Display error message or handle empty feedType
+      toast.error('Please select a feed type.')
+      return
+    }
+
+    if (selectedDaysForItem.length === 0) {
+      // Display error message or handle no selected days
+      toast.error('Please select at least one day.')
+      return
+    }
+
+    if (feedType === 'Chopped') {
+      // Additional validation for 'Chopped' feed type
+      const cutSizeValue = cutSize || ''
+      const sizeValue = size || ''
+      if (!cutSizeValue || !sizeValue) {
+        // Display error message or handle empty cut size or size
+        toast.error('Cut size and size are required for chopped feed.')
+        return
+      }
+    }
+
     // Prepare the object to store values
     const boxValues = {
       id: item.id,
@@ -242,31 +220,12 @@ const AddIngredients = props => {
       remarks: remarksData
     }
 
-    // Include cut size and its dropdown only if feedType is "chopped"
     if (feedType === 'Chopped') {
+      // Include cut size and its dropdown only if feedType is "Chopped"
       const cutSizeValue = cutSize || ''
       const sizeValue = size || ''
-      if (!cutSizeValue || !sizeValue) {
-        // Display a message if cut size or its dropdown is empty
-        return toast(t => (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-              <div>
-                <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                  Cut Size is required
-                </Typography>
-              </div>
-            </Box>
-            <IconButton
-              onClick={() => toast.dismiss(t.id)}
-              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-            >
-              <Icon icon='mdi:close' fontSize={24} />
-            </IconButton>
-          </Box>
-        ))
-      }
+
+      // Update boxValues with cut size and size
       boxValues.cutSize = cutSizeValue
       boxValues.uomId = sizeValue
     }
@@ -274,7 +233,6 @@ const AddIngredients = props => {
     // Check if the boxValues already exist in selectedCard
     const index = selectedCard.findIndex(card => card.id === item.id)
     if (index !== -1) {
-      setSelectedCard
       // Remove the existing entry
       setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
@@ -426,16 +384,11 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  // useEffect(() => {
-  //   handelCardSelection()
-  // }, [selectFeed, selectedDays, remarks, cutSize, size])
-
   return (
     <>
       <Drawer
         anchor='right'
         open={open}
-        // onScroll={handleScroll}
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -454,8 +407,6 @@ const AddIngredients = props => {
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px'
-
-              //   backgroundColor: 'background.default',
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
@@ -609,8 +560,7 @@ const AddIngredients = props => {
               </Box>
 
               {/* bottom part */}
-              {/* {showBottom === index  */}
-              {/* {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? ( */}
+
               <>
                 <Box
                   sx={{
