@@ -218,6 +218,7 @@ const PreparationTypes = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
+
   return (
     <>
       <Card>

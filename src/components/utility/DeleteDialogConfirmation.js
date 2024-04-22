@@ -71,7 +71,7 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
           <Typography sx={{ mt: 2 }}>
             {active === '1' ? 'Deactivating' : 'Activating'} this{' '}
             {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} prevents its addition to new{' '}
-            <br /> {type === 'ingredient' ? 'recipes or diets.' : 'diets'}
+            <br /> {type === 'ingredient' ? 'recipes or diets.' : 'ingredients'}
           </Typography>
         </DialogTitle>
 

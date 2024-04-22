@@ -128,7 +128,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.feed_type}
+                {IngredientsDetailsval.feed_type_label}
               </Typography>
             </Box>
           </Box>

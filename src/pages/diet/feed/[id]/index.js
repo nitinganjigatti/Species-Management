@@ -462,14 +462,12 @@ const FeedDetails = () => {
                                 <Typography
                                   onClick={toggleExpanded}
                                   sx={{
-                                    mt: 1,
                                     fontWeight: '600',
                                     fontSize: '13px',
                                     textDecoration: 'underline',
+
                                     color: '#000',
-                                    cursor: 'pointer',
-                                    float: 'right',
-                                    paddingBottom: '30px'
+                                    cursor: 'pointer'
                                   }}
                                 >
                                   {expanded ? 'View less' : 'View more'}
