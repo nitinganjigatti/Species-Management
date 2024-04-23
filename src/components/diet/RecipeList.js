@@ -26,17 +26,20 @@ const RecipeList = props => {
 
   console.log('paginationModel ??', paginationModel)
 
-  useEffect(async () => {
-    const params = { page: ingredientPage, q: searchValue, sort }
-    await getRecipeList({ params }).then(res => {
-      console.log('response', res)
-      if (res.data.result.length > 0) {
-        setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-        setReachedEnd(false)
-      } else {
-        setReachedEnd(false)
-      }
-    })
+  useEffect(() => {
+    const getRecipeListData = async () => {
+      const params = { page: ingredientPage, q: searchValue, sort }
+      await getRecipeList({ params }).then(res => {
+        console.log('response', res)
+        if (res.data.result.length > 0) {
+          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+        }
+      })
+    }
+    getRecipeListData()
   }, [])
 
   function loadServerRows(currentPage, data) {
@@ -156,4 +159,5 @@ const RecipeList = props => {
     </Drawer>
   )
 }
+
 export default RecipeList

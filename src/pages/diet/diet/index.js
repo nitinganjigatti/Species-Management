@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff'
+
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
+
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Box, Tooltip, Switch, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Divider, Select, MenuItem } from '@mui/material'
 import toast from 'react-hot-toast'
 import NotesIcon from '@mui/icons-material/Notes'
 
@@ -30,12 +27,10 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
-import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
-import DescriptionIcon from '@mui/icons-material/Description'
+
 import RecipeList from 'src/components/diet/RecipeList'
 
 // Styled TabList component
@@ -48,11 +43,14 @@ const Diet = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [Dietdata, setDietData] = useState(Data)
-  const [filterStatusData, setFilterStatusData] = useState(Dietdata)
+
+  // const [Dietdata, setDietData] = useState(Data)
+
+  // const [filterStatusData, setFilterStatusData] = useState(Dietdata)
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('created_at')
-  const [searchColumns, setSearchColumns] = useState('recipe_name')
+  const [sortColumn, setSortColumn] = useState('diet_name')
+
+  // const [searchColumns, setSearchColumns] = useState('recipe_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -71,7 +69,7 @@ const Diet = () => {
   }
 
   const handleChange = (event, newValue) => {
-    debugger
+    // debugger
     setTotal(0)
     setStatus(newValue)
   }
@@ -104,14 +102,14 @@ const Diet = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, searchColumns, sortColumn, status) => {
+    async (sort, q, sortColumn, status) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
-          searchColumns,
+
           sortColumn,
 
           page: paginationModel.page + 1,
@@ -145,7 +143,7 @@ const Diet = () => {
   console.log('total <<<', total)
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, searchColumns, status)
+    fetchTableData(sort, searchValue, sortColumn, status)
   }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -160,16 +158,16 @@ const Diet = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
 
-      fetchTableData(newModel[0].sort, searchValue, searchColumns, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, searchColumns, status) => {
+    debounce(async (sort, q, sortColumn, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, searchColumns, status)
+        await fetchTableData(sort, q, sortColumn, status)
       } catch (error) {
         console.error(error)
       }
@@ -242,9 +240,9 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
-    debugger
+    // debugger
     setSearchValue(value)
-    searchTableData(sort, value, searchColumns, status)
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const columns = [
@@ -263,7 +261,7 @@ const Diet = () => {
     {
       flex: 0.5,
       minWidth: 30,
-      field: 'recipe_name',
+      field: 'diet_name',
       headerName: 'Diet',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -437,7 +435,6 @@ const Diet = () => {
                     <MenuItem value='10'>10</MenuItem>
                     <MenuItem value='20'>20</MenuItem>
                     <MenuItem value='30'>30</MenuItem>
-                    {/* Add other options here */}
                   </Select>
                 </Grid>
                 <Grid sx={{ m: 2 }}>
