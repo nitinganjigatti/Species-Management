@@ -31,6 +31,7 @@ import {
   List
 } from '@mui/material'
 import { Box, borderRadius } from '@mui/system'
+import { useTheme } from '@mui/material/styles'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import React, { useRef, useState, useEffect, Fragment } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -57,65 +58,80 @@ import toast from 'react-hot-toast'
 import ImageUploadComponent, { ImageUploadCard } from 'src/views/pages/pharmacy/utility/image-upload-card'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { ConfirmationBox } from 'src/utility/Confirm-dialog-box'
+import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 export default function AddProduct() {
-  const fileInputRef = useRef(null)
-  const prescriptionRef = useRef(null)
-
   const [storeList, setStoreList] = useState([])
   const [dataChildValues, setDataChildValues] = useState([])
   const [editValues, setEditValues] = useState(dataChildValues)
   const [editIndex, setEditIndex] = useState(null)
   const [displayFile, setDisplayFile] = useState()
-  const [imgBaseUrl, SetImgBaseUrl] = useState()
+  const [imgBaseUrl, setImgBaseUrl] = useState()
   const [getDetails, setGetDetails] = useState()
   const [prescriptionField, setPrescriptionField] = useState([])
   const [defaultSalts, setDefaultSalts] = useState([])
   const [saltsList, setSalts] = useState([])
   const [imgSrc, setImgSrc] = useState('')
+  const [prescriptionImage, setPrescriptionImage] = useState()
+  const [previousPrescriptionLength, setPreviousPrescriptionLength] = useState(false)
+  const [imgSrcChange, setImgSrcChange] = useState(false)
+  const [confirmationBox, setConfirmationBox] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   const [responseImage, setResponseImage] = useState()
-
+  const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
   useEffect(() => {
     getStoreList({ params: { q: 'central', column: 'type' } })
-      .then(res => setStoreList(res?.data?.list_items))
+      .then(res => {
+        setStoreList(res?.data?.list_items)
+        if (res?.data?.list_items.length > 0) {
+          setValue('from_store', res?.data?.list_items[0].id)
+        }
+      })
       .catch(err => console.log(err))
   }, [])
 
-  // {
-  //   storeList?.map((item, index) => setStoreId(item?.id))
-  // }
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  const commonSchema = yup.object().shape({
+    from_store: yup.string().required('Store Name is required'),
+    product_type: yup.string().required('Product type is required'),
+    product_name: yup.string().required('Product name is required'),
+    quantity: yup
+      .number()
+      .typeError('Quantity must be a number')
+      .required('Quantity is required')
+      .moreThan(0, 'Quantity must be greater than 0')
+  })
 
-  const schema = yup.object().shape({
-    from_store: yup.string().required('product name is required'),
-    product_type: yup.string().required('product name is required'),
-    product_name: yup.string().required('product name is required'),
-    generic_name: yup.string().required('product name is required'),
-    quantity: yup.number().required('Quantity is required').moreThan(0, 'Quantity must be greater than 0')
+  const nonMedicalSchema = yup.object().shape({
+    generic_name: yup.string().notRequired()
+  })
+
+  const medicalSchema = yup.object().shape({
+    generic_name: yup.string().required('Generic name is required')
+  })
+
+  const schema = yup.lazy(values => {
+    if (values && values.product_type === 'non_medical') {
+      return commonSchema.concat(nonMedicalSchema)
+    }
+
+    return commonSchema.concat(medicalSchema)
   })
 
   const defaultValues = {
-    from_store: 38,
+    from_store: '',
     comment: '',
     prescription_images: [],
     product_type: '',
     product_name: '',
     generic_name: '',
     product_image: '',
-    quantity: '1',
+    quantity: '',
     priority: 'Normal',
     salts: [],
-
-    // salts: [
-    //   {
-    //     label: '',
-    //     salt_id: '',
-    //     salt_qty: ''
-    //   }
-    // ],
     status: 'pending'
   }
 
@@ -123,8 +139,9 @@ export default function AddProduct() {
     control,
     handleSubmit,
     setValue,
+    getValues,
     reset,
-    formState: { errors }
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -132,114 +149,97 @@ export default function AddProduct() {
     reValidateMode: 'onChange'
   })
 
-  const { fields } = useFieldArray({
-    control,
-    name: 'prescription_images'
-  })
-
-  // const { fields, append, remove, insert } = useFieldArray({
-  //   control,
-  //   name: 'salts'
-  // })
-
   const handleFileChange = event => {
     const { files } = event.target
 
-    const newImages = Array.from(files).map(file => ({
-      file
-    }))
+    const newImages = Array.from(files).map(file => file)
+    const imagesList = getValues('prescription_images')
+    if (imagesList.length > 0) {
+      setValue('prescription_images', [...imagesList, ...newImages])
+    } else {
+      setValue('prescription_images', [...newImages])
+    }
 
-    setValue('prescription_images', newImages)
-  }
-
-  const handleAddGalleryClick = () => {
-    fileInputRef.current.click()
-  }
-
-  const handlePrescriptionClick = () => {
-    prescriptionRef.current.click()
-  }
-
-  const removeItemsFroTable = index => {
-    const updatedItems = dataChildValues.filter((el, elindex) => {
-      return elindex != index
-    })
-    setDataChildValues(updatedItems)
+    setPrescriptionImage([...imagesList, ...newImages])
+    setPreviousPrescriptionLength(true)
   }
 
   const removeselectedImage = selectedindex => {
-    const list = [...fields]
-    const filterList = list.filter((item, index) => selectedindex !== index)
-    setValue('prescription_images', filterList)
+    if (prescriptionImage.length > 0) {
+      const list = [...prescriptionImage]
+      const filterList = list.filter((item, index) => selectedindex !== index)
+      setValue('prescription_images', filterList)
+      setPrescriptionImage(filterList)
+      setPreviousPrescriptionLength(true)
+    }
   }
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
-      SetImgBaseUrl(res?.base_path)
+      console.log('Product', res.data)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
       setResponseImage(res?.data?.request_item_details[0].product_image)
-      debugger
       reset({
         from_store: res?.data?.from_store,
         comment: res?.data?.comments,
-        quantity: res?.data?.quantity,
+        quantity: res?.data?.request_item_details[0].quantity,
         priority: res?.data?.request_item_details[0].priority,
         product_type: res?.data?.request_item_details[0].product_type,
         product_name: res?.data?.request_item_details[0].product_name,
         generic_name: res?.data?.request_item_details[0].generic_name,
-        product_image: res?.data?.request_item_details[0].product_image
-          ? res?.data?.request_item_details[0].product_image
-          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
+        product_image: res?.data?.request_item_details[0].product_image,
+        prescription_images: res?.data?.prescription_images
       })
 
-      // res?.data?.request_item_details?.map(Item =>
-      //   typeof Item?.product_image === 'string'
-      //     ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-      //     : Item?.product_image
-      // )
-      setImgSrc(
-        res?.data?.request_item_details[0].product_image
-          ? res?.data?.request_item_details[0].product_image
-          : res?.data?.request_item_details[0].product_image === ''
-          ? ''
-          : `${base_url}${imgBaseUrl}${res?.data?.request_item_details[0].product_image}`
-      )
+      setPrescriptionImage(res?.data?.prescription_images)
+
+      setImgSrc(res?.data?.request_item_details[0].product_image)
     })
   }
 
   const onSubmit = async data => {
+    setSubmitLoader(true)
     const dataChild = [...dataChildValues]
 
     const requestData = dataChild?.map((item, index) => {
       return item?.request_item_detail_id
     })
 
+    if (typeof data?.product_image === 'string') {
+      const trimImg = data?.product_image.trim()
+      const imgName = trimImg.split('/').pop()
+      data.product_image = imgName
+    }
+
     data.request_item_detail_id = requestData.join('')
 
-    data.status = data?.status ? data?.status : 'pending'
+    data.status = data?.status ? data?.status : 'Pending'
 
-    // handleUpdate(getDetails, data)
-    // const requestDetailsData = {
-    //   product_type: data?.product_type,
-    //   product_name: data?.product_name,
-    //   generic_name: data?.generic_name,
-    //   priority: data?.priority,
-    //   quantity: data?.quantity,
-    //   product_image: data?.product_image,
-    //   salts: JSON.stringify([]),
-    //   status: data?.status
-    // }
+    if (data.prescription_images.length > 0) {
+      const filterPrescriptionImages = data?.prescription_images?.map(element => {
+        if (typeof element === 'string') {
+          const trimElement = element.trim()
+          const imageName = trimElement.split('/').pop()
 
-    // const saltValues = data.salts
+          return imageName
+        } else {
+          return element
+        }
+      })
+      data.prescription_images = filterPrescriptionImages
+    } else {
+      data.prescription_images = []
+    }
 
-    // const filterSaltValues = saltValues?.map(item => ({
-    //   salt_id: item.salt_id,
-    //   salt_qty: item.salt_qty
-    // }))
-    // data.salts = JSON.stringify(filterSaltValues)
-    const {
+    if (typeof data?.product_image === 'string') {
+      const trimImg = data?.product_image.trim()
+      const imgName = trimImg.split('/').pop()
+      data.product_image = imgName
+    }
+
+    let {
       from_store,
       comment,
       prescription_images,
@@ -252,15 +252,10 @@ export default function AddProduct() {
       product_image
     } = data
 
-    const listImages = []
-    prescription_images?.map(file => {
-      return listImages?.push(file.file)
-    })
-
     const payload = {
       from_store: from_store,
       comments: comment,
-      prescription_images: listImages,
+      prescription_images,
       request_item_details: [
         {
           product_type,
@@ -276,7 +271,7 @@ export default function AddProduct() {
       ]
     }
 
-    // payload.request_item_details.request_item_detail_id = requestData
+    console.log(payload)
 
     let response
 
@@ -288,45 +283,48 @@ export default function AddProduct() {
       }
 
       if (response?.success) {
+        reset()
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
 
         router.push('/pharmacy/new-product-request/')
-        reset()
       } else {
-        setSuccessFulModal(false)
+        setSubmitLoader(false)
       }
     } catch (error) {
-      setSuccessFulModal(false)
-
-      // Handle the error as needed
       console.error('An error occurred:', error)
+      setSubmitLoader(false)
     }
   }
 
-  // const handleUpdate = (item, data) => {
-  //   // if (item?.request_item_details?.request_item_detail_id) {
-  //   //   // Use optional chaining consistently
-  //   //   data?.[request_item_detail_id] = item?.request_item_details?.request_item_detail_id;
-  //   // }
-  // }
-
-  const clearSaltFields = index => {
-    return (
-      <Box>
-        <Icon
-          onClick={() => {
-            var tempDefaultSalts = defaultSalts
-            tempDefaultSalts[index] = undefined
-            setDefaultSalts(tempDefaultSalts)
-            remove(index)
-            insert(index, {})
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-    )
+  const handleCancelDialogBox = () => {
+    if (isDirty) {
+      setConfirmationBox(true)
+    } else if (imgSrcChange) {
+      setConfirmationBox(true)
+    } else if (previousPrescriptionLength) {
+      setConfirmationBox(true)
+    } else {
+      router.push('/pharmacy/new-product-request/')
+    }
   }
+
+  // const clearSaltFields = index => {
+  //   return (
+  //     <Box>
+  //       <Icon
+  //         onClick={() => {
+  //           var tempDefaultSalts = defaultSalts
+  //           tempDefaultSalts[index] = undefined
+  //           setDefaultSalts(tempDefaultSalts)
+  //           remove(index)
+  //           insert(index, {})
+  //         }}
+  //         icon='material-symbols-light:close'
+  //       />
+  //     </Box>
+  //   )
+  // }
 
   // const handleCallback = dataFromChild => {
   //   if (editValues || editValues.request_item_detail_id) {
@@ -399,6 +397,7 @@ export default function AddProduct() {
       if (files[0] !== imgBaseUrl) {
         reader.onload = () => {
           setImgSrc(reader?.result)
+          setImgSrcChange(true)
         }
       }
 
@@ -408,8 +407,6 @@ export default function AddProduct() {
     }
   }
 
-  console.log('file name', displayFile)
-
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
     setEditIndex(index)
@@ -418,57 +415,29 @@ export default function AddProduct() {
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('product_image', '')
+    setImgSrcChange(true)
   }
 
   const router = useRouter()
   const { id } = router.query
 
-  // useEffect(() => {
-  //   getSpecificProductList()
-  // }, [])
-
-  // useEffect(() => {
-  //   if (dataChildValues) {
-  //     reset({
-  //       priority: res?.data?.request_item_details.map(Item => Item.priority),
-  //       product_type: res?.data?.request_item_details.map(Item => Item.product_type),
-  //       product_name: res?.data?.request_item_details.map(Item => Item.product_name),
-  //       generic_name: res?.data?.request_item_details.map(Item => Item.generic_name),
-  //       product_image: res?.data?.request_item_details.map(Item =>
-  //         typeof Item?.product_image === 'string'
-  //           ? `${base_url}${imgBaseUrl}${Item?.product_image}`
-  //           : Item?.product_image
-  //       )
-  //     })
-
-  //     // let constructedPath = ''
-  //     // if (imgBaseUrl) {
-  //     //   constructedPath = `https://app.antzsystems.com${imgBaseUrl}/${responseImage}`
-  //     // }
-  //     setImgSrc(
-  //       editValues?.product_image !== '' && typeof editValues?.product_image === 'string'
-  //         ? `${base_url}${imgBaseUrl}${editValues?.product_image}`
-  //         : editValues?.product_image
-  //     )
-  //   }
-  // }, [])
-
   useEffect(() => {
     if (id) {
       getSpecificProductList(id)
     }
-  }, [id, responseImage])
+  }, [id])
 
-  // const renderFilePreview = file => {
-  //   if (typeof file === 'string') {
-  //     return <img width={38} height={38} alt={file.name} src={`${base_url}${props.imgBaseUrl}${file}`} />
-  //   }
-  //   if (file instanceof Blob || file instanceof File) {
-  //     return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
-  //   } else {
-  //     return <Icon icon='mdi:file-document-outline' />
-  //   }
-  // }
+  const handleCancelChange = () => {
+    if (isDirty) {
+      handleCancelDialogBox()
+    } else if (imgSrcChange) {
+      handleCancelDialogBox()
+    } else if (previousPrescriptionLength) {
+      handleCancelDialogBox()
+    } else {
+      router.push('/pharmacy/new-product-request/')
+    }
+  }
 
   return (
     <>
@@ -478,24 +447,26 @@ export default function AddProduct() {
           <Grid item xs={12}>
             <Card>
               <CardHeader
-                title='Add Product Form'
+                title={!id ? 'Add Product Form' : 'Edit Product Form'}
                 avatar={
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      Router.push('/pharmacy/new-product-request/')
+                      isDirty || imgSrcChange || previousPrescriptionLength
+                        ? handleCancelDialogBox()
+                        : router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
                 }
               />
 
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                 <CardContent>
                   <Grid container spacing={6}>
-                    <Grid item xs={12} sm={6}>
+                    {/* <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
-                        <InputLabel>From Store Name</InputLabel>
+                        <InputLabel>From Store Name*</InputLabel>
                         <Controller
                           name='from_store'
                           control={control}
@@ -516,104 +487,86 @@ export default function AddProduct() {
                           <FormHelperText sx={{ color: 'error.main' }}>{errors?.from_store?.message}</FormHelperText>
                         )}
                       </FormControl>
-                    </Grid>
+                    </Grid> */}
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <Controller
-                          name='comment'
+                          name='product_name'
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => (
+                          render={({ field: { value, onChange } }) => (
                             <TextField
-                              {...field}
-                              label='Comment'
-                              multiline
-                              rows={1}
-
-                              // error={Boolean(errors.medicine_name)}
+                              value={value}
+                              label='Product Name*'
+                              name='product_name'
+                              error={Boolean(errors.product_name)}
+                              onChange={onChange}
+                              placeholder='Product Name'
                             />
                           )}
                         />
+                        {errors?.product_name && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Select Product Type*</InputLabel>
+                        <Controller
+                          name='product_type'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='product_type'
+                              value={value}
+                              label='Select Product Type*'
+                              onChange={onChange}
+                              error={Boolean(errors?.product_type)}
+                            >
+                              <MenuItem value='allopathy'>Allopathy</MenuItem>
+                              <MenuItem value='ayurveda'>Ayurveda</MenuItem>
+                              <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='non_medical'>Non Medical</MenuItem>
+                            </Select>
+                          )}
+                        />
+                        {errors?.product_type && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_type?.message}</FormHelperText>
+                        )}
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Grid container sm={12} mt={4} xs={12}>
+                  <Grid container mt={4} xs={12}>
                     <Grid container spacing={6}>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Select Product Type*</InputLabel>
-                          <Controller
-                            name='product_type'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Select
-                                name='product_type'
-                                value={value}
-                                label='Select Product Type*'
-                                onChange={onChange}
-                                error={Boolean(errors?.product_type)}
-                              >
-                                <MenuItem value='allopathy'>Allopathy</MenuItem>
-                                <MenuItem value='ayurveda'>Ayurveda</MenuItem>
-                                <MenuItem value='unani'>Unani</MenuItem>
-                                <MenuItem value='non_medical'>Non Medical</MenuItem>
-                              </Select>
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <Controller
+                              name='generic_name'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Generic Name*'
+                                  name='generic_name'
+                                  error={Boolean(errors.generic_name)}
+                                  onChange={onChange}
+                                  placeholder='Generic Name'
+                                />
+                              )}
+                            />
+                            {errors?.generic_name && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.generic_name.message}
+                              </FormHelperText>
                             )}
-                          />
-                          {errors?.product_type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.product_type?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='product_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Product Name*'
-                                name='product_name'
-                                error={Boolean(errors.product_name)}
-                                onChange={onChange}
-                                placeholder='Product Name'
-                              />
-                            )}
-                          />
-                          {errors?.product_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.product_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='generic_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Generic Name*'
-                                name='generic_name'
-                                error={Boolean(errors.generic_name)}
-                                onChange={onChange}
-                                placeholder='Generic Name'
-                              />
-                            )}
-                          />
-                          {errors?.generic_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.generic_name.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-
+                          </FormControl>
+                        </Grid>
+                      }
                       <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                           <Controller
@@ -623,7 +576,7 @@ export default function AddProduct() {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 value={value}
-                                label='Quantity'
+                                label='Quantity*'
                                 name='quantity'
                                 type='number'
                                 onChange={onChange}
@@ -637,8 +590,49 @@ export default function AddProduct() {
                         </FormControl>
                       </Grid>
 
+                      {
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>From Store Name*</InputLabel>
+                            <Controller
+                              name='from_store'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field }) => (
+                                <Select {...field} label='From Store Name'>
+                                  {storeList?.map((item, index) => {
+                                    return (
+                                      <MenuItem key={index} value={item?.id}>
+                                        {item?.name}
+                                      </MenuItem>
+                                    )
+                                  })}
+                                </Select>
+                              )}
+                            />
+                            {errors?.from_store && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.from_store?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                      }
+                      {}
+
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='comment'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => <TextField {...field} label='Comment' multiline rows={1} />}
+                          />
+                        </FormControl>
+                      </Grid>
+
                       <Grid item xs={12} sm={12}>
-                        <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+                        <FormControl fullWidth error={Boolean(errors.radio)}>
                           <FormLabel>Priority</FormLabel>
                           <Controller
                             name='priority'
@@ -670,17 +664,10 @@ export default function AddProduct() {
                       </Grid>
 
                       <Grid item xs={12} sm={6}>
-                        <Typography>Product Image</Typography>
-                        <input
-                          type='file'
-                          accept='image/*'
-                          onChange={e => handleInputImageChange(e)}
-                          style={{ display: 'none' }}
-                          name='product_image'
-                          ref={fileInputRef}
-                        />
+                        <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
-                        {imgSrc !== '' && (
+                        {console.log('imgSrc', imgSrc)}
+                        {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{
                               display: 'flex'
@@ -698,11 +685,11 @@ export default function AddProduct() {
                                 width={50}
                                 height={50}
                                 alt='Uploaded image'
-                                src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                                src={typeof imgSrc === 'string' ? `${imgSrc}` : imgSrc}
                               />
 
                               <Typography sx={{ margin: '10px' }}>
-                                {responseImage ? responseImage : displayFile}
+                                {responseImage ? responseImage.slice(-10) : displayFile}
                               </Typography>
                               <Box sx={{ cursor: 'pointer', margin: '10px' }}>
                                 <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
@@ -713,10 +700,60 @@ export default function AddProduct() {
                           </Box>
                         )}
 
-                        {/* {imgSrc === '' && ( */}
-                        {imgSrc === '' && <AddButton title=' Upload Image' action={handleAddGalleryClick} />}
-                      </Grid>
+                        <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            name='product_image'
+                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                          />
+                          {(imgSrc === '' || imgSrc === null) && (
+                            <AddButton
+                              title=' Upload Image'
+                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            />
+                          )}
+                        </Grid>
 
+                        {/* <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            name='product_image'
+                            ref={fileInputRef}
+                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                          />
+                          {imgSrc === '' && (
+                            <AddButton
+                              title=' Upload Image'
+                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            />
+                          )}
+                        </Grid> */}
+
+                        {/* {imgSrc === '' && ( */}
+                      </Grid>
+                      {/* {confirmationBox && (
+                        <Grid>
+                          <CommonDialogBox
+                            noWidth
+                            dialogBoxStatus={confirmationBox}
+                            formComponent={<ConfirmationBox setConfirmationBox={setConfirmationBox} />}
+                            show={() => setConfirmationBox(true)}
+                          />
+                        </Grid>
+                      )} */}
+                      {confirmationBox && (
+                        <ConfirmDialog
+                          title={'Confirmation'}
+                          open={() => setConfirmationBox(true)}
+                          content={'Are you sure you want to cancel?'}
+                          closeDialog={() => setConfirmationBox(false)}
+                          action={() => router.push('/pharmacy/new-product-request/')}
+                        />
+                      )}
                       {/* salt composition */}
 
                       {/* <Grid item xs={12} sm={12}>
@@ -787,178 +824,32 @@ export default function AddProduct() {
                     </FormGroup>
                   </Grid> */}
 
-                      {/* <Grid item xs={12} sm={12}>
-                <TableContainer>
-                  <Table>
-                    <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                      <TableRow>
-                        <TableCell>Product Type</TableCell>
-                        <TableCell>Product Name</TableCell>
-                        <TableCell>Generic Name</TableCell>
-                        <TableCell>Salt Name</TableCell>
-                        <TableCell>Strength</TableCell>
-                        <TableCell>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {dataChildValues.map((item, index) => {
-                        return (
-                          <TableRow key={index}>
-                            <TableCell>
-                              {item?.product_type && (
-                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                  {item.product_type}
-                                </Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {item?.product_name && (
-                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                  {item.product_name}
-                                </Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {item?.generic_name && (
-                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                  {item.generic_name}
-                                </Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {JSON.parse(item?.salts)?.map((item, index) => {
-                                return (
-                                  <Typography key={index} variant='body2' sx={{ color: 'text.primary' }}>
-                                    {item.salt_id}
-                                  </Typography>
-                                )
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {JSON.parse(item?.salts)?.map((item, index) => {
-                                return (
-                                  <Typography key={index} variant='body2' sx={{ color: 'text.primary' }}>
-                                    {item.salt_qty}
-                                  </Typography>
-                                )
-                              })}
-                            </TableCell>
-                            <TableCell align='center'>
-                              <IconButton
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                                aria-label='Edit'
-                                onClick={() => {
-                                  setShow(true)
-                                  handleEditLineItems(item, index)
-                                }}
-                              >
-                                <Icon icon='mdi:pencil-outline' />
-                              </IconButton>
-
-                              <IconButton
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                                onClick={() => {
-                                  removeItemsFroTable(index)
-                                }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid> */}
-                      {/* <Grid item xs={12} sx={{ mt: 6 }}>
-                <Card>
-                  <CardHeader title='Upload Prescription' />
-                  <CardContent>
-                    <DropzoneWrapper sx={{ minHeight: '100px' }}>
-                      <FileUploaderMultiple
-                        onImageUpload={handleFileChange}
-                        image={handleAddGalleryClick}
-                        prescriptionField={prescriptionField}
-                        imgBaseUrl={imgBaseUrl}
-                      />
-                    </DropzoneWrapper>
-                    {/* <Box>
-                      <Icon icon='material-symbols-light:close' onClick={() => removeselectedImage(index)}>
-                        {' '}
-                      </Icon>
-                    </Box> */}
-                      {/* </CardContent>
-                </Card>
-              </Grid> */}
-
                       <Grid item xs={12} sm={6}>
-                        <Typography>Prescription Images</Typography>
-                        <input
-                          type='file'
-                          accept='image/*'
-                          multiple
-                          onChange={e => handleFileChange(e)}
-                          style={{ display: 'none' }}
-                          name='prescription_images'
-                          ref={prescriptionRef}
-                        />
+                        <Typography sx={{ mb: 4 }}>Prescription Images</Typography>
+                        <Grid item xs={12} sm={12} sx={{ position: 'relative' }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            multiple
+                            onChange={e => handleFileChange(e)}
+                            name='prescription_images'
+                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                          />
+                          <AddButton
+                            styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            title='Add Prescription'
+                          />
+                        </Grid>
 
-                        <AddButton
-                          title='Add Prescription'
-                          action={() => {
-                            handlePrescriptionClick()
-                          }}
-                        />
-
-                        {prescriptionField.length > 0 && (
+                        {prescriptionImage?.length > 0 && (
                           <ImageUploadComponent
-                            fields={fields}
-                            setValue={setValue}
-                            prescriptionField={prescriptionField}
+                            getValues={getValues}
+                            setPrescriptionField={setPrescriptionField}
                             imgBaseUrl={imgBaseUrl}
+                            prescriptionImage={prescriptionImage}
+                            removeselectedImage={removeselectedImage}
                           />
                         )}
-                        {/* <Button fullWidth type='button' variant='contained' onClick={handleAddGalleryClick}>
-                    Add Gallery
-                  </Button> */}
-                        {/* <ImageUploadCard
-                    fields={fields}
-                    removeselectedImage={removeselectedImage}
-                    renderFilePreview={renderFilePreview}
-                  /> */}
-
-                        {/* {
-                    <Box sx={{ display: 'flex', flexDirection: 'row', borderRadius: '10px' }}>
-                      <CardContent>
-                        <DropzoneWrapper className='dropzone'></DropzoneWrapper>
-                        <Fragment>
-                          <List>
-                            {fields?.map((image, index) => (
-                              // console.log('image results??????', image)
-                              <ListItem key={image.file.name}>
-                                <div className='file-details'>
-                                  <div className='file-preview'>{renderFilePreview(image.file)}</div>
-                                  <div>
-                                    <Typography className='file-name'>
-                                      {typeof file === 'string' ? image.file : image.file.name}
-                                    </Typography>
-                                  </div>
-                                </div>
-                                <IconButton onClick={() => removeselectedImage(index)}>
-                                  <Icon icon='mdi:close' fontSize={20} />
-                                </IconButton>
-                              </ListItem>
-                            ))}
-                          </List>
-                        </Fragment>
-
-                      </CardContent>
-                    </Box>
-                  } */}
-                        {/* </Grid> */}
                       </Grid>
                     </Grid>
                   </Grid>
@@ -966,7 +857,7 @@ export default function AddProduct() {
                     container
                     sm={12}
                     spacing={6}
-                    mt={4}
+                    mt={5}
                     item
                     sx={{
                       display: 'flex',
@@ -974,8 +865,26 @@ export default function AddProduct() {
                       alignItems: 'center'
                     }}
                   >
-                    <LoadingButton type='submit' sx={{ marginRight: '8px' }} size='large' variant='contained'>
-                      Save
+                    {id && (
+                      <Button
+                        styles={{ color: theme.palette.error.dark, border: '1px solid red', margin: '5px' }}
+                        onClick={() => handleCancelChange()}
+                        size='large'
+                        variant='outlined'
+                        sx={{ mr: '6px' }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                    <LoadingButton
+                      type='submit'
+                      loading={submitLoader}
+                      sx={{ mr: '8px' }}
+                      size='large'
+                      variant='contained'
+                      disabled={!isValid}
+                    >
+                      Submit
                     </LoadingButton>
                   </Grid>
                 </CardContent>

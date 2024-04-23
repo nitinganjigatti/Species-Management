@@ -14,9 +14,10 @@ import Icon from 'src/@core/components/icon'
 
 // import DeleteIcon from '@mui/icons-material/Delete'
 
-import { Card, CardContent, Grid, debounce } from '@mui/material'
+import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
 
 import {
+  addNonExistingProductStatus,
   deleteNonExistingProduct,
   getNonExistingProductById,
   getNonExistingProductList
@@ -29,54 +30,76 @@ import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import toast from 'react-hot-toast'
 
 export default function NewProductList() {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
   const [productDetails, setProductDetails] = useState({})
+  const [reasonText, setReasonText] = useState('')
+  const [submitLoader, setSubmitLoader] = useState(false)
   const [prescriptionImages, setPrescriptionImages] = useState()
-
+  const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
-  const columns = [
-    // {
-    //   flex: 0.2,
-    //   Width: 20,
-    //   field: 'from_store_name',
-    //   headerName: 'Store Name',
-    //   renderCell: (params, rowId) => (
-    //     <div onClick={() => handleRowClick(params.row.id)}>
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {console.log('params', params)}
-    //         {params.row.from_store_name}
-    //       </Typography>
-    //     </div>
-    //   )
-    // },
+  const handleRequestStatus = async (status, id, productDetails) => {
+    const payload = {
+      status: status,
+      comments: productDetails?.comments ? productDetails?.comments : '',
+      reject_reason: reasonText ? reasonText : ' '
+    }
 
+    try {
+      const response = await addNonExistingProductStatus(payload, id)
+      if (response?.success) {
+        const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
+        toast.success(toastMessage)
+        setShow(false)
+        await fetchTableData({ sort, q: searchValue, column: sortColumn })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const columns = [
     {
       flex: 0.2,
-      Width: 20,
+      Width: 10,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {console.log('params>>>>>', params)}
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
             {params?.row?.request_number}
           </Typography>
         </div>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
+      Width: 20,
+      field: 'from_store_name',
+      headerName: 'From Store',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+            {params?.row?.from_store_name}
+          </Typography>
+        </div>
+      )
+    },
+    {
+      flex: 0.3,
       Width: 20,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -90,68 +113,62 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.priority}
         </Typography>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_by',
-      headerName: 'Requested By User',
+      headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.requested_user_name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
       minWidth: 20,
-      field: 'status',
-      headerName: 'Status',
+      field: 'quantity',
+      headerName: 'Quantity',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.status}
+          {params?.row.request_items?.map((item, index) => (
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
+              {item?.quantity}
+            </Typography>
+          ))}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'created_at',
-      headerName: 'Created DateTime',
+      headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
+    },
+    {
+      flex: 0.3,
+      minWidth: 20,
+      field: 'status',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+          {params?.row?.status}
+        </Typography>
+      )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     // <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //     //   {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row.id)}>
-    //     //     <Icon icon='mdi:pencil-outline' />
-    //     //   </IconButton> */}
-    //     //   <IconButton
-    //     //     size='small'
-    //     //     sx={{ mr: 0.5 }}
-    //     //     onClick={() => {
-    //     //       handleDelete(params.row.id)
-    //     //     }}
-    //     //   >
-    //     //     {/* <DeleteIcon /> */}
-    //     //   </IconButton>
-    //     // </Box>
-    //   )
-    // }
   ]
   const router = useRouter()
 
@@ -160,7 +177,7 @@ export default function NewProductList() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
-  const [sortColumn, setSortColumn] = useState('request_number')
+  const [sortColumn, setSortColumn] = useState('id')
   const [sort, setSort] = useState('desc')
   const [itemId, setItemId] = useState()
   const [imgUrl, setImageUrl] = useState()
@@ -226,31 +243,12 @@ export default function NewProductList() {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
+    if (value === '') {
+      await searchTableData({ sort, q: value, column: 'id' })
+    } else {
+      await searchTableData({ sort, q: value, column: 'request_number' })
+    }
   }
-
-  // const getProductSearchLists = async () => {
-  //   try {
-  //     setLoader(true)
-  //     const response = await getNonExistingProductList()
-  //     if (response?.length > 0) {
-  //       console.log('list', response)
-
-  //       let listWithId = response
-  //         ? response.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //         : []
-  //       setRows(listWithId)
-  //       setLoader(false)
-  //     } else {
-  //       setLoader(false)
-  //     }
-  //   } catch (error) {
-  //     setLoader(false)
-  //     console.log('error', error)
-  //   }
-  // }
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
@@ -263,25 +261,6 @@ export default function NewProductList() {
     })
   }
 
-  // const handleEditItems = id => {
-  //   setShow(true)
-  //   console.log(id, 'idd')
-  // }
-
-  // const handleView = () => {
-  //   setShow(true)
-  // }
-
-  // const handleDelete = async id => {
-  //   const response = await deleteNonExistingProduct(id)
-  //     .then(res => {
-  //       console.log('deleted Successfully', res)
-  //     })
-  //     .catch(err => console.log('err', err))
-
-  //   return response
-  // }
-
   const onRowClick = async params => {
     setShow(true)
     setItemId(params.id)
@@ -290,14 +269,9 @@ export default function NewProductList() {
         setProductDetails(res?.data)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
-        setImageUrl(res?.base_path)
       })
       .catch(err => console.log(err))
   }
-
-  // const handleHeaderAction = () => {
-  //   console.log('Handle Header Action')
-  // }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -312,9 +286,10 @@ export default function NewProductList() {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card sx={{ cursor: 'pointer' }}>
             <CardHeader title='New Product Request List' action={headerAction} />
             <DataGrid
+              sx={{ cursor: 'pointer' }}
               columnVisibilityModel={{
                 id: false
               }}
@@ -348,27 +323,57 @@ export default function NewProductList() {
           </Card>
 
           {show && (
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={'Product Details'}
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <ProductDetail
-                      setShow={setShow}
-                      detailsData={detailsData}
-                      prescriptionImages={prescriptionImages}
-                      imgUrl={imgUrl}
-                      itemId={itemId}
-                      handleEdit={handleEdit}
-                      productDetails={productDetails}
-                    />
-                  }
-                  close={() => setShow(false)}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
+            <>
+              <CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>Product Details - {productDetails?.request_number}</div>
+                        {selectedPharmacy.type === 'local' &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') &&
+                          productDetails.status === 'Pending' && (
+                            <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => handleEdit(itemId)}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
+                            </Grid>
+                          )}
+                      </div>
+                    }
+                    dialogBoxStatus={show}
+                    formComponent={
+                      <ProductDetail
+                        setShow={setShow}
+                        statusCall={statusCall}
+                        submitLoader={submitLoader}
+                        detailsData={detailsData}
+                        handleRequestStatus={handleRequestStatus}
+                        prescriptionImages={prescriptionImages}
+                        reasonText={reasonText}
+                        setReasonText={setReasonText}
+                        imgUrl={imgUrl}
+                        itemId={itemId}
+                        handleEdit={handleEdit}
+                        productDetails={productDetails}
+                      />
+                    }
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
+                    show={() => setShow(true)}
+                  />
+                </Grid>
+              </CardContent>
+            </>
           )}
         </>
       )}

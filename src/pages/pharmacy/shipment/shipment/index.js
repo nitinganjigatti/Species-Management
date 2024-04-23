@@ -117,7 +117,7 @@ const ListOfShipments = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'person_shiping',
-      headerName: 'PERSON SHIPPING',
+      headerName: 'Driver Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shiping}

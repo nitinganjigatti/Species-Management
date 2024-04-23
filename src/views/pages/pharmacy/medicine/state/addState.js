@@ -32,9 +32,31 @@ import Icon from 'src/@core/components/icon'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup.string().required('State Name is Required'),
-  code: yup.number().required('State code is Required'),
-  short_code: yup.string().required('State short code is Required'),
+  name: yup
+    .string()
+    .matches(/^[A-Za-z\s]+$/, 'State Name must contain only alphabetic characters')
+    .min(3, 'State Name must be at least 3 characters')
+    .required('State Name is Required'),
+  code: yup
+
+    // .string()
+    // .matches(/^\d{2,}$/, 'State code must contain more than 2 numeric characters')
+    // .test('is-integer', 'State code must be an integer', value => Number.isInteger(Number(value)))
+    // .test('greater-than-one', 'State code must be greater than 1', value => Number(value) <= 0)
+    // .typeError('State code must be a number')
+    // .required('State code is Required'),
+    .string()
+    .matches(/^(0[1-9]|[1-9]\d*)$/, 'State code must greater than 0')
+    .test('is-integer', 'State code must be an integer', value => Number.isInteger(Number(value)))
+    .test('valid-range', 'State code must be greater than 9', value => Number(value) > 0)
+    .typeError('State code must be a numeric value')
+    .required('State code is required'),
+  short_code: yup
+    .string()
+    .matches(/^[A-Za-z]+$/, 'State short code must contain only alphabets')
+    .min(2, 'State short code must contain two letters')
+    .max(2, "State short code can't exceed two letters")
+    .required('State short code is Required'),
   status: yup.string().nullable()
 })
 
@@ -139,7 +161,7 @@ const AddStates = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='State Name'
+                  label='State Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='State Name'
@@ -148,7 +170,7 @@ const AddStates = props => {
                 />
               )}
             />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
+            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -158,7 +180,7 @@ const AddStates = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Code'
+                  label='State Code*'
                   type='number'
                   value={value}
                   onChange={onChange}
@@ -167,7 +189,7 @@ const AddStates = props => {
                 />
               )}
             />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
+            {errors.code && <FormHelperText sx={{ color: 'error.main' }}>{errors.code.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
@@ -176,7 +198,7 @@ const AddStates = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Short Code'
+                  label='Short Code*'
                   value={value.toLocaleUpperCase()}
                   onChange={onChange}
                   name='short_code'
@@ -184,7 +206,9 @@ const AddStates = props => {
                 />
               )}
             />
-            {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{error.name.message}</FormHelperText>}
+            {errors.short_code && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.short_code?.message}</FormHelperText>
+            )}
           </FormControl>
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>

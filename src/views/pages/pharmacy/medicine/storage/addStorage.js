@@ -36,6 +36,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Storage name must contain at least 3 characters')
     .required('Storage is Required'),
   active: yup.string().nullable()
 })
@@ -141,10 +142,10 @@ const AddStorage = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Storage'
+                  label='Storage Name*'
                   value={value}
                   onChange={onChange}
-                  placeholder='Storage'
+                  placeholder='Storage Name'
                   error={Boolean(errors.name)}
                   name='name'
                 />

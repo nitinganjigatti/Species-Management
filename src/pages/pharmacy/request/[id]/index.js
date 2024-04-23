@@ -32,7 +32,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -83,17 +83,18 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
   const { id, request_number } = router.query
 
-  const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
-  const base_image_url = '/uploads/control_substance/'
+  // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  // const base_image_url = '/uploads/control_substance/'
 
   const getRequestItemLists = async id => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
+      // console.log('Request', response.data)
       const responseData = response.data
-      debugger
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
@@ -101,7 +102,8 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
-      debugger
+
+      // debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -152,7 +154,8 @@ const IndividualRequest = () => {
       })
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
-      debugger
+
+      // debugger
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -197,6 +200,8 @@ const IndividualRequest = () => {
           setDeleteDialog(false)
           setDeleteFullFillId(null)
         } else {
+          setDeleteDialog(false)
+          setDeleteFullFillId(null)
           toast.error(result.data)
         }
 
@@ -361,7 +366,11 @@ const IndividualRequest = () => {
               textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
             }}
           >
-            {params.row.stock_name}
+            <Tooltip title={params.row.stock_name} placement='top'>
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                {params.row.stock_name}
+              </Typography>
+            </Tooltip>
           </Typography>
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -454,16 +463,19 @@ const IndividualRequest = () => {
               size='small'
               disabled={
                 parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
-                params.row.request_status !== 'Not Available'
+                params.row.request_status !== 'Not Available' &&
+                requestItems.status !== 'Cancelled'
                   ? false
                   : true
               }
               variant='contained'
               onClick={() => {
+                // console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
-                console.log('in fulfill button', params.row)
+
+                // console.log('in fulfill button', params.row)
                 showDialog()
               }}
             >
@@ -496,7 +508,7 @@ const IndividualRequest = () => {
             <IconButton
               size='small'
               onClick={() => {
-                window.open(`${base_url}${base_image_url}${params?.row?.control_substance_file}`, '_blank')
+                window.open(params?.row?.control_substance_file, '_blank')
               }}
               aria-label='Attachment'
             >
@@ -607,9 +619,14 @@ const IndividualRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             <div>{params.row.medicin_name}</div>
-          </Typography>
+          </Typography> */}
         </div>
       )
     },
@@ -632,7 +649,9 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -674,7 +693,7 @@ const IndividualRequest = () => {
                 setDeleteFullFillId(params.row.dispatch_item_id)
                 console.log('full filled ', params.row.dispatch_item_id)
               }}
-              icon='material-symbols:delete-forever'
+              icon='mdi:delete-outline'
             />
           </Box>
         </Typography>
@@ -734,7 +753,7 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'person_shipping',
-      headerName: 'Person Shipping',
+      headerName: 'Driver Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
@@ -744,26 +763,35 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'shipment_status',
+      field: 'status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.dispute_status === 'Dispute Pending' && (
+            {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.dispute_status === 'Dispute Resolved' && (
+
+            {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.delivery_status === 'Delivered' && (
+            {params?.row?.delivery_status === 'Delivered' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
+            {/* /* This will show after shipping before receiving the request */}
+            {params?.row?.delivery_status === 'Not Delivered' &&
+              params?.row?.request_status === '' &&
+              params?.row?.shipment_status === 'Shipped' && (
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              )}
           </div>
         </Typography>
       )
@@ -809,7 +837,7 @@ const IndividualRequest = () => {
   //     flex: 0.2,
   //     Width: 40,
   //     field: 'person_shipping',
-  //     headerName: 'Person shipping',
+  //     headerName: 'Driver Name',
   //     renderCell: (params, rowId) => (
   //       <div>
   //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -961,7 +989,7 @@ const IndividualRequest = () => {
   }
 
   const handleProductNotAvailableAction = (id, available) => {
-    debugger
+    // debugger
     setNotAvailableItemId({
       id: id,
       available: available
@@ -1024,14 +1052,18 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/request/request-list/')
+                        Router.push({
+                          pathname: '/pharmacy/request/request-list/'
+                        })
                       }}
                       icon='ep:back'
                     />
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                    selectedPharmacy.type === 'local' &&
+                    requestItems.status === 'request' &&
+                    requestItems.status !== 'Cancelled' ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1046,7 +1078,6 @@ const IndividualRequest = () => {
                     )
                   }
                 />
-
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1081,7 +1112,8 @@ const IndividualRequest = () => {
                       title={`Fulfillment`}
                       action={
                         (selectedPharmacy.permission.key === 'ADD' ||
-                          selectedPharmacy.permission.key === 'allow_full_access') && (
+                          selectedPharmacy.permission.key === 'allow_full_access') &&
+                        requestItems.status !== 'Cancelled' ? (
                           <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
                             <Button
                               size='big'
@@ -1093,7 +1125,7 @@ const IndividualRequest = () => {
                               Ship
                             </Button>
                           </Grid>
-                        )
+                        ) : null
                       }
                     ></CardHeader>
                     <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>

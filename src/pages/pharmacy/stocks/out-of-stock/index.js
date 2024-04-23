@@ -14,6 +14,10 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
+import { FormControlLabel, Switch } from '@mui/material'
+import { ExcelExportButton } from 'src/components/Buttons'
+import { Box } from '@mui/system'
+import Utility from 'src/utility'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -27,7 +31,9 @@ const StockOut = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('out_of_stock')
+  const [status, setStatus] = useState('low_stock')
+  const [changeSwitch, setChangeSwitch] = useState()
+  const [excelLoader, setExcelLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -39,7 +45,8 @@ const StockOut = () => {
     async (sort, q, column, status) => {
       try {
         setLoading(true)
-        debugger
+
+        // debugger
 
         const params = {
           sort,
@@ -65,7 +72,7 @@ const StockOut = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, status])
+  }, [fetchTableData, selectedPharmacy.id, status, changeSwitch])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn)
@@ -130,28 +137,29 @@ const StockOut = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'batch_no',
-    //   headerName: 'Batch',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.batch_no}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'generic_name',
-    //   headerName: 'GENERIC NAME',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.generic_name}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'min_qty',
+      headerName: 'Reorder level',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.min_qty}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,
@@ -180,6 +188,58 @@ const StockOut = () => {
     }
   ]
 
+  const outOfStocksColumn = [
+    {
+      flex: 0.05,
+      Width: 40,
+      alignItems: 'right',
+      field: 'id',
+      headerName: 'SL',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_item_name',
+      headerName: 'Product Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_item_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'supplier_name',
+      headerName: 'Supplier Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_qty',
+      headerName: 'Qty',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_qty}
+        </Typography>
+      )
+    }
+  ]
+
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
@@ -187,83 +247,187 @@ const StockOut = () => {
     return <FallbackSpinner />
   }
 
-  const handleChange = (event, newValue) => {
-    debugger
-    setStatus(newValue)
-  }
+  // const handleChange = (event, newValue) => {
+  //   // debugger
+  //   setStatus(newValue)
+  // }
 
   // if (isError) {
   //   return <h1>{error.message}</h1>
   // }
 
-  const tableData = () => {
-    return (
-      <>
-        {loader ? (
-          <FallbackSpinner />
-        ) : (
-          <Card>
-            <CardHeader title='Out of Stock' />
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
+  const handleSwitchChange = event => {
+    setChangeSwitch(event.target.checked)
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                id: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-
-              // onRowClick={onRowClick}
-            />
-          </Card>
-        )}
-      </>
-    )
+    setStatus(event.target.checked ? 'out_of_stock' : 'low_stock')
   }
+
+  const getDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+      const result = await getStockOutItems({ params: '' })
+
+      if (result?.list_items.length > 0) {
+        const data = result?.list_items.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_item_name,
+            ['Supplier name']: el?.supplier_name
+          }
+        })
+
+        Utility.exportToCSV(data, 'Stock out Products')
+      }
+      setExcelLoader(false)
+    } catch (error) {
+      setExcelLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
+  const headerAction = (
+    <div>
+      <FormControlLabel
+        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
+        labelPlacement='start'
+        label='Out Of Stock'
+      />
+      {status === 'out_of_stock' ? (
+        <Box sx={{ mx: 2 }}>
+          <ExcelExportButton
+            action={() => {
+              getDataToExport()
+            }}
+            loader={excelLoader}
+            title='Download'
+          />
+        </Box>
+      ) : null}
+    </div>
+  )
+
+  // const tableData = () => {
+  //   return (
+  //     <>
+  //       {loader ? (
+  //         <FallbackSpinner />
+  //       ) : (
+  //         <Card>
+  //           <CardHeader title='Out of Stock' action={headerAction} />
+  //           <DataGrid
+  //             sx={{
+  //               '.MuiDataGrid-cell:focus': {
+  //                 outline: 'none'
+  //               },
+
+  //               '& .MuiDataGrid-row:hover': {
+  //                 cursor: 'pointer'
+  //               }
+  //             }}
+  //             columnVisibilityModel={{
+  //               id: false
+  //             }}
+  //             hideFooterSelectedRowCount
+  //             disableColumnSelector={true}
+  //             autoHeight
+  //             pagination
+  //             rows={indexedRows === undefined ? [] : indexedRows}
+  //             rowCount={total}
+  //             total
+  //             columns={columns}
+  //             sortingMode='server'
+  //             paginationMode='server'
+  //             pageSizeOptions={[7, 10, 25, 50]}
+  //             paginationModel={paginationModel}
+  //             onSortModelChange={handleSortModel}
+  //             slots={{ toolbar: ServerSideToolbar }}
+  //             onPaginationModelChange={setPaginationModel}
+  //             loading={loading}
+  //             slotProps={{
+  //               baseButton: {
+  //                 variant: 'outlined'
+  //               },
+  //               toolbar: {
+  //                 value: searchValue,
+  //                 clearSearch: () => handleSearch(''),
+  //                 onChange: event => handleSearch(event.target.value)
+  //               }
+  //             }}
+
+  //             // onRowClick={onRowClick}
+  //           />
+  //         </Card>
+  //       )}
+  //     </>
+  //   )
+  // }
+
+  // return (
+  //   <>
+  //     <Grid>
+  //       <TabContext value={status}>
+  //         <TabList onChange={handleChange}>
+  //           <Tab value='out_of_stock' label='Out of Stock' />
+  //           <Tab value='low_stock' label='Low Stock' />
+  //         </TabList>
+  //         <TabPanel value='out_of_stock'>{tableData()}</TabPanel>
+  //         <TabPanel value='low_stock'>{tableData()}</TabPanel>
+  //       </TabContext>
+  //     </Grid>
+  //   </>
+  // )
 
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange}>
-            <Tab value='out_of_stock' label='Out of Stock' />
-            <Tab value='low_stock' label='Low Stock' />
-          </TabList>
-          <TabPanel value='out_of_stock'>{tableData()}</TabPanel>
-          <TabPanel value='low_stock'>{tableData()}</TabPanel>
-        </TabContext>
-      </Grid>
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <Card>
+          <CardHeader title={changeSwitch ? 'Out of Stock' : 'Low Stock'} action={headerAction} />
+          <DataGrid
+            sx={{
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
+
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              }
+            }}
+            columnVisibilityModel={{
+              id: false
+            }}
+            hideFooterSelectedRowCount
+            disableColumnSelector={true}
+            autoHeight
+            pagination
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            total
+            columns={status === 'low_stock' ? columns : outOfStocksColumn}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[7, 10, 25, 50]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            slots={{ toolbar: ServerSideToolbar }}
+            onPaginationModelChange={setPaginationModel}
+            loading={loading}
+            slotProps={{
+              baseButton: {
+                variant: 'outlined'
+              },
+              toolbar: {
+                value: searchValue,
+                clearSearch: () => handleSearch(''),
+                onChange: event => handleSearch(event.target.value)
+              }
+            }}
+
+            // onRowClick={onRowClick}
+          />
+        </Card>
+      )}
     </>
   )
 }

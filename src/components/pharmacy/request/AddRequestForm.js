@@ -25,7 +25,9 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
-
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -43,9 +45,16 @@ import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
-import { addRequestItems, getRequestItemsListById, updateRequestItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import {
+  addRequestItems,
+  getRequestItemsListById,
+  updateRequestItems,
+  // deleteLineItem,
+  cancelRequestItems
+} from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -58,7 +67,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -80,7 +89,9 @@ const initialNestedRowMedicine = {
   request_item_leaf_id: '',
   priority_item: 'Normal',
   control_substance: false,
-  control_substance_file: ''
+  control_substance_file: '',
+  prescription_required: false,
+  prescription_required_file: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -99,8 +110,12 @@ const AddRequestForm = () => {
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState('')
+  // const [deleteItemId, setDeleteItemId] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -116,10 +131,19 @@ const AddRequestForm = () => {
     return storeType
   }
 
+  const openCancelDialog = () => {
+    setCancelRequestDialog(true)
+  }
+
+  const closeCancelDialog = () => {
+    setCancelRequestDialog(false)
+  }
+
   const closeDialog = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setItemErrors({})
   }
 
   const showDialog = () => {
@@ -127,7 +151,7 @@ const AddRequestForm = () => {
   }
 
   // local nested items delete
-  const removeItemsFroTable = itemId => {
+  const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.request_item_medicine_id != itemId
     })
@@ -147,6 +171,8 @@ const AddRequestForm = () => {
       priority_item: nestedRowMedicine.priority_item,
       control_substance: nestedRowMedicine.control_substance,
       control_substance_file: nestedRowMedicine.control_substance_file,
+      prescription_required: nestedRowMedicine.prescription_required,
+      prescription_required_file: nestedRowMedicine.prescription_required_file,
       request_item_leaf_id: ''
     }
 
@@ -176,6 +202,7 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
+    // console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -183,20 +210,38 @@ const AddRequestForm = () => {
     if (!values.request_item_qty) {
       itemErrors.request_item_qty = 'This field is required'
     }
+    // if (Number(values.request_item_qty) === 0 || Number(values.request_item_qty) < 0) {
+    //   itemErrors.request_item_qty = 'Enter valid Quantity '
+    // }
+    if (!values.request_item_qty) {
+      itemErrors.request_item_qty = 'This field is required'
+    }
+
+    if (Number.isInteger(nestedRowMedicine.request_item_qty) || Number(values.request_item_qty) <= 0) {
+      itemErrors.request_item_qty = 'Enter valid Quantity'
+    }
+
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-    if (!values.control_substance_file) {
-      itemErrors.control_substance_file = 'This field is required'
-    }
+
+    // if (!values.control_substance_file) {
+    //   itemErrors.control_substance_file = 'This field is required'
+    // }
     // if (values.control_substance) {
     if (values.control_substance === true) {
       if (values.control_substance_file.length === 0) {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
+    if (values.prescription_required === true) {
+      if (values.prescription_required_file.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     // itemErrors.control_substance = 'This field is required'
     // }
+    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -219,15 +264,28 @@ const AddRequestForm = () => {
 
   const submitItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // || !nestedRowMedicine.control_substance
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
+
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
 
       return
     }
+
     if (nestedRowMedicine.control_substance === true) {
       if (nestedRowMedicine.control_substance_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
+    }
+    if (nestedRowMedicine.prescription_required === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
 
         return
@@ -268,11 +326,17 @@ const AddRequestForm = () => {
     } else {
       console.error('updateTableItems error')
     }
+    closeDialog()
   }
 
   const updateFormItems = () => {
     const HasErrors =
-      !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
+      !nestedRowMedicine.medicine_name ||
+      !nestedRowMedicine.request_item_qty ||
+      !nestedRowMedicine.priority_item ||
+      !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
+      Number(nestedRowMedicine.request_item_qty) === 0 ||
+      Number(nestedRowMedicine.request_item_qty) < 0
     // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(nestedRowMedicine))
@@ -281,6 +345,13 @@ const AddRequestForm = () => {
     }
     if (nestedRowMedicine.control_substance === true) {
       if (nestedRowMedicine.control_substance_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
+    }
+    if (nestedRowMedicine.prescription_required === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
 
         return
@@ -312,11 +383,11 @@ const AddRequestForm = () => {
     try {
       //params: { q: 'central', column: 'type' }
       const response = await getStoreList({ params: { q: 'central', column: 'type' } })
-      console.log('stores', response?.data?.list_items[0])
       if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
-        if (response?.data?.list_items?.length === 1) {
+
+        if (id === undefined) {
           setEditParams({
             ...editParams,
             from_store_id: response?.data?.list_items[0].id,
@@ -329,33 +400,30 @@ const AddRequestForm = () => {
     }
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
   //  ****** debounce
   const fetchMedicineData = async searchText => {
-    if (searchText !== '') {
-      try {
-        const params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 10
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              label: item.name,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-      } catch (e) {
-        console.log('error', e)
+    try {
+      var params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            label: item.name,
+            control_substance: item.controlled_substance === '1' ? true : false,
+
+            prescription_required: item.prescription_required === '1' ? true : false
+          }))
+        )
+        setItemErrors({})
+      }
+    } catch (e) {
+      console.log('error', e)
     }
   }
 
@@ -369,23 +437,31 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+  useEffect(() => {
+    getStoresLists()
+    fetchMedicineData('')
+  }, [])
   //  ****** debounce
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
+    // console.log('result', result)
 
-    if (result.success === true && result.data !== '') {
-      const lineItems = result.data.request_item_details.map(el => {
+    if (result?.success === true && result?.data?.request_item_details?.length > 0) {
+      const lineItems = result?.data?.request_item_details.map(el => {
         return {
-          request_item_medicine_id: el.stock_item_id,
-          medicine_name: el.stock_name,
-          request_item_qty: el.qty,
-          request_item_leaf_id: el.stock_item_id,
-          priority_item: el.priority,
-          control_substance: el.control_substance === '0' ? false : true,
-          control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-          id: el.id,
-          request_item_detail_id: el.id
+          request_item_medicine_id: el?.stock_item_id,
+          medicine_name: el?.stock_name,
+          request_item_qty: el?.qty,
+          request_item_leaf_id: el?.stock_item_id,
+          priority_item: el?.priority,
+          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
+          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
+          id: el?.id,
+          request_item_detail_id: el?.id,
+          dispatch_item_id: el?.dispatch_item_id
         }
       })
 
@@ -419,6 +495,9 @@ const AddRequestForm = () => {
         priority_item: getItems[0].priority_item,
         control_substance: getItems[0].control_substance,
         control_substance_file: getItems[0].control_substance_file,
+        prescription_required: getItems[0].prescription_required,
+        prescription_required_file: getItems[0].prescription_required_file,
+
         id: getItems[0].id
       })
     } else {
@@ -432,18 +511,22 @@ const AddRequestForm = () => {
         request_item_medicine_id: getItems[0].request_item_medicine_id,
         // id: getItems[0].id,
         request_item_qty: getItems[0].request_item_qty,
-        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
         priority_item: getItems[0].priority_item,
-        control_substance: getItems[0].control_substance
+        control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
+        control_substance: getItems[0].control_substance,
+        prescription_required_file: getItems[0].prescription_required_file
+          ? getItems[0].prescription_required_file
+          : '',
+
+        prescription_required: getItems[0].prescription_required
       })
     }
   }
 
   useEffect(() => {
-    if (id != undefined && action === 'edit') {
+    if (id !== undefined && action === 'edit') {
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
 
   // ****** edit section //////
@@ -488,6 +571,47 @@ const AddRequestForm = () => {
     }
   }
 
+  // const deleteLineItemFromDb = async lineItemId => {
+  //   debugger
+  //   console.log('lineItemId', lineItemId)
+  //   if (lineItemId) {
+  //     try {
+  //       const result = await deleteLineItem(lineItemId)
+  //       console.log('deleteLineItem result', result)
+  //       if (result?.data?.success === true) {
+  //         toast.success(result?.data?.data)
+  //         setDeleteDialog(false)
+  //         setDeleteItemId(null)
+  //         getListOfItemsById(id)
+  //       } else {
+  //         toast.error(result.data)
+  //       }
+  //     } catch (error) {
+  //       toast.error(error.data)
+  //       console.log('error', error)
+  //     }
+  //   }
+  // }
+
+  const cancelRequest = async id => {
+    if (id) {
+      try {
+        const result = await cancelRequestItems(id)
+        // console.log('cancelRequest result', result)
+        if (result?.data?.success === true) {
+          toast.success(result?.data?.data)
+          Router.push(`/pharmacy/request/request-list/`)
+        } else {
+          closeCancelDialog()
+          toast.error(result?.data?.data)
+        }
+      } catch (error) {
+        toast.error(error?.data)
+        console.log('error', error)
+      }
+    }
+  }
+
   // data posting section
   const createForm = () => {
     return (
@@ -510,7 +634,8 @@ const AddRequestForm = () => {
                       ...nestedRowMedicine,
                       medicine_name: newValue?.label,
                       request_item_medicine_id: newValue?.value,
-                      control_substance: newValue?.control_substance
+                      control_substance: newValue?.control_substance,
+                      prescription_required: newValue?.prescription_required
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
@@ -519,8 +644,16 @@ const AddRequestForm = () => {
                     searchMedicineData(e.target.value)
                     setItemErrors({})
                   }}
+                  onBlur={() => {
+                    fetchMedicineData('')
+                  }}
                   renderInput={params => (
-                    <TextField {...params} label='Product Name*' error={Boolean(itemErrors.medicine_name)} />
+                    <TextField
+                      {...params}
+                      placeholder='Search & Select'
+                      label='Product Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
                   )}
                 />
                 {itemErrors.medicine_name && (
@@ -548,9 +681,10 @@ const AddRequestForm = () => {
                     setItemErrors({})
                   }}
                 />
-                {itemErrors.request_item_qty && (
+                {itemErrors?.request_item_qty && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
+                    {/* This field is required */}
+                    {itemErrors?.request_item_qty}
                   </FormHelperText>
                 )}
               </FormControl>
@@ -616,12 +750,7 @@ const AddRequestForm = () => {
                   ) : (
                     <Chip
                       label={nestedRowMedicine.control_substance_file}
-                      avatar={
-                        <Avatar
-                          alt='image'
-                          src={`${process.env.NEXT_PUBLIC_IMAGES_BASE_URL}${nestedRowMedicine.control_substance_file}`}
-                        />
-                      }
+                      avatar={<Avatar alt='image' src={nestedRowMedicine?.control_substance_file} />}
                       onDelete={() => {
                         setNestedRowMedicine({
                           ...nestedRowMedicine,
@@ -634,7 +763,7 @@ const AddRequestForm = () => {
                 </Grid>
               ) : (
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription (Mandatory for controlled substances)</Typography>
+                  <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
                   <FormControl fullWidth>
                     <TextField
                       type='file'
@@ -642,20 +771,129 @@ const AddRequestForm = () => {
                       error={Boolean(itemErrors.control_substance_file)}
                       // label='Attach prescription'
                       onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                        // setItemErrors({})
                         const file = e.target.files[0]
-                        setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        setItemErrors({})
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            control_substance_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
                       }}
                     />
-                    {itemErrors.control_substance_file && (
+                    {itemErrors?.control_substance_file && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
+                        {itemErrors?.control_substance_file}
                       </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
               )
             ) : null}
+            {nestedRowMedicine.prescription_required === true ? (
+              nestedRowMedicine.prescription_required_file ? (
+                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                  {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
+                    <Chip
+                      label={nestedRowMedicine.prescription_required_file?.name}
+                      color='secondary'
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          prescription_required_file: ''
+                        })
+                      }}
+                      deleteIcon={<Icon icon='mdi:delete-outline' />}
+                    />
+                  ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
+                    nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
+                    <>
+                      <Chip
+                        label={nestedRowMedicine.prescription_required_file?.name}
+                        avatar={
+                          <Avatar
+                            alt={nestedRowMedicine.prescription_required_file?.name}
+                            src={
+                              nestedRowMedicine.prescription_required_file
+                                ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                                : ''
+                            }
+                          />
+                        }
+                        onDelete={() => {
+                          setNestedRowMedicine({
+                            ...nestedRowMedicine,
+                            // control_substance: false,
+                            prescription_required_file: ''
+                          })
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Chip
+                      label={nestedRowMedicine.prescription_required_file}
+                      avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          prescription_required_file: ''
+                        })
+                      }}
+                    />
+                  )}
+                </Grid>
+              ) : (
+                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                  <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+                  <FormControl fullWidth>
+                    <TextField
+                      type='file'
+                      accept='.pdf, .jpeg, .jpg, .png'
+                      error={Boolean(itemErrors.prescription_required_file)}
+                      // label='Attach prescription'
+                      onChange={e => {
+                        // const file = e.target.files[0]
+                        // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
+                        // setItemErrors({})
+                        const file = e.target.files[0]
+                        if (!file) return
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                        if (allowedTypes.includes(file.type)) {
+                          setNestedRowMedicine(prevState => ({
+                            ...prevState,
+                            prescription_required_file: file
+                          }))
+                          setItemErrors({})
+                        } else {
+                          setItemErrors({
+                            prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                          })
+                          e.target.value = ''
+                        }
+                      }}
+                    />
+                    {itemErrors?.prescription_required_file && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        {itemErrors?.prescription_required_file}
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              )
+            ) : null}
+
             {/* // file uploader */}
 
             {/* <Grid item xs={12}> */}
@@ -667,7 +905,7 @@ const AddRequestForm = () => {
                       sx={{ mr: 2 }}
                       onClick={() => {
                         updateFormItems()
-                        closeDialog()
+                        // closeDialog()
                         // submitItems()
                       }}
                       size='large'
@@ -675,7 +913,7 @@ const AddRequestForm = () => {
                     >
                       update
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -683,7 +921,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 ) : (
                   <>
@@ -698,7 +936,7 @@ const AddRequestForm = () => {
                     >
                       Add
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -706,7 +944,7 @@ const AddRequestForm = () => {
                       variant='outlined'
                     >
                       Done
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>
@@ -739,7 +977,7 @@ const AddRequestForm = () => {
               icon='ep:back'
             />
           }
-          title='Add Request'
+          title={id ? 'Edit Request' : 'Add Request'}
         />
       </Grid>
       <CardContent>
@@ -842,6 +1080,7 @@ const AddRequestForm = () => {
               <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
+                    disabled={true}
                     fullWidth
                     date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
                     width={'100%'}
@@ -896,8 +1135,8 @@ const AddRequestForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {editParams.request_item_details
-              ? editParams.request_item_details.map((el, index) => {
+            {editParams?.request_item_details
+              ? editParams?.request_item_details.map((el, index) => {
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -906,10 +1145,13 @@ const AddRequestForm = () => {
                         </Typography>
                         {el.control_substance ? (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
+                        ) : null}{' '}
+                        {el.prescription_required ? (
+                          <CustomChip label='PR' skin='light' color='success' size='small' />
                         ) : null}
                       </TableCell>
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
-                        {el.priority_item}
+                        {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>
 
                       <TableCell>{el.request_item_qty}</TableCell>
@@ -924,22 +1166,41 @@ const AddRequestForm = () => {
 
                             editTableData(el.request_item_medicine_id)
                             showDialog()
-                            // }
                           }}
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
-                        {id && el.request_item_detail_id ? null : (
+                        <IconButton
+                          onClick={() => {
+                            // if (editParams?.request_item_details?.length === 1) {
+                            //   openCancelDialog()
+                            // } else {
+                            removeItemsFromTable(el.request_item_medicine_id)
+                            // }
+                          }}
+                          size='small'
+                          sx={{ mr: 0.5 }}
+                        >
+                          <Icon icon='mdi:delete-outline' />
+                        </IconButton>
+
+                        {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
-                              removeItemsFroTable(el.request_item_medicine_id)
+                              console.log('line items', el)
+
+                              if (editParams?.request_item_details?.length === 1) {
+                                openCancelDialog()
+                              } else {
+                                removeItemsFromTable(el.request_item_medicine_id)
+                              }
                             }}
                             size='small'
                             sx={{ mr: 0.5 }}
                           >
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
-                        )}
+                        ) : null} */}
                       </TableCell>
                     </TableRow>
                   )
@@ -979,6 +1240,17 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          {id && editParams?.request_item_details?.length > 0 ? (
+            <>
+              <RequestCancelButton
+                title='Cancel Request'
+                action={() => {
+                  openCancelDialog()
+                  // setEditParams(editParamsInitialState)
+                }}
+              />
+            </>
+          ) : null}
           <LoadingButton
             disabled={editParams.request_item_details.length > 0 ? false : true}
             sx={{ marginRight: '8px' }}
@@ -991,17 +1263,155 @@ const AddRequestForm = () => {
           >
             Save
           </LoadingButton>
-          <Button
-            onClick={() => {
-              setEditParams(editParamsInitialState)
-            }}
-            size='large'
-            variant='outlined'
-          >
-            Reset
-          </Button>
+          {id ? null : (
+            <Button
+              disabled={editParams.request_item_details.length > 0 ? false : true}
+              onClick={() => {
+                setEditParams({
+                  ...editParams,
+                  total_qty: '',
+                  request_item_details: []
+                })
+                // setEditParams(editParamsInitialState)
+              }}
+              size='large'
+              variant='outlined'
+            >
+              Reset
+            </Button>
+          )}
         </Box>
       </Grid>
+      {/* <ConfirmDialogBox
+        open={deleteDialog}
+        closeDialog={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        action={() => {
+          setDeleteDialog(false)
+          setDeleteItemId(null)
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    setDeleteDialog(false)
+                    setDeleteItemId(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    deleteLineItemFromDb(deleteItemId)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      /> */}
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request */}
+                  Are you sure you want to cancel this request?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Yes
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
+      <ConfirmDialogBox
+        open={cancelRequestDialog}
+        closeDialog={() => {
+          closeCancelDialog()
+        }}
+        action={() => {
+          closeCancelDialog()
+        }}
+        content={
+          <Box>
+            <>
+              <DialogContent>
+                <DialogContentText sx={{ mb: 1 }}>
+                  Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
+                  cannot perform any operations for this request
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  onClick={() => {
+                    closeCancelDialog()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    cancelRequest(id)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </>
+          </Box>
+        }
+      />
     </Card>
   )
 }

@@ -29,6 +29,7 @@ const schema = yup.object().shape({
   manufacturer_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Manufacturer name must contain at least 3 characters')
     .required('Manufacturer Name is Required'),
   active: yup.string().required('Status is Required')
 })

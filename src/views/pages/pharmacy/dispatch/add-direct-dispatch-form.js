@@ -21,10 +21,21 @@ import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
 
 import TableCell from '@mui/material/TableCell'
+import UserSnackbar from 'src/components/utility/snackbar'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 
-import TableHead from '@mui/material/TableHead'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
-import ConfirmDialog from 'src/components/ConfirmationDialog'
+// import Table from '@mui/material/Table'
+// import TableRow from '@mui/material/TableRow'
+
+// import TableCell from '@mui/material/TableCell'
+
+// import TableHead from '@mui/material/TableHead'
+
+// import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 import { LoaderIcon } from 'react-hot-toast'
 
@@ -40,6 +51,7 @@ const defaultValues = {
     expiry_date: ''
   },
   request_item_qty: '',
+  stock_type: '',
 
   available_item_qty: '',
   expiry_date: ''
@@ -50,11 +62,20 @@ const schema = yup.object().shape({
     label: yup.string().required('Product Name is required'),
     value: yup.string().required('Product Name is required')
   }),
-  request_item_batch_no: yup.object().shape({
-    label: yup.string().required('Batch no is required'),
-    value: yup.string().required('Batch no is required'),
-    expiry_date: yup.string().required('Batch no is required')
-  }),
+
+  // request_item_batch_no: yup.object().shape({
+  //   label: yup.string().required('Batch no is required'),
+  //   value: yup.string().required('Batch no is required'),
+  //   expiry_date: yup.string().required('Batch no is required')
+  // }),
+  request_item_batch_no: yup
+    .mixed()
+    .required('Batch number is required')
+    .test('is-object-with-properties', 'Batch number is required', value => {
+      return (
+        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+      )
+    }),
   request_item_qty: yup.string().required('Quantity is required'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
@@ -65,6 +86,7 @@ export const AddItemsForm = ({
   searchMedicineData,
   productList,
   productLoading,
+  visibleExpiryField,
   onSubmitData,
   searchBatchData,
   batchLoading,
@@ -101,7 +123,6 @@ export const AddItemsForm = ({
   const [quantityError, setQuantityError] = useState(false)
   const [invalidQty, setInvalidQty] = useState([])
   const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
-  const [totalQtyLoader, setTotalQtyLoader] = useState(false)
 
   const showConfirmationDialog = () => {
     setInvalidQtyDialog(true)
@@ -111,11 +132,27 @@ export const AddItemsForm = ({
     setInvalidQtyDialog(false)
     setInvalidQty([])
   }
+  const [totalQtyLoader, setTotalQtyLoader] = useState(false)
+
+  // confirm dialogbox validation
+  // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  // const [invalidQty, setInvalidQty] = useState([])
+
+  // const showConfirmationDialog = () => {
+  //   setInvalidQtyDialog(true)
+  // }
+
+  // const closeConfirmationDialog = () => {
+  //   setInvalidQtyDialog(false)
+  //   setInvalidQty([])
+  // }
 
   const onSubmit = async params => {
     setBatchError(false)
 
-    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item } = { ...params }
+    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
+      ...params
+    }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -135,33 +172,60 @@ export const AddItemsForm = ({
 
       return
     }
-    if (request_item_qty > available_item_qty) {
-      const invalidItems = [
-        {
-          request_item_batch_no: request_item_batch_no?.value,
-          request_item_qty,
-          available_item_qty,
-          expiry_date,
-          request_item_medicine_id: request_item?.value,
-          product_name: request_item?.label,
-          priority_item: 'Normal',
-          uuid: nestedMedicine?.uuid
-        }
-      ]
 
-      setInvalidQty(invalidItems)
+    // if (request_item_qty > available_item_qty) {
+    //   const invalidItems = [
+    //     {
+    //       request_item_batch_no: request_item_batch_no?.value,
+    //       request_item_qty,
+    //       available_item_qty,
+    //       expiry_date,
+    //       request_item_medicine_id: request_item?.value,
+    //       product_name: request_item?.label,
+    //       priority_item: 'Normal',
+    //       uuid: nestedMedicine?.uuid
+    //     }
+    //   ]
 
-      setInvalidQtyDialog(true)
+    //   setInvalidQty(invalidItems)
 
-      return
-    }
-    clearErrors('request_item_batch_no')
+    //   setInvalidQtyDialog(true)
 
-    if (totalAvailableCount < 0) {
+    //   return
+    // }
+    if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
       return
     }
+
+    // if (request_item_qty > available_item_qty) {
+    //   const invalidItems = [
+    //     {
+    //       request_item_batch_no: request_item_batch_no?.value,
+    //       request_item_qty,
+    //       available_item_qty,
+    //       expiry_date,
+    //       request_item_medicine_id: request_item?.value,
+    //       product_name: request_item?.label,
+    //       priority_item: 'Normal',
+    //       uuid: nestedMedicine?.uuid
+    //     }
+    //   ]
+
+    //   setInvalidQty(invalidItems)
+
+    //   setInvalidQtyDialog(true)
+
+    //   return
+    // }
+    clearErrors('request_item_batch_no')
+
+    // if (totalAvailableCount < 0) {
+    //   setQuantityError(true)
+
+    //   return
+    // }
 
     onSubmitData(
       {
@@ -172,7 +236,8 @@ export const AddItemsForm = ({
         request_item_medicine_id: request_item.value,
         product_name: request_item.label,
         priority_item: 'Normal',
-        uuid: nestedMedicine?.uuid
+        uuid: nestedMedicine?.uuid,
+        stock_type
 
         // to_store_id: '14'
       },
@@ -186,7 +251,8 @@ export const AddItemsForm = ({
 
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
-    debugger
+
+    // debugger
     var totalCount = 0
     var enteredCount = 0
     var nestedItemQuantity = 0
@@ -209,7 +275,8 @@ export const AddItemsForm = ({
     }
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
-    debugger
+
+    // debugger
 
     setTotalAvailableCount(available_qty)
   }
@@ -218,24 +285,24 @@ export const AddItemsForm = ({
     checkTotalCount()
   }, [totalQuantity])
 
-  const confirmDataSubmit = () => {
-    const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
-    onSubmitData(
-      {
-        request_item_batch_no: invalidQty[0]?.request_item_batch_no,
-        request_item_qty: invalidQty[0]?.request_item_qty,
-        available_item_qty: invalidQty[0]?.available_item_qty,
-        expiry_date: invalidQty[0]?.expiry_date,
-        request_item_medicine_id: invalidQty[0]?.request_item_medicine_id,
-        product_name: invalidQty[0]?.product_name,
-        priority_item: invalidQty[0]?.priority_item,
-        uuid: invalidQty[0]?.uuid
-      },
-      type
-    )
-  }
+  // const confirmDataSubmit = () => {
+  //   const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
+  //   onSubmitData(
+  //     {
+  //       request_item_batch_no: invalidQty[0]?.request_item_batch_no,
+  //       request_item_qty: invalidQty[0]?.request_item_qty,
+  //       available_item_qty: invalidQty[0]?.available_item_qty,
+  //       expiry_date: invalidQty[0]?.expiry_date,
+  //       request_item_medicine_id: invalidQty[0]?.request_item_medicine_id,
+  //       product_name: invalidQty[0]?.product_name,
+  //       priority_item: invalidQty[0]?.priority_item,
+  //       uuid: invalidQty[0]?.uuid
+  //     },
+  //     type
+  //   )
+  // }
   useEffect(() => {
-    debugger
+    // debugger
 
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
@@ -250,15 +317,16 @@ export const AddItemsForm = ({
         },
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date,
-        available_item_qty: nestedMedicine?.available_item_qty
+        available_item_qty: nestedMedicine?.available_item_qty,
+        stock_type: nestedMedicine?.stock_type
       })
       console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
-        await searchMedicineData(nestedMedicine?.request_item_medicine_id)
+        await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
 
       async function searchBatch() {
-        await searchBatchData(nestedMedicine?.request_item_medicine_id)
+        await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
 
       searchMedicine()
@@ -298,19 +366,25 @@ export const AddItemsForm = ({
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
                       setValue('available_item_qty', '')
+                      setValue('stock_type', '')
 
                       if (value !== '' && value !== null) {
-                        searchBatchData(value.value)
+                        setQuantityError(false)
+                        searchBatchData(value.value, value.stock_type)
+                        setValue('stock_type', value.stock_type)
                       }
                       checkTotalCount()
                     }} // Set selected value
+                    onBlur={async () => {
+                      await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+                    }}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
                       <TextField
                         {...params}
                         label='Product Name*'
-                        placeholder='Search'
+                        placeholder='Search & Select'
                         error={Boolean(errors.request_item)}
                       />
                     )}
@@ -338,14 +412,12 @@ export const AddItemsForm = ({
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
                       // console.log('value', value)
-
-                      // debugger
-
                       // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
+                      setQuantityError(false)
                       checkTotalCount()
 
                       // seValu
@@ -367,8 +439,8 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ fontSize: 14, mx: 2 }}>
-                  Qty available for this batch:{getValues('available_item_qty')}
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                  Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
             </FormControl>
@@ -421,29 +493,31 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid> */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='expiry_date'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Expiry Date*'
-                    name='expiry_date'
-                    error={Boolean(errors.expiry_date)}
-                    onChange={onChange}
-                    disabled
-                  />
-                )}
-              >
-                {errors.expiry_date && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                )}
-              </Controller>
-            </FormControl>
-          </Grid>
+          {getValues('stock_type') === 'non_medical' ? null : (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='expiry_date'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      label='Expiry Date*'
+                      name='expiry_date'
+                      error={Boolean(errors.expiry_date)}
+                      onChange={onChange}
+                      disabled
+                    />
+                  )}
+                >
+                  {errors.expiry_date && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                  )}
+                </Controller>
+              </FormControl>
+            </Grid>
+          )}
           <Grid item xs={12}>
             <Typography sx={{ mx: 2 }}>
               {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
@@ -462,7 +536,7 @@ export const AddItemsForm = ({
         </Grid>
       </form>
 
-      <ConfirmDialog
+      {/* <ConfirmDialog
         open={invalidQtyDialog}
         title={'Your quantity exceeds the batch limit'}
         closeDialog={() => {
@@ -525,7 +599,7 @@ export const AddItemsForm = ({
             </Table>
           </>
         }
-      />
+      /> */}
       {/* </CardContent> */}
     </>
   )

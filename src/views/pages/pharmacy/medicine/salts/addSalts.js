@@ -35,6 +35,7 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
+    .min(3, 'Salt name must contain at least 3 characters')
     .required('Salt is Required'),
   active: yup.string().nullable()
 })
@@ -140,7 +141,7 @@ const AddSalts = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Salt Name'
+                  label='Salt Name*'
                   value={value}
                   onChange={onChange}
                   placeholder='Salt Name'
@@ -160,7 +161,7 @@ const AddSalts = props => {
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
+                  <RadioGroup row {...field} name='validation-basic-radio'>
                     <FormControlLabel
                       value='1'
                       label='Active'
