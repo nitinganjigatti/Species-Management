@@ -182,7 +182,8 @@ const AddIngredients = props => {
 
   const handelCardSelection = item => {
     // Get the selected feed value for the current item
-    const feedType = selectFeed[item.id]?.name || ''
+    const feed_type_id = selectFeed[item.id]?.id || ''
+    const feed_type = selectFeed[item.id]?.name || ''
 
     // Get the remarks value
     const remarksData = remarks || ''
@@ -223,8 +224,9 @@ const AddIngredients = props => {
     const boxValues = {
       id: item.id,
       name: item.ingredient_name,
-      feedTypeId: feedType,
-      selectedDays: selectedDaysForItem.map(day => day.name),
+      preparation_type_id: feed_type_id,
+      preparation_type: feed_type,
+      selectedDays: selectedDaysForItem.map(day => day.id),
       remarks: remarksData
     }
 
