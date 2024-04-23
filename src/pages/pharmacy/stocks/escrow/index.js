@@ -16,7 +16,7 @@ function Escrow() {
   const [sortColumn, setSortColumn] = useState('name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [stockType, setStockType] = useState('all')
+  const [stockType, setStockType] = useState('dispute')
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -141,6 +141,7 @@ function Escrow() {
 
   const fetchScrewTableData = useCallback(
     async ({ sort, q, column, type }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -168,7 +169,7 @@ function Escrow() {
   )
 
   useEffect(() => {
-    fetchScrewTableData({ sort, q: searchValue, column: sortColumn, stockType })
+    fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
   }, [fetchScrewTableData])
 
   const handleSortModel = async newModel => {

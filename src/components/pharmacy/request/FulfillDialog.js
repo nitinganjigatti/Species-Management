@@ -481,8 +481,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // var tempDefaultSalts = defaultSalts
             // tempDefaultSalts[index] = undefined
             // setDefaultSalts(tempDefaultSalts)
-            remove(index)
-            insert(index, {})
+
+            if (fields?.length > 1) {
+              remove(index)
+            } else {
+              remove(index)
+              insert(index, {})
+            }
           }}
           icon='material-symbols-light:close'
         />
@@ -609,7 +614,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             </Typography>
           </CardContent>
           <CardContent>
-            <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+            <Grid container spacing={4} sx={{ flexGrow: 1 }}>
               <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
                   Product Name
@@ -620,26 +625,35 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   QTY Requested
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {fulfillMedicine?.requested_qty}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   Balance
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   Total Qty Available
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {totalProductCount}
                 </Typography>
               </Grid>
