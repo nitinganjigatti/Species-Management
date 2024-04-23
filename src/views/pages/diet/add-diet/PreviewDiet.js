@@ -526,6 +526,7 @@ const StepPreviewDiet = ({
                       sx={{
                         borderBottom: '1px solid #C3CEC7',
                         pb: '32px',
+
                         // pr: '16px',
                         pt: index === 0 ? null : '32px'
                       }}

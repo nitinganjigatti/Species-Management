@@ -14,7 +14,7 @@ export const schedule = [
         ],
         remarks: 'Unchopped',
         days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        mealCategory: { common: '1 KG', male: '1 KG', female: '1 KG', kid: '1 KG' }
+        mealCategory: { common: '1 KG', male: '3 KG', female: '6 KG', kid: '1 KG' }
       },
       {
         category: 'Fruits',
@@ -63,7 +63,7 @@ export const schedule = [
       {
         category: 'Daliya',
         days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        mealCategory: { common: '1 KG', male: '1 KG', female: '1 KG', kid: '1 KG' }
+        mealCategory: { male: '1 KG', female: '1 KG', kid: '1 KG' }
       },
       {
         category: 'Vegetables',
@@ -76,7 +76,7 @@ export const schedule = [
         ],
         remarks: 'Unchopped',
         days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        mealCategory: { common: '1 KG', male: '1 KG', female: '1 KG', kid: '1 KG' }
+        mealCategory: { common: '1 KG', female: '1 KG', kid: '1 KG' }
       },
       {
         category: 'Fruits',

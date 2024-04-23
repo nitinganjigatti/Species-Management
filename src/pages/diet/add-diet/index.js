@@ -404,6 +404,7 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
+
       //   case 2:
       //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:

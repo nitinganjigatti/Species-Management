@@ -36,12 +36,12 @@ import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
 import DescriptionIcon from '@mui/icons-material/Description'
+import RecipeList from 'src/components/diet/RecipeList'
 
 // Styled TabList component
 
 const Diet = () => {
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
 
@@ -60,12 +60,18 @@ const Diet = () => {
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [selectedValue, setSelectedValue] = useState('10')
+  const [recipeList, setRecipeList] = useState([])
+  const [loader, setLoader] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [selectedCard, setSelectedCard] = useState([])
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const handleChange = (event, newValue) => {
+    debugger
     setTotal(0)
     setStatus(newValue)
   }
@@ -87,6 +93,16 @@ const Diet = () => {
     setDialog(false)
   }
 
+  const addEventSidebarOpen = () => {
+    setOpenDrawer(true)
+    setSelectedCard([])
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
   const fetchTableData = useCallback(
     async (sort, q, searchColumns, sortColumn, status) => {
       try {
@@ -106,7 +122,7 @@ const Diet = () => {
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
 
-          setDietData(res?.data?.result)
+          // setDietData(res?.data?.result)
 
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
@@ -163,9 +179,13 @@ const Diet = () => {
 
   const headerAction = (
     <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
+      <Button sx={{ m: 2 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
+      </Button>
+      <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Add Recipe
       </Button>
     </div>
   )
@@ -222,19 +242,9 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
+    debugger
     setSearchValue(value)
-    const newValue = [...Dietdata]
-
-    // Check if the search value is empty
-    if (value.trim() === '') {
-      setFilterStatusData(newValue) // Set filterStatusData to original Dietdata
-    } else {
-      const filterSearchList = newValue?.filter(item =>
-        item.diet_name.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
-      )
-      setFilterStatusData(filterSearchList)
-      searchTableData(sort, value, searchColumns, status)
-    }
+    searchTableData(sort, value, searchColumns, status)
   }
 
   const columns = [
@@ -435,7 +445,7 @@ const Diet = () => {
                 </Grid>
               </Grid>
               <Grid>
-                <TabList
+                {/* <TabList
                   onChange={handleChange}
                   sx={{ position: 'relative', top: '20px', left: '10px', cursor: 'pointer' }}
                 >
@@ -449,7 +459,7 @@ const Diet = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             /> */}
-                </TabList>
+                {/* </TabList>    */}
               </Grid>
 
               <DataGrid
@@ -494,6 +504,16 @@ const Diet = () => {
                 onCellClick={onCellClick}
               />
             </Card>
+
+            <RecipeList
+              recipeList={recipeList}
+              setSelectedCard={setSelectedCard}
+              selectedCard={selectedCard}
+              drawerWidth={400}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={handleSidebarClose}
+              submitLoader={submitLoader}
+            />
           </>
         )}
       </>
@@ -504,6 +524,11 @@ const Diet = () => {
     <>
       <Grid>
         <TabContext sx={{ cursor: 'pointer' }} value={status}>
+          <TabList onChange={handleChange}>
+            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+          </TabList>
           <TabPanel sx={{ cursor: 'pointer' }} value='1'>
             {tableData()}
           </TabPanel>
