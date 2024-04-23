@@ -568,7 +568,7 @@ const StepPreviewDiet = ({
                       <Grid md={10.5} item>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {item?.items?.map((item, index) => (
-                            <Grid sx={{ justifyContent: 'space-between' }} container>
+                            <Grid sx={{ justifyContent: 'space-between' }} container key={{ index }}>
                               <Grid sx={{}} xs={7.3}>
                                 <Box
                                   key={index}

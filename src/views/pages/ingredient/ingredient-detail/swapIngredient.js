@@ -2,6 +2,7 @@ import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
 import React, { useState } from 'react'
+
 // import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import IconButton from '@mui/material/IconButton'
@@ -60,7 +61,7 @@ const SwapIngredient = ({ setActivitySidebarOpen, handleSidebarClose }) => {
       {/* <IngredientOverview /> */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
         {data?.map((item, index) => (
-          <IngredientOverview />
+          <IngredientOverview key={{ index }} />
         ))}
       </Box>
     </Box>

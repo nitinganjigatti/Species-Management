@@ -105,6 +105,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
           // Increment count state here
           setSelectedCount(selectedCard.length)
         }
+
         return [...prevValues, item]
       })
     }
@@ -150,6 +151,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
           ...item,
           selectedDays: selectedDaysForItem
         }
+
         return boxValues
       } else {
         // If no days are selected, return null
@@ -170,11 +172,13 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
           remarks: event.target.value
         }
       }
+
       return item
     })
 
     setSelectedCard(updatedCards)
   }
+
   return (
     <Box>
       <Box>
@@ -288,6 +292,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
+
                             // bgcolor: day.isActive ? '#203e56' : '#dedede',
                             bgcolor: selectedDays.some(
                               selectedDay =>
@@ -324,7 +329,6 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                       <TextField
                         multiline
                         rows={expandedIndex.includes(index) ? 3 : 1}
-                        // onClick={e => handleClick(item, index, e)}
                         onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         variant='outlined'
@@ -339,6 +343,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                           overflow: 'hidden', // Hide overflow content during transition
                           maxHeight: expandedIndex.includes(index) ? '100px' : '56px' // Initial and expanded height
                         }}
+
                         // onBlur={() => setExpandedText(false)} // Collapse on blur
                       />
                     </Box>
