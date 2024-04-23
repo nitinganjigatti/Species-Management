@@ -75,12 +75,14 @@ const RecipeList = () => {
 
         await getRecipeList({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
+
           // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
@@ -106,6 +108,7 @@ const RecipeList = () => {
     if (newModel.length) {
       setSortBy(newModel[0].sort)
       setSortColumn(newModel[0].field)
+
       //setSearchColumns(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, searchColumns, status)
     } else {
@@ -140,6 +143,7 @@ const RecipeList = () => {
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -259,6 +263,7 @@ const RecipeList = () => {
             }
             arrow
             placement='right'
+
             // style={{ background: '#1F515B' }}
           >
             <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
@@ -328,6 +333,7 @@ const RecipeList = () => {
         />
       )
     }
+
     // {
     //   flex: 0.3,
     //   minWidth: 20,

@@ -669,10 +669,7 @@ const AddIngredient = () => {
                       </FormControl>
                     </Grid>
                     <Grid item md={3.9}>
-                      <FormControl
-                        //  sx={{ mt: '20px' }}
-                        fullWidth
-                      >
+                      <FormControl fullWidth>
                         <Controller
                           name='calorie'
                           control={control}
@@ -741,7 +738,6 @@ const AddIngredient = () => {
                   <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                     <Grid item md={5.9}>
                       <input
-                        // {...getInputProps()}
                         type='file'
                         accept='image/*'
                         onChange={e => handleInputImageChange(e)}

@@ -100,6 +100,7 @@ const DietListTabview = ({ IngredientName }) => {
       setshowSwapBtn(selectedRowsData)
     } else {
       setshowSwapBtn([])
+
       //selectedRowsData = []
     }
   }
@@ -214,12 +215,7 @@ const DietListTabview = ({ IngredientName }) => {
             <div>
               {showSwapBtn.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <Button
-                    size='small'
-                    variant='contained'
-                    // onClick={() => Router.push('/diet/ingredient/add-ingredient')}
-                    sx={{ px: 4, py: 2, cursor: 'pointer' }}
-                  >
+                  <Button size='small' variant='contained' sx={{ px: 4, py: 2, cursor: 'pointer' }}>
                     <Icon icon='mdi:add' fontSize={20} />
                     &nbsp; SWAP {IngredientName}
                   </Button>

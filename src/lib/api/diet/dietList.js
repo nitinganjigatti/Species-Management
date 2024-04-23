@@ -20,6 +20,7 @@ export async function dietStatusChange(payload, id) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }

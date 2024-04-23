@@ -9,7 +9,8 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -34,6 +35,7 @@ const DietDetailCard = () => {
 
   // const [isActive, setIsActive] = useState(FeedDetailsValue?.active || '0')
   const [isActive, setIsActive] = useState('0')
+
   // const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [activePayload, setActivePayload] = useState(false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
@@ -61,6 +63,7 @@ const DietDetailCard = () => {
   }
 
   const DietDetailsValue = { id: 1 }
+
   const textpara = ` Provide sustained energy, aid in digestion, and contribute to heart health while offering a wholesome
   and hearty texture to a variety of dishes. Consider abit Incorporating whole grains into your diet is
   a smart choice for overall well-being and nutrition. Packed with dietary fiber, vitamins, minerals,
@@ -152,12 +155,14 @@ const DietDetailCard = () => {
   const confirmStatusAction = async () => {
     try {
       setConfirmDialogBox(false)
+
       // const response = await dietStatusChange({ status: activePayload }, FeedDetailsValue?.id)
       const response = await dietStatusChange({ status: activePayload }, 1)
 
       console.log(response, 'response')
       if (response.success === true) {
         setIsActive(isActive == '0' ? '1' : '0')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -204,7 +209,6 @@ const DietDetailCard = () => {
             <Box item sx={{ background: '#EFF5F2', borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
-                // alt={FeedDetailsValue.image}
                 alt={'FeedDetailsValue.image'}
                 sx={{
                   width: '100%',
@@ -212,6 +216,7 @@ const DietDetailCard = () => {
                   borderRadius: '8px'
                 }}
                 src={'/icons/recipedummy.svg'}
+
                 // src={FeedDetailsValue.image ? FeedDetailsValue.image : '/icons/recipedummy.svg'}
               ></Avatar>
               <Box
@@ -287,7 +292,6 @@ const DietDetailCard = () => {
                         <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
                       }
                       labelPlacement='start'
-                      // label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
                       label={'InActive'}
                     />
                   </Box>
@@ -295,6 +299,7 @@ const DietDetailCard = () => {
                     <Icon
                       icon='bx:pencil'
                       style={{ fontSize: 24 }}
+
                       // onClick={() =>
                       //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
                       // }
@@ -379,7 +384,6 @@ const DietDetailCard = () => {
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
           title={'Are you sure you want to delete this Feed?'}
-          // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
           dialogBoxStatus={deleteDialogBox}
           onClose={onClose}
           ConfirmationText={'Delete'}
@@ -391,7 +395,6 @@ const DietDetailCard = () => {
           handleClosenew={handleClosenew}
           action={confirmStatusAction}
           open={confirmDialogBox}
-          // typeCount={FeedDetailsValue?.ingredients}
           type='diet'
           active={isActive}
           message={

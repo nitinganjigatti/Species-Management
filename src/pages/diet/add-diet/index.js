@@ -385,7 +385,6 @@ const AddDiet = () => {
           <StepBasicDetails
             handleNext={handleNext}
             formData={formData}
-            //onChange={handleBasicDetailsChange}
             updateFormData={updateFormData}
             uomList={uomList}
           />

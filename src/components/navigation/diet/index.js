@@ -26,6 +26,7 @@ const composeDietNavigation = () => {
     path: '/diet/recipe',
     icon: <img src='/icons/recipe.svg' alt='Grocery Icon' />
   }
+
   const settingsParent = {
     title: 'Setting',
     path: '/diet/settings',

@@ -624,7 +624,6 @@ const FeedDetails = () => {
                     icon={'mdi:delete'}
                     iconColor={'#ff3838'}
                     title={'Are you sure you want to delete this Feed?'}
-                    // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
                     dialogBoxStatus={deleteDialogBox}
                     onClose={onClose}
                     ConfirmationText={'Delete'}

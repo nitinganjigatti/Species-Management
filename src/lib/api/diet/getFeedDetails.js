@@ -40,6 +40,7 @@ export async function addIngredients(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }
@@ -63,6 +64,7 @@ export async function updateIngredients(payload, id) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }
@@ -80,6 +82,7 @@ export async function feedStatusChange(payload, id) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }
@@ -97,6 +100,7 @@ export async function feedDelete(id) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }

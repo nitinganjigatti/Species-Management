@@ -72,6 +72,7 @@ const DietDetail = () => {
     }
   })
   const classes = useStyles()
+
   return (
     <>
       {loader ? (
@@ -241,11 +242,13 @@ const DietDetail = () => {
                             const startTimes = itemd.startTime
                             const endTimes = itemd.endTime
                             const ind = index
+
                             return (
                               <>
                                 {itemd?.items?.map((item, index) => {
                                   let first = startArry.indexOf(itemd.startTime) === -1
                                   startArry = [...startArry, itemd.startTime]
+
                                   return (
                                     <TableRow
                                       sx={{
@@ -648,6 +651,7 @@ const DietDetail = () => {
                                             <Box
                                               sx={{
                                                 backgroundColor: '#0000000d',
+
                                                 // mx: '5px',
                                                 p: '10px',
                                                 width: '100%',

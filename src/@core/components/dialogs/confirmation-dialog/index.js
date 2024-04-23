@@ -18,9 +18,9 @@ const ConfirmationDialog = ({
   confirmAction
 }) => {
   const theme = useTheme()
+
   return (
     <Dialog
-      // fullWidth
       open={dialogBoxStatus}
       maxWidth='sm'
       height='auto'
@@ -43,6 +43,7 @@ const ConfirmationDialog = ({
           display: 'flex',
           flexDirection: 'column',
           gap: '32px',
+
           // padding: '40px',
           alignItems: 'center'
         }}
