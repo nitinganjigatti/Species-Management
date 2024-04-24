@@ -28,7 +28,8 @@ import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import { useTheme } from '@mui/material/styles'
-import { Data } from './data'
+
+// import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
 
 import RecipeList from 'src/components/diet/RecipeList'
@@ -37,6 +38,7 @@ import RecipeList from 'src/components/diet/RecipeList'
 
 const Diet = () => {
   const theme = useTheme()
+  const Data = []
 
   /***** Server side pagination */
 

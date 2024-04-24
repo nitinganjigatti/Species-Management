@@ -11,7 +11,8 @@ import FormControl from '@mui/material/FormControl'
 import { FormHelperText } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
-import { schedule } from 'src/pages/diet/diet/[id]/data'
+
+// import { schedule } from 'src/pages/diet/diet/[id]/data'
 import { Controller } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
@@ -92,6 +93,7 @@ const StepPreviewDiet = ({
   handleIngredientChange
 }) => {
   const ingredients = [{ label: ' Ingredients' }, { label: 'Quantity' }, { label: 'Preparation Type' }]
+  const schedule = []
 
   const ingredientsbyqun = [
     { label: ' Ingredients' },

@@ -29,7 +29,6 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { schedule } from './data'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -37,6 +36,7 @@ const DietDetail = () => {
   const { id } = router.query
   const [loader, setLoader] = useState(false)
   const [value, setValue] = useState('full')
+  const schedule = []
 
   let startArry = []
 
