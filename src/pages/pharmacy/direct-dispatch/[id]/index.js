@@ -623,6 +623,17 @@ const IndividualRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'phone_number',
+      headerName: 'Driver Number',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.phone_number ? params.row.phone_number : 'NA'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'shipment_status',
       headerName: 'Status',
       renderCell: params => (

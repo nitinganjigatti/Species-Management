@@ -859,7 +859,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <Typography color={'error.main'}>This product is out of stock</Typography>
                   </Grid>
                 ) : null}
-                {console.log('batch ', batchItems)}
                 <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
                   {batchItems.length === 0 ? (
                     <AddButton
@@ -871,25 +870,26 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       }}
                       title='Add Item'
                     />
-                  ) : null}
-                  <LoadingButton
-                    size='large'
-                    variant='contained'
-                    loading={submitLoader}
-                    type='submit'
+                  ) : (
+                    <LoadingButton
+                      size='large'
+                      variant='contained'
+                      loading={submitLoader}
+                      type='submit'
 
-                    // onClick={() => {
-                    //   const count = Object.values(rowErrors).filter(item => item.status).length
-                    //   if (
-                    //     count <= 0 &&
-                    //     totalMedicine <=
-                    //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
-                    //   )
-                    //     dispatchRequest()
-                    // }}
-                  >
-                    Submit
-                  </LoadingButton>
+                      // onClick={() => {
+                      //   const count = Object.values(rowErrors).filter(item => item.status).length
+                      //   if (
+                      //     count <= 0 &&
+                      //     totalMedicine <=
+                      //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
+                      //   )
+                      //     dispatchRequest()
+                      // }}
+                    >
+                      Submit
+                    </LoadingButton>
+                  )}
                   {openSnackbar.open ? (
                     <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
                   ) : null}

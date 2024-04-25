@@ -83,6 +83,8 @@ const RequestList = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
+    setSearchValue('')
+
     setStatus(newValue)
   }
 
@@ -140,9 +142,16 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-          remove('requestPageStatus')
+          console.log('res', res)
+          if (res?.success === true && res?.data.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('requestPageStatus')
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+            remove('requestPageStatus')
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -158,8 +167,10 @@ const RequestList = () => {
     console.log('requestPageStatus', statusIsThere)
     if (statusIsThere) {
       debugger
-      setStatus(statusIsThere.currentStatus)
-      setFilterSwitch(statusIsThere.filterSwitch)
+      setStatus(statusIsThere?.currentStatus)
+      setFilterSwitch(statusIsThere?.filterSwitch)
+
+      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
       fetchTableData(
         statusIsThere.sort,
         statusIsThere.searchValue,
@@ -410,7 +421,7 @@ const RequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'request_date',
-      headerName: 'DATE',
+      headerName: 'Days',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.daysFromToday(params.row.request_date)}
@@ -478,6 +489,7 @@ const RequestList = () => {
                 </Box>
                 {params.row.request_status === 'Received' ||
                 params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Broken' ||
                 params.row.request_status === 'Wrong Count - Accepted' ? (
                   <Box sx={{ color: 'success.main', mr: 2 }}>
                     {/* added for partial shipping */}
