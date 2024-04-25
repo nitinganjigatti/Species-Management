@@ -60,6 +60,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       ingredient =>
         ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
+
     // Filter ingredients by quantity
     const filteredQuantity = IngredientsDetailsval?.by_quantity.filter(
       ingredient =>
@@ -203,6 +204,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               columns={columns}
               loading={loading}
               hideFooter={true}
+
               // onCellClick={onCellClick}
             />
           </Card>
@@ -240,6 +242,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               rowCount={rowsQuantity.length}
               columns={columns}
               loading={loading}
+
               // onCellClick={onCellClick}
             />
           </Card>

@@ -15,6 +15,24 @@ export async function getReturnItemsListById(id) {
   return response.data
 }
 
+export async function cancelReturnItemsRequest(id) {
+  try {
+    const url = `${RETURN_REQUEST}/${id}/cancel`
+    const response = await axiosPost({ url, pharmacy })
+
+    return response
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function addReturnItems(payload) {
   try {
     const url = `${RETURN_REQUEST}`

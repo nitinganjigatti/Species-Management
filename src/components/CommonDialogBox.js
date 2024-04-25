@@ -21,17 +21,16 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
+const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth }) => {
   return (
     <Dialog
-      fullWidth
+      fullWidth={noWidth ? false : true}
       open={dialogBoxStatus}
       maxWidth='md'
       height='auto'
       scroll='body'
       onClose={() => close()}
       TransitionComponent={Transition}
-      onBackdropClick={() => close()}
     >
       <Card>
         {/* <Grid
@@ -42,14 +41,16 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close }) => {
             alignItems: 'center'
           }}
         > */}
-        <CardHeader
-          title={title ? title : null}
-          action={
-            <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
-              <Icon icon='mdi:close' />
-            </IconButton>
-          }
-        />
+        {title && (
+          <CardHeader
+            title={title ? title : null}
+            action={
+              <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
+                <Icon icon='mdi:close' />
+              </IconButton>
+            }
+          />
+        )}
 
         <CardContent
 

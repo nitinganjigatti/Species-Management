@@ -7,6 +7,7 @@ import ActivityLogs from 'src/@core/components/activityLogs'
 
 const OverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
+
   const toggleExpanded = () => {
     setExpanded(!expanded)
   }
@@ -25,6 +26,7 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
 
     return firstLetter + restOfWord
   }
+
   return (
     <Grid>
       {IngredientsDetailsval.desc ? (
@@ -50,14 +52,12 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
             <Typography
               onClick={toggleExpanded}
               sx={{
-                mt: 1,
                 fontWeight: '600',
                 fontSize: '13px',
+
                 textDecoration: 'underline',
                 color: '#000',
-                cursor: 'pointer',
-                float: 'right',
-                paddingBottom: '30px'
+                cursor: 'pointer'
               }}
             >
               {expanded ? 'View less' : 'View more'}

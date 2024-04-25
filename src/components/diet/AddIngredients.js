@@ -1,37 +1,49 @@
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable newline-before-return */
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, IconButton, Typography, TextField, Stack, Button, Checkbox, Transition, debounce } from '@mui/material'
+import {
+  Box,
+  IconButton,
+  Typography,
+  TextField,
+  Stack,
+  Button,
+  Checkbox,
+  debounce,
+  CircularProgress,
+  Avatar
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
+import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
-import { margin } from '@mui/system'
+
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
+import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 
 const AddIngredients = props => {
-  const { open, handleSidebarClose } = props
-  const [feed, setFeed] = React.useState('')
+  const { open, handleSidebarClose, setSelectedIngredient } = props
+  const [feed, setFeed] = useState('')
   const [selectFeed, setSelectFeed] = useState({})
-  console.log('selectedFeed', selectFeed)
+
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
-  const [cutSize, seCutSize] = useState('')
+  const [cutSize, setCutSize] = useState('')
   const [size, setSize] = useState('')
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
-  console.log('ingredientList', ingredientList)
+
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   const [uom, setUom] = useState([])
+  const [feedType, setFeedType] = useState([])
+  const [selectedDays, setSelectedDays] = useState([])
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -39,39 +51,74 @@ const AddIngredients = props => {
     setVisibility(prevVisibility => {
       const existingIndex = prevVisibility.findIndex(visItem => visItem && visItem.id === item.id)
       const newVisibility = [...prevVisibility]
-      if (existingIndex !== -1 && newVisibility[existingIndex]?.isVisible) {
-        // newVisibility.splice(existingIndex, 1)
-        newVisibility[existingIndex] = {
-          ...newVisibility[existingIndex],
-          isVisible: true
-        }
-      } else {
-        if (existingIndex !== -1) {
-          newVisibility[existingIndex] = {
-            ...newVisibility[existingIndex],
-            isVisible: true
-          }
-        } else {
-          newVisibility.push({
-            id: item.id,
-            isVisible: true
-          })
-        }
+
+      if (existingIndex !== -1) {
+        // If the item already exists in visibility state, do not toggle off its visibility
+        return newVisibility
       }
+
+      // If the item is not visible or doesn't exist, set it to visible
+      newVisibility.push({
+        id: item.id,
+        isVisible: true
+      })
 
       return newVisibility
     })
+
+    console.log('Selected days before update:', selectedDays)
+
+    // if (selectedDays.length === 0) {
+    const allDays = Array.from({ length: 8 }, (_, i) => ({
+      dayId: i,
+      dayName: Day.find(day => day.id === i)?.name
+    }))
+
+    console.log('All days:', allDays)
+
+    setSelectedDays(prevSelectedDays => {
+      const existingIndex = prevSelectedDays.findIndex(selectedItem => selectedItem && selectedItem.cardId === item.id)
+
+      if (existingIndex !== -1) {
+        // If the item exists, update its days to include all days
+        const updatedSelectedDays = [...prevSelectedDays]
+        updatedSelectedDays[existingIndex].days = allDays
+
+        return updatedSelectedDays
+      } else {
+        // If the item doesn't exist, add it with all days selected
+        return [...prevSelectedDays, { cardId: item.id, days: allDays }]
+      }
+    })
   }
 
-  const handleChange = event => {
+  // }
+
+  const handleChangeTopFeed = async event => {
+    setReachedEnd(true)
     setFeed(event.target.value)
+
+    try {
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
+      await getIngredientList({ params }).then(res => {
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const handleChangeFeed = (event, item) => {
+    event.stopPropagation()
     const { value } = event.target
-    // Find the selected feed type object
+
     const selectedFeedType = item.preparation_types.find(type => type.id === value)
-    // Update the state with the ID and name of the selected feed type
+
     setSelectFeed(prevState => ({
       ...prevState,
       [item.id]: {
@@ -79,11 +126,20 @@ const AddIngredients = props => {
         name: selectedFeedType.label
       }
     }))
+
+    if (selectedFeedType.label !== 'Chopped') {
+      handelCardSelection(event, item, selectedFeedType, null, null, selectedDays)
+    }
   }
-  const handleChangeSize = event => {
+
+  const handleChangeSize = (event, item) => {
     event.stopPropagation()
-    console.log('event.target.value', event.target.value)
+    const newUom = event.target.value
+
     setSize(event.target.value)
+    if (cutSize) {
+      handelCardSelection(event, item, null, null, newUom, selectedDays)
+    }
   }
 
   const handleAddRemarks = event => {
@@ -91,181 +147,152 @@ const AddIngredients = props => {
     setRemarks(event.target.value)
   }
 
-  // Handle click on the days
-  // const [day, setDay] = useState(ingredientList)
+  const handleDayClick = (event, dayId, dayName, cardId, item) => {
+    event.stopPropagation()
 
-  // const handleDayClick = (id, cardId) => {
-  //   setDay(prevFoods =>
-  //     prevFoods.map(food => {
-  //       if (food.id === cardId) {
-  //         if (id === '0') {
-  //           // Toggle all days for the specific card
-  //           const allActive = !food.days.every(day => day.isActive)
-  //           return {
-  //             ...food,
-  //             days: food.days.map(day => ({ ...day, isActive: allActive }))
-  //           }
-  //         } else {
-  //           // Toggle the clicked day
-  //           const updatedDays = food.days.map(day => {
-  //             if (day.id === id) {
-  //               return { ...day, isActive: !day.isActive }
-  //             }
-  //             return day
-  //           })
+    const updatedSelectedDays = selectedDays.map(item => {
+      if (item.cardId === cardId) {
+        let updatedDays = []
+        if (dayId === 0) {
+          // Select all days if "All" is not already selected
+          const allDayIndex = item.days.findIndex(d => d.dayId === 0)
+          if (allDayIndex === -1) {
+            updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
+            updatedDays.push({ dayId: 0, dayName: 'All' })
+          } else {
+            updatedDays = item.days
+          }
+        } else {
+          // Toggle individual day selection
+          const existingIndex = item.days.findIndex(d => d.dayId === dayId)
+          if (existingIndex === -1) {
+            updatedDays = [...item.days, { dayId, dayName }]
+          } else {
+            updatedDays = item.days.filter(d => d.dayId !== dayId)
+          }
 
-  //           // Check if all individual days are active, then activate "ALL" button
-  //           const allIndividualDaysActive = updatedDays.slice(1).every(day => day.isActive)
-  //           const allActive = allIndividualDaysActive || updatedDays[0].isActive
-
-  //           // Check if "ALL" button is already active and any individual day is clicked again
-  //           if (updatedDays[0].isActive && !allIndividualDaysActive) {
-  //             // Toggle all days to false
-  //             return {
-  //               ...food,
-  //               days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: false } : day))
-  //             }
-  //           }
-
-  //           return {
-  //             ...food,
-  //             days: updatedDays.map((day, index) => (index === 0 ? { ...day, isActive: allActive } : day))
-  //           }
-  //         }
-  //       }
-  //       return food
-  //     })
-  //   )
-  // }
-
-  const [selectedDays, setSelectedDays] = useState([])
-  console.log('selectedDays', selectedDays)
-
-  const handleDayClick = (dayId, dayName, cardId) => {
-    let cardInfo = selectedDays.find(item => item.cardId === cardId)
-    if (!cardInfo) {
-      cardInfo = { cardId, days: [] }
-    }
-
-    // Check if the clicked day is "All"
-    if (dayId === 0) {
-      const allDaysSelected = cardInfo.days.filter(item => item.dayId !== 0).length === 7
-
-      // If all individual days are selected, remove all days
-      if (allDaysSelected) {
-        cardInfo.days = []
-      } else {
-        // If not all individual days are selected, select all days
-        cardInfo.days = []
-        for (let i = 1; i <= 7; i++) {
-          const day = Day.find(day => day.id === i)
-          cardInfo.days.push({ dayId: day.id, dayName: day.name })
+          // Check if "All" should be deselected
+          const allDayIndex = item.days.findIndex(d => d.dayId === 0)
+          if (allDayIndex !== -1 && dayId !== 0) {
+            updatedDays = updatedDays.filter(d => d.dayId !== 0)
+          }
         }
-        // Also add the "All" day
-        cardInfo.days.push({ dayId: 0, dayName: 'All' })
-      }
-    } else {
-      // Check if the clicked day is already selected for the card
-      const index = cardInfo.days.findIndex(item => item.dayId === dayId)
 
-      // If not selected, add the day
-      if (index === -1) {
-        cardInfo.days.push({ dayId, dayName })
-      } else {
-        // If selected, remove the day
-        cardInfo.days.splice(index, 1)
-      }
-
-      // Check if "All" is selected and deselect if any individual day is deselected
-      if (dayId !== 0) {
-        const allDayIndex = cardInfo.days.findIndex(item => item.dayId === 0)
-        if (allDayIndex !== -1) {
-          cardInfo.days.splice(allDayIndex, 1)
+        // Ensure at least one day remains selected if only one is currently selected
+        if (updatedDays.length === 0 && item.days.length === 1) {
+          updatedDays = item.days
         }
+
+        return { cardId, days: updatedDays }
       }
-    }
 
-    // If all individual days are selected but the "All" option is not selected, add "All"
-    const allSelected = cardInfo.days.length === 7 && !cardInfo.days.some(day => day.dayId === 0)
-    if (allSelected) {
-      const allDay = Day.find(day => day.id === 0)
-      cardInfo.days.push({ dayId: 0, dayName: 'All' })
-    }
+      return item
+    })
 
-    const updatedSelectedDays = selectedDays.filter(item => item.cardId !== cardId)
-    updatedSelectedDays.push(cardInfo)
     setSelectedDays(updatedSelectedDays)
+
+    console.log('updatedSelectedDays', updatedSelectedDays)
+
+    if (updatedSelectedDays) {
+      handelCardSelection(event, item, null, null, null, updatedSelectedDays)
+    }
   }
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
   console.log('selectedCard', selectedCard)
 
-  const handelCardSelection = item => {
+  const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, updatedSelectedDays) => {
+    console.log('updatedSelectedDay card', updatedSelectedDays)
+    event.stopPropagation()
+
     // Get the selected feed value for the current item
-    const feedType = selectFeed[item.id] || ''
+    const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
+    const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
+    console.log('feed_type', feed_type)
 
     // Get the remarks value
     const remarksData = remarks || ''
 
     // Get the selected days for the current item
-    const selectedDaysForItem = Day.filter(day =>
-      selectedDays.some(
-        selectedDay =>
-          selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+    const selectedDaysForItem = updatedSelectedDays?.filter(updatedDay => {
+      return (
+        updatedDay.cardId === item.id &&
+        updatedDay.days.some(day => {
+          return selectedDays.some(
+            selectedDay =>
+              selectedDay.cardId === updatedDay.cardId &&
+              selectedDay.days.some(selectedDay => selectedDay.dayId === day.dayId)
+          )
+        })
       )
-    )
+    })
+
+    console.log('selectedDaysForItem', selectedDaysForItem)
+
+    // Validation checks
+    if (!feed_type) {
+      // Display error message or handle empty feedType
+      toast.error('Please select a feed type.')
+
+      return
+    }
+
+    if (selectedDaysForItem?.length === 0) {
+      // Display error message or handle no selected days
+      toast.error('Please select at least one day.')
+
+      return
+    }
+
+    if (feed_type === 'Chopped') {
+      // Additional validation for 'Chopped' feed type
+      const cutSizeValue = newCutSize ? newCutSize : cutSize || ''
+      const sizeValue = newUom ? newUom : size || ''
+      if (!cutSizeValue || !sizeValue) {
+        // Display error message or handle empty cut size or size
+        toast.error('Cut size and size are required for chopped feed.')
+
+        return
+      }
+    }
 
     // Prepare the object to store values
     const boxValues = {
       id: item.id,
       name: item.ingredient_name,
-      feedTypeId: feedType,
-      selectedDays: selectedDaysForItem.map(day => day.name),
+      preparation_type_id: feed_type_id,
+      preparation_type: feed_type,
+      selectedDays: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       remarks: remarksData
     }
 
-    // Include cut size and its dropdown only if feedType is "chopped"
-    if (feedType === 'chopped') {
-      const cutSizeValue = cutSize || ''
-      const sizeValue = size || ''
-      if (!cutSizeValue || !sizeValue) {
-        // Display a message if cut size or its dropdown is empty
-        return toast(t => (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-              <div>
-                <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                  Cut Size is required
-                </Typography>
-              </div>
-            </Box>
-            <IconButton
-              onClick={() => toast.dismiss(t.id)}
-              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-            >
-              <Icon icon='mdi:close' fontSize={24} />
-            </IconButton>
-          </Box>
-        ))
-      }
+    if (feed_type === 'Chopped') {
+      // Include cut size and its dropdown only if feedType is "Chopped"
+      const cutSizeValue = newCutSize ? newCutSize : cutSize || ''
+      const sizeValue = newUom ? newUom : size || ''
+
+      // Update boxValues with cut size and size
       boxValues.cutSize = cutSizeValue
       boxValues.uomId = sizeValue
     }
 
     // Check if the boxValues already exist in selectedCard
-    const index = selectedCard.findIndex(card => card.id === item.id)
-    if (index !== -1) {
-      // Remove the existing entry
-      setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
+    const existingIndex = selectedCard.findIndex(card => card.id === item.id)
+    if (existingIndex !== -1) {
+      // If the card already exists, update its values
+      selectedCard[existingIndex] = boxValues
+      setSelectedCard([...selectedCard])
     } else {
-      // Add new entry
+      // If the card is new, add it to selectedCard
       setSelectedCard(prevValues => [...prevValues, boxValues])
     }
   }
 
-  const handleAllSelect = () => {
+  const handleAllSelect = event => {
+    event.stopPropagation()
+    setSelectedIngredient(selectedCard)
+
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -296,24 +323,37 @@ const AddIngredients = props => {
 
   useEffect(() => {
     getUnitsList()
+    setReachedEnd(true)
 
     try {
-      // const currentAnimalFilterValue = animalFilterValueRef.current
-
       const params = { page: ingredientPage, q: searchValue, sort }
       getIngredientList({ params }).then(res => {
-        console.log('res', res)
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
-          // setOpen(true)
         }
       })
     } catch (error) {
       console.error(error)
     }
+  }, [])
+
+  // Top Feed Type
+  const fetchData = async () => {
+    const params = {}
+    try {
+      const response = await getPreparationTypeList()
+
+      setFeedType(response?.data?.result)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   // uom
@@ -326,7 +366,6 @@ const AddIngredients = props => {
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
-        console.log('res?.data?result', res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -339,30 +378,17 @@ const AddIngredients = props => {
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
       // User has reached the bottom, perform your action here
-      console.log('if')
+
       setIngredientPage(++ingredientPage)
       setReachedEnd(true)
       try {
-        // const currentAnimalFilterValue = animalFilterValueRef.current
-
         const params = { page: ingredientPage, q: searchValue, sort }
         await getIngredientList({ params }).then(res => {
-          // {
-          //   // sort,
-          //   q,
-          //   sortColumn,
-          //   page: ingredientPage,
-          //   limit: paginationModel.pageSize,
-          //   status
-          // }
-          // currentAnimalFilterValue
-          console.log('res', res)
           if (res?.data?.result?.length > 0) {
             setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
           } else {
             setReachedEnd(false)
-            // setOpen(true)
           }
         })
       } catch (error) {
@@ -373,7 +399,6 @@ const AddIngredients = props => {
 
   const searchData = useCallback(
     debounce(async search => {
-      console.log('search')
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
@@ -394,16 +419,39 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  // useEffect(() => {
-  //   handelCardSelection()
-  // }, [selectFeed, selectedDays, remarks, cutSize, size])
+  const handelInputCutSize = (event, item) => {
+    console.log('item Input', item)
+    event.stopPropagation()
+    const newCutSize = event.target.value
+
+    // Set cutSize state
+    setCutSize(event.target.value)
+
+    // Call handelCardSelection with the updated cutSize value
+    if (size) {
+      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+    }
+  }
+
+  const removeSelectedCard = (event, itemId) => {
+    console.log('removeSelectedCard Called')
+
+    // Check if the card with itemId is present in the selectedCard state
+    const cardIndex = selectedCard.findIndex(card => card.id === itemId)
+
+    if (cardIndex !== -1) {
+      // If the card is found, remove it from the selectedCard state
+      const updatedSelectedCard = [...selectedCard]
+      updatedSelectedCard.splice(cardIndex, 1)
+      setSelectedCard(updatedSelectedCard)
+    }
+  }
 
   return (
     <>
       <Drawer
         anchor='right'
         open={open}
-        // onScroll={handleScroll}
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -422,8 +470,6 @@ const AddIngredients = props => {
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px'
-
-              //   backgroundColor: 'background.default',
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
@@ -465,11 +511,13 @@ const AddIngredients = props => {
                   id='demo-simple-select'
                   value={feed}
                   label='Feed'
-                  onChange={handleChange}
+                  onChange={handleChangeTopFeed}
                 >
-                  <MenuItem value={1}>feed 1</MenuItem>
-                  <MenuItem value={2}>feed 2</MenuItem>
-                  <MenuItem value={3}>feed 3</MenuItem>
+                  {feedType?.map(feedList => (
+                    <MenuItem key={feedList?.key} value={feedList?.id}>
+                      {feedList?.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
@@ -478,7 +526,11 @@ const AddIngredients = props => {
 
         {/* Card View */}
 
-        <Box sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }} onScroll={handleScroll}>
+        <Box
+          key={feed}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          onScroll={handleScroll}
+        >
           {ingredientList?.map((item, index) => (
             <Box
               key={item?.id}
@@ -503,7 +555,22 @@ const AddIngredients = props => {
               >
                 {selectedCard.some(card => card.id === item.id) ? (
                   // Render checkbox icon if card is selected
-                  <Box onClick={() => handelCardSelection(item)}>
+                  <Box
+                    onClick={event => removeSelectedCard(event, item.id)}
+                    sx={{
+                      width: '68px',
+                      height: '68px',
+                      borderRadius: 1,
+                      bgcolor: '#E8F4F2',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      mt: 4,
+                      ml: 3,
+                      mr: 4,
+                      p: 3
+                    }}
+                  >
                     <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
                   </Box>
                 ) : (
@@ -522,13 +589,16 @@ const AddIngredients = props => {
                       mr: 4,
                       p: 3
                     }}
-                    onClick={() => handelCardSelection(item)}
+                    onClick={event => handelCardSelection(event, item)}
                   >
-                    <img
-                      src='https://media.istockphoto.com/id/1457433817/photo/group-of-healthy-food-for-flexitarian-diet.jpg?s=612x612&w=0&k=20&c=v48RE0ZNWpMZOlSp13KdF1yFDmidorO2pZTu2Idmd3M='
-                      style={{ width: '100%', borderRadius: 20, width: 40, height: 40 }}
-                      alt='ingredient'
-                    />
+                    <Avatar
+                      variant='square'
+                      alt='Medicine Image'
+                      sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
+                      src={item?.image ? item?.image : null}
+                    >
+                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
+                    </Avatar>
                   </Box>
                 )}
                 <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
@@ -571,8 +641,7 @@ const AddIngredients = props => {
               </Box>
 
               {/* bottom part */}
-              {/* {showBottom === index  */}
-              {/* {visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible ? ( */}
+
               <>
                 <Box
                   sx={{
@@ -599,13 +668,20 @@ const AddIngredients = props => {
                               placeholder='Add Size'
                               variant='outlined'
                               {...props}
-                              onChange={e => seCutSize(e.target.value)}
+                              onChange={event => handelInputCutSize(event, item)}
+
+                              // onChange={event => setCutSize(event.target.value)}
                             />
                           </FormControl>
                         </Box>
                         <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
-                            <Select size='small' value={size} onChange={handleChangeSize} displayEmpty>
+                            <Select
+                              size='small'
+                              value={size}
+                              onChange={event => handleChangeSize(event, item)}
+                              displayEmpty
+                            >
                               <MenuItem value='' disabled>
                                 Select
                               </MenuItem>
@@ -629,11 +705,11 @@ const AddIngredients = props => {
                       {Day?.map(day => (
                         <Box
                           key={day.id}
-                          onClick={event => handleDayClick(day.id, day.name, item.id)}
+                          onClick={event => handleDayClick(event, day.id, day.name, item.id, item)}
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            // bgcolor: day.isActive ? '#203e56' : '#dedede',
+
                             bgcolor: selectedDays.some(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
@@ -692,6 +768,11 @@ const AddIngredients = props => {
               {/* ) : null} */}
             </Box>
           ))}
+          {reachedEnd ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+              <CircularProgress sx={{ mb: 10 }} />
+            </Box>
+          ) : null}
         </Box>
 
         <Box

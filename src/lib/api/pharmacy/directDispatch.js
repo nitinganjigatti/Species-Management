@@ -15,6 +15,24 @@ export async function getDirectDispatchItemsListById(id) {
   return response.data
 }
 
+export async function cancelDirectDispatchItems(id) {
+  try {
+    const url = `${DIRECT_DISPATCH}/${id}/cancel`
+    const response = await axiosPost({ url, pharmacy })
+
+    return response
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function addDirectDispatchItems(payload) {
   try {
     const url = `${DIRECT_DISPATCH}`

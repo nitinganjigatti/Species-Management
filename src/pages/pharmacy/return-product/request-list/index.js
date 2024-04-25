@@ -20,6 +20,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -28,8 +29,11 @@ import { Box } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 const ReturnRequestList = () => {
+  const { selectedPharmacy } = usePharmacyContext()
+
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -42,8 +46,7 @@ const ReturnRequestList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
-
-  const { selectedPharmacy } = usePharmacyContext()
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,28 +54,32 @@ const ReturnRequestList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
+    setPaginationModel({ page: 0, pageSize: 10 })
 
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
+        debugger
 
         const params = {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          status
+          page: page ? page : paginationModel.page + 1,
+          limit: limit ? limit : paginationModel.pageSize,
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          remove('returnPageStatus')
         })
         setLoading(false)
       } catch (e) {
@@ -82,15 +89,21 @@ const ReturnRequestList = () => {
     },
     [paginationModel]
   )
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn, status)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [fetchTableData, selectedPharmacy, status])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [selectedPharmacy.id])
+
+  useEffect(() => {
+    setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'shipped')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -101,9 +114,10 @@ const ReturnRequestList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
+      const currentStatus = filterSwitch ? 'completed' : status
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
     } else {
     }
   }
@@ -111,8 +125,9 @@ const ReturnRequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      const currentStatus = filterSwitch ? 'completed' : status
       try {
-        await fetchTableData(sort, q, column, status)
+        await fetchTableData(sort, q, column, currentStatus)
       } catch (error) {
         console.error(error)
       }
@@ -120,17 +135,56 @@ const ReturnRequestList = () => {
     []
   )
 
+  const handleSwitchChange = event => {
+    setFilterSwitch(event.target.checked)
+  }
+  useEffect(() => {
+    const statusIsThere = read('returnPageStatus')
+
+    // console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      // debugger
+      setStatus(statusIsThere.currentStatus)
+      setFilterSwitch(statusIsThere.filterSwitch)
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      const currentStatus = filterSwitch ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
+
   const onRowClick = params => {
     var data = params.row
 
     Router.push({
       pathname: `/pharmacy/return-product/${data?.id}`
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      filterSwitch: filterSwitch
+    }
+
+    write('returnPageStatus', currentPageData)
   }
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'local' &&
+      {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
           <AddButton
             title='Add Return Request'
@@ -150,7 +204,7 @@ const ReturnRequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Returned By' : 'Returned To'
+    return selectedPharmacy?.type === 'central' ? 'Returned By' : 'Returned To'
   }
 
   const columns = [
@@ -240,9 +294,15 @@ const ReturnRequestList = () => {
               </Box>
             )}
             {params.row.shipping_status === 'Partially Shipped' && (
-              <Box sx={{ color: 'warning.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-              </Box>
+              <>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  {/* added for partial shipping */}
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              </>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -260,6 +320,7 @@ const ReturnRequestList = () => {
               </Box>
             )}
           </div>
+          {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
       )
     }
@@ -306,7 +367,16 @@ const ReturnRequestList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Return request List' action={headerAction} />
+              <CardHeader title='Return Request List' action={headerAction} />
+              {status === 'all' ? (
+                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                  <FormControlLabel
+                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -360,24 +430,32 @@ const ReturnRequestList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
+            {selectedPharmacy?.type === 'local' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
             <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
-            <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />
             <Tab
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
+            <Tab
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
+
           <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>

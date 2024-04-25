@@ -17,65 +17,56 @@ const RecipeList = props => {
   const { addEventSidebarOpen, handleSidebarClose, submitLoader, setSelectedCard, selectedCard } = props
 
   const [rows, setRows] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
-  // const [selectedCard, setSelectedCard] = useState([])
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   console.log('paginationModel ??', paginationModel)
 
-  useEffect(async () => {
-    const params = { page: ingredientPage, q: searchValue, sort }
-    await getRecipeList({ params }).then(res => {
-      console.log('response', res)
-      if (res.data.result.length > 0) {
-        setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-        setReachedEnd(false)
-      } else {
-        setReachedEnd(false)
-      }
-    })
+  useEffect(() => {
+    const getRecipeListData = async () => {
+      const params = { page: ingredientPage, q: searchValue, sort }
+      await getRecipeList({ params }).then(res => {
+        console.log('response', res)
+        if (res.data.result.length > 0) {
+          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+        }
+      })
+    }
+    getRecipeListData()
   }, [])
-
-  // useEffect( async()=>{
-
-  //   try{
-  //     await getRecipeList({page: ingredientPage})
-  //   }catch(error){
-  // console.log(error);
-  //   }
-  // })
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const handleScroll = async e => {
-    debugger
     const container = e.target
 
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
       // User has reached the bottom, perform your action here
       console.log('if')
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
       try {
-        const params = { page: ingredientPage, q: searchValue, sort }
-        await getRecipeList({ params }).then(res => {
-          console.log('res', res)
-          if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-            console.log('ingredientList', ingredientList)
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false)
-            // setOpen(true)
-          }
-        })
+        const nextPage = paginationModel.page + 1
+        const params = { page: nextPage, q: searchValue, sort, limit: paginationModel.pageSize, status: 1 }
+
+        const res = await getRecipeList({ params })
+        console.log('res', res)
+
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(true) // Depending on your logic, you might want to set reached end to true
+        }
       } catch (error) {
         console.error(error)
       }
@@ -88,7 +79,7 @@ const RecipeList = props => {
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: ingredientPage, q: search, sort }
+          const params = { page: ingredientPage, q: search, sort, status: 1 }
           await getRecipeList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
@@ -168,4 +159,5 @@ const RecipeList = props => {
     </Drawer>
   )
 }
+
 export default RecipeList

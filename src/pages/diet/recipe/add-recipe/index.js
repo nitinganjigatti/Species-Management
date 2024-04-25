@@ -7,6 +7,7 @@ import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
+
 // ** Step Components
 import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
 import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
@@ -44,6 +45,7 @@ const AddRecipe = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+
   const [formData, setFormData] = useState({
     recipe_name: '',
     portion_size: '',
@@ -103,6 +105,7 @@ const AddRecipe = () => {
       const params = {
         //status,
         q,
+
         //active: 1,
         page,
         limit
@@ -265,6 +268,7 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(t => <AddToasterforSuccess type='Recipe' />)
       }
     } else {
@@ -315,6 +319,7 @@ const AddRecipe = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
+
         return toast(t => <AddToasterforSuccess type='Recipe' id={id} />)
       }
     }
@@ -355,8 +360,10 @@ const AddRecipe = () => {
 
   const renderContent = () => {
     console.log(formData, 'formdat')
+
     return getStepContent(activeStep)
   }
+
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>

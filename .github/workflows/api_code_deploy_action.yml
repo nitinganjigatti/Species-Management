@@ -2,11 +2,9 @@ name: Antz Deployment
 on:
   push:
     branches:
-      # - main
       - dev-release
-      # - prod-release
-      - staging-release
-      # - release/vantara
+      - uat-release
+      - prod-release
 env:
   SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
   DEPLOY_SERVER_DEV: ${{vars.DEPLOY_SERVER_DEV}}
@@ -30,10 +28,10 @@ jobs:
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
       - name: Add Dev Servers To KNOWN HOSTS
         run: ssh-keyscan $DEPLOY_SERVER_DEV >> ~/.ssh/known_hosts
-      - run: ssh-keyscan $DEPLOY_SERVER_UAT >> ~/.ssh/known_hosts
-        name: Add Staging Servers To KNOWN HOSTS
-      - run: ssh-keyscan $DEPLOY_SERVER_PROD >> ~/.ssh/known_hosts
-        name: Add Production Servers To KNOWN HOSTS
+      - name: Add Staging Servers To KNOWN HOSTS
+        run: ssh-keyscan $DEPLOY_SERVER_UAT >> ~/.ssh/known_hosts
+      - name: Add Production Servers To KNOWN HOSTS
+        run: ssh-keyscan $DEPLOY_SERVER_PROD >> ~/.ssh/known_hosts
       - run: chmod 644 ~/.ssh/known_hosts
         name: UPDATE PERMISSION OF KNOWN HOSTS
       - name: Checkout CodeBase

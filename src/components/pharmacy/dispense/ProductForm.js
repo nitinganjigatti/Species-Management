@@ -21,6 +21,11 @@ import { getBatchList, getProductList } from 'src/lib/api/pharmacy/dispenseProdu
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import Spacing from 'src/@core/theme/spacing'
 
 function ProductForm({
   closeDialog,
@@ -45,6 +50,20 @@ function ProductForm({
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false)
   const [invalidBatches, setInvalidBatches] = useState([])
   const [dataForSubmit, setDataForSubmit] = useState(null)
+
+  const [selectedBatches, setSelectedBatches] = useState([])
+  const [editBatchQty, setEditBatchQty] = useState(0)
+
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const authData = useContext(AuthContext)
+
+  const handleBatchChange = (event, newValue, index) => {
+    // Clone the existing array and update the batch for the current index
+    const updatedBatches = [...selectedBatches]
+    updatedBatches[index] = newValue
+    setSelectedBatches(updatedBatches)
+  }
 
   const defaultProductDetails = !editMode
     ? {
@@ -101,26 +120,41 @@ function ProductForm({
                 })
             }),
             qty: Yup.number()
+
+              // .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
+              //   const { stock_id } = this?.options?.from[1]?.value // Accessing form values
+              //   const allValues = getValues()
+
+              //   const sum = allValues.product_batches.reduce((accumulator, batch) => {
+              //     return accumulator + (parseFloat(batch.qty) || 0)
+              //   }, 0)
+
+              //   // Find all rows in productArray with matching batch_no
+              //   const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id?.value)
+
+              //   // Calculate the sum of quantities in matching rows
+              //   const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+              //   const remainingQuantity = totalProductQty - sumOfQuantities
+
+              //   // Check if the current value exceeds the remaining quantity
+              //   setTotalQty(remainingQuantity)
+
+              //   // return value <= remainingQuantity || sum <= remainingQuantity
+              //   return sum <= remainingQuantity
+              // })
               .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
-                const { stock_id } = this?.options?.from[1]?.value // Accessing form values
-                const allValues = getValues()
+                const { product_batches } = this?.options?.from[1]?.value // Accessing form values
+                // console.log('product_batches', product_batches)
+                clearErrors('product_batches')
 
-                const sum = allValues.product_batches.reduce((accumulator, batch) => {
-                  return accumulator + (parseFloat(batch.qty) || 0)
-                }, 0)
+                const isValid = product_batches?.every(item => {
+                  const batchQty = parseFloat(item?.batch_no?.qty)
+                  const inputQty = parseFloat(item?.qty)
 
-                // Find all rows in productArray with matching batch_no
-                const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id?.value)
+                  return inputQty <= batchQty
+                })
 
-                // Calculate the sum of quantities in matching rows
-                const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
-                const remainingQuantity = totalProductQty - sumOfQuantities
-
-                // Check if the current value exceeds the remaining quantity
-                setTotalQty(remainingQuantity)
-
-                // return value <= remainingQuantity || sum <= remainingQuantity
-                return sum <= remainingQuantity
+                return isValid
               })
               .required('Quantity is required')
               .typeError('Quantity should be a number')
@@ -148,9 +182,13 @@ function ProductForm({
         qty: Yup.number()
           .typeError('Quantity must be a number')
           .required('Quantity is required')
-          .min(1, 'Quantity should be greater than 0')
-          .test('check-max-quantity', `Quantity should not be greater than ${totalQty}`, function (value) {
-            return value <= totalQty
+
+          // .min(1, 'Quantity should be greater than 0')
+          // .test('check-max-quantity', `Quantity should not be greater than ${totalQty}`, function (value) {
+          //   return value <= totalQty
+          // })
+          .test('check-max-quantity', `Quantity should not be greater than ${editBatchQty}`, function (value) {
+            return value <= editBatchQty
           })
       })
 
@@ -241,33 +279,33 @@ function ProductForm({
     setInvalidBatches([])
   }
 
-  const checkForSubmit = data => {
-    let paradata = data
-    let confirmToSubmit = false
-    data?.product_batches.forEach(batch => {
-      const totalQty = parseInt(batch.batch_no.qty, 10)
-      const filledQty = parseInt(batch.qty, 10)
+  // const checkForSubmit = data => {
+  //   let paradata = data
+  //   let confirmToSubmit = false
+  //   data?.product_batches.forEach(batch => {
+  //     const totalQty = parseInt(batch.batch_no.qty, 10)
+  //     const filledQty = parseInt(batch.qty, 10)
 
-      // Check if filled quantity is greater than total available quantity
-      if (filledQty > totalQty) {
-        // Set the state to true
-        confirmToSubmit = true
-        setInvalidBatches(prevInvalidBatches => [
-          ...prevInvalidBatches,
-          { batch_no: batch.batch_no, filledQty, totalQty }
-        ])
-      }
-    })
-    if (confirmToSubmit) {
-      setShowConfirmationDialog(true)
-      setDataForSubmit(paradata)
+  //     // Check if filled quantity is greater than total available quantity
+  //     if (filledQty > totalQty) {
+  //       // Set the state to true
+  //       confirmToSubmit = true
+  //       setInvalidBatches(prevInvalidBatches => [
+  //         ...prevInvalidBatches,
+  //         { batch_no: batch.batch_no, filledQty, totalQty }
+  //       ])
+  //     }
+  //   })
+  //   if (confirmToSubmit) {
+  //     setShowConfirmationDialog(true)
+  //     setDataForSubmit(paradata)
 
-      // setInvalidBatches([])
-    } else {
-      submitItems(paradata)
-      setInvalidBatches([])
-    }
-  }
+  //     // setInvalidBatches([])
+  //   } else {
+  //     submitItems(paradata)
+  //     setInvalidBatches([])
+  //   }
+  // }
 
   function submitItems(data) {
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
@@ -350,15 +388,37 @@ function ProductForm({
     closeDialog()
   }
 
+  useEffect(() => {
+    if (!editMode) {
+      try {
+        getProductList({ params: { sort: 'asc', q: '', limit: 20 } }).then(res => {
+          if (res?.data?.list_items.length > 0) {
+            setProducts(
+              res?.data?.list_items?.map(item => ({
+                label: item.name,
+                value: item.id,
+                stock_type: item.stock_type
+              }))
+            )
+          }
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }, [])
+
   const searchProductData = useCallback(
     debounce(async searchText => {
       try {
         await getProductList({ params: { sort: 'asc', q: searchText, limit: 20 } }).then(res => {
           if (res?.data?.list_items.length > 0) {
+            // console.log('first', res?.data)
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
-                value: item.id
+                value: item.id,
+                stock_type: item.stock_type
               }))
             )
           }
@@ -374,9 +434,9 @@ function ProductForm({
     console.log('Form errros', errors)
   }
 
-  const callBatchesApi = stock_id => {
+  const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
-      getBatchList({ ProductId: stock_id }).then(res => {
+      getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -385,7 +445,8 @@ function ProductForm({
               qty: item?.qty
             }))
           )
-          setTotalProductQty(res?.data?.total_quantity)
+
+          // setTotalProductQty(res?.data?.total_quantity)
           if (!editMode) {
             const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id)
 
@@ -393,9 +454,12 @@ function ProductForm({
             const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
             setTotalQty(res?.data?.total_quantity - sumOfQuantities)
           } else {
-            const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id)
-            const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
-            setTotalQty(res?.data?.total_quantity - sumOfQuantities + productArrayUi[selectedIndex].qty)
+            setEditBatchQty(getValues('batch_no.qty'))
+            setTotalQty(res?.data?.total_quantity)
+
+            // const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id)
+            // const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
+            // setTotalQty(res?.data?.total_quantity - sumOfQuantities + productArrayUi[selectedIndex].qty)
           }
           clearErrors(`product_batches[${0}].batch_no`)
         } else {
@@ -414,7 +478,9 @@ function ProductForm({
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
-      callBatchesApi(dataForEditRow.stock_id?.value)
+
+      callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
+      setTotalQty(getValues('batch_no.qty'))
     }
   }, [editMode])
 
@@ -468,7 +534,7 @@ function ProductForm({
           </>
         }
       />
-      <form onSubmit={handleSubmit(editMode ? EditItems : checkForSubmit, onError)}>
+      <form onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
         <Grid container mb={5}>
           <Grid item xs={12}>
             <FormControl fullWidth>
@@ -484,14 +550,18 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
+                      ListboxProps={{ style: { maxHeight: 130 } }}
                       inputProps={{ tabIndex: '6' }}
                       disablePortal
+                      noOptionsText='Type to search'
                       id='autocomplete-controlled'
                       options={products}
                       value={field?.value}
                       onChange={(event, newValue) => {
                         field.onChange(newValue)
-                        callBatchesApi(newValue?.value)
+                        callBatchesApi(newValue?.value, newValue?.stock_type)
+                        setValue('batch_no', '')
+                        setValue('qty', '')
                       }}
                       onKeyUp={e => {
                         searchProductData(e?.target?.value)
@@ -501,6 +571,7 @@ function ProductForm({
                           {...params}
                           label='
                           Product Name*'
+                          placeholder='Search & Select'
                           error={Boolean(errors?.stock_id)}
                         />
                       )}
@@ -529,6 +600,7 @@ function ProductForm({
                       render={({ field }) => (
                         <>
                           <Autocomplete
+                            ListboxProps={{ style: { maxHeight: 100 } }}
                             forcePopupIcon={false}
                             inputProps={{ tabIndex: '6' }}
                             disablePortal
@@ -546,6 +618,10 @@ function ProductForm({
                             value={field?.value}
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
+
+                              handleBatchChange(event, newValue, index)
+
+                              // console.log('first', newValue)
                             }}
                             renderInput={params => (
                               <TextField
@@ -597,16 +673,18 @@ function ProductForm({
                       )}
                     />
                   </FormControl>
-                  <Typography sx={{ fontSize: 12, ml: 2 }}>{` ${
-                    watch('product_batches')[index]?.batch_no?.value === '' ||
-                    watch('product_batches')[index]?.batch_no?.value === null ||
-                    watch('product_batches')[index]?.batch_no?.value < 0 ||
-                    watch('product_batches')[index]?.batch_no?.value === undefined ||
-                    watch('product_batches')[index]?.batch_no?.qty === undefined ||
-                    errors?.product_batches?.[index]?.batch_no
-                      ? ''
-                      : 'Available Batch Quantity: ' + watch('product_batches')[index]?.batch_no?.qty
-                  }`}</Typography>
+                  <Typography sx={{ fontSize: 12, ml: 2 }}>
+                    {` ${
+                      getValues('product_batches')[index]?.batch_no?.value === '' ||
+                      getValues('product_batches')[index]?.batch_no?.value === null ||
+                      getValues('product_batches')[index]?.batch_no?.value < 0 ||
+                      getValues('product_batches')[index]?.batch_no?.value === undefined ||
+                      getValues('product_batches')[index]?.batch_no?.qty === undefined ||
+                      errors?.product_batches?.[index]?.batch_no
+                        ? ''
+                        : selectedBatches[index] && 'Available Batch Quantity: ' + selectedBatches[index].qty
+                    }`}
+                  </Typography>
                 </Grid>
                 <Grid
                   item
@@ -645,7 +723,15 @@ function ProductForm({
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
 
-                          // setTotalQty(newValue?.qty)
+                          // clearErrors('product_batches')
+                          clearErrors('qty')
+                          setEditBatchQty(newValue?.qty)
+                          if (parseFloat(newValue?.qty) < parseFloat(getValues('qty'))) {
+                            setError('qty', {
+                              type: 'manual',
+                              message: `Quantity should not be greater than ${newValue?.qty}`
+                            })
+                          }
                         }}
                       />
                       {errors.batch_no && (
@@ -680,15 +766,27 @@ function ProductForm({
                           field.onChange(e.target.value)
                         }}
                       />
-                      {errors.qty && (
+                      {errors?.qty && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          {errors.qty.message || ' Quantity should be greater than 0'}
+                          {errors.qty?.message}
                         </FormHelperText>
                       )}
                     </>
                   )}
                 />
               </FormControl>
+              <Typography sx={{ fontSize: 12, ml: 2 }}>
+                {` ${
+                  getValues('batch_no')?.value === '' ||
+                  getValues('batch_no')?.value === null ||
+                  getValues('batch_no')?.value < 0 ||
+                  getValues('batch_no')?.value === undefined ||
+                  getValues('batch_no')?.qty === undefined ||
+                  errors?.batch_no
+                    ? ''
+                    : 'Available Batch Quantity: ' + editBatchQty
+                }`}
+              </Typography>
             </Grid>
           </Grid>
         )}
@@ -699,7 +797,7 @@ function ProductForm({
           </FormHelperText>
         )}
 
-        <Grid item xs={12} sm={12}>
+        <Grid item xs={12} sm={12} sx={{ mt: '40px' }}>
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>
