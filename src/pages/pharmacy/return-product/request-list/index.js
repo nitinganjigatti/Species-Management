@@ -56,7 +56,7 @@ const ReturnRequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
-
+    setSearchValue('')
     setStatus(newValue)
   }
 
@@ -77,9 +77,15 @@ const ReturnRequestList = () => {
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-          remove('returnPageStatus')
+          if (res?.success === true && res?.data.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('returnPageStatus')
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+            remove('returnPageStatus')
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -146,6 +152,8 @@ const ReturnRequestList = () => {
       // debugger
       setStatus(statusIsThere.currentStatus)
       setFilterSwitch(statusIsThere.filterSwitch)
+      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
+
       fetchTableData(
         statusIsThere.sort,
         statusIsThere.searchValue,

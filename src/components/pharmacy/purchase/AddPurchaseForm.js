@@ -1287,6 +1287,7 @@ const AddPurchaseForm = () => {
             {id ? null : (
               <Button
                 onClick={() => {
+                  reset(editParamsInitialState)
                   setEditParams(editParamsInitialState)
                 }}
                 size='large'

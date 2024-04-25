@@ -295,6 +295,7 @@ const StockOut = () => {
       {status === 'out_of_stock' ? (
         <Box sx={{ mx: 2 }}>
           <ExcelExportButton
+            disabled={total === 0 ? true : false}
             action={() => {
               getDataToExport()
             }}

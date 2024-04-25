@@ -461,7 +461,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                         {selectedShelf?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
                             {item?.name}
-                            {item?.id}
                           </MenuItem>
                         ))}
                       </Select>

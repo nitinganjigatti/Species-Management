@@ -59,9 +59,10 @@ function RequestCancelButton({ action, title }) {
     </Button>
   )
 }
-function ExcelExportButton({ action, title, loader }) {
+function ExcelExportButton({ action, title, loader, disabled }) {
   return (
     <LoadingButton
+      disabled={disabled}
       loading={loader}
       onClick={action ? action : null}
       size='large'
