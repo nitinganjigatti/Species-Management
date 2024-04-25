@@ -56,6 +56,7 @@ const DirectDispatchList = () => {
     setFilterSwitch(false)
 
     setPaginationModel({ page: 0, pageSize: 10 })
+    setSearchValue('')
     setStatus(newValue)
   }
 
@@ -74,9 +75,14 @@ const DirectDispatchList = () => {
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
-          if (res.success) {
+          console.log('result', res)
+          if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('dispatchPageStatus')
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
             remove('dispatchPageStatus')
           }
         })
@@ -142,6 +148,8 @@ const DirectDispatchList = () => {
       // debugger
       setStatus(statusIsThere.currentStatus)
       setFilterSwitch(statusIsThere.filterSwitch)
+      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
+
       fetchTableData(
         statusIsThere.sort,
         statusIsThere.searchValue,

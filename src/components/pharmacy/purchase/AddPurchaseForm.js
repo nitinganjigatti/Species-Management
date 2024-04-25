@@ -1287,6 +1287,9 @@ const AddPurchaseForm = () => {
             {id ? null : (
               <Button
                 onClick={() => {
+                  console.log('editParamsInitialState', editParamsInitialState)
+                  debugger
+                  reset(editParamsInitialState)
                   setEditParams(editParamsInitialState)
                 }}
                 size='large'

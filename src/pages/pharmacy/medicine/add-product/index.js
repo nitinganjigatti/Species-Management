@@ -145,10 +145,12 @@ const AddMedicine = () => {
     handleSubmit,
     formState: { errors },
     trigger,
+    watch,
     setValue,
     getValues
   } = useForm({
     defaultValues,
+
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
@@ -604,7 +606,6 @@ const AddMedicine = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
-    debugger
 
     const {
       medicine_type,
@@ -630,6 +631,7 @@ const AddMedicine = () => {
     } = {
       ...params
     }
+
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
@@ -1000,9 +1002,10 @@ const AddMedicine = () => {
                               <SwitchButton
                                 style={{ float: 'right' }}
                                 title='Active'
-                                status={Number(getValues('active'))}
+                                status={watch('active') == 0 ? false : true}
                                 action={() => {
-                                  setValue('active', getValues('active') === 0 ? 1 : 0)
+                                  const status = watch('active') == 0 ? 1 : 0
+                                  setValue('active', status)
                                 }}
                               />
                             </Grid>
