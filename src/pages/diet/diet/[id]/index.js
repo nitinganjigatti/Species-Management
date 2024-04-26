@@ -271,14 +271,23 @@ const DietDetail = () => {
                                   {dietDetails?.day_wise_data?.map(itemd => {
                                     const startTimes = itemd?.meal_from_time
                                     const endTimes = itemd?.meal_to_time
-                                    // const ind = index
+                                    const ind = index
+                                    // const itemData1 = itemd?.meal_types?.ingredient?.length
+                                    //   ? itemd?.meal_types?.ingredient
+                                    //   : []
                                     const itemData1 = itemd?.meal_types?.ingredient?.length
-                                      ? itemd?.meal_types?.ingredient
+                                      ? itemd.meal_types.ingredient.map(item => ({ ...item, ingredient: true }))
                                       : []
                                     // console.log('itemData1', itemData1)
-                                    const itemData2 = itemd?.meal_types?.recipe?.length ? itemd?.meal_types?.recipe : []
-                                    // console.log('itemData2', itemData2)
-                                    // const itemData = itemData1?.concat(itemData2)
+                                    const itemData2 = itemd?.meal_types?.recipe?.length
+                                      ? itemd.meal_types.recipe.map(item => ({ ...item, recipe: true }))
+                                      : []
+                                    // const itemData3 = itemd?.meal_types?.ingredientwithchoice[0]?.ingredientList?.length
+                                    //   ? itemd?.meal_types?.ingredientwithchoice[0]?.ingredientList?.map(item => ({
+                                    //       ...item,
+                                    //       ingredientwithchoice: true
+                                    //     }))
+                                    //   : []
                                     const itemData = [...itemData1, ...itemData2]
                                     return (
                                       <>
@@ -387,7 +396,11 @@ const DietDetail = () => {
                                                     sx={{
                                                       display: 'flex',
                                                       flexDirection: 'column',
-                                                      backgroundColor: '#E1F9ED',
+                                                      backgroundColor: item.ingredient
+                                                        ? '#00D6C933'
+                                                        : item.recipe
+                                                        ? '#E1F9ED'
+                                                        : 'white',
                                                       borderRadius: '8px',
                                                       p: '12px',
                                                       gap: '16px'
@@ -576,6 +589,37 @@ const DietDetail = () => {
                                                       </>
                                                     )}
                                                   </Box>
+                                                  {index === itemData?.length - 1 ? (
+                                                    <Box
+                                                      sx={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '4px',
+                                                        my: '10px'
+                                                      }}
+                                                    >
+                                                      <Typography
+                                                        sx={{
+                                                          lineHeight: '29.05px',
+                                                          fontSize: '20px',
+                                                          fontWeight: 500,
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        Note:-
+                                                      </Typography>
+                                                      <Typography
+                                                        sx={{
+                                                          lineHeight: '19.36px',
+                                                          fontSize: '16px',
+                                                          fontWeight: 400,
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        {itemd.notes}{' '}
+                                                      </Typography>
+                                                    </Box>
+                                                  ) : null}
                                                 </TableCell>
 
                                                 {item?.meal_type?.map((item, index) => (
@@ -647,8 +691,7 @@ const DietDetail = () => {
                   Remarks
                 </Typography>
                 <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
-                  {' '}
-                  <span>1.&nbsp;</span>Offer 2 times a week larger piece on tree trunk with bark
+                  {dietDetails?.remarks ? dietDetails?.remarks : 'No Remarks'}
                 </Typography>
               </Box>
             </Card>
