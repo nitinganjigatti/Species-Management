@@ -144,7 +144,7 @@ function SelectPharmacy() {
           <Icon icon='mdi:menu-down' />
         </Button>
       </ButtonGroup>
-      <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
+      <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal sx={{ width: '100%' }}>
         {({ TransitionProps, placement }) => (
           <Grow
             {...TransitionProps}
@@ -152,7 +152,7 @@ function SelectPharmacy() {
           >
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
-                <MenuList id='split-button-menu'>
+                <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll', overflowX: 'hidden' }}>
                   {options?.map((option, index) => (
                     <MenuItem
                       key={index}

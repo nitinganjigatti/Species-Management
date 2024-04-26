@@ -15,7 +15,8 @@ import {
   IconButton,
   CircularProgress,
   CardContent,
-  CardHeader
+  CardHeader,
+  Tooltip
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -107,6 +108,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [rejectItemsError, setRejectItemsError] = useState(null)
   const [listComments, setListComments] = useState([])
   const [orderData, setOrderData] = useState([])
+  const [wrongCountErr, setWrongCountErr] = useState({})
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -533,9 +535,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.stock_name}
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.stock_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -567,9 +574,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       field: 'from_store_name',
       headerName: selectedPharmacy?.type === 'local' ? 'Shipped To' : 'Shipped From',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
-        </Typography>
+        // <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        //   {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+        // </Typography>
+        <div>
+          <Tooltip
+            title={selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
     // {
@@ -760,9 +777,41 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       id='outlined-size-small'
                       name='wrong_count_number'
                       value={params?.row?.wrong_count_number}
-                      error={Boolean(params?.row?.wrong_count_number === '' ? `This field is required` : '')}
+                      error={Boolean(
+                        params?.row?.wrong_count_number === '' || parseInt(params.row.wrong_count_number, 10) < 0
+                      )}
                       size='small'
-                      onChange={event => handleStatusChange(params.row.id, event)}
+                      onChange={event => {
+                        handleStatusChange(params.row.id, event)
+
+                        const inputValue = event.target.value
+                        const countValue = Number(params?.row?.count)
+                        const inputValueNumber = Number(inputValue)
+
+                        if (inputValue.trim() === '') {
+                          setWrongCountErr(prevErrors => ({
+                            ...prevErrors,
+                            [params.row.uid]: 'This field is required'
+                          }))
+                        } else if (inputValueNumber <= 0) {
+                          setWrongCountErr(prevErrors => ({
+                            ...prevErrors,
+                            [params.row.uid]: 'Number must be positive'
+                          }))
+                        } else if (params?.row?.wrong_count_type === 'shortage' && inputValueNumber > countValue) {
+                          setWrongCountErr(prevErrors => ({
+                            ...prevErrors,
+                            [params.row.uid]: 'Qty exceeds shipped count.'
+                          }))
+                        } else {
+                          setWrongCountErr(prevErrors => {
+                            const newErrors = { ...prevErrors }
+                            delete newErrors[params.row.uid]
+
+                            return newErrors
+                          })
+                        }
+                      }}
                       inputProps={{ style: { fontSize: 12 } }}
                     />
                   </Grid>
@@ -772,6 +821,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       // disabled={disableButton()}
                       onClick={event => {
                         clearStatus(params.row.id, event)
+                        setWrongCountErr(prevErrors => {
+                          const newErrors = { ...prevErrors }
+                          delete newErrors[params.row.uid]
+
+                          return newErrors
+                        })
                       }}
                     >
                       <Icon
@@ -784,6 +839,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       />
                     </Button>
                   </Grid>
+                  {wrongCountErr[params.row.uid] && (
+                    <FormHelperText sx={{ mx: 4 }} error>
+                      {wrongCountErr[params.row.uid]}
+                    </FormHelperText>
+                  )}
                 </Grid>
               ) : (
                 // : (
@@ -903,6 +963,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   ]
 
   async function updateStatus() {
+    console.log('error', wrongCountErr)
+    if (Object.keys(wrongCountErr).length > 0) {
+      console.error('Cannot submit form due to errors.')
+
+      return
+    }
     const isStatusEmpty = disputeItemDetails.item_details.some(item => item.status.trim() === '')
 
     if (isStatusEmpty) {
@@ -951,7 +1017,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         // "comments": "test"
       })
 
-      //setSubmitLoader(true)
       // const finalData = { ...disputeItemDetails, item_details: receivedItems }
       const verifyCount = finalReceivedItems.some(el => {
         if (el.item_status === 'Wrong Count') {
@@ -968,6 +1033,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       console.log('verifyCount', verifyCount)
       if (verifyCount) {
         try {
+          setSubmitLoader(true)
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
           console.log('in block', finalReceivedItems)
 
@@ -1041,7 +1107,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
             {orderData?.person_shipping ? (
               <Grid item md={3} sm={3} xs={6}>
-                <h5 style={{ marginBottom: '0px' }}>Driver details</h5>
+                <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
                 <p>{orderData.person_shipping}</p>
               </Grid>
             ) : null}
@@ -1058,64 +1124,74 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             </>
           ) : null}
 
-          <Grid container items>
-            <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-              <FormControl fullWidth>
-                <TextField
-                  // disabled={disableButton()}
-                  disabled={selectedPharmacy.type === 'local' ? 'disabled' : null}
-                  multiline
-                  rows={3}
-                  type='text'
-                  label='Comment'
-                  value={disputeItemDetails?.comments}
-                  onChange={e => {
-                    setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                  }}
-                  placeholder='comment'
-                  name='comments'
-                />
-              </FormControl>
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    value={disputeItemDetails?.comments}
+                    label='Comment'
+                    name='comments'
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder=''
+                    multiline
+                    rows={3}
+                    disabled={
+                      selectedPharmacy.type === 'local'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
+                  />
+                </FormControl>
+              </Grid>
             </Grid>
-          </Grid>
+          ) : null}
           {selectedPharmacy.type === 'central' && (
             <Divider
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
           )}
           {console.log('disputeItemDetails?.delivery_status ', disputeItemDetails?.delivery_status)}
-          {disputeItemDetails?.delivery_status !== 'Delivered'
-            ? selectedPharmacy.type === 'central' && (
-                <>
-                  <LoadingButton
-                    sx={{ float: 'right', my: 4, mx: 2 }}
-                    size='large'
-                    disabled={disableButton()}
-                    variant='contained'
-                    onClick={() => {
-                      updateStatus()
-                    }}
-                    loading={submitLoader}
-                  >
-                    Save
-                  </LoadingButton>
-                  {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                    <LoadingButton
-                      sx={{ float: 'right', my: 4, mx: 6 }}
-                      size='large'
-                      // disabled={disableButton()}
-                      variant='contained'
-                      onClick={() => {
-                        bulkStatusUpdate()
-                      }}
-                      loading={submitLoader}
-                    >
-                      Mark all as Received & Save
-                    </LoadingButton>
-                  )}
-                </>
-              )
-            : null}
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <>
+              {disputeItemDetails?.delivery_status !== 'Delivered'
+                ? selectedPharmacy.type === 'central' && (
+                    <>
+                      <LoadingButton
+                        sx={{ float: 'right', my: 4, mx: 2 }}
+                        size='large'
+                        disabled={disableButton()}
+                        variant='contained'
+                        onClick={() => {
+                          updateStatus()
+                        }}
+                        loading={submitLoader}
+                      >
+                        Save
+                      </LoadingButton>
+                      {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                        <LoadingButton
+                          sx={{ float: 'right', my: 4, mx: 6 }}
+                          size='large'
+                          // disabled={disableButton()}
+                          variant='contained'
+                          onClick={() => {
+                            bulkStatusUpdate()
+                          }}
+                          loading={submitLoader}
+                        >
+                          Mark all as Received & Save
+                        </LoadingButton>
+                      )}
+                    </>
+                  )
+                : null}{' '}
+            </>
+          ) : null}
         </Grid>
       </Grid>
     </>

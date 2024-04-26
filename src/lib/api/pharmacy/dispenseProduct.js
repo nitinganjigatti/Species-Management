@@ -39,8 +39,11 @@ export async function getProductList({ params }) {
   return response.data
 }
 
-export async function getBatchList({ ProductId }) {
-  const response = await axiosGet({ url: `${BATCH_LIST}/${ProductId}/local`, pharmacy: true })
+export async function getBatchList({ ProductId, store_type, stock_type }) {
+  const response = await axiosGet({
+    url: `${BATCH_LIST}/${ProductId}`,
+    pharmacy: true
+  })
 
   return response.data
 }
@@ -83,8 +86,8 @@ export async function submitDispense(payload) {
   }
 }
 
-export async function getDispenseById(dispensecId) {
-  const response = await axiosGet({ url: `${SUBMIT_DISPENSE}/${dispensecId}/show`, pharmacy: true })
+export async function getDispenseById(dispenseId) {
+  const response = await axiosGet({ url: `${SUBMIT_DISPENSE}/${dispenseId}/show`, pharmacy: true })
 
   return response.data
 }

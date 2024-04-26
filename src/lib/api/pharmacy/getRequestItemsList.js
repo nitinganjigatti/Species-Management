@@ -23,8 +23,14 @@ export async function getRequestItemsListById(id) {
   return response.data
 }
 
-export async function getAvailableMedicineByMedicineId(id, data, store) {
-  const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+export async function getAvailableMedicineByMedicineId(id, data, store, productType) {
+  // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+  //have removed stock type--- &stock_type=${productType}
+  const response = await axiosGet({
+    url: `${BATCH_DETAILS}/${id}`,
+    body: data,
+    pharmacy
+  })
 
   return response.data
 }
@@ -83,6 +89,24 @@ export async function updateRequestItems(id, payload) {
     return response?.data
   } catch (error) {
     console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function cancelRequestItems(id) {
+  try {
+    const url = `${REQUEST_ITEMS}/${id}/cancel`
+    const response = await axiosPost({ url, pharmacy })
+
+    return response
+  } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -233,4 +257,36 @@ export async function updateFullFillLineItems(payload, id) {
 
     return error
   }
+}
+
+export async function deleteLineItem(id) {
+  try {
+    const url = `${REQUEST_ITEMS}/${id}/deleteRow`
+    const response = await axiosGet({ url, pharmacy })
+
+    return response
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function getAvailableMedicineByMedicineIdToReturn(id, data, store, productType, is_return, stock_type) {
+  // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
+
+  //have removed stock type--- &stock_type=${productType}
+  const response = await axiosGet({
+    url: `${BATCH_DETAILS}/${id}?is_return=${is_return}`,
+    body: data,
+    pharmacy
+  })
+
+  return response.data
 }

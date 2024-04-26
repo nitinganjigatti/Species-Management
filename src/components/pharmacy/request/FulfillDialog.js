@@ -11,6 +11,9 @@ import { FormControl, FormHelperText } from '@mui/material'
 
 import Grid from '@mui/material/Grid'
 
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+
 import { CardContent } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
@@ -21,9 +24,10 @@ import TableRow from '@mui/material/TableRow'
 
 import TableCell from '@mui/material/TableCell'
 import UserSnackbar from 'src/components/utility/snackbar'
+import DialogActions from '@mui/material/DialogActions'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import TableHead from '@mui/material/TableHead'
-
 import ConfirmDialog from 'src/components/ConfirmationDialog'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -36,6 +40,8 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
+import { AddButton } from 'src/components/Buttons'
+import { useRouter } from 'next/router'
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
   const defaultValues = {
@@ -81,6 +87,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     trigger,
     setValue,
     getValues,
+    watch,
 
     setError
   } = useForm({
@@ -90,6 +97,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
   console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
@@ -104,19 +112,25 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
   const [dispatchItems, setDispatchItems] = useState([])
 
+  // const [invalidQty, setInvalidQty] = useState([])
+  // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  // const [dispatchItems, setDispatchItems] = useState([])
+  const [quantityError, setQuantityError] = useState(false)
+
   // const [errors, setErrors] = useState({})
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
   const [rowErrors, setRowErrors] = useState({})
 
-  const showConfirmationDialog = () => {
-    setInvalidQtyDialog(true)
-  }
+  // const showConfirmationDialog = () => {
+  //   setInvalidQtyDialog(true)
+  // }
 
-  const closeConfirmationDialog = () => {
-    setInvalidQtyDialog(false)
-    setDispatchItems([])
-    setInvalidQty([])
-  }
+  // const closeConfirmationDialog = () => {
+  //   setInvalidQtyDialog(false)
+  //   setDispatchItems([])
+  //   setInvalidQty([])
+  // }
+  const router = useRouter()
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -271,15 +285,25 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     return total
   }
 
-  const getMedicineByMedicineId = async id => {
+  const getMedicineByMedicineId = async (id, productType) => {
     setLoader(true)
     const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'central')
+    const response = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
 
     if (response.success) {
-      setBatchItems(response?.data?.items)
+      console.log('batch details response', response)
+
+      //
+      const data = response?.data?.items
+
+      const updatedItems = data.map(el => ({
+        ...el,
+        ['stock_type']: fulfillMedicine?.stock_type
+      }))
+
+      // setBatchItems(response?.data?.items)
+      setBatchItems(updatedItems)
       setTotalProductCount(response?.data?.total_quantity)
-      console.log('in bataches', response?.data?.items)
 
       setLoader(false)
     } else {
@@ -335,7 +359,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       console.log(fulfillMedicine)
       console.log(storeDetails)
 
-      getMedicineByMedicineId(fulfillMedicine?.stock_item_id)
+      getMedicineByMedicineId(fulfillMedicine?.stock_item_id, fulfillMedicine?.stock_type)
 
       // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
@@ -457,8 +481,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // var tempDefaultSalts = defaultSalts
             // tempDefaultSalts[index] = undefined
             // setDefaultSalts(tempDefaultSalts)
-            remove(index)
-            insert(index, {})
+
+            if (fields?.length > 1) {
+              remove(index)
+            } else {
+              remove(index)
+              insert(index, {})
+            }
           }}
           icon='material-symbols-light:close'
         />
@@ -486,7 +515,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const onSubmit = async params => {
     console.log('pay load params', params)
-    setDispatchItems(params)
+
+    // setDispatchItems(params)
     var invalidQtyItems = []
 
     if (params?.product_batches?.length > 0) {
@@ -494,8 +524,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       console.log('itemsWithMoreQty', invalidQtyItems)
     }
     if (invalidQtyItems?.length > 0) {
-      setInvalidQty(invalidQtyItems)
-      setInvalidQtyDialog(true)
+      // setInvalidQty(invalidQtyItems)
+      // setInvalidQtyDialog(true)
+      setQuantityError(true)
     } else {
       dispatchingItems(params)
     }
@@ -560,12 +591,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     }
   }
 
-  const handleConfirmDispatch = async () => {
-    if (dispatchItems?.product_batches?.length > 0) {
-      await dispatchingItems(dispatchItems)
-      closeConfirmationDialog()
-    }
-  }
+  // const handleConfirmDispatch = async () => {
+  //   if (dispatchItems?.product_batches?.length > 0) {
+  //     await dispatchingItems(dispatchItems)
+  //     closeConfirmationDialog()
+  //   }
+  // }
 
   return (
     <>
@@ -583,7 +614,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             </Typography>
           </CardContent>
           <CardContent>
-            <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+            <Grid container spacing={4} sx={{ flexGrow: 1 }}>
               <Grid item xs={3}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
                   Product Name
@@ -594,26 +625,35 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   QTY Requested
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {fulfillMedicine?.requested_qty}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   Balance
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
+                >
                   Total Qty Available
                 </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {totalProductCount}
                 </Typography>
               </Grid>
@@ -647,43 +687,28 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     onChange={(e, val) => {
                                       console.log('valllll', val)
 
+                                      // if (val === null) {
+                                      //   setValue(`product_batches[${index}].expiry_date`, '')
+
+                                      //   return onChange('')
+                                      // } else {
+                                      //   debugger
+                                      //   const expiryDate = val.expiry_date
+                                      //   const quantity = parseInt(val?.qty)
+                                      //   setValue(`product_batches[${index}].expiry_date`, expiryDate)
+                                      //   setValue(`product_batches[${index}].quantityAvailable`, quantity)
+
+                                      //   return onChange(val.batch_no)
+                                      // }
                                       if (val === null) {
-                                        //setDefaultProductForm(undefined)
-                                        // var saltComposition = defaultSalts
-                                        // saltComposition[index] = null
-                                        // setDefaultSalts(saltComposition)
-
                                         setValue(`product_batches[${index}].expiry_date`, '')
-
-                                        return onChange('')
+                                        setValue(`product_batches[${index}].quantityAvailable`, '')
+                                        onChange('')
                                       } else {
-                                        const expiryDate = val.expiry_date
-                                        setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(val?.qty))
-
-                                        // const allValues = getValues()
-
-                                        // const selectedBatchCount = allValues?.product_batches?.reduce(
-                                        //   (count, batch) => {
-                                        //     return count + (batch.batch_no === val.batch_no ? 1 : 0)
-                                        //   },
-                                        //   0
-                                        // )
-
-                                        // if (selectedBatchCount > 0) {
-                                        //
-                                        //   setError(`product_batches[${index}].batch_no`, {
-                                        //     type: 'manual',
-                                        //     message: 'Batch number is already selected'
-                                        //   })
-                                        // }
-
-                                        // var saltComposition = defaultSalts
-                                        // saltComposition[index] = { batch_no: val.batch_no }
-
-                                        // setDefaultSalts(saltComposition)
-
-                                        return onChange(val.batch_no)
+                                        const { expiry_date, qty } = val
+                                        setValue(`product_batches[${index}].expiry_date`, expiry_date)
+                                        setValue(`product_batches[${index}].quantityAvailable`, parseInt(qty))
+                                        onChange(val.batch_no)
                                       }
                                     }}
                                     renderInput={params => {
@@ -708,31 +733,33 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             )}
                           </FormControl>
                         </Grid>
-                        <Grid item xs={3}>
-                          <FormControl fullWidth>
-                            <Controller
-                              name={`product_batches[${index}].expiry_date`}
-                              control={control}
-                              rules={{ required: false }}
-                              render={({ field: { value, onChange } }) => (
-                                <TextField
-                                  disabled
-                                  value={value}
-                                  label='Expiry Date'
-                                  onChange={onChange}
-                                  placeholder='Expiry Date'
-                                  error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
-                                  name={`product_batches[${index}].expiry_date`}
-                                />
+                        {batchItems[index]?.stock_type === 'non_medical' ? null : (
+                          <Grid item xs={3}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name={`product_batches[${index}].expiry_date`}
+                                control={control}
+                                rules={{ required: false }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    disabled
+                                    value={value}
+                                    label='Expiry Date'
+                                    onChange={onChange}
+                                    placeholder='Expiry Date'
+                                    error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
+                                    name={`product_batches[${index}].expiry_date`}
+                                  />
+                                )}
+                              />
+                              {errors?.product_batches?.[index]?.expiry_date && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.product_batches?.[index]?.expiry_date?.message}
+                                </FormHelperText>
                               )}
-                            />
-                            {errors?.product_batches?.[index]?.expiry_date && (
-                              <FormHelperText sx={{ color: 'error.main' }}>
-                                {errors?.product_batches?.[index]?.expiry_date?.message}
-                              </FormHelperText>
-                            )}
-                          </FormControl>
-                        </Grid>
+                            </FormControl>
+                          </Grid>
+                        )}
                         <Grid item xs={3}>
                           <FormControl fullWidth>
                             <Controller
@@ -749,7 +776,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                   type='text'
                                   value={value}
                                   label='Quantity'
-                                  onChange={onChange}
+                                  onChange={e => {
+                                    onChange(e)
+                                    setQuantityError(false)
+                                  }}
                                   placeholder='Quantity'
                                   error={Boolean(errors?.product_batches?.[index]?.qty)}
                                   name={`product_batches[${index}].qty`}
@@ -764,15 +794,19 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 {errors?.product_batches?.[index]?.qty?.message}
                               </FormHelperText>
                             )}
+                            {}
+
+                            {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
+                              <FormHelperText sx={{ color: 'primary.main' }}>
+                                Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
+                              </FormHelperText>
+                            ) : null}
                           </FormControl>
                         </Grid>
 
                         <Grid
                           item
                           xs={3}
-                          // eslint-disable-next-line lines-around-comment
-                          // justifyContent='flex-end'
-
                           alignSelf='center'
                           sx={{
                             display: 'flex',
@@ -815,7 +849,29 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
                   </div>
                 ) : null}
+                {quantityError && (
+                  <Grid item xs={12}>
+                    <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+                  </Grid>
+                )}
+                {batchItems.length === 0 ? (
+                  <Grid item xs={12} sx={{ my: 2 }}>
+                    <Typography color={'error.main'}>This product is out of stock</Typography>
+                  </Grid>
+                ) : null}
+                {console.log('batch ', batchItems)}
                 <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                  {batchItems.length === 0 ? (
+                    <AddButton
+                      styles={{ marginRight: 4 }}
+                      action={() => {
+                        router.push({
+                          pathname: '/pharmacy/purchase/add-purchase/'
+                        })
+                      }}
+                      title='Add Item'
+                    />
+                  ) : null}
                   <LoadingButton
                     size='large'
                     variant='contained'
@@ -841,8 +897,65 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </>
             </form>
           </CardContent>
+          <ConfirmDialogBox
+            open={invalidQtyDialog}
+            closeDialog={() => {
+              closeConfirmationDialog()
+            }}
+            action={() => {
+              closeConfirmationDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>
+                      You are trying to full fill higher quantity than it is available in that batch
+                    </DialogContentText>
+                    <Table>
+                      <TableRow>
+                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Batch no</TableCell>
+                        <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
+                        <TableCell>Requested qty</TableCell>
+                      </TableRow>
+                      {invalidQty?.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item?.batch_no}</TableCell>
+                          <TableCell>{item?.quantityAvailable}</TableCell>
+                          <TableCell>{item?.qty}</TableCell>
+                        </TableRow>
+                      ))}
+                    </Table>
+                  </DialogContent>
+                  <DialogContentText sx={{ mb: 1 }}>Confirm to proceed</DialogContentText>
+                  <DialogActions className='dialog-actions-dense'>
+                    <Button
+                      size='small'
+                      variant='contained'
+                      color='primary'
+                      onClick={() => {
+                        handleConfirmDispatch()
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      color='error'
+                      onClick={() => {
+                        closeConfirmationDialog()
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </DialogActions>
+                </>
+              </Box>
+            }
+          />
 
-          <ConfirmDialog
+          {/* <ConfirmDialog
             open={invalidQtyDialog}
             title={'Your quantity exceeds the batch limit'}
             closeDialog={() => {
@@ -895,7 +1008,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Table>
               </>
             }
-          />
+          /> */}
 
           {/* {batchItems.length > 0 ? (
             <TableContainer component={Paper}>

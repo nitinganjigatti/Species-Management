@@ -105,9 +105,11 @@ const IngredientsList = () => {
     },
     [paginationModel]
   )
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumning, status)
   }, [fetchTableData, status])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({

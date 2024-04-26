@@ -3,7 +3,16 @@ import DatePicker from 'react-datepicker'
 
 // ** MUI Imports
 
-import { Grid, Radio, TextField, CardContent, FormControl, FormHelperText, FormControlLabel } from '@mui/material'
+import {
+  Grid,
+  Radio,
+  TextField,
+  CardContent,
+  FormControl,
+  FormHelperText,
+  FormControlLabel,
+  Tooltip
+} from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -37,7 +46,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  debugger
   console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
@@ -108,8 +116,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
-
-      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -117,7 +123,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         close()
       } else {
         setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+        setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       console.log(e)
@@ -143,8 +149,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     const shipmentDate = Utility.formatDate(date)
 
     const payload = []
-
-    // debugger
 
     dispatchedItems?.forEach((value, index) => {
       const payloadItem = {}
@@ -199,9 +203,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.medicin_name}
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -211,9 +220,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       field: 'from_store_name',
       headerName: 'Shipped from ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store_name}
-        </Typography>
+        <div>
+          <Tooltip title={params.row.from_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.from_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
 
@@ -223,9 +236,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       field: 'to_store_name',
       headerName: 'Shipped to',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
+        <div>
+          <Tooltip title={params.row.to_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.to_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
     {
@@ -246,7 +263,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       headerName: 'Expiry date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },

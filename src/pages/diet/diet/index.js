@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff'
+
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
+
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Box, Tooltip, Switch, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Divider, Select, MenuItem } from '@mui/material'
 import toast from 'react-hot-toast'
 import NotesIcon from '@mui/icons-material/Notes'
 
@@ -30,29 +27,30 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
-import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
-import DescriptionIcon from '@mui/icons-material/Description'
+
+import RecipeList from 'src/components/diet/RecipeList'
 
 // Styled TabList component
 
 const Diet = () => {
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [Dietdata, setDietData] = useState(Data)
-  const [filterStatusData, setFilterStatusData] = useState(Dietdata)
+
+  // const [Dietdata, setDietData] = useState(Data)
+
+  // const [filterStatusData, setFilterStatusData] = useState(Dietdata)
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('created_at')
-  const [searchColumns, setSearchColumns] = useState('recipe_name')
+  const [sortColumn, setSortColumn] = useState('diet_name')
+
+  // const [searchColumns, setSearchColumns] = useState('recipe_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -60,13 +58,18 @@ const Diet = () => {
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [selectedValue, setSelectedValue] = useState('10')
+  const [recipeList, setRecipeList] = useState([])
+  const [loader, setLoader] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [selectedCard, setSelectedCard] = useState([])
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const handleChange = (event, newValue) => {
-    debugger
+    // debugger
     setTotal(0)
     setStatus(newValue)
   }
@@ -88,15 +91,25 @@ const Diet = () => {
     setDialog(false)
   }
 
+  const addEventSidebarOpen = () => {
+    setOpenDrawer(true)
+    setSelectedCard([])
+  }
+
+  const handleSidebarClose = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
+  }
+
   const fetchTableData = useCallback(
-    async (sort, q, searchColumns, sortColumn, status) => {
+    async (sort, q, sortColumn, status) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
-          searchColumns,
+
           sortColumn,
 
           page: paginationModel.page + 1,
@@ -107,7 +120,7 @@ const Diet = () => {
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
 
-          setDietData(res?.data?.result)
+          // setDietData(res?.data?.result)
 
           // Generate uid field based on the index
           let listWithId = res.data.result.map((el, i) => {
@@ -130,7 +143,7 @@ const Diet = () => {
   console.log('total <<<', total)
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, searchColumns, status)
+    fetchTableData(sort, searchValue, sortColumn, status)
   }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -145,16 +158,16 @@ const Diet = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
 
-      fetchTableData(newModel[0].sort, searchValue, searchColumns, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, searchColumns, status) => {
+    debounce(async (sort, q, sortColumn, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, searchColumns, status)
+        await fetchTableData(sort, q, sortColumn, status)
       } catch (error) {
         console.error(error)
       }
@@ -164,9 +177,13 @@ const Diet = () => {
 
   const headerAction = (
     <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
+      <Button sx={{ m: 2 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
+      </Button>
+      <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Add Recipe
       </Button>
     </div>
   )
@@ -223,20 +240,9 @@ const Diet = () => {
   }
 
   const handleSearch = value => {
-    debugger
+    // debugger
     setSearchValue(value)
-    const newValue = [...Dietdata]
-
-    // Check if the search value is empty
-    if (value.trim() === '') {
-      setFilterStatusData(newValue) // Set filterStatusData to original Dietdata
-    } else {
-      const filterSearchList = newValue?.filter(item =>
-        item.diet_name.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
-      )
-      setFilterStatusData(filterSearchList)
-      searchTableData(sort, value, searchColumns, status)
-    }
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const columns = [
@@ -255,7 +261,7 @@ const Diet = () => {
     {
       flex: 0.5,
       minWidth: 30,
-      field: 'recipe_name',
+      field: 'diet_name',
       headerName: 'Diet',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -429,7 +435,6 @@ const Diet = () => {
                     <MenuItem value='10'>10</MenuItem>
                     <MenuItem value='20'>20</MenuItem>
                     <MenuItem value='30'>30</MenuItem>
-                    {/* Add other options here */}
                   </Select>
                 </Grid>
                 <Grid sx={{ m: 2 }}>
@@ -437,7 +442,7 @@ const Diet = () => {
                 </Grid>
               </Grid>
               <Grid>
-                <TabList
+                {/* <TabList
                   onChange={handleChange}
                   sx={{ position: 'relative', top: '20px', left: '10px', cursor: 'pointer' }}
                 >
@@ -451,7 +456,7 @@ const Diet = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             /> */}
-                </TabList>
+                {/* </TabList>    */}
               </Grid>
 
               <DataGrid
@@ -496,6 +501,16 @@ const Diet = () => {
                 onCellClick={onCellClick}
               />
             </Card>
+
+            <RecipeList
+              recipeList={recipeList}
+              setSelectedCard={setSelectedCard}
+              selectedCard={selectedCard}
+              drawerWidth={400}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={handleSidebarClose}
+              submitLoader={submitLoader}
+            />
           </>
         )}
       </>
@@ -506,6 +521,11 @@ const Diet = () => {
     <>
       <Grid>
         <TabContext sx={{ cursor: 'pointer' }} value={status}>
+          <TabList onChange={handleChange}>
+            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+          </TabList>
           <TabPanel sx={{ cursor: 'pointer' }} value='1'>
             {tableData()}
           </TabPanel>

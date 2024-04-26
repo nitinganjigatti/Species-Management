@@ -13,7 +13,7 @@ import Error404 from 'src/pages/404'
 
 function Dispense() {
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('dispense_id')
@@ -79,10 +79,12 @@ function Dispense() {
       flex: 0.2,
       minWidth: 20,
       field: 'animal_count',
+      type: 'number',
+      align: 'right',
       headerName: 'Animal Count',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.animal_count}
+          {params.row.animal_count ? params.row.animal_count : 0}
         </Typography>
       )
     }
@@ -104,8 +106,6 @@ function Dispense() {
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
-
-        // console.log('row', rows)
         setLoading(false)
       } catch (e) {
         setLoading(false)
@@ -146,10 +146,8 @@ function Dispense() {
 
   return (
     <>
-      {selectedPharmacy.type === 'local' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' ||
-        selectedPharmacy.permission.key === 'ADD' ||
-        selectedPharmacy.permission.key === 'VIEW') ? (
+      {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.dispense_medicine ? (
         <Card>
           <Grid
             container
@@ -165,19 +163,18 @@ function Dispense() {
               <CardHeader title='Dispense' />
             </Grid>
             <Grid sx={{ mx: 5 }} item>
-              {selectedPharmacy.type === 'local' &&
-                (selectedPharmacy.permission.key === 'allow_full_access' ||
-                  selectedPharmacy.permission.key === 'ADD') && (
-                  <AddButton
-                    title='Add Dispense'
-                    action={() => {
-                      Router.push('/pharmacy/dispense/add-dispense')
-                    }}
-                    sx={{
-                      mr: 6
-                    }}
-                  />
-                )}
+              {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+                selectedPharmacy.permission.dispense_medicine) && (
+                <AddButton
+                  title='Add Dispense'
+                  action={() => {
+                    Router.push('/pharmacy/dispense/add-dispense')
+                  }}
+                  sx={{
+                    mr: 6
+                  }}
+                />
+              )}
             </Grid>
           </Grid>
           <DataGrid

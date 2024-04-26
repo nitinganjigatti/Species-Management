@@ -1,4 +1,7 @@
 import moment from 'moment'
+import toast from 'react-hot-toast'
+import FileSaver from 'file-saver'
+import * as XLSX from 'xlsx'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -39,11 +42,58 @@ function formatDisplayDate(date) {
   return moment(date).format('DD MMM YYYY')
 }
 
+function errorMessageExtractorFromObject(errorMessages) {
+  for (const key in errorMessages) {
+    if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
+      debugger
+      const errorMessage = errorMessages[key]
+      toast.error(errorMessage)
+
+      // console.log(`${key}: ${errorMessage}`)
+    }
+  }
+}
+
+function exportToCSV(tableData, fileName) {
+  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+  const fileExtension = '.xlsx'
+  if (tableData?.length > 0) {
+    const ws = XLSX.utils.json_to_sheet(tableData)
+    const wb = { Sheets: { data: ws }, SheetNames: ['data'] }
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const data = new Blob([excelBuffer], { type: fileType })
+    FileSaver.saveAs(data, fileName + fileExtension)
+  }
+}
+
+function getPreviousDaysDate(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() - days)
+  const previousDate = moment(date).format('YYYY-MM-DD')
+
+  return previousDate
+}
+function daysFromToday(inputDate) {
+  const today = moment()
+  const targetDate = moment(inputDate, 'YYYY-MM-DD')
+
+  const differenceInDays = targetDate.diff(today, 'days')
+  if (Math.abs(differenceInDays) === 0) {
+    return 'Today'
+  } else {
+    return `${Math.abs(differenceInDays)} Days`
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
   formattedPresentDate,
-  formatDisplayDate
+  formatDisplayDate,
+  errorMessageExtractorFromObject,
+  exportToCSV,
+  getPreviousDaysDate,
+  daysFromToday
 }
 
 export default Utility

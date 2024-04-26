@@ -2,7 +2,12 @@ import { STOCK_REPORT, LOCAL_STOCK_REPORT, STOCK_OUT, EXPIRED_MEDICINE } from '.
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getStocksReportById(id, params) {
-  const response = await axiosGet({ url: `${STOCK_REPORT}/${id}`, params, pharmacy: true })
+  let response
+  if (id) {
+    response = await axiosGet({ url: `${STOCK_REPORT}/${id}`, params, pharmacy: true })
+  } else {
+    response = await axiosGet({ url: `${STOCK_REPORT}`, params, pharmacy: true })
+  }
 
   return response.data
 }

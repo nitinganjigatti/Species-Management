@@ -31,7 +31,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const purchaseList = {
-    title: 'Purchase Invoice',
+    title: 'Inventory',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/purchase-list'
   }
@@ -93,7 +93,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const stockReport = {
-    title: 'Stock report',
+    icon: 'bi:boxes',
+    title: 'Stock Report',
     path: '/pharmacy/stocks/stocksReport'
   }
 
@@ -126,57 +127,62 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   const gst = {
     title: 'GST',
-    path: '/pharmacy/settings/gst'
+    path: '/pharmacy/masters/gst'
   }
 
   const uom = {
     title: 'UOM',
-    path: '/pharmacy/settings/uom'
+    path: '/pharmacy/masters/uom'
   }
 
   const productForm = {
     title: 'Product Form',
-    path: '/pharmacy/settings/product-form'
+    path: '/pharmacy/masters/product-form'
   }
 
   const drugClass = {
-    title: 'Drug class',
-    path: '/pharmacy/settings/drug-class'
+    title: 'Drug Class',
+    path: '/pharmacy/masters/drug-class'
   }
 
   const manufacturer = {
     title: 'Manufacturer',
-    path: '/pharmacy/settings/manufacturer'
+    path: '/pharmacy/masters/manufacturer'
   }
 
   const packages = {
     title: 'Packages',
-    path: '/pharmacy/settings/packages'
+    path: '/pharmacy/masters/packages'
   }
 
   const salts = {
     title: 'Salts',
-    path: '/pharmacy/settings/salts'
+    path: '/pharmacy/masters/salts'
   }
 
   const storage = {
     title: 'Storage',
-    path: '/pharmacy/settings/storage'
+    path: '/pharmacy/masters/storage'
+  }
+
+  const state = {
+    title: 'State List',
+    path: '/pharmacy/masters/state'
   }
 
   const storeList = {
-    title: 'Store list',
-    path: '/pharmacy/settings/store-list'
+    title: 'Pharmacy List',
+    path: '/pharmacy/masters/store-list'
   }
 
   const supplierList = {
-    title: 'Supplier list',
-    path: '/pharmacy/settings/supplier/supplier-list'
+    title: 'Supplier List',
+    path: '/pharmacy/masters/supplier/supplier-list'
   }
 
   const genericNamesList = {
     title: 'Generic Names',
-    path: '/pharmacy/settings/generic'
+    path: '/pharmacy/masters/generic'
   }
 
   const testList = {
@@ -185,7 +191,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const rackList = {
-    title: 'Rack list',
+    title: 'Rack List',
     path: '/pharmacy/store/rackList'
   }
 
@@ -206,6 +212,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/new-product-request/'
   }
 
+  const mastersParent = {
+    title: 'Master',
+    path: '/pharmacy/masters/',
+    icon: 'uil:setting',
+    children: []
+  }
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -218,9 +231,72 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
 
-    stockParent.children.push(stockReport, stockReportByBatch, stockOut, expiredMedicine)
+    // stockParent.children.push(stockReport)
     settingsParent.children.push(
-      gst,
+      rackList
+
+      // uom,
+      // productForm,
+      // genericNamesList,
+      // drugClass,
+      // manufacturer,
+      // packages,
+      // storeList,
+      // salts,
+      // storage,
+      // supplierList,
+
+      // state
+    )
+
+    pharmacyNavigationArray.push(
+      stockReport,
+      requestListing,
+      returnListing,
+      directDispatchList,
+      productsList,
+      purchaseList,
+      nonExistingProductRequestList,
+      settingsParent
+    )
+
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy?.permission?.dispense_medicine
+    ) {
+      pharmacyNavigationArray.splice(5, 0, dispense)
+    }
+  }
+
+  if (selectedPharmacy?.type === 'local') {
+    requestParent.children.push(requestListing)
+    returnParent.children.push(returnListing)
+
+    // stockParent.children.push(stockReport, escrow)
+    directDispatchParent.children.push(directDispatchList)
+    settingsParent.children.push(rackList)
+    pharmacyNavigationArray.push(
+      requestListing,
+
+      returnListing,
+
+      directDispatchList,
+
+      nonExistingProductRequestList,
+      stockReport,
+
+      settingsParent
+    )
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy?.permission?.dispense_medicine
+    ) {
+      pharmacyNavigationArray.splice(4, 0, dispense)
+    }
+  }
+
+  if (pharmacyRole) {
+    mastersParent.children.push(
       uom,
       productForm,
       genericNamesList,
@@ -231,50 +307,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       salts,
       storage,
       supplierList,
-      rackList
+      state
     )
-
-    pharmacyNavigationArray.push(
-      stockParent,
-      requestListing,
-      returnListing,
-      directDispatchList,
-      productsList,
-      nonExistingProductRequestList,
-      purchaseList,
-      settingsParent
-    )
+    pharmacyNavigationArray.push(mastersParent)
   }
-
-  if (selectedPharmacy?.type === 'local') {
-    requestParent.children.push(requestListing)
-    returnParent.children.push(returnListing)
-    stockParent.children.push(stockReport, stockOut, expiredMedicine, escrow)
-    directDispatchParent.children.push(directDispatchList)
-    settingsParent.children.push(rackList)
-    pharmacyNavigationArray.push(
-      requestListing,
-
-      returnListing,
-
-      directDispatchList,
-      dispense,
-
-      nonExistingProductRequestList,
-      stockParent,
-
-      settingsParent
-    )
-  }
-
-  // debugger
-
-  if (pharmacyRole && selectedPharmacy === '') {
-    settingsParent.children.push(storeList)
-    pharmacyNavigationArray.push(settingsParent)
-  }
-
-  // console.log(pharmacyNavigationArray)
 
   return pharmacyNavigationArray
 }

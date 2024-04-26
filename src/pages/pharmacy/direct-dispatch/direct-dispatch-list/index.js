@@ -22,6 +22,8 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -33,6 +35,7 @@ const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
+  const { selectedPharmacy } = usePharmacyContext()
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -42,8 +45,7 @@ const DirectDispatchList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('pending')
-
-  const { selectedPharmacy } = usePharmacyContext()
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,12 +53,14 @@ const DirectDispatchList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+    setFilterSwitch(false)
 
+    setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
 
@@ -64,15 +68,16 @@ const DirectDispatchList = () => {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          status
+          page: page ? page : paginationModel.page + 1,
+          limit: limit ? limit : paginationModel.pageSize,
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
           if (res.success) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('dispatchPageStatus')
           }
         })
         setLoading(false)
@@ -83,10 +88,11 @@ const DirectDispatchList = () => {
     },
     [paginationModel]
   )
+
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy, status])
+    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
+    setPaginationModel({ page: 0, pageSize: 10 })
+  }, [selectedPharmacy])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn, status)
@@ -102,9 +108,11 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
+      const currentStatus = filterSwitch ? 'completed' : status
+
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
     } else {
     }
   }
@@ -112,14 +120,43 @@ const DirectDispatchList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      const currentStatus = filterSwitch ? 'completed' : status
+
       try {
-        await fetchTableData(sort, q, column, status)
+        await fetchTableData(sort, q, column, currentStatus)
       } catch (error) {
         console.error(error)
       }
     }, 1000),
     []
   )
+
+  const handleSwitchChange = event => {
+    setFilterSwitch(event.target.checked)
+  }
+  useEffect(() => {
+    const statusIsThere = read('dispatchPageStatus')
+
+    // console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      // debugger
+      setStatus(statusIsThere.currentStatus)
+      setFilterSwitch(statusIsThere.filterSwitch)
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      const currentStatus = filterSwitch ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, fetchTableData, filterSwitch])
 
   const onRowClick = params => {
     var data = params.row
@@ -128,6 +165,18 @@ const DirectDispatchList = () => {
     Router.push({
       pathname: `/pharmacy/direct-dispatch/${data?.id}`
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      filterSwitch: filterSwitch
+    }
+
+    write('dispatchPageStatus', currentPageData)
   }
 
   const headerAction = (
@@ -237,9 +286,15 @@ const DirectDispatchList = () => {
               </Box>
             )}
             {params.row.shipping_status === 'Partially Shipped' && (
-              <Box sx={{ color: 'warning.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-              </Box>
+              <>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  {/* added for partial shipping */}
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              </>
             )}
             {params.row.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -257,6 +312,7 @@ const DirectDispatchList = () => {
               </Box>
             )}
           </div>
+          {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
       )
     }
@@ -303,11 +359,16 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader
-                title={rows?.length > 0 ? ' Direct Dispatch List' : 'Direct Dispatch List Is empty'}
-                action={headerAction}
-              />
-
+              <CardHeader title={'Direct Dispatch List'} action={headerAction} />
+              {status === 'all' ? (
+                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                  <FormControlLabel
+                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -361,25 +422,33 @@ const DirectDispatchList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'central' ? (
+              <Tab
+                value='pending'
+                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              />
+            ) : null}
 
             <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />
             <Tab
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
+            <Tab
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+            />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='completed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
+
           <TabPanel value='all'>{tableData()}</TabPanel>
         </TabContext>
       </Grid>

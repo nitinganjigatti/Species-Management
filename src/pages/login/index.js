@@ -99,10 +99,8 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().email().required(),
-
-  // password: yup.string().min(5).required()
-  password: yup.string().required()
+  email: yup.string().required('Username/Email required').min(4),
+  password: yup.string().trim('').required()
 })
 
 const defaultValues = {
@@ -277,12 +275,12 @@ const LoginPage = () => {
                   render={({ field: { value, onChange, onBlur } }) => (
                     <TextField
                       autoFocus
-                      label='Email'
+                      label='Username/Email'
                       value={value}
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
-                      placeholder='admin@materialize.com'
+                      placeholder='Enter your user name or email'
                     />
                   )}
                 />
@@ -328,10 +326,10 @@ const LoginPage = () => {
               <Box
                 sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
               >
-                <FormControlLabel
+                {/* <FormControlLabel
                   label='Remember Me'
                   control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
-                />
+                /> */}
                 {/* <Typography
                   variant='body2'
                   component={Link}

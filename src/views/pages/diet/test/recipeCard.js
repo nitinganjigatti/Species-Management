@@ -15,6 +15,7 @@ import { Stack } from '@mui/system'
 
 const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   const [remarks, setRemarks] = useState('')
+  const [selectedCount, setSelectedCount] = useState([])
 
   const Day = [
     { id: 0, name: 'All', isActive: false },
@@ -84,15 +85,57 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
 
   const handleCardClick = item => {
     const index = selectedCard.findIndex(card => card.id === item.id)
+
+    const selectedDaysForItem = Day.filter(day =>
+      selectedDays.some(
+        selectedDay =>
+          selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+      )
+    )
+
+    // Check if days are selected for the item
+    const daysSelected = selectedDaysForItem.length > 0
+
     if (index !== -1) {
       setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
-      setSelectedCard(prevValues => [...prevValues, item])
+      // Add the item to selectedCard only if days are selected
+      setSelectedCard(prevValues => {
+        if (daysSelected) {
+          // Increment count state here
+          setSelectedCount(selectedCard.length)
+        }
+        return [...prevValues, item]
+      })
     }
   }
 
+  console.log('selectedCount >>', selectedCount)
+
+  // const handleSelected = () => {
+  //   console.log('Selected Data', selectedCard)
+
+  //   const filterItem = selectedCard.map(item => {
+  //     const selectedDaysForItem = Day.filter(day =>
+  //       selectedDays.some(
+  //         selectedDay =>
+  //           selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+  //       )
+  //     )
+  //     let boxValues = {
+  //       ...item,
+  //       selectedDays: selectedDaysForItem
+  //     }
+  //     return boxValues
+  //   })
+  //   setSelectedCard(filterItem)
+  // }
+  console.log('SelectedCard >>', selectedCard)
+  console.log('dkndndnfj', selectedCount)
+
   const handleSelected = () => {
     console.log('Selected Data', selectedCard)
+
     const filterItem = selectedCard.map(item => {
       const selectedDaysForItem = Day.filter(day =>
         selectedDays.some(
@@ -100,15 +143,24 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
             selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
         )
       )
-      let boxValues = {
-        ...item,
-        selectedDays: selectedDaysForItem
+
+      // Check if any days are selected for the current item
+      if (selectedDaysForItem.length > 0) {
+        let boxValues = {
+          ...item,
+          selectedDays: selectedDaysForItem
+        }
+        return boxValues
+      } else {
+        // If no days are selected, return null
+        return null
       }
-      return boxValues
     })
-    setSelectedCard(filterItem)
+
+    // Remove null values from the filtered array
+    const filteredItems = filterItem.filter(item => item !== null)
+    setSelectedCard(filteredItems)
   }
-  console.log('SelectedCard >>', selectedCard)
 
   const handleAddRemarks = (event, cardId) => {
     const updatedCards = selectedCard.map(item => {

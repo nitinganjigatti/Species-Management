@@ -31,7 +31,8 @@ const schema = yup.object().shape({
   name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .required('Dosage Form is Required'),
+    .min(3, 'Product form must contain at least 3 characters')
+    .required('Product Form is Required'),
   active: yup.string().required('Status is Required')
 })
 
@@ -148,7 +149,7 @@ const AddProductForm = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Product Form'
+                  label='Product Form*'
                   value={value}
                   onChange={onChange}
                   placeholder='Product Form'

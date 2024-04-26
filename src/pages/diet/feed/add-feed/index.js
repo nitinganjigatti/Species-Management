@@ -8,6 +8,7 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
+  IconButton,
   Radio,
   RadioGroup,
   TextField,
@@ -22,6 +23,7 @@ import Icon from 'src/@core/components/icon'
 import { addFeedType, getFeedById, updateFeedType } from 'src/lib/api/diet/feedType'
 import Router, { useRouter } from 'next/router'
 import UserSnackbar from 'src/components/utility/snackbar'
+import toast from 'react-hot-toast'
 
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
@@ -125,9 +127,61 @@ const AddFeedType = () => {
         await updateFeedType({ ...payload }, id).then(res => {
           Router.push('/diet/feed')
           if (res?.success) {
-            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+            return toast(
+              t => (
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        {res?.message}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <IconButton
+                    onClick={() => toast.dismiss(t.id)}
+                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
+                </Box>
+              ),
+              {
+                style: {
+                  minWidth: '450px',
+                  minHeight: '130px'
+                }
+              }
+            )
           } else {
-            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+            return toast(
+              t => (
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        {res?.message}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <IconButton
+                    onClick={() => toast.dismiss(t.id)}
+                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
+                </Box>
+              ),
+              {
+                style: {
+                  minWidth: '450px',
+                  minHeight: '130px'
+                }
+              }
+            )
           }
         })
       } catch (error) {
@@ -137,10 +191,63 @@ const AddFeedType = () => {
       try {
         await addFeedType(payload).then(res => {
           if (res?.success) {
-            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
+            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
             Router.push('/diet/feed')
+
+            return toast(
+              t => (
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        {res?.message}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <IconButton
+                    onClick={() => toast.dismiss(t.id)}
+                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
+                </Box>
+              ),
+              {
+                style: {
+                  minWidth: '450px',
+                  minHeight: '130px'
+                }
+              }
+            )
           } else {
-            setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
+            return toast(
+              t => (
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        {res?.message}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <IconButton
+                    onClick={() => toast.dismiss(t.id)}
+                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
+                </Box>
+              ),
+              {
+                style: {
+                  minWidth: '450px',
+                  minHeight: '130px'
+                }
+              }
+            )
           }
         })
       } catch (error) {

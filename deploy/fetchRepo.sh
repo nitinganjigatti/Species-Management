@@ -51,12 +51,9 @@ rm -f .env;
 if [ $ENV_TO_LOAD == 'development' ]
 then
   cp -r env.development .env
-elif [ $ENV_TO_LOAD == 'staging' ]
+elif [ $ENV_TO_LOAD == 'uat' ]
 then
-  cp -r env.staging .env
-# elif [ $ENV_TO_LOAD == 'vantara-prod' ]
-# then
-#   cp -r env.jn .env
+  cp -r env.uat .env
 elif [ $ENV_TO_LOAD == 'production' ]
 then
   cp -r env.production .env

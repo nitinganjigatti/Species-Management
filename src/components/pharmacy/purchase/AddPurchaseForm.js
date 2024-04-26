@@ -47,6 +47,7 @@ import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
+import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -118,6 +119,9 @@ const AddPurchaseForm = () => {
   const [productExpiryDate, setProductExpiryDate] = useState('')
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
+
+  const [supplierDialog, setSupplierDialog] = useState(false)
+
   const router = useRouter()
   const { id, action } = router.query
 
@@ -195,13 +199,13 @@ const AddPurchaseForm = () => {
     0
   )
 
+  // const totalLineItemsDiscount = editParams.purchase_details?.reduce(
+  //   (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
+  //   0
+  // )
+
   const totalLineItemsDiscount = editParams.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
-    0
-  )
-
-  const calculateTotalTaxAmount = editParams.purchase_details?.reduce(
-    (acc, row) => acc + parseFloat(row.purchase_tax_amount ? row.purchase_tax_amount : 0),
     0
   )
 
@@ -592,7 +596,6 @@ const AddPurchaseForm = () => {
 
   //  ******
   const fetchMedicineData = async searchText => {
-    // if (searchText !== '') {
     try {
       const params = {
         sort: 'asc',
@@ -672,7 +675,8 @@ const AddPurchaseForm = () => {
           return {
             ...el,
             medicine_name: el?.stock_item_name,
-            id: el?.id
+            id: el?.id,
+            stock_type: el?.stock_type
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -722,8 +726,8 @@ const AddPurchaseForm = () => {
           taxable_amount: result?.data?.taxable_amount
         })
 
-        setSuppliers([{ id: result?.data?.supplier_id, name: result?.data?.supplier_name }])
-        setValue('supplier_id', result?.data?.supplier_id)
+        // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+        // setValue('supplier_id', result?.data?.supplier_id)
         reset({
           supplier_id: result?.data?.supplier_id,
           po_date: result?.data?.po_date,
@@ -744,7 +748,7 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: 'allopathy' }
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
       ])
 
       setNestedRowMedicine({
@@ -752,6 +756,7 @@ const AddPurchaseForm = () => {
         id: getItems[0]?.id,
         index,
         medicine_name: getItems[0]?.medicine_name,
+        stock_type: getItems[0]?.stock_type,
         purchase_unit_id: getItems[0]?.purchase_unit_id,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
           ? getItems[0].purchase_stock_item_id
@@ -783,12 +788,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: 'allopathy' }
+        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
       ])
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
         medicine_name: getItems[0]?.medicine_name,
+        stock_type: getItems[0]?.stock_type,
         index,
         purchase_unit_id: getItems[0].purchase_unit_id,
         purchase_stock_item_id: getItems[0].purchase_stock_item_id
@@ -892,29 +898,43 @@ const AddPurchaseForm = () => {
     )
   }
 
+  const closeSupplierDialog = () => {
+    getSuppliersLists()
+    setSupplierDialog(false)
+  }
+
   return (
     <Card>
       <Grid
         container
-        // sm={12}
-        // xs={12}
-        // sx={{
-        //   display: 'flex',
-        //   justifyContent: 'space-between',
-        //   alignItems: 'center'
-        // }}
+        sm={12}
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
       >
         <CardHeader
           avatar={
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/purchase/purchase-list/')
+                router.back()
+                // Router.push('/pharmacy/purchase/purchase-list/')
               }}
               icon='ep:back'
             />
           }
-          title='Add Inventory'
+          title={id ? 'Edit Inventory List' : 'Add Inventory'}
+        />
+
+        <AddButton
+          styles={{ marginRight: 20 }}
+          title='Add Supplier'
+          action={() => {
+            setSupplierDialog(true)
+          }}
         />
       </Grid>
 
@@ -939,12 +959,12 @@ const AddPurchaseForm = () => {
                       //   onChange(e.target.value)
                       // }}
                       label='Supplier*'
-                      disabled={!!id}
+                      // disabled={!!id}
                       error={Boolean(errors.supplier_id)}
                     >
                       {suppliers?.map(item => (
                         <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.name}
+                          {item.company_name}
                         </MenuItem>
                       ))}
                     </Select>
@@ -1064,7 +1084,7 @@ const AddPurchaseForm = () => {
                 <TableCell width='10%'>Batch</TableCell>
                 <TableCell>Expiry Date</TableCell>
                 <TableCell align='right'>Quantity</TableCell>
-                <TableCell align='right'>Free Quantity</TableCell>
+                {/* <TableCell align='right'>Free Quantity</TableCell> */}
                 <TableCell align='right'>Rate</TableCell>
                 <TableCell align='right'>Discount in %</TableCell>
                 <TableCell align='right'>GST in %</TableCell>
@@ -1080,28 +1100,31 @@ const AddPurchaseForm = () => {
                         <TableCell>{el.medicine_name}</TableCell>
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
-                          {el?.stock_type === 'non_medical' ? '' : Utility.formatDisplayDate(el.purchase_expiry_date)}
+                          {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
                         </TableCell>
                         <TableCell align='right'>{el.purchase_qty}</TableCell>
-                        <TableCell align='right'>{el.purchase_free_quantity}</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                         <TableCell align='right'>{el.purchase_unit_price}</TableCell>
                         <TableCell align='right'>{el.purchase_discount}%</TableCell>
 
                         <TableCell align='right'>{el.purchase_igst}%</TableCell>
                         <TableCell align='right'>{el.purchase_net_amount}</TableCell>
                         <TableCell align='center'>
-                          <IconButton
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                            aria-label='Edit'
-                            onClick={() => {
-                              setMedicineItemId(el.purchase_unit_id)
-                              editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
-                              showDialog()
-                            }}
-                          >
-                            <Icon icon='mdi:pencil-outline' />
-                          </IconButton>
+                          {el.id ? null : (
+                            <IconButton
+                              size='small'
+                              sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.purchase_unit_id)
+                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                showDialog()
+                              }}
+                            >
+                              <Icon icon='mdi:pencil-outline' />
+                            </IconButton>
+                          )}
+
                           {id && el.id ? null : (
                             <IconButton
                               onClick={() => {
@@ -1261,15 +1284,17 @@ const AddPurchaseForm = () => {
             >
               Save
             </LoadingButton>
-            <Button
-              onClick={() => {
-                setEditParams(editParamsInitialState)
-              }}
-              size='large'
-              variant='outlined'
-            >
-              Reset
-            </Button>
+            {id ? null : (
+              <Button
+                onClick={() => {
+                  setEditParams(editParamsInitialState)
+                }}
+                size='large'
+                variant='outlined'
+              >
+                Reset
+              </Button>
+            )}
           </Box>
         </Grid>
       </form>
@@ -1283,6 +1308,24 @@ const AddPurchaseForm = () => {
             show={showDialog}
           />
         </Grid>
+        <CommonDialogBox
+          title={'Add Supplier'}
+          dialogBoxStatus={supplierDialog}
+          formComponent={
+            <AddSupplier
+              closeSupplierDialog={() => {
+                closeSupplierDialog()
+              }}
+              supplierDialog={supplierDialog}
+            />
+          }
+          close={() => {
+            setSupplierDialog(false)
+          }}
+          show={() => {
+            setSupplierDialog(true)
+          }}
+        />
       </CardContent>
     </Card>
   )
