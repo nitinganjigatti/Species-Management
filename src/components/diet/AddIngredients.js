@@ -44,8 +44,10 @@ const AddIngredients = props => {
   const [uom, setUom] = useState([])
   const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
+  console.log('Selected days:', selectedDays)
 
   const handelShowBottom = (event, item, index) => {
+    console.log('item', item)
     event.stopPropagation()
 
     setVisibility(prevVisibility => {
@@ -66,33 +68,23 @@ const AddIngredients = props => {
       return newVisibility
     })
 
-    console.log('Selected days before update:', selectedDays)
-
-    // if (selectedDays.length === 0) {
     const allDays = Array.from({ length: 8 }, (_, i) => ({
       dayId: i,
       dayName: Day.find(day => day.id === i)?.name
     }))
 
-    console.log('All days:', allDays)
-
     setSelectedDays(prevSelectedDays => {
       const existingIndex = prevSelectedDays.findIndex(selectedItem => selectedItem && selectedItem.cardId === item.id)
 
-      if (existingIndex !== -1) {
-        // If the item exists, update its days to include all days
-        const updatedSelectedDays = [...prevSelectedDays]
-        updatedSelectedDays[existingIndex].days = allDays
-
-        return updatedSelectedDays
-      } else {
+      if (existingIndex === -1) {
         // If the item doesn't exist, add it with all days selected
         return [...prevSelectedDays, { cardId: item.id, days: allDays }]
       }
+
+      // If the item already exists, do not update the selected days
+      return prevSelectedDays
     })
   }
-
-  // }
 
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
@@ -191,8 +183,6 @@ const AddIngredients = props => {
 
     setSelectedDays(updatedSelectedDays)
 
-    console.log('updatedSelectedDays', updatedSelectedDays)
-
     if (updatedSelectedDays) {
       handelCardSelection(event, item, null, null, null, updatedSelectedDays)
     }
@@ -200,16 +190,13 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
-  console.log('selectedCard', selectedCard)
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, updatedSelectedDays) => {
-    console.log('updatedSelectedDay card', updatedSelectedDays)
     event.stopPropagation()
 
     // Get the selected feed value for the current item
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
-    console.log('feed_type', feed_type)
 
     // Get the remarks value
     const remarksData = remarks || ''
@@ -227,8 +214,6 @@ const AddIngredients = props => {
         })
       )
     })
-
-    console.log('selectedDaysForItem', selectedDaysForItem)
 
     // Validation checks
     if (!feed_type) {
@@ -263,7 +248,7 @@ const AddIngredients = props => {
       name: item.ingredient_name,
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
-      selectedDays: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
+      days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       remarks: remarksData
     }
 
@@ -273,8 +258,8 @@ const AddIngredients = props => {
       const sizeValue = newUom ? newUom : size || ''
 
       // Update boxValues with cut size and size
-      boxValues.cutSize = cutSizeValue
-      boxValues.uomId = sizeValue
+      boxValues.feed_cut_size = cutSizeValue
+      boxValues.feed_uom_id = sizeValue
     }
 
     // Check if the boxValues already exist in selectedCard
@@ -420,7 +405,6 @@ const AddIngredients = props => {
   )
 
   const handelInputCutSize = (event, item) => {
-    console.log('item Input', item)
     event.stopPropagation()
     const newCutSize = event.target.value
 
