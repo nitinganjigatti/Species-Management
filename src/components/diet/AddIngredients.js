@@ -29,8 +29,7 @@ import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 
 const AddIngredients = props => {
-  const { open, handleSidebarClose, onChange, childStateValue, checkid, allSelectedValues, setSelectedIngredient } =
-    props
+  const { open, handleSidebarClose, onChange, childStateValue, checkid, allSelectedValues, formData } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -264,7 +263,7 @@ const AddIngredients = props => {
   const handleAllSelect = () => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
-    setSelectedIngredient(selectedCard)
+    //setSelectedIngredient(selectedCard)
     return toast(
       t => (
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -375,11 +374,13 @@ const AddIngredients = props => {
       (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
     )
     console.log(uniqueSelectedValues, 'uniqueSelectedValues')
+    console.log(checkid, 'checkid')
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCard with matched objects, or set to an empty array if no match found
     setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
-  }, [allSelectedValues, checkid])
+  }, [allSelectedValues, checkid, formData])
 
   const searchData = useCallback(
     debounce(async search => {
@@ -403,9 +404,9 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  useEffect(() => {
-    setSelectedCard(childStateValue)
-  }, [childStateValue])
+  // useEffect(() => {
+  //   setSelectedCard(childStateValue)
+  // }, [childStateValue])
 
   // useEffect(() => {
   //   if (childStateValue) {

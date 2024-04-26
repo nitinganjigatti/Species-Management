@@ -10,7 +10,6 @@ import StepLabel from '@mui/material/StepLabel'
 
 // ** Step Components
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
-import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import IconButton from '@mui/material/IconButton'
 import toast from 'react-hot-toast'
@@ -22,6 +21,7 @@ import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from '
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
+import { getDietTypeList } from 'src/lib/api/diet/dietList'
 
 const steps = [
   {
@@ -44,10 +44,13 @@ const AddDiet = () => {
   const [formData, setFormData] = useState({
     diet_name: '',
     diet_type: '',
+    diet_type_id: '',
+    diet_type_child: '',
     diet_image: '',
     desc: '',
     add_meal: [
       {
+        newid: 'meal0',
         meal_name: '',
         meal_from_time: '',
         meal_to_time: '',
@@ -108,11 +111,12 @@ const AddDiet = () => {
   const getUnitsList = async () => {
     try {
       const params = {
-        type: ['length', 'weight'],
-        page: 1
+        // type: ['length', 'weight'],
+        // page: 1
       }
-      await getUnitsForRecipe({ params: params }).then(res => {
-        setUom(res?.data?.result)
+      await getDietTypeList({ params: params }).then(res => {
+        console.log(res, 'res')
+        setUom(res?.data)
       })
     } catch (e) {
       console.log(e)
@@ -127,23 +131,23 @@ const AddDiet = () => {
     }
   }, 500)
 
-  const callIngredientTypeList = async ({ status, page, limit, q }) => {
-    try {
-      const params = {
-        //status,
-        q,
+  // const callIngredientTypeList = async ({ status, page, limit, q }) => {
+  //   try {
+  //     const params = {
+  //       //status,
+  //       q,
 
-        //active: 1,
-        page,
-        limit
-      }
-      await getIngredientList({ params: params }).then(res => {
-        setIngredientTypeList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  //       //active: 1,
+  //       page,
+  //       limit
+  //     }
+  //     await getIngredientList({ params: params }).then(res => {
+  //       setIngredientTypeList(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -200,7 +204,7 @@ const AddDiet = () => {
   }
   useEffect(() => {
     getUnitsList()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+    // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
   useEffect(() => {
@@ -438,9 +442,6 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
-
-      //   case 2:
-      //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }

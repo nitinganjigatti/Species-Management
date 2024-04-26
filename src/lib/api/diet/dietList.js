@@ -1,4 +1,4 @@
-import { LISTING, DIET, UPDATE_STATUS } from 'src/constants/ApiConstant'
+import { LISTING, DIET, UPDATE_STATUS, TYPE } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
 export async function getDietList(params) {
@@ -22,4 +22,10 @@ export async function dietStatusChange(payload, id) {
     }
     return error
   }
+}
+
+export async function getDietTypeList(params) {
+  const response = await axiosGet({ url: `${DIET}/${TYPE}/${LISTING}`, params })
+
+  return response.data
 }
