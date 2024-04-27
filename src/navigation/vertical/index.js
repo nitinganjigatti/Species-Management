@@ -291,8 +291,9 @@ const ComposeNavigation = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
-  const dashboardNav = dashboardNavigation()
-  navigationArray.push(...dashboardNav)
+
+  // const dashboardNav = dashboardNavigation()
+  // navigationArray.push(...dashboardNav)
 
   if (pharmacyList?.length > 0 || pharmacyRole) {
     const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
@@ -300,8 +301,8 @@ const ComposeNavigation = () => {
   }
 
   // if (labList) {
-  const labNav = labNavigation()
-  navigationArray.push(...labNav)
+  // const labNav = labNavigation()
+  // navigationArray.push(...labNav)
 
   // }
 
