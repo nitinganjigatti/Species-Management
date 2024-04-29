@@ -750,7 +750,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                                     <Grid item key={day}>
                                       <Typography
                                         sx={{
-                                          color: all.selectedDays.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                          color: all.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
                                           marginRight: 3
                                         }}
                                       >

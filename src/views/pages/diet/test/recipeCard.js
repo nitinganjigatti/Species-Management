@@ -28,13 +28,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
     const initialSelectedDays = rows.map(row => ({
       cardId: row.id,
       days: Day
-    }));
+    }))
 
-    console.log("Initial Values>>", initialSelectedDays);
-    setSelectedDays(initialSelectedDays);
-  }, [rows]);
-
-
+    console.log('Initial Values>>', initialSelectedDays)
+    setSelectedDays(initialSelectedDays)
+  }, [rows])
 
   const [selectedDays, setSelectedDays] = useState()
   console.log('selectedDays', selectedDays, remarks)
@@ -42,64 +40,58 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   const [expandedIndex, setExpandedIndex] = useState([])
 
   const handleSelectedDays = (dayId, dayName, cardId) => {
-
     let updatedDays = selectedDays.map(card => {
-
       if (card.cardId !== cardId) {
-        return card;
+        return card
       }
 
-      let lastSelectedDayId = null;
+      let lastSelectedDayId = null
 
       const updatedCard = {
         ...card,
         days: card.days.map(day => {
           if (dayId === 0) {
-
             return {
               ...day,
               isActive: true
-            };
+            }
           } else if (day.id === dayId) {
-
-            lastSelectedDayId = dayId;
+            lastSelectedDayId = dayId
             return {
               ...day,
               isActive: !day.isActive
-            };
+            }
           } else {
-
             return {
               ...day,
               isActive: day.isActive
-            };
+            }
           }
         })
-      };
-
+      }
 
       if (dayId === 0) {
         updatedCard.days = updatedCard.days.map((day, index) => ({
           ...day,
           isActive: index !== 0
-        }));
+        }))
       }
 
-      const anyDayUnselected = updatedCard.days.slice(1).some(day => !day.isActive);
-      updatedCard.days[0].isActive = !anyDayUnselected;
+      const anyDayUnselected = updatedCard.days.slice(1).some(day => !day.isActive)
+      updatedCard.days[0].isActive = !anyDayUnselected
 
-      const allOtherDaysInactive = updatedCard.days.slice(1).every(day => !day.isActive);
+      const allOtherDaysInactive = updatedCard.days.slice(1).every(day => !day.isActive)
       if (lastSelectedDayId && allOtherDaysInactive) {
         updatedCard.days = updatedCard.days.map(day => ({
           ...day,
           isActive: day.id === lastSelectedDayId
-        }));
+        }))
       }
 
-      return updatedCard;
-    });
+      return updatedCard
+    })
 
-    setSelectedDays(updatedDays);
+    setSelectedDays(updatedDays)
 
     // // Find the last selected day
     // let lastSelectedDayInfo = null;
@@ -119,9 +111,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
 
     // // Log the last selected day to the console
     // console.log('Last selected day:', lastSelectedDayInfo);
-  };
-
-
+  }
 
   const handleCardClick = item => {
     const index = selectedCard.findIndex(card => card.id === item.id)
@@ -150,36 +140,31 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   console.log('selectedCount >>', selectedCount)
 
   const handleSelected = () => {
-    console.log('Selected Data', selectedCard);
+    console.log('Selected Data', selectedCard)
 
     const filteredItems = selectedCard.map(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id);
+      const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
 
-      const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || [];
+      const selectedDayNamesString = selectedDayNames.join(', ')
 
-      const selectedDayNamesString = selectedDayNames.join(', ');
-
-
-      const cardRemarks = selectedCard.find(card => card.id === item.id)?.remarks || '';
-
+      const cardRemarks = selectedCard.find(card => card.id === item.id)?.remarks || ''
 
       return {
         recipe_name: item.recipe_name,
         recipe_no: item.recipe_no ? item.recipe_no : null,
-        selectedDays: selectedDayNamesString,
+        selectedDays: [selectedDayNamesString],
         remarks: cardRemarks
-      };
-    });
+      }
+    })
 
-    console.log('Filtered Items', filteredItems);
+    console.log('Filtered Items', filteredItems)
 
-    setSelectedCard(filteredItems);
-  };
-
+    setSelectedCard(filteredItems)
+  }
 
   console.log('SelectedCard >>', selectedCard)
-
 
   const handleAddRemarks = (event, cardId) => {
     const updatedCards = selectedCard.map(item => {
@@ -187,20 +172,20 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
         return {
           ...item,
           remarks: event.target.value
-        };
+        }
       }
-      return item;
-    });
+      return item
+    })
 
     if (!updatedCards.find(item => item.id === cardId)) {
       updatedCards.push({
         id: cardId,
         remarks: event.target.value
-      });
+      })
     }
 
-    setSelectedCard(updatedCards);
-  };
+    setSelectedCard(updatedCards)
+  }
 
   return (
     <Box>
@@ -315,7 +300,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(selectedDay => selectedDay.cardId === item.id && selectedDay.days.find(d => d.id === day.id && d.isActive))
+                            bgcolor: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
                               ? '#203e56'
                               : '#dedede',
                             borderRadius: 5,
@@ -324,7 +313,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(selectedDay => selectedDay.cardId === item.id && selectedDay.days.find(d => d.id === day.id && d.isActive))
+                            color: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
                               ? 'white'
                               : 'black'
                           }}
@@ -377,7 +370,8 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
             <Button
               sx={{ width: '530px', height: '58px', mt: '35px', ml: 9, gap: '12px' }}
               variant='contained'
-              onClick={handleSelected}> 
+              onClick={handleSelected}
+            >
               ADD RECIPE - {selectedCard.length} SELECTED
             </Button>
           </Card>

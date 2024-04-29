@@ -409,25 +409,43 @@ const AddIngredients = props => {
     const uniqueSelectedValues = allSelectedValues.filter(
       (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
     )
-    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
-    console.log(checkid, 'checkid')
+
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
-    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
     // Update selectedCard with matched objects, or set to an empty array if no match found
     setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
+
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     const cardIds = selectedValuesWithCheckId.map(item => item.id)
-    const days = selectedValuesWithCheckId.map(item => item.selectedDays)
+    const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
     cardIds.forEach((cardId, index) => {
       updatedSelectedDays.push({
         cardId: cardId,
-        days: days[index]
+        days: days[index]?.map(dayId => ({
+          dayId: dayId,
+          dayName: Day.find(day => day.id === dayId)?.name
+        }))
       })
     })
     setSelectedDays(updatedSelectedDays)
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+    // Update selectFeed state based on selectedValuesWithCheckId
+    const newSelectFeed = {}
+    selectedValuesWithCheckId.forEach(item => {
+      if (item.valueid === checkid) {
+        const preparationType = item.preparation_type
+        const preparationTypeId = item.preparation_type_id
+        newSelectFeed[item.id] = {
+          id: preparationTypeId,
+          name: preparationType
+        }
+      }
+    })
+    setSelectFeed(newSelectFeed)
   }, [allSelectedValues, checkid, formData])
 
   const searchData = useCallback(
@@ -745,7 +763,7 @@ const AddIngredients = props => {
                             bgcolor: selectedDays.some(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -761,7 +779,7 @@ const AddIngredients = props => {
                             color: selectedDays.some(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                             )
                               ? 'white'
                               : 'black'
