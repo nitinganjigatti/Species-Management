@@ -70,25 +70,7 @@ const AddDiet = () => {
             ]
           }
         ],
-        ingredient: [
-          {
-            ingredient_id: '',
-            preparation_type_id: '',
-            preparation_type: '',
-            feed_cut_size: '',
-            feed_uom_id: '',
-            days_of_week: [],
-            remarks: '',
-            meal_type: [
-              {
-                meal_value_header: '',
-                quantity: '',
-                meal_value_uom_id: '',
-                notes: ''
-              }
-            ]
-          }
-        ]
+        ingredient: []
       }
     ],
     by_quantity: [

@@ -65,7 +65,17 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   diet_name: yup.string().required('Recipe name is required'),
-  diet_type: yup.string().required('Diet type is required')
+  diet_type: yup.string().required('Diet type is required'),
+  add_meal: yup.array().of(
+    yup.object().shape({
+      meal_name: yup.string().required('Meal name is required'),
+      meal_from_time: yup.string().required('Meal from time is required'),
+      meal_to_time: yup.string().required('Meal to time is required'),
+      notes: yup.string(),
+      recipe: yup.array(), // Validation for 'recipe' array, if needed
+      ingredient: yup.array() // Validation for 'ingredient' array, if needed
+    })
+  )
   //portion_size: yup.string().required('Portion size is required')
   // diet_type: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
@@ -84,6 +94,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const [fieldsupdatednew, setfieldsupdatednew] = useState([])
   const [finalvalue, setfinalvalue] = useState([])
   const [checkid, setcheckid] = useState('')
+  const [selectedIngredient, setSelectedIngredient] = useState()
   const router = useRouter()
   const recipes = [
     { label: 'No' },
@@ -138,17 +149,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v.id === val.id && v.valueid === val.valueid)
     )
-
-    // Update allSelectedValues with unique values
-    // setAllSelectedValues(prevState => {
-    //   // Filter out duplicates from the previous state
-    //   const filteredPrevState = prevState.filter(
-    //     prevVal => !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal.id && uniqueVal.valueid === prevVal.valueid)
-    //   )
-
-    //   // Combine unique values from the new value with filtered previous state
-    //   return [...filteredPrevState, ...uniqueValues]
-    // })
     setAllSelectedValues(prevState => {
       // Filter out duplicates from the previous state
       const filteredPrevState = prevState.filter(
@@ -164,36 +164,15 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
         field.ingredient = updatedValues.filter(up => up.valueid === field.newid)
-        // for (const val of updatedValues) {
-        //   if (field.id === val.valueid) {
-        //     fieldsIngredients[i].ingredient = [
-        //       ...fieldsIngredients[i].ingredient.filter(val => val.valueid === field.id)
-        //     ]
-        //   }
-        // }
       }
 
       // Return the updated values to setAllSelectedValues
       return updatedValues
     })
 
-    // for (const fields of fieldsIngredients) {
-    //   for (const val of allSelectedValues) {
-    //     console.log(val)
-    //     if (fields.id === val.valueid) {
-    //       fieldsIngredients.ingredient = val
-    //     }
-    //   }
-    // }
-    //console.log(allSelectedValues, 'allSelectedValues')
-    //console.log(updatedValues, 'updatedValues')
     setfinalvalue(fieldsIngredients)
     console.log(fieldsIngredients, 'fieldsIngredients')
   }
-
-  // const handleChildStateChange = value => {
-
-  // }
 
   useEffect(() => {
     if (formData) {
@@ -376,13 +355,21 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   }
 
   const removeingClick = ingredientIdToRemove => {
-    // Filter out the ingredient with the specified ID from childStateValue
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient => ingredient.id !== ingredientIdToRemove)
-      // Update setAllSelectedValues by removing the same object from allSelectedValues
       setAllSelectedValues(prevAllSelectedValues => {
         return prevAllSelectedValues.filter(ingredient => ingredient.id !== ingredientIdToRemove)
       })
+
+      // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
+      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+        field.ingredient = field.ingredient.filter(ing => ing.id !== ingredientIdToRemove)
+        return field
+      })
+
+      // Set the final value using setfinalvalue
+      setfinalvalue(updatedFieldsIngredients)
+
       return filteredChildStateValue
     })
   }
@@ -447,11 +434,10 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                             setFormValue('diet_type', '') // Clear the diet_type value
                             setFormValue('diet_type_child', '')
                           } else {
-                            const updatedIngredient = val?.id || ''
                             setFormValue('diet_type_id', val.id) // Set the diet_type_id value
                             setFormValue('diet_type', val.diet_type_name) // Set the diet_type value
                             setFormValue('diet_type_child', val.child)
-                            onChange(updatedIngredient)
+                            trigger('diet_type')
                           }
                         }}
                         renderInput={params => (
@@ -521,7 +507,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                           type='text'
                           label='Meal name (Optional) '
                           name={`add_meal[${index}].meal_name`}
-                          error={Boolean(errors.nutrional_value)}
+                          error={
+                            errors.add_meal && errors.add_meal[index] && errors.add_meal[index].meal_name?.message
+                              ? true
+                              : false
+                          }
                           onChange={onChange}
                           placeholder=''
                           onInput={e => {
@@ -532,14 +522,15 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                         />
                       )}
                     />
-                    {errors.nutrional_value && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.nutrional_value?.message}</FormHelperText>
+                    {errors.add_meal && errors.add_meal[index] && (
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {errors.add_meal[index].meal_name?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={3.2}>
                   <FormControl fullWidth>
-                    {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                     <Controller
                       name={`add_meal[${index}].meal_from_time`}
                       control={control}
@@ -547,13 +538,32 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                       render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                           {console.log(value?.$d, 'vvv')}
-                          <TimePicker label='Select time - from' value={value?.$d} onChange={onChange} />
+                          <TimePicker
+                            label='Select time - from'
+                            value={value?.$d}
+                            onChange={onChange}
+                            // renderInput={params => (
+                            //   <TextField
+                            //     {...params}
+                            //     label='Select Preparation Type *'
+                            //     error={
+                            //       errors.add_meal &&
+                            //       errors.add_meal[index] &&
+                            //       errors.add_meal[index].meal_from_time?.message
+                            //         ? true
+                            //         : false
+                            //     }
+                            //   />
+                            // )}
+                          />
                         </LocalizationProvider>
                       )}
                     />
 
-                    {errors?.nutrional_uom_id && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.nutrional_uom_id?.message}</FormHelperText>
+                    {errors.add_meal && errors.add_meal[index] && (
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {errors.add_meal[index].meal_from_time?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
@@ -571,8 +581,10 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                         </LocalizationProvider>
                       )}
                     />
-                    {errors.kcal && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.kcal?.message}</FormHelperText>
+                    {errors.add_meal && errors.add_meal[index] && (
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {errors.add_meal[index].meal_to_time?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
@@ -1052,6 +1064,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
           allSelectedValues={allSelectedValues}
           setAllSelectedValues={setAllSelectedValues}
           formData={formData}
+          setSelectedIngredient={setSelectedIngredient}
         />
       </form>
     </>

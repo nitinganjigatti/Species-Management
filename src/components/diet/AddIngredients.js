@@ -26,7 +26,16 @@ import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 
 const AddIngredients = props => {
-  const { open, handleSidebarClose, onChange, childStateValue, checkid, allSelectedValues, formData } = props
+  const {
+    open,
+    handleSidebarClose,
+    onChange,
+    childStateValue,
+    checkid,
+    allSelectedValues,
+    formData,
+    setSelectedIngredient
+  } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -303,7 +312,7 @@ const AddIngredients = props => {
   const handleAllSelect = event => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
-    event.stopPropagation()
+    // event.stopPropagation()
     setSelectedIngredient(selectedCard)
     return toast(
       t => (
