@@ -374,6 +374,27 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     })
   }
 
+  const getDayAbbreviation = index => {
+    switch (index) {
+      case 1:
+        return 'M'
+      case 2:
+        return 'T'
+      case 3:
+        return 'W'
+      case 4:
+        return 'T'
+      case 5:
+        return 'F'
+      case 6:
+        return 'S'
+      case 7:
+        return 'S'
+      default:
+        return '-'
+    }
+  }
+
   console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
@@ -710,36 +731,22 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                                 <Typography>{all.name}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                                <Typography>5</Typography>
+                                <Typography>{all.preparation_type}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid container spacing={7} sx={{ pl: 2 }}>
-                                  <Grid item>
-                                    <Typography>M</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>T</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>W</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>T</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>F</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>S</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <Typography>S</Typography>
-                                  </Grid>
+                                  {all.selectedDays.map(dayIndex => (
+                                    <Grid item key={dayIndex}>
+                                      <Typography>
+                                        {getDayAbbreviation(dayIndex)} {/* Call a function to get the abbreviation */}
+                                      </Typography>
+                                    </Grid>
+                                  ))}
                                 </Grid>
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid sx={{ pl: 7 }}>
-                                  <Typography>5</Typography>
+                                  <Typography>{all.remarks ? all.remarks : '-'}</Typography>
                                 </Grid>
                               </Grid>
                               <Icon
