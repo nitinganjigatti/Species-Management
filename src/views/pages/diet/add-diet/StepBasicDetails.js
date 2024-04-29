@@ -28,6 +28,7 @@ import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploade
 import Icon from 'src/@core/components/icon'
 import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
 import AddIngredients from 'src/components/diet/AddIngredients'
+import RecipeList from 'src/components/diet/RecipeList'
 
 const defaultValues = {
   diet_name: '',
@@ -76,11 +77,6 @@ const schema = yup.object().shape({
       ingredient: yup.array() // Validation for 'ingredient' array, if needed
     })
   )
-  //portion_size: yup.string().required('Portion size is required')
-  // diet_type: yup.string().required('Unit of measurement is required'),
-  // nutrional_value: yup.string().required('Nutritional values are required'),
-  // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
-  // kcal: yup.string().required('Total calories are required')
 })
 
 const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, selectedCard, setSelectedCard }) => {
@@ -95,6 +91,9 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const [finalvalue, setfinalvalue] = useState([])
   const [checkid, setcheckid] = useState('')
   const [selectedIngredient, setSelectedIngredient] = useState()
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [recipeList, setRecipeList] = useState([])
+  const [submitLoader, setSubmitLoader] = useState(false)
   const router = useRouter()
   const recipes = [
     { label: 'No' },
@@ -216,6 +215,16 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const handleAddIngerdientChoice = val => {
     setOpenIngredientchoice(true)
+  }
+
+  const addEventSidebarOpen = () => {
+    setOpenDrawer(true)
+    setSelectedCard([])
+  }
+
+  const handleSidebarCloseRecipe = () => {
+    console.log('close event clicked')
+    setOpenDrawer(false)
   }
 
   const handleAddIngerdient = (val, index) => {
@@ -394,6 +403,8 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
         return '-'
     }
   }
+
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
   console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
@@ -734,11 +745,16 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                                 <Typography>{all.preparation_type}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
-                                <Grid container spacing={7} sx={{ pl: 2 }}>
-                                  {all.selectedDays.map(dayIndex => (
-                                    <Grid item key={dayIndex}>
-                                      <Typography>
-                                        {getDayAbbreviation(dayIndex)} {/* Call a function to get the abbreviation */}
+                                <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  {days.map((day, index) => (
+                                    <Grid item key={day}>
+                                      <Typography
+                                        sx={{
+                                          color: all.selectedDays.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                          marginRight: 3
+                                        }}
+                                      >
+                                        {day}
                                       </Typography>
                                     </Grid>
                                   ))}
@@ -970,6 +986,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
+                  onClick={addEventSidebarOpen}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD RECIPE
@@ -1072,6 +1089,15 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
           setAllSelectedValues={setAllSelectedValues}
           formData={formData}
           setSelectedIngredient={setSelectedIngredient}
+        />
+        <RecipeList
+          recipeList={recipeList}
+          setSelectedCard={setSelectedCard}
+          selectedCard={selectedCard}
+          drawerWidth={400}
+          addEventSidebarOpen={openDrawer}
+          handleSidebarClose={handleSidebarCloseRecipe}
+          submitLoader={submitLoader}
         />
       </form>
     </>

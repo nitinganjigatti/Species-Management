@@ -53,7 +53,7 @@ const AddIngredients = props => {
   const [uom, setUom] = useState([])
   const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
-
+  console.log(selectedDays, 'selectedDays')
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
 
@@ -417,20 +417,6 @@ const AddIngredients = props => {
       }
     }
   }
-
-  // useEffect(() => {
-  //   // Filter out duplicates based on id and valueid
-  //   const uniqueSelectedValues = allSelectedValues.filter(
-  //     (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
-  //   )
-  //   console.log(uniqueSelectedValues, 'uniqueSelectedValues')
-  //   console.log(checkid, 'checkid')
-  //   // Compare uniqueSelectedValues with checkid
-  //   const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
-  //   console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
-  //   // Update selectedCard with matched objects, or set to an empty array if no match found
-  //   setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
-  // }, [allSelectedValues, checkid, formData])
 
   useEffect(() => {
     // Filter out duplicates based on id and valueid
