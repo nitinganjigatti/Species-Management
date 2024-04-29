@@ -1,7 +1,7 @@
 export const schedule = [
   {
-    startTime: '07:01 AM',
-    endTime: '12:00 PM',
+    meal_from_time: '07:01 AM',
+    meal_to_time: '12:00 PM',
     items: [
       {
         category: 'Vegetables',
@@ -45,8 +45,8 @@ export const schedule = [
     ]
   },
   {
-    startTime: '12:01 PM',
-    endTime: '03:00 PM',
+    meal_from_time: '12:01 PM',
+    meal_to_time: '03:00 PM',
     items: [
       {
         category: 'coconut',
@@ -57,8 +57,8 @@ export const schedule = [
     ]
   },
   {
-    startTime: '03:01 PM',
-    endTime: '06:00 PM',
+    meal_from_time: '03:01 PM',
+    meal_to_time: '06:00 PM',
     items: [
       {
         category: 'Daliya',

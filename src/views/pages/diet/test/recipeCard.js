@@ -1,16 +1,12 @@
-import Drawer from '@mui/material/Drawer'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import Icon from 'src/@core/components/icon'
 import Card from '@mui/material/Card'
-
 import Divider from '@mui/material/Divider'
 import Avatar from 'src/@core/components/mui/avatar'
 import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
-import { use, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 
 const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
@@ -18,70 +14,114 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   const [selectedCount, setSelectedCount] = useState([])
 
   const Day = [
-    { id: 0, name: 'All', isActive: false },
-    { id: 1, name: 'Mon', isActive: false },
-    { id: 2, name: 'Tue', isActive: false },
-    { id: 3, name: 'Wed', isActive: false },
-    { id: 4, name: 'Thrs', isActive: false },
-    { id: 5, name: 'Fri', isActive: false },
-    { id: 6, name: 'Sat', isActive: false },
-    { id: 7, name: 'Sun', isActive: false }
+    { id: 0, name: 'All', isActive: true },
+    { id: 1, name: 'Mon', isActive: true },
+    { id: 2, name: 'Tue', isActive: true },
+    { id: 3, name: 'Wed', isActive: true },
+    { id: 4, name: 'Thrs', isActive: true },
+    { id: 5, name: 'Fri', isActive: true },
+    { id: 6, name: 'Sat', isActive: true },
+    { id: 7, name: 'Sun', isActive: true }
   ]
 
-  const [selectedDays, setSelectedDays] = useState([])
+  useEffect(() => {
+    const initialSelectedDays = rows.map(row => ({
+      cardId: row.id,
+      days: Day
+    }));
+
+    console.log("Initial Values>>", initialSelectedDays);
+    setSelectedDays(initialSelectedDays);
+  }, [rows]);
+
+
+
+  const [selectedDays, setSelectedDays] = useState()
   console.log('selectedDays', selectedDays, remarks)
 
   const [expandedIndex, setExpandedIndex] = useState([])
 
-  const handleDayClick = (dayId, dayName, cardId) => {
-    let cardInfo = selectedDays.find(item => item.cardId === cardId)
-    if (!cardInfo) {
-      cardInfo = { cardId, days: [] }
-    }
+  const handleSelectedDays = (dayId, dayName, cardId) => {
 
-    if (dayId === 0) {
-      const allDaysSelected = cardInfo.days.filter(item => item.dayId !== 0).length === 7
+    let updatedDays = selectedDays.map(card => {
 
-      if (allDaysSelected) {
-        cardInfo.days = []
-      } else {
-        cardInfo.days = []
-        for (let i = 1; i <= 7; i++) {
-          const day = Day.find(day => day.id === i)
-          cardInfo.days.push({ dayId: day.id, dayName: day.name })
-        }
-
-        cardInfo.days.push({ dayId: 0, dayName: 'All' })
-      }
-    } else {
-      const index = cardInfo.days.findIndex(item => item.dayId === dayId)
-
-      if (index === -1) {
-        cardInfo.days.push({ dayId, dayName })
-      } else {
-        cardInfo.days.splice(index, 1)
+      if (card.cardId !== cardId) {
+        return card;
       }
 
-      if (dayId !== 0) {
-        const allDayIndex = cardInfo.days.findIndex(item => item.dayId === 0)
-        if (allDayIndex !== -1) {
-          cardInfo.days.splice(allDayIndex, 1)
-        }
+      let lastSelectedDayId = null;
+
+      const updatedCard = {
+        ...card,
+        days: card.days.map(day => {
+          if (dayId === 0) {
+
+            return {
+              ...day,
+              isActive: true
+            };
+          } else if (day.id === dayId) {
+
+            lastSelectedDayId = dayId;
+            return {
+              ...day,
+              isActive: !day.isActive
+            };
+          } else {
+
+            return {
+              ...day,
+              isActive: day.isActive
+            };
+          }
+        })
+      };
+
+
+      if (dayId === 0) {
+        updatedCard.days = updatedCard.days.map((day, index) => ({
+          ...day,
+          isActive: index !== 0
+        }));
       }
-    }
 
-    const allSelected = cardInfo.days.length === 7 && !cardInfo.days.some(day => day.dayId === 0)
-    if (allSelected) {
-      const allDay = Day.find(day => day.id === 0)
-      cardInfo.days.push({ dayId: 0, dayName: 'All' })
-    }
+      const anyDayUnselected = updatedCard.days.slice(1).some(day => !day.isActive);
+      updatedCard.days[0].isActive = !anyDayUnselected;
 
-    const updatedSelectedDays = selectedDays.filter(item => item.cardId !== cardId)
-    updatedSelectedDays.push(cardInfo)
-    setSelectedDays(updatedSelectedDays)
-  }
+      const allOtherDaysInactive = updatedCard.days.slice(1).every(day => !day.isActive);
+      if (lastSelectedDayId && allOtherDaysInactive) {
+        updatedCard.days = updatedCard.days.map(day => ({
+          ...day,
+          isActive: day.id === lastSelectedDayId
+        }));
+      }
 
-  console.log('Selected Days ??', selectedDays)
+      return updatedCard;
+    });
+
+    setSelectedDays(updatedDays);
+
+    // // Find the last selected day
+    // let lastSelectedDayInfo = null;
+    // for (let i = updatedDays.length - 1; i >= 0; i--) {
+    //     const card = updatedDays[i];
+    //     for (let j = card.days.length - 1; j >= 0; j--) {
+    //         const day = card.days[j];
+    //         if (day.isActive) {
+    //             lastSelectedDayInfo = day;
+    //             break;
+    //         }
+    //     }
+    //     if (lastSelectedDayInfo) {
+    //         break;
+    //     }
+    // }
+
+    // // Log the last selected day to the console
+    // console.log('Last selected day:', lastSelectedDayInfo);
+  };
+
+
 
   const handleCardClick = item => {
     const index = selectedCard.findIndex(card => card.id === item.id)
@@ -93,16 +133,13 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
       )
     )
 
-    // Check if days are selected for the item
     const daysSelected = selectedDaysForItem.length > 0
 
     if (index !== -1) {
       setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
-      // Add the item to selectedCard only if days are selected
       setSelectedCard(prevValues => {
         if (daysSelected) {
-          // Increment count state here
           setSelectedCount(selectedCard.length)
         }
         return [...prevValues, item]
@@ -112,55 +149,37 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
 
   console.log('selectedCount >>', selectedCount)
 
-  // const handleSelected = () => {
-  //   console.log('Selected Data', selectedCard)
-
-  //   const filterItem = selectedCard.map(item => {
-  //     const selectedDaysForItem = Day.filter(day =>
-  //       selectedDays.some(
-  //         selectedDay =>
-  //           selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
-  //       )
-  //     )
-  //     let boxValues = {
-  //       ...item,
-  //       selectedDays: selectedDaysForItem
-  //     }
-  //     return boxValues
-  //   })
-  //   setSelectedCard(filterItem)
-  // }
-  console.log('SelectedCard >>', selectedCard)
-  console.log('dkndndnfj', selectedCount)
-
   const handleSelected = () => {
-    console.log('Selected Data', selectedCard)
+    console.log('Selected Data', selectedCard);
 
-    const filterItem = selectedCard.map(item => {
-      const selectedDaysForItem = Day.filter(day =>
-        selectedDays.some(
-          selectedDay =>
-            selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
-        )
-      )
+    const filteredItems = selectedCard.map(item => {
 
-      // Check if any days are selected for the current item
-      if (selectedDaysForItem.length > 0) {
-        let boxValues = {
-          ...item,
-          selectedDays: selectedDaysForItem
-        }
-        return boxValues
-      } else {
-        // If no days are selected, return null
-        return null
-      }
-    })
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id);
 
-    // Remove null values from the filtered array
-    const filteredItems = filterItem.filter(item => item !== null)
-    setSelectedCard(filteredItems)
-  }
+      const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || [];
+
+      const selectedDayNamesString = selectedDayNames.join(', ');
+
+
+      const cardRemarks = selectedCard.find(card => card.id === item.id)?.remarks || '';
+
+
+      return {
+        recipe_name: item.recipe_name,
+        recipe_no: item.recipe_no ? item.recipe_no : null,
+        selectedDays: selectedDayNamesString,
+        remarks: cardRemarks
+      };
+    });
+
+    console.log('Filtered Items', filteredItems);
+
+    setSelectedCard(filteredItems);
+  };
+
+
+  console.log('SelectedCard >>', selectedCard)
+
 
   const handleAddRemarks = (event, cardId) => {
     const updatedCards = selectedCard.map(item => {
@@ -168,13 +187,21 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
         return {
           ...item,
           remarks: event.target.value
-        }
+        };
       }
-      return item
-    })
+      return item;
+    });
 
-    setSelectedCard(updatedCards)
-  }
+    if (!updatedCards.find(item => item.id === cardId)) {
+      updatedCards.push({
+        id: cardId,
+        remarks: event.target.value
+      });
+    }
+
+    setSelectedCard(updatedCards);
+  };
+
   return (
     <Box>
       <Box>
@@ -284,16 +311,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                       {Day?.map(day => (
                         <Box
                           key={day.id}
-                          onClick={() => handleDayClick(day.id, day.name, item.id)}
+                          onClick={() => handleSelectedDays(day.id, day.name, item.id)}
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            // bgcolor: day.isActive ? '#203e56' : '#dedede',
-                            bgcolor: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
-                            )
+                            bgcolor: selectedDays.find(selectedDay => selectedDay.cardId === item.id && selectedDay.days.find(d => d.id === day.id && d.isActive))
                               ? '#203e56'
                               : '#dedede',
                             borderRadius: 5,
@@ -301,15 +323,8 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                             justifyContent: 'center',
                             alignItems: 'center',
                             cursor: 'pointer',
-                            '&:hover': {
-                              bgcolor: '#203e56',
-                              color: 'white'
-                            },
-                            color: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
-                            )
+
+                            color: selectedDays.find(selectedDay => selectedDay.cardId === item.id && selectedDay.days.find(d => d.id === day.id && d.isActive))
                               ? 'white'
                               : 'black'
                           }}
@@ -324,7 +339,6 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                       <TextField
                         multiline
                         rows={expandedIndex.includes(index) ? 3 : 1}
-                        // onClick={e => handleClick(item, index, e)}
                         onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         variant='outlined'
@@ -332,14 +346,13 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             '& fieldset': {
-                              border: 'none' // Remove the outside border
+                              border: 'none'
                             }
                           },
-                          transition: 'max-height 0.5s ease-in-out', // Smooth transition
-                          overflow: 'hidden', // Hide overflow content during transition
-                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px' // Initial and expanded height
+                          transition: 'max-height 0.5s ease-in-out',
+                          overflow: 'hidden',
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
                         }}
-                        // onBlur={() => setExpandedText(false)} // Collapse on blur
                       />
                     </Box>
                   </>
@@ -354,7 +367,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
           <Card
             sx={{
               height: '122px',
-              width: '585px',
+              width: '597px',
               position: 'fixed',
               bottom: 0,
               ml: -6,
@@ -362,10 +375,9 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
             }}
           >
             <Button
-              sx={{ width: '530px', height: '58px', mt: '35px', ml: 7, gap: '12px' }}
+              sx={{ width: '530px', height: '58px', mt: '35px', ml: 9, gap: '12px' }}
               variant='contained'
-              onClick={handleSelected}
-            >
+              onClick={handleSelected}> 
               ADD RECIPE - {selectedCard.length} SELECTED
             </Button>
           </Card>
