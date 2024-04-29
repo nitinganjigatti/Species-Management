@@ -147,19 +147,17 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
 
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
 
-      const selectedDayNamesString = selectedDayNames.join(', ')
+      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
       const cardRemarks = selectedCard.find(card => card.id === item.id)?.remarks || ''
 
       return {
         recipe_name: item.recipe_name,
-        recipe_no: item.recipe_no ? item.recipe_no : null,
-        selectedDays: [selectedDayNamesString],
+        recipe_id: item.id ? item.id : null,
+        days_of_week: selectedDayId,
         remarks: cardRemarks
       }
     })
-
-    console.log('Filtered Items', filteredItems)
 
     setSelectedCard(filteredItems)
   }
