@@ -30,17 +30,20 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Preparation Type Name is Required'),
-  active: yup.string().nullable()
+    status: yup.string().nullable()
 })
 
 const defaultValues = {
   label: '',
-  active: '1'
+  status: '1'
 }
 
 const AddPreparationType = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+
+  debugger
+  console.log(editParams)
 
   const {
     reset,
@@ -59,11 +62,11 @@ const AddPreparationType = props => {
   })
 
   const onSubmit = async params => {
-    const { label, active } = { ...params }
-
+    const { label, status } = { ...params }
+    console.log(params)
     const payload = {
       preparation_type_name: label.trim(),
-      active
+      status: status
     }
     await handleSubmitData(payload)
   }
@@ -73,7 +76,10 @@ const AddPreparationType = props => {
       const response = await getPreparationTypeById(id)
       console.log('add state comp', response)
       if (response?.success) {
-        reset(response.data)
+        debugger
+        console.log(response.data)
+        reset({label: response.data.label,
+        status: response.data.status === "active" ? 1 : 0})
       } else {
       }
     },
@@ -87,6 +93,7 @@ const AddPreparationType = props => {
     }
 
     if (editParams?.id !== null) {
+      debugger
       getPreparationType(editParams?.id)
     }
   }, [resetForm, editParams, reset, getPreparationType])
@@ -156,22 +163,22 @@ const AddPreparationType = props => {
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
-                name='active'
+                name='status'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
+                  <RadioGroup row {...field} name='validation-basic-radio'>
                     <FormControlLabel
                       value='1'
                       label='Active'
-                      sx={errors.active ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
+                      sx={errors.status ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
                     />
                     <FormControlLabel
                       value='0'
                       label='Inactive'
-                      sx={errors.active ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
+                      sx={errors.status ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
                     />
                   </RadioGroup>
                 )}

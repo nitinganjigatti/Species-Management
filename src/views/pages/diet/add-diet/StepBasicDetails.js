@@ -453,7 +453,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                     console.log(value, 'value')
                     return (
                       <Autocomplete
-                        value={uomList.find(option => option.id === value) || null}
+                        value={uomList?.find(option => option.id === value) || null}
                         disablePortal
                         id='diet_type_id'
                         options={uomList || []}
