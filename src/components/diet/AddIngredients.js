@@ -406,23 +406,23 @@ const AddIngredients = props => {
 
   useEffect(() => {
     // Filter out duplicates based on id and valueid
-    const uniqueSelectedValues = allSelectedValues.filter(
+    const uniqueSelectedValues = allSelectedValues?.filter(
       (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
     )
     console.log(uniqueSelectedValues, 'uniqueSelectedValues')
     console.log(checkid, 'checkid')
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item.valueid === checkid)
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCard with matched objects, or set to an empty array if no match found
-    setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
+    setSelectedCard(selectedValuesWithCheckId?.length > 0 ? selectedValuesWithCheckId : [])
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
-    const cardIds = selectedValuesWithCheckId.map(item => item.id)
-    const days = selectedValuesWithCheckId.map(item => item.selectedDays)
+    const cardIds = selectedValuesWithCheckId?.map(item => item.id)
+    const days = selectedValuesWithCheckId?.map(item => item.selectedDays)
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
-    cardIds.forEach((cardId, index) => {
-      updatedSelectedDays.push({
+    cardIds?.forEach((cardId, index) => {
+      updatedSelectedDays?.push({
         cardId: cardId,
         days: days[index]
       })

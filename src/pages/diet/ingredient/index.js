@@ -168,7 +168,7 @@ const IngredientsList = () => {
     console.log(rowData, 'rowData')
     const newIsActive = event.target.checked ? 1 : 0
     try {
-      const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
+      const response = await updateIngredientStatus(rowData?.id, { status: newIsActive })
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
