@@ -15,7 +15,7 @@ import {
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
 
 const PreparationTypes = () => {
-  const editParamsInitialState = { id: null, label: null, active: null }
+  const editParamsInitialState = { id: null, label: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -51,7 +51,7 @@ const PreparationTypes = () => {
   }
 
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null, name: null, active: null })
+    setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
@@ -60,8 +60,8 @@ const PreparationTypes = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, label, active) => {
-    setEditParams({ id, label, active })
+  const handleEdit = async (id, label, status) => {
+    setEditParams({ id, label, status })
     setOpenDrawer(true)
   }
 
@@ -111,7 +111,7 @@ const PreparationTypes = () => {
             <IconButton
               size='small'
               sx={{ mr: 0.5 }}
-              onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
               aria-label='Edit'
             >
               <Icon icon='mdi:pencil-outline' />

@@ -422,7 +422,7 @@ const AddIngredients = props => {
 
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
-    cardIds.forEach((cardId, index) => {
+    cardIds?.forEach((cardId, index) => {
       updatedSelectedDays.push({
         cardId: cardId,
         days: days[index]?.map(dayId => ({
@@ -855,7 +855,7 @@ const Day = [
   { id: 1, name: 'Mon', isActive: false },
   { id: 2, name: 'Tue', isActive: false },
   { id: 3, name: 'Wed', isActive: false },
-  { id: 4, name: 'Thrs', isActive: false },
+  { id: 4, name: 'Thu', isActive: false },
   { id: 5, name: 'Fri', isActive: false },
   { id: 6, name: 'Sat', isActive: false },
   { id: 7, name: 'Sun', isActive: false }

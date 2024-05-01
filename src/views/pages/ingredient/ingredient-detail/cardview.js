@@ -40,7 +40,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { active: isActive })
+      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: isActive })
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)

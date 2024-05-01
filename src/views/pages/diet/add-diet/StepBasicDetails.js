@@ -312,10 +312,8 @@ const StepBasicDetails = ({
       })
 
       if (emptyIndexes.length > 0) {
-        // Adjust the indexes by adding 1 before displaying them in the alert
-        const adjustedIndexes = emptyIndexes.map(index => index + 1)
-        // Trigger alert with the adjusted indexes of objects with empty ingredient or recipe arrays
-        alert(`Objects at indexes ${adjustedIndexes.join(', ')} have empty ingredient or recipe arrays.`)
+        // Trigger alert with the index of objects with empty ingredient or recipe arrays
+        alert(`Objects at indexes ${emptyIndexes.join(', ')} have empty ingredient or recipe arrays.`)
         return
       }
 
