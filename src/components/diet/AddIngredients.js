@@ -284,10 +284,10 @@ const AddIngredients = props => {
     }
   }
 
-  const removeingClick = () => {
-    // Call the function passed from the parent component
-    props.removeingClick(item) // Pass the item to be removed
-  }
+  // const removeingClick = () => {
+  //   // Call the function passed from the parent component
+  //   props.removeingClick(item) // Pass the item to be removed
+  // }
 
   // useEffect(() => {
   //   const filteredSelectedCard = selectedCard.filter(card => card.valueid === checkid)
@@ -407,11 +407,11 @@ const AddIngredients = props => {
   useEffect(() => {
     // Filter out duplicates based on id and valueid
     const uniqueSelectedValues = allSelectedValues.filter(
-      (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
+      (value, index, self) => index === self.findIndex(v => v?.id === value?.id && v?.valueid === value?.valueid)
     )
 
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item?.valueid === checkid)
 
     // Update selectedCard with matched objects, or set to an empty array if no match found
     setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])

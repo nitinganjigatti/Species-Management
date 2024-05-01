@@ -14,7 +14,18 @@ import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { debounce } from '@mui/material'
 
 const RecipeList = props => {
-  const { addEventSidebarOpen, handleSidebarClose, submitLoader, setSelectedCard, selectedCard } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    submitLoader,
+    setSelectedCardRecipe,
+    selectedCardRecipe,
+    checkid,
+    onChange,
+    allRecipeSelectedValues,
+    setAllRecipeSelectedValues,
+    formData
+  } = props
 
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
@@ -152,7 +163,18 @@ const RecipeList = props => {
         />
         {/* Card Section */}
 
-        <RecipeCard rows={ingredientList} setSelectedCard={setSelectedCard} selectedCard={selectedCard} />
+        <RecipeCard
+          rows={ingredientList}
+          setSelectedCardRecipe={setSelectedCardRecipe}
+          selectedCardRecipe={selectedCardRecipe}
+          checkid={checkid}
+          onChange={onChange}
+          handleSidebarClose={handleSidebarClose}
+          allRecipeSelectedValues={allRecipeSelectedValues}
+          setAllRecipeSelectedValues={setAllRecipeSelectedValues}
+          formData={formData}
+          addEventSidebarOpen={addEventSidebarOpen}
+        />
 
         {/* End Card Section */}
       </Box>

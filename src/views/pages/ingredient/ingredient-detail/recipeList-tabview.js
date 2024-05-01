@@ -68,11 +68,23 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         await getRecipeListonIngredientDtl(id, params).then(res => {
           console.log('response', res)
           setTotal(parseInt(res?.data?.data?.count))
-          setRows(loadServerRows(paginationModel.page, res.data.data.result))
+
+          const result = res?.data?.data?.result
+
+          if (Array.isArray(result)) {
+            // If result is an array, update rows directly
+            setRows(loadServerRows(paginationModel.page, result))
+          } else if (typeof result === 'object') {
+            // If result is an object, convert it to an array of one object
+            setRows([result])
+          } else {
+            // Handle other cases
+            console.error('Unexpected result type:', result)
+          }
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
+        console.error(e)
         setLoading(false)
       }
     },

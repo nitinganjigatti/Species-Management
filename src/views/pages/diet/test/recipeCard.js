@@ -9,7 +9,17 @@ import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 
-const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
+const RecipeCard = ({
+  rows,
+  setSelectedCardRecipe,
+  selectedCardRecipe,
+  checkid,
+  onChange,
+  handleSidebarClose,
+  allRecipeSelectedValues,
+  formData,
+  addEventSidebarOpen
+}) => {
   const [remarks, setRemarks] = useState('')
   const [selectedCount, setSelectedCount] = useState([])
 
@@ -114,7 +124,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   }
 
   const handleCardClick = item => {
-    const index = selectedCard.findIndex(card => card.id === item.id)
+    const index = selectedCardRecipe.findIndex(card => card.id === item.id)
 
     const selectedDaysForItem = Day.filter(day =>
       selectedDays.some(
@@ -126,11 +136,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
     const daysSelected = selectedDaysForItem.length > 0
 
     if (index !== -1) {
-      setSelectedCard(prevValues => prevValues.filter(card => card.id !== item.id))
+      setSelectedCardRecipe(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
-      setSelectedCard(prevValues => {
+      setSelectedCardRecipe(prevValues => {
         if (daysSelected) {
-          setSelectedCount(selectedCard.length)
+          setSelectedCount(selectedCardRecipe.length)
         }
         return [...prevValues, item]
       })
@@ -140,32 +150,34 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
   console.log('selectedCount >>', selectedCount)
 
   const handleSelected = () => {
-    console.log('Selected Data', selectedCard)
-
-    const filteredItems = selectedCard.map(item => {
+    console.log('Selected Data', selectedCardRecipe)
+    handleSidebarClose()
+    const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
-
+      console.log(selectedDaysForItem, 'selectedDaysForItem')
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
 
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
-      const cardRemarks = selectedCard.find(card => card.id === item.id)?.remarks || ''
+      const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
         days_of_week: selectedDayId,
-        remarks: cardRemarks
+        remarks: cardRemarks,
+        valueid: checkid
       }
     })
 
-    setSelectedCard(filteredItems)
+    setSelectedCardRecipe(filteredItems)
+    onChange(filteredItems)
   }
 
-  console.log('SelectedCard >>', selectedCard)
+  console.log('selectedCardRecipe >>', selectedCardRecipe)
 
   const handleAddRemarks = (event, cardId) => {
-    const updatedCards = selectedCard.map(item => {
+    const updatedCards = selectedCardRecipe.map(item => {
       if (item.id === cardId) {
         return {
           ...item,
@@ -182,8 +194,73 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
       })
     }
 
-    setSelectedCard(updatedCards)
+    setSelectedCardRecipe(updatedCards)
   }
+
+  useEffect(() => {
+    // Filter out duplicates based on id and valueid
+    console.log(rows, 'rows')
+    const uniqueSelectedValues = allRecipeSelectedValues.filter(
+      (value, index, self) =>
+        index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.valueid === value?.valueid)
+    )
+
+    // Compare uniqueSelectedValues with checkid
+    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item?.valueid === checkid)
+
+    // Initialize a new array to store the updated selectedCardRecipe
+    let updatedSelectedCardRecipe = []
+
+    // Iterate over rows and check for matches
+    rows.forEach(row => {
+      const match = selectedValuesWithCheckId.find(item => item.recipe_id === row.id)
+      if (match) {
+        // Construct a new object with keys from the row object and values from the match object
+        const updatedRow = {}
+        for (const key in row) {
+          updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
+        }
+        // Add the updated row object to updatedSelectedCardRecipe
+        updatedSelectedCardRecipe.push(updatedRow)
+      }
+    })
+    console.log(updatedSelectedCardRecipe, 'updatedSelectedCardRecipe')
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+    // Update selectedCardRecipe with matched objects
+    setSelectedCardRecipe(updatedSelectedCardRecipe)
+    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
+    if (
+      allRecipeSelectedValues &&
+      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues.some(item => item?.valueid === checkid)
+    ) {
+      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
+      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+      console.log(cardIds, 'cardIds')
+      console.log(days, 'days')
+      // Update selectedDays state with the extracted values
+      const updatedSelectedDays = []
+      cardIds.forEach((cardId, index) => {
+        updatedSelectedDays.push({
+          cardId: cardId,
+          days: Day.map(day => ({
+            id: day.id,
+            name: day.name,
+            isActive: days[index]?.includes(day.id) ? true : false
+          }))
+        })
+      })
+      setSelectedDays(updatedSelectedDays)
+    } else {
+      const initialSelectedDays = rows.map(row => ({
+        cardId: row.id,
+        days: Day
+      }))
+
+      console.log('Initial Values>>', initialSelectedDays)
+      setSelectedDays(initialSelectedDays)
+    }
+  }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen])
 
   return (
     <Box>
@@ -195,7 +272,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCard.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
+                  border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
                   boxShadow: 1,
                   mt: 4,
                   borderRadius: '12px',
@@ -216,11 +293,11 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                       position: 'relative',
                       top: '2px',
 
-                      bgcolor: selectedCard.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
+                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
                       borderRadius: '10.88px'
                     }}
                   >
-                    {selectedCard.some(card => card.id === item.id) ? (
+                    {selectedCardRecipe?.some(card => card.id === item.id) ? (
                       <>
                         <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
                           <DoneIcon
@@ -286,7 +363,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
                     </Box>
                   </Box>
                 </Box>
-                {selectedCard.some(card => card.id === item.id) ? (
+                {selectedCardRecipe?.some(card => card.id === item.id) ? (
                   <>
                     <Divider />
                     <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
@@ -354,7 +431,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
             </>
           )
         })}
-        {selectedCard.length > 0 && (
+        {selectedCardRecipe?.length > 0 && (
           <Card
             sx={{
               height: '122px',
@@ -370,7 +447,7 @@ const RecipeCard = ({ rows, setSelectedCard, selectedCard }) => {
               variant='contained'
               onClick={handleSelected}
             >
-              ADD RECIPE - {selectedCard.length} SELECTED
+              ADD RECIPE - {selectedCardRecipe.length} SELECTED
             </Button>
           </Card>
         )}

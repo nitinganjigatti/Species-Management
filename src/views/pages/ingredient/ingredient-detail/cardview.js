@@ -45,7 +45,9 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
 
-        return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
+        return toast(t => (
+          <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} t={t} />
+        ))
       } else {
         alert('something went wrong')
       }

@@ -409,7 +409,7 @@ const StepAddIngredients = ({
                             (100% Done)
                           </span>
                         ) : (
-                          `(${100 - calculateTotalQuantity()}% Left)`
+                          `(${(100 - calculateTotalQuantity()).toFixed(2)}% Left)`
                         )
                       ) : (
                         ''

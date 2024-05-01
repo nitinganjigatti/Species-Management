@@ -4,7 +4,7 @@ import { Typography, Box, Divider } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 
-const AddToasterforSuccess = ({ type, id }) => {
+const AddToasterforSuccess = ({ type, id, t }) => {
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>

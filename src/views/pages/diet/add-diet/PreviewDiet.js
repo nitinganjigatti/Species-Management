@@ -48,7 +48,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
   const [mealingredientIndex, setmealingredientIndex] = useState('')
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
-  const handleClickOpen = (index, item, type) => {
+  const [dietTypeval, setdietTypeval] = useState('')
+  const handleClickOpen = (index, item, type, dietType) => {
     console.log(index, 'lll')
     console.log(item, 'item')
     console.log(type, 'type')
@@ -56,6 +57,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
     setmealingredientIndex(index)
     setingredientvalueid(item.valueid)
     setheadertype(type)
+    setdietTypeval(dietType)
   }
   const handleClosed = () => setOpen(false)
   const {
@@ -117,22 +119,123 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
   })
   const classes = useStyles()
 
-  const SelectQuantityclick = (index, item) => {
+  const SelectQuantityclick = (index, item, val) => {
+    console.log(val, 'val')
+    if (dietTypeval === 'ingredient') {
+      alert('hi')
+      const { quantity, meal_value_uom_id, notes } = getValues()
+      const updatedFormData = { ...formData } // Create a copy of formData
+
+      // Find the index of the add_meal object with matching newid
+      const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+
+      if (addMealIndex !== -1) {
+        // Find the index of the ingredient object with matching valueid and index
+        const ingredientIndex = updatedFormData.add_meal[addMealIndex].ingredient.findIndex(
+          (ingredient, i) => ingredient.valueid === ingredientvalueid && i === mealingredientIndex
+        )
+
+        if (ingredientIndex !== -1) {
+          // Get the existing meal_type array
+          const mealTypeArray = updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type || []
+
+          // Check if there's an existing object with the same meal_value_header
+          const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+
+          if (existingMealTypeIndex !== -1) {
+            // If an existing object with the same meal_value_header is found, update it
+            mealTypeArray[existingMealTypeIndex] = {
+              meal_value_header: headertype,
+              quantity: quantity,
+              meal_value_uom_id: meal_value_uom_id.value,
+              notes: notes
+            }
+          } else {
+            // Otherwise, add the new object to the meal_type array
+            mealTypeArray.push({
+              meal_value_header: headertype,
+              quantity: quantity,
+              meal_value_uom_id: meal_value_uom_id.value,
+              notes: notes
+            })
+          }
+
+          // Update the meal_type array with the updated mealTypeArray
+          updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
+        }
+      }
+
+      // Update the formData in the parent component using a function passed through props
+      setlocalformData(updatedFormData)
+      setOpen(false)
+      console.log(updatedFormData, 'updatedFormData')
+    } else {
+      alert('hiooo')
+      const { quantity, meal_value_uom_id, notes } = getValues()
+      const updatedFormData = { ...formData } // Create a copy of formData
+      console.log(updatedFormData, 'updatedFormData')
+      // Find the index of the add_meal object with matching newid
+      const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+
+      if (addMealIndex !== -1) {
+        // Find the index of the ingredient object with matching valueid and index
+        const ingredientIndex = updatedFormData.add_meal[addMealIndex].recipe.findIndex(
+          (recipe, i) => recipe.valueid === ingredientvalueid && i === mealingredientIndex
+        )
+
+        if (ingredientIndex !== -1) {
+          // Get the existing meal_type array
+          const mealTypeArray = updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type || []
+
+          // Check if there's an existing object with the same meal_value_header
+          const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+
+          if (existingMealTypeIndex !== -1) {
+            // If an existing object with the same meal_value_header is found, update it
+            mealTypeArray[existingMealTypeIndex] = {
+              meal_value_header: headertype,
+              quantity: quantity,
+              meal_value_uom_id: meal_value_uom_id.value,
+              notes: notes
+            }
+          } else {
+            // Otherwise, add the new object to the meal_type array
+            mealTypeArray.push({
+              meal_value_header: headertype,
+              quantity: quantity,
+              meal_value_uom_id: meal_value_uom_id.value,
+              notes: notes
+            })
+          }
+
+          // Update the meal_type array with the updated mealTypeArray
+          updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
+        }
+      }
+
+      // Update the formData in the parent component using a function passed through props
+      setlocalformData(updatedFormData)
+      setOpen(false)
+      console.log(updatedFormData, 'updatedFormData')
+    }
+  }
+
+  const SelectQuantityRecipeclick = (index, item) => {
     const { quantity, meal_value_uom_id, notes } = getValues()
     const updatedFormData = { ...formData } // Create a copy of formData
-
+    console.log(updatedFormData, 'updatedFormData')
     // Find the index of the add_meal object with matching newid
     const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
 
     if (addMealIndex !== -1) {
       // Find the index of the ingredient object with matching valueid and index
-      const ingredientIndex = updatedFormData.add_meal[addMealIndex].ingredient.findIndex(
-        (ingredient, i) => ingredient.valueid === ingredientvalueid && i === mealingredientIndex
+      const ingredientIndex = updatedFormData.add_meal[addMealIndex].recipe.findIndex(
+        (recipe, i) => recipe.valueid === ingredientvalueid && i === mealingredientIndex
       )
 
       if (ingredientIndex !== -1) {
         // Get the existing meal_type array
-        const mealTypeArray = updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type || []
+        const mealTypeArray = updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type || []
 
         // Check if there's an existing object with the same meal_value_header
         const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
@@ -156,7 +259,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
         }
 
         // Update the meal_type array with the updated mealTypeArray
-        updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
+        updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
       }
     }
 
@@ -173,6 +276,22 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
 
     handleNext(updatedData)
     // Router.push(`/diet/diet`)
+  }
+
+  const Day = [
+    { id: 0, name: 'All', isActive: false },
+    { id: 1, name: 'Mon', isActive: false },
+    { id: 2, name: 'Tue', isActive: false },
+    { id: 3, name: 'Wed', isActive: false },
+    { id: 4, name: 'Thrs', isActive: false },
+    { id: 5, name: 'Fri', isActive: false },
+    { id: 6, name: 'Sat', isActive: false },
+    { id: 7, name: 'Sun', isActive: false }
+  ]
+
+  const getDayName = dayId => {
+    const day = Day.find(d => d.id === dayId)
+    return day ? day.name : ''
   }
 
   return (
@@ -508,7 +627,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                     {item?.name}
                                                   </Typography>
                                                 )}
-                                                {item?.prep && (
+                                                {item?.preparation_type && (
                                                   <Typography
                                                     sx={{
                                                       color: '#7A8684',
@@ -517,7 +636,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    &nbsp;-&nbsp; {item?.prep}
+                                                    &nbsp;-&nbsp; {item?.preparation_type}
                                                   </Typography>
                                                 )}
                                               </Box>
@@ -623,11 +742,11 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                               )}
                                             </Box>
                                           </Box>
-                                          {item?.selectedDays?.length > 0 && (
+                                          {item?.days_of_week?.length > 0 && (
                                             <>
                                               {/* <Divider /> */}
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.selectedDays?.map((item, index) => (
+                                                {item?.days_of_week?.map((item, index) => (
                                                   <Box
                                                     key={index}
                                                     sx={{
@@ -648,7 +767,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                         color: '#44544A'
                                                       }}
                                                     >
-                                                      {item}
+                                                      {getDayName(item)}
                                                     </Typography>
                                                   </Box>
                                                 ))}
@@ -665,7 +784,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Common')}
+                                        onClick={() => handleClickOpen(index, item, 'Common', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -713,7 +832,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Male')}
+                                        onClick={() => handleClickOpen(index, item, 'Male', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -759,7 +878,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Female')}
+                                        onClick={() => handleClickOpen(index, item, 'Female', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -803,7 +922,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Kid')}
+                                        onClick={() => handleClickOpen(index, item, 'Kid', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -839,6 +958,390 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           </Box>
                                         </Box>
                                       </TableCell>
+                                    </TableRow>
+                                  )
+                                })}
+                              </>
+
+                              <>
+                                {itemd?.recipe?.map((item, index) => {
+                                  return (
+                                    <TableRow>
+                                      <TableCell
+                                        sx={{
+                                          position: 'sticky',
+                                          left: '180px',
+                                          border: 'none',
+                                          backgroundColor: '#fff',
+                                          width: '500px',
+                                          float: 'left'
+                                        }}
+                                      >
+                                        <Box
+                                          key={index}
+                                          sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            //backgroundColor: '#E1F9ED',
+                                            backgroundColor: '#E1F9ED',
+                                            borderRadius: '8px',
+                                            p: '12px',
+                                            gap: '16px'
+                                          }}
+                                        >
+                                          <Box>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px'
+                                              }}
+                                            >
+                                              <Box sx={{ display: 'flex' }}>
+                                                {item?.recipe_name && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '16px'
+                                                    }}
+                                                  >
+                                                    {item?.recipe_name}
+                                                  </Typography>
+                                                )}
+                                                {item?.preparation_type && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#7A8684',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    &nbsp;-&nbsp; {item?.preparation_type}
+                                                  </Typography>
+                                                )}
+                                              </Box>
+
+                                              {item?.recipe?.length > 0 && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.recipe?.map((item, index) => (
+                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#1F515B',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item.name}&nbsp;
+                                                      </Typography>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#000',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 600,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item?.percentage}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
+                                                </Box>
+                                              )}
+                                              {(item?.preparationType || item?.desc) && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.preparationType && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#1F515B',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.preparationType}
+                                                    </Typography>
+                                                  )}
+                                                  {item?.desc && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#1F515B',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.desc}
+                                                    </Typography>
+                                                  )}
+                                                </Box>
+                                              )}
+                                              {item?.remarks && (
+                                                <Box
+                                                  sx={{
+                                                    backgroundColor: '#0000000d',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    p: '12px',
+                                                    borderRadius: '8px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    Remarks
+                                                  </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {item?.remarks}
+                                                  </Typography>
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          </Box>
+                                          {item?.days_of_week?.length > 0 && (
+                                            <>
+                                              {/* <Divider /> */}
+                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                {item?.days_of_week?.map((item, index) => (
+                                                  <Box
+                                                    key={index}
+                                                    sx={{
+                                                      width: '48px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: '#0000000d',
+                                                      display: 'center',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: '#44544A'
+                                                      }}
+                                                    >
+                                                      {getDayName(item)}
+                                                    </Typography>
+                                                  </Box>
+                                                ))}
+                                              </Box>
+                                            </>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Common', 'recipe')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {console.log(item.meal_type, 'eee')}
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {console.log(index, 'index')}
+                                              {item.meal_type
+                                                ? item.meal_type?.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Common'
+                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Male', 'recipe')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Male'
+                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Female', 'recipe')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Female' ? meal.quantity : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Kid', 'recipe')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Kid' ? meal.quantity : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+
                                       <Dialog
                                         open={open}
                                         onClose={handleClosed}

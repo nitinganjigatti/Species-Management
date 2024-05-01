@@ -41,6 +41,7 @@ const AddDiet = () => {
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
+  const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
   const [formData, setFormData] = useState({
     diet_name: '',
     diet_type: '',
@@ -55,21 +56,7 @@ const AddDiet = () => {
         meal_from_time: '',
         meal_to_time: '',
         notes: '',
-        recipe: [
-          {
-            recipe_id: '',
-            days_of_week: [],
-            remarks: '',
-            meal_type: [
-              {
-                meal_value_header: '',
-                quantity: '',
-                meal_value_uom_id: '',
-                notes: ''
-              }
-            ]
-          }
-        ],
+        recipe: [],
         ingredient: []
       }
     ],
@@ -87,7 +74,7 @@ const AddDiet = () => {
   })
 
   const handleSelectedCardChange = card => {
-    setSelectedCard(card)
+    setSelectedCardRecipe(card)
   }
 
   const getUnitsList = async () => {
@@ -406,8 +393,8 @@ const AddDiet = () => {
             //onChange={handleBasicDetailsChange}
             updateFormData={updateFormData}
             uomList={uomList}
-            setSelectedCard={handleSelectedCardChange}
-            selectedCard={selectedCard}
+            setSelectedCardRecipe={handleSelectedCardChange}
+            selectedCardRecipe={selectedCardRecipe}
           />
         )
       case 1:
