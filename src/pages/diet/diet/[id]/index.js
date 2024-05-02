@@ -87,6 +87,7 @@ const DietDetail = () => {
     }
   })
   const classes = useStyles()
+
   const tabs = [
     { value: 'full', label: 'Full Week' },
     { value: '0', label: 'Monday' },
@@ -97,6 +98,7 @@ const DietDetail = () => {
     { value: '5', label: 'Saturday' },
     { value: '6', label: 'Sunday' }
   ]
+
   return (
     <>
       {loader ? (

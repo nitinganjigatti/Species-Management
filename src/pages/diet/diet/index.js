@@ -32,8 +32,13 @@ import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
 
 import RecipeList from 'src/components/diet/RecipeList'
+import CustomChip from 'src/@core/components/mui/chip'
 
 // Styled TabList component
+const roleColors = {
+  active: 'success',
+  inactive: 'error'
+}
 
 const Diet = () => {
   const theme = useTheme()
@@ -198,7 +203,7 @@ const Diet = () => {
       console.log(response, 'response')
 
       if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumning, status)
+        fetchTableData(sort, searchValue, sortColumn, status)
 
         return toast(
           t => (
@@ -368,24 +373,30 @@ const Diet = () => {
           </Box>
         </Box>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'switch',
-    //   headerName: '',
-    //   disableColumnMenu: true,
-    //   renderCell: params => (
-    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-    //       <Switch
-    //         checked={params.row.active === '0' ? false : true}
-    //         onChange={event => handleSwitchChange(event, params.row)}
-    //         fontSize={2}
-    //       />
-    //     </Box>
-    //   )
-    // }
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'status',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.status === 'active' ? 'Active' : 'InActive'}
+          color={params.row?.status === 'active' ? roleColors.active : roleColors.inactive}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
+      )
+    }
   ]
 
   const onCellClick = params => {
@@ -454,7 +465,7 @@ const Diet = () => {
                   <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
                   {/* <Tab
               value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}[[]]
             /> */}
                 {/* </TabList>    */}
               </Grid>
