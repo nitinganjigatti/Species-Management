@@ -9,8 +9,7 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Divider,
-  IconButton
+  Divider
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -76,6 +75,7 @@ const DietDetailCard = ({ dietDetails }) => {
       const response = await deleteDiet(dietDetails?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -108,6 +108,7 @@ const DietDetailCard = ({ dietDetails }) => {
         )
       } else {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -142,6 +143,7 @@ const DietDetailCard = ({ dietDetails }) => {
     } catch (error) {
       console.log('error', error)
     }
+
     // console.log('first')
   }
 
@@ -286,7 +288,6 @@ const DietDetailCard = ({ dietDetails }) => {
                         <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
                       }
                       labelPlacement='start'
-                      // label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
                       label={isActive === '1' ? 'Active' : 'InActive'}
                     />
                   </Box>
@@ -294,6 +295,7 @@ const DietDetailCard = ({ dietDetails }) => {
                     <Icon
                       icon='fluent:copy-32-regular'
                       style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+
                       // onClick={() =>
                       //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
                       // }
