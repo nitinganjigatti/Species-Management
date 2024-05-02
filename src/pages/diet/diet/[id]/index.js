@@ -94,6 +94,7 @@ const DietDetail = () => {
     }
   })
   const classes = useStyles()
+
   const tabs = [
     { value: 'full', label: 'Full Week' },
     { value: '0', label: 'Monday' },
@@ -104,6 +105,7 @@ const DietDetail = () => {
     { value: '5', label: 'Saturday' },
     { value: '6', label: 'Sunday' }
   ]
+
   return (
     <>
       {loader ? (
@@ -272,16 +274,19 @@ const DietDetail = () => {
                                     const startTimes = itemd?.meal_from_time
                                     const endTimes = itemd?.meal_to_time
                                     const ind = index
+
                                     // const itemData1 = itemd?.meal_types?.ingredient?.length
                                     //   ? itemd?.meal_types?.ingredient
                                     //   : []
                                     const itemData1 = itemd?.meal_types?.ingredient?.length
                                       ? itemd.meal_types.ingredient.map(item => ({ ...item, ingredient: true }))
                                       : []
+
                                     // console.log('itemData1', itemData1)
                                     const itemData2 = itemd?.meal_types?.recipe?.length
                                       ? itemd.meal_types.recipe.map(item => ({ ...item, recipe: true }))
                                       : []
+
                                     // const itemData3 = itemd?.meal_types?.ingredientwithchoice[0]?.ingredientList?.length
                                     //   ? itemd?.meal_types?.ingredientwithchoice[0]?.ingredientList?.map(item => ({
                                     //       ...item,
@@ -289,12 +294,14 @@ const DietDetail = () => {
                                     //     }))
                                     //   : []
                                     const itemData = [...itemData1, ...itemData2]
+
                                     return (
                                       <>
                                         {itemData?.length &&
                                           itemData?.map((item, index) => {
                                             let first = startArry.indexOf(itemd.meal_from_time) === -1
                                             startArry = [...startArry, itemd.meal_from_time]
+
                                             // console.log('item', item)
                                             return (
                                               <TableRow
@@ -318,6 +325,7 @@ const DietDetail = () => {
                                                       pl: '0px !important',
                                                       pr: '18px'
                                                     }}
+
                                                     // scope='row'
                                                   >
                                                     <Box
@@ -557,7 +565,7 @@ const DietDetail = () => {
                                                       </Box>
                                                     </Box>
                                                     <Divider />
-                                                    {JSON.parse(item?.days_of_week)?.length > 0 && (
+                                                    {JSON?.parse(item?.days_of_week)?.length > 0 && (
                                                       <>
                                                         <Box sx={{ display: 'flex', gap: '12px' }}>
                                                           {Object.entries(item?.days_of_weeks).map(([key, value]) => (
@@ -673,6 +681,7 @@ const DietDetail = () => {
                                         <TableCell>ghjk</TableCell>
                                       </TableRow> */}
                                       </>
+
                                       // <Typography>ghjk</Typography>
                                     )
                                   })}
