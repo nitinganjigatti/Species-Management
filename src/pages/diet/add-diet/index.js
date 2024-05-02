@@ -10,7 +10,6 @@ import StepLabel from '@mui/material/StepLabel'
 
 // ** Step Components
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
-import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import IconButton from '@mui/material/IconButton'
 import toast from 'react-hot-toast'
@@ -22,6 +21,7 @@ import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from '
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
+import { getDietTypeList } from 'src/lib/api/diet/dietList'
 
 const steps = [
   {
@@ -40,23 +40,38 @@ const AddDiet = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+  const [selectedCard, setSelectedCard] = useState([])
 
   const [formData, setFormData] = useState({
-    recipe_name: '',
-    portion_size: '',
-    portion_uom_id: '',
-    nutrional_value: '',
-    nutrional_uom_id: '',
-    kcal: '',
-    recipe_image: '',
-    by_percentage: [
+    diet_name: '',
+    diet_type: '',
+    diet_type_id: '',
+    diet_type_child: '',
+    diet_image: '',
+    desc: '',
+    add_meal: [
       {
-        ingredient_id: '',
-        ingredient_name: '',
-        feed_type_label: '',
-        quantity: '',
-        preparation_type_id: '',
-        preparation_type: ''
+        newid: 'meal0',
+        meal_name: '',
+        meal_from_time: '',
+        meal_to_time: '',
+        notes: '',
+        recipe: [
+          {
+            recipe_id: '',
+            days_of_week: [],
+            remarks: '',
+            meal_type: [
+              {
+                meal_value_header: '',
+                quantity: '',
+                meal_value_uom_id: '',
+                notes: ''
+              }
+            ]
+          }
+        ],
+        ingredient: []
       }
     ],
     by_quantity: [
@@ -69,18 +84,22 @@ const AddDiet = () => {
         preparation_type_id: '',
         preparation_type: ''
       }
-    ],
-    desc: ''
+    ]
   })
+
+  const handleSelectedCardChange = card => {
+    setSelectedCard(card)
+  }
 
   const getUnitsList = async () => {
     try {
       const params = {
-        type: ['length', 'weight'],
-        page: 1
+        // type: ['length', 'weight'],
+        // page: 1
       }
-      await getUnitsForRecipe({ params: params }).then(res => {
-        setUom(res?.data?.result)
+      await getDietTypeList({ params: params }).then(res => {
+        console.log(res, 'res')
+        setUom(res?.data)
       })
     } catch (e) {
       console.log(e)
@@ -95,23 +114,23 @@ const AddDiet = () => {
     }
   }, 500)
 
-  const callIngredientTypeList = async ({ status, page, limit, q }) => {
-    try {
-      const params = {
-        //status,
-        q,
+  // const callIngredientTypeList = async ({ status, page, limit, q }) => {
+  //   try {
+  //     const params = {
+  //       //status,
+  //       q,
 
-        //active: 1,
-        page,
-        limit
-      }
-      await getIngredientList({ params: params }).then(res => {
-        setIngredientTypeList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  //       //active: 1,
+  //       page,
+  //       limit
+  //     }
+  //     await getIngredientList({ params: params }).then(res => {
+  //       setIngredientTypeList(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -135,7 +154,7 @@ const AddDiet = () => {
 
         const convertedData = {
           ...data,
-          by_percentage: data.by_percentage.map(item => ({
+          add_meal: data.add_meal.map(item => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id)
@@ -168,7 +187,8 @@ const AddDiet = () => {
   }
   useEffect(() => {
     getUnitsList()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+
+    // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
   useEffect(() => {
@@ -227,8 +247,8 @@ const AddDiet = () => {
     if (!id) {
       const numericFormData = {
         ...formData,
-        by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+        add_meal: JSON.stringify(
+          formData.add_meal.map(item => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -253,9 +273,9 @@ const AddDiet = () => {
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
+        add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity,
-        recipe_image: numericFormData.recipe_image[0]
+        diet_image: numericFormData.diet_image[0]
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -298,8 +318,8 @@ const AddDiet = () => {
     } else {
       const numericFormData = {
         ...formData,
-        by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+        add_meal: JSON.stringify(
+          formData.add_meal.map(item => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -323,18 +343,18 @@ const AddDiet = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
+        add_meal: numericFormData.add_meal,
         by_quantity: numericFormData.by_quantity
       }
-      console.log(formData.recipe_image, 'klkl')
-      if (formData.recipe_image === null) {
-        delete updatedFormData.recipe_image
+      console.log(formData.diet_image, 'klkl')
+      if (formData.diet_image === null) {
+        delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
-      } else if (typeof formData.recipe_image === 'string') {
-        delete updatedFormData.recipe_image
+      } else if (typeof formData.diet_image === 'string') {
+        delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.recipe_image = formData.recipe_image[0]
+        updatedFormData.diet_image = formData.diet_image[0]
         updatedFormData.remove_current_image = '1'
       }
 
@@ -387,6 +407,8 @@ const AddDiet = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
+            setSelectedCard={handleSelectedCardChange}
+            selectedCard={selectedCard}
           />
         )
       case 1:
@@ -403,9 +425,6 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
           />
         )
-
-      //   case 2:
-      //     return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
       default:
         return null
     }

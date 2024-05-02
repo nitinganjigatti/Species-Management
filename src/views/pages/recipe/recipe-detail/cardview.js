@@ -40,7 +40,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { active: isActive })
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: isActive })
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
@@ -178,7 +178,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.total_kcal + ' Kcal'}
+                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal: 0 + ' Kcal'}
               </Typography>
             </Box>
           </Box>

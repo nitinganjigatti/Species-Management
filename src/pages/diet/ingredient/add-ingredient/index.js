@@ -923,7 +923,7 @@ const AddIngredient = () => {
           handleSubmitData={handlePreparationSubmitData}
           resetForm={resetForm}
           submitLoader={preparationTypeSubmitLoader}
-          editParams={{ id: null, label: null, active: null }}
+          editParams={{ id: null, label: null, status: null }}
         />
       </Box>
     </>

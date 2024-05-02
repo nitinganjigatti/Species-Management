@@ -8,101 +8,57 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Router from 'next/router'
 import FormControl from '@mui/material/FormControl'
-import { FormHelperText } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
-
-// import { schedule } from 'src/pages/diet/diet/[id]/data'
 import { Controller } from 'react-hook-form'
-import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
-import { CardContent, Avatar } from '@mui/material'
+import {
+  CardContent,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  styled,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
+} from '@mui/material'
 import { Divider, Card } from '@mui/material'
-import CancelIcon from '@mui/icons-material/Cancel'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import DietDetailCard from 'src/pages/diet/diet/[id]/DietDetailCard'
-import DietDetail from 'src/pages/diet/diet/[id]'
 
 const defaultValues = {
-  by_percentage: [
+  meal_type: [
     {
-      ingredient_id: '',
-      ingredient_name: '',
-      feed_type_label: '',
+      meal_value_header: '',
       quantity: '',
-      preparation_type_id: '',
-      preparation_type: ''
+      meal_value_uom_id: '',
+      notes: ''
     }
-  ],
-  by_quantity: [
-    {
-      ingredient_id: '',
-      ingredient_name: '',
-      feed_type_label: '',
-      uom_id: '',
-      quantity: '',
-      preparation_type_id: '',
-      preparation_type: ''
-    }
-  ],
-  desc: ''
+  ]
 }
 
-const schema = yup.object().shape({
-  by_percentage: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  ),
+const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
+  const [open, setOpen] = useState(false)
+  const [mealData, setmealType] = useState([])
+  const [LocalformData, setlocalformData] = useState([])
+  const [mealingredientIndex, setmealingredientIndex] = useState('')
+  const [ingredientvalueid, setingredientvalueid] = useState({})
+  const [headertype, setheadertype] = useState('')
 
-  by_quantity: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      uom_id: yup.string().required('Uom is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  )
-})
-
-const StepPreviewDiet = ({
-  formData,
-  handleNext,
-  handlePrev,
-  uomList,
-  IngredientTypeList,
-  IngredientTypeListSearch,
-  onCancelIconClick,
-  handleIngredientChange
-}) => {
-  const ingredients = [{ label: ' Ingredients' }, { label: 'Quantity' }, { label: 'Preparation Type' }]
-  const schedule = []
-
-  const ingredientsbyqun = [
-    { label: ' Ingredients' },
-    { label: 'Quantity' },
-    { label: 'Unit of Measurement' },
-    { label: 'Preparation Type' }
-  ]
-  const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
-  const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
+  const handleClickOpen = (index, item, type) => {
+    console.log(index, 'lll')
+    console.log(item, 'item')
+    console.log(type, 'type')
+    setOpen(true)
+    setmealingredientIndex(index)
+    setingredientvalueid(item.valueid)
+    setheadertype(type)
+  }
+  const handleClosed = () => setOpen(false)
 
   const {
     reset,
@@ -123,139 +79,6 @@ const StepPreviewDiet = ({
     reValidateMode: 'onChange'
   })
 
-  const {
-    fields: fieldsIngredients,
-    append: appendIngredients,
-    remove: removeIngredients
-  } = useFieldArray({
-    control,
-    name: 'by_percentage'
-  })
-
-  const {
-    fields: fieldsByQuantity,
-    append: appendByQuantity,
-    remove: removeByQuantity
-  } = useFieldArray({
-    control,
-    name: 'by_quantity'
-  })
-
-  const addIngredientsButton = () => {
-    return (
-      <>
-        <Typography
-          sx={{
-            mb: 1,
-            px: 4,
-            mt: 6,
-            float: 'left',
-            color: '#37BD69',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            fontWeight: 600
-          }}
-          onClick={() => {
-            appendIngredients({
-              ingredient_id: '',
-              quantity: '',
-              preparation_type_id: ''
-            })
-          }}
-        >
-          <Icon icon='material-symbols:add' />
-          ADD NEW INGREDIENT
-        </Typography>
-      </>
-    )
-  }
-
-  const calculateTotalQuantity = () => {
-    const byPercentageValues = getValues('by_percentage')
-    const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
-
-    return totalQuantity
-  }
-
-  const addQuantityButton = () => {
-    return (
-      <Typography
-        sx={{
-          mb: 1,
-          px: 4,
-          mt: 6,
-          float: 'left',
-          color: '#37BD69',
-          display: 'flex',
-          alignItems: 'center',
-          cursor: 'pointer',
-          fontWeight: 600
-        }}
-        onClick={() => {
-          appendByQuantity({
-            ingredient_id: '',
-            quantity: '',
-            preparation_type_id: ''
-          })
-        }}
-      >
-        <Icon icon='material-symbols:add' />
-        ADD NEW INGREDIENT
-      </Typography>
-    )
-  }
-
-  const removeIngredientButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
-        onClick={() => {
-          removeIngredients(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const removebyQuantityButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
-        onClick={() => {
-          removeByQuantity(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const handleAddRemoveingredient = (fields, index) => {
-    if (fields.length - 1 === index && index > 0) {
-      return <>{addIngredientsButton()}</>
-    } else if (index <= 0 && fields.length - 1 <= 0) {
-      return <>{addIngredientsButton()}</>
-    } else {
-      return <>{removeIngredientButton(index)}</>
-    }
-  }
-
-  const handleAddRemoveQuantity = (fields, index) => {
-    if (fields.length - 1 === index && index > 0) {
-      return <>{addQuantityButton()}</>
-    } else if (index <= 0 && fields.length - 1 <= 0) {
-      return <>{addQuantityButton()}</>
-    } else {
-      return <>{removebyQuantityButton(index)}</>
-    }
-  }
-
   const handlePrevClick = () => {
     window.scrollTo(0, 0)
     handlePrev()
@@ -264,104 +87,101 @@ const StepPreviewDiet = ({
   useEffect(() => {
     if (formData) {
       reset(formData)
+      setlocalformData(formData)
     }
   }, [formData, reset])
 
+  const CustomScrollbar = styled('div')({
+    overflowX: 'auto', // or 'scroll'
+    '&::-webkit-scrollbar': {
+      width: 10, // specify your desired width
+      height: 4 // specify your desired height
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: 'transparent' // customize track color if needed
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'lightgray', // customize thumb color if needed
+      borderRadius: 5 // specify border radius
+    }
+  })
+
+  const useStyles = styled({
+    table: {
+      minWidth: 650
+    },
+    sticky: {
+      position: 'sticky',
+      left: 0,
+      background: 'white',
+      boxShadow: '5px 2px 5px grey',
+      borderRight: '2px solid black'
+    }
+  })
+  const classes = useStyles()
+
+  const SelectQuantityclick = (index, item) => {
+    const { quantity, meal_value_uom_id, notes } = getValues()
+    const updatedFormData = { ...formData } // Create a copy of formData
+
+    // Find the index of the add_meal object with matching newid
+    const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+
+    if (addMealIndex !== -1) {
+      // Find the index of the ingredient object with matching valueid and index
+      const ingredientIndex = updatedFormData.add_meal[addMealIndex].ingredient.findIndex(
+        (ingredient, i) => ingredient.valueid === ingredientvalueid && i === mealingredientIndex
+      )
+
+      if (ingredientIndex !== -1) {
+        // Get the existing meal_type array
+        const mealTypeArray = updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type || []
+
+        // Check if there's an existing object with the same meal_value_header
+        const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+
+        if (existingMealTypeIndex !== -1) {
+          // If an existing object with the same meal_value_header is found, update it
+          mealTypeArray[existingMealTypeIndex] = {
+            meal_value_header: headertype,
+            quantity: quantity,
+            meal_value_uom_id: meal_value_uom_id.value,
+            notes: notes
+          }
+        } else {
+          // Otherwise, add the new object to the meal_type array
+          mealTypeArray.push({
+            meal_value_header: headertype,
+            quantity: quantity,
+            meal_value_uom_id: meal_value_uom_id.value,
+            notes: notes
+          })
+        }
+
+        // Update the meal_type array with the updated mealTypeArray
+        updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
+      }
+    }
+
+    // Update the formData in the parent component using a function passed through props
+    setlocalformData(updatedFormData)
+    setOpen(false)
+    console.log(updatedFormData, 'updatedFormData')
+  }
+
   const onSubmit = async data => {
     console.log(data, 'data')
+    const updatedData = { ...data, ...LocalformData } // Merge data with LocalformData
+    console.log(updatedData, 'updatedData')
 
-    handleNext(data)
-    Router.push(`/diet/diet`)
-  }
+    handleNext(updatedData)
 
-  const handlecheck = async (ingredientId, index, section) => {
-    console.log(ingredientId, 'ingredientId')
-    try {
-      const response = await getPreparationTypeList(ingredientId)
-      if (response.success === true) {
-        console.log(IngredientTypeList, 'IngredientTypeList')
-        const ingredient = IngredientTypeList.find(item => item.id === ingredientId)
-        if (ingredient) {
-          // Update the preparationTypeList array based on the section
-          if (section === 'by_percentage') {
-            setPreparationTypeListPercentage(prevList => {
-              const newList = [...prevList]
-              newList[index] = response.data.result
-
-              return newList
-            })
-          } else if (section === 'by_quantity') {
-            setPreparationTypeListQuantity(prevList => {
-              const newList = [...prevList]
-              newList[index] = response.data.result
-
-              return newList
-            })
-          }
-        }
-      }
-    } catch (error) {
-      // Handle error
-    }
-  }
-
-  useEffect(() => {
-    formData.by_percentage.forEach((item, index) => {
-      if (item.ingredient_id) {
-        handlecheck(item.ingredient_id, index, 'by_percentage')
-      }
-    })
-  }, [formData])
-
-  useEffect(() => {
-    formData.by_quantity.forEach((item, index) => {
-      if (item.ingredient_id) {
-        handlecheck(item.ingredient_id, index, 'by_quantity')
-      }
-    })
-  }, [formData])
-
-  const ScrollToFieldError = ({ errors, index }) => {
-    // if (!errors) return
-    const firstErrorField = Object.keys(errors)[0]
-    console.log('First Error Field:', firstErrorField)
-    console.log(errors)
-    if (firstErrorField === 'by_percentage') {
-      const errorElement = document.getElementById('test' + index)
-      console.log(errorElement, 'errorElement')
-      if (errorElement) {
-        // errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        window.scroll(0, 250)
-      }
-    } else if (firstErrorField === 'by_quantity') {
-      const errorElement = document.getElementById('testnew' + index)
-      console.log(errorElement, 'errorElement')
-      if (errorElement) {
-        //errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        window.scrollTo(0, 700)
-      }
-    }
-
-    return null
-  }
-
-  const handleEquilizerClick = () => {
-    const byPercentageValues = getValues('by_percentage')
-    console.log(byPercentageValues, 'byPercentageValues')
-    const numIngredients = byPercentageValues.length
-    const equalDistribution = 100 / numIngredients
-
-    const updatedIngredients = byPercentageValues.map(ingredient => ({
-      ...ingredient,
-      quantity: equalDistribution.toString()
-    }))
-    setFormValue('by_percentage', updatedIngredients)
+    // Router.push(`/diet/diet`)
   }
 
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {console.log(fieldsIngredients, 'fieldsIngredients')}
         <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
           <Box sx={{ px: 5, mt: 2, float: 'left' }}>
             <Typography variant='h6'>Preview</Typography>
@@ -390,16 +210,32 @@ const StepPreviewDiet = ({
                       height: '100%'
                     }}
                   >
-                    <Avatar
-                      variant='square'
-                      alt='Ingredient Image'
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        borderRadius: '12px'
-                      }}
-                      src={'/icons/recipedummy.svg'}
-                    ></Avatar>
+                    {Array.isArray(formData.diet_image) && formData.diet_image.length > 0 ? (
+                      formData.diet_image.map(file => (
+                        <Avatar
+                          key={file.name}
+                          variant='square'
+                          alt={file.name}
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: 1
+                          }}
+                          src={URL.createObjectURL(file)}
+                        />
+                      ))
+                    ) : (
+                      <Avatar
+                        variant='square'
+                        src={
+                          typeof formData.recipe_image === 'string' ? formData.recipe_image : '/icons/recipedummy.svg'
+                        }
+                        sx={{
+                          width: '100%',
+                          height: '100%'
+                        }}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </div>
@@ -409,433 +245,727 @@ const StepPreviewDiet = ({
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
                   <span>Diet Name : </span>
-                  <span style={{ fontWeight: 600 }}>Brown Bear Diet</span>
+                  <span style={{ fontWeight: 600 }}>{formData.diet_name}</span>
                 </Typography>
                 <Typography>
                   <span>Diet Type : </span>
-                  <span style={{ fontWeight: 600 }}>Gender Wise</span>
+                  <span style={{ fontWeight: 600 }}>{formData.diet_type ? formData.diet_type : '-'}</span>
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
                 <Typography variant='h6'>Description</Typography>
-                <Typography>
-                  Provide sustained energy,aid Provide sustained energy,aid Provide sustained energy,aid Provide
-                  sustained energy,aid Provide sustained energy,aid{' '}
-                </Typography>
+                <Typography sx={{ pt: 1 }}>{formData.desc ? formData.desc : 'No Description to show'}</Typography>
               </Grid>
             </Grid>
           </Grid>
           <Card sx={{ boxShadow: 'none', px: 5 }}>
             <Grid sx={{ overflowX: 'auto' }} value='full'>
               <Typography variant='h6'>Enter Values for Meals</Typography>
-              <Grid sx={{ p: 0, pt: '24px' }} container>
-                <Grid md={8} item>
-                  <Grid
-                    container
-                    sx={{
-                      alignItems: 'center',
-                      height: '40px',
-                      backgroundColor: '#C1D3D04D'
-                    }}
-                  >
-                    <Grid sx={{ position: 'sticky', left: 10, zIndex: 100 }} md={2} item>
-                      <Typography
-                        sx={{
-                          pl: '16px',
-                          fontSize: '12px',
-                          lineHeight: '16px',
-                          fontWeight: 600
-                        }}
-                      >
-                        TIME
-                      </Typography>
-                    </Grid>
-                    <Grid md={10} item>
-                      <Typography sx={{ fontSize: '12px', lineHeight: '16px', fontWeight: 600 }}>
-                        MEAL DETAILS
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Grid>
+              <Typography variant='h6' onClick={handleClickOpen}>
+                Test
+              </Typography>
 
-                <Grid item md={4}>
-                  {/* <ScrollContainer> */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      height: '40px'
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        px: 6,
-                        backgroundColor: '#C1D3D099',
-                        minWidth: '110px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRight: '1px solid #C3CEC7'
-                      }}
-                    >
-                      <Typography>COMMON</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        backgroundColor: '#C1D3D099',
-                        minWidth: '110px',
-                        px: 6,
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRight: '1px solid #C3CEC7'
-                      }}
-                    >
-                      <Typography>MALE</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        px: 6,
-                        backgroundColor: '#C1D3D099',
-                        minWidth: '110px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRight: '1px solid #C3CEC7'
-                      }}
-                    >
-                      <Typography>FEMALE</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        px: 6,
-                        backgroundColor: '#C1D3D099',
-                        minWidth: '110px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRight: '1px solid #C3CEC7'
-                      }}
-                    >
-                      <Typography>Kid</Typography>
-                    </Box>
-                  </Box>
-                  {/* </ScrollContainer> */}
-                </Grid>
-              </Grid>
-
-              <Box sx={{ mt: '16px' }}>
-                {schedule.length > 0 &&
-                  schedule.map((item, index) => (
-                    <Grid
-                      key={index}
-                      container
-                      sx={{
-                        borderBottom: '1px solid #C3CEC7',
-                        pb: '32px',
-
-                        // pr: '16px',
-                        pt: index === 0 ? null : '32px'
-                      }}
-                    >
-                      <Grid sx={{ position: 'sticky', zIndex: 100, left: 0 }} md={1.5} item>
-                        <Box sx={{ width: '80%' }}>
-                          <Box sx={{ borderRadius: '25px', border: `2px dotted #00AFD6`, py: '5px', px: '4px' }}>
+              <Grid sx={{ overflowX: 'auto', pb: 0 }} value='full'>
+                <CustomScrollbar
+                  style={{
+                    maxWidth: '100%'
+                  }}
+                >
+                  <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell
+                          sx={{
+                            border: 'none',
+                            height: '40px',
+                            backgroundColor: '#C1D3D04D',
+                            pl: '16px',
+                            py: 0,
+                            width: '180px',
+                            position: 'sticky',
+                            left: 0
+                          }}
+                          className={classes.sticky}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '12px',
+                              lineHeight: '16px',
+                              fontWeight: 600
+                            }}
+                          >
+                            TIME
+                          </Typography>
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            border: 'none',
+                            height: '40px',
+                            backgroundColor: '#fff',
+                            position: 'sticky',
+                            left: '180px',
+                            p: 0,
+                            width: '500px'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              height: '100%',
+                              backgroundColor: '#C1D3D04D'
+                            }}
+                          >
                             <Typography
                               sx={{
-                                textAlign: 'center',
-                                color: '#00AFD6',
-                                fontWeight: 500,
-                                fontSize: '16px',
-                                lineHeight: '19.36px'
+                                fontSize: '12px',
+                                lineHeight: '16px',
+                                fontWeight: 600
                               }}
                             >
-                              {item?.startTime}
+                              MEAL DETAILS
                             </Typography>
                           </Box>
-                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                            <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
-                          </Box>
-
-                          <Box sx={{ borderRadius: '25px', border: `2px dotted #00AFD6`, py: '5px', px: '4px' }}>
-                            <Typography
+                        </TableCell>
+                        {formData.diet_type === 'By Gender' ? (
+                          <>
+                            <TableCell
                               sx={{
-                                textAlign: 'center',
-                                color: '#00AFD6',
-                                fontWeight: 500,
-                                fontSize: '16px',
-                                lineHeight: '19.36px'
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
                               }}
                             >
-                              {item?.endTime}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-                      <Grid md={10.5} item>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                          {item?.items?.map((item, index) => (
-                            <Grid sx={{ justifyContent: 'space-between' }} container key={{ index }}>
-                              <Grid sx={{}} xs={7.3}>
+                              <Typography>COMMON</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>MALE</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>FEMALE</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>KID</Typography>
+                            </TableCell>
+                          </>
+                        ) : (
+                          ''
+                        )}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {console.log(formData, 'rag')}
+                      {formData.add_meal?.map((itemd, index) => {
+                        console.log(itemd.meal_from_time.$d, 'raghhhh')
+                        const fromdate = new Date(itemd.meal_from_time.$d)
+
+                        const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })
+                        const todate = new Date(itemd.meal_to_time.$d)
+
+                        const formattedtoTime = todate.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })
+                        const startTimes = formattedfromTime
+                        const endTimes = formattedtoTime
+                        const ind = index
+
+                        return (
+                          <>
+                            <TableRow
+                              sx={{
+                                borderBottom: '1px solid #C3CEC7'
+                              }}
+                              key={index}
+                            >
+                              <TableCell
+                                sx={{
+                                  position: 'sticky',
+                                  left: 0,
+                                  width: '180px',
+                                  border: 'none',
+                                  pl: 0,
+                                  pr: '36px'
+                                }}
+                                component='th'
+                                scope='row'
+                              >
+                                {/* <Typography>Meal Name :</Typography> */}
                                 <Box
-                                  key={index}
                                   sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    backgroundColor: '#E1F9ED',
-                                    borderRadius: '8px',
-                                    p: '12px',
-                                    gap: '16px'
+                                    borderRadius: '25px',
+                                    border: `2px dotted #00AFD6`,
+                                    py: '5px',
+                                    px: '4px'
                                   }}
                                 >
-                                  <Box>
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '12px'
-                                      }}
-                                    >
-                                      <Box sx={{ display: 'flex' }}>
-                                        {item?.category && (
-                                          <Typography
-                                            sx={{
-                                              color: '#000',
-                                              lineHeight: '16.94px',
-                                              fontWeight: 600,
-                                              fontSize: '16px'
-                                            }}
-                                          >
-                                            {item?.category}
-                                          </Typography>
-                                        )}
-                                        {item?.prep && (
-                                          <Typography
-                                            sx={{
-                                              color: '#7A8684',
-                                              lineHeight: '16.94px',
-                                              fontWeight: 400,
-                                              fontSize: '14px'
-                                            }}
-                                          >
-                                            &nbsp;-&nbsp; {item?.prep}
-                                          </Typography>
-                                        )}
-                                      </Box>
+                                  <Typography
+                                    sx={{
+                                      textAlign: 'center',
+                                      color: '#00AFD6',
+                                      fontWeight: 500,
+                                      fontSize: '16px',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    {startTimes}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                  <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
+                                </Box>
 
-                                      {item?.ingredient?.length > 0 && (
+                                <Box
+                                  sx={{
+                                    borderRadius: '25px',
+                                    border: `2px dotted #00AFD6`,
+                                    py: '5px',
+                                    px: '4px'
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      textAlign: 'center',
+                                      color: '#00AFD6',
+                                      fontWeight: 500,
+                                      fontSize: '16px',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    {endTimes}
+                                  </Typography>
+                                </Box>
+                              </TableCell>
+
+                              <>
+                                {itemd?.ingredient?.map((item, index) => {
+                                  return (
+                                    <TableRow>
+                                      <TableCell
+                                        sx={{
+                                          position: 'sticky',
+                                          left: '180px',
+                                          border: 'none',
+                                          backgroundColor: '#fff',
+                                          width: '500px',
+                                          float: 'left'
+                                        }}
+                                      >
                                         <Box
+                                          key={index}
                                           sx={{
-                                            display: 'flex',
-                                            gap: '24px'
-                                          }}
-                                        >
-                                          {item?.ingredient?.map((item, index) => (
-                                            <Box key={index} sx={{ display: 'flex' }}>
-                                              <Typography
-                                                sx={{
-                                                  color: '#1F515B',
-                                                  lineHeight: '16.94px',
-                                                  fontWeight: 400,
-                                                  fontSize: '14px'
-                                                }}
-                                              >
-                                                {item.name}&nbsp;
-                                              </Typography>
-                                              <Typography
-                                                sx={{
-                                                  color: '#000',
-                                                  lineHeight: '16.94px',
-                                                  fontWeight: 600,
-                                                  fontSize: '14px'
-                                                }}
-                                              >
-                                                {item?.percentage}
-                                              </Typography>
-                                            </Box>
-                                          ))}
-                                        </Box>
-                                      )}
-                                      {(item?.preparationType || item?.desc) && (
-                                        <Box
-                                          sx={{
-                                            display: 'flex',
-                                            gap: '24px'
-                                          }}
-                                        >
-                                          {item?.preparationType && (
-                                            <Typography
-                                              sx={{
-                                                color: '#1F515B',
-                                                lineHeight: '16.94px',
-                                                fontWeight: 400,
-                                                fontSize: '14px'
-                                              }}
-                                            >
-                                              {item?.preparationType}
-                                            </Typography>
-                                          )}
-                                          {item?.desc && (
-                                            <Typography
-                                              sx={{
-                                                color: '#1F515B',
-                                                lineHeight: '16.94px',
-                                                fontWeight: 400,
-                                                fontSize: '14px'
-                                              }}
-                                            >
-                                              {item?.desc}
-                                            </Typography>
-                                          )}
-                                        </Box>
-                                      )}
-                                      {item?.remarks && (
-                                        <Box
-                                          sx={{
-                                            backgroundColor: '#0000000d',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '4px',
+
+                                            //backgroundColor: '#E1F9ED',
+                                            backgroundColor: '#00d6c957',
+                                            borderRadius: '8px',
                                             p: '12px',
-                                            borderRadius: '8px'
+                                            gap: '16px'
                                           }}
                                         >
-                                          <Typography
-                                            sx={{
-                                              color: '#000',
-                                              lineHeight: '16.94px',
-                                              fontWeight: 600,
-                                              fontSize: '14px'
-                                            }}
-                                          >
-                                            Remarks
-                                          </Typography>
-                                          <Typography
-                                            sx={{
-                                              color: '#000',
-                                              lineHeight: '16.94px',
-                                              fontWeight: 400,
-                                              fontSize: '14px'
-                                            }}
-                                          >
-                                            {item?.remarks}
-                                          </Typography>
+                                          <Box>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px'
+                                              }}
+                                            >
+                                              <Box sx={{ display: 'flex' }}>
+                                                {item?.name && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '16px'
+                                                    }}
+                                                  >
+                                                    {item?.name}
+                                                  </Typography>
+                                                )}
+                                                {item?.prep && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#7A8684',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    &nbsp;-&nbsp; {item?.prep}
+                                                  </Typography>
+                                                )}
+                                              </Box>
+
+                                              {item?.ingredient?.length > 0 && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.ingredient?.map((item, index) => (
+                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#1F515B',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item.name}&nbsp;
+                                                      </Typography>
+                                                      <Typography
+                                                        sx={{
+                                                          color: '#000',
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 600,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item?.percentage}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
+                                                </Box>
+                                              )}
+                                              {(item?.preparationType || item?.desc) && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.preparationType && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#1F515B',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.preparationType}
+                                                    </Typography>
+                                                  )}
+                                                  {item?.desc && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#1F515B',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.desc}
+                                                    </Typography>
+                                                  )}
+                                                </Box>
+                                              )}
+                                              {item?.remarks && (
+                                                <Box
+                                                  sx={{
+                                                    backgroundColor: '#0000000d',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    p: '12px',
+                                                    borderRadius: '8px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    Remarks
+                                                  </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {item?.remarks}
+                                                  </Typography>
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          </Box>
+                                          {item?.selectedDays?.length > 0 && (
+                                            <>
+                                              {/* <Divider /> */}
+                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                {item?.selectedDays?.map((item, index) => (
+                                                  <Box
+                                                    key={index}
+                                                    sx={{
+                                                      width: '48px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: '#0000000d',
+                                                      display: 'center',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: '#44544A'
+                                                      }}
+                                                    >
+                                                      {item}
+                                                    </Typography>
+                                                  </Box>
+                                                ))}
+                                              </Box>
+                                            </>
+                                          )}
                                         </Box>
-                                      )}
-                                    </Box>
-                                  </Box>
-                                  {item?.days?.length > 0 && (
-                                    <>
-                                      <Divider />
-                                      <Box sx={{ display: 'flex', gap: '12px' }}>
-                                        {item?.days?.map((item, index) => (
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Common')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          {console.log(item.meal_type, 'eee')}
                                           <Box
-                                            key={index}
                                             sx={{
-                                              width: '48px',
-                                              height: '32px',
-                                              borderRadius: '16px',
                                               backgroundColor: '#0000000d',
-                                              display: 'center',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
                                               justifyContent: 'center',
-                                              alignItems: 'center'
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
                                             }}
                                           >
                                             <Typography
                                               sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '13px',
-                                                lineHeight: '18px',
-                                                color: '#44544A'
+                                                fontSize: '14px'
                                               }}
                                             >
-                                              {item}
+                                              {console.log(index, 'index')}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Common'
+                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      : ''
+                                                  })
+                                                : 'Add'}
                                             </Typography>
                                           </Box>
-                                        ))}
-                                      </Box>
-                                    </>
-                                  )}
-                                </Box>
-                              </Grid>
-                              <Grid sx={{ alignSelf: 'stretch' }} xs={4.5} item>
-                                {/* <ScrollContainer sx={{ height: '100%' }}> */}
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    height: '100%'
-                                  }}
-                                >
-                                  {item?.mealCategory?.common && (
-                                    <Box
-                                      sx={{
-                                        left: 0,
-                                        minWidth: '110px',
-                                        height: '100%',
-                                        mx: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '8px',
-                                        backgroundColor: '#0000000d'
-                                      }}
-                                    >
-                                      <Typography>{item?.mealCategory?.common}</Typography>
-                                    </Box>
-                                  )}
-                                  {item?.mealCategory?.male && (
-                                    <Box
-                                      sx={{
-                                        minWidth: '110px',
-                                        height: '100%',
-                                        mx: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '8px',
-                                        backgroundColor: '#0000000d'
-                                      }}
-                                    >
-                                      <Typography>{item?.mealCategory?.male}</Typography>
-                                    </Box>
-                                  )}
-                                  {item?.mealCategory?.female && (
-                                    <Box
-                                      sx={{
-                                        minWidth: '110px',
-                                        height: '100%',
-                                        mx: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '8px',
-                                        backgroundColor: '#0000000d'
-                                      }}
-                                    >
-                                      <Typography>{item?.mealCategory?.female}</Typography>
-                                    </Box>
-                                  )}
-                                  {item?.mealCategory?.kid && (
-                                    <Box
-                                      sx={{
-                                        minWidth: '110px',
-                                        height: '100%',
-                                        mx: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '8px',
-                                        backgroundColor: '#0000000d'
-                                      }}
-                                    >
-                                      <Typography>{item?.mealCategory?.kid}</Typography>
-                                    </Box>
-                                  )}
-                                </Box>
-                                {/* </ScrollContainer> */}
-                              </Grid>
-                            </Grid>
-                          ))}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  ))}
-              </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Male')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Male'
+                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Female')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Female' ? meal.quantity : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Kid')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: '#0000000d',
+                                              p: '10px',
+                                              width: '110px',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: '#000',
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px'
+                                              }}
+                                            >
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Kid' ? meal.quantity : ''
+                                                  })
+                                                : 'Add'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      <Dialog
+                                        open={open}
+                                        onClose={handleClosed}
+                                        aria-labelledby='customized-dialog-title'
+                                        sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
+                                      >
+                                        <DialogTitle
+                                          id='customized-dialog-title'
+                                          sx={{
+                                            p: 4,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                          }}
+                                        >
+                                          <Typography variant='h6'>Add Value</Typography>
+                                          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
+                                        </DialogTitle>
+                                        <DialogContent>
+                                          {/* <Typography variant='h6'>Add Value</Typography> */}
+                                          <Grid container spacing={5} sx={{ mt: 1 }}>
+                                            <Grid item xs={12} sm={6}>
+                                              <FormControl fullWidth>
+                                                <Controller
+                                                  name='quantity'
+                                                  control={control}
+                                                  rules={{ required: true }}
+                                                  render={({ field: { value, onChange } }) => (
+                                                    <TextField
+                                                      type='number'
+                                                      //value={value}
+                                                      label='Quantity '
+                                                      name='quantity'
+                                                      //error={Boolean(errors.diet_name)}
+                                                      onChange={onChange}
+                                                    />
+                                                  )}
+                                                />
+                                              </FormControl>
+                                            </Grid>
+                                            <Grid item xs={12} sm={6}>
+                                              <FormControl fullWidth>
+                                                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                                                {console.log(uomList, 'uomList')}
+                                                <Controller
+                                                  name='meal_value_uom_id'
+                                                  control={control}
+                                                  rules={{ required: true }}
+                                                  render={({ field: { value, onChange } }) => (
+                                                    <Autocomplete
+                                                      //value={value}
+                                                      onChange={(event, newValue) => {
+                                                        onChange(newValue) // Update the form value
+                                                      }}
+                                                      options={[
+                                                        { value: 'kg', label: 'Kilogram (kg)' },
+                                                        { value: 'gm', label: 'Gram (gm)' },
+                                                        { value: 'lb', label: 'Pound (lb)' },
+                                                        { value: 'oz', label: 'Ounce (oz)' }
+                                                      ]} // List of options with value and label
+                                                      getOptionLabel={option => option.label} // Function to get the label of the option
+                                                      renderInput={params => (
+                                                        <TextField
+                                                          {...params}
+                                                          label='Select Unit'
+                                                          placeholder='Search & Select'
+                                                        />
+                                                      )}
+                                                    />
+                                                  )}
+                                                />
+                                              </FormControl>
+                                            </Grid>
+
+                                            <Grid item xs={12} sx={{ pt: 5 }}>
+                                              <Controller
+                                                name='notes'
+                                                control={control}
+                                                rules={{ required: true }}
+                                                render={({ field: { value, onChange } }) => (
+                                                  <TextField
+                                                    multiline
+                                                    fullWidth
+                                                    //value={value}
+                                                    label='Notes '
+                                                    name='notes'
+                                                    // error={Boolean(errors.desc)}
+                                                    onChange={onChange}
+                                                    id='textarea-outlined'
+                                                    rows={3}
+                                                  />
+                                                )}
+                                              />
+                                            </Grid>
+                                            <Grid
+                                              item
+                                              xs={12}
+                                              sx={{ textAlign: 'center', mb: 3 }}
+                                              onClick={() => SelectQuantityclick(index, item)}
+                                            >
+                                              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
+                                                ADD Quantity
+                                              </Button>{' '}
+                                            </Grid>
+                                          </Grid>
+                                        </DialogContent>
+                                      </Dialog>
+                                    </TableRow>
+                                  )
+                                })}
+                              </>
+                            </TableRow>
+                          </>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </CustomScrollbar>
+              </Grid>
             </Grid>
           </Card>
 
