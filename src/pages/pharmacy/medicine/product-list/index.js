@@ -101,10 +101,10 @@ const ListOfMedicine = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'package',
-      headerName: 'PACKAGE',
+      headerName: 'PRESENTATION',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          {`${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )

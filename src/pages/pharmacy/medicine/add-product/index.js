@@ -1218,9 +1218,9 @@ const AddMedicine = () => {
 
                           {/* Packages */}
 
-                          <Grid item xs={12} sm={12}>
+                          {/* <Grid item xs={12} sm={12}>
                             <div>Package {getPackageString()}</div>
-                          </Grid>
+                          </Grid> */}
                           <Grid item xs={12} sm={3}>
                             <FormControl fullWidth>
                               <Controller
