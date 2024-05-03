@@ -20,26 +20,28 @@ const Avatar = styled(CustomAvatar)(({ theme }) => ({
 
 const CardStatsHorizontal = props => {
   // ** Props
-  const { title, icon, stats, trendNumber, color = 'primary', trend = 'positive' } = props
+  const { title, icon, stats, trendNumber, color, trend = 'positive', bg } = props
 
   return (
     <Card>
       <CardContent sx={{ py: theme => `${theme.spacing(4.125)} !important` }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar skin='light' color={color} variant='rounded'>
+          <Avatar skin='light' sx={{ backgroundColor: bg }} variant='rounded'>
             {icon}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-              <Typography variant='h6'>{stats}</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography color={color} sx={{ color: color }} variant='h6'>
+                {stats}
+              </Typography>
+              {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ display: 'inline-flex', color: trend === 'positive' ? 'success.main' : 'error.main' }}>
                   <Icon icon={trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'} />
                 </Box>
                 <Typography variant='caption' sx={{ color: trend === 'positive' ? 'success.main' : 'error.main' }}>
                   {trendNumber}
                 </Typography>
-              </Box>
+              </Box> */}
             </Box>
             <Typography variant='caption'>{title}</Typography>
           </Box>

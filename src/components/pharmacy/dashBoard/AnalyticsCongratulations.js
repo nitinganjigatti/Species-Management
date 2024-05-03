@@ -17,48 +17,43 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
 }))
 
 // Styled component for the image
-const Img = styled('img')(({ theme }) => ({
-  right: 0,
-  bottom: 0,
-  width: 298,
-  position: 'absolute',
-  [theme.breakpoints.down('sm')]: {
-    width: 250,
-    position: 'static'
-  }
-}))
+// const Img = styled('img')(({ theme }) => ({
+//   right: 0,
+//   bottom: 0,
+//   width: 298,
+//   position: 'absolute',
+//   [theme.breakpoints.down('sm')]: {
+//     width: 250,
+//     position: 'static'
+//   }
+// }))
 
 const AnalyticsCongratulations = () => {
   // ** Hook
   const theme = useTheme()
 
   return (
-    <Card sx={{ position: 'relative' }}>
-      <CardContent sx={{ p: theme => `${theme.spacing(6.75, 7.5)} !important` }}>
-        <Grid container spacing={6}>
-          <Grid item xs={12} sm={6}>
-            <Typography variant='h5' sx={{ mb: 4.5 }}>
-              Congratulations{' '}
-              <Box component='span' sx={{ fontWeight: 'bold' }}>
-                John
-              </Box>
-              ! 🎉
-            </Typography>
-            <Typography variant='body2'>
-              You have done{' '}
-              <Box component='span' sx={{ fontWeight: 600 }}>
-                68%
-              </Box>{' '}
-              😎 more sales today.
-            </Typography>
-            <Typography sx={{ mb: 4.5 }} variant='body2'>
-              Check your new badge in your profile.
-            </Typography>
-            <Button variant='contained'>View Profile</Button>
+    <Card sx={{ background: '#839D8D' }}>
+      <CardContent>
+        <Grid container sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* <StyledGrid item xs={12} sm={3}>
+            <img width={200} height={100} src={`/images/Graphic_pharmacy.png`} alt='image' />
+
+          </StyledGrid> */}
+          <Grid item xs={12} sm={3}>
+            <img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </Grid>
-          <StyledGrid item xs={12} sm={6}>
-            <Img alt='Congratulations John' src={`/images/cards/illustration-john-${theme.palette.mode}.png`} />
-          </StyledGrid>
+
+          <Grid item xs={12} sm={9}>
+            <Typography variant='h5' sx={{ mb: 4.5, color: 'white' }}>
+              Simplify operations and enhance productivity
+            </Typography>
+
+            <Typography sx={{ mb: 4.5, color: 'white' }} variant='body2'>
+              Experience efficiency at your fingertips with dashboard. Explore stock, inventory, and orders
+              effortlessly. Let's elevate your pharmacy management!
+            </Typography>
+          </Grid>
         </Grid>
       </CardContent>
     </Card>
