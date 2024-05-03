@@ -370,7 +370,8 @@ const AddFeedType = () => {
                     height: '38px',
                     padding: '0.1875rem',
                     borderRadius: '10px',
-                    border: '1px solid rgba(93, 89, 98, 0.14)'
+                    border: '1px solid rgba(93, 89, 98, 0.14)',
+                    objectFit: 'cover'
                   }}
                   width={50}
                   height={50}
