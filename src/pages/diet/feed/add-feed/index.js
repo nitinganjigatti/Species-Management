@@ -1,6 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -127,6 +128,8 @@ const AddFeedType = () => {
         await updateFeedType({ ...payload }, id).then(res => {
           Router.push('/diet/feed')
           if (res?.success) {
+            console.log('first', res)
+
             // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
             return toast(
               t => (
@@ -135,7 +138,7 @@ const AddFeedType = () => {
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
+                        {res?.data}
                       </Typography>
                     </div>
                   </Box>
@@ -163,7 +166,7 @@ const AddFeedType = () => {
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
+                        {res?.data}
                       </Typography>
                     </div>
                   </Box>
@@ -201,7 +204,7 @@ const AddFeedType = () => {
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
+                        {res?.data}
                       </Typography>
                     </div>
                   </Box>
@@ -229,7 +232,7 @@ const AddFeedType = () => {
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
+                        {res?.data}
                       </Typography>
                     </div>
                   </Box>
@@ -270,18 +273,28 @@ const AddFeedType = () => {
   }
 
   return (
-    <Card>
-      <CardContent>
-        <Typography sx={{ mb: '20px' }} variant='h6'>
-          {id ? 'Update Feed Type' : 'New Feed Type'}
-        </Typography>
-        {/* <Typography sx={{ mb: 1 }}>
+    <>
+      <Box>
+        <Box sx={{ py: 2 }}>
+          <Breadcrumbs aria-label='breadcrumb'>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
+              Feed Type
+            </Typography>
+            <Typography color='text.primary'>{id ? 'Update' : 'Add'} new Feed Type</Typography>
+          </Breadcrumbs>
+        </Box>
+        <Card>
+          <CardContent>
+            <Typography sx={{ mb: '20px' }} variant='h6'>
+              {id ? 'Update Feed Type' : 'New Feed Type'}
+            </Typography>
+            {/* <Typography sx={{ mb: 1 }}>
           {id ? 'Update Feed type' : 'Add New Feed type'} and write some description for it
         </Typography> */}
 
-        <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-          {/* {editParams?.id !== null ? ( */}
-          {/* <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
+            <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+              {/* {editParams?.id !== null ? ( */}
+              {/* <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
             <Controller
               name='status'
               control={control}
@@ -309,99 +322,103 @@ const AddFeedType = () => {
               </FormHelperText>
             )}
           </FormControl> */}
-          <FormControl sx={{ width: '50%', mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Feed Type*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Enter Feed Type'
-                  error={Boolean(errors.name)}
+              <FormControl sx={{ width: '50%', mb: 6 }}>
+                <Controller
                   name='name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Feed Type*'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Enter Feed Type'
+                      error={Boolean(errors.name)}
+                      name='name'
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='description'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  rows={4}
-                  multiline
-                  label='Description'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Description'
-                  error={Boolean(errors.description)}
+                {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message}</FormHelperText>}
+              </FormControl>
+              <FormControl fullWidth sx={{ mb: 6 }}>
+                <Controller
                   name='description'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      rows={4}
+                      multiline
+                      label='Description'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Description'
+                      error={Boolean(errors.description)}
+                      name='description'
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.description && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
-            )}
-          </FormControl>
-          <input
-            type='file'
-            accept='image/*'
-            onChange={e => handleInputImageChange(e)}
-            style={{ display: 'none' }}
-            name='feedImg'
-            ref={fileInputRef}
-          />
-          {imgSrc !== '' && (
-            <Box
-              sx={{
-                display: 'flex'
-              }}
-            >
-              <Box sx={{ display: 'flex' }}>
-                <img
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    padding: '0.1875rem',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(93, 89, 98, 0.14)'
+                {errors.description && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
+                )}
+              </FormControl>
+              <input
+                type='file'
+                accept='image/*'
+                onChange={e => handleInputImageChange(e)}
+                style={{ display: 'none' }}
+                name='feedImg'
+                ref={fileInputRef}
+              />
+              {imgSrc !== '' && (
+                <Box
+                  sx={{
+                    display: 'flex'
                   }}
-                  width={50}
-                  height={50}
-                  alt='Uploaded image'
-                  src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
-                />
+                >
+                  <Box sx={{ display: 'flex' }}>
+                    <img
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        padding: '0.1875rem',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(93, 89, 98, 0.14)'
+                      }}
+                      width={50}
+                      height={50}
+                      alt='Uploaded image'
+                      src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                    />
 
-                <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
-                <Box sx={{ cursor: 'pointer', margin: '10px' }}>
-                  <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
-                    {' '}
-                  </Icon>
+                    <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
+                    <Box sx={{ cursor: 'pointer', margin: '10px' }}>
+                      <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
+                        {' '}
+                      </Icon>
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
-            </Box>
-          )}
+              )}
 
-          {imgSrc === '' && (
-            <Button variant='outlined' onClick={handleAddImageClick}>
-              ADD IMAGE
-            </Button>
-          )}
-          {errors.feedImg && <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>}
+              {imgSrc === '' && (
+                <Button variant='outlined' onClick={handleAddImageClick}>
+                  ADD IMAGE
+                </Button>
+              )}
+              {errors.feedImg && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>
+              )}
 
-          <RenderSidebarFooter />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
-        </form>
-      </CardContent>
-    </Card>
+              <RenderSidebarFooter />
+              {openSnackbar.open ? (
+                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+              ) : null}
+            </form>
+          </CardContent>
+        </Card>
+      </Box>
+    </>
   )
 }
 

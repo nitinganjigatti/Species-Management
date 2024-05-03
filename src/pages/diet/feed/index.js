@@ -21,6 +21,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import toast from 'react-hot-toast'
+import Tooltip from '@mui/material/Tooltip'
 
 const FeedTypes = () => {
   const [rows, setRows] = useState([])
@@ -125,10 +126,12 @@ const FeedTypes = () => {
       field: 'feed_type_name',
       headerName: 'FEEDS',
       renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
-          {params.row.feed_type_name}
-        </Box>
+        <Tooltip title={params.row.feed_type_name} placement='right'>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+            {params.row.feed_type_name}
+          </Box>
+        </Tooltip>
       )
     },
     {
@@ -137,9 +140,11 @@ const FeedTypes = () => {
       field: 'desc',
       headerName: 'DESCRIPTION',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.desc}
-        </Typography>
+        <Tooltip title={params.row.desc} placement='bottom'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.desc}
+          </Typography>
+        </Tooltip>
       )
     },
     {
