@@ -1,4 +1,3 @@
-// import { SUPPLIER } from '../../../constants/ApiConstant'
 import { axiosGet } from '../utility'
 
 export async function getAllLists() {
