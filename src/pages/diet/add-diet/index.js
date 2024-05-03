@@ -57,7 +57,8 @@ const AddDiet = () => {
         meal_to_time: '',
         notes: '',
         recipe: [],
-        ingredient: []
+        ingredient: [],
+        ingredientwithchoice: []
       }
     ],
     by_quantity: [

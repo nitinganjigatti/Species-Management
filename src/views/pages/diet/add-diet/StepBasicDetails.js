@@ -45,7 +45,8 @@ const defaultValues = {
       meal_to_time: '',
       notes: '',
       recipe: [],
-      ingredient: []
+      ingredient: [],
+      ingredientwithchoice: []
     }
   ]
 }
@@ -84,8 +85,10 @@ const StepBasicDetails = ({
   const [allSelectedValues, setAllSelectedValues] = useState([])
   const [childRecipeStateValue, setRecipeChildStateValue] = useState([])
   const [allRecipeSelectedValues, setAllRecipeSelectedValues] = useState([])
-  const [fieldsupdatednew, setfieldsupdatednew] = useState([])
+  const [allIngredientchoiceSelectedValues, setAllIngredientchoiceSelectedValues] = useState([])
+  const [childIngredeintchoiceStateValue, setIngredientchoiceChildStateValue] = useState([])
   const [finalvalue, setfinalvalue] = useState([])
+  const [finalvaluerecipe, setfinalrecipevalue] = useState([])
   const [checkid, setcheckid] = useState('')
   const [selectedIngredient, setSelectedIngredient] = useState()
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -205,6 +208,42 @@ const StepBasicDetails = ({
       return updatedValues
     })
 
+    setfinalrecipevalue(fieldsIngredients)
+    console.log(fieldsIngredients, 'fieldsIngredients')
+  }
+
+  const handleIngredientchoiceStateChange = value => {
+    console.log(value, 'card')
+    console.log(fieldsIngredients, 'fieldsIngredients')
+    setIngredientchoiceChildStateValue(value)
+
+    // Remove duplicates from the new value based on id and valueid
+    const uniqueValues = value.filter(
+      (val, index, self) => index === self.findIndex(v => v.id === val.id && v.valueid === val.valueid)
+    )
+    console.log(uniqueValues, 'uniqueValues')
+    setAllIngredientchoiceSelectedValues(prevState => {
+      // Filter out duplicates from the previous state
+      const filteredPrevState = prevState.filter(
+        prevVal =>
+          !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal?.id && uniqueVal.valueid === prevVal?.valueid)
+      )
+
+      // Combine unique values from the new value with filtered previous state
+      const updatedValues = [...filteredPrevState, ...uniqueValues]
+      console.log(fieldsIngredients)
+      console.log(updatedValues, 'updatedValues')
+
+      // Update the fieldsIngredients with the new values
+      for (let i = 0; i < fieldsIngredients.length; i++) {
+        const field = fieldsIngredients[i]
+        field.ingredientwithchoice = updatedValues.filter(up => up?.valueid === field.newid)
+      }
+
+      // Return the updated values to setAllSelectedValues
+      return updatedValues
+    })
+
     setfinalvalue(fieldsIngredients)
     console.log(fieldsIngredients, 'fieldsIngredients')
   }
@@ -218,6 +257,9 @@ const StepBasicDetails = ({
 
       const flattenedRecipes = formData.add_meal.flatMap(all => all.recipe)
       setAllRecipeSelectedValues(flattenedRecipes)
+
+      const flattenedIngchoice = formData.add_meal.flatMap(all => all.ingredientwithchoice)
+      setAllIngredientchoiceSelectedValues(flattenedIngchoice)
     }
   }, [formData])
 
@@ -233,8 +275,12 @@ const StepBasicDetails = ({
       const filteredValues = allSelectedValues.filter(value => value?.valueid === checkid)
       // Update childStateValue with the filtered values
       setChildStateValue(filteredValues)
+
+      const filteredValuesing = allIngredientchoiceSelectedValues.filter(value => value?.valueid === checkid)
+      // Update childStateValue with the filtered values
+      setIngredientchoiceChildStateValue(filteredValuesing)
     }
-  }, [checkid, allSelectedValues, formData])
+  }, [checkid, allSelectedValues, allIngredientchoiceSelectedValues, formData])
 
   const ScrollToFieldError = ({ errors }) => {
     console.log(errors, 'errors')
@@ -252,8 +298,15 @@ const StepBasicDetails = ({
     return null
   }
 
-  const handleAddIngerdientChoice = val => {
+  const handleAddIngerdientChoice = (val, index) => {
     setOpenIngredientchoice(true)
+    setcheckid(val.newid)
+
+    // Update childStateValue with objects having matching valueid
+    setIngredientchoiceChildStateValue(prevState => {
+      const newState = prevState.filter(item => item.valueid === val.id)
+      return newState
+    })
   }
 
   const addEventSidebarOpen = (val, index) => {
@@ -289,33 +342,79 @@ const StepBasicDetails = ({
     setOpenIngredientchoice(false)
   }
 
+  // const onSubmit = async data => {
+  //   console.log(data, 'data')
+  //   console.log(fieldsIngredients, 'raaa')
+  //   window.scrollTo(0, 0)
+  //   // Clear any existing errors
+  //   Object.keys(defaultValues).forEach(field => {
+  //     clearErrors(field)
+  //   })
+
+  //   try {
+  //     await schema.validate(data, { abortEarly: false })
+  //     const imageData = await handleImageUpload()
+  //     console.log(imageData, 'imageData')
+
+  //     // Check for empty ingredient or recipe arrays
+  //     const emptyIndexes = []
+  //     fieldsIngredients.forEach((item, index) => {
+  //       if (!item.ingredient || item.ingredient.length === 0 || !item.recipe || item.recipe.length === 0) {
+  //         emptyIndexes.push(index)
+  //       }
+  //     })
+
+  //     if (emptyIndexes.length > 0) {
+  //       // Adjust the indexes by adding 1 before displaying them in the alert
+  //       const adjustedIndexes = emptyIndexes.map(index => index + 1)
+  //       // Trigger alert with the adjusted indexes of objects with empty ingredient or recipe arrays
+  //       alert(`Objects at indexes ${adjustedIndexes.join(', ')} have empty ingredient or recipe arrays.`)
+  //       return
+  //     }
+
+  //     // Update the add_meal array with ingredients from finalvalue
+  //     const updatedAddMeals = data.add_meal.map((meal, index) => {
+  //       // Check if finalvalue has corresponding index
+  //       if (finalvalue[index]) {
+  //         return {
+  //           ...meal,
+  //           ingredient: finalvalue[index].ingredient,
+  //           recipe: finalvalue[index].recipe
+  //         }
+  //       }
+  //       return meal
+  //     })
+
+  //     // Merge the image data with other form data
+  //     const formDataWithImage = {
+  //       ...data,
+  //       diet_image: uploadedImage,
+  //       add_meal: updatedAddMeals
+  //     }
+
+  //     handleNext(formDataWithImage)
+  //     console.log(formDataWithImage, 'data')
+  //   } catch (validationErrors) {
+  //     alert('hi')
+  //     validationErrors.inner?.forEach(error => {
+  //       setError(error.path, { message: error.message })
+  //     })
+  //   }
+  // }
+
   const onSubmit = async data => {
     console.log(data, 'data')
     console.log(fieldsIngredients, 'raaa')
     window.scrollTo(0, 0)
     // Clear any existing errors
-    Object.keys(defaultValues).forEach(field => {
-      clearErrors(field)
-    })
+    // Object.keys(defaultValues).forEach(field => {
+    //   clearErrors(field)
+    // })
 
     try {
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
-
-      // Check for empty ingredient or recipe arrays
-      const emptyIndexes = []
-      fieldsIngredients.forEach((item, index) => {
-        if (item.ingredient.length === 0 || item.recipe.length === 0) {
-          emptyIndexes.push(index)
-        }
-      })
-
-      if (emptyIndexes.length > 0) {
-        // Trigger alert with the index of objects with empty ingredient or recipe arrays
-        alert(`Objects at indexes ${emptyIndexes.join(', ')} have empty ingredient or recipe arrays.`)
-        return
-      }
 
       // Update the add_meal array with ingredients from finalvalue
       const updatedAddMeals = data.add_meal.map((meal, index) => {
@@ -323,24 +422,42 @@ const StepBasicDetails = ({
         if (finalvalue[index]) {
           return {
             ...meal,
-            ingredient: finalvalue[index].ingredient,
-            recipe: finalvalue[index].recipe
+            ingredient: finalvalue[index].ingredient
           }
         }
         return meal
       })
 
+      // Update the add_meal array with recipes from finalrecipevalue
+      const updatedAddMealsWithRecipes = updatedAddMeals.map((meal, index) => {
+        // Check if finalrecipevalue has corresponding index
+        if (finalvaluerecipe[index]) {
+          return {
+            ...meal,
+            recipe: finalvaluerecipe[index].recipe
+          }
+        }
+        return meal
+      })
+
+      // Merge the updatedAddMeals and updatedAddMealsWithRecipes arrays
+      const mergedAddMeals = updatedAddMealsWithRecipes.map((meal, index) => ({
+        ...meal,
+        ingredient: updatedAddMeals[index].ingredient
+      }))
+
       // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
         diet_image: uploadedImage,
-        add_meal: updatedAddMeals
+        add_meal: mergedAddMeals
       }
 
       handleNext(formDataWithImage)
       console.log(formDataWithImage, 'data')
     } catch (validationErrors) {
-      validationErrors.inner.forEach(error => {
+      alert('hi')
+      validationErrors.inner?.forEach(error => {
         setError(error.path, { message: error.message })
       })
     }
@@ -1072,7 +1189,7 @@ const StepBasicDetails = ({
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={() => handleAddIngerdientChoice('add')}
+                  onClick={() => handleAddIngerdientChoice(field, index)}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT WITH CHOICE
@@ -1128,7 +1245,16 @@ const StepBasicDetails = ({
             </Box>
           </Grid>
         </Card>
-        <AddIngredientswithChoice open={OpenIngredientchoice} handleSidebarClose={handleSidebarClose} />
+        <AddIngredientswithChoice
+          open={OpenIngredientchoice}
+          handleSidebarClose={handleSidebarClose}
+          checkid={checkid}
+          onChange={handleIngredientchoiceStateChange}
+          allIngredientchoiceSelectedValues={allIngredientchoiceSelectedValues}
+          setAllIngredientchoiceSelectedValues={setAllIngredientchoiceSelectedValues}
+          formData={formData}
+          childIngredeintchoiceStateValue={childIngredeintchoiceStateValue}
+        />
         <AddIngredients
           open={openIngredient}
           handleSidebarClose={handleSidebarClose}
