@@ -140,9 +140,11 @@ const FeedTypes = () => {
       field: 'desc',
       headerName: 'DESCRIPTION',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.desc}
-        </Typography>
+        <Tooltip title={params.row.desc} placement='bottom'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.desc}
+          </Typography>
+        </Tooltip>
       )
     },
     {
