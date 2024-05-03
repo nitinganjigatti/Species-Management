@@ -95,6 +95,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const [recipeList, setRecipeList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const router = useRouter()
+
   const recipes = [
     { label: 'No' },
     { label: 'Recipe' },
@@ -102,6 +103,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const ingredients = [
     { label: 'No' },
     { label: 'Ingredient' },
@@ -109,6 +111,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const {
     reset,
     control,
@@ -176,6 +179,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   useEffect(() => {
     if (formData) {
       setUploadedImage(formData.diet_image)
+
       // Flatten the array of arrays into a single array
       const flattenedIngredients = formData.add_meal.flatMap(all => all.ingredient)
       setAllSelectedValues(flattenedIngredients)
@@ -192,6 +196,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     // Filter allSelectedValues based on checkid
     if (checkid) {
       const filteredValues = allSelectedValues.filter(value => value.valueid === checkid)
+
       // Update childStateValue with the filtered values
       setChildStateValue(filteredValues)
     }
@@ -236,6 +241,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
     // Update childStateValue with objects having matching valueid
     setChildStateValue(prevState => {
       const newState = prevState.filter(item => item.valueid === val.id)
+
       return newState
     })
   }
@@ -250,6 +256,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const onSubmit = async data => {
     console.log(data, 'data')
     window.scrollTo(0, 0)
+
     // Clear any existing errors
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
@@ -269,6 +276,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
             ingredient: finalvalue[index].ingredient
           }
         }
+
         return meal
       })
 
@@ -295,6 +303,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   const addIngredientsButton = () => {
     console.log(childStateValue, 'childStateValue')
     console.log(finalvalue, 'finalvalue')
+
     return (
       <>
         <Grid
@@ -316,6 +325,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
               meal_from_time: '',
               meal_to_time: '',
               notes: ''
+
               //ingredient: finalvalue.map(all => all.ingredient)
             })
           }}
@@ -341,6 +351,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
 
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -373,6 +384,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
       // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredient = field.ingredient.filter(ing => ing.id !== ingredientIdToRemove)
+
         return field
       })
 
@@ -410,6 +422,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -451,6 +464,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => {
                     console.log(value, 'value')
+
                     return (
                       <Autocomplete
                         value={uomList?.find(option => option.id === value) || null}
@@ -574,6 +588,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
                             label='Select time - from'
                             value={value?.$d}
                             onChange={onChange}
+
                             // renderInput={params => (
                             //   <TextField
                             //     {...params}
@@ -1077,7 +1092,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList, popperPlacement, sele
             </Box>
           </Grid>
         </Card>
-        <AddIngredientswithChoice open={OpenIngredientchoice} handleSidebarClose={handleSidebarClose} />
+        <AddIngredientswithChoice
+          open={OpenIngredientchoice}
+          setOpenIngredientchoice={setOpenIngredientchoice}
+          handleSidebarClose={handleSidebarClose}
+        />
         <AddIngredients
           open={openIngredient}
           handleSidebarClose={handleSidebarClose}

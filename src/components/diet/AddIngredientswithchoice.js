@@ -29,6 +29,7 @@ import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTyp
 const AddIngredientswithChoice = props => {
   const {
     open,
+    setOpenIngredientchoice,
     handleSidebarClose,
     onChange,
     childStateValue,
@@ -37,6 +38,7 @@ const AddIngredientswithChoice = props => {
     formData,
     setSelectedIngredient
   } = props
+  // console.log('close', close())
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -420,6 +422,9 @@ const AddIngredientswithChoice = props => {
   console.log('listOfIngredient', listOfIngredient)
 
   const handelSetIngredient = () => {
+    setShowDays(false)
+    setOpenIngredientchoice(false)
+
     // Collect data
     const selectedIngredient = {
       ingredientList: selectedCard,
@@ -428,8 +433,39 @@ const AddIngredientswithChoice = props => {
       remarks: remarks
     }
 
+    // Check if any ingredient's preparation_type matches any previously selected ingredient's preparation_type
+    const matchedIngredient = listOfIngredient.find(item => {
+      return item.ingredientList.some(ingredient => {
+        return selectedCard.some(selectedIngredient => {
+          return selectedIngredient.preparation_type === ingredient.preparation_type
+        })
+      })
+    })
+
+    if (matchedIngredient) {
+      const daysMatch = selectedDays.every(day => matchedIngredient.days_of_week.includes(day))
+      if (daysMatch) {
+        // If days_of_week arrays partially match, do not add
+        const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
+        console.log(
+          `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+        )
+        toast.error(
+          `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+        )
+
+        return
+      }
+    }
+
     // Add the selected ingredient to the list of ingredients
     setListOfIngredient(prevList => [...prevList, selectedIngredient])
+    setSelectedCard([])
+    setVisibility([])
+    setSelectFeed({})
+
+    // Show success toast message
+    toast.success('Ingredient added successfully!')
   }
 
   return (
