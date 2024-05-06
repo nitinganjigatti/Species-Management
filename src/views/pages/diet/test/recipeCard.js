@@ -200,20 +200,20 @@ const RecipeCard = ({
   useEffect(() => {
     // Filter out duplicates based on id and valueid
     console.log(rows, 'rows')
-    const uniqueSelectedValues = allRecipeSelectedValues.filter(
+    const uniqueSelectedValues = allRecipeSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.valueid === value?.valueid)
     )
 
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item?.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.valueid === checkid)
 
     // Initialize a new array to store the updated selectedCardRecipe
     let updatedSelectedCardRecipe = []
 
     // Iterate over rows and check for matches
     rows.forEach(row => {
-      const match = selectedValuesWithCheckId.find(item => item.recipe_id === row.id)
+      const match = selectedValuesWithCheckId?.find(item => item.recipe_id === row.id)
       if (match) {
         // Construct a new object with keys from the row object and values from the match object
         const updatedRow = {}

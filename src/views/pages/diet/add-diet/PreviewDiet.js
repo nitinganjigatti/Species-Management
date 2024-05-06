@@ -41,7 +41,7 @@ const defaultValues = {
   ]
 }
 
-const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
+const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandleSubmit }) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
   const [LocalformData, setlocalformData] = useState([])
@@ -49,10 +49,35 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
   const [dietTypeval, setdietTypeval] = useState('')
+  const [initialValues, setInitialValues] = useState({
+    quantity: '',
+    meal_value_uom_id: '',
+    notes: ''
+  })
+
   const handleClickOpen = (index, item, type, dietType) => {
-    console.log(index, 'lll')
     console.log(item, 'item')
     console.log(type, 'type')
+    console.log(index, 'index')
+    const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
+      return meal.meal_value_header === type
+    })
+
+    const initialval = mealTypeObject
+      ? {
+          quantity: mealTypeObject.quantity || '',
+          meal_value_uom_id: mealTypeObject.meal_value_uom_id || '',
+          notes: mealTypeObject.notes || ''
+        }
+      : {
+          quantity: '',
+          meal_value_uom_id: '',
+          notes: ''
+        }
+
+    setInitialValues(initialval)
+
+    // Then open the dialog
     setOpen(true)
     setmealingredientIndex(index)
     setingredientvalueid(item.valueid)
@@ -126,18 +151,18 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
       const { quantity, meal_value_uom_id, notes } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
 
-      // Find the index of the add_meal object with matching newid
-      const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+      // Find the index of the meal_data object with matching newid
+      const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.newid === ingredientvalueid)
 
       if (addMealIndex !== -1) {
         // Find the index of the ingredient object with matching valueid and index
-        const ingredientIndex = updatedFormData.add_meal[addMealIndex].ingredient.findIndex(
+        const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredient.findIndex(
           (ingredient, i) => ingredient.valueid === ingredientvalueid && i === mealingredientIndex
         )
 
         if (ingredientIndex !== -1) {
           // Get the existing meal_type array
-          const mealTypeArray = updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type || []
+          const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
 
           // Check if there's an existing object with the same meal_value_header
           const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
@@ -161,7 +186,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
           }
 
           // Update the meal_type array with the updated mealTypeArray
-          updatedFormData.add_meal[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
+          updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
         }
       }
 
@@ -174,18 +199,18 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
       const { quantity, meal_value_uom_id, notes } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
-      // Find the index of the add_meal object with matching newid
-      const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+      // Find the index of the meal_data object with matching newid
+      const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.newid === ingredientvalueid)
 
       if (addMealIndex !== -1) {
         // Find the index of the ingredient object with matching valueid and index
-        const ingredientIndex = updatedFormData.add_meal[addMealIndex].recipe.findIndex(
+        const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
           (recipe, i) => recipe.valueid === ingredientvalueid && i === mealingredientIndex
         )
 
         if (ingredientIndex !== -1) {
           // Get the existing meal_type array
-          const mealTypeArray = updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type || []
+          const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
 
           // Check if there's an existing object with the same meal_value_header
           const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
@@ -209,7 +234,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
           }
 
           // Update the meal_type array with the updated mealTypeArray
-          updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
+          updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
         }
       }
 
@@ -224,18 +249,18 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
     const { quantity, meal_value_uom_id, notes } = getValues()
     const updatedFormData = { ...formData } // Create a copy of formData
     console.log(updatedFormData, 'updatedFormData')
-    // Find the index of the add_meal object with matching newid
-    const addMealIndex = updatedFormData.add_meal.findIndex(meal => meal.newid === ingredientvalueid)
+    // Find the index of the meal_data object with matching newid
+    const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.newid === ingredientvalueid)
 
     if (addMealIndex !== -1) {
       // Find the index of the ingredient object with matching valueid and index
-      const ingredientIndex = updatedFormData.add_meal[addMealIndex].recipe.findIndex(
+      const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
         (recipe, i) => recipe.valueid === ingredientvalueid && i === mealingredientIndex
       )
 
       if (ingredientIndex !== -1) {
         // Get the existing meal_type array
-        const mealTypeArray = updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type || []
+        const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
 
         // Check if there's an existing object with the same meal_value_header
         const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
@@ -259,7 +284,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
         }
 
         // Update the meal_type array with the updated mealTypeArray
-        updatedFormData.add_meal[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
+        updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
       }
     }
 
@@ -453,7 +478,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                 borderRight: '1px solid #C3CEC7'
                               }}
                             >
-                              <Typography>COMMON</Typography>
+                              <Typography>GENERIC</Typography>
                             </TableCell>
                             <TableCell
                               sx={{
@@ -496,15 +521,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                     </TableHead>
                     <TableBody>
                       {console.log(formData, 'rag')}
-                      {formData.add_meal?.map((itemd, index) => {
-                        console.log(itemd.meal_from_time.$d, 'raghhhh')
-                        const fromdate = new Date(itemd.meal_from_time.$d)
+                      {formData.meal_data?.map((itemd, index) => {
+                        console.log(itemd.meal_from_time, 'raghhhh')
+                        const fromdate = new Date(itemd.meal_from_time)
                         const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
                           hour12: true
                         })
-                        const todate = new Date(itemd.meal_to_time.$d)
+                        const todate = new Date(itemd.meal_to_time)
                         const formattedtoTime = todate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -784,7 +809,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Common', 'ingredient')}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -815,7 +840,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                               {console.log(index, 'index')}
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Common'
+                                                    return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity + meal.meal_value_uom_id
                                                       : ''
                                                   })
@@ -958,6 +983,118 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           </Box>
                                         </Box>
                                       </TableCell>
+                                      <Dialog
+                                        open={open}
+                                        onClose={handleClosed}
+                                        aria-labelledby='customized-dialog-title'
+                                        sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
+                                      >
+                                        <DialogTitle
+                                          id='customized-dialog-title'
+                                          sx={{
+                                            p: 4,
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                          }}
+                                        >
+                                          <Typography variant='h6'>Add Value</Typography>
+                                          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
+                                        </DialogTitle>
+                                        <DialogContent>
+                                          {/* <Typography variant='h6'>Add Value</Typography> */}
+                                          {console.log(initialValues.quantity)}
+                                          <Grid container spacing={5} sx={{ mt: 1 }}>
+                                            <Grid item xs={12} sm={6}>
+                                              <FormControl fullWidth>
+                                                <Controller
+                                                  name='quantity'
+                                                  control={control}
+                                                  rules={{ required: true }}
+                                                  //defaultValue={initialValues.quantity}
+                                                  render={({ field: { value, onChange } }) => (
+                                                    <TextField
+                                                      type='number'
+                                                      //value={value}
+                                                      label='Quantity '
+                                                      name='quantity'
+                                                      //error={Boolean(errors.diet_name)}
+                                                      onChange={onChange}
+                                                      defaultValue={initialValues.quantity}
+                                                    />
+                                                  )}
+                                                />
+                                              </FormControl>
+                                            </Grid>
+                                            <Grid item xs={12} sm={6}>
+                                              <FormControl fullWidth>
+                                                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                                                {console.log(uomList, 'uomList')}
+                                                <Controller
+                                                  name='meal_value_uom_id'
+                                                  control={control}
+                                                  rules={{ required: true }}
+                                                  render={({ field: { value, onChange } }) => (
+                                                    <Autocomplete
+                                                      //value={value}
+                                                      defaultValue={initialValues.meal_value_uom_id}
+                                                      onChange={(event, newValue) => {
+                                                        onChange(newValue) // Update the form value
+                                                      }}
+                                                      options={[
+                                                        { value: 'kg', label: 'Kilogram (kg)' },
+                                                        { value: 'gm', label: 'Gram (gm)' },
+                                                        { value: 'lb', label: 'Pound (lb)' },
+                                                        { value: 'oz', label: 'Ounce (oz)' }
+                                                      ]} // List of options with value and label
+                                                      getOptionLabel={option => option.label} // Function to get the label of the option
+                                                      renderInput={params => (
+                                                        <TextField
+                                                          {...params}
+                                                          label='Select Unit'
+                                                          placeholder='Search & Select'
+                                                        />
+                                                      )}
+                                                    />
+                                                  )}
+                                                />
+                                              </FormControl>
+                                            </Grid>
+
+                                            <Grid item xs={12} sx={{ pt: 5 }}>
+                                              <Controller
+                                                name='notes'
+                                                control={control}
+                                                rules={{ required: true }}
+                                                render={({ field: { value, onChange } }) => (
+                                                  <TextField
+                                                    multiline
+                                                    fullWidth
+                                                    //value={value}
+                                                    label='Notes '
+                                                    name='notes'
+                                                    // error={Boolean(errors.desc)}
+                                                    onChange={onChange}
+                                                    id='textarea-outlined'
+                                                    rows={3}
+                                                    defaultValue={initialValues.notes}
+                                                  />
+                                                )}
+                                              />
+                                            </Grid>
+                                            <Grid
+                                              item
+                                              xs={12}
+                                              sx={{ textAlign: 'center', mb: 3 }}
+                                              onClick={() => SelectQuantityclick(index, item)}
+                                            >
+                                              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
+                                                ADD Quantity
+                                              </Button>{' '}
+                                            </Grid>
+                                          </Grid>
+                                        </DialogContent>
+                                      </Dialog>
                                     </TableRow>
                                   )
                                 })}
@@ -1167,7 +1304,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Common', 'recipe')}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'recipe')}
                                       >
                                         <Box
                                           sx={{
@@ -1198,7 +1335,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                               {console.log(index, 'index')}
                                               {item.meal_type
                                                 ? item.meal_type?.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Common'
+                                                    return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity + meal.meal_value_uom_id
                                                       : ''
                                                   })
@@ -1369,6 +1506,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
+                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
@@ -1377,6 +1515,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                       name='quantity'
                                                       //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
+                                                      defaultValue={initialValues.quantity}
                                                     />
                                                   )}
                                                 />
@@ -1396,6 +1535,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
+                                                      defaultValue={initialValues.meal_value_uom_id}
                                                       options={[
                                                         { value: 'kg', label: 'Kilogram (kg)' },
                                                         { value: 'gm', label: 'Gram (gm)' },
@@ -1432,6 +1572,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
+                                                    defaultValue={initialValues.notes}
                                                   />
                                                 )}
                                               />
@@ -1475,7 +1616,11 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
               >
                 Go back
               </Button>
-              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+              <Button
+                onClick={finalhandleSubmit}
+                variant='contained'
+                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+              >
                 Submit
               </Button>
             </Box>

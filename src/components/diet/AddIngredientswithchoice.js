@@ -295,10 +295,10 @@ const AddIngredientswithChoice = props => {
     console.log(uniqueSelectedValues, 'uniqueSelectedValues')
     console.log(checkid, 'checkid')
     // Extract ingredient lists from uniqueSelectedValues
-    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item?.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.valueid === checkid)
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Check if selectedValuesWithCheckId is not empty
-    if (selectedValuesWithCheckId.length > 0) {
+    if (selectedValuesWithCheckId?.length > 0) {
       // Extract ingredientList from selectedValuesWithCheckId
       const { ingredientList } = selectedValuesWithCheckId[0]
 

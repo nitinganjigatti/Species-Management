@@ -197,6 +197,7 @@ const DietDetailCard = ({ dietDetails }) => {
 
   return (
     <Card>
+      {console.log(dietDetails, 'dietDetails')}
       <CardContent>
         <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
           <Grid md={3.8} item>
@@ -301,9 +302,7 @@ const DietDetailCard = ({ dietDetails }) => {
                     <Icon
                       icon='bx:pencil'
                       style={{ fontSize: 24 }}
-                      // onClick={() =>
-                      //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                      // }
+                      onClick={() => Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id } })}
                     />
                   </Box>
                   <Box>

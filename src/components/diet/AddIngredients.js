@@ -253,7 +253,7 @@ const AddIngredients = props => {
 
     // Prepare the object to store values
     const boxValues = {
-      id: item.id,
+      ingredient_id: item.id,
       name: item.ingredient_name,
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
@@ -273,7 +273,7 @@ const AddIngredients = props => {
     }
 
     // Check if the boxValues already exist in selectedCard
-    const existingIndex = selectedCard.findIndex(card => card.id === item.id)
+    const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
     if (existingIndex !== -1) {
       // If the card already exists, update its values
       selectedCard[existingIndex] = boxValues
@@ -406,19 +406,20 @@ const AddIngredients = props => {
 
   useEffect(() => {
     // Filter out duplicates based on id and valueid
-    const uniqueSelectedValues = allSelectedValues.filter(
-      (value, index, self) => index === self.findIndex(v => v?.id === value?.id && v?.valueid === value?.valueid)
+    const uniqueSelectedValues = allSelectedValues?.filter(
+      (value, index, self) =>
+        index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.valueid === value?.valueid)
     )
 
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues.filter(item => item?.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.valueid === checkid)
 
     // Update selectedCard with matched objects, or set to an empty array if no match found
-    setSelectedCard(selectedValuesWithCheckId.length > 0 ? selectedValuesWithCheckId : [])
+    setSelectedCard(selectedValuesWithCheckId?.length > 0 ? selectedValuesWithCheckId : [])
 
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
-    const cardIds = selectedValuesWithCheckId.map(item => item.id)
-    const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+    const cardIds = selectedValuesWithCheckId?.map(item => item.ingredient_id)
+    const days = selectedValuesWithCheckId?.map(item => item.days_of_week)
 
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
@@ -435,7 +436,7 @@ const AddIngredients = props => {
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
-    selectedValuesWithCheckId.forEach(item => {
+    selectedValuesWithCheckId?.forEach(item => {
       if (item.valueid === checkid) {
         const preparationType = item.preparation_type
         const preparationTypeId = item.preparation_type_id
@@ -487,7 +488,7 @@ const AddIngredients = props => {
     console.log('removeSelectedCard Called')
 
     // Check if the card with itemId is present in the selectedCard state
-    const cardIndex = selectedCard.findIndex(card => card.id === itemId)
+    const cardIndex = selectedCard.findIndex(card => card.ingredient_id === itemId)
 
     if (cardIndex !== -1) {
       // If the card is found, remove it from the selectedCard state
@@ -603,7 +604,7 @@ const AddIngredients = props => {
                   ml: 2
                 }}
               >
-                {selectedCard.some(card => card.id === item.id) ? (
+                {selectedCard.some(card => card.ingredient_id === item.id) ? (
                   // Render checkbox icon if card is selected
                   <Box
                     onClick={event => removeSelectedCard(event, item.id)}
