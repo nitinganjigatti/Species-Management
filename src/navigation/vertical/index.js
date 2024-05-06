@@ -285,6 +285,7 @@ const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
+  const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
 
   // console.log('labList', labList)
@@ -300,7 +301,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...pharmacyNav)
   }
 
-  if (labList) {
+  if (labList?.length > 0 || labRole) {
     const labNav = labNavigation()
     navigationArray.push(...labNav)
   }
