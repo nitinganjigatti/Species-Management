@@ -147,6 +147,7 @@ const AddDiet = () => {
   }
   useEffect(() => {
     getUnitsList()
+
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
@@ -368,7 +369,6 @@ const AddDiet = () => {
           <StepBasicDetails
             handleNext={handleNext}
             formData={formData}
-            //onChange={handleBasicDetailsChange}
             updateFormData={updateFormData}
             uomList={uomList}
             setSelectedCardRecipe={handleSelectedCardChange}

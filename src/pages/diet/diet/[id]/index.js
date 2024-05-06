@@ -258,12 +258,15 @@ const DietDetail = () => {
                                   {dietDetails?.day_wise_data?.map(itemd => {
                                     const startTimes = itemd?.meal_from_time
                                     const endTimes = itemd?.meal_to_time
+
                                     const itemData1 = itemd?.meal_types?.ingredient?.length
                                       ? itemd.meal_types.ingredient.map(item => ({ ...item, ingredient: true }))
                                       : []
+
                                     const itemData2 = itemd?.meal_types?.recipe?.length
                                       ? itemd.meal_types.recipe.map(item => ({ ...item, recipe: true }))
                                       : []
+
                                     const itemData3 = itemd?.meal_types?.ingredientwithchoice?.length
                                       ? itemd?.meal_types?.ingredientwithchoice?.map(item => ({
                                           ...item,
@@ -271,12 +274,14 @@ const DietDetail = () => {
                                         }))
                                       : []
                                     const itemData = [...itemData1, ...itemData2, ...itemData3]
+
                                     return (
                                       <>
                                         {itemData?.length &&
                                           itemData?.map((item, index) => {
                                             let first = startArry.indexOf(itemd.meal_from_time) === -1
                                             startArry = [...startArry, itemd.meal_from_time]
+
                                             return (
                                               <TableRow
                                                 sx={{

@@ -95,6 +95,7 @@ const StepBasicDetails = ({
   const [recipeList, setRecipeList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const router = useRouter()
+
   const recipes = [
     { label: 'No' },
     { label: 'Recipe' },
@@ -102,6 +103,7 @@ const StepBasicDetails = ({
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const ingredients = [
     { label: 'No' },
     { label: 'Ingredient' },
@@ -109,6 +111,7 @@ const StepBasicDetails = ({
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
+
   const {
     reset,
     control,
@@ -254,6 +257,7 @@ const StepBasicDetails = ({
   useEffect(() => {
     if (formData) {
       setUploadedImage(formData.diet_image)
+
       // Flatten the array of arrays into a single array
       const flattenedIngredients = formData.meal_data?.flatMap(all => all.ingredient)
       setAllSelectedValues(flattenedIngredients)
@@ -334,6 +338,7 @@ const StepBasicDetails = ({
     // Update childStateValue with objects having matching valueid
     setChildStateValue(prevState => {
       const newState = prevState.filter(item => item.valueid === val.id)
+
       return newState
     })
   }
@@ -409,6 +414,7 @@ const StepBasicDetails = ({
     console.log(data, 'data')
     console.log(fieldsIngredients, 'raaa')
     window.scrollTo(0, 0)
+
     // Clear any existing errors
     // Object.keys(defaultValues).forEach(field => {
     //   clearErrors(field)
@@ -428,6 +434,7 @@ const StepBasicDetails = ({
             ingredient: finalvalue[index].ingredient
           }
         }
+
         return meal
       })
 
@@ -473,6 +480,7 @@ const StepBasicDetails = ({
   const addIngredientsButton = () => {
     console.log(childStateValue, 'childStateValue')
     console.log(finalvalue, 'finalvalue')
+
     return (
       <>
         <Grid
@@ -494,6 +502,7 @@ const StepBasicDetails = ({
               meal_from_time: '',
               meal_to_time: '',
               notes: ''
+
               //ingredient: finalvalue.map(all => all.ingredient)
             })
           }}
@@ -519,6 +528,7 @@ const StepBasicDetails = ({
 
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '20px' }}
@@ -616,6 +626,7 @@ const StepBasicDetails = ({
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -657,6 +668,7 @@ const StepBasicDetails = ({
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => {
                     console.log(value, 'value')
+
                     return (
                       <Autocomplete
                         value={uomList.find(option => option.id === value) || null}
@@ -1301,6 +1313,7 @@ const StepBasicDetails = ({
           setAllIngredientchoiceSelectedValues={setAllIngredientchoiceSelectedValues}
           formData={formData}
           childIngredeintchoiceStateValue={childIngredeintchoiceStateValue}
+          setOpenIngredientchoice={setOpenIngredientchoice}
         />
         <AddIngredients
           open={openIngredient}
