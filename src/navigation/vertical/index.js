@@ -300,11 +300,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...pharmacyNav)
   }
 
-  // if (labList) {
-  // const labNav = labNavigation()
-  // navigationArray.push(...labNav)
-
-  // }
+  if (labList) {
+    const labNav = labNavigation()
+    navigationArray.push(...labNav)
+  }
 
   return navigationArray
 }
