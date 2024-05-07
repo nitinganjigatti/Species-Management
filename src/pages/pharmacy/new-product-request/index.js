@@ -43,10 +43,6 @@ export default function NewProductList() {
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
-  // const handlePopup = () => {
-  //   setStatusCall(prev => !prev)
-  // }
-
   const handleRequestStatus = async (status, id, productDetails) => {
     const payload = {
       status: status,
@@ -70,27 +66,40 @@ export default function NewProductList() {
   const columns = [
     {
       flex: 0.2,
-      Width: 20,
+      Width: 10,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
           {console.log('params>>>>>', params)}
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
             {params?.row?.request_number}
           </Typography>
         </div>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
+      Width: 20,
+      field: 'from_store_name',
+      headerName: 'From Store',
+      renderCell: (params, rowId) => (
+        <div>
+          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+            {params?.row?.from_store_name}
+          </Typography>
+        </div>
+      )
+    },
+    {
+      flex: 0.3,
       Width: 20,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -104,31 +113,33 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.priority}
         </Typography>
       )
     },
-    {
+    selectedPharmacy?.type === 'central' && {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_by',
-      headerName: 'Requested By User',
+      headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.requested_user_name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
       minWidth: 20,
       field: 'quantity',
       headerName: 'Quantity',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary' }}>
+            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
               {item?.quantity}
             </Typography>
           ))}
@@ -137,23 +148,23 @@ export default function NewProductList() {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'created_at',
-      headerName: 'Created DateTime',
+      headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
           {params?.row?.status}
         </Typography>
       )
@@ -275,9 +286,10 @@ export default function NewProductList() {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <Card sx={{ cursor: 'pointer' }}>
             <CardHeader title='New Product Request List' action={headerAction} />
             <DataGrid
+              sx={{ cursor: 'pointer' }}
               columnVisibilityModel={{
                 id: false
               }}
@@ -352,7 +364,11 @@ export default function NewProductList() {
                         productDetails={productDetails}
                       />
                     }
-                    close={() => setShow(false)}
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
                     show={() => setShow(true)}
                   />
                 </Grid>

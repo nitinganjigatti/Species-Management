@@ -23,14 +23,10 @@ if [ $GITHUB_REF_NAME == 'dev-release' ]
 then
   DEPLOY_SERVER=$DEPLOY_SERVER_DEV
   ENV_TO_LOAD='development'
-elif [ $GITHUB_REF_NAME == 'staging-release' ]
+elif [ $GITHUB_REF_NAME == 'uat-release' ]
 then
   DEPLOY_SERVER=$DEPLOY_SERVER_UAT
-  ENV_TO_LOAD='staging'
-# elif [ $GITHUB_REF_NAME == 'release/vantara' ]
-# then
-#   DEPLOY_SERVER=$DEPLOY_SERVER_DEV
-#   ENV_TO_LOAD='vantara-prod'
+  ENV_TO_LOAD='uat'
 elif [ $GITHUB_REF_NAME == 'prod-release' ]
 then
   DEPLOY_SERVER=$DEPLOY_SERVER_PROD

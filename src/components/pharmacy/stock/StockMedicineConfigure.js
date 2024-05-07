@@ -15,7 +15,8 @@ import {
   TextField,
   Box,
   Button,
-  Chip
+  Chip,
+  Divider
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
@@ -36,13 +37,7 @@ import {
 } from 'src/lib/api/pharmacy/getMedicineList'
 import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 
-// const schema = yup.object().shape({
-//   rack_id: yup.string().required('Rack is required'),
-//   store_id: yup.string().required('Store is required'),
-//   shelf_id: yup.string().required('Shelf is required')
-// })
-
-const StockMedicineConfigure = ({ configureMedId, storeId }) => {
+const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   // console.log('configureMedId', configureMedId)
   // console.log('storeId', storeId)
 
@@ -73,7 +68,12 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     showQtyForm === true
       ? (schema = yup.object().shape({
           store_id: yup.string().required('Store is required'),
-          min_qty: yup.string().required('Min qty is required')
+          min_qty: yup
+            .number()
+            .required('Minimum quantity is required')
+            .positive('Minimum quantity must be a positive number')
+            .integer('Minimum quantity must be an integer')
+            .typeError('Minimum quantity must be a number')
         }))
       : (schema = yup.object().shape({
           rack_id: yup.string().required('Rack is required'),
@@ -91,7 +91,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'all',
     reValidateMode: 'onChange'
   })
 
@@ -109,6 +109,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   const getRacksLists = async () => {
     try {
       const response = await getRackList()
+      console.log('racks', response)
       if (response?.length > 0) {
         setRacks(response)
       }
@@ -136,6 +137,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   }, [shouldGetShelf, selectedRacks])
 
   const getShelfFromRacks = id => {
+    console.log('id', id)
+    console.log('selectedRacks', selectedRacks)
+
+    // debugger
     if (selectedRacks.length > 0) {
       const filteredShelf = selectedRacks?.filter(el => el.id === id)
 
@@ -153,13 +158,14 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
       try {
         const payload = { rack_id, store_id, shelf_id }
         const result = await updateMedicineConfig(payload, configureMedId, config_id)
-        if (result.success == true) {
+        if (result?.success == true) {
           // console.log('result', result)
           toast.success(result.data)
           setDeleteRowId('')
           configureMedicine(configureMedId)
 
           reset(defaultValues)
+          close()
         } else {
           toast.error(result.data.config)
         }
@@ -179,6 +185,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
           setDeleteRowId('')
 
           reset(defaultValues)
+          close()
         } else {
           toast.error(result.data.config)
         }
@@ -203,6 +210,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
         configureMedicine(configureMedId)
 
         reset(defaultValues)
+        close()
       } else {
         toast.error(result.data.config)
       }
@@ -218,7 +226,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
     try {
       const result = await getMedicineConfig(id)
 
-      // console.log('Medicine config', result)
+      // debugger
+      console.log('Medicine config', result)
       if (result?.length > 0) {
         const listWithId = result.map((el, i) => ({ ...el, uid: i + 1 }))
         setTableData(listWithId)
@@ -231,12 +240,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
   }
 
   const handleEdit = (store, shelf) => {
-    // console.log('store', store.id)
-    // console.log(' pre selected store id', storeId)
-    // console.log(' pre seleced ', configureMedId)
-    // configureMedId
-    // console.log('shelf', shelf.id)
-    // console.log('shelf all details', shelf)
+    console.log('edit', store)
+    console.log('shelf', shelf)
 
     const valuesObject = {
       store_id: store.store_id,
@@ -244,18 +249,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
       shelf_id: shelf.id,
       config_id: shelf.config_id
     }
-
-    // console.log(' pre selected store id', storeId)
-
-    // console.log('valuesObject', valuesObject)
-
-    // getRackFromStore(store.store_id)
-
-    // if (selectedRacks.length > 0) {
-    // getShelfFromRacks(store.racks[0].id)
-
-    // }
-
     reset(valuesObject)
     getRackFromStore(store.store_id)
   }
@@ -313,7 +306,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
 
   return (
     <>
-      <Grid container sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Grid container spacing={2} alignItems='center'>
         <DialogConfirmation
           handleClose={handleClose}
           action={confirmDeleteAction}
@@ -329,7 +322,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                   <TableCell>Store Name</TableCell>
                   <TableCell>Rack</TableCell>
                   <TableCell>Shelf</TableCell>
-                  <TableCell>Min Qty</TableCell>
+                  <TableCell>Reorder Level</TableCell>
                   <TableCell>Qty in Store</TableCell>
                 </TableRow>
               </TableHead>
@@ -340,6 +333,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     <TableCell>{elm.store_name}</TableCell>
                     <TableCell>{elm.rack}</TableCell>
                     <TableCell>
+                      {console.log('table', elm.racks)}
                       {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
                           <Chip
@@ -348,7 +342,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                             color='primary'
                             sx={{ m: 1 }}
                             onDelete={() => {
-                              // console.log('elssss', elm)
                               handleEdit(elm, el)
                               setQtyForm(false)
                               setDeleteRowId(el.config_id)
@@ -362,6 +355,30 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                           />
                         </>
                       ))}
+                      {/* {elm.racks.map((rack, rackIndex) => (
+                        <div key={rack.id}>
+                          {rack.shelf_configs.map(shelf => (
+                            <Chip
+                              key={shelf.id}
+                              label={shelf.name}
+                              color='primary'
+                              sx={{ m: 1 }}
+                              onDelete={() => {
+                                console.log('onclick', shelf)
+                                handleEdit(elm, shelf)
+                                setQtyForm(false)
+                                setDeleteRowId(shelf.config_id)
+                              }}
+                              onClick={() => {
+                                handleEdit(elm, shelf)
+                                setQtyForm(false)
+                                setDeleteRowId(shelf.config_id)
+                              }}
+                              deleteIcon={<Icon icon='mdi:pencil-outline' />}
+                            />
+                          ))}
+                        </div>
+                      ))} */}
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -385,42 +402,11 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
             </Table>
           </TableContainer>
         ) : null}
-        {showQtyForm === false ? (
-          <Grid item xs={6} sm={12}>
-            <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-              <form autoComplete='off' onSubmit={handleSubmit(addMedicineConfiguration)}>
-                {/* <FormControl fullWidth sx={{ mb: 6 }}>
-                  <InputLabel error={Boolean(errors?.store_id)} id='store_id'>
-                    Store
-                  </InputLabel>
-                  <Controller
-                    name='store_id'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        disabled={true}
-                        name='store_id'
-                        value={value}
-                        label='Store'
-                        onChange={e => {
-                          onChange(e)
-                          getRackFromStore(e.target.value)
-                        }}
-                        error={Boolean(errors?.store_id)}
-                      >
-                        {stores?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors?.store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.store_id?.message}</FormHelperText>
-                  )}
-                </FormControl> */}
+        {/* {showQtyForm === false ? ( */}
+        <Grid xs={12} sm={12} sx={{ display: 'flex', my: 6 }}>
+          <form autoComplete='off' style={{ width: '50%' }} onSubmit={handleSubmit(addMedicineConfiguration)}>
+            <Grid container spacing={2} xs={12} sm={12}>
+              <Grid item xs={12} sm={12}>
                 <FormControl fullWidth sx={{ mb: 6 }}>
                   <InputLabel error={Boolean(errors?.rack_id)} id='rack_id'>
                     Rack
@@ -452,7 +438,9 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.rack_id?.message}</FormHelperText>
                   )}
                 </FormControl>
-                <FormControl fullWidth sx={{ mb: 6 }}>
+              </Grid>
+              <Grid item xs={12} sm={12}>
+                <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.shelf_id)} id='shelf_id'>
                     Shelf
                   </InputLabel>
@@ -467,8 +455,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                         label='Shelf'
                         onChange={e => {
                           onChange(e)
-
-                          // console.log('selected self id', e.target.value)
                         }}
                         error={Boolean(errors?.shelf_id)}
                       >
@@ -484,12 +470,15 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.shelf_id?.message}</FormHelperText>
                   )}
                 </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={12}>
                 {deleteRowId ? (
                   <Button
                     variant='contained'
-                    size='large'
+                    size='medium'
                     color='error'
-                    sx={{ my: 4, mx: 2 }}
+                    sx={{ mx: 2 }}
                     onClick={() => {
                       handleClickOpen()
                     }}
@@ -498,17 +487,26 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                   </Button>
                 ) : null}
 
-                <LoadingButton sx={{ my: 4 }} size='large' variant='contained' type='submit' loading={submitLoader}>
+                <LoadingButton
+                  sx={{ my: 4 }}
+                  size='medium'
+                  variant='contained'
+                  type='submit'
+                  onClick={() => {
+                    setQtyForm(false)
+                  }}
+                  loading={submitLoader}
+                >
                   Configure medicine
                 </LoadingButton>
-              </form>
-            </Box>
-          </Grid>
-        ) : (
-          <Grid item xs={6} sm={12}>
-            <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-              <form autoComplete='off' onSubmit={handleSubmit(addMinQuantity)}>
-                <FormControl fullWidth sx={{ mb: 6 }}>
+              </Grid>
+            </Grid>
+          </form>
+          {/* ) : ( */}
+          <form style={{ width: '50%' }} autoComplete='off' onSubmit={handleSubmit(addMinQuantity)}>
+            <Grid container spacing={2} xs={12} sm={12}>
+              <Grid item xs={12} sm={12}>
+                <FormControl fullWidth>
                   <Controller
                     name='min_qty'
                     control={control}
@@ -516,10 +514,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     render={({ field: { value, onChange } }) => (
                       <TextField
                         type='number'
-                        label='Minimum Qty'
+                        label='Reorder Level'
                         value={value}
                         onChange={onChange}
-                        placeholder='Minimum Qty'
+                        placeholder='Reorder Level'
                         error={Boolean(errors.min_qty)}
                         name='min_qty'
                       />
@@ -529,13 +527,24 @@ const StockMedicineConfigure = ({ configureMedId, storeId }) => {
                     <FormHelperText sx={{ color: 'error.main' }}>{errors.min_qty.message}</FormHelperText>
                   )}
                 </FormControl>
-                <LoadingButton sx={{ my: 4 }} size='large' variant='contained' type='submit' loading={submitLoader}>
+              </Grid>
+              <Grid item xs={12} sm={12}>
+                <LoadingButton
+                  sx={{ my: 4 }}
+                  size='medium'
+                  variant='contained'
+                  type='submit'
+                  onClick={() => {
+                    setQtyForm(true)
+                  }}
+                  loading={submitLoader}
+                >
                   Save
                 </LoadingButton>
-              </form>
-            </Box>
-          </Grid>
-        )}
+              </Grid>
+            </Grid>
+          </form>
+        </Grid>
       </Grid>
     </>
   )

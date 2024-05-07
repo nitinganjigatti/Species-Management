@@ -5,6 +5,7 @@ import { Button } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import { LoadingButton } from '@mui/lab'
 
 function AddButton({ action, title, disabled, styles }) {
   return (
@@ -58,5 +59,19 @@ function RequestCancelButton({ action, title }) {
     </Button>
   )
 }
+function ExcelExportButton({ action, title, loader, disabled }) {
+  return (
+    <LoadingButton
+      disabled={disabled}
+      loading={loader}
+      onClick={action ? action : null}
+      size='large'
+      variant='outlined'
+      startIcon={<Icon icon='vscode-icons:file-type-excel' />}
+    >
+      {title ? title : null}
+    </LoadingButton>
+  )
+}
 
-export { AddButton, BackButton, SwitchButton, RequestCancelButton }
+export { AddButton, BackButton, SwitchButton, RequestCancelButton, ExcelExportButton }

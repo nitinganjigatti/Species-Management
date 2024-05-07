@@ -62,11 +62,20 @@ const schema = yup.object().shape({
     label: yup.string().required('Product Name is required'),
     value: yup.string().required('Product Name is required')
   }),
-  request_item_batch_no: yup.object().shape({
-    label: yup.string().required('Batch no is required'),
-    value: yup.string().required('Batch no is required'),
-    expiry_date: yup.string().required('Batch no is required')
-  }),
+
+  // request_item_batch_no: yup.object().shape({
+  //   label: yup.string().required('Batch no is required'),
+  //   value: yup.string().required('Batch no is required'),
+  //   expiry_date: yup.string().required('Batch no is required')
+  // }),
+  request_item_batch_no: yup
+    .mixed()
+    .required('Batch number is required')
+    .test('is-object-with-properties', 'Batch number is required', value => {
+      return (
+        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+      )
+    }),
   request_item_qty: yup.string().required('Quantity is required'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
@@ -386,6 +395,9 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
               )}
             </FormControl>
+            <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+              {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
+            </Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
@@ -509,11 +521,11 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Typography sx={{ mx: 2 }}>
               {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
             </Typography>
-          </Grid>
+          </Grid> */}
           {quantityError && (
             <Grid item xs={12}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>

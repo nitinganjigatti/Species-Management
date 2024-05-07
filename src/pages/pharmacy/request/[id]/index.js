@@ -32,7 +32,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -83,6 +83,7 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
   const { id, request_number } = router.query
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -92,6 +93,7 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
+      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -332,6 +334,39 @@ const IndividualRequest = () => {
     init(id)
   }
 
+  const renderAttachmentIcons = status => {
+    const hasControlSubstance = status.control_substance === '1'
+    const hasPrescriptionRequired = status.prescription_required === '1'
+
+    return (
+      <>
+        {hasControlSubstance && (
+          <IconButton
+            size='small'
+            onClick={() => {
+              window.open(status.control_substance_file, '_blank')
+            }}
+            aria-label='Control Substance Attachment'
+          >
+            <Icon icon='mdi:link' />
+          </IconButton>
+        )}
+        {hasPrescriptionRequired && (
+          <IconButton
+            size='small'
+            onClick={() => {
+              window.open(status.prescription_required_file, '_blank')
+            }}
+            aria-label='Prescription Attachment'
+          >
+            <Icon icon='mdi:link' />
+          </IconButton>
+        )}
+        {!(hasControlSubstance || hasPrescriptionRequired) && 'NA'}
+      </>
+    )
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -364,10 +399,17 @@ const IndividualRequest = () => {
               textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
             }}
           >
-            {params.row.stock_name}
+            <Tooltip title={params.row.stock_name} placement='top'>
+              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                {params.row.stock_name}
+              </Typography>
+            </Tooltip>
           </Typography>
-          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+          {!isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
+          ) : null}
+          {!isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) == 1 ? (
+            <CustomChip sx={{ mx: 2 }} label='PR' skin='light' color='success' size='small' />
           ) : null}
         </div>
       )
@@ -496,23 +538,37 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
-      renderCell: params =>
-        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <>
-            <IconButton
-              size='small'
-              onClick={() => {
-                window.open(params?.row?.control_substance_file, '_blank')
-              }}
-              aria-label='Attachment'
-            >
-              <Icon icon='mdi:link' />
-            </IconButton>
-          </>
-        ) : (
-          'NA'
-        )
+      renderCell: params => <>{renderAttachmentIcons(params.row)}</>
+
+      // !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+      //   <>
+      //     <IconButton
+      //       size='small'
+      //       onClick={() => {
+      //         window.open(params?.row?.control_substance_file, '_blank')
+      //       }}
+      //       aria-label='Attachment'
+      //     >
+      //       <Icon icon='mdi:link' />
+      //     </IconButton>
+      //   </>
+      // ) : !isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) === 1 ? (
+      //   <>
+      //     <IconButton
+      //       size='small'
+      //       onClick={() => {
+      //         window.open(params?.row?.prescription_required_file, '_blank')
+      //       }}
+      //       aria-label='Attachment'
+      //     >
+      //       <Icon icon='mdi:link' />
+      //     </IconButton>
+      //   </>
+      // ) : (
+      //   'NA'
+      // )
     },
+
     {
       flex: 0.3,
       minWidth: 20,
@@ -613,9 +669,14 @@ const IndividualRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             <div>{params.row.medicin_name}</div>
-          </Typography>
+          </Typography> */}
         </div>
       )
     },
@@ -638,7 +699,9 @@ const IndividualRequest = () => {
       headerName: 'Expiry Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -740,10 +803,21 @@ const IndividualRequest = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'person_shipping',
-      headerName: 'Person Shipping',
+      headerName: 'Driver Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'phone_number',
+      headerName: 'Driver Number',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.phone_number ? params.row.phone_number : 'NA'}
         </Typography>
       )
     },
@@ -824,7 +898,7 @@ const IndividualRequest = () => {
   //     flex: 0.2,
   //     Width: 40,
   //     field: 'person_shipping',
-  //     headerName: 'Person shipping',
+  //     headerName: 'Driver Name',
   //     renderCell: (params, rowId) => (
   //       <div>
   //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -1039,7 +1113,9 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/request/request-list/')
+                        Router.push({
+                          pathname: '/pharmacy/request/request-list/'
+                        })
                       }}
                       icon='ep:back'
                     />
@@ -1063,7 +1139,6 @@ const IndividualRequest = () => {
                     )
                   }
                 />
-
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
