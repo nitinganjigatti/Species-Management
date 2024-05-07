@@ -152,14 +152,14 @@ const IngredientsList = () => {
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
+      {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Pop
-      </Button>
+      </Button> */}
 
-      <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
+      {/* <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
         &nbsp; Test Button
-      </Button>
+      </Button> */}
     </div>
   )
 

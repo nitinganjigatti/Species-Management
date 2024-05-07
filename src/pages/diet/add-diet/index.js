@@ -41,6 +41,7 @@ const AddDiet = () => {
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
+
   const [formData, setFormData] = useState({
     diet_name: '',
     diet_type: '',
@@ -186,6 +187,7 @@ const AddDiet = () => {
   }
   useEffect(() => {
     getUnitsList()
+
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
@@ -403,7 +405,6 @@ const AddDiet = () => {
           <StepBasicDetails
             handleNext={handleNext}
             formData={formData}
-            //onChange={handleBasicDetailsChange}
             updateFormData={updateFormData}
             uomList={uomList}
             setSelectedCard={handleSelectedCardChange}
