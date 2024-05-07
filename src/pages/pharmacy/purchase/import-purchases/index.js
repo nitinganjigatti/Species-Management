@@ -129,10 +129,6 @@ const ImportPurchase = () => {
     console.log('params', params.upload_file[0])
     var result
 
-    // const file = upload_file[0]
-    // const payload = { file, is_confirm }
-    // console.log('payload', formData)
-
     try {
       if (uploadedFileData?.purchaseDetails.length > 0) {
         const formData = new FormData()
