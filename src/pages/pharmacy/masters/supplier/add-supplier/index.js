@@ -149,7 +149,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const getStatesList = async () => {
     try {
       setLoader(true)
-      const response = await getStates({ params: {} })
+      const response = await getStates({ params: { sort: 'asc', column: 'name' } })
       debugger
       console.log(response)
       if (response?.data?.list_items?.length > 0) {
