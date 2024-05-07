@@ -79,10 +79,12 @@ function Dispense() {
       flex: 0.2,
       minWidth: 20,
       field: 'animal_count',
+      type: 'number',
+      align: 'right',
       headerName: 'Animal Count',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.animal_count}
+          {params.row.animal_count ? params.row.animal_count : 0}
         </Typography>
       )
     }

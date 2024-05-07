@@ -15,7 +15,8 @@ import {
   IconButton,
   CircularProgress,
   CardContent,
-  CardHeader
+  CardHeader,
+  Tooltip
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -534,9 +535,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.stock_name}
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.stock_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -568,9 +574,19 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       field: 'from_store_name',
       headerName: selectedPharmacy?.type === 'local' ? 'Shipped To' : 'Shipped From',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
-        </Typography>
+        // <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        //   {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+        // </Typography>
+        <div>
+          <Tooltip
+            title={selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {selectedPharmacy?.type === 'local' ? params.row.to_store_name : params.row.from_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
     // {
@@ -867,30 +883,147 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     params?.row?.dispute_status === undefined ||
                     params?.row?.dispute_status === 'Dispute Pending') ? (
                     <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <FormControl fullWidth size='small'>
-                        <Select
-                          // disabled={getDisableStatus(params.row.id)}
-                          fullWidth
-                          placeholder='Status'
-                          name='status'
-                          size='small'
-                          error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
-                          value={params?.row?.status}
-                          onChange={event => handleStatusChange(params.row.id, event)}
-                        >
-                          {statusOptions?.map((item, index) => (
-                            <MenuItem key={index} value={item?.label}>
-                              {item?.label === 'Broken' || item?.label === 'Expired'
-                                ? `Received (${item?.label})`
-                                : item?.label === 'Missing'
-                                ? `Dispute (${item?.label})`
-                                : item?.label === 'Wrong Count'
-                                ? `Dispute (Wrong Qty)`
-                                : item?.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      {/* in dispute wrong count case after denied */}
+                      {params?.row?.status === 'Wrong Count - Deny Closed' ? (
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FormControl size='small' style={{ width: '100%' }}>
+                              <Select
+                                label=''
+                                // disabled={getDisableStatus(params.row.id)}
+                                name='wrong_count_type'
+                                size='small'
+                                style={{ fontSize: '12px' }}
+                                value={params?.row?.wrong_count_type}
+                                error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
+                                onChange={event => handleStatusChange(params.row.id, event)}
+                              >
+                                <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                                  Shortage
+                                </MenuItem>
+                                <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                                  Excess
+                                </MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid
+                            item
+                            xs={5}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                          >
+                            <TextField
+                              // disabled={getDisableStatus(params.row.id)}
+                              id='outlined-size-small'
+                              name='wrong_count_number'
+                              value={params?.row?.wrong_count_number}
+                              error={Boolean(
+                                params?.row?.wrong_count_number === '' ||
+                                  parseInt(params.row.wrong_count_number, 10) < 0
+                              )}
+                              size='small'
+                              onChange={event => {
+                                handleStatusChange(params.row.id, event)
+
+                                const inputValue = event.target.value
+                                const countValue = Number(params?.row?.count)
+                                const inputValueNumber = Number(inputValue)
+
+                                if (inputValue.trim() === '') {
+                                  setWrongCountErr(prevErrors => ({
+                                    ...prevErrors,
+                                    [params.row.uid]: 'This field is required'
+                                  }))
+                                } else if (inputValueNumber <= 0) {
+                                  setWrongCountErr(prevErrors => ({
+                                    ...prevErrors,
+                                    [params.row.uid]: 'Number must be positive'
+                                  }))
+                                } else if (
+                                  params?.row?.wrong_count_type === 'shortage' &&
+                                  inputValueNumber > countValue
+                                ) {
+                                  setWrongCountErr(prevErrors => ({
+                                    ...prevErrors,
+                                    [params.row.uid]: 'Qty exceeds shipped count.'
+                                  }))
+                                } else {
+                                  setWrongCountErr(prevErrors => {
+                                    const newErrors = { ...prevErrors }
+                                    delete newErrors[params.row.uid]
+
+                                    return newErrors
+                                  })
+                                }
+                              }}
+                              inputProps={{ style: { fontSize: 12 } }}
+                            />
+                          </Grid>
+                          <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Button
+                              sx={{ width: 2, maxWidth: 2 }}
+                              // disabled={disableButton()}
+                              onClick={event => {
+                                clearStatus(params.row.id, event)
+                                setWrongCountErr(prevErrors => {
+                                  const newErrors = { ...prevErrors }
+                                  delete newErrors[params.row.uid]
+
+                                  return newErrors
+                                })
+                              }}
+                            >
+                              <Icon
+                                // type='button'
+                                // disabled={disableButton()}
+                                // onClick={event => {
+                                //   clearStatus(params.row.id, event)
+                                // }}
+                                icon='material-symbols-light:close'
+                              />
+                            </Button>
+                          </Grid>
+                          {wrongCountErr[params.row.uid] && (
+                            <FormHelperText sx={{ mx: 4 }} error>
+                              {wrongCountErr[params.row.uid]}
+                            </FormHelperText>
+                          )}
+                        </Grid>
+                      ) : (
+                        <FormControl fullWidth size='small'>
+                          <Select
+                            // disabled={getDisableStatus(params.row.id)}
+                            fullWidth
+                            placeholder='Status'
+                            name='status'
+                            size='small'
+                            error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
+                            // value={params?.row?.status}
+                            value={
+                              params?.row?.status === 'Wrong Count - Deny Closed' &&
+                              params?.row?.dispute_status === 'Dispute Pending'
+                                ? 'Wrong Count'
+                                : params?.row?.status === 'Missing - Deny Closed' &&
+                                  params?.row?.dispute_status === 'Dispute Pending'
+                                ? 'Missing'
+                                : params?.row?.status
+                            }
+                            onChange={event => handleStatusChange(params.row.id, event)}
+                          >
+                            {statusOptions?.map((item, index) => (
+                              <MenuItem key={index} value={item?.label}>
+                                {item?.label === 'Broken' || item?.label === 'Expired'
+                                  ? `Received (${item?.label})`
+                                  : item?.label === 'Missing'
+                                  ? `Dispute (${item?.label})`
+                                  : item?.label === 'Wrong Count'
+                                  ? `Dispute (Wrong Qty)`
+                                  : item?.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
                       {params.row.status === 'Wrong Count - Deny Closed' ||
                       params?.row?.status === 'Missing - Deny Closed' ||
                       params?.row?.status === 'Missing - Deny Open' ||

@@ -2,7 +2,7 @@
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
-import { Grid } from '@mui/material'
+import { Grid, Tooltip } from '@mui/material'
 
 // ** MUI Imports
 
@@ -60,9 +60,14 @@ function DisputeItemView({ disputeId }) {
       headerName: 'Medicine Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             <div>{params.row.stock_name}</div>
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.stock_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -74,9 +79,14 @@ function DisputeItemView({ disputeId }) {
       headerName: 'From store',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             <div>{params.row.from_store_name}</div>
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.from_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.from_store_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -87,9 +97,16 @@ function DisputeItemView({ disputeId }) {
       field: 'to_store_name',
       headerName: 'To store ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
+        // <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        //   {params.row.to_store_name}
+        // </Typography>
+        <div>
+          <Tooltip title={params.row.to_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.to_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
 

@@ -3,7 +3,16 @@ import DatePicker from 'react-datepicker'
 
 // ** MUI Imports
 
-import { Grid, Radio, TextField, CardContent, FormControl, FormHelperText, FormControlLabel } from '@mui/material'
+import {
+  Grid,
+  Radio,
+  TextField,
+  CardContent,
+  FormControl,
+  FormHelperText,
+  FormControlLabel,
+  Tooltip
+} from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -56,7 +65,10 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
   const schema = deliveryType.Ship
     ? yup.object().shape({
-        person_shipping: yup.string().required('Person Shipping Info is required'),
+        person_shipping: yup
+          .string()
+          .min(3, 'Person Shipping Info must be at least 3 characters')
+          .required('Person Shipping Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
 
         // vehicle_no: yup.string().required('Vehicle Number is required'),
@@ -68,7 +80,10 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           })
       })
     : yup.object().shape({
-        receiver_name: yup.string().required('Person Receiving  Info is required'),
+        receiver_name: yup
+          .string()
+          .min(3, 'Person Receiving Info must be at least 3 characters')
+          .required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
         phone_number: yup
           .number()
@@ -194,9 +209,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.medicin_name}
-          </Typography>
+          </Typography> */}
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -206,9 +226,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       field: 'from_store_name',
       headerName: 'Shipped from ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store_name}
-        </Typography>
+        <div>
+          <Tooltip title={params.row.from_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.from_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
 
@@ -218,9 +242,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       field: 'to_store_name',
       headerName: 'Shipped to',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store_name}
-        </Typography>
+        <div>
+          <Tooltip title={params.row.to_store_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.to_store_name}
+            </Typography>
+          </Tooltip>
+        </div>
       )
     },
     {

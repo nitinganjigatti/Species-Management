@@ -143,6 +143,7 @@ const AddRequestForm = () => {
     setShow(false)
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
+    setItemErrors({})
   }
 
   const showDialog = () => {
@@ -410,10 +411,11 @@ const AddRequestForm = () => {
 
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
+        debugger
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
-            label: item.name,
+            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label})`,
             control_substance: item.controlled_substance === '1' ? true : false,
 
             prescription_required: item.prescription_required === '1' ? true : false
@@ -614,142 +616,129 @@ const AddRequestForm = () => {
   // data posting section
   const createForm = () => {
     return (
-      <CardContent>
-        <form
-        // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-        >
-          <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  forcePopupIcon={false}
-                  inputProps={{ tabIndex: '6' }}
-                  disablePortal
-                  id='autocomplete-controlled'
-                  options={optionsMedicineList}
-                  value={nestedRowMedicine.medicine_name}
-                  onChange={(event, newValue) => {
-                    setNestedRowMedicine({
-                      ...nestedRowMedicine,
-                      medicine_name: newValue?.label,
-                      request_item_medicine_id: newValue?.value,
-                      control_substance: newValue?.control_substance,
-                      prescription_required: newValue?.prescription_required
-                    })
-                    setDuplicateMedError('')
-                    setItemErrors({})
-                  }}
-                  onKeyUp={e => {
-                    searchMedicineData(e.target.value)
-                    setItemErrors({})
-                  }}
-                  onBlur={() => {
-                    fetchMedicineData('')
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      placeholder='Search & Select'
-                      label='Product Name*'
-                      error={Boolean(itemErrors.medicine_name)}
-                    />
-                  )}
-                />
-                {itemErrors.medicine_name && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-                {duplicateMedError && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {duplicateMedError}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='number'
-                  value={nestedRowMedicine.request_item_qty}
-                  error={Boolean(itemErrors.request_item_qty)}
-                  label='Quantity*'
-                  onChange={event => {
-                    setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
-                    setItemErrors({})
-                  }}
-                />
-                {itemErrors?.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {/* This field is required */}
-                    {itemErrors?.request_item_qty}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography>Priority</Typography>
-              <RadioGroup
-                row
-                aria-label='controlled'
-                name='controlled'
-                value={nestedRowMedicine?.priority_item}
-                onChange={event => {
-                  setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+      // <CardContent>
+      <form
+      // addItemsToTable={addMultipleMedicine(addItemsToTable)}
+      >
+        <Grid container spacing={5}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Autocomplete
+                forcePopupIcon={false}
+                inputProps={{ tabIndex: '6' }}
+                disablePortal
+                id='autocomplete-controlled'
+                options={optionsMedicineList}
+                value={nestedRowMedicine.medicine_name}
+                onChange={(event, newValue) => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    medicine_name: newValue?.label,
+                    request_item_medicine_id: newValue?.value,
+                    control_substance: newValue?.control_substance,
+                    prescription_required: newValue?.prescription_required
+                  })
+                  setDuplicateMedError('')
+                  setItemErrors({})
                 }}
-              >
-                <FormControlLabel value='high' control={<Radio />} label='High' />
-                <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
-              </RadioGroup>
-            </Grid>
+                onKeyUp={e => {
+                  searchMedicineData(e.target.value)
+                  setItemErrors({})
+                }}
+                onBlur={() => {
+                  fetchMedicineData('')
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder='Search & Select'
+                    label='Product Name*'
+                    error={Boolean(itemErrors.medicine_name)}
+                  />
+                )}
+              />
+              {itemErrors.medicine_name && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+              {duplicateMedError && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {duplicateMedError}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
 
-            {/* // file uploader */}
-            {nestedRowMedicine.control_substance === true ? (
-              nestedRowMedicine.control_substance_file ? (
-                <Grid item xs={12} sm={6}>
-                  {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <TextField
+                type='number'
+                value={nestedRowMedicine.request_item_qty}
+                error={Boolean(itemErrors.request_item_qty)}
+                label='Quantity*'
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
+                  setItemErrors({})
+                }}
+              />
+              {itemErrors?.request_item_qty && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {/* This field is required */}
+                  {itemErrors?.request_item_qty}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <Typography>Priority</Typography>
+            <RadioGroup
+              row
+              aria-label='controlled'
+              name='controlled'
+              value={nestedRowMedicine?.priority_item}
+              onChange={event => {
+                setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
+              }}
+            >
+              <FormControlLabel value='high' control={<Radio />} label='High' />
+              <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
+            </RadioGroup>
+          </Grid>
+
+          {/* // file uploader */}
+          {nestedRowMedicine.control_substance === true ? (
+            nestedRowMedicine.control_substance_file ? (
+              <Grid item xs={12} sm={6}>
+                {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
+                  <Chip
+                    label={nestedRowMedicine.control_substance_file?.name}
+                    color='secondary'
+                    onDelete={() => {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+                        // control_substance: false,
+                        control_substance_file: ''
+                      })
+                    }}
+                    deleteIcon={<Icon icon='mdi:delete-outline' />}
+                  />
+                ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
+                  nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
+                  <>
                     <Chip
                       label={nestedRowMedicine.control_substance_file?.name}
-                      color='secondary'
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          // control_substance: false,
-                          control_substance_file: ''
-                        })
-                      }}
-                      deleteIcon={<Icon icon='mdi:delete-outline' />}
-                    />
-                  ) : nestedRowMedicine.control_substance_file?.type === 'image/png' ||
-                    nestedRowMedicine.control_substance_file?.type === 'image/jpeg' ? (
-                    <>
-                      <Chip
-                        label={nestedRowMedicine.control_substance_file?.name}
-                        avatar={
-                          <Avatar
-                            alt={nestedRowMedicine.control_substance_file?.name}
-                            src={
-                              nestedRowMedicine.control_substance_file
-                                ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
-                                : ''
-                            }
-                          />
-                        }
-                        onDelete={() => {
-                          setNestedRowMedicine({
-                            ...nestedRowMedicine,
-                            // control_substance: false,
-                            control_substance_file: ''
-                          })
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <Chip
-                      label={nestedRowMedicine.control_substance_file}
-                      avatar={<Avatar alt='image' src={nestedRowMedicine?.control_substance_file} />}
+                      avatar={
+                        <Avatar
+                          alt={nestedRowMedicine.control_substance_file?.name}
+                          src={
+                            nestedRowMedicine.control_substance_file
+                              ? URL.createObjectURL(nestedRowMedicine.control_substance_file)
+                              : ''
+                          }
+                        />
+                      }
                       onDelete={() => {
                         setNestedRowMedicine({
                           ...nestedRowMedicine,
@@ -758,184 +747,174 @@ const AddRequestForm = () => {
                         })
                       }}
                     />
-                  )}
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='file'
-                      accept='.pdf, .jpeg, .jpg, .png'
-                      error={Boolean(itemErrors.control_substance_file)}
-                      // label='Attach prescription'
-                      onChange={e => {
-                        // const file = e.target.files[0]
-                        // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
-                        // setItemErrors({})
-                        const file = e.target.files[0]
-                        if (!file) return
-                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
-                        if (allowedTypes.includes(file.type)) {
-                          setNestedRowMedicine(prevState => ({
-                            ...prevState,
-                            control_substance_file: file
-                          }))
-                          setItemErrors({})
-                        } else {
-                          setItemErrors({
-                            control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
-                          })
-                          e.target.value = ''
-                        }
-                      }}
-                    />
-                    {itemErrors?.control_substance_file && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        {itemErrors?.control_substance_file}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              )
-            ) : null}
-            {nestedRowMedicine.prescription_required === true ? (
-              nestedRowMedicine.prescription_required_file ? (
-                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
-                  {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
-                    <Chip
-                      label={nestedRowMedicine.prescription_required_file?.name}
-                      color='secondary'
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          // control_substance: false,
-                          prescription_required_file: ''
-                        })
-                      }}
-                      deleteIcon={<Icon icon='mdi:delete-outline' />}
-                    />
-                  ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
-                    nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
-                    <>
-                      <Chip
-                        label={nestedRowMedicine.prescription_required_file?.name}
-                        avatar={
-                          <Avatar
-                            alt={nestedRowMedicine.prescription_required_file?.name}
-                            src={
-                              nestedRowMedicine.prescription_required_file
-                                ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
-                                : ''
-                            }
-                          />
-                        }
-                        onDelete={() => {
-                          setNestedRowMedicine({
-                            ...nestedRowMedicine,
-                            // control_substance: false,
-                            prescription_required_file: ''
-                          })
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <Chip
-                      label={nestedRowMedicine.prescription_required_file}
-                      avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
-                      onDelete={() => {
-                        setNestedRowMedicine({
-                          ...nestedRowMedicine,
-                          // control_substance: false,
-                          prescription_required_file: ''
-                        })
-                      }}
-                    />
-                  )}
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
-                  <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
-                  <FormControl fullWidth>
-                    <TextField
-                      type='file'
-                      accept='.pdf, .jpeg, .jpg, .png'
-                      error={Boolean(itemErrors.prescription_required_file)}
-                      // label='Attach prescription'
-                      onChange={e => {
-                        // const file = e.target.files[0]
-                        // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
-                        // setItemErrors({})
-                        const file = e.target.files[0]
-                        if (!file) return
-                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
-                        if (allowedTypes.includes(file.type)) {
-                          setNestedRowMedicine(prevState => ({
-                            ...prevState,
-                            prescription_required_file: file
-                          }))
-                          setItemErrors({})
-                        } else {
-                          setItemErrors({
-                            prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
-                          })
-                          e.target.value = ''
-                        }
-                      }}
-                    />
-                    {itemErrors?.prescription_required_file && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        {itemErrors?.prescription_required_file}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              )
-            ) : null}
-
-            {/* // file uploader */}
-
-            {/* <Grid item xs={12}> */}
-            <Grid item xs={12}>
-              <Box sx={{ float: 'right' }}>
-                {medicineItemId ? (
-                  <>
-                    <Button
-                      sx={{ mr: 2 }}
-                      onClick={() => {
-                        updateFormItems()
-                        // closeDialog()
-                        // submitItems()
-                      }}
-                      size='large'
-                      variant='contained'
-                    >
-                      update
-                    </Button>
-                    {/* <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
-                    >
-                      Done
-                    </Button> */}
                   </>
                 ) : (
+                  <Chip
+                    label={nestedRowMedicine.control_substance_file}
+                    avatar={<Avatar alt='image' src={nestedRowMedicine?.control_substance_file} />}
+                    onDelete={() => {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+                        // control_substance: false,
+                        control_substance_file: ''
+                      })
+                    }}
+                  />
+                )}
+              </Grid>
+            ) : (
+              <Grid item xs={12} sm={6}>
+                <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    type='file'
+                    accept='.pdf, .jpeg, .jpg, .png'
+                    error={Boolean(itemErrors.control_substance_file)}
+                    // label='Attach prescription'
+                    onChange={e => {
+                      // const file = e.target.files[0]
+                      // setNestedRowMedicine({ ...nestedRowMedicine, control_substance_file: file })
+                      // setItemErrors({})
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                      if (allowedTypes.includes(file.type)) {
+                        setNestedRowMedicine(prevState => ({
+                          ...prevState,
+                          control_substance_file: file
+                        }))
+                        setItemErrors({})
+                      } else {
+                        setItemErrors({
+                          control_substance_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                        })
+                        e.target.value = ''
+                      }
+                    }}
+                  />
+                  {itemErrors?.control_substance_file && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      {itemErrors?.control_substance_file}
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            )
+          ) : null}
+          {nestedRowMedicine.prescription_required === true ? (
+            nestedRowMedicine.prescription_required_file ? (
+              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
+                  <Chip
+                    label={nestedRowMedicine.prescription_required_file?.name}
+                    color='secondary'
+                    onDelete={() => {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+                        // control_substance: false,
+                        prescription_required_file: ''
+                      })
+                    }}
+                    deleteIcon={<Icon icon='mdi:delete-outline' />}
+                  />
+                ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
+                  nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
-                    <Button
-                      sx={{ mr: 2 }}
-                      onClick={() => {
-                        // updateFormItems()
-                        submitItems()
+                    <Chip
+                      label={nestedRowMedicine.prescription_required_file?.name}
+                      avatar={
+                        <Avatar
+                          alt={nestedRowMedicine.prescription_required_file?.name}
+                          src={
+                            nestedRowMedicine.prescription_required_file
+                              ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                              : ''
+                          }
+                        />
+                      }
+                      onDelete={() => {
+                        setNestedRowMedicine({
+                          ...nestedRowMedicine,
+                          // control_substance: false,
+                          prescription_required_file: ''
+                        })
                       }}
-                      size='large'
-                      variant='contained'
-                    >
-                      Add
-                    </Button>
-                    {/* <Button
+                    />
+                  </>
+                ) : (
+                  <Chip
+                    label={nestedRowMedicine.prescription_required_file}
+                    avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
+                    onDelete={() => {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+                        // control_substance: false,
+                        prescription_required_file: ''
+                      })
+                    }}
+                  />
+                )}
+              </Grid>
+            ) : (
+              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+                <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+                <FormControl fullWidth>
+                  <TextField
+                    type='file'
+                    accept='.pdf, .jpeg, .jpg, .png'
+                    error={Boolean(itemErrors.prescription_required_file)}
+                    // label='Attach prescription'
+                    onChange={e => {
+                      // const file = e.target.files[0]
+                      // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
+                      // setItemErrors({})
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                      if (allowedTypes.includes(file.type)) {
+                        setNestedRowMedicine(prevState => ({
+                          ...prevState,
+                          prescription_required_file: file
+                        }))
+                        setItemErrors({})
+                      } else {
+                        setItemErrors({
+                          prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                        })
+                        e.target.value = ''
+                      }
+                    }}
+                  />
+                  {itemErrors?.prescription_required_file && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      {itemErrors?.prescription_required_file}
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            )
+          ) : null}
+
+          {/* // file uploader */}
+
+          {/* <Grid item xs={12}> */}
+          <Grid item xs={12}>
+            <Box sx={{ float: 'right' }}>
+              {medicineItemId ? (
+                <>
+                  <Button
+                    sx={{ mr: 2 }}
+                    onClick={() => {
+                      updateFormItems()
+                      // closeDialog()
+                      // submitItems()
+                    }}
+                    size='large'
+                    variant='contained'
+                  >
+                    update
+                  </Button>
+                  {/* <Button
                       onClick={() => {
                         closeDialog()
                       }}
@@ -944,13 +923,36 @@ const AddRequestForm = () => {
                     >
                       Done
                     </Button> */}
-                  </>
-                )}
-              </Box>
-            </Grid>
+                </>
+              ) : (
+                <>
+                  <Button
+                    sx={{ mr: 2 }}
+                    onClick={() => {
+                      // updateFormItems()
+                      submitItems()
+                    }}
+                    size='large'
+                    variant='contained'
+                  >
+                    Add
+                  </Button>
+                  {/* <Button
+                      onClick={() => {
+                        closeDialog()
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Done
+                    </Button> */}
+                </>
+              )}
+            </Box>
           </Grid>
-        </form>
-      </CardContent>
+        </Grid>
+      </form>
+      // </CardContent>
     )
   }
 

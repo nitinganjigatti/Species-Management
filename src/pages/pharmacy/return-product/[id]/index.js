@@ -23,7 +23,7 @@ import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader } from '@mui/material'
+import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -316,9 +316,12 @@ const IndividualReturnRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.stock_name}
-          </Typography>
+          <Tooltip title={params.row.stock_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          </Tooltip>
+
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
           ) : null}
@@ -439,9 +442,11 @@ const IndividualReturnRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.medicin_name}</div>
-          </Typography>
+          <Tooltip title={params?.row?.medicin_name} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.medicin_name}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -553,6 +558,17 @@ const IndividualReturnRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'phone_number',
+      headerName: 'Driver Number',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.phone_number ? params.row.phone_number : 'NA'}
         </Typography>
       )
     },

@@ -180,7 +180,7 @@ const AddStates = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Code*'
+                  label='State Code*'
                   type='number'
                   value={value}
                   onChange={onChange}

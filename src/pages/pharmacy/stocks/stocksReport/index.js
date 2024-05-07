@@ -41,6 +41,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ExpiredMedicine from '../expired-medicine'
 import Escrow from '../escrow'
+import { Avatar, Badge } from '@mui/material'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -311,11 +312,45 @@ const ListOfStocks = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'image',
+      headerName: 'IMAGE',
+      renderCell: params => (
+        <Badge
+          sx={{ ml: 2, cursor: 'pointer' }}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right'
+          }}
+        >
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{ width: 40, height: 40 }}
+            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+          />
+        </Badge>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
     },
@@ -365,19 +400,19 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'min_qty',
-      headerName: 'Reorder Level',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.min_qty}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'min_qty',
+    //   headerName: 'Reorder Level',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.min_qty}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -512,11 +547,45 @@ const ListOfStocks = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'image',
+      headerName: 'IMAGE',
+      renderCell: params => (
+        <Badge
+          sx={{ ml: 2, cursor: 'pointer' }}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right'
+          }}
+        >
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{ width: 40, height: 40 }}
+            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+          />
+        </Badge>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_items_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
     },
@@ -532,6 +601,7 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -556,28 +626,59 @@ const ListOfStocks = () => {
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
-    }
+    },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //       <IconButton
-    //         size='small'
-    //         sx={{ mr: 0.5 }}
-    //         onClick={() => {
-    //           setConfigureMedId(params.row.stock_item_id)
-    //           showDialog()
-    //         }}
-    //       >
-    //         <Icon icon='grommet-icons:configure' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'rack_info',
+      headerName: 'Rack',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <>
+          {params?.row?.stock_config ? (
+            params?.row?.stock_config?.map(el => {
+              return (
+                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                  {el.rack}
+                </Typography>
+              )
+            })
+          ) : (
+            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+              NA
+            </Typography>
+          )}
+        </>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'stock_config',
+      headerName: 'Shelf',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <>
+          {params?.row?.stock_config ? (
+            params?.row?.stock_config?.map(el => {
+              return (
+                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                  {el.shelf}
+                </Typography>
+              )
+            })
+          ) : (
+            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+              NA
+            </Typography>
+          )}
+        </>
+      )
+    }
   ]
 
   const getStoresLists = async () => {
@@ -694,6 +795,7 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+      console.log('configuremed id', params?.row?.stock_item_id)
       showDialog()
     }
   }
@@ -789,6 +891,9 @@ const ListOfStocks = () => {
                   {changeSwitch ? (
                     <DataGrid
                       autoHeight
+                      columnVisibilityModel={{
+                        uid: false
+                      }}
                       hideFooterSelectedRowCount
                       disableColumnSelector={true}
                       pagination
@@ -816,10 +921,14 @@ const ListOfStocks = () => {
                           }
                         }
                       }}
+                      onRowClick={handleStockRowClick}
                     />
                   ) : (
                     <DataGrid
                       autoHeight
+                      columnVisibilityModel={{
+                        uid: false
+                      }}
                       hideFooterSelectedRowCount
                       disableColumnSelector={true}
                       pagination

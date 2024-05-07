@@ -35,7 +35,11 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
-        tableHeaderBg: '#E8F4F2'
+        tableHeaderBg: '#E8F4F2',
+        secondaryBg: '#7A8684',
+        mdAntzNeutral: '#0000000D',
+        OnSurfaceVariant: '#44544A',
+        neutralSecondary: '##7A8684'
       },
       primary: {
         // light: '#20DE67',
@@ -43,6 +47,10 @@ const UserThemeOptions = () => {
         main: '#37BD69',
         dark: '#006D35',
         contrastText: '#FFF'
+      },
+      formContent: {
+        tertiary: '#FA6140',
+        bg: '#666cff14'
       },
       secondary: {
         light: '#669494',
@@ -79,6 +87,60 @@ const UserThemeOptions = () => {
             '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
               outline: 'none'
             }
+          },
+          cell: {
+            // Your styles for the DataGrid cells...
+            borderBottom: 'none',
+            marginBottom: '5px',
+            paddingLeft: '1.25rem',
+            paddingRight: '1rem',
+            '&:focus': {
+              outline: 'none'
+            }
+          },
+          row: {
+            '&:hover': {
+              backgroundColor: '#F2FFF8'
+            }
+          },
+          columnHeaders: {
+            backgroundColor: '#C1D3D0'
+          }
+
+          // virtualScrollerContent: {
+          //   height: '672px!important'
+          // }
+        }
+      },
+      MuiBackdrop: {
+        styleOverrides: {
+          root: {
+            // backgroundColor: 'rgba(0, 0, 0, 0.5)' // Example background color
+          }
+        }
+      },
+      MuiModal: {
+        styleOverrides: {
+          backdrop: {
+            backgroundColor: '#1f515b99'
+          }
+        }
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: '#EFF5F2'
+          },
+          backdrop: {
+            backgroundColor: '#1f515bb5'
+          }
+        }
+      },
+      MuiButton: {
+        styleOverrides: {
+          outlined: {
+            color: '#38bd69',
+            border: '1px solid #8080806b'
           }
         }
       }

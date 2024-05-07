@@ -24,7 +24,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Tooltip } from '@mui/material'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 
@@ -35,7 +35,7 @@ import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import moment from 'moment'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { useRouter } from 'next/router'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 // Styled TabList component
 
@@ -43,10 +43,6 @@ const RequestList = () => {
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
-
-  const router = useRouter()
-
-  // const { id, request_number, currentPageStatus, currentTotal, currentPage, currentLimit } = router.query
 
   const handleEdit = id => {
     Router.push({
@@ -66,7 +62,7 @@ const RequestList = () => {
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
   const [status, setStatus] = useState('pending')
-  const [filterByStoreId, setFilterByStoreId] = useState('')
+  const [filterByStoreId, setFilterByStoreId] = useState('all')
   const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [selectDays, setSelectDays] = useState('all')
@@ -85,9 +81,10 @@ const RequestList = () => {
     setFilterSwitch(false)
     setFilterByStoreId('')
     setPaginationModel({ page: 0, pageSize: 10 })
-
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
+    setSearchValue('')
+
     setStatus(newValue)
   }
 
@@ -110,7 +107,7 @@ const RequestList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status, startDate, endDate, filterByStoreId) => {
+    async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
       var params = {}
 
       try {
@@ -125,12 +122,12 @@ const RequestList = () => {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
             pending_days_end: endDate ? endDate : filterDates?.endDate,
-            search_store: filterByStoreId
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         } else {
           params = {
@@ -145,8 +142,16 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          console.log('res', res)
+          if (res?.success === true && res?.data.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('requestPageStatus')
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+            remove('requestPageStatus')
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -158,20 +163,39 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    debugger
+    const statusIsThere = read('requestPageStatus')
+    console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      debugger
+      setStatus(statusIsThere?.currentStatus)
+      setFilterSwitch(statusIsThere?.filterSwitch)
 
-    // setStatus(currentPageStatus ? currentPageStatus : status)
-    const currentStatus = filterSwitch ? 'completed' : status
+      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.startDate,
+        statusIsThere.endDate,
+        statusIsThere.filterByStoreId,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      // setStatus(requestPageStatus ? requestPageStatus : status)
+      const currentStatus = filterSwitch ? 'completed' : status
 
-    fetchTableData(
-      sort,
-      searchValue,
-      sortColumn,
-      currentStatus,
-      filterDates.startDate,
-      filterDates.endDate,
-      filterByStoreId
-    )
+      fetchTableData(
+        sort,
+        searchValue,
+        sortColumn,
+        currentStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+    }
   }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -215,14 +239,22 @@ const RequestList = () => {
 
     Router.push({
       pathname: `/pharmacy/request/${data?.id}`
-
-      // query: {
-      //   currentPageStatus: status,
-      //   currentTotal: total,
-      //   currentPage: paginationModel.page + 1,
-      //   currentLimit: paginationModel.pageSize
-      // }
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      filterByStoreId: filterByStoreId,
+      filterSwitch: filterSwitch
+    }
+
+    write('requestPageStatus', currentPageData)
   }
 
   const headerAction = (
@@ -297,7 +329,7 @@ const RequestList = () => {
     }
   }
   useEffect(() => {
-    // setStatus(currentPageStatus ? currentPageStatus : status)
+    // setStatus(requestPageStatus ? requestPageStatus : status)
 
     const currentStatus = filterSwitch ? 'completed' : status
 
@@ -381,7 +413,6 @@ const RequestList = () => {
       headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {params.row.from_store} */}
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
@@ -390,7 +421,7 @@ const RequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'request_date',
-      headerName: 'DATE',
+      headerName: 'Days',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.daysFromToday(params.row.request_date)}
@@ -458,6 +489,7 @@ const RequestList = () => {
                 </Box>
                 {params.row.request_status === 'Received' ||
                 params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Broken' ||
                 params.row.request_status === 'Wrong Count - Accepted' ? (
                   <Box sx={{ color: 'success.main', mr: 2 }}>
                     {/* added for partial shipping */}
@@ -594,6 +626,7 @@ const RequestList = () => {
                         setFilterByStoreId(e.target.value)
                       }}
                     >
+                      <MenuItem value='all'>All</MenuItem>
                       {stores.length > 0
                         ? stores.map(store => {
                             return (

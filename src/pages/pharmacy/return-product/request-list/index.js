@@ -29,6 +29,7 @@ import { Box } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import { write, read, remove } from 'src/lib/windows/utils'
 
 const ReturnRequestList = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -55,28 +56,36 @@ const ReturnRequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
-
+    setSearchValue('')
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status) => {
+    async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
+        debugger
 
         const params = {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          page: page ? page : paginationModel.page + 1,
+          limit: limit ? limit : paginationModel.pageSize,
           status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
 
         await getRequestReturnList({ params: params }).then(res => {
           console.log('response', res)
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          if (res?.success === true && res?.data.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            remove('returnPageStatus')
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+            remove('returnPageStatus')
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -136,9 +145,28 @@ const ReturnRequestList = () => {
     setFilterSwitch(event.target.checked)
   }
   useEffect(() => {
-    const currentStatus = filterSwitch ? 'completed' : status
-    const tabStatus = status === 'all' ? currentStatus : status
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    const statusIsThere = read('returnPageStatus')
+
+    // console.log('requestPageStatus', statusIsThere)
+    if (statusIsThere) {
+      // debugger
+      setStatus(statusIsThere.currentStatus)
+      setFilterSwitch(statusIsThere.filterSwitch)
+      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
+
+      fetchTableData(
+        statusIsThere.sort,
+        statusIsThere.searchValue,
+        statusIsThere.sortColumn,
+        statusIsThere.currentStatus,
+        statusIsThere.page,
+        statusIsThere.limit
+      )
+    } else {
+      const currentStatus = filterSwitch ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, fetchTableData, filterSwitch])
 
@@ -148,6 +176,18 @@ const ReturnRequestList = () => {
     Router.push({
       pathname: `/pharmacy/return-product/${data?.id}`
     })
+
+    const currentPageData = {
+      sort: sort,
+      searchValue: searchValue,
+      sortColumn: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      currentStatus: status,
+      filterSwitch: filterSwitch
+    }
+
+    write('returnPageStatus', currentPageData)
   }
 
   const headerAction = (
