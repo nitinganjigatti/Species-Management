@@ -91,7 +91,6 @@ const Dashboard = () => {
   return (
     <ApexChartWrapper>
       <Grid container spacing={6} className='match-height'>
-        {/* <Grid container spacing={6}> */}
         <Grid item xs={12} md={8}>
           <AnalyticsCongratulations />
         </Grid>
@@ -115,9 +114,7 @@ const Dashboard = () => {
                     modifiedProperties={modifiedProperties}
                   />
                 </Grid>
-                {/* <Grid item xs={1} sm={1}> */}
                 <Divider orientation='vertical' variant='middle' flexItem />
-                {/* </Grid> */}
 
                 <Grid item xs={11 / 2}>
                   <CriticalInfoCards
@@ -129,22 +126,12 @@ const Dashboard = () => {
               </Grid>
             </CardContent>
           </Card>
-
-          {/* <CardStatisticsVertical
-            stats='155k'
-            color='primary'
-            trendNumber='+22%'
-            title='Total Orders'
-            chipText='Last 4 Month'
-            icon={<Icon icon='mdi:cart-plus' />}
-          /> */}
         </Grid>
         <Grid item xs={12} md={12}>
           <TotalListCard
-            data={totalList.filter(el => el.name !== 'expireCount' && el.name !== 'outOfStockCount')}
+            data={totalList?.filter(el => el.name !== 'expireCount' && el.name !== 'outOfStockCount')}
             modifiedProperties={modifiedProperties}
           />
-          {/* <AnalyticsSessions /> */}
         </Grid>
         <Grid item xs={12} md={4}>
           <PendingRequestsChart />
