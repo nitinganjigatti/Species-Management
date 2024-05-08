@@ -17,7 +17,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 import { useRouter } from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import SubTypeDetails from './SubTypeDetails'
+import SubTypeDetails from 'src/views/pages/notes/SubTypeDetails'
 
 
 
