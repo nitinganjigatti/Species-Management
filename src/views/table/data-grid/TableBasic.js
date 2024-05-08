@@ -29,6 +29,9 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
           }}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
           autoHeight
           columns={columns}
           rows={rows}
