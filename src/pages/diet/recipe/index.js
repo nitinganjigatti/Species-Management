@@ -206,7 +206,7 @@ const RecipeList = () => {
             variant='square'
             alt='Recipe Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : null}
+            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>

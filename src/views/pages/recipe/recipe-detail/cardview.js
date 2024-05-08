@@ -80,9 +80,13 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
                 alt='Ingredient Image'
                 sx={{
                   width: '100%',
-                  height: '100%'
+                  height: IngredientsDetailsval.recipe_image ? '100%' : '250px'
                 }}
-                src={IngredientsDetailsval.recipe_image ? IngredientsDetailsval.recipe_image : '/icons/recipedummy.svg'}
+                src={
+                  IngredientsDetailsval.recipe_image
+                    ? IngredientsDetailsval.recipe_image
+                    : '/icons/icon_recipe_fill.png'
+                }
               ></Avatar>
             </div>
           </CardContent>
@@ -178,7 +182,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal: 0 + ' Kcal'}
+                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal : 0 + ' Kcal'}
               </Typography>
             </Box>
           </Box>

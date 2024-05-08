@@ -93,7 +93,7 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
                   height: 70,
                   background: '#fff'
                 }}
-                src={IngredientsDetailsval.image ? IngredientsDetailsval.image : null}
+                src={IngredientsDetailsval.image ? IngredientsDetailsval.image : '/icons/icon_ingredient_fill.png'}
               >
                 {IngredientsDetailsval.image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
               </Avatar>
