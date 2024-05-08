@@ -1,14 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
-import { debounce } from 'lodash'
 
-// ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import CommonDialogBox from 'src/components/CommonDialogBox'
 import {
   Card,
   CardHeader,
@@ -18,7 +12,13 @@ import {
   FormHelperText,
   FormControl,
   TextField,
-  Button
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
@@ -28,65 +28,36 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
+import Paper from '@mui/material/Paper'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { margin } from '@mui/system'
+import { margin, minWidth } from '@mui/system'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 import { useForm, Controller } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/router'
 
 const ImportPurchase = () => {
-  /***** Server side pagination */
   const defaultValues = {
     upload_file: '',
     is_confirm: 0
   }
 
-  // const schema = yup.object().shape({
-  //   upload_file: yup
-  //     .mixed()
-  //     .test('filePresence', 'Excel file is required', value => {
-  //       return value && value.length > 0
-  //     })
-  //     .test('fileType', 'Only Excel files are allowed', value => {
-  //       if (!value) return true // Skip validation if no file is selected
-
-  //       const file = value[0] // Get the first file from the array
-
-  //       return (
-  //         file &&
-  //         ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(
-  //           file.type
-  //         )
-  //       )
-  //     })
-  //     .test('fileCount', 'Only one file is allowed', value => {
-  //       return value && value.length === 1
-  //     })
-  // })
   const schema = yup.object().shape({
     upload_file: yup
       .mixed()
       .required('A file is required')
 
-      // .test('fileType', 'Invalid file type, only Excel (xls, xlsx) and CSV files are allowed', value => {
-      //   if (!value) return true
+      .test('fileType', 'Invalid file type, only CSV files are allowed', value => {
+        if (!value) return true
 
-      //   return (
-      //     value &&
-      //     [
-      //       'application/vnd.ms-excel',
-      //       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      //       'text/csv'
-      //     ].includes(value.type)
-      //   )
-      // })
-      .nullable()
+        return value && value[0]?.type === 'text/csv'
+      })
   })
 
   const {
@@ -109,61 +80,174 @@ const ImportPurchase = () => {
 
   const [loader, setLoader] = useState(false)
 
-  const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
   const [fileUploadErrors, setFileUploadErrors] = useState([])
-  const [uploadedFileData, setUploadedFileData] = useState()
+  const [uploadedFileData, setUploadedFileData] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
   }
+  const formRef = useRef(null)
 
-  const onSubmit = async params => {
-    const { upload_file, is_confirm } = params
-    console.log('params', params.upload_file[0])
-    var result
+  // const onSubmit = async params => {
+  //   const { upload_file, is_confirm } = params
+  //   console.log('params', params.upload_file[0])
+  //   var result
+
+  //   try {
+  //     if (uploadedFileData?.purchaseDetails.length > 0) {
+  //       const formData = new FormData()
+  //       formData.append('upload_file', upload_file[0])
+  //       formData.append('is_confirm', '1')
+  //       result = await uploadPurchaseFile(formData)
+  //     } else {
+  //       const formData = new FormData()
+  //       formData.append('upload_file', upload_file[0])
+  //       formData.append('is_confirm', '0')
+  //       result = await uploadPurchaseFile(formData)
+  //     }
+
+  //     setSubmitLoader(true)
+
+  //     console.log('result of upload', result)
+  //     if (result?.success === false && result?.error?.length > 0) {
+  //       setFileUploadErrors(result?.error)
+  //       setSubmitLoader(false)
+  //     }
+  //     if (result?.success === true && result?.data !== '') {
+  //       result.data.purchaseDetails.forEach((item, index) => {
+  //         item.id = index + 1
+  //       })
+
+  //       // toast.success(response.message)
+  //       setSubmitLoader(false)
+
+  //       console.log('data', result?.data)
+  //       setUploadedFileData(result?.data)
+  //     }
+  //   } catch (error) {
+  //     setSubmitLoader(false)
+
+  //     console.log('error', error)
+  //   }
+  // }
+  // useEffect(() => {
+  const uploadFileData = async () => {
+    const formData = new FormData()
+    formData.append('upload_file', getValues('upload_file')[0])
+    formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
     try {
-      if (uploadedFileData?.purchaseDetails.length > 0) {
-        const formData = new FormData()
-        formData.append('upload_file', upload_file[0])
-        formData.append('is_confirm', '1')
-        result = await uploadPurchaseFile(formData)
-      } else {
-        const formData = new FormData()
-        formData.append('upload_file', upload_file[0])
-        formData.append('is_confirm', '0')
-        result = await uploadPurchaseFile(formData)
-      }
-
+      const result = await uploadPurchaseFile(formData)
       setSubmitLoader(true)
-
-      console.log('result of upload', result)
+      console.log('result', result)
       if (result?.success === false && result?.error?.length > 0) {
         setFileUploadErrors(result?.error)
         setSubmitLoader(false)
+        if (result?.data?.length > 0) {
+          const newData = result?.data?.map((item, index) => ({
+            ...item,
+            id: index + 1
+          }))
+          newData.forEach((dataItem, dataIndex) => {
+            dataItem.id = dataIndex + 1
+            dataItem.purchaseDetails.forEach((purchaseDetail, purchaseDetailIndex) => {
+              purchaseDetail.id = purchaseDetailIndex + 1
+            })
+          })
+          console.log('newData', newData)
+          setUploadedFileData(newData)
+        }
       }
-      if (result?.success === true && result?.data !== '') {
-        result.data.purchaseDetails.forEach((item, index) => {
-          item.id = index + 1
-        })
 
-        // toast.success(response.message)
+      if (result?.success === true && result?.data) {
+        const newData = result?.data?.map((item, index) => ({
+          ...item,
+          id: index + 1
+        }))
+        newData.forEach((dataItem, dataIndex) => {
+          dataItem.id = dataIndex + 1
+          dataItem.purchaseDetails.forEach((purchaseDetail, purchaseDetailIndex) => {
+            purchaseDetail.id = purchaseDetailIndex + 1
+          })
+        })
+        console.log('newData', newData)
         setSubmitLoader(false)
 
-        console.log('data', result?.data)
-        setUploadedFileData(result?.data)
+        setUploadedFileData(newData)
+      }
+      if (result?.message === 'Saved the purchase entries successfully' && result?.success === true) {
+        toast.success(result.message)
+        setSubmitLoader(false)
+        reset(defaultValues)
+        setUploadedFileData([])
+        setFileUploadErrors([])
       }
     } catch (error) {
       setSubmitLoader(false)
-
       console.log('error', error)
+    }
+  }
+  const router = useRouter()
+
+  // }, [uploadedFileData])
+
+  const handleFileChange = async e => {
+    e.preventDefault()
+    setFileUploadErrors([])
+    const file = e.target.files[0]
+
+    // console.log('eeee', e)
+    if (file && file.type === 'text/csv') {
+      reset({}, { errors: true })
+      const formData = new FormData(formRef.current)
+      formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
+
+      // console.log('formData', formData)
+      const result = await uploadPurchaseFile(formData)
+      setSubmitLoader(true)
+
+      // console.log('result', result)
+
+      if (result?.success === false && result?.error?.length > 0) {
+        setFileUploadErrors(result?.error)
+        setSubmitLoader(false)
+        if (result?.data.length > 0) {
+          const newData = result?.data?.map((item, index) => ({
+            ...item,
+            id: index + 1
+          }))
+          newData.forEach((dataItem, dataIndex) => {
+            dataItem.id = dataIndex + 1
+            dataItem.purchaseDetails.forEach((purchaseDetail, purchaseDetailIndex) => {
+              purchaseDetail.id = purchaseDetailIndex + 1
+            })
+          })
+          console.log('newData', newData)
+          setUploadedFileData(newData)
+        }
+      }
+
+      if (result?.message === 'Please upload the proper csv file.' && result?.success === false) {
+        toast.error(result.message)
+        setSubmitLoader(false)
+      }
+      if (result?.success === true && result?.data) {
+        const newData = result?.data?.map((item, index) => ({
+          ...item,
+          id: index + 1
+        }))
+        newData.forEach((dataItem, dataIndex) => {
+          dataItem.id = dataIndex + 1
+          dataItem.purchaseDetails.forEach((purchaseDetail, purchaseDetailIndex) => {
+            purchaseDetail.id = purchaseDetailIndex + 1
+          })
+        })
+        console.log('newData', newData)
+        setSubmitLoader(false)
+
+        setUploadedFileData(newData)
+      }
     }
   }
 
@@ -184,35 +268,56 @@ const ImportPurchase = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'batch_no',
-      headerName: 'Batch No ',
+      minWidth: 200,
+      field: 'po_no',
+      headerName: 'Purchase Number ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
+          {params.row.po_no}
         </Typography>
       )
     },
+
     {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'Expiry date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_name',
-      headerName: 'Product name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_name}
-        </Typography>
-      )
+      field: 'purchaseDetails',
+      headerName: 'Purchase Details',
+      flex: 1,
+      minWidth: 800,
+      children: [
+        {
+          flex: 0.05,
+          Width: 40,
+          field: 'id',
+          headerName: 'id',
+          renderCell: params => (
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.id}
+            </Typography>
+          )
+        },
+        {
+          flex: 0.2,
+          minWidth: 20,
+          field: 'expiry_date',
+          headerName: 'Expiry date',
+          renderCell: params => (
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {Utility.formatDisplayDate(params.row.expiry_date)}
+            </Typography>
+          )
+        },
+        {
+          flex: 0.2,
+          minWidth: 20,
+          field: 'stock_name',
+          headerName: 'Product name',
+          renderCell: params => (
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.stock_name}
+            </Typography>
+          )
+        }
+      ]
     }
   ]
 
@@ -234,11 +339,26 @@ const ImportPurchase = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Import Inventory ' action={headerAction} />
-              <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+              <CardHeader
+                title='Import Inventory '
+                avatar={
+                  <Icon
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      router.back()
+
+                      // Router.push('/pharmacy/purchase/purchase-list/')
+                    }}
+                    icon='ep:back'
+                  />
+                }
+                action={headerAction}
+              />
+              {/* <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}> */}
+              <form ref={formRef} autoComplete='off'>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} sx={{ mx: 6 }}>
-                    <FormControl fullWidth>
+                  <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                    {/* <FormControl fullWidth>
                       <TextField
                         {...register('upload_file')}
                         type='file'
@@ -253,51 +373,146 @@ const ImportPurchase = () => {
                       {errors.upload_file && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors?.upload_file?.message}</FormHelperText>
                       )}
+                    </FormControl> */}
+                    <FormControl fullWidth>
+                      <TextField
+                        {...register('upload_file')}
+                        type='file'
+                        accept='.csv'
+                        label='Upload File'
+                        error={Boolean(errors.upload_file)}
+                        helperText={errors.upload_file?.message}
+                        onChange={handleFileChange}
+                        inputProps={{ multiple: false }}
+                      />
+                      {/* {errors.upload_file && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.upload_file?.message}</FormHelperText>
+                      )} */}
                     </FormControl>
                   </Grid>
-                  {fileUploadErrors.length > 0 ? (
-                    <Grid item xs={12} sm={6} sx={{ my: 2 }}>
-                      {fileUploadErrors.length > 0
-                        ? fileUploadErrors.map((el, index) => {
-                            return (
-                              <FormHelperText key={index} sx={{ color: 'error.main' }}>
-                                In {el.key} Row {el.value}
-                              </FormHelperText>
-                            )
-                          })
-                        : null}
+                  {fileUploadErrors?.length > 0 ? (
+                    <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                      <Card>
+                        <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
+                          <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
+                            <TableHead sx={{ backgroundColor: 'primary.bg' }}>
+                              <TableRow>
+                                <TableCell>Purchase no</TableCell>
+                                <TableCell>Error Details</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {fileUploadErrors.map((el, index) => {
+                                return (
+                                  <TableRow key={index}>
+                                    <TableCell>{el?.purchase_invoice_number}</TableCell>
+                                    <TableCell sx={{ color: 'error.main' }}>
+                                      {' '}
+                                      In {el.key} Row {el.value}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </Card>
                     </Grid>
                   ) : null}
-                  {uploadedFileData?.purchaseDetails.length > 0 ? (
-                    <Grid item xs={12} sm={12}>
-                      <DataGrid
-                        autoHeight
-                        autoWidth
-                        rows={uploadedFileData?.purchaseDetails === undefined ? [] : uploadedFileData?.purchaseDetails}
-                        columns={fileDataColumns}
-                      />
-                    </Grid>
+                  {uploadedFileData.length > 0 ? (
+                    <>
+                      <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                        {/* <DataGrid
+                          autoHeight
+                          autoWidth
+                          rows={uploadedFileData ? uploadedFileData : []}
+                          columns={fileDataColumns}
+                        /> */}
+                        <Card>
+                          <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
+                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
+                              <TableHead sx={{ backgroundColor: 'primary.bg' }}>
+                                <TableRow>
+                                  <TableCell>Purchase no</TableCell>
+                                  <TableCell>Purchase Details</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {uploadedFileData.length > 0
+                                  ? uploadedFileData.map((el, index, array) => {
+                                      const isFirstRow = index === array.findIndex(item => item?.po_no === el?.po_no)
+
+                                      return (
+                                        <TableRow key={index}>
+                                          {isFirstRow && (
+                                            <TableCell
+                                              rowSpan={array.filter(item => item?.po_no === el?.po_no).length}
+                                              style={{
+                                                borderRight: '1px solid #ccc'
+                                              }}
+                                            >
+                                              {el?.po_no}
+                                            </TableCell>
+                                          )}
+
+                                          <TableHead>
+                                            <TableRow>
+                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Batch No.</TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                                Product Name
+                                              </TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Quantity</TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Expire date</TableCell>
+                                            </TableRow>
+                                          </TableHead>
+                                          <TableBody>
+                                            {el?.purchaseDetails.map((el, index) => {
+                                              return (
+                                                <TableRow key={index}>
+                                                  <TableCell>{el?.batch_no}</TableCell>
+                                                  <TableCell>{el?.stock_name}</TableCell>
+                                                  <TableCell>{el?.qty}</TableCell>
+                                                  <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
+                                                </TableRow>
+                                              )
+                                            })}
+                                          </TableBody>
+                                        </TableRow>
+                                      )
+                                    })
+                                  : null}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                        <LoadingButton
+                          disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
+                          sx={{ marginRight: '8px' }}
+                          size='large'
+                          variant='contained'
+                          onClick={uploadFileData}
+                          loading={submitLoader}
+                        >
+                          Save
+                        </LoadingButton>
+                        <Button
+                          disabled={getValues('upload_file') === '' ? true : false}
+                          size='large'
+                          variant='contained'
+                          color='error'
+                          onClick={() => {
+                            reset(defaultValues)
+                            setFileUploadErrors([])
+                            setUploadedFileData([])
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </Grid>
+                    </>
                   ) : null}
-                  <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
-                    <LoadingButton
-                      disabled={getValues('upload_file') === '' ? true : false}
-                      sx={{ marginRight: '8px' }}
-                      size='large'
-                      type='submit'
-                      variant='contained'
-                      loading={submitLoader}
-                    >
-                      Save
-                    </LoadingButton>
-                    <Button
-                      disabled={getValues('upload_file') === '' ? true : false}
-                      size='large'
-                      variant='contained'
-                      color='error'
-                    >
-                      Cancel
-                    </Button>
-                  </Grid>
                 </Grid>
               </form>
             </Card>
