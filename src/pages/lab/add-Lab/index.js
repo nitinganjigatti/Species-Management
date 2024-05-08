@@ -628,6 +628,7 @@ const AddLab = () => {
 
       return newData
     })
+    setDataToUpdate(showLabTests)
   }
 
   // showing test on click add lab button
