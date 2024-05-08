@@ -195,7 +195,7 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <div>
+    <Grid sx={{ display: 'flex', gap: 2 }}>
       <ExcelExportButton
         disabled={total === 0 ? true : false}
         action={() => {
@@ -206,7 +206,7 @@ const ListOfPurchase = () => {
         title='Import Inventory'
       />
       <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
-    </div>
+    </Grid>
   )
 
   const onRowClick = params => {

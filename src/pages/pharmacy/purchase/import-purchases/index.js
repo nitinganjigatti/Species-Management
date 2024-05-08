@@ -399,7 +399,7 @@ const ImportPurchase = () => {
                           <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
                             <TableHead sx={{ backgroundColor: 'primary.bg' }}>
                               <TableRow>
-                                <TableCell>Purchase no</TableCell>
+                                <TableCell>Purchase invoice no</TableCell>
                                 <TableCell>Error Details</TableCell>
                                 <TableCell>Supplier name</TableCell>
                                 <TableCell>Product name</TableCell>
@@ -444,7 +444,8 @@ const ImportPurchase = () => {
                             <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
                               <TableHead sx={{ backgroundColor: 'primary.bg' }}>
                                 <TableRow>
-                                  <TableCell>Purchase no</TableCell>
+                                  <TableCell>Purchase invoice no</TableCell>
+
                                   <TableCell>Purchase Details</TableCell>
                                 </TableRow>
                               </TableHead>
@@ -477,6 +478,10 @@ const ImportPurchase = () => {
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>
                                                 Purchase amount
                                               </TableCell>
+                                              {/* <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                                  Discount amount
+                                                </TableCell> */}
+
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>CGST</TableCell>
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>SGST</TableCell>
@@ -491,6 +496,7 @@ const ImportPurchase = () => {
                                                   <TableCell>{el?.qty}</TableCell>
                                                   <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
                                                   <TableCell>{el?.purchase_price}</TableCell>
+                                                  {/* <TableCell>{el?.discount_amount}</TableCell> */}
 
                                                   <TableCell>{el?.cgst}%</TableCell>
                                                   <TableCell>{el?.igst}%</TableCell>
