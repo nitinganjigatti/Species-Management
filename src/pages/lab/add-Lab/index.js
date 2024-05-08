@@ -612,7 +612,7 @@ const AddLab = () => {
 
   // deleing the data from ui
   const handleCloseTest = (sampleId, parentId) => {
-    setDataToUpdate(prevData => {
+    setShowLabTests(prevData => {
       const newData = [...prevData]
       const sampleTests = newData[sampleId]?.tests
 
