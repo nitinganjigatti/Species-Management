@@ -617,17 +617,16 @@ const AddRequestForm = () => {
   const createForm = () => {
     return (
       // <CardContent>
-      <form
-      // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-      >
-        <Grid container spacing={5}>
+      <form style={{ width: '100%' }}>
+        <Grid container spacing={5} xs={12}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Autocomplete
-                forcePopupIcon={false}
-                inputProps={{ tabIndex: '6' }}
-                disablePortal
-                id='autocomplete-controlled'
+                // sx={{ zIndex: 1 }}
+                // forcePopupIcon={false}
+                // inputProps={{ tabIndex: '6' }}
+                // disablePortal
+                // id='autocomplete-controlled'
                 options={optionsMedicineList}
                 value={nestedRowMedicine.medicine_name}
                 onChange={(event, newValue) => {

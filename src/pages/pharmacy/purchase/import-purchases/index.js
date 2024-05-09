@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // import { DataGrid } from '@mui/x-data-grid'
+import CardContent from '@mui/material/CardContent'
 
 import {
   Card,
@@ -20,6 +21,7 @@ import {
   TableRow
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
+import InputLabel from '@mui/material/InputLabel'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -36,6 +38,7 @@ import { useForm } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
+import { Label } from '@mui/icons-material'
 
 const ImportPurchase = () => {
   const defaultValues = {
@@ -144,6 +147,7 @@ const ImportPurchase = () => {
   const handleFileChange = async e => {
     e.preventDefault()
     setFileUploadErrors([])
+    setUploadedFileData([])
     const file = e.target.files[0]
 
     if (file && file.type === 'text/csv') {
@@ -287,169 +291,175 @@ const ImportPurchase = () => {
                 }
               />
               <form ref={formRef} autoComplete='off'>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
-                    <FormControl fullWidth>
-                      <TextField
-                        {...register('upload_file')}
-                        type='file'
-                        accept='.csv'
-                        label='Upload File'
-                        error={Boolean(errors.upload_file)}
-                        helperText={errors.upload_file?.message}
-                        onChange={handleFileChange}
-                        inputProps={{ multiple: false }}
-                      />
-                    </FormControl>
-                  </Grid>
-                  {fileUploadErrors?.length > 0 ? (
-                    <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
-                      {/* {console.log('fileUploadErrors', fileUploadErrors)} */}
-                      <Card>
-                        <CardHeader title='Rows with errors' />
-                        <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-                          <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
-                            <TableHead sx={{ backgroundColor: 'primary.bg' }}>
-                              <TableRow>
-                                <TableCell>Purchase invoice no</TableCell>
-                                <TableCell>Error Details</TableCell>
-                                <TableCell>Supplier name</TableCell>
-                                <TableCell>Product name</TableCell>
-                                <TableCell>Purchase date</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {fileUploadErrors.map((el, index) => {
-                                return (
-                                  <TableRow key={index}>
-                                    <TableCell>{el?.purchase_invoice_number}</TableCell>
-                                    <TableCell sx={{ color: 'error.main' }}>
-                                      {' '}
-                                      In {el.key} Row {el.value}
-                                    </TableCell>
-                                    <TableCell>{el?.supplier_name}</TableCell>
-                                    <TableCell>{el?.product_name}</TableCell>
-                                    <TableCell>{el.purchase_date}</TableCell>
-                                  </TableRow>
-                                )
-                              })}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      </Card>
-                    </Grid>
-                  ) : null}
-                  {uploadedFileData.length > 0 ? (
-                    <>
-                      {/* {console.log('uploadedFileData', uploadedFileData)} */}
-                      <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
-                        {/* <DataGrid
-                          autoHeight
-                          autoWidth
-                          rows={uploadedFileData ? uploadedFileData : []}
-                          columns={fileDataColumns}
-                        /> */}
-                        <Card>
-                          <CardHeader title='Invoices good to upload' />
+                <CardContent>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
+                      {/* <InputLabel>Upload File</InputLabel> */}
 
+                      <FormControl fullWidth>
+                        <TextField
+                          {...register('upload_file')}
+                          type='file'
+                          accept='.csv'
+                          label='Upload file'
+                          error={Boolean(errors.upload_file)}
+                          helperText={errors.upload_file?.message}
+                          onChange={handleFileChange}
+                          inputProps={{ multiple: false }}
+                        />
+                      </FormControl>
+                    </Grid>
+                    {fileUploadErrors?.length > 0 ? (
+                      <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                        {/* {console.log('fileUploadErrors', fileUploadErrors)} */}
+                        <Card>
+                          <CardHeader title='Rows with errors' />
                           <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='sticky table'>
-                              <TableHead>
+                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
+                              <TableHead sx={{ backgroundColor: 'primary.bg' }}>
                                 <TableRow>
                                   <TableCell>Purchase invoice no</TableCell>
-
-                                  <TableCell>Purchase Details</TableCell>
+                                  <TableCell>Error Details</TableCell>
+                                  <TableCell>Supplier name</TableCell>
+                                  <TableCell>Product name</TableCell>
+                                  <TableCell>Purchase date</TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {uploadedFileData.length > 0
-                                  ? uploadedFileData.map((el, index, array) => {
-                                      const isFirstRow = index === array.findIndex(item => item?.po_no === el?.po_no)
-
-                                      return (
-                                        <TableRow key={index}>
-                                          {isFirstRow && (
-                                            <TableCell
-                                              rowSpan={array.filter(item => item?.po_no === el?.po_no).length}
-                                              style={{
-                                                borderRight: '1px solid #ccc'
-                                              }}
-                                            >
-                                              {el?.po_no}
-                                            </TableCell>
-                                          )}
-
-                                          <TableHead>
-                                            <TableRow>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Batch No.</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>
-                                                Product Name
-                                              </TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Quantity</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Expire date</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>
-                                                Purchase amount
-                                              </TableCell>
-
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>CGST</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>SGST</TableCell>
-                                            </TableRow>
-                                          </TableHead>
-                                          <TableBody>
-                                            {el?.purchaseDetails.map((el, index) => {
-                                              return (
-                                                <TableRow key={index}>
-                                                  <TableCell>{el?.batch_no}</TableCell>
-                                                  <TableCell>{el?.stock_name}</TableCell>
-                                                  <TableCell>{el?.qty}</TableCell>
-                                                  <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
-                                                  <TableCell>{el?.purchase_price}</TableCell>
-
-                                                  <TableCell>{el?.cgst}%</TableCell>
-                                                  <TableCell>{el?.igst}%</TableCell>
-                                                  <TableCell>{el?.sgst}%</TableCell>
-                                                </TableRow>
-                                              )
-                                            })}
-                                          </TableBody>
-                                        </TableRow>
-                                      )
-                                    })
-                                  : null}
+                                {fileUploadErrors.map((el, index) => {
+                                  return (
+                                    <TableRow key={index}>
+                                      <TableCell>{el?.purchase_invoice_number}</TableCell>
+                                      <TableCell sx={{ color: 'error.main' }}>
+                                        {' '}
+                                        In {el.key} Row {el.value}
+                                      </TableCell>
+                                      <TableCell>{el?.supplier_name}</TableCell>
+                                      <TableCell>{el?.product_name}</TableCell>
+                                      <TableCell>{el.purchase_date}</TableCell>
+                                    </TableRow>
+                                  )
+                                })}
                               </TableBody>
                             </Table>
                           </TableContainer>
                         </Card>
                       </Grid>
-                      <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
-                        <LoadingButton
-                          disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
-                          sx={{ marginRight: '8px' }}
-                          size='large'
-                          variant='contained'
-                          onClick={uploadFileData}
-                          loading={submitLoader}
-                        >
-                          Save
-                        </LoadingButton>
-                        <Button
-                          disabled={getValues('upload_file') === '' ? true : false}
-                          size='large'
-                          variant='contained'
-                          color='error'
-                          onClick={() => {
-                            reset(defaultValues)
-                            setFileUploadErrors([])
-                            setUploadedFileData([])
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </Grid>
-                    </>
-                  ) : null}
-                </Grid>
+                    ) : null}
+                    {uploadedFileData.length > 0 ? (
+                      <>
+                        {/* {console.log('uploadedFileData', uploadedFileData)} */}
+                        <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                          {/* <DataGrid
+                          autoHeight
+                          autoWidth
+                          rows={uploadedFileData ? uploadedFileData : []}
+                          columns={fileDataColumns}
+                        /> */}
+                          <Card>
+                            <CardHeader title='Invoices good to upload' />
+
+                            <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
+                              <Table stickyHeader sx={{ minWidth: 650 }} aria-label='sticky table'>
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Purchase invoice no</TableCell>
+
+                                    <TableCell>Purchase Details</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {uploadedFileData.length > 0
+                                    ? uploadedFileData.map((el, index, array) => {
+                                        const isFirstRow = index === array.findIndex(item => item?.po_no === el?.po_no)
+
+                                        return (
+                                          <TableRow key={index}>
+                                            {isFirstRow && (
+                                              <TableCell
+                                                rowSpan={array.filter(item => item?.po_no === el?.po_no).length}
+                                                style={{
+                                                  borderRight: '1px solid #ccc'
+                                                }}
+                                              >
+                                                {el?.po_no}
+                                              </TableCell>
+                                            )}
+
+                                            <TableHead>
+                                              <TableRow>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>Batch No.</TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                                  Product Name
+                                                </TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>Quantity</TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                                  Expire date
+                                                </TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                                  Purchase amount
+                                                </TableCell>
+
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>CGST</TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
+                                                <TableCell sx={{ backgroundColor: 'transparent' }}>SGST</TableCell>
+                                              </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                              {el?.purchaseDetails.map((el, index) => {
+                                                return (
+                                                  <TableRow key={index}>
+                                                    <TableCell>{el?.batch_no}</TableCell>
+                                                    <TableCell>{el?.stock_name}</TableCell>
+                                                    <TableCell>{el?.qty}</TableCell>
+                                                    <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
+                                                    <TableCell>{el?.purchase_price}</TableCell>
+
+                                                    <TableCell>{el?.cgst}%</TableCell>
+                                                    <TableCell>{el?.igst}%</TableCell>
+                                                    <TableCell>{el?.sgst}%</TableCell>
+                                                  </TableRow>
+                                                )
+                                              })}
+                                            </TableBody>
+                                          </TableRow>
+                                        )
+                                      })
+                                    : null}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          </Card>
+                        </Grid>
+                        <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                          <LoadingButton
+                            disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
+                            sx={{ marginRight: '8px' }}
+                            size='large'
+                            variant='contained'
+                            onClick={uploadFileData}
+                            loading={submitLoader}
+                          >
+                            Save
+                          </LoadingButton>
+                          <Button
+                            disabled={getValues('upload_file') === '' ? true : false}
+                            size='large'
+                            variant='contained'
+                            color='error'
+                            onClick={() => {
+                              reset(defaultValues)
+                              setFileUploadErrors([])
+                              setUploadedFileData([])
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </Grid>
+                      </>
+                    ) : null}
+                  </Grid>
+                </CardContent>
               </form>
             </Card>
           </>
