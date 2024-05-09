@@ -207,10 +207,10 @@ const DietDetailCard = ({ dietDetails }) => {
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '100%',
+                  height: dietDetails?.image ? '100%' : '250px',
                   borderRadius: '8px'
                 }}
-                src={dietDetails?.image ? dietDetails?.image : '/icons/recipedummy.svg'}
+                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
               ></Avatar>
               {/* <Box
                 sx={{

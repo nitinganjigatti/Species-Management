@@ -241,7 +241,7 @@ const IngredientsList = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.image ? params.row.image : null}
+            src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>

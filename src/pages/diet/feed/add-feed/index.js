@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Divider,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -82,8 +83,6 @@ const AddFeedType = () => {
         setImgSrc(reader?.result)
       }
       setDisplayFile(files[0]?.name)
-
-      // setValue('feedImg', reader?.result)
       reader?.readAsDataURL(files[0])
       setValue('feedImg', files[0])
       clearErrors('feedImg')
@@ -93,14 +92,11 @@ const AddFeedType = () => {
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('feedImg', '')
-
-    // setDisplayFile('')
   }
 
   useEffect(() => {
     if (id) {
       getFeedById(id).then(res => {
-        // console.log('res', res?.data)
         setImgSrc(res?.data?.image)
         setValue('name', res?.data?.feed_type_name)
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
@@ -122,21 +118,21 @@ const AddFeedType = () => {
       feed_type_image: getValues('feedImg')
     }
 
-    console.log('submit', payload)
     if (id) {
       try {
         await updateFeedType({ ...payload }, id).then(res => {
           Router.push('/diet/feed')
           if (res?.success) {
-            console.log('first', res)
-
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
             return toast(
               t => (
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        Success!
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
                         {res?.data}
                       </Typography>
@@ -158,13 +154,16 @@ const AddFeedType = () => {
               }
             )
           } else {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
             return toast(
               t => (
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
                     <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        Error!
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
                         {res?.data}
                       </Typography>
@@ -194,7 +193,6 @@ const AddFeedType = () => {
       try {
         await addFeedType(payload).then(res => {
           if (res?.success) {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
             Router.push('/diet/feed')
 
             return toast(
@@ -203,6 +201,10 @@ const AddFeedType = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
                     <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        Success!
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
                         {res?.data}
                       </Typography>
@@ -229,8 +231,12 @@ const AddFeedType = () => {
               t => (
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
                     <div>
+                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                        Error!
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
                       <Typography sx={{ fontWeight: 500 }} variant='h5'>
                         {res?.data}
                       </Typography>
