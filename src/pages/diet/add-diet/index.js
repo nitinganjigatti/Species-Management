@@ -297,10 +297,44 @@ const AddDiet = () => {
             }
           }
         )
+      } else {
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='codicon:error' style={{ marginRight: '20px', fontSize: 50, color: '#ff0000' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Error !
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {apival.message}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
       }
     } else {
+      // Omitting diet_type_child field from formData
+      const { diet_type_child, ...formDataWithoutChild } = formData
+
       const numericFormData = {
-        ...formData,
+        ...formDataWithoutChild,
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
@@ -316,10 +350,10 @@ const AddDiet = () => {
                 hour12: true
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-              notes: item.notes
-              // recipe: item?.recipe,
-              // ingredient: item?.ingredient,
-              // ingredientwithchoice: item?.ingredientwithchoice
+              notes: item.notes,
+              recipe: item?.recipe,
+              ingredient: item?.ingredient,
+              ingredientwithchoice: item?.ingredientwithchoice
             }
           })
         )
@@ -342,42 +376,73 @@ const AddDiet = () => {
       }
 
       console.log(updatedFormData, 'updatedFormData')
-      // const apival = await updateDiet(id, updatedFormData)
-      // console.log(apival, 'apival')
-      // if (apival.success === true) {
-      //   Router.push(`/diet/diet`)
+      const apival = await updateDiet(id, updatedFormData)
+      console.log(apival, 'apival')
+      if (apival.success === true) {
+        Router.push(`/diet/diet`)
 
-      //   return toast(
-      //     t => (
-      //       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      //           <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-      //           <div>
-      //             <Typography sx={{ fontWeight: 500 }} variant='h5'>
-      //               Success!
-      //             </Typography>
-      //             <Divider sx={{ my: 2 }} />
-      //             <Typography variant='body2' sx={{ color: '#44544A' }}>
-      //               Diet updated successfully
-      //             </Typography>
-      //           </div>
-      //         </Box>
-      //         <IconButton
-      //           onClick={() => toast.dismiss(t.id)}
-      //           style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-      //         >
-      //           <Icon icon='mdi:close' fontSize={24} />
-      //         </IconButton>
-      //       </Box>
-      //     ),
-      //     {
-      //       style: {
-      //         minWidth: '450px',
-      //         minHeight: '130px'
-      //       }
-      //     }
-      //   )
-      // }
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Success!
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    Diet updated successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='codicon:error' style={{ marginRight: '20px', fontSize: 50, color: '#ff0000' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Error !
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {apival.message}
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      }
     }
   }
 

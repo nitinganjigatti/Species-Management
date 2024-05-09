@@ -199,11 +199,6 @@ const AddIngredientswithChoice = props => {
     }
   }
 
-  const removeingClick = () => {
-    // Call the function passed from the parent component
-    props.removeingClick(item) // Pass the item to be removed
-  }
-
   const handleContinueClick = event => {
     if (selectedCardIngchoice.length === 0) {
       toast.error('Please select an Ingredient')

@@ -1431,7 +1431,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child.map(all => {
+                                      {formData.diet_type_child?.map(all => {
                                         return (
                                           <TableCell
                                             style={{

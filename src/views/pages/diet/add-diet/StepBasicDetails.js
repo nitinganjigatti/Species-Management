@@ -515,24 +515,25 @@ const StepBasicDetails = ({
         meal_data: mergedAddMeals
       }
       console.log(formDataWithImage, 'formDataWithImage')
-      // Check if each meal_data object contains at least one required value
-      const invalidMealIndices = formDataWithImage.meal_data.reduce((invalidIndices, meal, index) => {
-        if (!meal.recipe && !meal.ingredient && !meal.ingredientwithchoice) {
-          invalidIndices.push(index)
+      // Validate each object in meal_data
+      const invalidIndexes = formDataWithImage.meal_data.reduce((invalidIndexes, meal, index) => {
+        if (
+          (!meal.ingredient || meal.ingredient.length === 0) &&
+          (!meal.recipe || meal.recipe.length === 0) &&
+          (!meal.ingredientwithchoice || meal.ingredientwithchoice.length === 0)
+        ) {
+          invalidIndexes.push(index)
         }
-        console.log('Current invalid indices:', invalidIndices)
-        return invalidIndices
+        return invalidIndexes
       }, [])
-      console.log(invalidMealIndices, 'invalidMealIndices')
-      // If there are any invalid meal_data objects, show error and abort submission
-      if (invalidMealIndices.length > 0) {
-        const invalidMealIndicesMessage = invalidMealIndices.map(index => `Index ${index} of meal_data`)
-        const errorMessage = `The following meal_data objects do not have at least one recipe, ingredient, or ingredientwithchoice: ${invalidMealIndicesMessage.join(
-          ', '
-        )}.`
-        toast.error(errorMessage)
+      console.log(invalidIndexes, 'invalidIndexes')
+      // If any invalid indexes found, display a toast error
+      if (invalidIndexes.length > 0) {
+        invalidIndexes.forEach(index => {
+          toast.error(`Meal ${index + 1} must contain at least one of ingredient, recipe, or ingredientwithchoice.`)
+        })
+        return
       } else {
-        // All meal_data objects are valid, proceed with submission
         handleNext(formDataWithImage)
       }
       console.log(formDataWithImage, 'data')
@@ -671,7 +672,7 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClickRecipe = recipeIdToRemove => {
+  const removeingClickRecipe = (recipeIdToRemove, val) => {
     setRecipeChildStateValue(prevSelectedCard => {
       // console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
@@ -846,7 +847,9 @@ const StepBasicDetails = ({
             <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%' }} />
             {(fieldsIngredients.length - 1 === index && index > 0) ||
             (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
-              <Grid sx={{ float: 'right', width: '40%', marginRight: '24px' }}>{removeIngredientButton(index)}</Grid>
+              <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
+                {removeIngredientButton(index)}
+              </Grid>
             ) : (
               ''
             )}
@@ -1009,7 +1012,7 @@ const StepBasicDetails = ({
                                 </Grid>
                               </Grid>
                               <Icon
-                                onClick={() => removeingClickRecipe(all.recipe_id)}
+                                onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                 style={{ position: 'relative', left: '1%' }}
                                 icon='iconoir:cancel'
                               />
