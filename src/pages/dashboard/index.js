@@ -105,7 +105,7 @@ const Dashboard = () => {
                 />
               }
             />
-            <CardContent>
+            <CardContent sx={{ marginTop: -6 }}>
               <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
                 <Grid item xs={6} sm={11 / 2}>
                   <CriticalInfoCards

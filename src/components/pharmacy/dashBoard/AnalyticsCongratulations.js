@@ -12,37 +12,42 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     order: -1,
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    position: 'relative'
   }
 }))
 
 // Styled component for the image
-// const Img = styled('img')(({ theme }) => ({
-//   right: 0,
-//   bottom: 0,
-//   width: 298,
-//   position: 'absolute',
-//   [theme.breakpoints.down('sm')]: {
-//     width: 250,
-//     position: 'static'
-//   }
-// }))
+const Img = styled('img')(({ theme }) => ({
+  left: 0,
+  bottom: 0,
+  width: 180,
+
+  // position: 'absolute',
+  [theme.breakpoints.down('sm')]: {
+    width: 100,
+    position: 'static'
+  }
+}))
 
 const AnalyticsCongratulations = () => {
   // ** Hook
   const theme = useTheme()
 
   return (
-    <Card sx={{ background: '#839D8D' }}>
+    <Card
+      sx={{
+        background: '#839D8D'
+      }}
+    >
       <CardContent>
-        <Grid container sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* <StyledGrid item xs={12} sm={3}>
-            <img width={200} height={100} src={`/images/Graphic_pharmacy.png`} alt='image' />
-
-          </StyledGrid> */}
-          <Grid item xs={12} sm={3}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
+          <StyledGrid item xs={12} sm={3}>
+            <Img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
+          </StyledGrid>
+          {/* <Grid item xs={12} sm={3}>
             <img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12} sm={9}>
             <Typography variant='h5' sx={{ mb: 4.5, color: 'white' }}>

@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
+
+// import { DataGrid } from '@mui/x-data-grid'
 
 import {
   Card,
   CardHeader,
   Typography,
-  CardContent,
   Grid,
-  FormHelperText,
   FormControl,
   TextField,
   Button,
@@ -24,20 +23,16 @@ import { LoadingButton } from '@mui/lab'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
 
-import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import Paper from '@mui/material/Paper'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { margin, minWidth } from '@mui/system'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
@@ -69,7 +64,6 @@ const ImportPurchase = () => {
     watch,
     getValues,
     register
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -89,49 +83,6 @@ const ImportPurchase = () => {
   }
   const formRef = useRef(null)
 
-  // const onSubmit = async params => {
-  //   const { upload_file, is_confirm } = params
-  //   console.log('params', params.upload_file[0])
-  //   var result
-
-  //   try {
-  //     if (uploadedFileData?.purchaseDetails.length > 0) {
-  //       const formData = new FormData()
-  //       formData.append('upload_file', upload_file[0])
-  //       formData.append('is_confirm', '1')
-  //       result = await uploadPurchaseFile(formData)
-  //     } else {
-  //       const formData = new FormData()
-  //       formData.append('upload_file', upload_file[0])
-  //       formData.append('is_confirm', '0')
-  //       result = await uploadPurchaseFile(formData)
-  //     }
-
-  //     setSubmitLoader(true)
-
-  //     console.log('result of upload', result)
-  //     if (result?.success === false && result?.error?.length > 0) {
-  //       setFileUploadErrors(result?.error)
-  //       setSubmitLoader(false)
-  //     }
-  //     if (result?.success === true && result?.data !== '') {
-  //       result.data.purchaseDetails.forEach((item, index) => {
-  //         item.id = index + 1
-  //       })
-
-  //       // toast.success(response.message)
-  //       setSubmitLoader(false)
-
-  //       console.log('data', result?.data)
-  //       setUploadedFileData(result?.data)
-  //     }
-  //   } catch (error) {
-  //     setSubmitLoader(false)
-
-  //     console.log('error', error)
-  //   }
-  // }
-  // useEffect(() => {
   const uploadFileData = async () => {
     const formData = new FormData()
     formData.append('upload_file', getValues('upload_file')[0])
@@ -190,24 +141,18 @@ const ImportPurchase = () => {
   }
   const router = useRouter()
 
-  // }, [uploadedFileData])
-
   const handleFileChange = async e => {
     e.preventDefault()
     setFileUploadErrors([])
     const file = e.target.files[0]
 
-    // console.log('eeee', e)
     if (file && file.type === 'text/csv') {
       reset({}, { errors: true })
       const formData = new FormData(formRef.current)
       formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
-      // console.log('formData', formData)
       const result = await uploadPurchaseFile(formData)
       setSubmitLoader(true)
-
-      // console.log('result', result)
 
       if (result?.success === false && result?.error?.length > 0) {
         setFileUploadErrors(result?.error)
@@ -321,16 +266,6 @@ const ImportPurchase = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-
-  const headerAction = (
-    <div>
-      {/* <AddButton title='Inventory List' action={() => Router.push({ pathname: '/pharmacy/purchase/purchase-list/' })} /> */}
-    </div>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -346,34 +281,14 @@ const ImportPurchase = () => {
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
                       router.back()
-
-                      // Router.push('/pharmacy/purchase/purchase-list/')
                     }}
                     icon='ep:back'
                   />
                 }
-                action={headerAction}
               />
-              {/* <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}> */}
               <form ref={formRef} autoComplete='off'>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
-                    {/* <FormControl fullWidth>
-                      <TextField
-                        {...register('upload_file')}
-                        type='file'
-                        accept='.xls,.xlsx'
-                        label='Upload File'
-                        error={Boolean(errors.upload_file)}
-                        helperText={errors.upload_file?.message}
-                        onChange={() => {
-                          setFileUploadErrors([])
-                        }}
-                      />
-                      {errors.upload_file && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.upload_file?.message}</FormHelperText>
-                      )}
-                    </FormControl> */}
                     <FormControl fullWidth>
                       <TextField
                         {...register('upload_file')}
@@ -385,9 +300,6 @@ const ImportPurchase = () => {
                         onChange={handleFileChange}
                         inputProps={{ multiple: false }}
                       />
-                      {/* {errors.upload_file && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.upload_file?.message}</FormHelperText>
-                      )} */}
                     </FormControl>
                   </Grid>
                   {fileUploadErrors?.length > 0 ? (
@@ -441,8 +353,8 @@ const ImportPurchase = () => {
                           <CardHeader title='Invoices good to upload' />
 
                           <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
-                              <TableHead sx={{ backgroundColor: 'primary.bg' }}>
+                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='sticky table'>
+                              <TableHead>
                                 <TableRow>
                                   <TableCell>Purchase invoice no</TableCell>
 
@@ -478,9 +390,6 @@ const ImportPurchase = () => {
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>
                                                 Purchase amount
                                               </TableCell>
-                                              {/* <TableCell sx={{ backgroundColor: 'transparent' }}>
-                                                  Discount amount
-                                                </TableCell> */}
 
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>CGST</TableCell>
                                               <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
@@ -496,7 +405,6 @@ const ImportPurchase = () => {
                                                   <TableCell>{el?.qty}</TableCell>
                                                   <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
                                                   <TableCell>{el?.purchase_price}</TableCell>
-                                                  {/* <TableCell>{el?.discount_amount}</TableCell> */}
 
                                                   <TableCell>{el?.cgst}%</TableCell>
                                                   <TableCell>{el?.igst}%</TableCell>

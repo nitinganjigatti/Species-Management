@@ -109,13 +109,7 @@ const PendingRequestsChart = props => {
         borderWidth: 0,
         label: 'Requests',
         data: dataValues,
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(255, 206, 86, 0.8)',
-          'rgba(255, 159, 64, 0.8)',
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(255, 99, 132, 0.8)'
-        ]
+        backgroundColor: ['#8479F9', '#37BD69', '#00D6C9', '#FFE86E', '#FA6140']
       }
     ]
   }
