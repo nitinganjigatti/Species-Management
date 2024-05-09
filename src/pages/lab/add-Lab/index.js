@@ -612,22 +612,42 @@ const AddLab = () => {
 
   // deleing the data from ui
   const handleCloseTest = (sampleId, parentId) => {
-    setShowLabTests(prevData => {
-      const newData = [...prevData]
-      const sampleTests = newData[sampleId]?.tests
+    if (id) {
+      setShowLabTests(prevData => {
+        const newData = [...prevData]
+        const sampleTests = newData[sampleId]?.tests
 
-      if (sampleTests && sampleTests[parentId]) {
-        // Remove the parent.test object
-        sampleTests.splice(parentId, 1)
+        if (sampleTests && sampleTests[parentId]) {
+          // Remove the parent.test object
+          sampleTests.splice(parentId, 1)
 
-        // Check if tests array is empty, delete the current sample object
-        if (sampleTests.length === 0) {
-          newData.splice(sampleId, 1)
+          // Check if tests array is empty, delete the current sample object
+          if (sampleTests.length === 0) {
+            newData.splice(sampleId, 1)
+          }
         }
-      }
 
-      return newData
-    })
+        return newData
+      })
+      setDataToUpdate(showLabTests)
+    } else {
+      setDataToUpdate(prevData => {
+        const newData = [...prevData]
+        const sampleTests = newData[sampleId]?.tests
+
+        if (sampleTests && sampleTests[parentId]) {
+          // Remove the parent.test object
+          sampleTests.splice(parentId, 1)
+
+          // Check if tests array is empty, delete the current sample object
+          if (sampleTests.length === 0) {
+            newData.splice(sampleId, 1)
+          }
+        }
+
+        return newData
+      })
+    }
   }
 
   // showing test on click add lab button
