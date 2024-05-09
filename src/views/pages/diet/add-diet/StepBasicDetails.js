@@ -20,7 +20,7 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
-
+import toast from 'react-hot-toast'
 // ** Custom Component Imports
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
@@ -39,7 +39,7 @@ const defaultValues = {
   desc: '',
   meal_data: [
     {
-      newid: 'meal',
+      mealid: 'meal',
       meal_name: '',
       meal_from_time: '',
       meal_to_time: '',
@@ -89,11 +89,14 @@ const StepBasicDetails = ({
   const [childIngredeintchoiceStateValue, setIngredientchoiceChildStateValue] = useState([])
   const [finalvalue, setfinalvalue] = useState([])
   const [finalvaluerecipe, setfinalrecipevalue] = useState([])
+  const [finalvalueingredientchoice, setfinalvalueingredientchoice] = useState([])
   const [checkid, setcheckid] = useState('')
   const [selectedIngredient, setSelectedIngredient] = useState()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [recipeList, setRecipeList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [ingType, setingType] = useState('')
+  const [ingredientChoiceIndex, setingredientChoiceIndex] = useState('')
   const router = useRouter()
 
   const recipes = [
@@ -147,17 +150,17 @@ const StepBasicDetails = ({
     console.log(fieldsIngredients, 'fieldsIngredients')
     setChildStateValue(value)
 
-    // Remove duplicates from the new value based on id and valueid
+    // Remove duplicates from the new value based on id and mealid
     const uniqueValues = value.filter(
       (val, index, self) =>
-        index === self.findIndex(v => v.ingredient_id === val.ingredient_id && v.valueid === val.valueid)
+        index === self.findIndex(v => v.ingredient_id === val.ingredient_id && v.mealid === val.mealid)
     )
     setAllSelectedValues(prevState => {
       // Filter out duplicates from the previous state
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal.ingredient_id === prevVal?.ingredient_id && uniqueVal.valueid === prevVal?.valueid
+            uniqueVal => uniqueVal.ingredient_id === prevVal?.ingredient_id && uniqueVal.mealid === prevVal?.mealid
           )
       )
 
@@ -169,7 +172,7 @@ const StepBasicDetails = ({
       // Update the fieldsIngredients with the new values
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
-        field.ingredient = updatedValues.filter(up => up?.valueid === field.newid)
+        field.ingredient = updatedValues.filter(up => up?.mealid === field.mealid)
       }
 
       // Return the updated values to setAllSelectedValues
@@ -185,9 +188,9 @@ const StepBasicDetails = ({
     console.log(fieldsIngredients, 'fieldsIngredients')
     setRecipeChildStateValue(value)
 
-    // Remove duplicates from the new value based on id and valueid
+    // Remove duplicates from the new value based on id and mealid
     const uniqueValues = value.filter(
-      (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.valueid === val.valueid)
+      (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
     )
     console.log(uniqueValues, 'uniqueValues')
     setAllRecipeSelectedValues(prevState => {
@@ -195,7 +198,7 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.valueid === prevVal?.valueid
+            uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.mealid === prevVal?.mealid
           )
       )
 
@@ -207,7 +210,7 @@ const StepBasicDetails = ({
       // Update the fieldsIngredients with the new values
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
-        field.recipe = updatedValues.filter(up => up?.valueid === field.newid)
+        field.recipe = updatedValues.filter(up => up?.mealid === field.mealid)
       }
 
       // Return the updated values to setAllSelectedValues
@@ -218,39 +221,55 @@ const StepBasicDetails = ({
     console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
+  // const handleIngredientchoiceStateChange = value => {
+  //   console.log(value, 'card')
+  //   console.log(fieldsIngredients, 'fieldsIngredients')
+  //   setIngredientchoiceChildStateValue(value)
+
+  //   // Remove duplicates from the new value based on id and mealid
+  //   const uniqueValues = value.filter(
+  //     (val, index, self) => index === self.findIndex(v => v.id === val.id && v.mealid === val.mealid)
+  //   )
+  //   console.log(uniqueValues, 'uniqueValues')
+  //   setAllIngredientchoiceSelectedValues(prevState => {
+  //     // Filter out duplicates from the previous state
+  //     const filteredPrevState = prevState.filter(
+  //       prevVal =>
+  //         !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal?.id && uniqueVal.mealid === prevVal?.mealid)
+  //     )
+
+  //     // Combine unique values from the new value with filtered previous state
+  //     const updatedValues = [...filteredPrevState, ...uniqueValues]
+  //     console.log(fieldsIngredients)
+  //     console.log(updatedValues, 'updatedValues')
+
+  //     // Update the fieldsIngredients with the new values
+  //     for (let i = 0; i < fieldsIngredients.length; i++) {
+  //       const field = fieldsIngredients[i]
+  //       field.ingredientwithchoice = updatedValues.filter(up => up?.mealid === field.mealid)
+  //     }
+
+  //     // Return the updated values to setAllSelectedValues
+  //     return updatedValues
+  //   })
+
+  //   setfinalvalue(fieldsIngredients)
+  //   console.log(fieldsIngredients, 'fieldsIngredients')
+  // }
+
   const handleIngredientchoiceStateChange = value => {
     console.log(value, 'card')
     console.log(fieldsIngredients, 'fieldsIngredients')
     setIngredientchoiceChildStateValue(value)
 
-    // Remove duplicates from the new value based on id and valueid
-    const uniqueValues = value.filter(
-      (val, index, self) => index === self.findIndex(v => v.id === val.id && v.valueid === val.valueid)
-    )
-    console.log(uniqueValues, 'uniqueValues')
-    setAllIngredientchoiceSelectedValues(prevState => {
-      // Filter out duplicates from the previous state
-      const filteredPrevState = prevState.filter(
-        prevVal =>
-          !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal?.id && uniqueVal.valueid === prevVal?.valueid)
-      )
+    setAllIngredientchoiceSelectedValues(value)
 
-      // Combine unique values from the new value with filtered previous state
-      const updatedValues = [...filteredPrevState, ...uniqueValues]
-      console.log(fieldsIngredients)
-      console.log(updatedValues, 'updatedValues')
-
-      // Update the fieldsIngredients with the new values
-      for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i]
-        field.ingredientwithchoice = updatedValues.filter(up => up?.valueid === field.newid)
-      }
-
-      // Return the updated values to setAllSelectedValues
-      return updatedValues
-    })
-
-    setfinalvalue(fieldsIngredients)
+    // Update the fieldsIngredients with the new values
+    for (let i = 0; i < fieldsIngredients.length; i++) {
+      const field = fieldsIngredients[i]
+      field.ingredientwithchoice = value.filter(up => up?.mealid === field.mealid)
+    }
+    setfinalvalueingredientchoice(fieldsIngredients)
     console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
@@ -259,10 +278,20 @@ const StepBasicDetails = ({
       setUploadedImage(formData.diet_image)
 
       // Flatten the array of arrays into a single array
-      const flattenedIngredients = formData.meal_data?.flatMap(all => all.ingredient)
+      const flattenedIngredients = formData.meal_data?.flatMap(all =>
+        all.ingredient?.map(ing => ({
+          ...ing,
+          ingredient_id: String(ing.ingredient_id) // Convert ingredient_id to string
+        }))
+      )
       setAllSelectedValues(flattenedIngredients)
 
-      const flattenedRecipes = formData.meal_data?.flatMap(all => all.recipe)
+      const flattenedRecipes = formData.meal_data?.flatMap(all =>
+        all.recipe?.map(ing => ({
+          ...ing,
+          recipe_id: String(ing.recipe_id) // Convert recipe_id to string
+        }))
+      )
       setAllRecipeSelectedValues(flattenedRecipes)
 
       const flattenedIngchoice = formData.meal_data?.flatMap(all => all.ingredientwithchoice)
@@ -279,11 +308,11 @@ const StepBasicDetails = ({
   useEffect(() => {
     // Filter allSelectedValues based on checkid
     if (checkid) {
-      const filteredValues = allSelectedValues.filter(value => value?.valueid === checkid)
+      const filteredValues = allSelectedValues.filter(value => value?.mealid === checkid)
       // Update childStateValue with the filtered values
       setChildStateValue(filteredValues)
 
-      const filteredValuesing = allIngredientchoiceSelectedValues.filter(value => value?.valueid === checkid)
+      const filteredValuesing = allIngredientchoiceSelectedValues.filter(value => value?.mealid === checkid)
       // Update childStateValue with the filtered values
       setIngredientchoiceChildStateValue(filteredValuesing)
     }
@@ -305,13 +334,29 @@ const StepBasicDetails = ({
     return null
   }
 
-  const handleAddIngerdientChoice = (val, index) => {
+  const handleAddIngerdientChoice = (val, index, type) => {
+    console.log(val, 'val')
+    console.log(index, 'index')
     setOpenIngredientchoice(true)
-    setcheckid(val.newid)
+    setcheckid(val.mealid)
+    setingType(type)
+    // // Update childStateValue with objects having matching mealid
+    // setIngredientchoiceChildStateValue(prevState => {
+    //   const newState = prevState.filter(item => item.mealid === val.id)
+    //   return newState
+    // })
+  }
 
-    // Update childStateValue with objects having matching valueid
+  const handleAddIngerdientChoicewithindex = (val, index, type) => {
+    console.log(val, 'val')
+    console.log(index, 'index')
+    setOpenIngredientchoice(true)
+    setcheckid(val.mealid)
+    setingType(type)
+    setingredientChoiceIndex(index)
+    // Update childStateValue with objects having matching mealid
     setIngredientchoiceChildStateValue(prevState => {
-      const newState = prevState.filter(item => item.valueid === val.id)
+      const newState = prevState.filter(item => item.mealid === val.id)
       return newState
     })
   }
@@ -321,7 +366,7 @@ const StepBasicDetails = ({
     console.log(index, 'index')
     setOpenDrawer(true)
     setSelectedCardRecipe([])
-    setcheckid(val.newid)
+    setcheckid(val.mealid)
   }
 
   const handleSidebarCloseRecipe = () => {
@@ -333,11 +378,11 @@ const StepBasicDetails = ({
     console.log(val, 'raghu')
     console.log(index, 'ppp')
     setOpenIngredient(true)
-    setcheckid(val.newid)
+    setcheckid(val.mealid)
 
-    // Update childStateValue with objects having matching valueid
+    // Update childStateValue with objects having matching mealid
     setChildStateValue(prevState => {
-      const newState = prevState.filter(item => item.valueid === val.id)
+      const newState = prevState.filter(item => item.mealid === val.id)
 
       return newState
     })
@@ -414,12 +459,6 @@ const StepBasicDetails = ({
     console.log(data, 'data')
     console.log(fieldsIngredients, 'raaa')
     window.scrollTo(0, 0)
-
-    // Clear any existing errors
-    // Object.keys(defaultValues).forEach(field => {
-    //   clearErrors(field)
-    // })
-
     try {
       await schema.validate(data, { abortEarly: false })
       const imageData = await handleImageUpload()
@@ -438,8 +477,21 @@ const StepBasicDetails = ({
         return meal
       })
 
+      // Update the meal_data array with ingredients from finalvalue
+      const updatedAddMealswithingChoice = updatedAddMeals.map((meal, index) => {
+        // Check if finalvalue has corresponding index
+        if (finalvalueingredientchoice[index]) {
+          return {
+            ...meal,
+            ingredientwithchoice: finalvalueingredientchoice[index].ingredientwithchoice
+          }
+        }
+
+        return meal
+      })
+
       // Update the meal_data array with recipes from finalrecipevalue
-      const updatedAddMealsWithRecipes = updatedAddMeals.map((meal, index) => {
+      const updatedAddMealsWithRecipes = updatedAddMealswithingChoice.map((meal, index) => {
         // Check if finalrecipevalue has corresponding index
         if (finalvaluerecipe[index]) {
           return {
@@ -462,14 +514,34 @@ const StepBasicDetails = ({
         diet_image: uploadedImage,
         meal_data: mergedAddMeals
       }
-
-      handleNext(formDataWithImage)
+      console.log(formDataWithImage, 'formDataWithImage')
+      // Check if each meal_data object contains at least one required value
+      const invalidMealIndices = formDataWithImage.meal_data.reduce((invalidIndices, meal, index) => {
+        if (!meal.recipe && !meal.ingredient && !meal.ingredientwithchoice) {
+          invalidIndices.push(index)
+        }
+        console.log('Current invalid indices:', invalidIndices)
+        return invalidIndices
+      }, [])
+      console.log(invalidMealIndices, 'invalidMealIndices')
+      // If there are any invalid meal_data objects, show error and abort submission
+      if (invalidMealIndices.length > 0) {
+        const invalidMealIndicesMessage = invalidMealIndices.map(index => `Index ${index} of meal_data`)
+        const errorMessage = `The following meal_data objects do not have at least one recipe, ingredient, or ingredientwithchoice: ${invalidMealIndicesMessage.join(
+          ', '
+        )}.`
+        toast.error(errorMessage)
+      } else {
+        // All meal_data objects are valid, proceed with submission
+        handleNext(formDataWithImage)
+      }
       console.log(formDataWithImage, 'data')
     } catch (validationErrors) {
       alert('hi')
       validationErrors.inner?.forEach(error => {
         setError(error.path, { message: error.message })
       })
+      toast.error('Submission failed. Please check the form for errors.')
     }
   }
 
@@ -497,7 +569,7 @@ const StepBasicDetails = ({
           }}
           onClick={() => {
             appendIngredients({
-              newid: `meal${fieldsIngredients.length}`,
+              mealid: `meal${fieldsIngredients.length}`,
               meal_name: '',
               meal_from_time: '',
               meal_to_time: '',
@@ -582,7 +654,7 @@ const StepBasicDetails = ({
       setAllSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
         return prevAllSelectedValues.filter(ingredient => {
-          return !(ingredient.valueid === val && ingredient.ingredient_id === ingredientIdToRemove)
+          return !(ingredient.mealid === val && ingredient.ingredient_id === ingredientIdToRemove)
         })
       })
 
@@ -603,8 +675,12 @@ const StepBasicDetails = ({
     setRecipeChildStateValue(prevSelectedCard => {
       // console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
+
       setAllRecipeSelectedValues(prevAllSelectedValues => {
-        return prevAllSelectedValues.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
+        // Filter out objects based on conditions
+        return prevAllSelectedValues.filter(recipe => {
+          return !(recipe.mealid === val && recipe.recipe_id === recipeIdToRemove)
+        })
       })
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
@@ -619,6 +695,32 @@ const StepBasicDetails = ({
       return filteredChildStateValue
     })
   }
+
+  // const removeingClickingwithChoice = ingredientIdToRemove => {
+  //   setIngredientchoiceChildStateValue(prevSelectedCard => {
+  //     const filteredChildStateValue = prevSelectedCard.filter(
+  //       ingredient => ingredient.ingredient_id !== ingredientIdToRemove
+  //     )
+
+  //     setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
+  //       // Filter out objects based on conditions
+  //       return prevAllSelectedValues.filter(ingredient => {
+  //         return !(ingredient.mealid === val && ingredient.ingredient_id === ingredientIdToRemove)
+  //       })
+  //     })
+
+  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
+  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
+  //       field.ingredient = field.ingredient.filter(ing => ing.ingredient_id !== ingredientIdToRemove)
+  //       return field
+  //     })
+
+  //     // Set the final value using setfinalvalue
+  //     setfinalvalueingredientchoice(updatedFieldsIngredients)
+
+  //     return filteredChildStateValue
+  //   })
+  // }
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -837,7 +939,7 @@ const StepBasicDetails = ({
               </Grid>
 
               {allRecipeSelectedValues?.length > 0 &&
-              allRecipeSelectedValues.some(value => value?.valueid === field.newid) ? (
+              allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
                 <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                   <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
                     <Typography variant='h6'>Recipes</Typography>
@@ -870,7 +972,7 @@ const StepBasicDetails = ({
 
                     {allRecipeSelectedValues?.length > 0 ? (
                       allRecipeSelectedValues.map((all, index) => {
-                        const matchingField = all?.valueid === field.newid
+                        const matchingField = all?.mealid === field.mealid
                         console.log(matchingField, 'matchingField')
                         console.log(index, 'index')
                         if (matchingField) {
@@ -880,10 +982,10 @@ const StepBasicDetails = ({
                                 <Typography>1</Typography>
                               </Grid>
                               <Grid item xs={12} sm={2.2}>
-                                <Typography>{all.recipe_name}</Typography>
+                                <Typography>{all?.recipe_name}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                                <Typography>{all.preparation_type}</Typography>
+                                <Typography>{all?.preparation_type}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
@@ -891,7 +993,7 @@ const StepBasicDetails = ({
                                     <Grid item key={index}>
                                       <Typography
                                         sx={{
-                                          color: all.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
                                           marginRight: 3
                                         }}
                                       >
@@ -903,7 +1005,7 @@ const StepBasicDetails = ({
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid sx={{ pl: 7 }}>
-                                  <Typography>{all.remarks ? all.remarks : '-'}</Typography>
+                                  <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
                                 </Grid>
                               </Grid>
                               <Icon
@@ -925,7 +1027,7 @@ const StepBasicDetails = ({
                 </Grid>
               ) : null}
 
-              {allSelectedValues?.length > 0 && allSelectedValues.some(value => value.valueid === field.newid) ? (
+              {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
                 <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                   <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
                     <Typography variant='h6'>Ingredients</Typography>
@@ -957,7 +1059,7 @@ const StepBasicDetails = ({
                     </Grid>
                     {allSelectedValues.length > 0 ? (
                       allSelectedValues.map((all, index) => {
-                        const matchingField = all?.valueid === field.newid
+                        const matchingField = all?.mealid === field.mealid
                         console.log(matchingField, 'matchingField')
                         console.log(index, 'index')
                         if (matchingField) {
@@ -994,7 +1096,7 @@ const StepBasicDetails = ({
                                 </Grid>
                               </Grid>
                               <Icon
-                                onClick={() => removeingClick(all.ingredient_id, all.valueid)}
+                                onClick={() => removeingClick(all.ingredient_id, all.mealid)}
                                 style={{ position: 'relative', left: '1%' }}
                                 icon='iconoir:cancel'
                               />
@@ -1013,7 +1115,179 @@ const StepBasicDetails = ({
                 ''
               )}
 
-              <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+              {allIngredientchoiceSelectedValues?.length > 0 &&
+              allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                    <Typography variant='h6'>Ingredients</Typography>
+                  </Box>
+
+                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      {ingredients.map((ingredient, index) => (
+                        <Grid
+                          item
+                          xs={12}
+                          sm={
+                            ingredient.label === 'No'
+                              ? 0.5
+                              : ingredient.label === 'Ingredient'
+                              ? 2.2
+                              : ingredient.label === 'Prep types'
+                              ? 1.5
+                              : 3.7
+                          }
+                          key={index}
+                          sx={{ py: 4, px: 2, textAlign: 'center' }}
+                        >
+                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
+                    {allIngredientchoiceSelectedValues.length > 0 ? (
+                      allIngredientchoiceSelectedValues.map((all, index) => {
+                        const matchingField = all?.mealid === field.mealid
+                        console.log(matchingField, 'matchingField')
+                        console.log(index, 'index')
+                        if (matchingField) {
+                          return (
+                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }}>
+                              <Grid item xs={12} sm={0.5}>
+                                <Typography>1</Typography>
+                              </Grid>
+                              <Grid item xs={12} sm={2.2}>
+                                <Typography>{all?.name}</Typography>
+                              </Grid>
+                              <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
+                                <Typography>{all?.preparation_type}</Typography>
+                              </Grid>
+                              <Grid item xs={12} sm={3.7}>
+                                <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  {days.map((day, index) => (
+                                    <Grid item key={day}>
+                                      <Typography
+                                        sx={{
+                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                          marginRight: 3
+                                        }}
+                                      >
+                                        {day}
+                                      </Typography>
+                                    </Grid>
+                                  ))}
+                                </Grid>
+                              </Grid>
+                              <Grid item xs={12} sm={3.7}>
+                                <Grid sx={{ pl: 7 }}>
+                                  <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
+                                </Grid>
+                              </Grid>
+
+                              <Grid
+                                container
+                                sx={{
+                                  background: '#00afd633',
+                                  padding: '0px 0px 15px 15px',
+                                  borderRadius: '8px',
+                                  mt: 3
+                                }}
+                              >
+                                {console.log(selectedCard, 'selectedCard')}
+                                {all?.ingredientList?.map(all => {
+                                  return (
+                                    <Grid item>
+                                      <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
+                                        <CardContent
+                                          sx={{
+                                            gap: 3,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'flex-start',
+                                            padding: '14px'
+                                          }}
+                                        >
+                                          <Avatar
+                                            variant='square'
+                                            alt='Medicine Image'
+                                            sx={{
+                                              width: 50,
+                                              height: 50,
+                                              mr: 1,
+                                              background: '#E8F4F2',
+                                              padding: '2px',
+                                              borderRadius: '4px'
+                                            }}
+                                            src={all?.image}
+                                          >
+                                            {null ?? <Icon icon='healthicons:fruits-outline' />}
+                                          </Avatar>
+                                          <Box
+                                            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                          >
+                                            <span>{all?.name}</span>
+                                            <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                              {'ING' + all?.ingredient_id}
+                                            </span>
+
+                                            <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                              {all?.preparation_type}
+                                            </span>
+                                          </Box>
+                                          <Icon
+                                            // onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
+                                            style={{ position: 'relative', left: '28%' }}
+                                            icon='iconoir:cancel'
+                                          />
+                                        </CardContent>
+                                      </Card>
+                                    </Grid>
+                                  )
+                                })}
+
+                                <Grid item>
+                                  <Card
+                                    sx={{ width: '100px', height: '90px', mr: 4, boxShadow: 'none', mt: 3, padding: 3 }}
+                                  >
+                                    <CardContent
+                                      sx={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        padding: 2
+                                      }}
+                                      onClick={() => handleAddIngerdientChoicewithindex(field, index, 'addingIndex')}
+                                    >
+                                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                        <Icon
+                                          style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
+                                          icon='material-symbols:add'
+                                        />
+
+                                        <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>
+                                          Add
+                                        </span>
+                                      </Box>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                          )
+                        }
+                      })
+                    ) : (
+                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                        No Records to show
+                      </Typography>
+                    )}
+                  </Grid>
+                </Grid>
+              ) : (
+                ''
+              )}
+
+              {/* <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                 <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
                   <Typography variant='h6'>Ingredients with choice</Typography>
                 </Box>
@@ -1142,7 +1416,7 @@ const StepBasicDetails = ({
                               justifyContent: 'flex-start',
                               padding: 2
                             }}
-                            onClick={handleAddIngerdientChoice}
+                            onClick={() => handleAddIngerdientChoicewithindex(field, index, 'addingIndex')}
                           >
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                               <Icon
@@ -1200,7 +1474,7 @@ const StepBasicDetails = ({
                     </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
+              </Grid> */}
 
               <Grid sx={{ pb: 12 }}>
                 <Typography
@@ -1249,7 +1523,7 @@ const StepBasicDetails = ({
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={() => handleAddIngerdientChoice(field, index)}
+                  onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD INGREDIENT WITH CHOICE
@@ -1314,6 +1588,10 @@ const StepBasicDetails = ({
           formData={formData}
           childIngredeintchoiceStateValue={childIngredeintchoiceStateValue}
           setOpenIngredientchoice={setOpenIngredientchoice}
+          ingType={ingType}
+          ingredientChoiceIndex={ingredientChoiceIndex}
+          setingType={setingType}
+          // onRemove={removeingClickingwithChoice}
         />
         <AddIngredients
           open={openIngredient}

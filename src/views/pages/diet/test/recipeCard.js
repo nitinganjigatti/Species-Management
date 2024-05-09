@@ -166,7 +166,7 @@ const RecipeCard = ({
         recipe_id: item.id ? item.id : null,
         days_of_week: selectedDayId,
         remarks: cardRemarks,
-        valueid: checkid
+        mealid: checkid
       }
     })
 
@@ -198,22 +198,22 @@ const RecipeCard = ({
   }
 
   useEffect(() => {
-    // Filter out duplicates based on id and valueid
+    // Filter out duplicates based on id and mealid
     console.log(rows, 'rows')
     const uniqueSelectedValues = allRecipeSelectedValues?.filter(
       (value, index, self) =>
-        index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.valueid === value?.valueid)
+        index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
     )
-
+    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
     // Initialize a new array to store the updated selectedCardRecipe
     let updatedSelectedCardRecipe = []
-
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Iterate over rows and check for matches
     rows.forEach(row => {
-      const match = selectedValuesWithCheckId?.find(item => item.recipe_id === row.id)
+      const match = selectedValuesWithCheckId?.find(item => String(item.recipe_id) === row.id)
       if (match) {
         // Construct a new object with keys from the row object and values from the match object
         const updatedRow = {}
@@ -227,12 +227,17 @@ const RecipeCard = ({
     console.log(updatedSelectedCardRecipe, 'updatedSelectedCardRecipe')
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCardRecipe with matched objects
-    setSelectedCardRecipe(updatedSelectedCardRecipe)
+    const updatedSelectedCard =
+      selectedValuesWithCheckId?.map(item => ({
+        ...item,
+        id: String(item.recipe_id) // Convert ingredient_id to string
+      })) || []
+    setSelectedCardRecipe(updatedSelectedCard)
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     if (
       allRecipeSelectedValues &&
       allRecipeSelectedValues.length > 0 &&
-      allRecipeSelectedValues.some(item => item?.valueid === checkid)
+      allRecipeSelectedValues.some(item => item?.mealid === checkid)
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)

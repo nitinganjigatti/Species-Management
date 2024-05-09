@@ -259,7 +259,7 @@ const AddIngredients = props => {
       preparation_type: feed_type,
       days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       remarks: remarksData,
-      valueid: checkid
+      mealid: checkid
     }
 
     if (feed_type === 'Chopped') {
@@ -290,7 +290,7 @@ const AddIngredients = props => {
   // }
 
   // useEffect(() => {
-  //   const filteredSelectedCard = selectedCard.filter(card => card.valueid === checkid)
+  //   const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
   //   setSelectedCard(filteredSelectedCard)
   // }, [checkid])
 
@@ -405,17 +405,35 @@ const AddIngredients = props => {
   }
 
   useEffect(() => {
-    // Filter out duplicates based on id and valueid
+    // Filter out duplicates based on id and mealid
     const uniqueSelectedValues = allSelectedValues?.filter(
       (value, index, self) =>
-        index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.valueid === value?.valueid)
+        index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.mealid === value?.mealid)
     )
-
+    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.valueid === checkid)
-
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCard with matched objects, or set to an empty array if no match found
-    setSelectedCard(selectedValuesWithCheckId?.length > 0 ? selectedValuesWithCheckId : [])
+    // const updatedSelectedCard =
+    //   selectedValuesWithCheckId?.map(item => ({
+    //     ingredient_id: String(item.ingredient_id),
+    //     name: item.ingredient_name,
+    //     preparation_type_id: item.preparation_type_id,
+    //     preparation_type: item.preparation_type,
+    //     days_of_week: item.days_of_week,
+    //     remarks: item.remarks,
+    //     mealid: item.mealid
+    //   })) || []
+
+    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
+    const updatedSelectedCard =
+      selectedValuesWithCheckId?.map(item => ({
+        ...item,
+        ingredient_id: String(item.ingredient_id) // Convert ingredient_id to string
+      })) || []
+
+    setSelectedCard(updatedSelectedCard)
 
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     const cardIds = selectedValuesWithCheckId?.map(item => item.ingredient_id)
@@ -425,7 +443,7 @@ const AddIngredients = props => {
     const updatedSelectedDays = []
     cardIds?.forEach((cardId, index) => {
       updatedSelectedDays.push({
-        cardId: cardId,
+        cardId: String(cardId),
         days: days[index]?.map(dayId => ({
           dayId: dayId,
           dayName: Day.find(day => day.id === dayId)?.name
@@ -436,17 +454,23 @@ const AddIngredients = props => {
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
+    const newVisibility = selectedValuesWithCheckId?.map(item => ({
+      id: String(item.ingredient_id),
+      isVisible: true
+    }))
+
     selectedValuesWithCheckId?.forEach(item => {
-      if (item.valueid === checkid) {
+      if (item.mealid === checkid) {
         const preparationType = item.preparation_type
         const preparationTypeId = item.preparation_type_id
-        newSelectFeed[item.id] = {
+        newSelectFeed[item.ingredient_id] = {
           id: preparationTypeId,
           name: preparationType
         }
       }
     })
     setSelectFeed(newSelectFeed)
+    setVisibility(newVisibility)
   }, [allSelectedValues, checkid, formData])
 
   const searchData = useCallback(

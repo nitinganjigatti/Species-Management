@@ -52,14 +52,14 @@ const AddDiet = () => {
     desc: '',
     meal_data: [
       {
-        newid: 'meal0',
+        mealid: 'meal0',
         meal_name: '',
         meal_from_time: '',
         meal_to_time: '',
         notes: '',
         recipe: [],
-        ingredient: []
-        //ingredientwithchoice: []
+        ingredient: [],
+        ingredientwithchoice: []
       }
     ]
   })
@@ -138,13 +138,23 @@ const AddDiet = () => {
           diet_type_child: data.diet_type_child,
           diet_image: data.diet_image,
           desc: data.desc,
-          meal_data: data.meal_data
+          meal_data: data.meal_data.map(meal => ({
+            ...meal,
+            meal_from_time: formatTime(meal.meal_from_time),
+            meal_to_time: formatTime(meal.meal_to_time)
+          }))
         }))
       }
     } catch (error) {
       console.log('Feed list', error)
     }
   }
+  // Function to format time
+  const formatTime = timeString => {
+    const date = new Date(`2000-01-01 ${timeString}`)
+    return date.toUTCString()
+  }
+
   useEffect(() => {
     getUnitsList()
 
@@ -217,8 +227,17 @@ const AddDiet = () => {
             const fromTime = new Date(item.meal_from_time)
             const toTime = new Date(item.meal_to_time)
 
+            // Remove empty arrays from the object
+            const filteredItem = Object.fromEntries(
+              Object.entries(item).filter(([key, value]) => {
+                // Filter out empty arrays or arrays with all null/undefined values
+                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              })
+            )
+
             return {
-              newid: item.newid,
+              ...filteredItem,
+              mealid: item.mealid,
               meal_name: item.meal_name,
               meal_from_time: fromTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
@@ -226,10 +245,10 @@ const AddDiet = () => {
                 hour12: true
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-              notes: item.notes,
-              recipe: item?.recipe,
-              ingredient: item?.ingredient,
-              ingredientwithchoice: item?.ingredientwithchoice
+              notes: item.notes
+              // recipe: item?.recipe,
+              // ingredient: item?.ingredient,
+              // ingredientwithchoice: item?.ingredientwithchoice
             }
           })
         )
@@ -246,7 +265,7 @@ const AddDiet = () => {
       const apival = await addNewDiet(updatedFormData)
       console.log(apival, 'apival')
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/diet`)
 
         return toast(
           t => (
@@ -259,7 +278,7 @@ const AddDiet = () => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe added successfully
+                    Diet added successfully
                   </Typography>
                 </div>
               </Box>
@@ -289,7 +308,7 @@ const AddDiet = () => {
             const toTime = new Date(item.meal_to_time)
 
             return {
-              newid: item.newid,
+              mealid: item.mealid,
               meal_name: item.meal_name,
               meal_from_time: fromTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
@@ -297,10 +316,10 @@ const AddDiet = () => {
                 hour12: true
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-              notes: item.notes,
-              recipe: item?.recipe,
-              ingredient: item?.ingredient,
-              ingredientwithchoice: item?.ingredientwithchoice
+              notes: item.notes
+              // recipe: item?.recipe,
+              // ingredient: item?.ingredient,
+              // ingredientwithchoice: item?.ingredientwithchoice
             }
           })
         )
@@ -323,42 +342,42 @@ const AddDiet = () => {
       }
 
       console.log(updatedFormData, 'updatedFormData')
-      const apival = await updateDiet(id, updatedFormData)
-      console.log(apival, 'apival')
-      if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+      // const apival = await updateDiet(id, updatedFormData)
+      // console.log(apival, 'apival')
+      // if (apival.success === true) {
+      //   Router.push(`/diet/diet`)
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe updated successfully
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
-      }
+      //   return toast(
+      //     t => (
+      //       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      //           <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+      //           <div>
+      //             <Typography sx={{ fontWeight: 500 }} variant='h5'>
+      //               Success!
+      //             </Typography>
+      //             <Divider sx={{ my: 2 }} />
+      //             <Typography variant='body2' sx={{ color: '#44544A' }}>
+      //               Diet updated successfully
+      //             </Typography>
+      //           </div>
+      //         </Box>
+      //         <IconButton
+      //           onClick={() => toast.dismiss(t.id)}
+      //           style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+      //         >
+      //           <Icon icon='mdi:close' fontSize={24} />
+      //         </IconButton>
+      //       </Box>
+      //     ),
+      //     {
+      //       style: {
+      //         minWidth: '450px',
+      //         minHeight: '130px'
+      //       }
+      //     }
+      //   )
+      // }
     }
   }
 
@@ -373,6 +392,7 @@ const AddDiet = () => {
             uomList={uomList}
             setSelectedCardRecipe={handleSelectedCardChange}
             selectedCardRecipe={selectedCardRecipe}
+            setFormData={setFormData}
           />
         )
       case 1:
@@ -380,7 +400,7 @@ const AddDiet = () => {
           <StepPreviewDiet
             handleNext={handleNext}
             handlePrev={handlePrev}
-            handleIngredientChange={handleIngredientChange}
+            // handleIngredientChange={handleIngredientChange}
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
@@ -409,14 +429,14 @@ const AddDiet = () => {
           Diet
         </Link>
         {console.log(id, 'id')}
-        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new diet'}</Typography>
+        <Typography color='text.primary'>{id ? 'Edit diet' : 'Add new diet'}</Typography>
       </Breadcrumbs>
       {console.log(formData, 'ppp')}
       <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
-              <Typography variant='h6'>{id ? 'Edit Recipe' : 'Add New Diet'}</Typography>
+              <Typography variant='h6'>{id ? 'Edit Diet' : 'Add New Diet'}</Typography>
             </div>
           </div>
         </CardContent>
