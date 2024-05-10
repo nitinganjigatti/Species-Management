@@ -29,6 +29,7 @@ import { Divider, Card } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import AddDietType from './AddDietType'
 
 const defaultValues = {
   meal_type: [
@@ -48,6 +49,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
   const [mealingredientIndex, setmealingredientIndex] = useState('')
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
+  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
+
   const handleClickOpen = (index, item, type) => {
     console.log(index, 'lll')
     console.log(item, 'item')
@@ -243,6 +246,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
                   <span>Diet Name : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_name}</span>
                 </Typography>
+                <Button onClick={() => setActivitySidebarOpen(true)}>Add Diet Type</Button>
                 <Typography>
                   <span>Diet Type : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_type ? formData.diet_type : '-'}</span>
@@ -979,6 +983,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList }) => {
           </Grid>
         </Card>
       </form>
+      <AddDietType setActivitySidebarOpen={setActivitySidebarOpen} activitySidebarOpen={activitySidebarOpen} />
     </>
   )
 }
