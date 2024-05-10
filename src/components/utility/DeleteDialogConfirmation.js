@@ -67,7 +67,10 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
           )}
         </span>
         <DialogTitle id='alert-dialog-title'>
-          {message}
+          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+            {active === '1' ? 'Deactivate' : 'Activate'}{' '}
+            {type === 'ingredient' ? 'Ingredient' : type === 'feed' ? 'Feed' : 'Recipe'}?
+          </span>
           <Typography sx={{ mt: 2 }}>
             {active === '1' ? 'Deactivating' : 'Activating'} this{' '}
             {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} prevents its addition to new{' '}

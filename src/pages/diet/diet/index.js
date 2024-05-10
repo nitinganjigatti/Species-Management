@@ -512,7 +512,7 @@ const Diet = () => {
               />
             </Card>
 
-            <RecipeList
+            {/* <RecipeList
               recipeList={recipeList}
               setSelectedCard={setSelectedCard}
               selectedCard={selectedCard}
@@ -520,7 +520,7 @@ const Diet = () => {
               addEventSidebarOpen={openDrawer}
               handleSidebarClose={handleSidebarClose}
               submitLoader={submitLoader}
-            />
+            /> */}
           </>
         )}
       </>

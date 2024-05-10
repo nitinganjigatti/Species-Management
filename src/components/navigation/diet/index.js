@@ -12,6 +12,7 @@ const composeDietNavigation = () => {
   const ingredientsList = {
     title: 'Ingredient',
     path: '/diet/ingredient',
+
     // icon: 'arcticons:recipe-keeper'
     icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />
   }
@@ -27,6 +28,7 @@ const composeDietNavigation = () => {
     path: '/diet/recipe',
     icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />
   }
+
   const settingsParent = {
     title: 'Setting',
     path: '/diet/settings',
