@@ -30,7 +30,7 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import AddIngredients from 'src/components/diet/AddIngredients'
@@ -152,14 +152,14 @@ const IngredientsList = () => {
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
+      {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Pop
-      </Button>
+      </Button> */}
 
-      <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
+      {/* <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
         &nbsp; Test Button
-      </Button>
+      </Button> */}
     </div>
   )
 
@@ -241,7 +241,7 @@ const IngredientsList = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.image ? params.row.image : null}
+            src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>

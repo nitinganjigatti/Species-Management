@@ -28,8 +28,6 @@ import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import { useTheme } from '@mui/material/styles'
-
-// import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
 
 import RecipeList from 'src/components/diet/RecipeList'
@@ -276,7 +274,7 @@ const Diet = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
-            src={params.row.diet_image ? params.row.diet_image : null}
+            src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -515,7 +513,7 @@ const Diet = () => {
               />
             </Card>
 
-            <RecipeList
+            {/* <RecipeList
               recipeList={recipeList}
               setSelectedCard={setSelectedCard}
               selectedCard={selectedCard}
@@ -523,7 +521,7 @@ const Diet = () => {
               addEventSidebarOpen={openDrawer}
               handleSidebarClose={handleSidebarClose}
               submitLoader={submitLoader}
-            />
+            /> */}
           </>
         )}
       </>

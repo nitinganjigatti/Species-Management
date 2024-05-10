@@ -14,8 +14,8 @@ import {
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import ActivityLogs from 'src/@core/components/activityLogs'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ActivityLogs from 'src/components/diet/activityLogs'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import toast from 'react-hot-toast'
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
@@ -201,6 +201,7 @@ const DietDetailCard = ({ dietDetails }) => {
 
   return (
     <Card>
+      {console.log(dietDetails, 'dietDetails')}
       <CardContent>
         <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
           <Grid md={3.8} item>
@@ -210,10 +211,10 @@ const DietDetailCard = ({ dietDetails }) => {
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '100%',
+                  height: dietDetails?.image ? '100%' : '250px',
                   borderRadius: '8px'
                 }}
-                src={dietDetails?.image ? dietDetails?.image : '/icons/recipedummy.svg'}
+                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
               ></Avatar>
               {/* <Box
                 sx={{
@@ -305,10 +306,7 @@ const DietDetailCard = ({ dietDetails }) => {
                     <Icon
                       icon='bx:pencil'
                       style={{ fontSize: 24 }}
-
-                      // onClick={() =>
-                      //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                      // }
+                      onClick={() => Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id } })}
                     />
                   </Box>
                   <Box>

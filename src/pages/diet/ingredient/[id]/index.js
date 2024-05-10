@@ -22,13 +22,16 @@ import {
 import IngredientDetailCardview from 'src/views/pages/ingredient/ingredient-detail/cardview'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
+import { getIngredientDetail, updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import OverviewTabView from 'src/views/pages/ingredient/ingredient-detail/overview-tabview'
 import Icon from 'src/@core/components/icon'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import { deleteIngredient } from 'src/lib/api/diet/getIngredients'
 import toast from 'react-hot-toast'
 import RecipeListTabview from 'src/views/pages/ingredient/ingredient-detail/recipeList-tabview'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import ToasterforSuccess from 'src/components/SuccessToaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -62,14 +65,24 @@ const IngredientDetail = () => {
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const [recipeListTotal, setRecipeListTotal] = useState(0)
+  const [statusDialog, setstatusDialog] = useState(false)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
 
+  const handleStatusClickOpen = async event => {
+    setstatusDialog(true)
+  }
+
   const handleClosenew = () => {
     setDeleteDialogBox(false)
+  }
+
+  const handleStatusClose = () => {
+    setstatusDialog(false)
   }
 
   const handleClickOpen = () => {
@@ -97,6 +110,21 @@ const IngredientDetail = () => {
       getIngredientsDetailval(id)
     }
   }, [id, value])
+  const confirmStatusUpdateAction = async () => {
+    try {
+      const activePayload = isActive == 0 ? 1 : 0
+      setDeleteDialogBox(false)
+      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: activePayload })
+      console.log(response, 'response')
+      if (response.success === true) {
+        Router.push(`/diet/ingredient`)
+
+        return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
+      } else {
+        alert('something went wrong')
+      }
+    } catch (error) {}
+  }
 
   const confirmDeleteAction = async () => {
     try {
@@ -179,13 +207,24 @@ const IngredientDetail = () => {
                         icon='material-symbols:delete-outline'
                         style={{ cursor: 'pointer', marginLeft: '15px' }}
                         onClick={() => {
-                          handleClickOpen()
+                          if (
+                            Number(IngredientsDetailsval?.recipe_count) + Number(IngredientsDetailsval?.diet_count) >
+                            0
+                          ) {
+                            handleStatusClickOpen()
+                          } else {
+                            handleClickOpen()
+                          }
                         }}
                       />
                     </Box>
                   </Box>
                   <Grid container spacing={6} sx={{ mt: 3 }}>
-                    <IngredientDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
+                    <IngredientDetailCardview
+                      isActive={isActive}
+                      setIsActive={setIsActive}
+                      IngredientsDetailsval={IngredientsDetailsval}
+                    />
 
                     <Grid item xs={8}>
                       <TabContext value={value}>
@@ -231,13 +270,35 @@ const IngredientDetail = () => {
               </Grid>
             )}
           </Grid>
-          <ModuleDeleteDialogConfirmation
+          {/* <ModuleDeleteDialogConfirmation
+            active={isActive == '1' ? true : false}
             handleClosenew={handleClosenew}
             action={confirmDeleteAction}
             open={deleteDialogBox}
             type='ingredient'
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
+            }
+          /> */}
+          <ConfirmationDialog
+            icon={'mdi:delete'}
+            iconColor={'#ff3838'}
+            title={'Are you sure you want to delete this Ingredient?'}
+            dialogBoxStatus={deleteDialogBox}
+            onClose={handleClosenew}
+            ConfirmationText={'Delete'}
+            confirmAction={confirmDeleteAction}
+          />
+          <DeleteDialogConfirmation
+            handleClosenew={handleStatusClose}
+            action={confirmStatusUpdateAction}
+            open={statusDialog}
+            type='ingredient'
+            active={isActive}
+            message={
+              <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+              </span>
             }
           />
         </Grid>

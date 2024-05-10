@@ -253,13 +253,13 @@ const AddIngredients = props => {
 
     // Prepare the object to store values
     const boxValues = {
-      id: item.id,
+      ingredient_id: item.id,
       name: item.ingredient_name,
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
       days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       remarks: remarksData,
-      valueid: checkid
+      mealid: checkid
     }
 
     if (feed_type === 'Chopped') {
@@ -273,7 +273,7 @@ const AddIngredients = props => {
     }
 
     // Check if the boxValues already exist in selectedCard
-    const existingIndex = selectedCard.findIndex(card => card.id === item.id)
+    const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
     if (existingIndex !== -1) {
       // If the card already exists, update its values
       selectedCard[existingIndex] = boxValues
@@ -284,13 +284,13 @@ const AddIngredients = props => {
     }
   }
 
-  const removeingClick = () => {
-    // Call the function passed from the parent component
-    props.removeingClick(item) // Pass the item to be removed
-  }
+  // const removeingClick = () => {
+  //   // Call the function passed from the parent component
+  //   props.removeingClick(item) // Pass the item to be removed
+  // }
 
   // useEffect(() => {
-  //   const filteredSelectedCard = selectedCard.filter(card => card.valueid === checkid)
+  //   const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
   //   setSelectedCard(filteredSelectedCard)
   // }, [checkid])
 
@@ -299,33 +299,8 @@ const AddIngredients = props => {
     onChange(selectedCard)
     // event.stopPropagation()
     setSelectedIngredient(selectedCard)
-
-    return toast(
-      t => (
-        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-            <div>
-              <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                Ingredient Selected
-              </Typography>
-            </div>
-          </Box>
-          <IconButton
-            onClick={() => toast.dismiss(t.id)}
-            style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-          >
-            <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
-        </Box>
-      ),
-      {
-        style: {
-          minWidth: '450px',
-          minHeight: '130px'
-        }
-      }
-    )
+    handleSidebarClose()
+    return toast.success('Ingredient selected')
   }
 
   useEffect(() => {
@@ -405,29 +380,72 @@ const AddIngredients = props => {
   }
 
   useEffect(() => {
-    // Filter out duplicates based on id and valueid
+    // Filter out duplicates based on id and mealid
     const uniqueSelectedValues = allSelectedValues?.filter(
-      (value, index, self) => index === self.findIndex(v => v.id === value.id && v.valueid === value.valueid)
+      (value, index, self) =>
+        index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.mealid === value?.mealid)
     )
     console.log(uniqueSelectedValues, 'uniqueSelectedValues')
-    console.log(checkid, 'checkid')
     // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item.valueid === checkid)
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCard with matched objects, or set to an empty array if no match found
-    setSelectedCard(selectedValuesWithCheckId?.length > 0 ? selectedValuesWithCheckId : [])
+    // const updatedSelectedCard =
+    //   selectedValuesWithCheckId?.map(item => ({
+    //     ingredient_id: String(item.ingredient_id),
+    //     name: item.ingredient_name,
+    //     preparation_type_id: item.preparation_type_id,
+    //     preparation_type: item.preparation_type,
+    //     days_of_week: item.days_of_week,
+    //     remarks: item.remarks,
+    //     mealid: item.mealid
+    //   })) || []
+
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
-    const cardIds = selectedValuesWithCheckId?.map(item => item.id)
-    const days = selectedValuesWithCheckId?.map(item => item.selectedDays)
+    const updatedSelectedCard =
+      selectedValuesWithCheckId?.map(item => ({
+        ...item,
+        ingredient_id: String(item.ingredient_id) // Convert ingredient_id to string
+      })) || []
+
+    setSelectedCard(updatedSelectedCard)
+
+    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
+    const cardIds = selectedValuesWithCheckId?.map(item => item.ingredient_id)
+    const days = selectedValuesWithCheckId?.map(item => item.days_of_week)
+
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
     cardIds?.forEach((cardId, index) => {
       updatedSelectedDays.push({
-        cardId: cardId,
-        days: days[index]
+        cardId: String(cardId),
+        days: days[index]?.map(dayId => ({
+          dayId: dayId,
+          dayName: Day.find(day => day.id === dayId)?.name
+        }))
       })
     })
     setSelectedDays(updatedSelectedDays)
+    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+    // Update selectFeed state based on selectedValuesWithCheckId
+    const newSelectFeed = {}
+    const newVisibility = selectedValuesWithCheckId?.map(item => ({
+      id: String(item.ingredient_id),
+      isVisible: true
+    }))
+
+    selectedValuesWithCheckId?.forEach(item => {
+      if (item.mealid === checkid) {
+        const preparationType = item.preparation_type
+        const preparationTypeId = item.preparation_type_id
+        newSelectFeed[item.ingredient_id] = {
+          id: preparationTypeId,
+          name: preparationType
+        }
+      }
+    })
+    setSelectFeed(newSelectFeed)
+    setVisibility(newVisibility)
   }, [allSelectedValues, checkid, formData])
 
   const searchData = useCallback(
@@ -469,7 +487,7 @@ const AddIngredients = props => {
     console.log('removeSelectedCard Called')
 
     // Check if the card with itemId is present in the selectedCard state
-    const cardIndex = selectedCard.findIndex(card => card.id === itemId)
+    const cardIndex = selectedCard.findIndex(card => card.ingredient_id === itemId)
 
     if (cardIndex !== -1) {
       // If the card is found, remove it from the selectedCard state
@@ -585,7 +603,7 @@ const AddIngredients = props => {
                   ml: 2
                 }}
               >
-                {selectedCard.some(card => card.id === item.id) ? (
+                {selectedCard.some(card => card.ingredient_id === item.id) ? (
                   // Render checkbox icon if card is selected
                   <Box
                     onClick={event => removeSelectedCard(event, item.id)}

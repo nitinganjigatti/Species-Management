@@ -3,7 +3,7 @@ import { Grid, Box, Typography, Chip, Divider, Avatar, CardContent } from '@mui/
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
-import ActivityLogs from 'src/@core/components/activityLogs'
+import ActivityLogs from 'src/components/diet/activityLogs'
 
 const OverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)

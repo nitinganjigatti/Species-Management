@@ -269,7 +269,7 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' />)
+        return toast(t => <AddToasterforSuccess type='Recipe' t={t} />)
       }
     } else {
       const numericFormData = {
@@ -320,7 +320,7 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' id={id} />)
+        return toast(t => <AddToasterforSuccess type='Recipe' id={id} t={t} />)
       }
     }
   }

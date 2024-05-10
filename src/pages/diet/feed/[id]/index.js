@@ -29,9 +29,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
-import ActivityLogs from 'src/@core/components/activityLogs'
+import ActivityLogs from 'src/components/diet/activityLogs'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({

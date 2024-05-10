@@ -130,7 +130,10 @@ const IngredientOverview = () => {
                     }}
                   >
                     <img
-                      src='https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg'
+                      src={
+                        '/icons/icon_ingredient_fill.png' ||
+                        'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg'
+                      }
                       width={60}
                       height={60}
                     />

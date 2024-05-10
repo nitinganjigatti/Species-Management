@@ -18,6 +18,7 @@ import toast from 'react-hot-toast'
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
+import { addNewDiet, getDietDetails, updateDiet } from 'src/lib/api/diet/dietList'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
@@ -41,6 +42,7 @@ const AddDiet = () => {
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
+  const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
 
   const [formData, setFormData] = useState({
     diet_name: '',
@@ -49,46 +51,22 @@ const AddDiet = () => {
     diet_type_child: '',
     diet_image: '',
     desc: '',
-    add_meal: [
+    meal_data: [
       {
-        newid: 'meal0',
+        mealid: 'meal0',
         meal_name: '',
         meal_from_time: '',
         meal_to_time: '',
         notes: '',
-        recipe: [
-          {
-            recipe_id: '',
-            days_of_week: [],
-            remarks: '',
-            meal_type: [
-              {
-                meal_value_header: '',
-                quantity: '',
-                meal_value_uom_id: '',
-                notes: ''
-              }
-            ]
-          }
-        ],
-        ingredient: []
-      }
-    ],
-    by_quantity: [
-      {
-        ingredient_id: '',
-        ingredient_name: '',
-        feed_type_label: '',
-        uom_id: '',
-        quantity: '',
-        preparation_type_id: '',
-        preparation_type: ''
+        recipe: [],
+        ingredient: [],
+        ingredientwithchoice: []
       }
     ]
   })
 
   const handleSelectedCardChange = card => {
-    setSelectedCard(card)
+    setSelectedCardRecipe(card)
   }
 
   const getUnitsList = async () => {
@@ -147,44 +125,40 @@ const AddDiet = () => {
 
   const getIngredientsDetailval = async id => {
     try {
-      const response = await getRecipeDetail(id)
+      const response = await getDietDetails(id, { week_day: 0 })
       console.log(response, 'response')
-      if (response.data.success === true && response.data.data !== null) {
-        const data = response.data.data
+      if (response.success === true && response.data !== null) {
+        const data = response.data
+        console.log(data, 'data')
 
-        const convertedData = {
-          ...data,
-          add_meal: data.add_meal.map(item => ({
-            ...item,
-            ingredient_id: String(item.ingredient_id),
-            preparation_type_id: String(item.preparation_type_id)
-          })),
-          by_quantity: data.by_quantity.map(item => ({
-            ...item,
-            ingredient_id: String(item.ingredient_id),
-            preparation_type_id: String(item.preparation_type_id),
-            uom_id: String(item.uom_id)
+        // Update formData state with the values from data
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          diet_name: data.diet_name,
+          diet_type: data.diet_type,
+          diet_type_id: data.diet_type_id,
+          diet_type_child: data.diet_type_child,
+          diet_image: data.diet_image,
+          desc: data.desc,
+          meal_data: data.meal_data.map(meal => ({
+            ...meal,
+            meal_from_time: formatTime(meal.meal_from_time),
+            meal_to_time: formatTime(meal.meal_to_time)
           }))
-        }
-
-        // Filter out the keys that were initially set in formData
-        const initialKeys = Object.keys(formData)
-        const updatedData = {}
-        Object.keys(convertedData).forEach(key => {
-          if (initialKeys.includes(key)) {
-            updatedData[key] = convertedData[key]
-          }
-        })
-
-        setFormData(prevData => ({
-          ...prevData,
-          ...updatedData
         }))
       }
     } catch (error) {
       console.log('Feed list', error)
     }
   }
+
+  // Function to format time
+  const formatTime = timeString => {
+    const date = new Date(`2000-01-01 ${timeString}`)
+
+    return date.toUTCString()
+  }
+
   useEffect(() => {
     getUnitsList()
 
@@ -244,45 +218,59 @@ const AddDiet = () => {
   }
 
   const handleStepBillingSubmit = async () => {
+    console.log(formData, 'formdata')
     if (!id) {
+      // Omitting diet_type_child field from formData
+      const { diet_type_child, ...formDataWithoutChild } = formData
+
       const numericFormData = {
-        ...formData,
-        add_meal: JSON.stringify(
-          formData.add_meal.map(item => ({
-            ingredient_id: item.ingredient_id,
-            ingredient_name: item.ingredient_name,
-            feed_type_label: item.feed_type_label,
-            quantity: parseFloat(item.quantity).toFixed(2),
-            preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
-          }))
-        ),
-        by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
-            ingredient_id: item.ingredient_id,
-            ingredient_name: item.ingredient_name,
-            feed_type_label: item.feed_type_label,
-            uom_id: item.uom_id,
-            quantity: item.quantity,
-            preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
-          }))
+        ...formDataWithoutChild,
+        meal_data: JSON.stringify(
+          formData.meal_data.map(item => {
+            // Convert string date to Date objects
+            const fromTime = new Date(item.meal_from_time)
+            const toTime = new Date(item.meal_to_time)
+
+            // Remove empty arrays from the object
+            const filteredItem = Object.fromEntries(
+              Object.entries(item).filter(([key, value]) => {
+                // Filter out empty arrays or arrays with all null/undefined values
+                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              })
+            )
+
+            return {
+              ...filteredItem,
+              mealid: item.mealid,
+              meal_name: item.meal_name,
+              meal_from_time: fromTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              }),
+              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              notes: item.notes
+
+              // recipe: item?.recipe,
+              // ingredient: item?.ingredient,
+              // ingredientwithchoice: item?.ingredientwithchoice
+            }
+          })
         )
       }
 
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
-        add_meal: numericFormData.add_meal,
-        by_quantity: numericFormData.by_quantity,
+        meal_data: numericFormData.meal_data,
         diet_image: numericFormData.diet_image[0]
       }
 
       console.log(updatedFormData, 'updatedFormData')
-      const apival = await addNewRecipe(updatedFormData)
+      const apival = await addNewDiet(updatedFormData)
       console.log(apival, 'apival')
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/diet`)
 
         return toast(
           t => (
@@ -295,7 +283,38 @@ const AddDiet = () => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe added successfully
+                    Diet added successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='codicon:error' style={{ marginRight: '20px', fontSize: 50, color: '#ff0000' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Error !
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {apival.message}
                   </Typography>
                 </div>
               </Box>
@@ -316,35 +335,38 @@ const AddDiet = () => {
         )
       }
     } else {
+      // Omitting diet_type_child field from formData
+      const { diet_type_child, ...formDataWithoutChild } = formData
+
       const numericFormData = {
-        ...formData,
-        add_meal: JSON.stringify(
-          formData.add_meal.map(item => ({
-            ingredient_id: item.ingredient_id,
-            ingredient_name: item.ingredient_name,
-            feed_type_label: item.feed_type_label,
-            quantity: parseFloat(item.quantity).toFixed(2),
-            preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
-          }))
-        ),
-        by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
-            ingredient_id: item.ingredient_id,
-            ingredient_name: item.ingredient_name,
-            feed_type_label: item.feed_type_label,
-            uom_id: item.uom_id,
-            quantity: item.quantity,
-            preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
-          }))
+        ...formDataWithoutChild,
+        meal_data: JSON.stringify(
+          formData.meal_data.map(item => {
+            // Convert string date to Date objects
+            const fromTime = new Date(item.meal_from_time)
+            const toTime = new Date(item.meal_to_time)
+
+            return {
+              mealid: item.mealid,
+              meal_name: item.meal_name,
+              meal_from_time: fromTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              }),
+              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              notes: item.notes,
+              recipe: item?.recipe,
+              ingredient: item?.ingredient,
+              ingredientwithchoice: item?.ingredientwithchoice
+            }
+          })
         )
       }
 
       const updatedFormData = {
         ...numericFormData,
-        add_meal: numericFormData.add_meal,
-        by_quantity: numericFormData.by_quantity
+        meal_data: numericFormData.meal_data
       }
       console.log(formData.diet_image, 'klkl')
       if (formData.diet_image === null) {
@@ -359,10 +381,10 @@ const AddDiet = () => {
       }
 
       console.log(updatedFormData, 'updatedFormData')
-      const apival = await updateRecipe(id, updatedFormData)
+      const apival = await updateDiet(id, updatedFormData)
       console.log(apival, 'apival')
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/diet`)
 
         return toast(
           t => (
@@ -375,7 +397,38 @@ const AddDiet = () => {
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe updated successfully
+                    Diet updated successfully
+                  </Typography>
+                </div>
+              </Box>
+              <IconButton
+                onClick={() => toast.dismiss(t.id)}
+                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          ),
+          {
+            style: {
+              minWidth: '450px',
+              minHeight: '130px'
+            }
+          }
+        )
+      } else {
+        return toast(
+          t => (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='codicon:error' style={{ marginRight: '20px', fontSize: 50, color: '#ff0000' }} />
+                <div>
+                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                    Error !
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                    {apival.message}
                   </Typography>
                 </div>
               </Box>
@@ -407,8 +460,9 @@ const AddDiet = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
-            setSelectedCard={handleSelectedCardChange}
-            selectedCard={selectedCard}
+            setSelectedCardRecipe={handleSelectedCardChange}
+            selectedCardRecipe={selectedCardRecipe}
+            setFormData={setFormData}
           />
         )
       case 1:
@@ -416,13 +470,13 @@ const AddDiet = () => {
           <StepPreviewDiet
             handleNext={handleNext}
             handlePrev={handlePrev}
-            handleIngredientChange={handleIngredientChange}
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
             IngredientTypeList={IngredientTypeList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
+            finalhandleSubmit={handleStepBillingSubmit}
           />
         )
       default:
@@ -444,14 +498,14 @@ const AddDiet = () => {
           Diet
         </Link>
         {console.log(id, 'id')}
-        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new diet'}</Typography>
+        <Typography color='text.primary'>{id ? 'Edit diet' : 'Add new diet'}</Typography>
       </Breadcrumbs>
       {console.log(formData, 'ppp')}
       <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
-              <Typography variant='h6'>{id ? 'Edit Recipe' : 'Add New Diet'}</Typography>
+              <Typography variant='h6'>{id ? 'Edit Diet' : 'Add New Diet'}</Typography>
             </div>
           </div>
         </CardContent>
