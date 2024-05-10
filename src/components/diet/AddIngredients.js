@@ -300,6 +300,7 @@ const AddIngredients = props => {
     // event.stopPropagation()
     setSelectedIngredient(selectedCard)
     handleSidebarClose()
+
     return toast.success('Ingredient selected')
   }
 
@@ -429,6 +430,7 @@ const AddIngredients = props => {
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
+
     const newVisibility = selectedValuesWithCheckId?.map(item => ({
       id: String(item.ingredient_id),
       isVisible: true
@@ -589,7 +591,7 @@ const AddIngredients = props => {
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
-                ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
                   border: '2px solid #37bd69' // Change border color when isVisible is true
                 })
               }}
@@ -696,7 +698,7 @@ const AddIngredients = props => {
                 <Box
                   sx={{
                     p: 3,
-                    display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                    display: visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible
                       ? 'block'
                       : ' none',
                     transitionProperty: 'display',
