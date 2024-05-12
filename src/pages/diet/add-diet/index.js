@@ -39,13 +39,14 @@ const AddDiet = () => {
   const router = useRouter()
   const { id } = router.query
   const [activeStep, setActiveStep] = useState(0)
-  const [uomList, setUom] = useState([])
+  const [uomList, setUomList] = useState([])
+  const [uomprev, setUomprev] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
   const [formData, setFormData] = useState({
     diet_name: '',
-    diet_type: '',
+    diet_type_name: '',
     diet_type_id: '',
     diet_type_child: '',
     diet_image: '',
@@ -76,7 +77,7 @@ const AddDiet = () => {
       }
       await getDietTypeList({ params: params }).then(res => {
         console.log(res, 'res')
-        setUom(res?.data)
+        setUomList(res?.data)
       })
     } catch (e) {
       console.log(e)
@@ -133,7 +134,7 @@ const AddDiet = () => {
         setFormData(prevFormData => ({
           ...prevFormData,
           diet_name: data.diet_name,
-          diet_type: data.diet_type,
+          diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           diet_type_child: data.diet_type_child,
           diet_image: data.diet_image,
@@ -341,7 +342,16 @@ const AddDiet = () => {
             const fromTime = new Date(item.meal_from_time)
             const toTime = new Date(item.meal_to_time)
 
+            // Remove empty arrays from the object
+            const filteredItem = Object.fromEntries(
+              Object.entries(item).filter(([key, value]) => {
+                // Filter out empty arrays or arrays with all null/undefined values
+                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              })
+            )
+
             return {
+              ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
               meal_from_time: fromTime.toLocaleTimeString('en-US', {
@@ -350,10 +360,10 @@ const AddDiet = () => {
                 hour12: true
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-              notes: item.notes,
-              recipe: item?.recipe,
-              ingredient: item?.ingredient,
-              ingredientwithchoice: item?.ingredientwithchoice
+              notes: item.notes
+              // recipe: item?.recipe,
+              // ingredient: item?.ingredient,
+              // ingredientwithchoice: item?.ingredientwithchoice
             }
           })
         )
@@ -458,6 +468,7 @@ const AddDiet = () => {
             setSelectedCardRecipe={handleSelectedCardChange}
             selectedCardRecipe={selectedCardRecipe}
             setFormData={setFormData}
+            setUomprev={setUomprev}
           />
         )
       case 1:
@@ -473,6 +484,7 @@ const AddDiet = () => {
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
             finalhandleSubmit={handleStepBillingSubmit}
+            uomprev={uomprev}
           />
         )
       default:
