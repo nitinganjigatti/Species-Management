@@ -20,7 +20,7 @@ import * as Yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
 
-const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
+const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDietTypes, dietTypes }) => {
   const [uomList, setUomList] = useState([])
   const [uom, setUom] = useState('')
   const [dis, setDis] = useState(true)
@@ -45,6 +45,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
     }
   }, [activitySidebarOpen])
 
+  // Function to send diet_types values to the parent component
+  const sendDietTypesToParent = dietTypesData => {
+    // Call the function received from the parent component and pass the diet_types values
+    onReceiveDietTypes(dietTypesData)
+  }
+
   const defaultProductDetails = {
     diet_types: [
       {
@@ -68,14 +74,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
 
   const form = useForm({
     defaultValues: defaultProductDetails,
-    resolver: yupResolver(ProductValidationSchema),
+    //resolver: yupResolver(ProductValidationSchema),
     shouldUnregister: false,
     reValidateMode: 'onChange',
     mode: 'onChange'
   })
   const { watch, control, handleSubmit, formState, getValues, setValue, reset, setError, clearErrors } = form
 
-  const { errors } = formState
+  //const { errors } = formState
 
   const { fields, append, remove, insert } = useFieldArray({
     control,
@@ -188,8 +194,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
       //     )
     )
   }
-
-  const submitItems = () => {}
+  //console.log(errors, 'nknn')
+  const submitItems = () => {
+    alert('hi')
+    const dietTypesData = getValues('diet_types')
+    sendDietTypesToParent(dietTypesData)
+  }
   const handleKeyUp = index => {
     const values = getValues('diet_types')
     const item = values[index]
@@ -216,6 +226,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
       clearErrors('diet_types', index)
     }
   }
+
+  useEffect(() => {
+    if (dietTypes.length > 0 && activitySidebarOpen) {
+      setValue('diet_types', dietTypes)
+    }
+  }, [dietTypes, activitySidebarOpen])
 
   return (
     <div>
@@ -293,7 +309,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
                                   }}
-                                  error={Boolean(errors?.diet_types?.[index]?.minWeight)}
+                                  // error={Boolean(errors?.diet_types?.[index]?.minWeight)}
                                   type='number'
                                   inputProps={{ min: 1 }}
                                   name={`diet_types[${index}].minWeight`}
@@ -305,9 +321,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
                             )}
                           />
                         </FormControl>
-                        <Typography sx={{ fontSize: 12, ml: 2 }}>
+                        {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
                           {errors?.diet_types?.[index]?.minWeight?.message}
-                        </Typography>
+                        </Typography> */}
                       </Grid>
                       <Grid item xs={12} sm={2.5}>
                         <FormControl fullWidth>
@@ -326,7 +342,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
                                     checkDisabled()
                                   }}
                                   type='number'
-                                  error={Boolean(errors?.diet_types?.[index]?.maxWeight)}
+                                  //error={Boolean(errors?.diet_types?.[index]?.maxWeight)}
                                   name={`diet_types[${index}].maxWeight`}
                                   onKeyUp={() => {
                                     handleKeyUp2(index)
@@ -336,9 +352,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
                             )}
                           />
                         </FormControl>
-                        <Typography sx={{ fontSize: 12, ml: 2 }}>
+                        {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
                           {errors?.diet_types?.[index]?.maxWeight?.message}
-                        </Typography>
+                        </Typography> */}
                       </Grid>
                       <Grid item xs={12} sm={5}>
                         <FormControl fullWidth>
@@ -370,11 +386,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
                                   )}
                                   sx={{ width: '200px' }}
                                 />
-                                {errors?.diet_types?.[index]?.unit && (
+                                {/* {errors?.diet_types?.[index]?.unit && (
                                   <FormHelperText sx={{ color: 'error.main' }} id={`diet_types[${index}].unit`}>
                                     {'Unit is required'}
                                   </FormHelperText>
-                                )}
+                                )} */}
                               </>
                             )}
                           />
@@ -401,8 +417,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen }) => {
           <Box sx={{ position: 'fixed', bottom: 0, width: '100%', px: 4, py: 4, backgroundColor: '#fff', zIndex: 200 }}>
             <Button
               disabled={dis}
+              type='submit'
               onClick={() => {
-                // console.log('fields', getValues('diet_types'))
+                console.log('fields', getValues('diet_types'))
                 console.log(
                   'fields',
                   getValues('diet_types').map(item => ({

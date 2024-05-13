@@ -26,10 +26,10 @@ import {
   TableRow
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
+import AddDietType from './AddDietType'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import AddDietType from './AddDietType'
 
 const defaultValues = {
   meal_type: [
@@ -43,7 +43,17 @@ const defaultValues = {
   ]
 }
 
-const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandleSubmit, uomprev }) => {
+const StepPreviewDiet = ({
+  formData,
+  handleNext,
+  handlePrev,
+  uomList,
+  finalhandleSubmit,
+  uomprev,
+  setFormData,
+  onDietTypeChildValuesChange
+  //diettypechildvalues
+}) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
   const [LocalformData, setlocalformData] = useState([])
@@ -51,7 +61,9 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
   const [dietTypeval, setdietTypeval] = useState('')
+  const [dietTypes, setDietTypes] = useState([])
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
+  const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [initialValues, setInitialValues] = useState({
     quantity: '',
     meal_value_uom_id: '',
@@ -97,7 +109,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     // Then open the dialog
     setOpen(true)
     setmealingredientIndex(index)
-    setingredientvalueid(item.valueid)
+    setingredientvalueid(item.mealid)
     setheadertype(type)
     setdietTypeval(dietType)
   }
@@ -132,10 +144,63 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     }
   }, [formData, reset])
 
+  // Define a function to receive the diet_types values from the child component
+  const handleReceiveDietTypes = dietTypesData => {
+    setDietTypes(dietTypesData)
+    const newState = dietTypesData.map(item => {
+      const { minWeight, maxWeight, unit } = item
+      const { name } = unit.value
+      return `${minWeight} to ${maxWeight} ${name}`
+    })
+    // Log the type of newState
+    console.log(typeof newState) // Check the type
+
+    // Set cookie
+    document.cookie = `dietTypeChildValues=${JSON.stringify(newState)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+
+    // Check if newState is an array
+    if (Array.isArray(newState)) {
+      setdiettypechildvalues(newState)
+    } else {
+      console.error('newState is not an array:', newState)
+    }
+  }
+
   const handleClosed = () => {
     setOpen(false)
     reset(defaultValues)
   }
+
+  const getCookie = name => {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+      // Check if this cookie is the one we want by comparing the name
+      if (cookie.startsWith(name + '=')) {
+        // If yes, return the value of the cookie
+        return cookie.substring(name.length + 1)
+      }
+    }
+    // If the cookie with the specified name is not found, return null
+    return null
+  }
+
+  useEffect(() => {
+    // When component mounts or diettypechildvalues changes, update local state
+    // Later in your code where you need to get the cookie value
+    const dietTypeChildValues = getCookie('dietTypeChildValues')
+
+    // Check if the cookie value is not null and parse it back to an array
+    if (dietTypeChildValues !== null) {
+      const parsedValue = JSON.parse(dietTypeChildValues)
+      console.log(parsedValue) // Use the parsed array as needed
+    } else {
+      console.error('Cookie "dietTypeChildValues" not found')
+    }
+    if (onDietTypeChildValuesChange) {
+      onDietTypeChildValuesChange(diettypechildvalues)
+    }
+  }, [diettypechildvalues, onDietTypeChildValuesChange])
 
   const CustomScrollbar = styled('div')({
     overflowX: 'auto', // or 'scroll'
@@ -333,7 +398,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
               // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child.includes(mealType.meal_value_header)
+              return formData.diet_type_child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -349,7 +414,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
               // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child.includes(mealType.meal_value_header)
+              return formData.diet_type_child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -380,6 +445,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     // Add dependencies as needed
   }, [formData.diet_type_child]) // Add other dependencies if needed
 
+  useEffect(() => {
+    if (formData.diet_type_name === 'By Weight') {
+      // Update the diet_type_child in formData with diettypechildvalues
+      const updatedFormData = { ...formData, diet_type_child: diettypechildvalues }
+      setlocalformData(updatedFormData) // Update local state
+      setFormData(updatedFormData)
+    }
+  }, [diettypechildvalues, formData.diet_type_name])
+
   const onSubmit = async data => {
     console.log(data, 'data')
     const updatedData = { ...data, ...LocalformData } // Merge data with LocalformData
@@ -388,6 +462,22 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     handleNext(updatedData)
     reset(defaultValues)
     // Router.push(`/diet/diet`)
+  }
+
+  const Day = [
+    { id: 0, name: 'All', isActive: false },
+    { id: 1, name: 'Mon', isActive: false },
+    { id: 2, name: 'Tue', isActive: false },
+    { id: 3, name: 'Wed', isActive: false },
+    { id: 4, name: 'Thrs', isActive: false },
+    { id: 5, name: 'Fri', isActive: false },
+    { id: 6, name: 'Sat', isActive: false },
+    { id: 7, name: 'Sun', isActive: false }
+  ]
+
+  const getDayName = dayId => {
+    const day = Day.find(d => d.id === dayId)
+    return day ? day.name : ''
   }
 
   return (
@@ -473,10 +563,6 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
           <Card sx={{ boxShadow: 'none', px: 5 }}>
             <Grid sx={{ overflowX: 'auto' }} value='full'>
               <Typography variant='h6'>Enter Values for Meals</Typography>
-              <Typography variant='h6' onClick={handleClickOpen}>
-                Test
-              </Typography>
-
               <Grid sx={{ overflowX: 'auto', pb: 0 }} value='full'>
                 <CustomScrollbar
                   style={{
@@ -550,7 +636,18 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                 borderRight: '1px solid #C3CEC7'
                               }}
                             >
-                              <Typography>COMMON</Typography>
+                              <Typography>GENERIC</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '127px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>FEMALE </Typography>
                             </TableCell>
                             <TableCell
                               sx={{
@@ -571,11 +668,55 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
-                                width: '127px',
+                                width: '137px',
                                 borderRight: '1px solid #C3CEC7'
                               }}
                             >
-                              <Typography>FEMALE</Typography>
+                              <Typography>GENERIC</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '140px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>Juvenile </Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '140px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>Young</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '140px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>Adult</Typography>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '157px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>Undetermined</Typography>
                             </TableCell>
                             <TableCell
                               sx={{
@@ -603,6 +744,35 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <Typography>GENERIC</Typography>
                             </TableCell>
                           </>
+                        ) : formData.diet_type_name === 'By Weight' ? (
+                          <>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '137px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography>GENERIC</Typography>
+                            </TableCell>
+                            {formData.diet_type_child?.map(all => {
+                              return (
+                                <TableCell
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '137px',
+                                    borderRight: '1px solid #C3CEC7'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
+                          </>
                         ) : (
                           ''
                         )}
@@ -610,15 +780,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                     </TableHead>
                     <TableBody>
                       {console.log(formData, 'rag')}
-                      {formData.add_meal?.map((itemd, index) => {
-                        console.log(itemd.meal_from_time.$d, 'raghhhh')
-                        const fromdate = new Date(itemd.meal_from_time.$d)
+                      {formData.meal_data?.map((itemd, index) => {
+                        console.log(itemd.meal_from_time, 'raghhhh')
+                        const fromdate = new Date(itemd.meal_from_time)
                         const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
                           hour12: true
                         })
-                        const todate = new Date(itemd.meal_to_time.$d)
+                        const todate = new Date(itemd.meal_to_time)
                         const formattedtoTime = todate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -741,7 +911,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                     {item?.name}
                                                   </Typography>
                                                 )}
-                                                {item?.prep && (
+                                                {item?.preparation_type && (
                                                   <Typography
                                                     sx={{
                                                       color: '#7A8684',
@@ -750,7 +920,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    &nbsp;-&nbsp; {item?.prep}
+                                                    &nbsp;-&nbsp; {item?.preparation_type}
                                                   </Typography>
                                                 )}
                                               </Box>
@@ -856,11 +1026,11 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                               )}
                                             </Box>
                                           </Box>
-                                          {item?.selectedDays?.length > 0 && (
+                                          {item?.days_of_week?.length > 0 && (
                                             <>
-                                              {/* <Divider /> */}
+                                              <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.selectedDays?.map((item, index) => (
+                                                {item?.days_of_week?.map((item, index) => (
                                                   <Box
                                                     key={index}
                                                     sx={{
@@ -881,7 +1051,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                         color: '#44544A'
                                                       }}
                                                     >
-                                                      {item}
+                                                      {getDayName(item)}
                                                     </Typography>
                                                   </Box>
                                                 ))}
@@ -898,7 +1068,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Common')}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -910,7 +1080,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '110px',
+                                              width: '125px',
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
@@ -997,7 +1167,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Male')}
+                                        onClick={() => handleClickOpen(index, item, 'Female', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -1008,53 +1178,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '110px',
-                                              display: 'flex',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                              borderRadius: '8px',
-                                              height: '100%'
-                                            }}
-                                          >
-                                            <Typography
-                                              sx={{
-                                                color: '#000',
-                                                lineHeight: '16.94px',
-                                                fontWeight: 400,
-                                                fontSize: '14px'
-                                              }}
-                                            >
-                                              {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Male'
-                                                      ? meal.quantity + meal.meal_value_uom_id
-                                                      : ''
-                                                  })
-                                                : 'Add'}
-                                            </Typography>
-                                          </Box>
-                                        </Box>
-                                      </TableCell>
-                                      <TableCell
-                                        style={{
-                                          paddingLeft: '8px',
-                                          paddingRight: '8px',
-                                          height: '10px',
-                                          maxHeight: '100%',
-                                          border: 'none'
-                                        }}
-                                        onClick={() => handleClickOpen(index, item, 'Female')}
-                                      >
-                                        <Box
-                                          sx={{
-                                            height: '100%'
-                                          }}
-                                        >
-                                          <Box
-                                            sx={{
-                                              backgroundColor: '#0000000d',
-                                              p: '10px',
-                                              width: '110px',
+                                              width: '125px',
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
@@ -1404,18 +1528,19 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Kid')}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'recipe')}
                                       >
                                         <Box
                                           sx={{
                                             height: '100%'
                                           }}
                                         >
+                                          {console.log(item.meal_type, 'eee')}
                                           <Box
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '110px',
+                                              width: '125px',
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
@@ -1431,6 +1556,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                 fontSize: '14px'
                                               }}
                                             >
+                                              {console.log(index, 'index')}
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
@@ -1519,6 +1645,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
+                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
@@ -1527,6 +1654,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                       name='quantity'
                                                       //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
+                                                      defaultValue={initialValues.quantity}
                                                     />
                                                   )}
                                                 />
@@ -2010,14 +2138,23 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
               >
                 Go back
               </Button>
-              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+              <Button
+                onClick={finalhandleSubmit}
+                variant='contained'
+                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+              >
                 Submit
               </Button>
             </Box>
           </Grid>
         </Card>
       </form>
-      <AddDietType setActivitySidebarOpen={setActivitySidebarOpen} activitySidebarOpen={activitySidebarOpen} />
+      <AddDietType
+        setActivitySidebarOpen={setActivitySidebarOpen}
+        activitySidebarOpen={activitySidebarOpen}
+        onReceiveDietTypes={handleReceiveDietTypes}
+        dietTypes={dietTypes}
+      />
     </>
   )
 }

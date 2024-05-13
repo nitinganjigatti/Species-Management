@@ -75,7 +75,8 @@ const StepBasicDetails = ({
   setSelectedCard,
   setSelectedCardRecipe,
   selectedCardRecipe,
-  setUomprev
+  setUomprev,
+  diettypechildvalues
 }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)

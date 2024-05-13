@@ -44,6 +44,7 @@ const AddDiet = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
+  const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [formData, setFormData] = useState({
     diet_name: '',
     diet_type_name: '',
@@ -91,6 +92,11 @@ const AddDiet = () => {
       console.log(e)
     }
   }, 500)
+
+  const handleDietTypeChildValuesChange = values => {
+    // Update the parent component state with the received values
+    setdiettypechildvalues(values)
+  }
 
   // const callIngredientTypeList = async ({ status, page, limit, q }) => {
   //   try {
@@ -469,6 +475,7 @@ const AddDiet = () => {
             selectedCardRecipe={selectedCardRecipe}
             setFormData={setFormData}
             setUomprev={setUomprev}
+            diettypechildvalues={diettypechildvalues}
           />
         )
       case 1:
@@ -485,6 +492,9 @@ const AddDiet = () => {
             onCancelIconClick={handleCancelIconClick}
             finalhandleSubmit={handleStepBillingSubmit}
             uomprev={uomprev}
+            setFormData={setFormData}
+            onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
+            diettypechildvalues={diettypechildvalues}
           />
         )
       default:
