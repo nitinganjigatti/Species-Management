@@ -175,23 +175,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
           item?.unit?.value?._id === undefined ||
           item?.unit?.value?._id === null
       )
-      //   getValues('diet_types')
-      //     .map(item => ({
-      // weight: `${item.weight}` ,
-      //       unit: item?.unit?.value?._id
-      //     }))
-      //     .some(
-      //       item =>
-      //         item?.maxWeight === '' ||
-      //         item?.maxWeight === undefined ||
-      //         item?.maxWeight === null ||
-      //         item?.minWeight === '' ||
-      //         item?.minWeight === undefined ||
-      //         item?.minWeight === null ||
-      //         item?.unit === '' ||
-      //         item?.unit === undefined ||
-      //         item?.unit === null
-      //     )
     )
   }
   //console.log(errors, 'nknn')
@@ -228,8 +211,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   }
 
   useEffect(() => {
-    if (dietTypes.length > 0 && activitySidebarOpen) {
+    if (dietTypes?.length > 0 && activitySidebarOpen) {
       setValue('diet_types', dietTypes)
+      setDis(false)
     }
   }, [dietTypes, activitySidebarOpen])
 

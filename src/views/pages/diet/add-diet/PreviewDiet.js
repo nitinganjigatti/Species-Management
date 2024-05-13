@@ -51,7 +51,8 @@ const StepPreviewDiet = ({
   finalhandleSubmit,
   uomprev,
   setFormData,
-  onDietTypeChildValuesChange
+  id
+  //onDietTypeChildValuesChange
   //diettypechildvalues
 }) => {
   const [open, setOpen] = useState(false)
@@ -146,6 +147,7 @@ const StepPreviewDiet = ({
 
   // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
+    console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
     const newState = dietTypesData.map(item => {
       const { minWeight, maxWeight, unit } = item
@@ -157,7 +159,7 @@ const StepPreviewDiet = ({
 
     // Set cookie
     document.cookie = `dietTypeChildValues=${JSON.stringify(newState)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
-
+    document.cookie = `dietTypeChildVal=${JSON.stringify(dietTypesData)}; path=/`
     // Check if newState is an array
     if (Array.isArray(newState)) {
       setdiettypechildvalues(newState)
@@ -185,22 +187,80 @@ const StepPreviewDiet = ({
     return null
   }
 
+  // useEffect(() => {
+  //   if (id) {
+  //     const child = formData.child
+
+  //     const newarr = child?.map(item => {
+  //       const [minWeightStr, maxWeightStr, unitStr] = item.split(' ')
+
+  //       const minWeight = parseInt(minWeightStr)
+  //       const maxWeight = parseInt(maxWeightStr)
+
+  //       // Extract unit name
+  //       const unitName = unitStr?.trim()
+
+  //       return {
+  //         minWeight: minWeight,
+  //         maxWeight: maxWeight,
+  //         unit: {
+  //           value: {
+  //             name: unitName
+  //           }
+  //         }
+  //       }
+  //     })
+
+  //     console.log(newarr)
+
+  //     document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+  //     document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+  //   }
+  // }, [])
+
   useEffect(() => {
     // When component mounts or diettypechildvalues changes, update local state
     // Later in your code where you need to get the cookie value
-    const dietTypeChildValues = getCookie('dietTypeChildValues')
+    if (id) {
+      //const child = formData.child
+      const dietTypesData = ['10 to 20 bale', '20 to 30 bushel (US)']
+      const convertedData = dietTypesData.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+      console.log(convertedData, 'convertedData')
+      const newarr = convertedData.map(item => {
+        // Splitting the string into minWeight, maxWeight, and unit name
+        const [minWeight, maxWeight, unitName] = item.split('_')
 
-    // Check if the cookie value is not null and parse it back to an array
-    if (dietTypeChildValues !== null) {
-      const parsedValue = JSON.parse(dietTypeChildValues)
-      console.log(parsedValue) // Use the parsed array as needed
+        return {
+          minWeight: minWeight,
+          maxWeight: maxWeight,
+          unit: {
+            value: {
+              name: unitName
+            }
+          }
+        }
+      })
+      console.log(newarr, 'newarr')
+
+      document.cookie = `dietTypeChildValues=${JSON.stringify(['10 to 20 bale', '20 to 30 bushel (US)'])}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+      document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+      setdiettypechildvalues(['10 to 20 bale', '20 to 30 bushel (US)'])
+      setDietTypes(newarr)
     } else {
-      console.error('Cookie "dietTypeChildValues" not found')
+      const dietTypeChildValues = getCookie('dietTypeChildValues')
+      const dietTypeChildVal = getCookie('dietTypeChildVal')
+      // Check if the cookie value is not null and parse it back to an array
+      if (dietTypeChildValues !== null) {
+        const parsedValue = JSON?.parse(dietTypeChildValues)
+        const parsedvaldiet = JSON?.parse(dietTypeChildVal)
+        console.log(parsedValue) // Use the parsed array as needed
+        setdiettypechildvalues(parsedValue)
+        setDietTypes(parsedvaldiet)
+      } else {
+        console.error('Cookie "dietTypeChildValues" not found')
+      }
     }
-    if (onDietTypeChildValuesChange) {
-      onDietTypeChildValuesChange(diettypechildvalues)
-    }
-  }, [diettypechildvalues, onDietTypeChildValuesChange])
+  }, [])
 
   const CustomScrollbar = styled('div')({
     overflowX: 'auto', // or 'scroll'
@@ -384,6 +444,15 @@ const StepPreviewDiet = ({
   }
 
   useEffect(() => {
+    if (formData.diet_type_name === 'By Weight') {
+      // Update the child in formData with diettypechildvalues
+      const updatedFormData = { ...formData, child: diettypechildvalues }
+      setlocalformData(updatedFormData) // Update local state
+      setFormData(updatedFormData)
+    }
+  }, [diettypechildvalues, formData.diet_type_name])
+
+  useEffect(() => {
     const updatedFormData = { ...formData } // Create a copy of formData
 
     // Iterate over meal_data
@@ -393,12 +462,15 @@ const StepPreviewDiet = ({
         meal.ingredient.forEach(ingredient => {
           // Check if meal_type exists and it's not empty
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
+              console.log(mealType, 'mealType')
               if (mealType.meal_value_header === 'Generic') return true
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child?.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -409,12 +481,14 @@ const StepPreviewDiet = ({
         meal.recipe.forEach(recipe => {
           // Check if meal_type exists and it's not empty
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child?.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -425,12 +499,14 @@ const StepPreviewDiet = ({
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
           // Check if meal_type exists and it's not empty
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child?.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -443,16 +519,7 @@ const StepPreviewDiet = ({
     console.log(updatedFormData, 'updatedFormData')
 
     // Add dependencies as needed
-  }, [formData.diet_type_child]) // Add other dependencies if needed
-
-  useEffect(() => {
-    if (formData.diet_type_name === 'By Weight') {
-      // Update the diet_type_child in formData with diettypechildvalues
-      const updatedFormData = { ...formData, diet_type_child: diettypechildvalues }
-      setlocalformData(updatedFormData) // Update local state
-      setFormData(updatedFormData)
-    }
-  }, [diettypechildvalues, formData.diet_type_name])
+  }, [formData.child]) // Add other dependencies if needed
 
   const onSubmit = async data => {
     console.log(data, 'data')
@@ -548,7 +615,6 @@ const StepPreviewDiet = ({
                   <span>Diet Name : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_name}</span>
                 </Typography>
-                <Button onClick={() => setActivitySidebarOpen(true)}>Add Diet Type</Button>
                 <Typography>
                   <span>Diet Type : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
@@ -562,7 +628,21 @@ const StepPreviewDiet = ({
           </Grid>
           <Card sx={{ boxShadow: 'none', px: 5 }}>
             <Grid sx={{ overflowX: 'auto' }} value='full'>
-              <Typography variant='h6'>Enter Values for Meals</Typography>
+              <Typography
+                variant='h6'
+                sx={formData.diet_type_name === 'By Weight' ? { width: '50%', mt: 3, float: 'left' } : { mb: 3 }}
+              >
+                Enter Values for Meals
+              </Typography>
+              {formData.diet_type_name === 'By Weight' ? (
+                <Grid container justifyContent='flex-end' sx={{ overflowX: 'auto', pt: 2, pr: 3, width: '50%', mb: 8 }}>
+                  <Button onClick={() => setActivitySidebarOpen(true)} variant='contained'>
+                    Add Diet Type
+                  </Button>
+                </Grid>
+              ) : (
+                ''
+              )}
               <Grid sx={{ overflowX: 'auto', pb: 0 }} value='full'>
                 <CustomScrollbar
                   style={{
@@ -755,9 +835,9 @@ const StepPreviewDiet = ({
                                 borderRight: '1px solid #C3CEC7'
                               }}
                             >
-                              <Typography>GENERIC</Typography>
+                              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
                             </TableCell>
-                            {formData.diet_type_child?.map(all => {
+                            {formData.child?.map(all => {
                               return (
                                 <TableCell
                                   sx={{
@@ -768,7 +848,7 @@ const StepPreviewDiet = ({
                                     borderRight: '1px solid #C3CEC7'
                                   }}
                                 >
-                                  <Typography>{all}</Typography>
+                                  <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{all}</Typography>
                                 </TableCell>
                               )
                             })}
@@ -1108,7 +1188,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child?.map(all => {
+                                      {formData.child?.map(all => {
                                         return (
                                           <TableCell
                                             style={{
@@ -1568,7 +1648,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child?.map(all => {
+                                      {formData.child?.map(all => {
                                         return (
                                           <TableCell
                                             style={{
@@ -1953,7 +2033,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child?.map(all => {
+                                      {formData.child?.map(all => {
                                         return (
                                           <TableCell
                                             style={{

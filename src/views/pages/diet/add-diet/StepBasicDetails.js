@@ -34,7 +34,7 @@ const defaultValues = {
   diet_name: '',
   diet_type_name: '',
   diet_type_id: '',
-  diet_type_child: '',
+  child: '',
   diet_image: '',
   desc: '',
   meal_data: [
@@ -886,11 +886,11 @@ const StepBasicDetails = ({
                           if (val === null) {
                             setFormValue('diet_type_id', '') // Clear the diet_type_id value
                             setFormValue('diet_type_name', '') // Clear the diet_type value
-                            setFormValue('diet_type_child', '')
+                            setFormValue('child', '')
                           } else {
                             setFormValue('diet_type_id', val.id) // Set the diet_type_id value
                             setFormValue('diet_type_name', val.diet_type_name) // Set the diet_type value
-                            setFormValue('diet_type_child', val.child)
+                            setFormValue('child', val.child)
                             trigger('diet_type_name')
                           }
                         }}

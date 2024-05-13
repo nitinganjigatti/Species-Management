@@ -49,7 +49,7 @@ const AddDiet = () => {
     diet_name: '',
     diet_type_name: '',
     diet_type_id: '',
-    diet_type_child: '',
+    child: '',
     diet_image: '',
     desc: '',
     meal_data: [
@@ -93,10 +93,10 @@ const AddDiet = () => {
     }
   }, 500)
 
-  const handleDietTypeChildValuesChange = values => {
-    // Update the parent component state with the received values
-    setdiettypechildvalues(values)
-  }
+  // const handleDietTypeChildValuesChange = values => {
+  //   // Update the parent component state with the received values
+  //   setdiettypechildvalues(values)
+  // }
 
   // const callIngredientTypeList = async ({ status, page, limit, q }) => {
   //   try {
@@ -142,7 +142,7 @@ const AddDiet = () => {
           diet_name: data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
-          diet_type_child: data.diet_type_child,
+          child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
           meal_data: data.meal_data.map(meal => ({
@@ -223,11 +223,12 @@ const AddDiet = () => {
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
     if (!id) {
-      // Omitting diet_type_child field from formData
-      const { diet_type_child, ...formDataWithoutChild } = formData
+      // Omitting child field from formData
+      // const { child, ...formDataWithoutChild } = formData
 
       const numericFormData = {
-        ...formDataWithoutChild,
+        // ...formDataWithoutChild,
+        ...formData,
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
@@ -261,7 +262,6 @@ const AddDiet = () => {
         )
       }
 
-      // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
         meal_data: numericFormData.meal_data,
@@ -337,11 +337,12 @@ const AddDiet = () => {
         )
       }
     } else {
-      // Omitting diet_type_child field from formData
-      const { diet_type_child, ...formDataWithoutChild } = formData
+      // Omitting child field from formData
+      // const { child, ...formDataWithoutChild } = formData
 
       const numericFormData = {
-        ...formDataWithoutChild,
+        //...formDataWithoutChild,
+        ...formData,
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
@@ -493,8 +494,9 @@ const AddDiet = () => {
             finalhandleSubmit={handleStepBillingSubmit}
             uomprev={uomprev}
             setFormData={setFormData}
-            onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
-            diettypechildvalues={diettypechildvalues}
+            id={id}
+            // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
+            // diettypechildvalues={diettypechildvalues}
           />
         )
       default:
