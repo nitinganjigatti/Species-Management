@@ -30,6 +30,7 @@ const IngredientOverview = () => {
       borderRight: `1px solid ${theme.palette.divider}`
     }
   }))
+
   return (
     <>
       <Grid container>
@@ -82,4 +83,5 @@ const IngredientOverview = () => {
     </>
   )
 }
+
 export default IngredientOverview

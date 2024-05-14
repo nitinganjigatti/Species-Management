@@ -74,6 +74,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const form = useForm({
     defaultValues: defaultProductDetails,
+
     //resolver: yupResolver(ProductValidationSchema),
     shouldUnregister: false,
     reValidateMode: 'onChange',
@@ -147,6 +148,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const clearSaltFields = index => {
     checkDisabled
+
     return (
       <Box sx={{ ml: 2 }}>
         <Icon
@@ -177,12 +179,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
       )
     )
   }
+
   //console.log(errors, 'nknn')
   const submitItems = () => {
     alert('hi')
     const dietTypesData = getValues('diet_types')
     sendDietTypesToParent(dietTypesData)
   }
+
   const handleKeyUp = index => {
     const values = getValues('diet_types')
     const item = values[index]
@@ -198,6 +202,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
       }
     }
   }
+
   const handleKeyUp2 = index => {
     const values = getValues('diet_types')
     const item = values[index]

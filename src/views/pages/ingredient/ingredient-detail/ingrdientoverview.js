@@ -31,6 +31,7 @@ const IngredientOverview = () => {
       height: 5px;
     }
   `
+
   // Styled Grid component
   const StyledGrid = styled(Grid)(({ theme }) => ({
     display: 'flex',
@@ -108,6 +109,7 @@ const IngredientOverview = () => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   return (
     <>
       <Grid container>
@@ -197,4 +199,5 @@ const IngredientOverview = () => {
     </>
   )
 }
+
 export default IngredientOverview

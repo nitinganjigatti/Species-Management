@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import RecipeList from 'src/components/diet/RecipeList'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
+
 // import { getRecipeList } from 'src/lib/api/diet/recipe'
 
 const TestPage = () => {
@@ -55,4 +56,5 @@ const TestPage = () => {
     </>
   )
 }
+
 export default TestPage

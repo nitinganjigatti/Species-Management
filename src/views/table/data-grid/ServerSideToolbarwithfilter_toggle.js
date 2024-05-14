@@ -14,6 +14,7 @@ const ServerSideToolbarWithFilterAndToggle = props => {
     const { checked } = event.target
     props.onSwitchChange(checked)
   }
+
   return (
     <Box
       sx={{

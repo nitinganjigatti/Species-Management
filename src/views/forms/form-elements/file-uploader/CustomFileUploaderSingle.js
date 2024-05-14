@@ -45,6 +45,7 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
     }
   })
   console.log(uploadedImage, 'lll')
+
   const handleimage = e => {
     setUploadedImage([])
     onImageUpload(null)

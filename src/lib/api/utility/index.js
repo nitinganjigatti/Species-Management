@@ -14,6 +14,7 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
 
   if (userDetails?.user?.zoos.length > 0) {
     header['ZooId'] = userDetails?.user?.zoos[0].zoo_id
+
     //header['ZooId'] = '4'
   }
   if (userDetails?.token !== '') {
