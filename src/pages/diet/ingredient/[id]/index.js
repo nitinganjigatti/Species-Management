@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
@@ -32,6 +32,9 @@ import RecipeListTabview from 'src/views/pages/ingredient/ingredient-detail/reci
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -68,6 +71,10 @@ const IngredientDetail = () => {
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const [recipeListTotal, setRecipeListTotal] = useState(0)
   const [statusDialog, setstatusDialog] = useState(false)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -110,6 +117,7 @@ const IngredientDetail = () => {
       getIngredientsDetailval(id)
     }
   }, [id, value])
+
   const confirmStatusUpdateAction = async () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
@@ -172,105 +180,112 @@ const IngredientDetail = () => {
 
   return (
     <>
-      {loader ? (
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      ) : (
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography color='inherit'>Diet</Typography>
-              <Link underline='hover' color='inherit' href='/diet/ingredient/'>
-                Ingredients
-              </Link>
-              <Typography color='text.primary'>Ingredient Details</Typography>
-            </Breadcrumbs>
-            {Object.keys(IngredientsDetailsval).length !== 0 ? (
-              <Card>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-                    <Typography sx={{ fontWeight: 600 }} variant='h6'>
-                      {IngredientsDetailsval.ingredient_name}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                      <Icon
-                        icon='bx:pencil'
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
-                        }}
-                      />
-                      <Icon
-                        icon='material-symbols:delete-outline'
-                        style={{ cursor: 'pointer', marginLeft: '15px' }}
-                        onClick={() => {
-                          if (
-                            Number(IngredientsDetailsval?.recipe_count) + Number(IngredientsDetailsval?.diet_count) >
-                            0
-                          ) {
-                            handleStatusClickOpen()
-                          } else {
-                            handleClickOpen()
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                  <Grid container spacing={6} sx={{ mt: 3 }}>
-                    <IngredientDetailCardview
-                      isActive={isActive}
-                      setIsActive={setIsActive}
-                      IngredientsDetailsval={IngredientsDetailsval}
-                    />
+      {dietModule ? (
+        <>
+          {loader ? (
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                <CircularProgress />
+              </Box>
+            </CardContent>
+          ) : (
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                  <Typography color='inherit'>Diet</Typography>
+                  <Link underline='hover' color='inherit' href='/diet/ingredient/'>
+                    Ingredients
+                  </Link>
+                  <Typography color='text.primary'>Ingredient Details</Typography>
+                </Breadcrumbs>
+                {Object.keys(IngredientsDetailsval).length !== 0 ? (
+                  <Card>
+                    <CardContent sx={{ mb: 5, mt: 2 }}>
+                      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+                        <Typography sx={{ fontWeight: 600 }} variant='h6'>
+                          {IngredientsDetailsval.ingredient_name}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                          {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                            <Icon
+                              icon='bx:pencil'
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => {
+                                Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
+                              }}
+                            />
+                          )}
+                          {dietModuleAccess === 'DELETE' && (
+                            <Icon
+                              icon='material-symbols:delete-outline'
+                              style={{ cursor: 'pointer', marginLeft: '15px' }}
+                              onClick={() => {
+                                if (
+                                  Number(IngredientsDetailsval?.recipe_count) +
+                                    Number(IngredientsDetailsval?.diet_count) >
+                                  0
+                                ) {
+                                  handleStatusClickOpen()
+                                } else {
+                                  handleClickOpen()
+                                }
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                      <Grid container spacing={6} sx={{ mt: 3 }}>
+                        <IngredientDetailCardview
+                          isActive={isActive}
+                          setIsActive={setIsActive}
+                          IngredientsDetailsval={IngredientsDetailsval}
+                        />
 
-                    <Grid item xs={8}>
-                      <TabContext value={value}>
-                        <TabList onChange={handleChange} aria-label='customized tabs example'>
-                          <Tab
-                            style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
-                            value='1'
-                            label='OVERVIEW'
-                          />
-                          <Tab
-                            style={{ borderRadius: 0 }}
-                            value='2'
-                            label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
-                          />
-                          <Tab
-                            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                            value='3'
-                            label='USED IN DIET'
-                          />
-                        </TabList>
-                        <TabPanel value='1'>
-                          <OverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
-                        </TabPanel>
-                        <TabPanel value='2'>
-                          <RecipeListTabview
-                            IngredientName={IngredientsDetailsval.ingredient_name}
-                            onTotalChange={setRecipeListTotal}
-                          />
-                        </TabPanel>
-                        <TabPanel value='3'>
-                          <Typography>No Data to show</Typography>
-                        </TabPanel>
-                      </TabContext>
-                    </Grid>
+                        <Grid item xs={8}>
+                          <TabContext value={value}>
+                            <TabList onChange={handleChange} aria-label='customized tabs example'>
+                              <Tab
+                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                                value='1'
+                                label='OVERVIEW'
+                              />
+                              <Tab
+                                style={{ borderRadius: 0 }}
+                                value='2'
+                                label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                              />
+                              <Tab
+                                style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                                value='3'
+                                label='USED IN DIET'
+                              />
+                            </TabList>
+                            <TabPanel value='1'>
+                              <OverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
+                            </TabPanel>
+                            <TabPanel value='2'>
+                              <RecipeListTabview
+                                IngredientName={IngredientsDetailsval.ingredient_name}
+                                onTotalChange={setRecipeListTotal}
+                              />
+                            </TabPanel>
+                            <TabPanel value='3'>
+                              <Typography>No Data to show</Typography>
+                            </TabPanel>
+                          </TabContext>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Grid>
+                    <Typography variant='h6' sx={{ background: '#fff', padding: 8, borderRadius: '6px' }}>
+                      Data Not Found
+                    </Typography>
                   </Grid>
-                </CardContent>
-              </Card>
-            ) : (
-              <Grid>
-                <Typography variant='h6' sx={{ background: '#fff', padding: 8, borderRadius: '6px' }}>
-                  Data Not Found
-                </Typography>
+                )}
               </Grid>
-            )}
-          </Grid>
-          {/* <ModuleDeleteDialogConfirmation
+              {/* <ModuleDeleteDialogConfirmation
             active={isActive == '1' ? true : false}
             handleClosenew={handleClosenew}
             action={confirmDeleteAction}
@@ -280,28 +295,34 @@ const IngredientDetail = () => {
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }
           /> */}
-          <ConfirmationDialog
-            icon={'mdi:delete'}
-            iconColor={'#ff3838'}
-            title={'Are you sure you want to delete this Ingredient?'}
-            dialogBoxStatus={deleteDialogBox}
-            onClose={handleClosenew}
-            ConfirmationText={'Delete'}
-            confirmAction={confirmDeleteAction}
-          />
-          <DeleteDialogConfirmation
-            handleClosenew={handleStatusClose}
-            action={confirmStatusUpdateAction}
-            open={statusDialog}
-            type='ingredient'
-            active={isActive}
-            message={
-              <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-                {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
-              </span>
-            }
-          />
-        </Grid>
+              <ConfirmationDialog
+                icon={'mdi:delete'}
+                iconColor={'#ff3838'}
+                title={'Are you sure you want to delete this Ingredient?'}
+                dialogBoxStatus={deleteDialogBox}
+                onClose={handleClosenew}
+                ConfirmationText={'Delete'}
+                confirmAction={confirmDeleteAction}
+              />
+              <DeleteDialogConfirmation
+                handleClosenew={handleStatusClose}
+                action={confirmStatusUpdateAction}
+                open={statusDialog}
+                type='ingredient'
+                active={isActive}
+                message={
+                  <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                    {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+                  </span>
+                }
+              />
+            </Grid>
+          )}
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
       )}
     </>
   )

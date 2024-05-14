@@ -61,7 +61,7 @@ const SwapIngredient = ({ setActivitySidebarOpen, handleSidebarClose }) => {
       {/* <IngredientOverview /> */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
         {data?.map((item, index) => (
-          <IngredientOverview key={{ index }} />
+          <IngredientOverview key={index} />
         ))}
       </Box>
     </Box>

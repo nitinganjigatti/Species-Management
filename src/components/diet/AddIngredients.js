@@ -34,7 +34,8 @@ const AddIngredients = props => {
     checkid,
     allSelectedValues,
     formData,
-    setSelectedIngredient
+    setSelectedIngredient,
+    setUomprev
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
@@ -349,6 +350,7 @@ const AddIngredients = props => {
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
+        setUomprev(res?.data?.result)
       })
     } catch (e) {
       console.log(e)

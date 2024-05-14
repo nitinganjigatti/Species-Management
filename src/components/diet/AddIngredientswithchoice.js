@@ -339,7 +339,7 @@ const AddIngredientswithChoice = props => {
         setSelectedDays(daysOfWeek)
         setShowDays(true)
         setCount(Math.max(...minChoices))
-
+        //setListOfIngredient(selectedValuesWithCheckId)
         // Create selectFeed object
         const selectFeedObj = {}
         selectedValuesWithCheckId.forEach(item => {
@@ -447,6 +447,7 @@ const AddIngredientswithChoice = props => {
   const [listOfIngredient, setListOfIngredient] = useState([])
   console.log('listOfIngredient', listOfIngredient)
   console.log(selectedCardIngchoice, 'selectedCardIngchoice')
+
   const handelSetIngredient = () => {
     setShowDays(false)
     setOpenIngredientchoice(false)
@@ -456,7 +457,7 @@ const AddIngredientswithChoice = props => {
     // Collect data
     if (ingType === 'addingIndex') {
       // Find the index of the ingredient being updated
-      const existingIngredientIndex = listOfIngredient.findIndex((item, index) => {
+      const existingIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
         return (
           index === ingredientChoiceIndex && // Check if the index matches
           item.mealid === checkid && // Check if the mealid matches
@@ -467,11 +468,11 @@ const AddIngredientswithChoice = props => {
           })
         )
       })
-
+      console.log(existingIngredientIndex, 'existingIngredientIndex')
       // If the ingredient_id with the same mealid exists, update its values
       if (existingIngredientIndex !== -1) {
         // Clone the listOfIngredient to make changes
-        const updatedListOfIngredient = [...listOfIngredient]
+        const updatedListOfIngredient = [...allIngredientchoiceSelectedValues]
 
         // Update the ingredient at the specified index
         updatedListOfIngredient[existingIngredientIndex] = {
@@ -481,9 +482,10 @@ const AddIngredientswithChoice = props => {
           no_of_component_required: count,
           remarks: remarks
         }
+        console.log(listOfIngredient, 'listOfIngredient')
 
         // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
-        const duplicateIngredientIndex = listOfIngredient.findIndex((item, index) => {
+        const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
           return (
             index !== existingIngredientIndex && // Exclude the current index
             item.mealid === checkid && // Check if the mealid matches
@@ -502,6 +504,7 @@ const AddIngredientswithChoice = props => {
         if (duplicateIngredientIndex !== -1) {
           toast.error('Cannot update ingredient with the same preparation type in multiple places.')
           setingType('')
+
           return
         }
 
@@ -511,6 +514,7 @@ const AddIngredientswithChoice = props => {
 
         // Show success toast message for updating the ingredient
         toast.success('Ingredient updated successfully!')
+
         return
       }
     } else {
@@ -558,6 +562,7 @@ const AddIngredientswithChoice = props => {
         const updatedList = [...prevList, selectedIngredient]
         onChange(updatedList) // Call onChange with the updated list
         console.log(updatedList, 'updatedList')
+
         return updatedList
       })
       setSelectedCardIngredientchoice([])

@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
@@ -34,6 +34,9 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import AddIngredients from 'src/components/diet/AddIngredients'
+import Error404 from 'src/pages/404'
+
+import { AuthContext } from 'src/context/AuthContext'
 
 const roleColors = {
   active: 'success',
@@ -56,6 +59,10 @@ const IngredientsList = () => {
   const [check, setCheck] = useState(false)
   const [selectedIngredient, setSelectedIngredient] = useState()
   console.log('selectedIngredient', selectedIngredient)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [openIngredient, setOpenIngredient] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -107,7 +114,9 @@ const IngredientsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
+    if (dietModule) {
+      fetchTableData(sort, searchValue, sortColumning, status)
+    }
   }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -147,20 +156,24 @@ const IngredientsList = () => {
   }
 
   const headerAction = (
-    <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-      {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+        <div>
+          <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+          {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Pop
       </Button> */}
 
-      {/* <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
+          {/* <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
         &nbsp; Test Button
       </Button> */}
-    </div>
+        </div>
+      )}
+    </>
   )
 
   const handleSwitchChange = async (event, rowData) => {
@@ -487,24 +500,32 @@ const IngredientsList = () => {
 
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange}>
-            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-          </TabList>
-          <TabPanel value=''>{tableData()}</TabPanel>
-          <TabPanel value='1'>{tableData()}</TabPanel>
-          <TabPanel value='0'>{tableData()}</TabPanel>
-        </TabContext>
-      </Grid>
+      {dietModule ? (
+        <>
+          <Grid>
+            <TabContext value={status}>
+              <TabList onChange={handleChange}>
+                <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+                <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+                <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+              </TabList>
+              <TabPanel value=''>{tableData()}</TabPanel>
+              <TabPanel value='1'>{tableData()}</TabPanel>
+              <TabPanel value='0'>{tableData()}</TabPanel>
+            </TabContext>
+          </Grid>
 
-      <AddIngredients
-        open={openIngredient}
-        handleSidebarClose={handleSidebarClose}
-        setSelectedIngredient={setSelectedIngredient}
-      />
+          <AddIngredients
+            open={openIngredient}
+            handleSidebarClose={handleSidebarClose}
+            setSelectedIngredient={setSelectedIngredient}
+          />
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }

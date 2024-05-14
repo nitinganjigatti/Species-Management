@@ -26,6 +26,7 @@ import {
   TableRow
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
+import AddDietType from './AddDietType'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -36,12 +37,25 @@ const defaultValues = {
       meal_value_header: '',
       quantity: '',
       meal_value_uom_id: '',
-      notes: ''
+      notes: '',
+      feed_uom_name: ''
     }
   ]
 }
 
-const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandleSubmit }) => {
+const StepPreviewDiet = ({
+  formData,
+  handleNext,
+  handlePrev,
+  uomList,
+  finalhandleSubmit,
+  uomprev,
+  setFormData,
+  id
+
+  //onDietTypeChildValuesChange
+  //diettypechildvalues
+}) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
   const [LocalformData, setlocalformData] = useState([])
@@ -49,12 +63,22 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
   const [dietTypeval, setdietTypeval] = useState('')
+  const [dietTypes, setDietTypes] = useState([])
+  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
+  const [diettypechildvalues, setdiettypechildvalues] = useState([])
 
   const [initialValues, setInitialValues] = useState({
     quantity: '',
     meal_value_uom_id: '',
-    notes: ''
+    notes: '',
+    feed_uom_name: ''
   })
+
+  const transformedArray = uomprev.map(item => ({
+    value: item._id,
+    label: item.name
+  }))
+  console.log(transformedArray, 'transformedArray')
 
   const handleClickOpen = (index, item, type, dietType) => {
     console.log(item, 'item')
@@ -65,17 +89,25 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
       return meal.meal_value_header === type
     })
     console.log(mealTypeObject, 'mealTypeObject')
+    setFormValue('quantity', mealTypeObject?.quantity)
+    setFormValue('notes', mealTypeObject?.notes)
+    setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
+    setFormValue('meal_value_uom_id', mealTypeObject?.meal_value_uom_id)
 
     const initialval = mealTypeObject
       ? {
           quantity: mealTypeObject.quantity || '',
           meal_value_uom_id: mealTypeObject.meal_value_uom_id || '',
-          notes: mealTypeObject.notes || ''
+          notes: mealTypeObject.notes || '',
+          feed_uom_name: mealTypeObject.feed_uom_name
+            ? { value: mealTypeObject.meal_value_uom_id, label: mealTypeObject.feed_uom_name }
+            : ''
         }
       : {
           quantity: '',
           meal_value_uom_id: '',
-          notes: ''
+          notes: '',
+          feed_uom_name: ''
         }
 
     setInitialValues(initialval)
@@ -87,7 +119,6 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     setheadertype(type)
     setdietTypeval(dietType)
   }
-  const handleClosed = () => setOpen(false)
 
   const {
     reset,
@@ -119,6 +150,131 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
       setlocalformData(formData)
     }
   }, [formData, reset])
+
+  // Define a function to receive the diet_types values from the child component
+  const handleReceiveDietTypes = dietTypesData => {
+    console.log(dietTypesData, 'dietTypesData')
+    setDietTypes(dietTypesData)
+
+    const newState = dietTypesData.map(item => {
+      const { minWeight, maxWeight, unit } = item
+      const { name } = unit.value
+
+      return `${minWeight} to ${maxWeight} ${name}`
+    })
+
+    // Log the type of newState
+    console.log(typeof newState) // Check the type
+
+    // Set cookie
+    document.cookie = `dietTypeChildValues=${JSON.stringify(newState)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+    document.cookie = `dietTypeChildVal=${JSON.stringify(dietTypesData)}; path=/`
+
+    // Check if newState is an array
+    if (Array.isArray(newState)) {
+      setdiettypechildvalues(newState)
+    } else {
+      console.error('newState is not an array:', newState)
+    }
+  }
+
+  const handleClosed = () => {
+    setOpen(false)
+    reset(defaultValues)
+  }
+
+  const getCookie = name => {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+
+      // Check if this cookie is the one we want by comparing the name
+      if (cookie.startsWith(name + '=')) {
+        // If yes, return the value of the cookie
+        return cookie.substring(name.length + 1)
+      }
+    }
+
+    // If the cookie with the specified name is not found, return null
+    return null
+  }
+
+  // useEffect(() => {
+  //   if (id) {
+  //     const child = formData.child
+
+  //     const newarr = child?.map(item => {
+  //       const [minWeightStr, maxWeightStr, unitStr] = item.split(' ')
+
+  //       const minWeight = parseInt(minWeightStr)
+  //       const maxWeight = parseInt(maxWeightStr)
+
+  //       // Extract unit name
+  //       const unitName = unitStr?.trim()
+
+  //       return {
+  //         minWeight: minWeight,
+  //         maxWeight: maxWeight,
+  //         unit: {
+  //           value: {
+  //             name: unitName
+  //           }
+  //         }
+  //       }
+  //     })
+
+  //     console.log(newarr)
+
+  //     document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+  //     document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+  //   }
+  // }, [])
+
+  useEffect(() => {
+    // When component mounts or diettypechildvalues changes, update local state
+    // Later in your code where you need to get the cookie value
+    if (id) {
+      //const child = formData.child
+      const dietTypesData = ['10 to 20 bale', '20 to 30 bushel (US)']
+      const convertedData = dietTypesData.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+      console.log(convertedData, 'convertedData')
+
+      const newarr = convertedData.map(item => {
+        // Splitting the string into minWeight, maxWeight, and unit name
+        const [minWeight, maxWeight, unitName] = item.split('_')
+
+        return {
+          minWeight: minWeight,
+          maxWeight: maxWeight,
+          unit: {
+            value: {
+              name: unitName
+            }
+          }
+        }
+      })
+      console.log(newarr, 'newarr')
+
+      document.cookie = `dietTypeChildValues=${JSON.stringify(['10 to 20 bale', '20 to 30 bushel (US)'])}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+      document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+      setdiettypechildvalues(['10 to 20 bale', '20 to 30 bushel (US)'])
+      setDietTypes(newarr)
+    } else {
+      const dietTypeChildValues = getCookie('dietTypeChildValues')
+      const dietTypeChildVal = getCookie('dietTypeChildVal')
+
+      // Check if the cookie value is not null and parse it back to an array
+      if (dietTypeChildValues !== null) {
+        const parsedValue = JSON?.parse(dietTypeChildValues)
+        const parsedvaldiet = JSON?.parse(dietTypeChildVal)
+        console.log(parsedValue) // Use the parsed array as needed
+        setdiettypechildvalues(parsedValue)
+        setDietTypes(parsedvaldiet)
+      } else {
+        console.error('Cookie "dietTypeChildValues" not found')
+      }
+    }
+  }, [])
 
   const CustomScrollbar = styled('div')({
     overflowX: 'auto', // or 'scroll'
@@ -152,7 +308,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
   const SelectQuantityclick = (index, item, val) => {
     console.log(val, 'val')
     if (dietTypeval === 'ingredient') {
-      const { quantity, meal_value_uom_id, notes } = getValues()
+      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
 
       // Find the index of the meal_data object with matching mealid
@@ -170,13 +326,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
 
           // Check if there's an existing object with the same meal_value_header
           const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-
+          console.log(meal_value_uom_id, 'meal_value_uom_id')
+          console.log(feed_uom_name, 'feed_uom_name')
           if (existingMealTypeIndex !== -1) {
             // If an existing object with the same meal_value_header is found, update it
             mealTypeArray[existingMealTypeIndex] = {
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id?.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             }
           } else {
@@ -184,7 +342,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
             mealTypeArray.push({
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id?.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             })
           }
@@ -199,7 +358,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
       setOpen(false)
       console.log(updatedFormData, 'updatedFormData')
     } else if (dietTypeval === 'recipe') {
-      const { quantity, meal_value_uom_id, notes } = getValues()
+      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
 
@@ -224,7 +383,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
             mealTypeArray[existingMealTypeIndex] = {
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             }
           } else {
@@ -232,7 +392,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
             mealTypeArray.push({
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             })
           }
@@ -247,7 +408,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
       setOpen(false)
       console.log(updatedFormData, 'updatedFormData')
     } else {
-      const { quantity, meal_value_uom_id, notes } = getValues()
+      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
 
@@ -273,7 +434,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
             mealTypeArray[existingMealTypeIndex] = {
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             }
           } else {
@@ -281,7 +443,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
             mealTypeArray.push({
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: meal_value_uom_id.value,
+              meal_value_uom_id: feed_uom_name?.value,
+              feed_uom_name: feed_uom_name?.label,
               notes: notes
             })
           }
@@ -298,6 +461,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
   }
 
   useEffect(() => {
+    if (formData.diet_type_name === 'By Weight') {
+      // Update the child in formData with diettypechildvalues
+      const updatedFormData = { ...formData, child: diettypechildvalues }
+      setlocalformData(updatedFormData) // Update local state
+      setFormData(updatedFormData)
+    }
+  }, [diettypechildvalues, formData.diet_type_name])
+
+  useEffect(() => {
     const updatedFormData = { ...formData } // Create a copy of formData
 
     // Iterate over meal_data
@@ -307,13 +479,16 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
         meal.ingredient.forEach(ingredient => {
           // Check if meal_type exists and it's not empty
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
+              console.log(mealType, 'mealType')
               if (mealType.meal_value_header === 'Generic') return true
 
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -324,13 +499,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
         meal.recipe.forEach(recipe => {
           // Check if meal_type exists and it's not empty
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
 
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -341,13 +518,15 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
           // Check if meal_type exists and it's not empty
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
-            // Filter out meal_type objects based on diet_type_child
+            // Filter out meal_type objects based on child
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
 
-              // Check if the meal_type header exists in diet_type_child
-              return formData.diet_type_child.includes(mealType.meal_value_header)
+              // Check if the meal_type header exists in child
+              return formData.diet_type_name === 'By Weight'
+                ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
+                : formData.child?.includes(mealType.meal_value_header)
             })
           }
         })
@@ -360,7 +539,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     console.log(updatedFormData, 'updatedFormData')
 
     // Add dependencies as needed
-  }, [formData.diet_type_child]) // Add other dependencies if needed
+  }, [formData.child]) // Add other dependencies if needed
 
   const onSubmit = async data => {
     console.log(data, 'data')
@@ -368,6 +547,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
     console.log(updatedData, 'updatedData')
 
     handleNext(updatedData)
+    reset(defaultValues)
 
     // Router.push(`/diet/diet`)
   }
@@ -459,7 +639,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                 </Typography>
                 <Typography>
                   <span>Diet Type : </span>
-                  <span style={{ fontWeight: 600 }}>{formData.diet_type ? formData.diet_type : '-'}</span>
+                  <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
@@ -470,7 +650,21 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
           </Grid>
           <Card sx={{ boxShadow: 'none', px: 5 }}>
             <Grid sx={{ overflowX: 'auto' }} value='full'>
-              <Typography variant='h6'>Enter Values for Meals</Typography>
+              <Typography
+                variant='h6'
+                sx={formData.diet_type_name === 'By Weight' ? { width: '50%', mt: 3, float: 'left' } : { mb: 3 }}
+              >
+                Enter Values for Meals
+              </Typography>
+              {formData.diet_type_name === 'By Weight' ? (
+                <Grid container justifyContent='flex-end' sx={{ overflowX: 'auto', pt: 2, pr: 3, width: '50%', mb: 8 }}>
+                  <Button onClick={() => setActivitySidebarOpen(true)} variant='contained'>
+                    Add Diet Type
+                  </Button>
+                </Grid>
+              ) : (
+                ''
+              )}
               <Grid sx={{ overflowX: 'auto', pb: 0 }} value='full'>
                 <CustomScrollbar
                   style={{
@@ -533,7 +727,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                             </Typography>
                           </Box>
                         </TableCell>
-                        {formData.diet_type === 'By Gender' ? (
+                        {formData.diet_type_name === 'By Gender' ? (
                           <>
                             <TableCell
                               sx={{
@@ -569,7 +763,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <Typography>MALE</Typography>
                             </TableCell>
                           </>
-                        ) : formData.diet_type === 'By Lifestage' ? (
+                        ) : formData.diet_type_name === 'By Lifestage' ? (
                           <>
                             <TableCell
                               sx={{
@@ -638,7 +832,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <Typography>Old</Typography>
                             </TableCell>
                           </>
-                        ) : formData.diet_type === 'Generic' ? (
+                        ) : formData.diet_type_name === 'Generic' ? (
                           <>
                             <TableCell
                               sx={{
@@ -651,6 +845,36 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
+                          </>
+                        ) : formData.diet_type_name === 'By Weight' ? (
+                          <>
+                            <TableCell
+                              sx={{
+                                border: 'none',
+                                backgroundColor: '#C1D3D099',
+                                height: '40px',
+                                width: '137px',
+                                borderRight: '1px solid #C3CEC7'
+                              }}
+                            >
+                              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
+                            </TableCell>
+                            {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '137px',
+                                    borderRight: '1px solid #C3CEC7'
+                                  }}
+                                >
+                                  <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
                           </>
                         ) : (
                           ''
@@ -749,7 +973,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -983,7 +1207,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      ? meal.quantity + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -991,9 +1215,10 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child?.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -1031,7 +1256,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   {item.meal_type
                                                     ? item.meal_type.map((meal, i) => {
                                                         return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.meal_value_uom_id
+                                                          ? meal.quantity + meal.feed_uom_name
                                                           : ''
                                                       })
                                                     : 'Add'}
@@ -1114,16 +1339,13 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
-                                                      defaultValue={initialValues.quantity}
+                                                      defaultValue={getValues('quantity')}
                                                     />
                                                   )}
                                                 />
@@ -1133,24 +1355,27 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                               <FormControl fullWidth>
                                                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                                                 {console.log(uomList, 'uomList')}
+                                                {console.log(initialValues.feed_uom_name, 'eee')}
                                                 <Controller
-                                                  name='meal_value_uom_id'
+                                                  name='feed_uom_name'
                                                   control={control}
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
-                                                      defaultValue={initialValues.meal_value_uom_id}
+                                                      defaultValue={
+                                                        getValues('feed_uom_name') && getValues('meal_value_uom_id')
+                                                          ? {
+                                                              label: getValues('feed_uom_name'),
+                                                              value: getValues('meal_value_uom_id')
+                                                            }
+                                                          : null
+                                                      }
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
-                                                      options={[
-                                                        { value: 'kg', label: 'Kilogram (kg)' },
-                                                        { value: 'gm', label: 'Gram (gm)' },
-                                                        { value: 'lb', label: 'Pound (lb)' },
-                                                        { value: 'oz', label: 'Ounce (oz)' }
-                                                      ]} // List of options with value and label
+                                                      options={transformedArray} // List of options with value and label
                                                       getOptionLabel={option => option.label} // Function to get the label of the option
+                                                      getOptionValue={option => option.value}
                                                       renderInput={params => (
                                                         <TextField
                                                           {...params}
@@ -1173,14 +1398,12 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
-                                                    defaultValue={initialValues.notes}
+                                                    defaultValue={getValues('notes')}
                                                   />
                                                 )}
                                               />
@@ -1206,7 +1429,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1440,7 +1663,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      ? meal.quantity + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1448,9 +1671,10 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child?.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -1488,7 +1712,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   {item.meal_type
                                                     ? item.meal_type.map((meal, i) => {
                                                         return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.meal_value_uom_id
+                                                          ? meal.quantity + meal.feed_uom_name
                                                           : ''
                                                       })
                                                     : 'Add'}
@@ -1525,14 +1749,11 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
                                                       defaultValue={initialValues.quantity}
                                                     />
@@ -1545,23 +1766,20 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                                                 {console.log(uomList, 'uomList')}
                                                 <Controller
-                                                  name='meal_value_uom_id'
+                                                  name='feed_uom_name'
                                                   control={control}
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
-                                                      defaultValue={initialValues.meal_value_uom_id}
-                                                      options={[
-                                                        { value: 'kg', label: 'Kilogram (kg)' },
-                                                        { value: 'gm', label: 'Gram (gm)' },
-                                                        { value: 'lb', label: 'Pound (lb)' },
-                                                        { value: 'oz', label: 'Ounce (oz)' }
-                                                      ]} // List of options with value and label
+                                                      defaultValue={
+                                                        initialValues.feed_uom_name ? initialValues.feed_uom_name : null
+                                                      }
+                                                      options={transformedArray} // List of options with value and label
                                                       getOptionLabel={option => option.label} // Function to get the label of the option
+                                                      getOptionValue={option => option.value}
                                                       renderInput={params => (
                                                         <TextField
                                                           {...params}
@@ -1584,10 +1802,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
@@ -1617,7 +1833,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1828,7 +2044,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.meal_value_uom_id
+                                                      ? meal.quantity + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1836,9 +2052,10 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.diet_type_child.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -1876,7 +2093,7 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   {item.meal_type
                                                     ? item.meal_type.map((meal, i) => {
                                                         return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.meal_value_uom_id
+                                                          ? meal.quantity + meal.feed_uom_name
                                                           : ''
                                                       })
                                                     : 'Add'}
@@ -1913,14 +2130,11 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
                                                       defaultValue={initialValues.quantity}
                                                     />
@@ -1933,23 +2147,20 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                                                 {console.log(uomList, 'uomList')}
                                                 <Controller
-                                                  name='meal_value_uom_id'
+                                                  name='feed_uom_name'
                                                   control={control}
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
-                                                      defaultValue={initialValues.meal_value_uom_id}
-                                                      options={[
-                                                        { value: 'kg', label: 'Kilogram (kg)' },
-                                                        { value: 'gm', label: 'Gram (gm)' },
-                                                        { value: 'lb', label: 'Pound (lb)' },
-                                                        { value: 'oz', label: 'Ounce (oz)' }
-                                                      ]} // List of options with value and label
+                                                      defaultValue={
+                                                        initialValues.feed_uom_name ? initialValues.feed_uom_name : null
+                                                      }
+                                                      options={transformedArray} // List of options with value and label
                                                       getOptionLabel={option => option.label} // Function to get the label of the option
+                                                      getOptionValue={option => option.value}
                                                       renderInput={params => (
                                                         <TextField
                                                           {...params}
@@ -1972,10 +2183,8 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
@@ -2034,6 +2243,12 @@ const StepPreviewDiet = ({ formData, handleNext, handlePrev, uomList, finalhandl
           </Grid>
         </Card>
       </form>
+      <AddDietType
+        setActivitySidebarOpen={setActivitySidebarOpen}
+        activitySidebarOpen={activitySidebarOpen}
+        onReceiveDietTypes={handleReceiveDietTypes}
+        dietTypes={dietTypes}
+      />
     </>
   )
 }
