@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 
 const ConfirmationCheckBox = ({ color, label, value, setValue, title, description }) => {
   const theme = useTheme()
+
   return (
     <Box
       sx={{

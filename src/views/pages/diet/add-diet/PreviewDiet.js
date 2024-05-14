@@ -52,6 +52,7 @@ const StepPreviewDiet = ({
   uomprev,
   setFormData,
   id
+
   //onDietTypeChildValuesChange
   //diettypechildvalues
 }) => {
@@ -65,6 +66,7 @@ const StepPreviewDiet = ({
   const [dietTypes, setDietTypes] = useState([])
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
+
   const [initialValues, setInitialValues] = useState({
     quantity: '',
     meal_value_uom_id: '',
@@ -77,10 +79,12 @@ const StepPreviewDiet = ({
     label: item.name
   }))
   console.log(transformedArray, 'transformedArray')
+
   const handleClickOpen = (index, item, type, dietType) => {
     console.log(item, 'item')
     console.log(type, 'type')
     console.log(index, 'index')
+
     const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
       return meal.meal_value_header === type
     })
@@ -89,6 +93,7 @@ const StepPreviewDiet = ({
     setFormValue('notes', mealTypeObject?.notes)
     setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
     setFormValue('meal_value_uom_id', mealTypeObject?.meal_value_uom_id)
+
     const initialval = mealTypeObject
       ? {
           quantity: mealTypeObject.quantity || '',
@@ -114,6 +119,7 @@ const StepPreviewDiet = ({
     setheadertype(type)
     setdietTypeval(dietType)
   }
+
   const {
     reset,
     control,
@@ -149,17 +155,21 @@ const StepPreviewDiet = ({
   const handleReceiveDietTypes = dietTypesData => {
     console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
+
     const newState = dietTypesData.map(item => {
       const { minWeight, maxWeight, unit } = item
       const { name } = unit.value
+
       return `${minWeight} to ${maxWeight} ${name}`
     })
+
     // Log the type of newState
     console.log(typeof newState) // Check the type
 
     // Set cookie
     document.cookie = `dietTypeChildValues=${JSON.stringify(newState)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
     document.cookie = `dietTypeChildVal=${JSON.stringify(dietTypesData)}; path=/`
+
     // Check if newState is an array
     if (Array.isArray(newState)) {
       setdiettypechildvalues(newState)
@@ -177,12 +187,14 @@ const StepPreviewDiet = ({
     const cookies = document.cookie.split(';')
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim()
+
       // Check if this cookie is the one we want by comparing the name
       if (cookie.startsWith(name + '=')) {
         // If yes, return the value of the cookie
         return cookie.substring(name.length + 1)
       }
     }
+
     // If the cookie with the specified name is not found, return null
     return null
   }
@@ -226,6 +238,7 @@ const StepPreviewDiet = ({
       const dietTypesData = formData.child
       const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
       console.log(convertedData, 'convertedData')
+
       const newarr = convertedData.map(item => {
         // Splitting the string into minWeight, maxWeight, and unit name
         const [minWeight, maxWeight, unitName] = item.split('_')
@@ -249,6 +262,7 @@ const StepPreviewDiet = ({
     } else {
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
+
       // Check if the cookie value is not null and parse it back to an array
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
@@ -276,6 +290,7 @@ const StepPreviewDiet = ({
       borderRadius: 5 // specify border radius
     }
   })
+
   const useStyles = styled({
     table: {
       minWidth: 650
@@ -346,6 +361,7 @@ const StepPreviewDiet = ({
       const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
+
       // Find the index of the meal_data object with matching mealid
       const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -395,6 +411,7 @@ const StepPreviewDiet = ({
       const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
+
       // Find the index of the meal_data object with matching mealid
       const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -467,6 +484,7 @@ const StepPreviewDiet = ({
               // Keep the 'Generic' header intact
               console.log(mealType, 'mealType')
               if (mealType.meal_value_header === 'Generic') return true
+
               // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
@@ -485,6 +503,7 @@ const StepPreviewDiet = ({
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
+
               // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
@@ -503,6 +522,7 @@ const StepPreviewDiet = ({
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
+
               // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
@@ -528,6 +548,7 @@ const StepPreviewDiet = ({
 
     handleNext(updatedData)
     reset(defaultValues)
+
     // Router.push(`/diet/diet`)
   }
 
@@ -544,6 +565,7 @@ const StepPreviewDiet = ({
 
   const getDayName = dayId => {
     const day = Day.find(d => d.id === dayId)
+
     return day ? day.name : ''
   }
 
@@ -837,9 +859,10 @@ const StepPreviewDiet = ({
                             >
                               <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
                             </TableCell>
-                            {formData.child?.map(all => {
+                            {formData.child?.map((all, index) => {
                               return (
                                 <TableCell
+                                  key={index}
                                   sx={{
                                     border: 'none',
                                     backgroundColor: '#C1D3D099',
@@ -863,12 +886,14 @@ const StepPreviewDiet = ({
                       {formData.meal_data?.map((itemd, index) => {
                         console.log(itemd.meal_from_time, 'raghhhh')
                         const fromdate = new Date(itemd.meal_from_time)
+
                         const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
                           hour12: true
                         })
                         const todate = new Date(itemd.meal_to_time)
+
                         const formattedtoTime = todate.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -877,6 +902,7 @@ const StepPreviewDiet = ({
                         const startTimes = formattedfromTime
                         const endTimes = formattedtoTime
                         const ind = index
+
                         return (
                           <>
                             <TableRow
@@ -947,7 +973,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -963,6 +989,7 @@ const StepPreviewDiet = ({
                                           sx={{
                                             display: 'flex',
                                             flexDirection: 'column',
+
                                             //backgroundColor: '#E1F9ED',
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
@@ -1188,9 +1215,10 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -1311,14 +1339,11 @@ const StepPreviewDiet = ({
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
                                                       defaultValue={getValues('quantity')}
                                                     />
@@ -1337,7 +1362,6 @@ const StepPreviewDiet = ({
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
                                                       defaultValue={
                                                         getValues('feed_uom_name') && getValues('meal_value_uom_id')
                                                           ? {
@@ -1374,10 +1398,8 @@ const StepPreviewDiet = ({
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
@@ -1407,7 +1429,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1423,6 +1445,7 @@ const StepPreviewDiet = ({
                                           sx={{
                                             display: 'flex',
                                             flexDirection: 'column',
+
                                             //backgroundColor: '#E1F9ED',
                                             backgroundColor: '#E1F9ED',
                                             borderRadius: '8px',
@@ -1648,9 +1671,10 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -1725,14 +1749,11 @@ const StepPreviewDiet = ({
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
                                                       defaultValue={initialValues.quantity}
                                                     />
@@ -1750,7 +1771,6 @@ const StepPreviewDiet = ({
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
@@ -1782,10 +1802,8 @@ const StepPreviewDiet = ({
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}
@@ -1815,7 +1833,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow>
+                                    <TableRow key={index}>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1831,6 +1849,7 @@ const StepPreviewDiet = ({
                                           sx={{
                                             display: 'flex',
                                             flexDirection: 'column',
+
                                             //backgroundColor: '#E1F9ED',
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
@@ -2033,9 +2052,10 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map(all => {
+                                      {formData.child?.map((all, index) => {
                                         return (
                                           <TableCell
+                                            key={index}
                                             style={{
                                               paddingLeft: '8px',
                                               paddingRight: '8px',
@@ -2110,14 +2130,11 @@ const StepPreviewDiet = ({
                                                   name='quantity'
                                                   control={control}
                                                   rules={{ required: true }}
-                                                  //defaultValue={initialValues.quantity}
                                                   render={({ field: { value, onChange } }) => (
                                                     <TextField
                                                       type='number'
-                                                      //value={value}
                                                       label='Quantity '
                                                       name='quantity'
-                                                      //error={Boolean(errors.diet_name)}
                                                       onChange={onChange}
                                                       defaultValue={initialValues.quantity}
                                                     />
@@ -2135,7 +2152,6 @@ const StepPreviewDiet = ({
                                                   rules={{ required: true }}
                                                   render={({ field: { value, onChange } }) => (
                                                     <Autocomplete
-                                                      //value={value}
                                                       onChange={(event, newValue) => {
                                                         onChange(newValue) // Update the form value
                                                       }}
@@ -2167,10 +2183,8 @@ const StepPreviewDiet = ({
                                                   <TextField
                                                     multiline
                                                     fullWidth
-                                                    //value={value}
                                                     label='Notes '
                                                     name='notes'
-                                                    // error={Boolean(errors.desc)}
                                                     onChange={onChange}
                                                     id='textarea-outlined'
                                                     rows={3}

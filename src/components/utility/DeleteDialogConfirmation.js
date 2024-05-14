@@ -109,12 +109,14 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
               />
             </Typography>
-            <Grid item>
-              <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
-                Option to swap it with another{' '}
-                {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is still possible
-              </Typography>
-            </Grid>
+            {type !== 'feed' && (
+              <Grid item>
+                <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
+                  Option to swap it with another{' '}
+                  {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is still possible
+                </Typography>
+              </Grid>
+            )}
           </Grid>
         </Card>
 

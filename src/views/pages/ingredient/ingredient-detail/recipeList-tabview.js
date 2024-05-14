@@ -124,6 +124,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       setshowSwapBtn(selectedRowsData)
     } else {
       setshowSwapBtn([])
+
       //selectedRowsData = []
     }
   }

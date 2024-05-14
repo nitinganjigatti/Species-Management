@@ -147,6 +147,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const clearSaltFields = index => {
     checkDisabled
+
     return (
       <Box sx={{ ml: 2 }}>
         <Icon
@@ -177,35 +178,39 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
       )
     )
   }
-  console.log(errors, 'nknn')
+
   const submitItems = () => {
     const dietTypesData = getValues('diet_types')
     sendDietTypesToParent(dietTypesData)
   }
+
   const handleKeyUp = index => {
     const values = getValues('diet_types')
     const item = values[index]
     if (item && item.maxWeight) {
-      if (item && item.minWeight >= item.maxWeight) {
+      if (item && Number(item.minWeight) >= Number(item.maxWeight)) {
         setError(`diet_types[${index}].minWeight`, {
           type: 'manual',
           message: 'Min Weight should be lower than Max Weight'
         })
       } else {
-        clearErrors('diet_types', index)
+        // clearErrors('diet_types', index)
+        clearErrors(`diet_types[${index}]`, 'minWeight')
       }
     }
   }
+
   const handleKeyUp2 = index => {
     const values = getValues('diet_types')
     const item = values[index]
-    if (item && item.minWeight >= item.maxWeight) {
+    if (item && Number(item.minWeight) >= Number(item.maxWeight)) {
       setError(`diet_types[${index}].maxWeight`, {
         type: 'manual',
         message: 'Max Weight should be greater than Min Weight'
       })
     } else {
-      clearErrors('diet_types', index)
+      // clearErrors('diet_types', index)
+      clearErrors(`diet_types[${index}]`, 'maxWeight')
     }
   }
 
@@ -238,6 +243,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                 onClick={() => {
                   setActivitySidebarOpen(false)
                   setUomList([])
+                  setUom('')
                   reset()
                 }}
                 sx={{ color: 'text.primary' }}
@@ -248,7 +254,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
             <Box sx={{ mx: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography sx={{ fontWeight: 500, fontSize: '24px', color: 'black' }}>Add Weights</Typography>
               <Box>
-                <FormControl fullWidth>
+                {/* <FormControl fullWidth>
                   <Autocomplete
                     value={uom?._id}
                     forcePopupIcon={false} // disablePortal
@@ -266,7 +272,20 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                     renderInput={params => <TextField {...params} label='Select unit*' placeholder='Search & Select' />}
                     sx={{ width: '200px' }}
                   />
-                </FormControl>
+                </FormControl> */}
+                <Autocomplete
+                  value={uom !== undefined && uom !== '' ? uom : null} // Set value to null for undefined or empty string
+                  forcePopupIcon={false}
+                  isOptionEqualToValue={(option, value) => option.value === value}
+                  noOptionsText='Type to search'
+                  options={uomList?.length > 0 ? uomList : []}
+                  getOptionLabel={option => option?.name}
+                  onChange={(e, val) => {
+                    setUom(val !== null ? val : '') // Set uom to val if not null, otherwise set it to empty string
+                  }}
+                  renderInput={params => <TextField {...params} label='Select unit*' placeholder='Search & Select' />}
+                  sx={{ width: '200px' }}
+                />
               </Box>
             </Box>
             <Divider />
@@ -399,7 +418,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
           </CardContent>
           <Box sx={{ position: 'fixed', bottom: 0, width: '100%', px: 4, py: 4, backgroundColor: '#fff', zIndex: 200 }}>
             <Button
-              disabled={dis}
+              disabled={dis || Boolean(errors?.diet_types)}
               type='submit'
               onClick={() => {
                 console.log('fields', getValues('diet_types'))

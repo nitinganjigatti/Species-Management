@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -86,6 +87,7 @@ const StepAddIngredients = ({
   handleIngredientChange
 }) => {
   const ingredients = [{ label: ' Ingredients' }, { label: 'Quantity' }, { label: 'Preparation Type' }]
+
   const ingredientsbyqun = [
     { label: ' Ingredients' },
     { label: 'Quantity' },
@@ -94,6 +96,7 @@ const StepAddIngredients = ({
   ]
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
+
   const {
     reset,
     control,
@@ -162,6 +165,7 @@ const StepAddIngredients = ({
   const calculateTotalQuantity = () => {
     const byPercentageValues = getValues('by_percentage')
     const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
+
     return totalQuantity
   }
 
@@ -192,8 +196,10 @@ const StepAddIngredients = ({
       </Typography>
     )
   }
+
   const removeIngredientButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -208,6 +214,7 @@ const StepAddIngredients = ({
 
   const removebyQuantityButton = index => {
     console.log(index, 'index')
+
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
@@ -255,6 +262,7 @@ const StepAddIngredients = ({
     console.log(data, 'data')
     if (calculateTotalQuantity() > 100) {
       window.scrollTo(0, 0)
+
       return toast(
         t => (
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -287,6 +295,7 @@ const StepAddIngredients = ({
       )
     } else {
       window.scrollTo(0, 0)
+
       // Clear any existing errors
       Object.keys(defaultValues).forEach(field => {
         clearErrors(field)
@@ -316,12 +325,14 @@ const StepAddIngredients = ({
             setPreparationTypeListPercentage(prevList => {
               const newList = [...prevList]
               newList[index] = response.data.result
+
               return newList
             })
           } else if (section === 'by_quantity') {
             setPreparationTypeListQuantity(prevList => {
               const newList = [...prevList]
               newList[index] = response.data.result
+
               return newList
             })
           }
@@ -368,6 +379,7 @@ const StepAddIngredients = ({
         window.scrollTo(0, 700)
       }
     }
+
     return null
   }
 
@@ -385,6 +397,7 @@ const StepAddIngredients = ({
   }
 
   console.log(errors, 'ppp')
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -449,12 +462,14 @@ const StepAddIngredients = ({
                                 onChange('')
                                 setFormValue(`by_percentage[${index}].ingredient_name`, '')
                                 setFormValue(`by_percentage[${index}].feed_type_label`, '')
+
                                 //setPreparationTypeListPercentage([])
                                 setFormValue(`by_percentage[${index}].preparation_type`, '')
                               } else {
                                 onChange(val?.id)
                                 setFormValue(`by_percentage[${index}].ingredient_name`, val?.ingredient_name)
                                 setFormValue(`by_percentage[${index}].feed_type_label`, val?.feed_type_label)
+
                                 // if (val.preparation_types) {
                                 //   setpreparationTypeList(val.preparation_types)
                                 // } else {
@@ -508,6 +523,7 @@ const StepAddIngredients = ({
                             onChange={e => {
                               onChange(e)
                               const totalQuantity = calculateTotalQuantity()
+
                               // Update the state or do whatever you need with the total quantity
                               console.log('Total Quantity:', totalQuantity)
                               trigger(`by_percentage[${index}].quantity`)
@@ -562,6 +578,7 @@ const StepAddIngredients = ({
                         render={({ field: { value, onChange } }) => {
                           console.log(value, 'value')
                           console.log(preparationTypeListPercentage, 'preparationTypeList')
+
                           return (
                             <Autocomplete
                               id={`by_percentage[${index}].preparation_type_id`}

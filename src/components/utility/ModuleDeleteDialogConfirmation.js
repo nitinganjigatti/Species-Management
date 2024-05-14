@@ -12,13 +12,16 @@ import { Card, Typography, FormControlLabel, Checkbox, Grid } from '@mui/materia
 
 const ModuleDeleteDialogConfirmation = ({ active, handleClosenew, open, message, action, type }) => {
   const [checked, setChecked] = useState(false)
+
   const handleChange = event => {
     setChecked(event.target.checked)
   }
+
   const handleNoClick = () => {
     handleClosenew()
     setChecked(false)
   }
+
   return (
     <Fragment>
       <Dialog

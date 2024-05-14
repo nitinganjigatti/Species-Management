@@ -106,6 +106,7 @@ const UserThemeOptions = () => {
           columnHeaders: {
             backgroundColor: '#C1D3D0'
           }
+
           // virtualScrollerContent: {
           //   height: '672px!important'
           // }

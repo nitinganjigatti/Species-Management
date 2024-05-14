@@ -45,6 +45,7 @@ const AddDiet = () => {
   const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
+
   const [formData, setFormData] = useState({
     diet_name: '',
     diet_type_name: '',
@@ -136,6 +137,7 @@ const AddDiet = () => {
       if (response.success === true && response.data !== null) {
         const data = response.data
         console.log(data, 'data')
+
         // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
@@ -156,9 +158,11 @@ const AddDiet = () => {
       console.log('Feed list', error)
     }
   }
+
   // Function to format time
   const formatTime = timeString => {
     const date = new Date(`2000-01-01 ${timeString}`)
+
     return date.toUTCString()
   }
 
@@ -248,6 +252,7 @@ const AddDiet = () => {
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
               notes: item.notes
+
               // recipe: item?.recipe,
               // ingredient: item?.ingredient,
               // ingredientwithchoice: item?.ingredientwithchoice
@@ -364,6 +369,7 @@ const AddDiet = () => {
               }),
               meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
               notes: item.notes
+
               // recipe: item?.recipe,
               // ingredient: item?.ingredient,
               // ingredientwithchoice: item?.ingredientwithchoice
@@ -481,7 +487,6 @@ const AddDiet = () => {
           <StepPreviewDiet
             handleNext={handleNext}
             handlePrev={handlePrev}
-            // handleIngredientChange={handleIngredientChange}
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
@@ -492,6 +497,7 @@ const AddDiet = () => {
             uomprev={uomprev}
             setFormData={setFormData}
             id={id}
+
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}
           />

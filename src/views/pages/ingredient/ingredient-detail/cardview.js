@@ -26,6 +26,7 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
 
   const handleClosenew = () => {
     setDeleteDialogBox(false)
+
     // setIsActive(IngredientsDetailsval.active)
   }
 
@@ -36,8 +37,10 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
     setActivePayload(newIsActive)
+
     // setIsActive(newIsActive)
     setDeleteDialogBox(true)
+
     // console.log(deleteDialogBox, 'deleteDialogBox')
   }
 
@@ -105,16 +108,8 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
           <Grid item>
             <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>{'ING' + IngredientsDetailsval.id}</Typography>
             <FormControlLabel
-              control={
-                <Switch
-                  checked={isActive === '1' ? true : false}
-                  // checked={IngredientsDetailsval.active === '1' ? true : false}
-                  onChange={handleSwitchChange}
-                  fontSize={2}
-                />
-              }
+              control={<Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />}
               labelPlacement='start'
-              // label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
               label={isActive === '1' ? 'Active' : 'InActive'}
             />
           </Grid>

@@ -75,6 +75,7 @@ const DietDetailCard = ({ dietDetails }) => {
       const response = await deleteDiet(dietDetails?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -107,6 +108,7 @@ const DietDetailCard = ({ dietDetails }) => {
         )
       } else {
         setDeleteDialogBox(false)
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -141,6 +143,7 @@ const DietDetailCard = ({ dietDetails }) => {
     } catch (error) {
       console.log('error', error)
     }
+
     // console.log('first')
   }
 
@@ -157,6 +160,7 @@ const DietDetailCard = ({ dietDetails }) => {
       console.log(response, 'response')
       if (response.success === true) {
         setIsActive(isActive == '0' ? '1' : '0')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -285,7 +289,6 @@ const DietDetailCard = ({ dietDetails }) => {
                         <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
                       }
                       labelPlacement='start'
-                      // label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
                       label={isActive === '1' ? 'Active' : 'InActive'}
                     />
                   </Box>
@@ -293,6 +296,7 @@ const DietDetailCard = ({ dietDetails }) => {
                     <Icon
                       icon='fluent:copy-32-regular'
                       style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+
                       // onClick={() =>
                       //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
                       // }
@@ -396,7 +400,6 @@ const DietDetailCard = ({ dietDetails }) => {
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
           title={'Are you sure you want to delete this Feed?'}
-          // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
           dialogBoxStatus={deleteDialogBox}
           onClose={handleCloseDetele}
           ConfirmationText={'Delete'}
@@ -408,7 +411,6 @@ const DietDetailCard = ({ dietDetails }) => {
           handleClosenew={handleClosenew}
           action={confirmStatusAction}
           open={confirmDialogBox}
-          // typeCount={FeedDetailsValue?.ingredients}
           type='diet'
           active={isActive}
           message={

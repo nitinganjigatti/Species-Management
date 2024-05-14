@@ -26,12 +26,14 @@ const ActivityLogs = ({
   const [activitydata, setActivityData] = useState([])
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(20)
+
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
     severity: '',
     message: ''
   })
   const theme = useTheme()
+
   // Styled Timeline component
   const Timeline = styled(MuiTimeline)({
     paddingLeft: 0,
@@ -261,6 +263,7 @@ const ActivityLogs = ({
                                     : null
                                 }
                                 color={item.action === 'activated' ? '#fff' : null}
+
                                 // style={item.action === 'Swapped' ? { transform: 'rotateY(180deg)' } : null}
                               />
                             </Box>

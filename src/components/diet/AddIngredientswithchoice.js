@@ -447,6 +447,7 @@ const AddIngredientswithChoice = props => {
   const [listOfIngredient, setListOfIngredient] = useState([])
   console.log('listOfIngredient', listOfIngredient)
   console.log(selectedCardIngchoice, 'selectedCardIngchoice')
+
   const handelSetIngredient = () => {
     setShowDays(false)
     setOpenIngredientchoice(false)
@@ -482,6 +483,7 @@ const AddIngredientswithChoice = props => {
           remarks: remarks
         }
         console.log(listOfIngredient, 'listOfIngredient')
+
         // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
         const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
           return (
@@ -502,6 +504,7 @@ const AddIngredientswithChoice = props => {
         if (duplicateIngredientIndex !== -1) {
           toast.error('Cannot update ingredient with the same preparation type in multiple places.')
           setingType('')
+
           return
         }
 
@@ -511,6 +514,7 @@ const AddIngredientswithChoice = props => {
 
         // Show success toast message for updating the ingredient
         toast.success('Ingredient updated successfully!')
+
         return
       }
     } else {
@@ -558,6 +562,7 @@ const AddIngredientswithChoice = props => {
         const updatedList = [...prevList, selectedIngredient]
         onChange(updatedList) // Call onChange with the updated list
         console.log(updatedList, 'updatedList')
+
         return updatedList
       })
       setSelectedCardIngredientchoice([])

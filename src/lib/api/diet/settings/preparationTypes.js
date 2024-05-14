@@ -8,6 +8,7 @@ import { axiosGet, axiosPost } from '../../utility'
 
 export async function getPreparationTypeList(params) {
   const response = await axiosGet({ url: `${PREPARATION_LIST}`, params })
+
   return response.data
 }
 
@@ -24,12 +25,14 @@ export async function addPreparationType(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }
 
 export async function getPreparationTypeById(id) {
   const response = await axiosGet({ url: `${GET_PREPARATION_TYPEBY_ID}/${id}` })
+
   return response.data
 }
 
@@ -46,6 +49,7 @@ export async function UpdatePreparationType(id, payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
+
     return error
   }
 }

@@ -67,6 +67,7 @@ const RecipeCard = ({
             }
           } else if (day.id === dayId) {
             lastSelectedDayId = dayId
+
             return {
               ...day,
               isActive: !day.isActive
@@ -142,6 +143,7 @@ const RecipeCard = ({
         if (daysSelected) {
           setSelectedCount(selectedCardRecipe.length)
         }
+
         return [...prevValues, item]
       })
     }
@@ -152,6 +154,7 @@ const RecipeCard = ({
   const handleSelected = () => {
     console.log('Selected Data', selectedCardRecipe)
     handleSidebarClose()
+
     const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
       console.log(selectedDaysForItem, 'selectedDaysForItem')
@@ -184,6 +187,7 @@ const RecipeCard = ({
           remarks: event.target.value
         }
       }
+
       return item
     })
 
@@ -200,17 +204,20 @@ const RecipeCard = ({
   useEffect(() => {
     // Filter out duplicates based on id and mealid
     console.log(rows, 'rows')
+
     const uniqueSelectedValues = allRecipeSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
     )
     console.log(uniqueSelectedValues, 'uniqueSelectedValues')
+
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
     // Initialize a new array to store the updated selectedCardRecipe
     let updatedSelectedCardRecipe = []
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
     // Iterate over rows and check for matches
     rows.forEach(row => {
       const match = selectedValuesWithCheckId?.find(item => String(item.recipe_id) === row.id)
@@ -220,12 +227,14 @@ const RecipeCard = ({
         for (const key in row) {
           updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
         }
+
         // Add the updated row object to updatedSelectedCardRecipe
         updatedSelectedCardRecipe.push(updatedRow)
       }
     })
     console.log(updatedSelectedCardRecipe, 'updatedSelectedCardRecipe')
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
     // Update selectedCardRecipe with matched objects
     const updatedSelectedCard =
       selectedValuesWithCheckId?.map(item => ({
@@ -233,6 +242,7 @@ const RecipeCard = ({
         id: String(item.recipe_id) // Convert ingredient_id to string
       })) || []
     setSelectedCardRecipe(updatedSelectedCard)
+
     // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     if (
       allRecipeSelectedValues &&
@@ -243,6 +253,7 @@ const RecipeCard = ({
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
       console.log(cardIds, 'cardIds')
       console.log(days, 'days')
+
       // Update selectedDays state with the extracted values
       const updatedSelectedDays = []
       cardIds.forEach((cardId, index) => {

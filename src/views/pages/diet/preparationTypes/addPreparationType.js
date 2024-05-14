@@ -30,7 +30,7 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Preparation Type Name is Required'),
-    status: yup.string().nullable()
+  status: yup.string().nullable()
 })
 
 const defaultValues = {
@@ -64,6 +64,7 @@ const AddPreparationType = props => {
   const onSubmit = async params => {
     const { label, status } = { ...params }
     console.log(params)
+
     const payload = {
       preparation_type_name: label.trim(),
       status: status
@@ -78,8 +79,7 @@ const AddPreparationType = props => {
       if (response?.success) {
         debugger
         console.log(response.data)
-        reset({label: response.data.label,
-        status: response.data.status === "active" ? 1 : 0})
+        reset({ label: response.data.label, status: response.data.status === 'active' ? 1 : 0 })
       } else {
       }
     },

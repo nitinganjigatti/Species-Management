@@ -219,12 +219,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
                 </Typography> */}
                 <FormControlLabel
                   control={
-                    <Switch
-                      // checked={FeedDetailsValue.active === '1' ? true : false}
-                      checked={isActive === '1' ? true : false}
-                      onChange={handleSwitchChange}
-                      fontSize={2}
-                    />
+                    <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
