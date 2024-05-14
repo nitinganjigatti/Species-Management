@@ -554,12 +554,17 @@ const StepBasicDetails = ({
           toast.error(`Meal ${index + 1} must contain at least one of ingredient, recipe, or ingredientwithchoice.`)
         })
         return
+      }
+      // Check for time overlap
+      const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
+      if (lastOverlapIndex !== -1) {
+        toast.error(`Meal ${lastOverlapIndex + 1} time overlaps with another meal.`)
+        return
       } else {
         handleNext(formDataWithImage)
       }
       console.log(formDataWithImage, 'data')
     } catch (validationErrors) {
-      alert('hi')
       validationErrors.inner?.forEach(error => {
         setError(error.path, { message: error.message })
       })
@@ -567,8 +572,43 @@ const StepBasicDetails = ({
     }
   }
 
+  const checkForTimeOverlap = mealData => {
+    let lastOverlapIndex = -1
+    mealData.forEach((meal, index) => {
+      const { meal_from_time, meal_to_time } = meal
+      const fromTime = new Date(meal_from_time).getTime()
+      const toTime = new Date(meal_to_time).getTime()
+
+      // Check if meal_from_time is greater than meal_to_time
+      if (fromTime >= toTime) {
+        lastOverlapIndex = index
+        return
+      }
+
+      // Check for overlap with other meals
+      for (let i = 0; i < mealData.length; i++) {
+        if (i !== index) {
+          const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
+          const currentToTime = new Date(mealData[i].meal_to_time).getTime()
+
+          // Check for overlap or one-minute difference
+          if (
+            (fromTime >= currentFromTime && fromTime < currentToTime) ||
+            (toTime > currentFromTime && toTime <= currentToTime) ||
+            Math.abs(fromTime - currentToTime) < 60000
+          ) {
+            // Check for 1-minute difference
+            lastOverlapIndex = index
+            break
+          }
+        }
+      }
+    })
+    return lastOverlapIndex
+  }
+
   const cancelBack = () => {
-    Router.push('/diet/recipe/')
+    Router.push('/diet/diet/')
   }
 
   const addIngredientsButton = () => {
@@ -1003,6 +1043,27 @@ const StepBasicDetails = ({
                             label='Select time - from'
                             onChange={onChange}
                             defaultValue={value ? dayjs(value) : null}
+                            sx={{
+                              '& fieldset': {
+                                borderColor:
+                                  errors.meal_data && errors.meal_data[index] && errors.meal_data[index]?.meal_from_time
+                                    ? 'red'
+                                    : undefined // Change border color to red if there's an error
+                              }
+                            }}
+                            renderInput={params => (
+                              <TextField
+                                {...params}
+                                label='Diet Type *'
+                                placeholder='Search & Select'
+                                error={Boolean(errors.meal_data[index].meal_from_time?.message)}
+                                sx={{
+                                  '& fieldset': {
+                                    borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
+                                  }
+                                }}
+                              />
+                            )}
                           />
                         </LocalizationProvider>
                       )}
@@ -1173,7 +1234,7 @@ const StepBasicDetails = ({
                                 <Typography></Typography>
                               </Grid> */}
                               <Grid item xs={12} sm={2.2}>
-                                <Typography>{all.name}</Typography>
+                                <Typography>{all.ingredient_name}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
                                 <Typography>{all.preparation_type}</Typography>
@@ -1330,7 +1391,17 @@ const StepBasicDetails = ({
                                           <Box
                                             sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                                           >
-                                            <span>{all?.name}</span>
+                                            <span
+                                              title={all?.ingredient_name}
+                                              style={{
+                                                width: '75px',
+                                                overflow: 'hidden',
+                                                whiteSpace: 'nowrap',
+                                                textOverflow: 'ellipsis'
+                                              }}
+                                            >
+                                              {all?.ingredient_name}
+                                            </span>
                                             <span style={{ color: '#7A8684', fontSize: 13 }}>
                                               {'ING' + all?.ingredient_id}
                                             </span>

@@ -65,23 +65,23 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     diet_types: Yup.array().of(
       Yup.object().shape({
         minWeight: Yup.string().required('Min Wieght is required').min(1, 'Quantity should be greater than 0'),
-        maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0'),
+        maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0')
 
-        unit: Yup.string().required('Unit is required')
+        // unit: Yup.string().required('Unit is required')
       })
     )
   })
 
   const form = useForm({
     defaultValues: defaultProductDetails,
-    //resolver: yupResolver(ProductValidationSchema),
+    resolver: yupResolver(ProductValidationSchema),
     shouldUnregister: false,
     reValidateMode: 'onChange',
     mode: 'onChange'
   })
   const { watch, control, handleSubmit, formState, getValues, setValue, reset, setError, clearErrors } = form
 
-  //const { errors } = formState
+  const { errors } = formState
 
   const { fields, append, remove, insert } = useFieldArray({
     control,
@@ -177,9 +177,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
       )
     )
   }
-  //console.log(errors, 'nknn')
+  console.log(errors, 'nknn')
   const submitItems = () => {
-    alert('hi')
     const dietTypesData = getValues('diet_types')
     sendDietTypesToParent(dietTypesData)
   }
@@ -293,7 +292,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
                                   }}
-                                  // error={Boolean(errors?.diet_types?.[index]?.minWeight)}
+                                  error={Boolean(errors?.diet_types?.[index]?.minWeight)}
                                   type='number'
                                   inputProps={{ min: 1 }}
                                   name={`diet_types[${index}].minWeight`}
@@ -305,9 +304,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             )}
                           />
                         </FormControl>
-                        {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
+                        <Typography sx={{ fontSize: 12, ml: 2 }}>
                           {errors?.diet_types?.[index]?.minWeight?.message}
-                        </Typography> */}
+                        </Typography>
                       </Grid>
                       <Grid item xs={12} sm={2.5}>
                         <FormControl fullWidth>
@@ -326,7 +325,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     checkDisabled()
                                   }}
                                   type='number'
-                                  //error={Boolean(errors?.diet_types?.[index]?.maxWeight)}
+                                  error={Boolean(errors?.diet_types?.[index]?.maxWeight)}
                                   name={`diet_types[${index}].maxWeight`}
                                   onKeyUp={() => {
                                     handleKeyUp2(index)
@@ -336,9 +335,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             )}
                           />
                         </FormControl>
-                        {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
+                        <Typography sx={{ fontSize: 12, ml: 2 }}>
                           {errors?.diet_types?.[index]?.maxWeight?.message}
-                        </Typography> */}
+                        </Typography>
                       </Grid>
                       <Grid item xs={12} sm={5}>
                         <FormControl fullWidth>
@@ -370,11 +369,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   )}
                                   sx={{ width: '200px' }}
                                 />
-                                {/* {errors?.diet_types?.[index]?.unit && (
+                                {errors?.diet_types?.[index]?.unit && (
                                   <FormHelperText sx={{ color: 'error.main' }} id={`diet_types[${index}].unit`}>
                                     {'Unit is required'}
                                   </FormHelperText>
-                                )} */}
+                                )}
                               </>
                             )}
                           />

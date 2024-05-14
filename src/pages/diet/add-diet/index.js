@@ -197,20 +197,8 @@ const AddDiet = () => {
   //   }))
   // }
 
-  const handleIngredientChange = (name, value, ingredient, index) => {
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
-      ingredients: {
-        ...prevData.ingredients,
-        byPercentage: prevData.ingredients.byPercentage.map((item, i) =>
-          i === index ? { ...item, ingredient_id: ingredient.value } : item
-        ),
-        byQuantity: prevData.ingredients.byQuantity.map((item, i) =>
-          i === index ? { ...item, ingredient_id: ingredient.value } : item
-        )
-      }
-    }))
+  function deleteCookie(name) {
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   }
 
   const updateFormData = newData => {
@@ -219,6 +207,11 @@ const AddDiet = () => {
       ...newData
     }))
   }
+
+  useEffect(() => {
+    deleteCookie('dietTypeChildValues')
+    deleteCookie('dietTypeChildVal')
+  }, [])
 
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
@@ -229,6 +222,7 @@ const AddDiet = () => {
       const numericFormData = {
         // ...formDataWithoutChild,
         ...formData,
+        child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
@@ -273,7 +267,8 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/diet`)
-
+        deleteCookie('dietTypeChildValues')
+        deleteCookie('dietTypeChildVal')
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -343,6 +338,7 @@ const AddDiet = () => {
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
+        child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
@@ -397,7 +393,8 @@ const AddDiet = () => {
       console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/diet`)
-
+        deleteCookie('dietTypeChildValues')
+        deleteCookie('dietTypeChildVal')
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
