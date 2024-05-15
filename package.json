@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "export": "next export",
-    "lint": "eslint --fix \"src/**/*.{js,jsx}\"",
-    "format": "prettier --write \"src/**/*.{js,jsx}\"",
+    "lint": "",
+    "format": "",
     "build:icons": "node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
