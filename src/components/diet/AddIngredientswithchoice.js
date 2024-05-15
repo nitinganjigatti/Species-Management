@@ -795,7 +795,7 @@ const AddIngredientswithChoice = props => {
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                   >
                     <Typography>Id - {item?.id}</Typography>
-                    <Typography>Feed Type - Egg</Typography>
+                    <Typography>Feed Type - {item?.feed_type_label}</Typography>
                   </Stack>
                   <Stack
                     direction='row'
