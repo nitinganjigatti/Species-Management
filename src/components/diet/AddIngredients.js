@@ -668,7 +668,7 @@ const AddIngredients = props => {
                     direction='row'
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                   >
-                    <Typography>Preparation-Type</Typography>
+                    <Typography>Preparation Type</Typography>
 
                     <Box sx={{ width: 200 }}>
                       <FormControl fullWidth>
