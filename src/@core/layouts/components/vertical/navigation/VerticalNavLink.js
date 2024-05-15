@@ -129,7 +129,11 @@ const VerticalNavLink = ({
               }}
             >
               {typeof icon === 'object' && Object.keys(icon).length ? (
-                <Avatar src={item.icon?.props?.src} alt={item.title} style={{ width: '24px', height: '24px' }} />
+                <Avatar
+                  src={isNavLinkActive() ? item.activeIcon?.props?.src : item.icon?.props?.src}
+                  alt={item.title}
+                  style={{ width: '24px', height: '24px' }}
+                />
               ) : (
                 <UserIcon icon={icon} />
               )}

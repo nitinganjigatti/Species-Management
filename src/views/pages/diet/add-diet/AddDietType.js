@@ -65,17 +65,16 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     diet_types: Yup.array().of(
       Yup.object().shape({
         minWeight: Yup.string().required('Min Wieght is required').min(1, 'Quantity should be greater than 0'),
-        maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0'),
+        maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0')
 
-        unit: Yup.string().required('Unit is required')
+        // unit: Yup.string().required('Unit is required')
       })
     )
   })
 
   const form = useForm({
     defaultValues: defaultProductDetails,
-
-    //resolver: yupResolver(ProductValidationSchema),
+    resolver: yupResolver(ProductValidationSchema),
     shouldUnregister: false,
     reValidateMode: 'onChange',
     mode: 'onChange'
@@ -180,9 +179,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     )
   }
 
-  //console.log(errors, 'nknn')
   const submitItems = () => {
-    alert('hi')
     const dietTypesData = getValues('diet_types')
     sendDietTypesToParent(dietTypesData)
   }
@@ -391,11 +388,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   )}
                                   sx={{ width: '200px' }}
                                 />
-                                {/* {errors?.diet_types?.[index]?.unit && (
+                                {errors?.diet_types?.[index]?.unit && (
                                   <FormHelperText sx={{ color: 'error.main' }} id={`diet_types[${index}].unit`}>
                                     {'Unit is required'}
                                   </FormHelperText>
-                                )} */}
+                                )}
                               </>
                             )}
                           />

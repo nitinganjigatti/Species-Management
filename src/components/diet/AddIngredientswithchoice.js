@@ -169,7 +169,7 @@ const AddIngredientswithChoice = props => {
     // Prepare the object to store values
     const boxValues = {
       ingredient_id: item.id,
-      name: item.ingredient_name,
+      ingredient_name: item.ingredient_name,
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
       // days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),

@@ -235,8 +235,8 @@ const StepPreviewDiet = ({
     // Later in your code where you need to get the cookie value
     if (id) {
       //const child = formData.child
-      const dietTypesData = ['10 to 20 bale', '20 to 30 bushel (US)']
-      const convertedData = dietTypesData.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+      const dietTypesData = formData.child
+      const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
       console.log(convertedData, 'convertedData')
 
       const newarr = convertedData.map(item => {
@@ -255,9 +255,9 @@ const StepPreviewDiet = ({
       })
       console.log(newarr, 'newarr')
 
-      document.cookie = `dietTypeChildValues=${JSON.stringify(['10 to 20 bale', '20 to 30 bushel (US)'])}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+      document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
       document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
-      setdiettypechildvalues(['10 to 20 bale', '20 to 30 bushel (US)'])
+      setdiettypechildvalues(formData.child)
       setDietTypes(newarr)
     } else {
       const dietTypeChildValues = getCookie('dietTypeChildValues')
@@ -333,8 +333,8 @@ const StepPreviewDiet = ({
             mealTypeArray[existingMealTypeIndex] = {
               meal_value_header: headertype,
               quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
+              meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+              feed_uom_name: feed_uom_name?.label || feed_uom_name,
               notes: notes
             }
           } else {
@@ -1006,7 +1006,7 @@ const StepPreviewDiet = ({
                                               }}
                                             >
                                               <Box sx={{ display: 'flex' }}>
-                                                {item?.name && (
+                                                {item?.ingredient_name && (
                                                   <Typography
                                                     sx={{
                                                       color: '#000',
@@ -1015,7 +1015,7 @@ const StepPreviewDiet = ({
                                                       fontSize: '16px'
                                                     }}
                                                   >
-                                                    {item?.name}
+                                                    {item?.ingredient_name}
                                                   </Typography>
                                                 )}
                                                 {item?.preparation_type && (
@@ -1908,7 +1908,7 @@ const StepPreviewDiet = ({
                                                           color: '#1F415B'
                                                         }}
                                                       >
-                                                        {item?.name}
+                                                        {item?.ingredient_name}
                                                       </Typography>
                                                       <Typography
                                                         sx={{
