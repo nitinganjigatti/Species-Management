@@ -566,10 +566,12 @@ const StepBasicDetails = ({
 
         return
       }
+
       // Check for time overlap
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
       if (lastOverlapIndex !== -1) {
         toast.error(`Meal ${lastOverlapIndex + 1} time overlaps with another meal.`)
+
         return
       } else {
         handleNext(formDataWithImage)
@@ -593,6 +595,7 @@ const StepBasicDetails = ({
       // Check if meal_from_time is greater than meal_to_time
       if (fromTime >= toTime) {
         lastOverlapIndex = index
+
         return
       }
 
@@ -615,6 +618,7 @@ const StepBasicDetails = ({
         }
       }
     })
+
     return lastOverlapIndex
   }
 

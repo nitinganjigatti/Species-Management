@@ -274,6 +274,7 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -401,6 +402,7 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
