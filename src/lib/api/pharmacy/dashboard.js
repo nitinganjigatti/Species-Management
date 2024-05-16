@@ -1,8 +1,18 @@
 import { axiosGet } from '../utility'
+import {
+  DASHBOARD_REPORT,
+  DASHBOARD_FAST_MOVING,
+  DASHBOARD_NEW_REQUEST,
+  DASHBOARD_COMPLETED_REQUESTS,
+  DASHBOARD_PENDING_REQUEST,
+  DASHBOARD_STORE_WISE_PENDING_REQUEST,
+  DASHBOARD_MONTHLY_DISPATCH,
+  DASHBOARD_MONTHLY_PURCHASE
+} from 'src/constants/ApiConstant'
 
 export async function getAllLists() {
   try {
-    const url = 'reports'
+    const url = DASHBOARD_REPORT
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -20,7 +30,7 @@ export async function getAllLists() {
 
 export async function getFastMovingStocks() {
   try {
-    const url = 'fastmoving-stocks?page=1&limit=10'
+    const url = DASHBOARD_FAST_MOVING
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -38,7 +48,7 @@ export async function getFastMovingStocks() {
 
 export async function getNewRequestsList() {
   try {
-    const url = 'new-request?page=1&limit=10'
+    const url = DASHBOARD_NEW_REQUEST
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -56,7 +66,7 @@ export async function getNewRequestsList() {
 
 export async function getCompletedRequestsList() {
   try {
-    const url = 'completed-request'
+    const url = DASHBOARD_COMPLETED_REQUESTS
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -74,7 +84,7 @@ export async function getCompletedRequestsList() {
 
 export async function getPendingList() {
   try {
-    const url = 'pending-request'
+    const url = DASHBOARD_PENDING_REQUEST
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -92,7 +102,7 @@ export async function getPendingList() {
 
 export async function getStoreWisePendingList() {
   try {
-    const url = 'storewise-pending-request'
+    const url = DASHBOARD_STORE_WISE_PENDING_REQUEST
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -110,7 +120,7 @@ export async function getStoreWisePendingList() {
 
 export async function getMonthWiseDispatchList() {
   try {
-    const url = 'monthly-dispatch'
+    const url = DASHBOARD_MONTHLY_DISPATCH
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data
@@ -128,7 +138,7 @@ export async function getMonthWiseDispatchList() {
 
 export async function getMonthWisePurchaseList() {
   try {
-    const url = 'monthly-purchase'
+    const url = DASHBOARD_MONTHLY_PURCHASE
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data

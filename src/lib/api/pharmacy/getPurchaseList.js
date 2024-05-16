@@ -62,8 +62,48 @@ export async function getBatchExpiry(params) {
 export async function uploadPurchaseFile(payload) {
   try {
     const url = `${PHARMACY_BASE_URL}${PURCHASE}/import`
+
     var data = payload
     const response = await axiosFormPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function ValidateUploadPurchaseFile(payload) {
+  try {
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}/importValidate`
+
+    var data = payload
+    const response = await axiosFormPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function saveImportFileData(payload) {
+  try {
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}/saveImport`
+    var data = payload
+    const response = await axiosPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {

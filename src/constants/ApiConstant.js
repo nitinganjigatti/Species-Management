@@ -137,3 +137,19 @@ export const BATCH_LIST = 'batch-details'
 export const ANIMAL_LIST = 'v1/collection/animal/list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
+
+export const DASHBOARD_REPORT = 'reports'
+
+export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
+
+export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
+
+export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
+
+export const DASHBOARD_PENDING_REQUEST = 'pending-request'
+
+export const DASHBOARD_STORE_WISE_PENDING_REQUEST = 'storewise-pending-request'
+
+export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
+
+export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'

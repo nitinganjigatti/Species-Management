@@ -24,6 +24,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import Chip from '@mui/material/Chip'
+import Box from '@mui/material/Box'
 
 const defaultValues = {
   request_item: {
@@ -39,7 +41,9 @@ const defaultValues = {
   request_item_qty: '',
   stock_type: '',
   available_item_qty: '',
-  expiry_date: ''
+  expiry_date: '',
+  packageDetails: '',
+  manufacture: ''
 }
 
 const schema = yup.object().shape({
@@ -126,7 +130,17 @@ export const AddItemsForm = ({
   const onSubmit = async params => {
     debugger
 
-    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
+    const {
+      request_item_batch_no,
+      request_item_qty,
+      available_item_qty,
+      expiry_date,
+      request_item,
+      stock_type,
+
+      packageDetails,
+      manufacture
+    } = {
       ...params
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
@@ -229,7 +243,10 @@ export const AddItemsForm = ({
         product_name: request_item?.label,
         priority_item: 'Normal',
         uuid: nestedMedicine?.uuid,
-        stock_type
+        stock_type,
+
+        packageDetails,
+        manufacture
       },
       type
     )
@@ -353,7 +370,8 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      // debugger
+      console.log('Please', nestedMedicine)
+
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -367,7 +385,9 @@ export const AddItemsForm = ({
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date,
         available_item_qty: nestedMedicine?.available_item_qty,
-        stock_type: nestedMedicine?.stock_type
+        stock_type: nestedMedicine?.stock_type,
+        packageDetails: nestedMedicine?.packageDetails,
+        manufacture: nestedMedicine?.manufacture
       })
       console.log('nested medicine in form', nestedMedicine)
       async function searchMedicine() {
@@ -417,11 +437,16 @@ export const AddItemsForm = ({
                       setValue('expiry_date', '')
                       setValue('stock_type', '')
                       setValue('available_item_qty', '')
+                      setValue('packageDetails', '')
+                      setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
                         // debugger
+                        console.log('values', value)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
+                        setValue('packageDetails', value.packageDetails)
+                        setValue('manufacture', value.manufacture)
                       }
 
                       checkTotalCount()
@@ -429,6 +454,15 @@ export const AddItemsForm = ({
                     onBlur={async () => {
                       await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
                     }}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box>
+                          <Typography>{option.label}</Typography>
+                          <Typography variant='body2'>{option.packageDetails}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -444,6 +478,24 @@ export const AddItemsForm = ({
               />
               {errors?.request_item && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+              )}
+              {watch('packageDetails') && (
+                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                  <Chip
+                    label={watch('packageDetails')}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  />
+                  <Chip
+                    label={watch('manufacture')}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ fontSize: 11, height: '22px' }}
+                  />
+                </Box>
               )}
             </FormControl>
             {/* {totalAvailableCount ? ( */}

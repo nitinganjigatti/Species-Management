@@ -373,7 +373,9 @@ const AddReturnRequest = () => {
             value: item.id,
             label: item.name,
             control_substance: item.controlled_substance === '1' ? true : false,
-            stock_type: item.stock_type
+            stock_type: item.stock_type,
+            packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            manufacture: item?.manufacturer_name
           }))
         )
       }
@@ -404,7 +406,9 @@ const AddReturnRequest = () => {
                 value: item?.batch_no,
                 label: item?.batch_no,
                 expiry_date: item?.expiry_date,
-                available_item_qty: item?.qty
+                available_item_qty: item?.qty,
+                packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                manufacture: item?.manufacturer_name
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -476,7 +480,9 @@ const AddReturnRequest = () => {
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
             dispatch_item_id: el.dispatch_item_id,
-            stock_type: el?.stock_type
+            stock_type: el?.stock_type,
+            packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+            manufacture: el?.manufacturer
           }
         })
 
@@ -540,7 +546,9 @@ const AddReturnRequest = () => {
       control_substance: getItems[0].control_substance,
       uuid: getItems[0].uuid,
       available_item_qty: getItems[0]?.available_item_qty,
-      stock_type: getItems[0]?.stock_type
+      stock_type: getItems[0]?.stock_type,
+      packageDetails: getItems[0]?.packageDetails,
+      manufacture: getItems[0]?.manufacture
     })
     // }
   }
@@ -872,6 +880,8 @@ const AddReturnRequest = () => {
                 <TableRow>
                   <TableCell>Product Name</TableCell>
                   <TableCell>Batch No</TableCell>
+                  <TableCell>Package details</TableCell>
+                  <TableCell>Manufacturer</TableCell>
                   <TableCell>Expiry Date</TableCell>
                   <TableCell>Priority</TableCell>
                   <TableCell>Quantity</TableCell>
@@ -894,6 +904,16 @@ const AddReturnRequest = () => {
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.request_item_batch_no}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.packageDetails}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.manufacture}
                             </Typography>
                           </TableCell>
                           <TableCell>
