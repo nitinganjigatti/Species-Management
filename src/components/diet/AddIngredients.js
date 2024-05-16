@@ -54,10 +54,10 @@ const AddIngredients = props => {
   const [uom, setUom] = useState([])
   const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
-  console.log('Selected days:', selectedDays)
+  // console.log('Selected days:', selectedDays)
 
   const handelShowBottom = (event, item, index) => {
-    console.log('item', item)
+    // console.log('item', item)
     event.stopPropagation()
 
     setVisibility(prevVisibility => {
@@ -388,10 +388,10 @@ const AddIngredients = props => {
       (value, index, self) =>
         index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.mealid === value?.mealid)
     )
-    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
+    // console.log(uniqueSelectedValues, 'uniqueSelectedValues')
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
-    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+    // console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectedCard with matched objects, or set to an empty array if no match found
     // const updatedSelectedCard =
     //   selectedValuesWithCheckId?.map(item => ({
@@ -429,7 +429,7 @@ const AddIngredients = props => {
       })
     })
     setSelectedDays(updatedSelectedDays)
-    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+    // console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
 
@@ -488,7 +488,7 @@ const AddIngredients = props => {
   }
 
   const removeSelectedCard = (event, itemId) => {
-    console.log('removeSelectedCard Called')
+    // console.log('removeSelectedCard Called')
 
     // Check if the card with itemId is present in the selectedCard state
     const cardIndex = selectedCard.findIndex(card => card.ingredient_id === itemId)
