@@ -500,7 +500,7 @@ const AddIngredients = props => {
       setSelectedCard(updatedSelectedCard)
     }
   }
-
+  console.log(selectedCard, 'selectedCard')
   return (
     <>
       <Drawer

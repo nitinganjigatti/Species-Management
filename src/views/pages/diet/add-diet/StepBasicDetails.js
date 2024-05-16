@@ -1313,13 +1313,13 @@ const StepBasicDetails = ({
                           item
                           xs={12}
                           sm={
-                            ingredient.label === 'No'
-                              ? 0.5
-                              : ingredient.label === 'Ingredient'
+                            ingredient.label === 'Ingredient'
                               ? 2.2
                               : ingredient.label === 'Prep types'
-                              ? 1.5
-                              : 3.7
+                              ? 2.3
+                              : ingredient.label === 'Feeding days'
+                              ? 2.7
+                              : 4.8
                           }
                           key={index}
                           sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1342,12 +1342,19 @@ const StepBasicDetails = ({
                                 <Typography>1</Typography>
                               </Grid> */}
                               <Grid item xs={12} sm={2.2}>
-                                <Typography>{all?.name}</Typography>
+                                <Typography>
+                                  Offer Minimum{' '}
+                                  <span style={{ color: '#37BD69', fontSize: '17px', fontWeight: 600 }}>
+                                    {all.no_of_component_required}
+                                  </span>{' '}
+                                </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                                <Typography>{all?.preparation_type}</Typography>
+                              <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
+                                <Typography>
+                                  {all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={2.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
                                   {days.map((day, index) => (
                                     <Grid item key={day}>
@@ -1363,7 +1370,7 @@ const StepBasicDetails = ({
                                   ))}
                                 </Grid>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={4.8}>
                                 <Grid sx={{ pl: 7 }}>
                                   <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
                                 </Grid>

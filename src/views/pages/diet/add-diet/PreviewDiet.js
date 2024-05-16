@@ -62,6 +62,7 @@ const StepPreviewDiet = ({
   const [mealingredientIndex, setmealingredientIndex] = useState('')
   const [ingredientvalueid, setingredientvalueid] = useState({})
   const [headertype, setheadertype] = useState('')
+  const [headerMatch, setheaderMatch] = useState('')
   const [dietTypeval, setdietTypeval] = useState('')
   const [dietTypes, setDietTypes] = useState([])
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -116,8 +117,18 @@ const StepPreviewDiet = ({
     setOpen(true)
     setmealingredientIndex(index)
     setingredientvalueid(item.mealid)
-    setheadertype(type)
     setdietTypeval(dietType)
+    if (formData.diet_type_name !== 'By Weight') {
+      setheadertype(type)
+    } else {
+      const inputString = type
+      const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
+      const textOnly = inputString.replace(/[^a-zA-Z()\s]/g, '')
+      console.log(numberOnly) // Output: "1"
+      console.log(textOnly, 'textOnly')
+      setheadertype(numberOnly)
+      setheaderMatch(textOnly)
+    }
   }
 
   const {
@@ -153,28 +164,39 @@ const StepPreviewDiet = ({
 
   // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
+    alert('hi')
     console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
 
-    const newState = dietTypesData.map(item => {
+    const stateforHeader = dietTypesData.map(item => {
       const { minWeight, maxWeight, unit } = item
       const { name } = unit.value
 
       return `${minWeight} to ${maxWeight} ${name}`
     })
 
+    const apival = dietTypesData.map(item => {
+      const { minWeight, unit } = item
+      const { _id, name } = unit.value
+
+      return {
+        meal_value_header: parseFloat(minWeight), // Convert to number
+        weight_uom_id: _id,
+        weight_uom_label: name
+      }
+    })
+
     // Log the type of newState
-    console.log(typeof newState) // Check the type
-
+    console.log(apival, 'apival') // Check the type
     // Set cookie
-    document.cookie = `dietTypeChildValues=${JSON.stringify(newState)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
-    document.cookie = `dietTypeChildVal=${JSON.stringify(dietTypesData)}; path=/`
+    document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+    document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
-    // Check if newState is an array
-    if (Array.isArray(newState)) {
-      setdiettypechildvalues(newState)
+    // Check if stateforHeader is an array
+    if (Array.isArray(stateforHeader)) {
+      setdiettypechildvalues(stateforHeader)
     } else {
-      console.error('newState is not an array:', newState)
+      console.error('newState is not an array:', stateforHeader)
     }
   }
 
@@ -234,6 +256,7 @@ const StepPreviewDiet = ({
     // When component mounts or diettypechildvalues changes, update local state
     // Later in your code where you need to get the cookie value
     if (id) {
+      alert('ppp')
       //const child = formData.child
       const dietTypesData = formData.child
       const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
