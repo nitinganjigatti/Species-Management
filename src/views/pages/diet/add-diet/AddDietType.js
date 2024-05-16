@@ -54,8 +54,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const defaultProductDetails = {
     diet_types: [
       {
-        minWeight: '',
-        maxWeight: '',
+        weight: '',
+        // maxWeight: '',
         unit: uom?._id || uom || ''
       }
     ]
@@ -64,8 +64,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const ProductValidationSchema = Yup.object().shape({
     diet_types: Yup.array().of(
       Yup.object().shape({
-        minWeight: Yup.string().required('Min Wieght is required').min(1, 'Quantity should be greater than 0'),
-        maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0')
+        weight: Yup.string().required('Wieght is required').min(1, 'Quantity should be greater than 0')
+        // maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0')
 
         // unit: Yup.string().required('Unit is required')
       })
@@ -116,8 +116,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         variant='outlined'
         onClick={() => {
           append({
-            minWeight: '',
-            maxWeight: '',
+            weight: '',
+            // maxWeight: '',
             unit: {
               value: uom ? uom : ''
             }
@@ -166,12 +166,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     setDis(
       getValues('diet_types').some(
         item =>
-          item?.minWeight === '' ||
-          item?.minWeight === undefined ||
-          item?.minWeight === null ||
-          item?.maxWeight === '' ||
-          item?.maxWeight === undefined ||
-          item?.maxWeight === null ||
+          item?.weight === '' ||
+          item?.weight === undefined ||
+          item?.weight === null ||
+          // item?.maxWeight === '' ||
+          // item?.maxWeight === undefined ||
+          // item?.maxWeight === null ||
           item?.unit?.value?._id === '' ||
           item?.unit?.value?._id === undefined ||
           item?.unit?.value?._id === null
@@ -187,52 +187,52 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const handleKeyUp = index => {
     const values = getValues('diet_types')
     const item = values[index]
-    const duplicateMin = values
-      ?.map(value => Number(value?.minWeight))
-      ?.some((value, idx) => idx !== index && value === Number(item?.minWeight))
-    const duplicateMax = values
-      ?.map(value => Number(value?.maxWeight))
-      ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
-    if (duplicateMin && duplicateMax) {
-      setError(`diet_types[${index}].minWeight`, {
+    const duplicate = values
+      ?.map(value => Number(value?.weight))
+      ?.some((value, idx) => idx !== index && value === Number(item?.weight))
+    // const duplicateMax = values
+    //   ?.map(value => Number(value?.maxWeight))
+    //   ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
+    if (duplicate) {
+      setError(`diet_types[${index}].weight`, {
         type: 'manual',
-        message: 'same range value be not allowed'
+        message: 'same weight not be allowed'
       })
-    } else if (item && Number(item.minWeight) >= Number(item.maxWeight)) {
-      if (item.maxWeight > 0) {
-        setError(`diet_types[${index}].minWeight`, {
-          type: 'manual',
-          message: 'Min Weight should be lower'
-        })
-      }
+      // } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
+      //   if (item.maxWeight > 0) {
+      //     setError(`diet_types[${index}].weight`, {
+      //       type: 'manual',
+      //       message: 'Min Weight should be lower'
+      //     })
+      //   }
     } else {
-      clearErrors(`diet_types[${index}]`, 'minWeight')
+      clearErrors(`diet_types[${index}]`, 'weight')
     }
   }
 
-  const handleKeyUp2 = index => {
-    const values = getValues('diet_types')
-    const item = values[index]
-    const duplicateMin = values
-      ?.map(value => Number(value?.minWeight))
-      ?.some((value, idx) => idx !== index && value === Number(item?.minWeight))
-    const duplicateMax = values
-      ?.map(value => Number(value?.maxWeight))
-      ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
-    if (duplicateMin && duplicateMax) {
-      setError(`diet_types[${index}].maxWeight`, {
-        type: 'manual',
-        message: 'same range value be not allowed'
-      })
-    } else if (item && Number(item.minWeight) >= Number(item.maxWeight)) {
-      setError(`diet_types[${index}].maxWeight`, {
-        type: 'manual',
-        message: 'Max Weight should be greater'
-      })
-    } else {
-      clearErrors(`diet_types[${index}]`, 'maxWeight')
-    }
-  }
+  // const handleKeyUp2 = index => {
+  //   const values = getValues('diet_types')
+  //   const item = values[index]
+  //   const duplicateMin = values
+  //     ?.map(value => Number(value?.weight))
+  //     ?.some((value, idx) => idx !== index && value === Number(item?.weight))
+  //   const duplicateMax = values
+  //     ?.map(value => Number(value?.maxWeight))
+  //     ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
+  //   if (duplicateMin && duplicateMax) {
+  //     setError(`diet_types[${index}].maxWeight`, {
+  //       type: 'manual',
+  //       message: 'same range value be not allowed'
+  //     })
+  //   } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
+  //     setError(`diet_types[${index}].maxWeight`, {
+  //       type: 'manual',
+  //       message: 'Max Weight should be greater'
+  //     })
+  //   } else {
+  //     clearErrors(`diet_types[${index}]`, 'maxWeight')
+  //   }
+  // }
 
   // const handleUnitKeyUp = index => {
   //   if (
@@ -312,25 +312,25 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                 <FormGroup>
                   {fields.map((field, index) => (
                     <Grid container gap={3} key={field?.id} sx={{ mb: 4 }}>
-                      <Grid item xs={12} sm={2.5}>
+                      <Grid item xs={12} sm={5}>
                         <FormControl fullWidth>
                           <Controller
-                            name={`diet_types[${index}].minWeight`}
+                            name={`diet_types[${index}].weight`}
                             control={control}
                             render={({ field: { value, onChange } }) => (
                               <>
                                 <TextField
                                   value={value}
-                                  label='Min Weight*'
+                                  label='Weight*'
                                   onChange={e => {
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
                                   }}
-                                  error={Boolean(errors?.diet_types?.[index]?.minWeight)}
+                                  error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
                                   inputProps={{ min: 1 }}
-                                  name={`diet_types[${index}].minWeight`}
+                                  name={`diet_types[${index}].weight`}
                                   onKeyUp={() => {
                                     handleKeyUp(index)
                                   }}
@@ -341,11 +341,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         </FormControl>
 
                         <Typography sx={{ fontSize: 12, ml: 2 }}>
-                          {errors?.diet_types?.[index]?.minWeight?.message != 'same range value be not allowed' &&
-                            errors?.diet_types?.[index]?.minWeight?.message}
+                          {errors?.diet_types?.[index]?.weight?.message != 'same range value be not allowed' &&
+                            errors?.diet_types?.[index]?.weight?.message}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={2.5}>
+                      {/* <Grid item xs={12} sm={2.5}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].maxWeight`}
@@ -376,7 +376,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                           {errors?.diet_types?.[index]?.maxWeight?.message != 'same range value be not allowed' &&
                             errors?.diet_types?.[index]?.maxWeight?.message}
                         </Typography>
-                      </Grid>
+                      </Grid> */}
                       <Grid item xs={12} sm={5}>
                         <FormControl fullWidth>
                           <Controller
@@ -420,20 +420,20 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                           />
                         </FormControl>
                       </Grid>
-                      {errors?.diet_types?.[index]?.minWeight?.message === 'same range value be not allowed' && (
+                      {errors?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
                         <Grid item xs={10}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
-                            {errors?.diet_types?.[index]?.minWeight?.message}
+                            {errors?.diet_types?.[index]?.weight?.message}
                           </Typography>
                         </Grid>
                       )}
-                      {errors?.diet_types?.[index]?.maxWeight?.message === 'same range value be not allowed' && (
+                      {/* {errors?.diet_types?.[index]?.maxWeight?.message === 'same range value be not allowed' && (
                         <Grid item xs={10}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.maxWeight?.message}
                           </Typography>
                         </Grid>
-                      )}
+                      )} */}
 
                       <Grid
                         item
@@ -461,7 +461,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                 console.log(
                   'fields',
                   getValues('diet_types').map(item => ({
-                    meal_value_header: `${item.minWeight}-${item.maxWeight} ${item?.unit?.value?.name}`
+                    meal_value_header: item?.weight,
+                    weight_uom_id: item?.unit?.value?._id,
+                    weight_uom_label: item?.unit?.value?.name
                   }))
                 )
               }}
