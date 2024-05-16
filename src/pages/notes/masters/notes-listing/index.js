@@ -138,7 +138,7 @@ const NotesListing = () => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label={editParams.type_name ? "SubType Title" : "Notes Title*"}
+                      label={editParams.type_name ? "SubType Title" : "Notes Title*"} 
                       value={value}
                       onChange={onChange}
                       placeholder='Notes Title'

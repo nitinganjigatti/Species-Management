@@ -249,6 +249,7 @@ const AddMedicine = () => {
   }
 
   const getPackagesList = async ({ key, page, limit }) => {
+    console.log("key >>>" ,key )
     try {
       const params = {
         q: key,
@@ -263,6 +264,8 @@ const AddMedicine = () => {
       console.log(e)
     }
   }
+
+  console.log("Packeages ??",packages);
 
   const getProductForm = async ({ key, page, limit }) => {
     try {
