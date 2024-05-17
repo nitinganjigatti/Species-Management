@@ -65,11 +65,8 @@ const AddIngredients = props => {
       const newVisibility = [...prevVisibility]
 
       if (existingIndex !== -1) {
-        // If the item already exists in visibility state, do not toggle off its visibility
         return newVisibility
       }
-
-      // If the item is not visible or doesn't exist, set it to visible
       newVisibility.push({
         id: item.id,
         isVisible: true
@@ -285,16 +282,6 @@ const AddIngredients = props => {
     }
   }
 
-  // const removeingClick = () => {
-  //   // Call the function passed from the parent component
-  //   props.removeingClick(item) // Pass the item to be removed
-  // }
-
-  // useEffect(() => {
-  //   const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
-  //   setSelectedCard(filteredSelectedCard)
-  // }, [checkid])
-
   const handleAllSelect = event => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
@@ -392,19 +379,6 @@ const AddIngredients = props => {
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
-    // Update selectedCard with matched objects, or set to an empty array if no match found
-    // const updatedSelectedCard =
-    //   selectedValuesWithCheckId?.map(item => ({
-    //     ingredient_id: String(item.ingredient_id),
-    //     name: item.ingredient_name,
-    //     preparation_type_id: item.preparation_type_id,
-    //     preparation_type: item.preparation_type,
-    //     days_of_week: item.days_of_week,
-    //     remarks: item.remarks,
-    //     mealid: item.mealid
-    //   })) || []
-
-    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     const updatedSelectedCard =
       selectedValuesWithCheckId?.map(item => ({
         ...item,
@@ -799,12 +773,6 @@ const AddIngredients = props => {
                     <Box sx={{ pt: 3 }}>
                       {' '}
                       <FormControl fullWidth>
-                        {/* {remarks && ( */}
-                        {/* <InputLabel id='demo-simple-select-label' shrink={remarks}>
-                          Add Remarks
-                        </InputLabel> */}
-                        {/* )} */}
-
                         <TextField
                           sx={{ pt: 1 }}
                           id='demo-simple-select-label'

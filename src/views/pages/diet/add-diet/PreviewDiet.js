@@ -52,9 +52,6 @@ const StepPreviewDiet = ({
   uomprev,
   setFormData,
   id
-
-  //onDietTypeChildValuesChange
-  //diettypechildvalues
 }) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
@@ -67,7 +64,8 @@ const StepPreviewDiet = ({
   const [dietTypes, setDietTypes] = useState([])
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
-
+  const [uomId, setuomId] = useState('')
+  const [uomLabel, setuomLabel] = useState('')
   const [initialValues, setInitialValues] = useState({
     quantity: '',
     meal_value_uom_id: '',
@@ -86,32 +84,68 @@ const StepPreviewDiet = ({
     console.log(type, 'type')
     console.log(index, 'index')
 
-    const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
-      return meal.meal_value_header === type
-    })
-    console.log(mealTypeObject, 'mealTypeObject')
-    setFormValue('quantity', mealTypeObject?.quantity)
-    setFormValue('notes', mealTypeObject?.notes)
-    setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
-    setFormValue('meal_value_uom_id', mealTypeObject?.meal_value_uom_id)
+    if (formData.diet_type_name !== 'By Weight') {
+      const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
+        return meal.meal_value_header === type
+      })
+      console.log(mealTypeObject, 'mealTypeObject')
+      setFormValue('quantity', mealTypeObject?.quantity)
+      setFormValue('notes', mealTypeObject?.notes)
+      setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
+      setFormValue('meal_value_uom_id', mealTypeObject?.meal_value_uom_id)
 
-    const initialval = mealTypeObject
-      ? {
-          quantity: mealTypeObject.quantity || '',
-          meal_value_uom_id: mealTypeObject.meal_value_uom_id || '',
-          notes: mealTypeObject.notes || '',
-          feed_uom_name: mealTypeObject.feed_uom_name
-            ? { value: mealTypeObject.meal_value_uom_id, label: mealTypeObject.feed_uom_name }
-            : ''
-        }
-      : {
-          quantity: '',
-          meal_value_uom_id: '',
-          notes: '',
-          feed_uom_name: ''
-        }
+      const initialval = mealTypeObject
+        ? {
+            quantity: mealTypeObject.quantity || '',
+            meal_value_uom_id: mealTypeObject.meal_value_uom_id || '',
+            notes: mealTypeObject.notes || '',
+            feed_uom_name: mealTypeObject.feed_uom_name
+              ? { value: mealTypeObject.meal_value_uom_id, label: mealTypeObject.feed_uom_name }
+              : ''
+          }
+        : {
+            quantity: '',
+            meal_value_uom_id: '',
+            notes: '',
+            feed_uom_name: ''
+          }
 
-    setInitialValues(initialval)
+      setInitialValues(initialval)
+    } else {
+      const numericType = type !== 'Generic' ? parseFloat(type) : type
+      console.log(numericType, 'numericType')
+      const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
+        // Check if meal_value_header is not equal to 'Generic'
+        if (meal.meal_value_header !== 'Generic') {
+          return parseFloat(meal.meal_value_header) === numericType
+        } else {
+          return meal.meal_value_header === numericType
+        }
+      })
+      console.log(mealTypeObject, 'mealTypeObject')
+      setFormValue('quantity', mealTypeObject?.quantity)
+      setFormValue('notes', mealTypeObject?.notes)
+      setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
+      setFormValue('meal_value_uom_id', mealTypeObject?.meal_value_uom_id)
+
+      const initialval = mealTypeObject
+        ? {
+            quantity: mealTypeObject.quantity || '',
+            meal_value_uom_id: mealTypeObject.meal_value_uom_id || '',
+            notes: mealTypeObject.notes || '',
+            feed_uom_name: mealTypeObject.feed_uom_name
+              ? { value: mealTypeObject.meal_value_uom_id, label: mealTypeObject.feed_uom_name }
+              : ''
+          }
+        : {
+            quantity: '',
+            meal_value_uom_id: '',
+            notes: '',
+            feed_uom_name: ''
+          }
+
+      setInitialValues(initialval)
+    }
 
     // Then open the dialog
     setOpen(true)
@@ -123,11 +157,17 @@ const StepPreviewDiet = ({
     } else {
       const inputString = type
       const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
-      const textOnly = inputString.replace(/[^a-zA-Z()\s]/g, '')
+      const textOnly = inputString.replace(/^\s*\d*\s*/, '')
       console.log(numberOnly) // Output: "1"
       console.log(textOnly, 'textOnly')
-      setheadertype(numberOnly)
-      setheaderMatch(textOnly)
+      setheadertype(type)
+      type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
+      // Find the object in uomprev array where name matches textOnly
+      const matchedUom = uomprev.find(item => item.name === textOnly)
+      if (matchedUom) {
+        setuomId(parseFloat(matchedUom._id))
+        setuomLabel(textOnly)
+      }
     }
   }
 
@@ -136,16 +176,12 @@ const StepPreviewDiet = ({
     control,
     handleSubmit,
     clearErrors,
-
-    //formState: { errors },
     trigger,
     getValues,
     setValue: setFormValue
   } = useForm({
     defaultValues,
     shouldUnregister: false,
-
-    //resolver: yupResolver(schema),
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
@@ -164,32 +200,27 @@ const StepPreviewDiet = ({
 
   // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
-    alert('hi')
     console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
 
     const stateforHeader = dietTypesData.map(item => {
-      const { minWeight, maxWeight, unit } = item
+      const { weight, unit } = item
       const { name } = unit.value
 
-      return `${minWeight} to ${maxWeight} ${name}`
+      return `${weight} ${name}`
     })
 
     const apival = dietTypesData.map(item => {
-      const { minWeight, unit } = item
+      const { weight, unit } = item
       const { _id, name } = unit.value
-
       return {
-        meal_value_header: parseFloat(minWeight), // Convert to number
-        weight_uom_id: _id,
+        meal_value_header: parseFloat(weight),
+        weight_uom_id: parseFloat(_id),
         weight_uom_label: name
       }
     })
 
-    // Log the type of newState
-    console.log(apival, 'apival') // Check the type
-    // Set cookie
-    document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+    document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/`
     document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
     // Check if stateforHeader is an array
@@ -209,84 +240,40 @@ const StepPreviewDiet = ({
     const cookies = document.cookie.split(';')
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim()
-
-      // Check if this cookie is the one we want by comparing the name
       if (cookie.startsWith(name + '=')) {
-        // If yes, return the value of the cookie
         return cookie.substring(name.length + 1)
       }
     }
-
-    // If the cookie with the specified name is not found, return null
     return null
   }
 
-  // useEffect(() => {
-  //   if (id) {
-  //     const child = formData.child
-
-  //     const newarr = child?.map(item => {
-  //       const [minWeightStr, maxWeightStr, unitStr] = item.split(' ')
-
-  //       const minWeight = parseInt(minWeightStr)
-  //       const maxWeight = parseInt(maxWeightStr)
-
-  //       // Extract unit name
-  //       const unitName = unitStr?.trim()
-
-  //       return {
-  //         minWeight: minWeight,
-  //         maxWeight: maxWeight,
-  //         unit: {
-  //           value: {
-  //             name: unitName
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     console.log(newarr)
-
-  //     document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
-  //     document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
-  //   }
-  // }, [])
-
   useEffect(() => {
-    // When component mounts or diettypechildvalues changes, update local state
-    // Later in your code where you need to get the cookie value
     if (id) {
-      alert('ppp')
       //const child = formData.child
       const dietTypesData = formData.child
-      const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+      // const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+      const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
       console.log(convertedData, 'convertedData')
 
       const newarr = convertedData.map(item => {
         // Splitting the string into minWeight, maxWeight, and unit name
-        const [minWeight, maxWeight, unitName] = item.split('_')
-
+        const [weight, unitName] = item.split('_')
+        const matchedUom = uomprev.find(item => item.name === unitName)
         return {
-          minWeight: minWeight,
-          maxWeight: maxWeight,
-          unit: {
-            value: {
-              name: unitName
-            }
-          }
+          meal_value_header: parseFloat(weight), // Convert to number
+          weight_uom_id: parseFloat(matchedUom?._id),
+          weight_uom_label: unitName
         }
       })
       console.log(newarr, 'newarr')
 
-      document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/` // Set the cookie with the name 'dietTypeChildValues'
+      document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/`
       document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
       setdiettypechildvalues(formData.child)
       setDietTypes(newarr)
     } else {
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
-
-      // Check if the cookie value is not null and parse it back to an array
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
         const parsedvaldiet = JSON?.parse(dietTypeChildVal)
@@ -347,28 +334,69 @@ const StepPreviewDiet = ({
           // Get the existing meal_type array
           const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
 
-          // Check if there's an existing object with the same meal_value_header
-          const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-          console.log(meal_value_uom_id, 'meal_value_uom_id')
-          console.log(feed_uom_name, 'feed_uom_name')
-          if (existingMealTypeIndex !== -1) {
-            // If an existing object with the same meal_value_header is found, update it
-            mealTypeArray[existingMealTypeIndex] = {
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-              feed_uom_name: feed_uom_name?.label || feed_uom_name,
-              notes: notes
+          // Check if formData.diet_type_name is "By Weight"
+          if (formData.diet_type_name === 'By Weight') {
+            // Check if there's an existing object with the same meal_value_header
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              // Check if headertype is "Generic"
+              if (headertype === 'Generic') {
+                // If headertype is "Generic", directly compare with headertype
+                return meal.meal_value_header === headertype
+              } else {
+                // If headertype is not "Generic", compare with parseFloat(headertype)
+                return parseFloat(meal.meal_value_header) === parseFloat(headertype)
+              }
+            })
+            console.log(existingMealTypeIndex, 'existingMealTypeIndex')
+            // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  // Conditionally include weight_uom_id and weight_uom_label
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              }
+            } else {
+              // If an existing object with the same meal_value_header is not found, add a new object
+              mealTypeArray.push({
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  // Conditionally include weight_uom_id and weight_uom_label
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              })
             }
           } else {
-            // Otherwise, add the new object to the meal_type array
-            mealTypeArray.push({
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
-              notes: notes
-            })
+            // If formData.diet_type_name is not "By Weight", update mealTypeArray without including weight_uom_id and weight_uom_label
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              }
+            } else {
+              mealTypeArray.push({
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              })
+            }
           }
 
           // Update the meal_type array with the updated mealTypeArray
@@ -385,99 +413,148 @@ const StepPreviewDiet = ({
       const updatedFormData = { ...formData } // Create a copy of formData
       console.log(updatedFormData, 'updatedFormData')
 
-      // Find the index of the meal_data object with matching mealid
       const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
       if (addMealIndex !== -1) {
-        // Find the index of the ingredient object with matching valueid and index
         const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
           (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
         )
 
         if (ingredientIndex !== -1) {
-          // Get the existing meal_type array
           const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
 
-          // Check if there's an existing object with the same meal_value_header
-          const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-
-          if (existingMealTypeIndex !== -1) {
-            // If an existing object with the same meal_value_header is found, update it
-            mealTypeArray[existingMealTypeIndex] = {
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
-              notes: notes
+          if (formData.diet_type_name === 'By Weight') {
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              if (headertype === 'Generic') {
+                return meal.meal_value_header === headertype
+              } else {
+                return meal.meal_value_header === parseFloat(headertype)
+              }
+            })
+            console.log(existingMealTypeIndex, 'existingMealTypeIndex')
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              }
+            } else {
+              mealTypeArray.push({
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              })
             }
           } else {
-            // Otherwise, add the new object to the meal_type array
-            mealTypeArray.push({
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
-              notes: notes
-            })
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              }
+            } else {
+              mealTypeArray.push({
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              })
+            }
           }
-
-          // Update the meal_type array with the updated mealTypeArray
           updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
         }
       }
-
-      // Update the formData in the parent component using a function passed through props
       setlocalformData(updatedFormData)
       setOpen(false)
       console.log(updatedFormData, 'updatedFormData')
     } else {
       const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
       const updatedFormData = { ...formData } // Create a copy of formData
-      console.log(updatedFormData, 'updatedFormData')
-
-      // Find the index of the meal_data object with matching mealid
       const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
       if (addMealIndex !== -1) {
-        // Find the index of the ingredient object with matching valueid and index
         const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredientwithchoice.findIndex(
           (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
         )
 
         if (ingredientIndex !== -1) {
-          // Get the existing meal_type array
           const mealTypeArray =
             updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type || []
 
-          // Check if there's an existing object with the same meal_value_header
-          const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-
-          if (existingMealTypeIndex !== -1) {
-            // If an existing object with the same meal_value_header is found, update it
-            mealTypeArray[existingMealTypeIndex] = {
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
-              notes: notes
+          if (formData.diet_type_name === 'By Weight') {
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              if (headertype === 'Generic') {
+                return meal.meal_value_header === headertype
+              } else {
+                return meal.meal_value_header === parseFloat(headertype)
+              }
+            })
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              }
+            } else {
+              mealTypeArray.push({
+                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes,
+                ...(headertype !== 'Generic' && {
+                  weight_uom_id: uomId,
+                  weight_uom_label: uomLabel
+                })
+              })
             }
           } else {
-            // Otherwise, add the new object to the meal_type array
-            mealTypeArray.push({
-              meal_value_header: headertype,
-              quantity: quantity,
-              meal_value_uom_id: feed_uom_name?.value,
-              feed_uom_name: feed_uom_name?.label,
-              notes: notes
-            })
+            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+            if (existingMealTypeIndex !== -1) {
+              mealTypeArray[existingMealTypeIndex] = {
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              }
+            } else {
+              mealTypeArray.push({
+                meal_value_header: headertype,
+                quantity: quantity,
+                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                notes: notes
+              })
+            }
           }
 
-          // Update the meal_type array with the updated mealTypeArray
           updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type = mealTypeArray
         }
       }
 
-      // Update the formData in the parent component using a function passed through props
       setlocalformData(updatedFormData)
       setOpen(false)
     }
@@ -493,7 +570,7 @@ const StepPreviewDiet = ({
   }, [diettypechildvalues, formData.diet_type_name])
 
   useEffect(() => {
-    const updatedFormData = { ...formData } // Create a copy of formData
+    const updatedFormData = { ...formData }
 
     // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
@@ -566,13 +643,11 @@ const StepPreviewDiet = ({
 
   const onSubmit = async data => {
     console.log(data, 'data')
-    const updatedData = { ...data, ...LocalformData } // Merge data with LocalformData
+    const updatedData = { ...data, ...LocalformData }
     console.log(updatedData, 'updatedData')
 
     handleNext(updatedData)
     reset(defaultValues)
-
-    // Router.push(`/diet/diet`)
   }
 
   const Day = [
@@ -1238,7 +1313,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map((all, index) => {
+                                      {formData.child?.map((all, indexnew) => {
                                         return (
                                           <TableCell
                                             key={index}
@@ -1276,7 +1351,15 @@ const StepPreviewDiet = ({
                                                     fontSize: '14px'
                                                   }}
                                                 >
-                                                  {item.meal_type
+                                                  {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                    ? item.meal_type.map((meal, i) => {
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return meal.quantity + ' ' + meal.feed_uom_name
+                                                        } else {
+                                                          return ''
+                                                        }
+                                                      })
+                                                    : item.meal_type
                                                     ? item.meal_type.map((meal, i) => {
                                                         return meal.meal_value_header === all
                                                           ? meal.quantity + meal.feed_uom_name
@@ -1290,50 +1373,6 @@ const StepPreviewDiet = ({
                                         )
                                       })}
 
-                                      {/* <TableCell
-                                        style={{
-                                          paddingLeft: '8px',
-                                          paddingRight: '8px',
-                                          height: '10px',
-                                          maxHeight: '100%',
-                                          border: 'none'
-                                        }}
-                                        onClick={() => handleClickOpen(index, item, 'Female', 'ingredient')}
-                                      >
-                                        <Box
-                                          sx={{
-                                            height: '100%'
-                                          }}
-                                        >
-                                          <Box
-                                            sx={{
-                                              backgroundColor: '#0000000d',
-                                              p: '10px',
-                                              width: '125px',
-                                              display: 'flex',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                              borderRadius: '8px',
-                                              height: '100%'
-                                            }}
-                                          >
-                                            <Typography
-                                              sx={{
-                                                color: '#000',
-                                                lineHeight: '16.94px',
-                                                fontWeight: 400,
-                                                fontSize: '14px'
-                                              }}
-                                            >
-                                              {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Female' ? meal.quantity : ''
-                                                  })
-                                                : 'Add'}
-                                            </Typography>
-                                          </Box>
-                                        </Box>
-                                      </TableCell> */}
                                       <Dialog
                                         open={open}
                                         onClose={handleClosed}
@@ -1353,7 +1392,6 @@ const StepPreviewDiet = ({
                                           <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
                                         </DialogTitle>
                                         <DialogContent>
-                                          {/* <Typography variant='h6'>Add Value</Typography> */}
                                           {console.log(initialValues.quantity)}
                                           <Grid container spacing={5} sx={{ mt: 1 }}>
                                             <Grid item xs={12} sm={6}>
@@ -1694,7 +1732,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map((all, index) => {
+                                      {formData.child?.map((all, indexnew) => {
                                         return (
                                           <TableCell
                                             key={index}
@@ -1764,7 +1802,6 @@ const StepPreviewDiet = ({
                                           <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
                                         </DialogTitle>
                                         <DialogContent>
-                                          {/* <Typography variant='h6'>Add Value</Typography> */}
                                           <Grid container spacing={5} sx={{ mt: 1 }}>
                                             <Grid item xs={12} sm={6}>
                                               <FormControl fullWidth>
@@ -2075,7 +2112,7 @@ const StepPreviewDiet = ({
                                           </Box>
                                         </Box>
                                       </TableCell>
-                                      {formData.child?.map((all, index) => {
+                                      {formData.child?.map((all, indexnew) => {
                                         return (
                                           <TableCell
                                             key={index}
