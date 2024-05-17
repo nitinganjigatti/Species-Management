@@ -160,21 +160,22 @@ const AddIngredientswithChoice = props => {
     // Get the remarks value
     const remarksData = remarks || ''
 
-    // Get the selected days for the current item
-    // const selectedDaysForItem = updatedSelectedDays?.filter(updatedDay => {
-    //   return (
-    //     updatedDay.cardId === item.id &&
-    //     updatedDay.days.some(day => {
-    //       return selectedDays.some(
-    //         selectedDay =>
-    //           selectedDay.cardId === updatedDay.cardId &&
-    //           selectedDay.days.some(selectedDay => selectedDay.dayId === day.dayId)
-    //       )
-    //     })
-    //   )
-    // })
+    if (!feed_type) {
+      // toast.error('Please select a feed type.')
 
-    // Prepare the object to store values
+      return
+    }
+
+    if (feed_type === 'Chopped') {
+      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      if (!cutSizeValue || !sizeValue) {
+        // toast.error('Cut size and size are required for chopped feed.')
+
+        return
+      }
+    }
+
     const boxValues = {
       ingredient_id: item.id,
       ingredient_name: item.ingredient_name,
@@ -188,7 +189,7 @@ const AddIngredientswithChoice = props => {
     if (feed_type === 'Chopped') {
       // Include cut size and its dropdown only if feedType is "Chopped"
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
 
       // Update boxValues with cut size and size
       boxValues.feed_cut_size = cutSizeValue
@@ -911,7 +912,7 @@ const AddIngredientswithChoice = props => {
                               displayEmpty
                               sx={{
                                 ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                                  borderColor: !selectFeed[item.id]?.id ? 'red' : '#ffffff',
+                                  borderColor: !size[item.id]?.id ? 'red' : '#ffffff',
                                   borderWidth: '2px',
                                   borderStyle: 'solid',
                                   '&.Mui-focused': {
