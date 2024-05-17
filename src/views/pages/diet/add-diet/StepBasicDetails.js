@@ -61,8 +61,8 @@ const schema = yup.object().shape({
       meal_from_time: yup.string().required('Meal from time is required'),
       meal_to_time: yup.string().required('Meal to time is required'),
       notes: yup.string(),
-      recipe: yup.array(), // Validation for 'recipe' array, if needed
-      ingredient: yup.array() // Validation for 'ingredient' array, if needed
+      recipe: yup.array(),
+      ingredient: yup.array()
     })
   )
 })
@@ -224,42 +224,6 @@ const StepBasicDetails = ({
     console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
-  // const handleIngredientchoiceStateChange = value => {
-  //   console.log(value, 'card')
-  //   console.log(fieldsIngredients, 'fieldsIngredients')
-  //   setIngredientchoiceChildStateValue(value)
-
-  //   // Remove duplicates from the new value based on id and mealid
-  //   const uniqueValues = value.filter(
-  //     (val, index, self) => index === self.findIndex(v => v.id === val.id && v.mealid === val.mealid)
-  //   )
-  //   console.log(uniqueValues, 'uniqueValues')
-  //   setAllIngredientchoiceSelectedValues(prevState => {
-  //     // Filter out duplicates from the previous state
-  //     const filteredPrevState = prevState.filter(
-  //       prevVal =>
-  //         !uniqueValues.some(uniqueVal => uniqueVal.id === prevVal?.id && uniqueVal.mealid === prevVal?.mealid)
-  //     )
-
-  //     // Combine unique values from the new value with filtered previous state
-  //     const updatedValues = [...filteredPrevState, ...uniqueValues]
-  //     console.log(fieldsIngredients)
-  //     console.log(updatedValues, 'updatedValues')
-
-  //     // Update the fieldsIngredients with the new values
-  //     for (let i = 0; i < fieldsIngredients.length; i++) {
-  //       const field = fieldsIngredients[i]
-  //       field.ingredientwithchoice = updatedValues.filter(up => up?.mealid === field.mealid)
-  //     }
-
-  //     // Return the updated values to setAllSelectedValues
-  //     return updatedValues
-  //   })
-
-  //   setfinalvalue(fieldsIngredients)
-  //   console.log(fieldsIngredients, 'fieldsIngredients')
-  // }
-
   const handleIngredientchoiceStateChange = value => {
     console.log(value, 'card')
     console.log(fieldsIngredients, 'fieldsIngredients')
@@ -364,12 +328,6 @@ const StepBasicDetails = ({
     setOpenIngredientchoice(true)
     setcheckid(val.mealid)
     setingType(type)
-
-    // // Update childStateValue with objects having matching mealid
-    // setIngredientchoiceChildStateValue(prevState => {
-    //   const newState = prevState.filter(item => item.mealid === val.id)
-    //   return newState
-    // })
   }
 
   const handleAddIngerdientChoicewithindex = (val, index, type) => {
@@ -421,66 +379,6 @@ const StepBasicDetails = ({
     setOpenIngredient(false)
     setOpenIngredientchoice(false)
   }
-
-  // const onSubmit = async data => {
-  //   console.log(data, 'data')
-  //   console.log(fieldsIngredients, 'raaa')
-  //   window.scrollTo(0, 0)
-  //   // Clear any existing errors
-  //   Object.keys(defaultValues).forEach(field => {
-  //     clearErrors(field)
-  //   })
-
-  //   try {
-  //     await schema.validate(data, { abortEarly: false })
-  //     const imageData = await handleImageUpload()
-  //     console.log(imageData, 'imageData')
-
-  //     // Check for empty ingredient or recipe arrays
-  //     const emptyIndexes = []
-  //     fieldsIngredients.forEach((item, index) => {
-  //       if (!item.ingredient || item.ingredient.length === 0 || !item.recipe || item.recipe.length === 0) {
-  //         emptyIndexes.push(index)
-  //       }
-  //     })
-
-  //     if (emptyIndexes.length > 0) {
-  //       // Adjust the indexes by adding 1 before displaying them in the alert
-  //       const adjustedIndexes = emptyIndexes.map(index => index + 1)
-  //       // Trigger alert with the adjusted indexes of objects with empty ingredient or recipe arrays
-  //       alert(`Objects at indexes ${adjustedIndexes.join(', ')} have empty ingredient or recipe arrays.`)
-  //       return
-  //     }
-
-  //     // Update the meal_data array with ingredients from finalvalue
-  //     const updatedAddMeals = data.meal_data.map((meal, index) => {
-  //       // Check if finalvalue has corresponding index
-  //       if (finalvalue[index]) {
-  //         return {
-  //           ...meal,
-  //           ingredient: finalvalue[index].ingredient,
-  //           recipe: finalvalue[index].recipe
-  //         }
-  //       }
-  //       return meal
-  //     })
-
-  //     // Merge the image data with other form data
-  //     const formDataWithImage = {
-  //       ...data,
-  //       diet_image: uploadedImage,
-  //       meal_data: updatedAddMeals
-  //     }
-
-  //     handleNext(formDataWithImage)
-  //     console.log(formDataWithImage, 'data')
-  //   } catch (validationErrors) {
-  //     alert('hi')
-  //     validationErrors.inner?.forEach(error => {
-  //       setError(error.path, { message: error.message })
-  //     })
-  //   }
-  // }
 
   const onSubmit = async data => {
     console.log(data, 'data')
@@ -700,28 +598,6 @@ const StepBasicDetails = ({
     }
   }
 
-  // const removeingClick = (ingredientIdToRemove,val) => {
-  //   setChildStateValue(prevSelectedCard => {
-  //     const filteredChildStateValue = prevSelectedCard.filter(
-  //       ingredient => ingredient.ingredient_id !== ingredientIdToRemove
-  //     )
-  //     setAllSelectedValues(prevAllSelectedValues => {
-  //       return prevAllSelectedValues.filter(ingredient => ingredient.ingredient_id !== ingredientIdToRemove)
-  //     })
-
-  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
-  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
-  //       field.ingredient = field.ingredient.filter(ing => ing.ingredient_id !== ingredientIdToRemove)
-  //       return field
-  //     })
-
-  //     // Set the final value using setfinalvalue
-  //     setfinalvalue(updatedFieldsIngredients)
-
-  //     return filteredChildStateValue
-  //   })
-  // }
-
   const removeingClick = (ingredientIdToRemove, val) => {
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
@@ -774,72 +650,6 @@ const StepBasicDetails = ({
       return filteredChildStateValue
     })
   }
-
-  // const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
-  //   alert('hi')
-  //   setIngredientchoiceChildStateValue(prevSelectedCard => {
-  //     console.log(prevSelectedCard, 'prevSelectedCard')
-  //     const filteredChildStateValue = prevSelectedCard.filter(
-  //       ingredient => ingredient.ingredient_id !== ingredientIdToRemove
-  //     )
-
-  //     setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-  //       // Filter out objects based on conditions
-  //       console.log(prevAllSelectedValues, 'prevAllSelectedValues')
-  //       return prevAllSelectedValues.filter(ingredient => {
-  //         return !(ingredient.mealid === val && ingredient.ingredient_id === ingredientIdToRemove)
-  //       })
-  //     })
-
-  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
-  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
-  //       field.ingredient = field.ingredient.filter(ing => ing.ingredient_id !== ingredientIdToRemove)
-  //       return field
-  //     })
-
-  //     // Set the final value using setfinalvalue
-  //     setfinalvalueingredientchoice(updatedFieldsIngredients)
-
-  //     return filteredChildStateValue
-  //   })
-  // }
-
-  // const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
-  //   alert('hi')
-  //   setIngredientchoiceChildStateValue(prevSelectedCard => {
-  //     console.log(prevSelectedCard, 'prevSelectedCard')
-  //     const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
-  //       ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
-  //     )
-
-  //     setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-  //       // Filter out objects based on conditions
-  //       console.log(prevAllSelectedValues, 'prevAllSelectedValues')
-  //       return prevAllSelectedValues.filter(ingredient => {
-  //         return !(
-  //           ingredient.mealid === val &&
-  //           ingredient.ingredientList.some(ing => ing.ingredient_id === ingredientIdToRemove)
-  //         )
-  //       })
-  //     })
-
-  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
-  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
-  //       field.ingredient = field.ingredient.map(ing => {
-  //         ing.ingredientwithchoice = ing.ingredientwithchoice?.ingredientList?.filter(
-  //           item => item.ingredient_id !== ingredientIdToRemove
-  //         )
-  //         return ing
-  //       })
-  //       return field
-  //     })
-
-  //     // Set the final value using setfinalvalueingredientchoice
-  //     setfinalvalueingredientchoice(updatedFieldsIngredients)
-
-  //     return filteredChildStateValue
-  //   })
-  // }
 
   const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
@@ -1317,13 +1127,13 @@ const StepBasicDetails = ({
                           item
                           xs={12}
                           sm={
-                            ingredient.label === 'No'
-                              ? 0.5
-                              : ingredient.label === 'Ingredient'
+                            ingredient.label === 'Ingredient'
                               ? 2.2
                               : ingredient.label === 'Prep types'
-                              ? 1.5
-                              : 3.7
+                              ? 2.3
+                              : ingredient.label === 'Feeding days'
+                              ? 2.7
+                              : 4.8
                           }
                           key={index}
                           sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1346,12 +1156,19 @@ const StepBasicDetails = ({
                                 <Typography>1</Typography>
                               </Grid> */}
                               <Grid item xs={12} sm={2.2}>
-                                <Typography>{all?.name}</Typography>
+                                <Typography>
+                                  Offer Minimum{' '}
+                                  <span style={{ color: '#37BD69', fontSize: '17px', fontWeight: 600 }}>
+                                    {all.no_of_component_required}
+                                  </span>{' '}
+                                </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                                <Typography>{all?.preparation_type}</Typography>
+                              <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
+                                <Typography>
+                                  {all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={2.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
                                   {days.map((day, index) => (
                                     <Grid item key={day}>
@@ -1367,7 +1184,7 @@ const StepBasicDetails = ({
                                   ))}
                                 </Grid>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={4.8}>
                                 <Grid sx={{ pl: 7 }}>
                                   <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
                                 </Grid>

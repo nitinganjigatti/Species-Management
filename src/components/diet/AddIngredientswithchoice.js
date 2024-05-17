@@ -71,11 +71,8 @@ const AddIngredientswithChoice = props => {
       const newVisibility = [...prevVisibility]
 
       if (existingIndex !== -1) {
-        // If the item already exists in visibility state, do not toggle off its visibility
         return newVisibility
       }
-
-      // If the item is not visible or doesn't exist, set it to visible
       newVisibility.push({
         id: item.id,
         isVisible: true
@@ -160,22 +157,7 @@ const AddIngredientswithChoice = props => {
     // Get the remarks value
     const remarksData = remarks || ''
 
-    if (!feed_type) {
-      // toast.error('Please select a feed type.')
-
-      return
-    }
-
-    if (feed_type === 'Chopped') {
-      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
-      if (!cutSizeValue || !sizeValue) {
-        // toast.error('Cut size and size are required for chopped feed.')
-
-        return
-      }
-    }
-
+    // Prepare the object to store values
     const boxValues = {
       ingredient_id: item.id,
       ingredient_name: item.ingredient_name,
@@ -295,39 +277,6 @@ const AddIngredientswithChoice = props => {
       }
     }
   }
-
-  // useEffect(() => {
-  //   // Filter out duplicates based on id and mealid
-  //   const uniqueSelectedValues = allIngredientchoiceSelectedValues?.filter(
-  //     (value, index, self) =>
-  //       index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.mealid === value?.mealid)
-  //   )
-  //   console.log(uniqueSelectedValues, 'uniqueSelectedValues')
-  //   console.log(checkid, 'checkid')
-  //   // Extract ingredient lists from uniqueSelectedValues
-  //   const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
-  //   console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
-  //   // Check if selectedValuesWithCheckId is not empty
-  //   if (selectedValuesWithCheckId?.length > 0) {
-  //     // Extract ingredientList from selectedValuesWithCheckId
-  //     const { ingredientList } = selectedValuesWithCheckId[0]
-
-  //     // Update selectedCardIngchoice state with ingredientList values
-  //     setSelectedCardIngredientchoice(ingredientList)
-  //     // Extract days_of_week from selectedValuesWithCheckId
-  //     const daysOfWeek = selectedValuesWithCheckId.flatMap(item => item.days_of_week)
-  //     const count = selectedValuesWithCheckId.flatMap(item => item.min_Choice)
-  //     // Update selectedDays state with the extracted days
-  //     setSelectedDays(daysOfWeek)
-  //     setShowDays(true)
-  //     setCount(count)
-  //   } else {
-  //     setSelectedCardIngredientchoice([])
-  //     setSelectedDays([])
-  //     setShowDays(false)
-  //     setCount(1)
-  //   }
-  // }, [allIngredientchoiceSelectedValues, checkid, formData])
 
   useEffect(() => {
     // Filter selected values based on checkid
@@ -588,65 +537,6 @@ const AddIngredientswithChoice = props => {
       toast.success('Ingredient added successfully!')
     }
   }
-
-  // const handelSetIngredient = () => {
-  //   // Collect data
-  //   const selectedIngredient = {
-  //     ingredientList: selectedCardIngchoice,
-  //     days_of_week: selectedDays,
-  //     min_Choice: count,
-  //     remarks: remarks,
-  //     mealid: checkid
-  //   }
-  //   const updatedList = [...listOfIngredient, selectedIngredient]
-  //   onChange(updatedList)
-  //   // setSelectedCardIngredientchoice(updatedList)
-  //   // Check if the selected ingredient already exists in listOfIngredient based on mealid
-  //   const existingIndex = listOfIngredient.findIndex(ingredient => ingredient.mealid === checkid)
-  //   console.log(listOfIngredient, 'listOfIngredient')
-  //   if (existingIndex !== -1) {
-  //     // If the ingredient with the same mealid exists, update its values
-  //     const updatedList = [...listOfIngredient]
-  //     updatedList[existingIndex] = selectedIngredient
-  //     setListOfIngredient(updatedList)
-  //   } else {
-  //     // If the ingredient is new, add it to listOfIngredient
-  //     setListOfIngredient(prevList => [...prevList, selectedIngredient])
-  //   }
-  // }
-
-  // const handelSetIngredient = () => {
-  //   // Construct the selectedIngredient object
-  //   const selectedIngredient = {
-  //     ingredientList: selectedCardIngchoice,
-  //     days_of_week: selectedDays,
-  //     min_Choice: count,
-  //     remarks: remarks,
-  //     mealid: checkid
-  //   }
-
-  //   // Check if the selected ingredient already exists in listOfIngredient based on mealid and ingredientList
-  //   const existingIndex = listOfIngredient.findIndex(
-  //     ingredient =>
-  //       ingredient.mealid === checkid &&
-  //       ingredient.ingredientList.every(
-  //         (item, index) =>
-  //           item.id === selectedCardIngchoice[index].id &&
-  //           item.preparation_type_id === selectedCardIngchoice[index].preparation_type_id
-  //       )
-  //   )
-
-  //   if (existingIndex !== -1) {
-  //     // If the ingredient with the same mealid and ingredientList exists, do not update the state
-  //     console.log('Ingredient already exists, not updating state')
-  //   } else {
-  //     // If the ingredient is new, add it to listOfIngredient and update the state
-  //     const updatedList = [...listOfIngredient]
-  //     updatedList.push(selectedIngredient)
-  //     setListOfIngredient(updatedList)
-  //     console.log('New ingredient added, updating state')
-  //   }
-  // }
 
   return (
     <>
@@ -1030,12 +920,6 @@ const AddIngredientswithChoice = props => {
                 <Box sx={{ py: 3 }}>
                   {' '}
                   <FormControl fullWidth>
-                    {/* {remarks && ( */}
-                    {/* <InputLabel id='demo-simple-select-label' shrink={remarks}>
-                          Add Remarks
-                        </InputLabel> */}
-                    {/* )} */}
-
                     <TextField
                       sx={{ pt: 1 }}
                       id='demo-simple-select-label'
