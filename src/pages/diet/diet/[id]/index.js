@@ -29,7 +29,7 @@ const DietDetail = () => {
   const router = useRouter()
   const theme = useTheme()
   const { id } = router.query
-  const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(true)
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
   const [value, setValue] = useState('full')
@@ -49,12 +49,15 @@ const DietDetail = () => {
             // console.log('response', response.data)
             setDietDetails(response?.data)
             setLoaderTwo(false)
+            setLoader(false)
           }
           setLoaderTwo(false)
+          setLoader(false)
         })
       } catch (error) {
         // console.log('DietDetals', error)
         setLoaderTwo(false)
+        setLoader(false)
       }
     }
   }, [id, value])
@@ -120,23 +123,26 @@ const DietDetail = () => {
             <DietDetailCard dietDetails={dietDetails} />
             <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
-                  You have added{' '}
-                  <span
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '20px',
-                      lineHeight: '24.2px',
-                      color: theme.palette.primary.main
-                    }}
-                  >
-                    {' '}
-                    13 species{' '}
-                  </span>{' '}
-                  for this diet plan
-                </Typography>
+                <Box>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                    You have added{' '}
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        fontSize: '20px',
+                        lineHeight: '24.2px',
+                        color: theme.palette.primary.main
+                      }}
+                    >
+                      {' '}
+                      13 species{' '}
+                    </span>{' '}
+                    for this diet plan
+                  </Typography>
+                </Box>
+
                 <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
-                  ADD SPICES
+                  ADD SPECIES
                 </Button>
               </Box>
               <Box>
