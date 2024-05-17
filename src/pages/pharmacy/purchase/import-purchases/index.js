@@ -85,8 +85,10 @@ const ImportPurchase = () => {
   const formRef = useRef(null)
 
   const uploadFileData = async () => {
-    const formData = new FormData()
-    formData.append('upload_file', getValues('upload_file')[0])
+    // const formData = new FormData()
+    const formData = new FormData(formRef.current)
+
+    // formData.append('upload_file', getValues('upload_file')[0])
     formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
     try {
@@ -97,6 +99,8 @@ const ImportPurchase = () => {
       if (result?.success === false && result?.error?.length > 0) {
         setFileUploadErrors(result?.error)
         setSubmitLoader(false)
+        setLoader(false)
+
         if (result?.data?.length > 0) {
           const newData = result?.data?.map((item, index) => ({
             ...item,
@@ -126,6 +130,7 @@ const ImportPurchase = () => {
         })
         console.log('newData', newData)
         setSubmitLoader(false)
+        setLoader(false)
 
         setUploadedFileData(newData)
       }
@@ -135,9 +140,18 @@ const ImportPurchase = () => {
         reset(defaultValues)
         setUploadedFileData([])
         setFileUploadErrors([])
+        setLoader(false)
+      }
+      if (result?.message === 'Please upload the proper csv file.' && result?.success === false) {
+        toast.error(result.message)
+        setSubmitLoader(false)
+        reset(defaultValues)
+        setLoader(false)
       }
     } catch (error) {
       setSubmitLoader(false)
+      setLoader(false)
+
       console.log('error', error)
     }
   }
@@ -282,7 +296,8 @@ const ImportPurchase = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <>
           <Card>
             <CardHeader
@@ -441,33 +456,35 @@ const ImportPurchase = () => {
                           </TableContainer>
                         </Card>
                       </Grid>
-                      <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
-                        <LoadingButton
-                          disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
-                          sx={{ marginRight: '8px' }}
-                          size='large'
-                          variant='contained'
-                          onClick={uploadFileData}
-                          loading={submitLoader}
-                        >
-                          Save
-                        </LoadingButton>
-                        <Button
-                          disabled={getValues('upload_file') === '' ? true : false}
-                          size='large'
-                          variant='contained'
-                          color='error'
-                          onClick={() => {
-                            reset(defaultValues)
-                            setFileUploadErrors([])
-                            setUploadedFileData([])
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </Grid>
                     </>
                   ) : null}
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                  {uploadedFileData?.length > 0 ? (
+                    <LoadingButton
+                      disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
+                      sx={{ marginRight: '8px' }}
+                      size='large'
+                      variant='contained'
+                      onClick={uploadFileData}
+                      loading={submitLoader}
+                    >
+                      Save
+                    </LoadingButton>
+                  ) : null}
+                  <Button
+                    disabled={getValues('upload_file') === '' ? true : false}
+                    size='large'
+                    variant='contained'
+                    color='error'
+                    onClick={() => {
+                      reset(defaultValues)
+                      setFileUploadErrors([])
+                      setUploadedFileData([])
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </Grid>
               </CardContent>
             </form>

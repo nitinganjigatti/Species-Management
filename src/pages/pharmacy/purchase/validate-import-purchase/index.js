@@ -352,7 +352,8 @@ const ValidateImportPurchase = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <>
           <Card>
             <CardHeader

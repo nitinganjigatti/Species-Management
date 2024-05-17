@@ -229,16 +229,12 @@ const AddRequestForm = () => {
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-
-    // if (!values.control_substance_file) {
-    //   itemErrors.control_substance_file = 'This field is required'
+    // removing mandatory conation
+    // if (values.control_substance === true) {
+    //   if (values.control_substance_file.length === 0) {
+    //     itemErrors.control_substance_file = 'This field is required'
+    //   }
     // }
-    // if (values.control_substance) {
-    if (values.control_substance === true) {
-      if (values.control_substance_file.length === 0) {
-        itemErrors.control_substance_file = 'This field is required'
-      }
-    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -281,14 +277,15 @@ const AddRequestForm = () => {
 
       return
     }
+    // removing mandatory conation
 
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    // if (nestedRowMedicine.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
 
-        return
-      }
-    }
+    //     return
+    //   }
+    // }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -348,13 +345,15 @@ const AddRequestForm = () => {
 
       return
     }
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    // removing mandatory conation
 
-        return
-      }
-    }
+    // if (nestedRowMedicine.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
+
+    //     return
+    //   }
+    // }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))

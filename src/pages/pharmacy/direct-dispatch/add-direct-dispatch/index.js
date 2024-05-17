@@ -749,7 +749,7 @@ const AddReturnRequest = () => {
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                       <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Returned to :
+                        Dispatch to :
                       </Typography>
                     </Grid>
                     <FormControl fullWidth>

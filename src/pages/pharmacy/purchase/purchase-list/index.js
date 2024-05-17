@@ -200,8 +200,9 @@ const ListOfPurchase = () => {
         disabled={total === 0 ? true : false}
         action={() => {
           Router.push({
-            // pathname: '/pharmacy/purchase/import-purchases/'
-            pathname: '/pharmacy/purchase/validate-import-purchase/'
+            pathname: '/pharmacy/purchase/import-purchases/'
+
+            // pathname: '/pharmacy/purchase/validate-import-purchase/'
           })
         }}
         title='Import Inventory'
