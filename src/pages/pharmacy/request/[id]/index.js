@@ -147,7 +147,9 @@ const IndividualRequest = () => {
           from_store_name: el.from_store_name,
           to_store_name: el.to_store_name,
           total_requested_qty: el.total_requested_qty,
-          total_dispatch_qty: el.total_dispatch_qty
+          total_dispatch_qty: el.total_dispatch_qty,
+          package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+          manufacture: el?.manufacturer
         }
 
         return items
@@ -155,7 +157,7 @@ const IndividualRequest = () => {
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      // debugger
+      // console.log('items', responseData.dispatch_items)
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -183,7 +185,6 @@ const IndividualRequest = () => {
         setLoader(false)
       }
     } catch (e) {
-      console.log('error', e)
       setLoader(false)
     }
   }
@@ -204,8 +205,6 @@ const IndividualRequest = () => {
           setDeleteFullFillId(null)
           toast.error(result.data)
         }
-
-        console.log('delet result', result)
       } catch (error) {
         toast.error(error.data)
         console.log('delet error result', error)
@@ -415,17 +414,35 @@ const IndividualRequest = () => {
       )
     },
 
-    // {
-    //   flex: 0.1,
-    //   minWidth: 20,
-    //   field: 'priority',
-    //   headerName: 'Priority',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.priority}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'Package',
+      headerName: 'Package',
+      renderCell: params => (
+        <Tooltip
+          title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+          placement='top'
+        >
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'manufacturer',
+      headerName: 'Manufacturer',
+      renderCell: params => (
+        <Tooltip title={params?.row?.manufacturer} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.manufacturer}
+          </Typography>
+        </Tooltip>
+      )
+    },
 
     {
       flex: 0.2,
@@ -693,6 +710,32 @@ const IndividualRequest = () => {
       )
     },
     {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'Package',
+      headerName: 'Package',
+      renderCell: params => (
+        <Tooltip title={params?.row?.package} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.package}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'manufacture',
+      headerName: 'Manufacturer',
+      renderCell: params => (
+        <Tooltip title={params?.row?.manufacture} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.manufacture}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
       flex: 0.2,
       minWidth: 20,
       field: 'expiry_date',
@@ -741,7 +784,8 @@ const IndividualRequest = () => {
               onClick={() => {
                 setDeleteDialog(true)
                 setDeleteFullFillId(params.row.dispatch_item_id)
-                console.log('full filled ', params.row.dispatch_item_id)
+
+                // console.log('full filled ', params.row.dispatch_item_id)
               }}
               icon='mdi:delete-outline'
             />
