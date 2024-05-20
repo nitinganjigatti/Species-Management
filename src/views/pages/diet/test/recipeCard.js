@@ -355,6 +355,7 @@ const RecipeCard = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '33px' }}>
                       <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
                       <Box sx={{ ml: '10px' }}>
+                        {console.log(item, 'item')}
                         <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                           {item?.ingredients_count}(68%)
                         </Typography>
