@@ -36,6 +36,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/purchase/purchase-list'
   }
 
+  const existingPurchase = {
+    title: 'Add Existing Inventory',
+    icon: 'raphael:cart',
+    path: '/pharmacy/existing-purchase/add-existing-purchase'
+  }
+
   const report = {
     title: 'Report',
     path: '/pharmacy/purchase/report'
@@ -256,6 +262,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       directDispatchList,
       productsList,
       purchaseList,
+      existingPurchase,
       nonExistingProductRequestList,
       settingsParent
     )
