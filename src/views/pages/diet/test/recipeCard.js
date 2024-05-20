@@ -28,7 +28,7 @@ const RecipeCard = ({
     { id: 1, name: 'Mon', isActive: true },
     { id: 2, name: 'Tue', isActive: true },
     { id: 3, name: 'Wed', isActive: true },
-    { id: 4, name: 'Thrs', isActive: true },
+    { id: 4, name: 'Thu', isActive: true },
     { id: 5, name: 'Fri', isActive: true },
     { id: 6, name: 'Sat', isActive: true },
     { id: 7, name: 'Sun', isActive: true }

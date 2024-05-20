@@ -255,7 +255,7 @@ const StepPreviewDiet = ({
       const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
       console.log(convertedData, 'convertedData')
 
-      const newarr = convertedData.map(item => {
+      const newarr = convertedData?.map(item => {
         // Splitting the string into minWeight, maxWeight, and unit name
         const [weight, unitName] = item.split('_')
         const matchedUom = uomprev.find(item => item.name === unitName)
@@ -655,7 +655,7 @@ const StepPreviewDiet = ({
     { id: 1, name: 'Mon', isActive: false },
     { id: 2, name: 'Tue', isActive: false },
     { id: 3, name: 'Wed', isActive: false },
-    { id: 4, name: 'Thrs', isActive: false },
+    { id: 4, name: 'Thu', isActive: false },
     { id: 5, name: 'Fri', isActive: false },
     { id: 6, name: 'Sat', isActive: false },
     { id: 7, name: 'Sun', isActive: false }

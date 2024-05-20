@@ -307,21 +307,52 @@ const StepBasicDetails = ({
   }, [checkid, allSelectedValues, allIngredientchoiceSelectedValues, formData])
 
   const ScrollToFieldError = ({ errors }) => {
-    console.log(errors, 'errors')
     useEffect(() => {
       if (!errors) return
-      console.log(Object.keys(errors)[0], 'check')
-      const firstErrorField = Object.keys(errors)[0]
-      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
-      console.log(errorElement, 'errorElement')
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+      let firstErrorField = null
+      console.log(errors, 'errors')
+
+      // Check for top-level errors
+      for (const errorKey in errors) {
+        const errorObject = errors[errorKey]
+
+        // Check if the error is a direct field error
+        if (errorObject?.ref?.name) {
+          firstErrorField = errorObject.ref.name
+          break
+        }
+
+        // Check if the error is a nested error (array of errors)
+        if (Array.isArray(errorObject)) {
+          for (const error of errorObject) {
+            console.log(error, 'error')
+            if (error?.meal_name?.ref?.name || error?.meal_from_time?.ref?.name || error?.meal_to_time?.ref?.name) {
+              firstErrorField =
+                error?.meal_name?.ref?.name || error?.meal_from_time?.ref?.name || error?.meal_to_time?.ref?.name
+              break
+            }
+          }
+        }
+
+        if (firstErrorField) break
+      }
+
+      console.log(firstErrorField, 'firstErrorField')
+
+      if (firstErrorField) {
+        // Select the input element by the field reference
+        const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
+        console.log(errorElement, 'errorElement')
+
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
       }
     }, [errors])
 
     return null
   }
-
   const handleAddIngerdientChoice = (val, index, type) => {
     console.log(val, 'val')
     console.log(index, 'index')
@@ -625,6 +656,43 @@ const StepBasicDetails = ({
     })
   }
 
+  const removeingClicking = (indexToRemove, val) => {
+    console.log(indexToRemove, 'indexToRemove')
+    console.log(val, 'val')
+    setingType('')
+    setIngredientchoiceChildStateValue(prevSelectedCard => {
+      console.log(prevSelectedCard, 'prevSelectedCard')
+
+      // Filter out the entire ingredient object based on the index of prevSelectedCard
+      const filteredChildStateValue = prevSelectedCard.filter((_, index) => index !== indexToRemove)
+
+      setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
+        // Filter out the entire object based on the index
+        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
+
+        const updatedAllSelectedValues = prevAllSelectedValues.filter((ingredient, index) => {
+          return index !== indexToRemove || ingredient.mealid !== val
+        })
+
+        return updatedAllSelectedValues
+      })
+
+      // Update fieldsIngredients by removing the ingredient based on the indexToRemove
+      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+        if (field.mealid === val) {
+          field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
+        }
+
+        return field
+      })
+      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
+      // Set the final value using setfinalvalueingredientchoice
+      setfinalvalueingredientchoice(updatedFieldsIngredients)
+      console.log(filteredChildStateValue, 'filteredChildStateValue')
+      return filteredChildStateValue
+    })
+  }
+
   const removeingClickRecipe = (recipeIdToRemove, val) => {
     setRecipeChildStateValue(prevSelectedCard => {
       // console.log(prevSelectedCard, 'prevSelectedCard')
@@ -772,6 +840,7 @@ const StepBasicDetails = ({
                             label='Diet Type *'
                             placeholder='Search & Select'
                             error={Boolean(errors.diet_type_name)}
+                            //name='diet_type_name'
                           />
                         )}
                       />
@@ -802,7 +871,7 @@ const StepBasicDetails = ({
                     multiline
                     fullWidth
                     value={value}
-                    label='Description (Optional) *'
+                    label='Description (Optional)'
                     name='desc'
                     error={Boolean(errors.desc)}
                     onChange={onChange}
@@ -874,6 +943,7 @@ const StepBasicDetails = ({
                           <TimePicker
                             label='Select time - from'
                             onChange={onChange}
+                            name={`meal_data[${index}].meal_from_time`}
                             defaultValue={value ? dayjs(value) : null}
                             sx={{
                               '& fieldset': {
@@ -889,6 +959,7 @@ const StepBasicDetails = ({
                                 label='Diet Type *'
                                 placeholder='Search & Select'
                                 error={Boolean(errors.meal_data[index].meal_from_time?.message)}
+                                name={`meal_data[${index}].meal_from_time`}
                                 sx={{
                                   '& fieldset': {
                                     borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
@@ -1133,7 +1204,7 @@ const StepBasicDetails = ({
                               ? 2.3
                               : ingredient.label === 'Feeding days'
                               ? 2.7
-                              : 4.8
+                              : 3.9
                           }
                           key={index}
                           sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1184,10 +1255,17 @@ const StepBasicDetails = ({
                                   ))}
                                 </Grid>
                               </Grid>
-                              <Grid item xs={12} sm={4.8}>
+                              <Grid item xs={12} sm={4.5}>
                                 <Grid sx={{ pl: 7 }}>
                                   <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
                                 </Grid>
+                              </Grid>
+                              <Grid item xs={12} sm={0.3}>
+                                <Icon
+                                  onClick={() => removeingClicking(index, all.mealid)}
+                                  style={{ position: 'relative', left: '1%' }}
+                                  icon='iconoir:cancel'
+                                />
                               </Grid>
 
                               <Grid

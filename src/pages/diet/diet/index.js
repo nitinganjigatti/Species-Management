@@ -91,14 +91,14 @@ const Diet = () => {
   //   }
   // }
 
-  const onClose = () => {
-    setDialog(false)
-  }
+  // const onClose = () => {
+  //   setDialog(false)
+  // }
 
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-    setSelectedCard([])
-  }
+  // const addEventSidebarOpen = () => {
+  //   setOpenDrawer(true)
+  //   setSelectedCard([])
+  // }
 
   const handleSidebarClose = () => {
     console.log('close event clicked')
@@ -185,10 +185,10 @@ const Diet = () => {
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+      {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add Recipe
-      </Button>
+      </Button> */}
     </div>
   )
 

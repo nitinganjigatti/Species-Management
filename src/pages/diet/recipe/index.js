@@ -52,14 +52,12 @@ const RecipeList = () => {
   }
 
   const handleChange = (event, newValue) => {
-    debugger
     setTotal(0)
     setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
     async (sortBy, q, sortColumn, searchColumns, status) => {
-      debugger
       try {
         setLoading(true)
 
