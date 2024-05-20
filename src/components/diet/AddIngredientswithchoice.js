@@ -46,8 +46,8 @@ const AddIngredientswithChoice = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
-  const [cutSize, setCutSize] = useState('')
-  const [size, setSize] = useState('')
+  const [cutSize, setCutSize] = useState({})
+  const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
@@ -124,8 +124,16 @@ const AddIngredientswithChoice = props => {
     event.stopPropagation()
     const newUom = event.target.value
 
-    setSize(event.target.value)
-    if (cutSize) {
+    setSize(prevState => ({
+      ...prevState,
+      [item.id]: {
+        id: event.target.value
+        // name: selectedFeedType.label
+      }
+    }))
+
+    // setSize(event.target.value)
+    if (size) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
   }
@@ -162,8 +170,8 @@ const AddIngredientswithChoice = props => {
 
     if (feed_type === 'Chopped') {
       // Include cut size and its dropdown only if feedType is "Chopped"
-      const cutSizeValue = newCutSize ? newCutSize : cutSize || ''
-      const sizeValue = newUom ? newUom : size || ''
+      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
 
       // Update boxValues with cut size and size
       boxValues.feed_cut_size = cutSizeValue
@@ -339,10 +347,16 @@ const AddIngredientswithChoice = props => {
     const newCutSize = event.target.value
 
     // Set cutSize state
-    setCutSize(event.target.value)
+    setCutSize(prevState => ({
+      ...prevState,
+      [item.id]: {
+        id: event.target.value
+        // name: selectedFeedType.label
+      }
+    }))
 
     // Call handelCardSelection with the updated cutSize value
-    if (size) {
+    if (cutSize) {
       handelCardSelection(event, item, null, newCutSize, null, selectedDays)
     }
   }
@@ -828,6 +842,16 @@ const AddIngredientswithChoice = props => {
                           value={selectFeed[item.id]?.id || ''}
                           onChange={e => handleChangeFeed(e, item)}
                           displayEmpty
+                          sx={{
+                            ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                              borderColor: !selectFeed[item.id]?.id ? 'red' : '#ffffff',
+                              borderWidth: '2px',
+                              borderStyle: 'solid',
+                              '&.Mui-focused': {
+                                borderColor: 'transparent'
+                              }
+                            })
+                          }}
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -871,8 +895,25 @@ const AddIngredientswithChoice = props => {
                               size='small'
                               placeholder='Add Size'
                               variant='outlined'
-                              {...props}
+                              value={cutSize[item.id]?.id || ''}
                               onChange={event => handelInputCutSize(event, item)}
+                              sx={{
+                                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                                  '& .MuiOutlinedInput-root': {
+                                    '& fieldset': {
+                                      borderColor: !cutSize[item.id]?.id && 'red',
+                                      borderWidth: '2px'
+                                    },
+                                    '&:hover fieldset': {
+                                      borderColor: !cutSize[item.id]?.id && 'red'
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                      borderColor: !cutSize[item.id]?.id && 'default'
+                                    }
+                                  }
+                                }),
+                                borderRadius: 1 // Ensure borderRadius is applied correctly
+                              }}
 
                               // onChange={event => setCutSize(event.target.value)}
                             />
@@ -882,9 +923,19 @@ const AddIngredientswithChoice = props => {
                           <FormControl fullWidth>
                             <Select
                               size='small'
-                              value={size}
+                              value={size[item.id]?.id || ''}
                               onChange={event => handleChangeSize(event, item)}
                               displayEmpty
+                              sx={{
+                                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                                  borderColor: !size[item.id]?.id ? 'red' : '#ffffff',
+                                  borderWidth: '2px',
+                                  borderStyle: 'solid',
+                                  '&.Mui-focused': {
+                                    borderColor: 'transparent'
+                                  }
+                                })
+                              }}
                             >
                               <MenuItem value='' disabled>
                                 Select

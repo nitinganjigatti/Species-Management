@@ -29,7 +29,7 @@ const DietDetail = () => {
   const router = useRouter()
   const theme = useTheme()
   const { id } = router.query
-  const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(true)
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
   const [value, setValue] = useState('full')
@@ -49,12 +49,15 @@ const DietDetail = () => {
             // console.log('response', response.data)
             setDietDetails(response?.data)
             setLoaderTwo(false)
+            setLoader(false)
           }
           setLoaderTwo(false)
+          setLoader(false)
         })
       } catch (error) {
         // console.log('DietDetals', error)
         setLoaderTwo(false)
+        setLoader(false)
       }
     }
   }, [id, value])
@@ -120,23 +123,26 @@ const DietDetail = () => {
             <DietDetailCard dietDetails={dietDetails} />
             <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
-                  You have added{' '}
-                  <span
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '20px',
-                      lineHeight: '24.2px',
-                      color: theme.palette.primary.main
-                    }}
-                  >
-                    {' '}
-                    13 species{' '}
-                  </span>{' '}
-                  for this diet plan
-                </Typography>
+                <Box>
+                  {/* <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                    You have added{' '}
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        fontSize: '20px',
+                        lineHeight: '24.2px',
+                        color: theme.palette.primary.main
+                      }}
+                    >
+                      {' '}
+                      13 species{' '}
+                    </span>{' '}
+                    for this diet plan
+                  </Typography> */}
+                </Box>
+
                 <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
-                  ADD SPICES
+                  ADD SPECIES
                 </Button>
               </Box>
               <Box>
@@ -228,26 +234,75 @@ const DietDetail = () => {
                                       </Box>
                                     </TableCell>
 
-                                    {dietDetails?.meal_data?.length
-                                      ? dietDetails?.meal_data[0]?.ingredient?.length > 0 &&
-                                        dietDetails?.meal_data[0]?.ingredient[0].meal_type?.map((item, index) => (
-                                          <TableCell
-                                            key={index}
-                                            sx={{
-                                              border: 'none',
-                                              backgroundColor: '#C1D3D099',
-                                              height: '40px',
-                                              width: '134px',
-                                              textAlign: 'center',
-                                              borderRight:
-                                                index + 1 === dietDetails?.meal_data[0]?.ingredient[0].meal_type?.length
-                                                  ? null
-                                                  : '1px solid #C3CEC7'
-                                            }}
-                                          >
-                                            <Typography>{item?.meal_value_header}</Typography>
-                                          </TableCell>
-                                        ))
+                                    {dietDetails?.meal_data?.length > 0
+                                      ? dietDetails?.meal_data[0]?.ingredient?.length > 0
+                                        ? dietDetails?.meal_data[0]?.ingredient[0].meal_type?.map((item, index) => (
+                                            <TableCell
+                                              key={index}
+                                              sx={{
+                                                border: 'none',
+                                                backgroundColor: '#C1D3D099',
+                                                height: '40px',
+                                                width: '134px',
+                                                textAlign: 'center',
+                                                borderRight:
+                                                  index + 1 ===
+                                                  dietDetails?.meal_data[0]?.ingredient[0].meal_type?.length
+                                                    ? null
+                                                    : '1px solid #C3CEC7'
+                                              }}
+                                            >
+                                              <Typography>
+                                                {item?.meal_value_header}&nbsp;{item?.weight_uom_label}
+                                              </Typography>
+                                            </TableCell>
+                                          ))
+                                        : dietDetails?.meal_data[0]?.recipe?.length > 0
+                                        ? dietDetails?.meal_data[0]?.recipe[0].meal_type?.map((item, index) => (
+                                            <TableCell
+                                              key={index}
+                                              sx={{
+                                                border: 'none',
+                                                backgroundColor: '#C1D3D099',
+                                                height: '40px',
+                                                width: '134px',
+                                                textAlign: 'center',
+                                                borderRight:
+                                                  index + 1 === dietDetails?.meal_data[0]?.recipe[0].meal_type?.length
+                                                    ? null
+                                                    : '1px solid #C3CEC7'
+                                              }}
+                                            >
+                                              <Typography>
+                                                {item?.meal_value_header}&nbsp;{item?.weight_uom_label}
+                                              </Typography>
+                                            </TableCell>
+                                          ))
+                                        : dietDetails?.meal_data[0]?.ingredientwithchoice?.length > 0
+                                        ? dietDetails?.meal_data[0]?.ingredientwithchoice[0].meal_type?.map(
+                                            (item, index) => (
+                                              <TableCell
+                                                key={index}
+                                                sx={{
+                                                  border: 'none',
+                                                  backgroundColor: '#C1D3D099',
+                                                  height: '40px',
+                                                  width: '134px',
+                                                  textAlign: 'center',
+                                                  borderRight:
+                                                    index + 1 ===
+                                                    dietDetails?.meal_data[0]?.ingredientwithchoice[0].meal_type?.length
+                                                      ? null
+                                                      : '1px solid #C3CEC7'
+                                                }}
+                                              >
+                                                <Typography>
+                                                  {item?.meal_value_header}&nbsp;{item?.weight_uom_label}
+                                                </Typography>
+                                              </TableCell>
+                                            )
+                                          )
+                                        : null
                                       : null}
                                   </TableRow>
                                 </TableHead>
@@ -504,7 +559,7 @@ const DietDetail = () => {
                                                         <Divider />
 
                                                         <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                          {Object.entries(item?.days_of_weeks).map(([key, value]) => (
+                                                          {Object?.entries(item?.days_of_weeks).map(([key, value]) => (
                                                             <Box
                                                               key={index}
                                                               sx={{
@@ -702,7 +757,8 @@ const DietDetail = () => {
                                                         <Divider />
 
                                                         <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                          {Object.entries(item?.days_of_weeks).map(([key, value]) => (
+                                                          {Object?.entries(item?.days_of_weeks).map(([key, value]) => (
+                                                            // {item?.days_of_weeks?.map((val, index) => (
                                                             <Box
                                                               key={index}
                                                               sx={{
