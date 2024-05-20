@@ -566,6 +566,7 @@ const AddIngredients = props => {
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
     console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
     const updatedSelectedCard =
       selectedValuesWithCheckId?.map(item => ({
         ...item,
@@ -671,6 +672,7 @@ const AddIngredients = props => {
     }
   }
   console.log(selectedCard, 'selectedCard')
+
   return (
     <>
       <Drawer

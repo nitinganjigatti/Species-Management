@@ -55,6 +55,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     diet_types: [
       {
         weight: '',
+
         // maxWeight: '',
         unit: uom?._id || uom || ''
       }
@@ -65,6 +66,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     diet_types: Yup.array().of(
       Yup.object().shape({
         weight: Yup.string().required('Wieght is required').min(1, 'Quantity should be greater than 0')
+
         // maxWeight: Yup.string().required('Max Wieght is required').min(1, 'Quantity should be greater than 0')
 
         // unit: Yup.string().required('Unit is required')
@@ -117,6 +119,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         onClick={() => {
           append({
             weight: '',
+
             // maxWeight: '',
             unit: {
               value: uom ? uom : ''
@@ -169,9 +172,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
           item?.weight === '' ||
           item?.weight === undefined ||
           item?.weight === null ||
-          // item?.maxWeight === '' ||
-          // item?.maxWeight === undefined ||
-          // item?.maxWeight === null ||
           item?.unit?.value?._id === '' ||
           item?.unit?.value?._id === undefined ||
           item?.unit?.value?._id === null
@@ -187,9 +187,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const handleKeyUp = index => {
     const values = getValues('diet_types')
     const item = values[index]
+
     const duplicate = values
       ?.map(value => Number(value?.weight))
       ?.some((value, idx) => idx !== index && value === Number(item?.weight))
+
     // const duplicateMax = values
     //   ?.map(value => Number(value?.maxWeight))
     //   ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
@@ -198,6 +200,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         type: 'manual',
         message: 'same weight not be allowed'
       })
+
       // } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
       //   if (item.maxWeight > 0) {
       //     setError(`diet_types[${index}].weight`, {
@@ -393,14 +396,17 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   onChange={(e, val) => {
                                     if (val === null || undefined || '') {
                                       onChange('')
+
                                       // handleUnitKeyUp(index)
                                       checkDisabled()
                                     } else if (!val) {
                                       checkDisabled()
+
                                       // handleUnitKeyUp(index)
                                     } else {
                                       // onChange(val?._id)
                                       onChange(val)
+
                                       // handleUnitKeyUp(index)
                                       checkDisabled()
                                     }

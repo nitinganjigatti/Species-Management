@@ -43,6 +43,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
     try {
       setConfirmDialogBox(false)
       const response = await feedStatusChange({ status: activePayload }, FeedDetailsValue?.id)
+
       // console.log(response, 'response')
       if (response?.success === true) {
         setIsActive(isActive === '0' ? '1' : '0')

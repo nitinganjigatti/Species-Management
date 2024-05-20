@@ -66,6 +66,7 @@ const StepPreviewDiet = ({
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [uomId, setuomId] = useState('')
   const [uomLabel, setuomLabel] = useState('')
+
   const [initialValues, setInitialValues] = useState({
     quantity: '',
     meal_value_uom_id: '',
@@ -114,6 +115,7 @@ const StepPreviewDiet = ({
     } else {
       const numericType = type !== 'Generic' ? parseFloat(type) : type
       console.log(numericType, 'numericType')
+
       const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
         // Check if meal_value_header is not equal to 'Generic'
         if (meal.meal_value_header !== 'Generic') {
@@ -162,6 +164,7 @@ const StepPreviewDiet = ({
       console.log(textOnly, 'textOnly')
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
+
       // Find the object in uomprev array where name matches textOnly
       const matchedUom = uomprev.find(item => item.name === textOnly)
       if (matchedUom) {
@@ -213,6 +216,7 @@ const StepPreviewDiet = ({
     const apival = dietTypesData.map(item => {
       const { weight, unit } = item
       const { _id, name } = unit.value
+
       return {
         meal_value_header: parseFloat(weight),
         weight_uom_id: parseFloat(_id),
@@ -244,6 +248,7 @@ const StepPreviewDiet = ({
         return cookie.substring(name.length + 1)
       }
     }
+
     return null
   }
 
@@ -251,6 +256,7 @@ const StepPreviewDiet = ({
     if (id) {
       //const child = formData.child
       const dietTypesData = formData.child
+
       // const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
       const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
       console.log(convertedData, 'convertedData')
@@ -259,6 +265,7 @@ const StepPreviewDiet = ({
         // Splitting the string into minWeight, maxWeight, and unit name
         const [weight, unitName] = item.split('_')
         const matchedUom = uomprev.find(item => item.name === unitName)
+
         return {
           meal_value_header: parseFloat(weight), // Convert to number
           weight_uom_id: parseFloat(matchedUom?._id),
@@ -348,6 +355,7 @@ const StepPreviewDiet = ({
               }
             })
             console.log(existingMealTypeIndex, 'existingMealTypeIndex')
+
             // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
             if (existingMealTypeIndex !== -1) {
               mealTypeArray[existingMealTypeIndex] = {
