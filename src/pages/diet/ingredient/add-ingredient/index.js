@@ -743,37 +743,41 @@ const AddIngredient = () => {
                       <Divider />
                     </Box>
 
-                    <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>4. Attach image</Typography>
+                    <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>
+                      4. {imgSrc !== '' ? 'Image added' : 'Attach image'}
+                    </Typography>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={5.9}>
-                        <input
-                          type='file'
-                          accept='image/*'
-                          onChange={e => handleInputImageChange(e)}
-                          style={{ display: 'none' }}
-                          name='ingredientImg'
-                          ref={fileInputRef}
-                        />
+                      {imgSrc !== '' ? null : (
+                        <Grid item md={5.9}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            style={{ display: 'none' }}
+                            name='ingredientImg'
+                            ref={fileInputRef}
+                          />
 
-                        <Box
-                          {...getRootProps({ className: 'dropzone' })}
-                          onClick={handleAddImageClick}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 7,
-                            height: 120,
-                            border: `2px solid ${theme.palette.customColors.trackBg}`,
-                            borderRadius: 1,
-                            padding: 3
-                          }}
-                        >
-                          <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+                          <Box
+                            {...getRootProps({ className: 'dropzone' })}
+                            onClick={handleAddImageClick}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 7,
+                              height: 120,
+                              border: `2px solid ${theme.palette.customColors.trackBg}`,
+                              borderRadius: 1,
+                              padding: 3
+                            }}
+                          >
+                            <Image alt={'filename'} src={imageUploader} width={100} height={100} />
 
-                          <Typography>Drop your image here</Typography>
-                        </Box>
-                      </Grid>
+                            <Typography>Drop your image here</Typography>
+                          </Box>
+                        </Grid>
+                      )}
                       <Grid item md={5.9}>
                         {imgSrc !== '' && (
                           <Box sx={{ display: 'flex' }}>
