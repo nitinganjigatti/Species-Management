@@ -58,6 +58,10 @@ elif [ $ENV_TO_LOAD == 'production' ]
 then
   cp -r env.production .env
 fi
+elif [ $ENV_TO_LOAD == 'farm' ]
+then
+  cp -r env.farm .env
+fi
 
 
 # node -v
