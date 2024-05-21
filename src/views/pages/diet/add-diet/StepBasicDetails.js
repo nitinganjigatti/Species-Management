@@ -1235,7 +1235,15 @@ const StepBasicDetails = ({
                                 </Typography>
                               </Grid>
                               <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
-                                <Typography>
+                                <Typography
+                                  sx={{
+                                    width: '100px',
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                  title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                >
                                   {all?.ingredientList.map(all => all.preparation_type).join(', ')}
                                 </Typography>
                               </Grid>
