@@ -32,6 +32,11 @@ then
   DEPLOY_SERVER=$DEPLOY_SERVER_PROD
   ENV_TO_LOAD='production'
 fi
+elif [ $GITHUB_REF_NAME == 'release/farm' ]
+then
+  DEPLOY_SERVER=$DEPLOY_SERVER_PROD
+  ENV_TO_LOAD='farm'
+fi
 
 
 echo $GITHUB_REF_NAME
