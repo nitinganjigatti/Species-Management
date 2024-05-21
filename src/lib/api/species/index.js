@@ -1,4 +1,4 @@
-import { TAXONOMY_URL, SPECIES_BASE_URL } from "src/constants/notes/constants"
+import { TAXONOMY_URL, SPECIES_BASE_URL, Banner_URL } from "src/constants/notes/constants"
 import {  axiosFormPost, axiosGet, axiosPost } from "../utility"
 
 
@@ -26,5 +26,23 @@ export async function getSpeciesVernacularData(params){
   
   const response = await axiosGet({url:`${TAXONOMY_URL}/vernacular?tsn=${params}`, pharmacy:true})
 
+  return response.data
+}
+
+export async function getVernacularSpeciesById(id){
+
+  const response = await axiosGet({url: `${TAXONOMY_URL}/zoo/vernacular/${id}` , pharmacy:true})
+  return response.data
+}
+
+export async function  AddBannerImages(params){
+
+   const response = await axiosFormPost({url: `${TAXONOMY_URL}/bannerUpload` ,body: params , pharmacy: true})
+  return response.data
+} 
+
+export async function GetBannerImages(id){
+  debugger
+  const response = await axiosGet({url: `${Banner_URL}?tsn_id=${id}` , pharmacy: true})
   return response.data
 }

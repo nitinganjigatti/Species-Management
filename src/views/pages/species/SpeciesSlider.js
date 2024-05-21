@@ -8,14 +8,16 @@ import { LoadingButton } from "@mui/lab";
 import { addSpecies, getSearchTaxonomyList, getSpeciesVernacularData } from "src/lib/api/species";
 import toast from "react-hot-toast";
 import * as yup from 'yup'
-import { yupResolver } from "@hookform/resolvers/yup";
+// import { yupResolver } from "@hookform/resolvers/yup";
 
 
 
 
-const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,taxonomy }) => {
-    // const [taxonomy, setTaxonomy] = useState([])
-    
+const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer, fetchTaxonomy, taxonomy, editVernacularNames, editName, speciesImage }) => {
+
+    console.log("editValues >>", editVernacularNames)
+
+
     const [displayProfile, setDisplayProfile] = useState('')
     const [searchValue, setSearchValue] = useState('');
     const [open, setOpen] = useState(false);
@@ -26,12 +28,12 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
     const fileInputRef = React.useRef(null);
 
 
+    console.log("EditName>>", editName, speciesImage);
 
-
+    console.log("Vernacular Names >>", editVernacularNames)
 
 
     const defaultValues = {
-
         tsn_id: "",
         vernacular_id: "",
         species_image: "",
@@ -53,9 +55,6 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
     })
 
 
-        
-  
-
 
 
     const addEventSidebarOpen = () => {
@@ -74,7 +73,6 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
     }
 
 
-    console.log("Vernacular >>", vernacularData);
 
 
     const handleButtonClick = () => {
@@ -149,16 +147,18 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
         const payload = {
             tsn_id: val.tsn_id,
             vernacular_id: val.vernacular_id?.join(','),
-            vernacular_name: val.vernacular_name,
+            vernacular_name: val.vernacular_name ? val.vernacular_name :"",
             scientificName: val.scientificName,
             species_image: val.species_image ? val.species_image : "",
             banner_images: val.banner_images ? val.banner_images : [],
             zoo_id: 11
         };
-        debugger
+        console.log("Payload >>", payload)
+
 
         const response = await addSpecies(payload);
 
+       
 
         if (response?.success) {
             toast.success("Species Added Successfully");
@@ -186,7 +186,7 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
                     p: theme => theme.spacing(3, 3.255, 3, 5.255)
                 }}
                 >
-                    <Typography> Add New Species </Typography>
+                    {editName ? <Typography> Edit Species </Typography> : <Typography> Add New Species </Typography>}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton size='small' sx={{ color: 'text.primary' }}>
                             <Icon icon='mdi:close' fontSize={20} onClick={handleSidebarClose} />
@@ -206,21 +206,22 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
                                 render={({ field }) => (
                                     <>
                                         <Autocomplete
-                                            
+
                                             id='tsn_id'
-                                            value={defaultTaxonomy}
+                                            value={defaultTaxonomy || editName}
                                             options={taxonomy}
                                             open={open}
                                             onOpen={() => setOpen(true)}
                                             onClose={() => setOpen(false)}
-                                            getOptionLabel={option => `${option?.common_name} (${option?.scientific_name})`}
-                                            isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                                            getOptionLabel={(option) => option ? `${option.common_name || ""} ${option.scientific_name || editName}` : editName}
+                                            isOptionEqualToValue={(option, value) =>option ? option?.taxonomy_id === value?.taxonomy_id: editName}
                                             onChange={(e, val) => {
                                                 setDefaultTaxonomy(val ? val : null);
                                                 if (val) {
                                                     fetchSpeciesVernacularData(val);
                                                 }
                                                 field.onChange(val ? val.taxonomy_id : '');
+
                                                 setValue('scientificName', val ? val.scientific_name : '');
                                             }}
                                             onKeyUp={(e) => {
@@ -271,7 +272,7 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
                                         zIndex: 1
                                     }}
                                 />
-                                {displayProfile && <img src={displayProfile} width="110" height="110" alt="Profile" style={{
+                                {(displayProfile || speciesImage) && <img src={displayProfile ? displayProfile : speciesImage} width="110" height="110" alt="Profile" style={{
                                     objectFit: "cover",
                                     objectPosition: "center"
                                 }} />}
@@ -292,7 +293,7 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
                                     render={({ field: { value, onChange } }) => (
                                         <TextField
                                             sx={{ mt: 2 }}
-                                            value={value}
+                                            value={editName ? editName : value}
                                             onChange={onChange}
                                             placeholder="Scientific Name"
                                             name='scientificName'
@@ -312,41 +313,87 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
 
                                 <FormControl fullWidth >
 
-                                    {vernacularData.length > 0 && <>
-                                        <Controller
-                                            name="vernacular_id"
-                                            control={control}
-                                            rules={{ required: true }}
-                                            render={({ field: { value, onChange } }) => (
-                                                <Select sx={{ mt: 2 }}
-                                                    multiple
-                                                    fullWidth
-                                                    value={value || []}
-                                                    onChange={(e) => {
-                                                        const selectedIds = e.target.value;
-                                                        onChange(selectedIds);
-                                                        setSelectedValues(selectedIds.join(','));
-                                                    }}
-                                                    renderValue={(selected) => {
-                                                        if (selected.length === 0) {
-                                                            return <em>Select Vernacular</em>;
-                                                        }
-                                                        return selected.map((id) => {
-                                                            const selectedVernacular = vernacularData.find((item) => item.vern_id === id);
-                                                            return selectedVernacular ? selectedVernacular.vernacular_name : '';
-                                                        }).join(', ');
-                                                    }}
-                                                >
-                                                    {vernacularData.map((item, index) => (
-                                                        <MenuItem key={index} value={item.vern_id}>
-                                                            {item.vernacular_name}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            )}
-                                        />
-                                        <Typography sx={{ ml: "140px", mt: 4 }}>or</Typography>
-                                    </>}
+                                    {editVernacularNames.length > 0 ? (
+                                        <>
+                                            <Controller
+                                                name="vernacular_id"
+                                                control={control}
+                                                rules={{ required: true }}
+                                                render={({ field: { value, onChange } }) => {
+                                                    console.log("Selected IDs:", value); 
+                                                    const selectedIds = value || editVernacularNames.map(item => item.vern_id);
+                                                    console.log("Prefill IDs:", selectedIds); 
+                                                    return (
+                                                        <Select
+                                                            sx={{ mt: 2 }}
+                                                            multiple
+                                                            fullWidth
+                                                            value={selectedIds}
+                                                            onChange={(e) => {
+                                                                const selectedIds = e.target.value;
+                                                                onChange(selectedIds);
+                                                                setSelectedValues(selectedIds.join(','));
+                                                            }}
+                                                            renderValue={(selected) => {
+                                                                if (selected.length === 0) {
+                                                                    return <em>Select Vernacular</em>;
+                                                                }
+                                                                return selected.map((id) => {
+                                                                    const selectedVernacular = editVernacularNames.find((item) => item.vern_id === id); // Change to vern_id
+                                                                    return selectedVernacular ? selectedVernacular.vernacular_name : '';
+                                                                }).join(',');
+                                                            }}
+                                                        >
+                                                            {editVernacularNames.map((item, index) => (
+                                                                <MenuItem key={index} value={item.vern_id}> 
+                                                                    {item.vernacular_name}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    );
+                                                }}
+                                            />
+
+                                            <Typography sx={{ ml: "140px", mt: 5 }}>or</Typography>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Controller
+                                                name="vernacular_id"
+                                                control={control}
+                                                rules={{ required: true }}
+                                                render={({ field: { value, onChange } }) => (
+                                                    <Select
+                                                        sx={{ mt: 2 }}
+                                                        multiple
+                                                        fullWidth
+                                                        value={value || []}
+                                                        onChange={(e) => {
+                                                            const selectedIds = e.target.value;
+                                                            onChange(selectedIds);
+                                                            setSelectedValues(selectedIds.join(','));
+                                                        }}
+                                                        renderValue={(selected) => {
+                                                            if (selected.length === 0) {
+                                                                return <em>Select Vernacular</em>;
+                                                            }
+                                                            return selected.map((id) => {
+                                                                const selectedVernacular = vernacularData.find((item) => item.vern_id === id);
+                                                                return selectedVernacular ? selectedVernacular.vernacular_name : '';
+                                                            });
+                                                        }}
+                                                    >
+                                                        {vernacularData.map((item, index) => (
+                                                            <MenuItem key={index} value={item.vern_id}>
+                                                                {item.vernacular_name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                )}
+                                            />
+                                            <Typography sx={{ ml: "140px", mt: 5 }}>or</Typography>
+                                        </>
+                                    )}
 
 
                                 </FormControl>
@@ -357,14 +404,11 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
                                 <Controller
                                     name="vernacular_name"
                                     control={control}
-                                    rules={{
-                                        required: vernacularData.length === 0
-                                    }}
+
                                     render={({ field: { value, onChange } }) => (
                                         <TextField
                                             sx={{ mt: 2 }}
                                             value={value}
-                                            error={Boolean(errors.vernacular_name)}
                                             onChange={onChange}
                                             placeholder=" Enter Common Name"
                                             name="vernacular_name"
@@ -378,7 +422,7 @@ const AddSpeciesSlideBar = ({ handleSidebarClose, setOpenDrawer,fetchTaxonomy,ta
 
                         <Box>
                             <input
-                                type="file"
+                                type="fi le"
                                 ref={fileInputRef}
                                 style={{ display: 'none' }}
                                 name="banner_images"
