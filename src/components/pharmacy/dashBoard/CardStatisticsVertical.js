@@ -16,7 +16,6 @@ const CardStatsVertical = props => {
   const { title, color, icon, stats, chipText, trendNumber, trend = 'positive' } = props
 
   return (
-    // <Card sx={{ border: '1px solid red', width: '100%' }}>
     <CardContent
       sx={{
         display: 'flex',
@@ -52,8 +51,6 @@ const CardStatsVertical = props => {
         sx={{ height: 20, fontWeight: 500, fontSize: '0.75rem', alignSelf: 'flex-start', color: 'text.secondary' }}
       /> */}
     </CardContent>
-
-    // </Card>
   )
 }
 
