@@ -40,13 +40,15 @@ import Icon from 'src/@core/components/icon'
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+
 import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
+
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
+import ExistingPurchaseForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm/ExistingPurchaseForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -59,6 +61,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 }))
 
 const editParamsInitialState = {
+  is_price_limited: true,
   po_no: '',
   po_date: Utility.formattedPresentDate(),
   store_id: '',
@@ -103,7 +106,7 @@ const defaultValues = {
   po_date: Utility.formattedPresentDate()
 }
 
-const AddPurchaseForm = () => {
+const AddExistingPurchase = () => {
   // ** Hook
   const [stores, setStores] = useState([])
   const [suppliers, setSuppliers] = useState([])
@@ -221,90 +224,7 @@ const AddPurchaseForm = () => {
     0
   )
 
-  // const calculate_cgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_cgst ? row.purchase_cgst : 0),
-  //   0
-  // )
-
-  // const calculate_sgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_sgst ? row.purchase_sgst : 0),
-  //   0
-  // )
-
-  // const calculate_lineItem_discount_percentage = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_discount ? row.purchase_discount : 0),
-  //   0
-  // )
-
-  // function calculateTaxAmount(gst_name, totalAmount) {
-  //   if (!gst_name || !totalAmount) {
-  //     return 0
-  //   }
-
-  //   const gstPercentage = parseFloat(gst_name)
-
-  //   const taxAmount = totalAmount * (gstPercentage / 100)
-
-  //   // return taxAmount.toFixed(2)
-  //   return taxAmount
-  // }
-
-  // const calculateFinalAmount = useCallback(
-  //   discountValue => {
-  //     debugger
-  //     let finalAmount = totalLineItemsPurchase
-  //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
-  //     let netAmount = 0
-  //     setEditParams({
-  //       ...editParams,
-  //       total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-  //       net_amount: netAmountWithGST ? netAmountWithGST : 0,
-  //       tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-  //     })
-  //     if (editParams.discount_type === 'P') {
-  //       netAmount = (netAmountWithGST * discountValue) / 100
-  //       const discountValueAmount = netAmount
-  //       const netValueAfterDiscount = netAmountWithGST - netAmount
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_percentage: discountValue,
-  //         discount_amount: discountValueAmount,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     } else if (editParams.discount_type === 'F') {
-  //       const netValueAfterDiscount = netAmountWithGST - discountValue
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_amount: discountValue,
-  //         discount_percentage: 0,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     }
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [totalLineItemsPurchase, editParams]
-  // )
-  // useEffect(() => {
-  // calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [totalLineItemsPurchase])
-
   const addItemsToTable = payload => {
-    // const newData = {
-    //   medicine_name: payload.medicine_name,
-    //   purchase_unit_id: payload.purchase_unit_id,
-    //   purchase_qty: payload.purchase_qty,
-    //   purchase_unit_price: payload.purchase_unit_price,
-    //   purchase_purchase_price: payload.purchase_purchase_price,
-    //   purchase_batch_no: payload.purchase_batch_no,
-    //   purchase_expiry_date: payload.purchase_expiry_date,
-    //   purchase_stock_item_id: payload.purchase_stock_item_id,
-    //   purchase_gst_type: payload.purchase_gst_type,
-    //   purchase_tax_amount: payload.purchase_tax_amount
-    // }
-
     const updatedNestedRows = [...editParams.purchase_details, payload]
     setEditParams({
       ...editParams,
@@ -359,43 +279,7 @@ const AddPurchaseForm = () => {
     return itemErrors
   }
 
-  // const validateItems = values => {
-  //   const errors = {}
-
-  //   if (!values.po_no) {
-  //     errors.po_no = 'This field is required'
-  //   }
-  //   if (!values.store_id) {
-  //     errors.store_id = 'This field is required'
-  //   }
-  //   if (!values.supplier_id) {
-  //     errors.supplier_id = 'This field is required'
-  //   }
-  //   if (!values.po_date) {
-  //     errors.po_date = 'This field is required'
-  //   }
-
-  //   return errors
-  // }
-
   const submitItems = payload => {
-    // const HasErrors =
-    //   payload.medicine_name !== '' &&
-    //   payload.purchase_qty !== '' &&
-    //   !isNaN(parseInt(payload.purchase_qty)) &&
-    //   parseInt(payload.purchase_qty) > 0 &&
-    //   payload.purchase_unit_price !== '' &&
-    //   !isNaN(parseInt(payload.purchase_unit_price)) &&
-    //   parseInt(payload.purchase_unit_price) > 0 &&
-    //   payload.purchase_batch_no !== '' &&
-    //   payload.purchase_expiry_date !== ''
-    // if (HasErrors === false) {
-    //   debugger
-    //   setItemErrors(validate(payload))
-
-    //   return
-    // }
-
     if (!medicineItemId) {
       const isMedicineAlreadyExists = editParams.purchase_details.some(
         item =>
@@ -440,33 +324,6 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = payload => {
-    // const HasErrors =
-    //   !nestedRowMedicine.medicine_name ||
-    //   !nestedRowMedicine.purchase_unit_id ||
-    //   !nestedRowMedicine.purchase_qty ||
-    //   !nestedRowMedicine.purchase_unit_price ||
-    //   !nestedRowMedicine.purchase_batch_no ||
-    //   !nestedRowMedicine.purchase_purchase_price ||
-    //   !nestedRowMedicine.purchase_expiry_date
-
-    // const HasErrors =
-    //   nestedRowMedicine.medicine_name !== '' &&
-    //   nestedRowMedicine.purchase_qty !== '' &&
-    //   !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
-    //   parseInt(nestedRowMedicine.purchase_qty) > 0 &&
-    //   nestedRowMedicine.purchase_unit_price !== '' &&
-    //   !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
-    //   parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
-    //   nestedRowMedicine.purchase_batch_no !== '' &&
-    //   nestedRowMedicine.purchase_expiry_date !== ''
-
-    // debugger
-
-    // if (HasErrors === false) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
     if (nestedRowMedicine.control_substance === 'yes') {
       if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -497,37 +354,37 @@ const AddPurchaseForm = () => {
     postData.taxable_amount = totalLineItemsTaxableAmount
     // postData.discount_percentage = calculate_lineItem_discount_percentage
 
-    if (id) {
-      postData.antz_pharmacy_purchase_id = id
-      const response = await updatePurchase(id, postData)
+    // if (id) {
+    //   postData.antz_pharmacy_purchase_id = id
+    //   const response = await updatePurchase(id, postData)
 
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
-      } else {
-        setSubmitLoader(false)
+    //   if (response?.success) {
+    //     toast.success(response.message)
+    //     setSubmitLoader(false)
+    //     getListOfItemsById(id)
+    //     Router.push('/pharmacy/purchase/purchase-list/')
+    //   } else {
+    //     setSubmitLoader(false)
+    //     toast.error(response.message)
+    //   }
+    // } else {
+    const response = await addPurchase(postData)
+    if (response?.success) {
+      toast.success(response.message)
+      setEditParams(editParamsInitialState)
+      setSubmitLoader(false)
+      Router.push('/pharmacy/purchase/purchase-list/')
+    } else {
+      setSubmitLoader(false)
+      console.log('response catch purchase', response)
+      if (response.data?.po_no) {
+        toast.error('Purchase number already exist ')
+      }
+      if (response?.message) {
         toast.error(response.message)
       }
-    } else {
-      const response = await addPurchase(postData)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
-      } else {
-        setSubmitLoader(false)
-        console.log('response catch purchase', response)
-        if (response.data?.po_no) {
-          toast.error('Purchase number already exist ')
-        }
-        if (response?.message) {
-          toast.error(response.message)
-        }
-      }
     }
+    // }
   }
 
   const scrollToTop = () => {
@@ -558,25 +415,6 @@ const AddPurchaseForm = () => {
         type_of_store: selectedPharmacy.type
       })
     }
-    // const params = {
-    //   q: 'central',
-    //   column: 'type'
-    // }
-    // try {
-    //   const response = await getStoreList({ params })
-    //   if (response?.success && response?.data?.list_items?.length > 0) {
-    //     setStores(response?.data?.list_items)
-    //     if (response?.data?.list_items?.length === 1) {
-    //       setEditParams({
-    //         ...editParams,
-    //         store_id: response?.data?.list_items[0].id,
-    //         type_of_store: response?.data?.list_items[0].type
-    //       })
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.log('store error', error)
-    // }
   }
 
   const getSuppliersLists = async () => {
@@ -671,80 +509,51 @@ const AddPurchaseForm = () => {
     []
   )
 
-  const getListOfItemsById = async id => {
-    try {
-      const result = await getPurchaseListById(id)
-      if (result.success === true && result.data !== '') {
-        const lineItems = result.data.purchase_detailss.map(el => {
-          return {
-            ...el,
-            medicine_name: el?.stock_item_name,
-            id: el?.id,
-            stock_type: el?.stock_type,
-            package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer
-            // medicine_name: el?.stock_item_name,
-            // stock_type: el?.stock_type,
-            // purchase_batch_no: el?.purchase_batch_no,
-            // purchase_expiry_date: el?.purchase_expiry_date,
-            // purchase_unit_price: el?.purchase_unit_price,
-            // purchase_qty: el?.purchase_qty,
-            // purchase_free_quantity: el?.purchase_free_quantity,
-            // purchase_discount: el?.purchase_discount,
-            // purchase_gst: el?.purchase_gst,
-            // purchase_tax_amount: el?.purchase_tax_amount,
-            // purchase_gross_amount: el?.purchase_gross_amount,
-            // purchase_discount_amount: el?.purchase_discount_amount,
-            // purchase_taxable_amount: el?.purchase_taxable_amount,
-            // purchase_net_amount: el?.purchase_net_amount,
-            // purchase_unit_id: el?.purchase_unit_id
+  // const getListOfItemsById = async id => {
+  //   try {
+  //     const result = await getPurchaseListById(id)
+  //     if (result.success === true && result.data !== '') {
+  //       const lineItems = result.data.purchase_detailss.map(el => {
+  //         return {
+  //           ...el,
+  //           medicine_name: el?.stock_item_name,
+  //           id: el?.id,
+  //           stock_type: el?.stock_type
+  //         }
+  //       })
+  //       setEditParams({
+  //         ...editParams,
+  //         id: result?.data?.id,
+  //         po_no: result?.data?.po_no,
+  //         purchase_batch_no: result?.data?.purchase_batch_no,
+  //         po_date: result?.data?.po_date,
+  //         store_id: result?.data?.store_id,
+  //         supplier_id: result?.data?.supplier_id,
+  //         description: result?.data?.description,
+  //         type_of_store: result?.data?.type_of_store,
+  //         purchase_details: lineItems,
+  //         total_amount: result?.data?.total_amount,
+  //         discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
+  //         discount_amount: result?.data?.discount_amount,
+  //         discount_percentage: result?.data?.discount_percentage,
+  //         net_amount: result?.data?.net_amount,
+  //         tax_amount: result?.data?.tax_amount,
+  //         taxable_amount: result?.data?.taxable_amount
+  //       })
 
-            // medicine_name: el?.stock_item_name,
-            // purchase_unit_id: el?.unit_id,
-            // purchase_stock_item_id: el?.stock_item_id,
-            // // purchase_stock_item_id: el?.stock_item_id,
-            // purchase_qty: el?.purchase_qty,
-            // purchase_unit_price: el?.purchase_unit_price,
-            // purchase_purchase_price: el?.purchase_price,
-            // purchase_batch_no: el?.purchase_batch_no,
-            // purchase_expiry_date: el?.purchase_expiry_date,
-            // purchase_gst_type: el?.gst_type,
-            // purchase_tax_amount: el?.tax_amount
-          }
-        })
-        setEditParams({
-          ...editParams,
-          id: result?.data?.id,
-          po_no: result?.data?.po_no,
-          purchase_batch_no: result?.data?.purchase_batch_no,
-          po_date: result?.data?.po_date,
-          store_id: result?.data?.store_id,
-          supplier_id: result?.data?.supplier_id,
-          description: result?.data?.description,
-          type_of_store: result?.data?.type_of_store,
-          purchase_details: lineItems,
-          total_amount: result?.data?.total_amount,
-          discount_type: result?.data?.discount_type ? result?.data?.discount_type : '',
-          discount_amount: result?.data?.discount_amount,
-          discount_percentage: result?.data?.discount_percentage,
-          net_amount: result?.data?.net_amount,
-          tax_amount: result?.data?.tax_amount,
-          taxable_amount: result?.data?.taxable_amount
-        })
-
-        // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
-        // setValue('supplier_id', result?.data?.supplier_id)
-        reset({
-          supplier_id: result?.data?.supplier_id,
-          po_date: result?.data?.po_date,
-          po_no: result?.data?.po_no,
-          description: result?.data?.description
-        })
-      }
-    } catch (error) {
-      console.log('purchase error', error)
-    }
-  }
+  //       // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
+  //       // setValue('supplier_id', result?.data?.supplier_id)
+  //       reset({
+  //         supplier_id: result?.data?.supplier_id,
+  //         po_date: result?.data?.po_date,
+  //         po_no: result?.data?.po_no,
+  //         description: result?.data?.description
+  //       })
+  //     }
+  //   } catch (error) {
+  //     console.log('purchase error', error)
+  //   }
+  // }
 
   // ****** edit section //////
   const editTableData = (itemId, index, purchase_batch_no) => {
@@ -843,25 +652,17 @@ const AddPurchaseForm = () => {
     }
   }
 
-  useEffect(() => {
-    if (id != undefined && action === 'edit') {
-      getListOfItemsById(id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, action])
+  // useEffect(() => {
+  //   if (id != undefined && action === 'edit') {
+  //     getListOfItemsById(id)
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [id, action])
 
   // ****** edit section //////
   // data posting section
 
   const postItemsData = async () => {
-    // if (editParams.discount_type !== '') {
-    //   if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
-    //     setValidateDiscount('Please enter discount value')
-
-    //     return
-    //   }
-    // }
-
     setSubmitLoader(true)
 
     const postData = editParams
@@ -874,7 +675,7 @@ const AddPurchaseForm = () => {
       if (response?.success) {
         toast.success(response.message)
         setSubmitLoader(false)
-        getListOfItemsById(id)
+        // getListOfItemsById(id)
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
@@ -904,7 +705,7 @@ const AddPurchaseForm = () => {
   const createForm = () => {
     return (
       <CardContent>
-        <PurchaseItemForm
+        <ExistingPurchaseForm
           medicineItemId={medicineItemId}
           optionsMedicineList={optionsMedicineList}
           searchMedicineData={searchMedicineData}
@@ -915,7 +716,7 @@ const AddPurchaseForm = () => {
           checkMedicineExpiryDate={checkMedicineExpiryDate}
           productExpiryDate={productExpiryDate}
           expiryDateLoader={expiryDateLoader}
-        ></PurchaseItemForm>
+        ></ExistingPurchaseForm>
       </CardContent>
     )
   }
@@ -948,7 +749,7 @@ const AddPurchaseForm = () => {
               icon='ep:back'
             />
           }
-          title={id ? 'Edit Inventory List' : 'Add Inventory'}
+          title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
         />
 
         <AddButton
@@ -1102,41 +903,43 @@ const AddPurchaseForm = () => {
           <Table>
             <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
               <TableRow>
-                <TableCell width='25%'>Product Name</TableCell>
-
-                <TableCell>Batch</TableCell>
-                <TableCell>Expiry Date</TableCell>
-                <TableCell align='right'>Quantity</TableCell>
+                <TableCell width='30%'>Product Name</TableCell>
+                <TableCell width='20%'>Batch</TableCell>
+                <TableCell width='20%'>Expiry Date</TableCell>
+                <TableCell width='10%' align='right'>
+                  Quantity
+                </TableCell>
                 {/* <TableCell align='right'>Free Quantity</TableCell> */}
-                <TableCell align='right'>Rate</TableCell>
+                {/* <TableCell align='right'>Rate</TableCell>
                 <TableCell align='right'>Discount in %</TableCell>
                 <TableCell align='right'>GST in %</TableCell>
-                <TableCell align='right'>Net Amount</TableCell>
-                <TableCell align='right'>Action</TableCell>
+                <TableCell align='right'>Net Amount</TableCell> */}
+                <TableCell width='20%' align='center'>
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {editParams.purchase_details
                 ? editParams.purchase_details.map((el, index) => {
                     return (
-                      <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                      <TableRow key={index}>
                         <TableCell>
                           {el.medicine_name}
                           <Typography variant='body2'>{el.package_details}</Typography>
                           <Typography variant='body2'>{el.manufacture}</Typography>
                         </TableCell>
-
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
                           {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
                         </TableCell>
                         <TableCell align='right'>{el.purchase_qty}</TableCell>
                         {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
-                        <TableCell align='right'>{el.purchase_unit_price}</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_unit_price}</TableCell>
                         <TableCell align='right'>{el.purchase_discount}%</TableCell>
 
                         <TableCell align='right'>{el.purchase_igst}%</TableCell>
-                        <TableCell align='right'>{el.purchase_net_amount}</TableCell>
+                        <TableCell align='right'>{el.purchase_net_amount}</TableCell> */}
                         <TableCell align='center'>
                           {el.id ? null : (
                             <IconButton
@@ -1172,8 +975,7 @@ const AddPurchaseForm = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Grid item xs={6}>
-          {/* {totalQty ? ( */}
+        {/* <Grid item xs={6}>
           <Grid container>
             <Grid
               item
@@ -1233,70 +1035,17 @@ const AddPurchaseForm = () => {
                     }}
                   />
 
-                  {/* <CalcWrapper>
-                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Discount</InputLabel>
-                        <Select
-                          label='Discount'
-                          value={editParams.discount_type}
-                          onChange={event => {
-                            setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
-                            setErrors({})
-                          }}
-                        >
-                          <MenuItem value='P'>%</MenuItem>
-                          <MenuItem value='F'>₹</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <TextField
-                          type='text'
-                          value={
-                            editParams.discount_type === 'P'
-                              ? editParams.discount_percentage
-                              : editParams.discount_amount
-                          }
-                          label='Discount'
-                          onChange={event => {
-                            const val = event.target.value
-
-                            calculateFinalAmount(val)
-                            setErrors({})
-                            setValidateDiscount('')
-                          }}
-                        />
-                      </FormControl>
-                      {validateDiscount && (
-                        <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
-                          This is required
-                        </FormHelperText>
-                      )}
-                    </Grid>
-                  </Grid>
-                </CalcWrapper>
-                <Divider
-                  sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                /> */}
                   <CalcWrapper>
                     <Typography variant='body2'>Grand Total :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
                       {totalLineItemsPurchase}
                     </Typography>
                   </CalcWrapper>
-
-                  {/* <Divider
-                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                /> */}
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
-          {/* // ) : null} */}
-        </Grid>
+        </Grid> */}
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
@@ -1362,4 +1111,4 @@ const AddPurchaseForm = () => {
   )
 }
 
-export default AddPurchaseForm
+export default AddExistingPurchase

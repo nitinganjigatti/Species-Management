@@ -46,7 +46,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  console.log('dispatchedItems', dispatchedItems)
+  // console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -69,7 +69,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .min(3, 'Person Shipping Info must be at least 3 characters')
           .required('Person Shipping Info is required'),
-
         shipment_date: yup.string().required('Shipment Date is required'),
 
         // vehicle_no: yup.string().required('Vehicle Number is required'),
@@ -108,19 +107,19 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     reValidateMode: 'onChange'
   })
   {
-    console.log('dispatchedItems', dispatchedItems)
+    // console.log('dispatchedItems', dispatchedItems)
   }
 
   const router = useRouter()
   const { id, action } = router.query
 
   const shipRequest = async payload => {
-    console.log(JSON.stringify(payload))
+    // console.log(JSON.stringify(payload))
 
     try {
       setSubmitLoader(true)
 
-      console.log(JSON.stringify(payload))
+      // console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
       if (response?.success) {
@@ -133,7 +132,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -263,6 +262,33 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         </Typography>
       )
     },
+
+    // {
+    //   flex: 0.1,
+    //   minWidth: 100,
+    //   field: 'Package',
+    //   headerName: 'Package',
+    //   renderCell: params => (
+    //     <Tooltip title={params?.row?.package} placement='top'>
+    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //         {params?.row?.package}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
+    // {
+    //   flex: 0.1,
+    //   minWidth: 150,
+    //   field: 'manufacture',
+    //   headerName: 'Manufacturer',
+    //   renderCell: params => (
+    //     <Tooltip title={params?.row?.manufacture} placement='top'>
+    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //         {params?.row?.manufacture}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -367,7 +393,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       label='Shipment Date*'
                       placeholderText={'Shipment Date*'}
                       onChangeHandler={date => {
-                        console.log(date)
+                        // console.log(date)
                         setDate(date)
                       }}
                       customInput={<CustomInput label='Shipment Date*' auto />}
