@@ -185,10 +185,10 @@ const Diet = () => {
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+      {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add Recipe
-      </Button>
+      </Button> */}
     </div>
   )
 
@@ -431,7 +431,7 @@ const Diet = () => {
           <>
             <Card>
               <CardHeader title='Diet' action={headerAction} />
-              <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
+              {/* <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>Show</Typography>
                 </Grid>
@@ -450,7 +450,7 @@ const Diet = () => {
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>entries</Typography>
                 </Grid>
-              </Grid>
+              </Grid> */}
               <Grid>
                 {/* <TabList
                   onChange={handleChange}
