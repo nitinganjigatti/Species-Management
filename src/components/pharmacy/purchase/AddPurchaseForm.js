@@ -90,7 +90,9 @@ const initialNestedRowMedicine = {
   purchase_igst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
-  purchase_igst_amount: 0
+  purchase_igst_amount: 0,
+  package_details: '',
+  manufacturer: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -611,7 +613,9 @@ const AddPurchaseForm = () => {
             label: item.name,
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
-            stock_type: item.stock_type
+            stock_type: item.stock_type,
+            package_details: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            manufacture: item.manufacturer_name
             // supplier_price: item.supplier_price
           }))
         )
@@ -676,7 +680,9 @@ const AddPurchaseForm = () => {
             ...el,
             medicine_name: el?.stock_item_name,
             id: el?.id,
-            stock_type: el?.stock_type
+            stock_type: el?.stock_type,
+            package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+            manufacture: el?.manufacturer
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -748,7 +754,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -777,7 +789,9 @@ const AddPurchaseForm = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -788,7 +802,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -816,7 +836,9 @@ const AddPurchaseForm = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
       })
     }
   }
@@ -1080,8 +1102,9 @@ const AddPurchaseForm = () => {
           <Table>
             <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
               <TableRow>
-                <TableCell width='14%'>Product Name</TableCell>
-                <TableCell width='10%'>Batch</TableCell>
+                <TableCell width='25%'>Product Name</TableCell>
+
+                <TableCell>Batch</TableCell>
                 <TableCell>Expiry Date</TableCell>
                 <TableCell align='right'>Quantity</TableCell>
                 {/* <TableCell align='right'>Free Quantity</TableCell> */}
@@ -1096,8 +1119,13 @@ const AddPurchaseForm = () => {
               {editParams.purchase_details
                 ? editParams.purchase_details.map((el, index) => {
                     return (
-                      <TableRow key={index}>
-                        <TableCell>{el.medicine_name}</TableCell>
+                      <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                        <TableCell>
+                          {el.medicine_name}
+                          <Typography variant='body2'>{el.package_details}</Typography>
+                          <Typography variant='body2'>{el.manufacture}</Typography>
+                        </TableCell>
+
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
                           {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}

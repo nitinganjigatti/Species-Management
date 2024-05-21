@@ -9,7 +9,9 @@ import {
   TextField,
   Autocomplete,
   Grid,
+  Chip,
   Box,
+  Typography,
   Button,
   CircularProgress
 } from '@mui/material'
@@ -51,7 +53,9 @@ const defaultValues = {
   purchase_gross_amount: 0,
   purchase_discount_amount: 0,
   purchase_taxable_amount: 0,
-  purchase_net_amount: 0
+  purchase_net_amount: 0,
+  package_details: '',
+  manufacture: ''
 }
 
 const PurchaseItemForm = props => {
@@ -265,7 +269,9 @@ const PurchaseItemForm = props => {
       purchase_gross_amount,
       purchase_discount_amount,
       purchase_taxable_amount,
-      purchase_net_amount
+      purchase_net_amount,
+      package_details,
+      manufacture
 
       // purchase_purchase_price,
     } = params
@@ -296,7 +302,9 @@ const PurchaseItemForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       stock_type: stock_type,
-      purchase_purchase_price: purchase_net_amount
+      purchase_purchase_price: purchase_net_amount,
+      package_details,
+      manufacture
     }
 
     submitItems(payload)
@@ -448,6 +456,8 @@ const PurchaseItemForm = props => {
         value: nestedRowMedicine.purchase_unit_id,
         stock_type: nestedRowMedicine.stock_type
       })
+      setValue('package_details', nestedRowMedicine?.package_details)
+      setValue('manufacture', nestedRowMedicine?.manufacture)
 
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
@@ -456,6 +466,8 @@ const PurchaseItemForm = props => {
       setValue('purchase_expiry_date', dayjs(nestedRowMedicine.purchase_expiry_date))
     } else {
       setValue('purchase_expiry_date', null)
+      setValue('package_details', '')
+      setValue('manufacture', '')
       searchMedicineData('')
     }
   }, [])
@@ -472,20 +484,39 @@ const PurchaseItemForm = props => {
                 <Autocomplete
                   options={optionsMedicineList}
                   value={value}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box>
+                        <Typography>{option.label}</Typography>
+                        <Typography variant='body2'>{option.package_details}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography>
+                      </Box>
+                    </li>
+                  )}
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
                       setValue('purchase_batch_no', '')
                       setValue('purchase_expiry_date', null)
+                      setValue('package_details', '')
+                      setValue('manufacture', '')
 
                       return onChange(null)
                     } else {
                       if (val.stock_type === 'non_medical') {
+                        console.log('medicine data', val)
                         setNonMedicalProduct(true)
+
+                        setValue('package_details', val?.package_details)
+                        setValue('manufacture', val?.manufacture)
                         setValue('purchase_expiry_date', dayjs(Date()))
                       } else {
                         setNonMedicalProduct(false)
+                        console.log('medicine data', val)
+
+                        setValue('package_details', val?.package_details)
+                        setValue('manufacture', val?.manufacture)
                       }
 
                       return onChange(val)
@@ -513,6 +544,24 @@ const PurchaseItemForm = props => {
                 />
               )}
             />
+            {watch('package_details') && (
+              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                <Chip
+                  label={watch('package_details')}
+                  color='primary'
+                  variant='outlined'
+                  size='sm'
+                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                />
+                <Chip
+                  label={watch('manufacture')}
+                  color='primary'
+                  variant='outlined'
+                  size='sm'
+                  sx={{ fontSize: 11, height: '22px' }}
+                />
+              </Box>
+            )}
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6}>

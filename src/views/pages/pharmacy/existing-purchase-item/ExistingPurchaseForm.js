@@ -9,7 +9,9 @@ import {
   TextField,
   Autocomplete,
   Grid,
+  Typography,
   Box,
+  Chip,
   Button,
   CircularProgress
 } from '@mui/material'
@@ -18,11 +20,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 import { useForm, Controller } from 'react-hook-form'
 
-// import DatePicker from 'react-datepicker'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import Icon from 'src/@core/components/icon'
-import InputAdornment from '@mui/material/InputAdornment'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -51,7 +48,9 @@ const defaultValues = {
   purchase_gross_amount: 0,
   purchase_discount_amount: 0,
   purchase_taxable_amount: 0,
-  purchase_net_amount: 0
+  purchase_net_amount: 0,
+  package_details: '',
+  manufacture: ''
 }
 
 const ExistingPurchaseForm = props => {
@@ -79,16 +78,6 @@ const ExistingPurchaseForm = props => {
       label: yup.string().required('Product name is required'),
       stock_type: yup.string().nullable()
     }),
-
-    // purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
-    // purchase_expiry_date: yup
-    //   .date()
-    //   .typeError('Select a valid expiry date')
-    //   .when(['product.stock_type'], (stockType, schema) => {
-    //     console.log('product.stock_type', stockType[0])
-
-    //     return stockType[0] === 'non_medical' ? schema.notRequired() : schema.required('Expiry date is required')
-    //   }),
 
     purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
       const result =
@@ -123,90 +112,6 @@ const ExistingPurchaseForm = props => {
       .typeError('Purchase quantity must be a number')
       .min(1, 'Purchase quantity must be greater than zero')
       .required('Purchase quantity is required')
-
-    // purchase_discount: yup
-    //   .number()
-    //   .typeError('Discount must be a number')
-    //   .min(0, 'Discount must be greater than zero')
-    //   .required('Discount is required'),
-    // purchase_cgst: yup
-    //   .number()
-    //   .typeError('Central GST must be a number')
-    //   .min(1, 'Central GST must be greater than zero')
-    //   .required('Central GST is required'),
-    // purchase_sgst: yup
-    //   .number()
-    //   .typeError('State GST must be a number')
-    //   .min(1, 'State GST must be greater than zero')
-    //   .required('State GST is required'),
-    // purchase_igst: yup
-    //   .number()
-    //   .typeError('GST must be a number')
-    //   .min(0, 'GST must be greater than zero')
-    //   .required('GST is required'),
-
-    // purchase_cgst_amount: yup
-    //   .number()
-    //   .typeError('Central GST Amount must be a number')
-    //   .min(1, 'Central GST Amount must be greater than zero')
-    //   .required('Central GST Amount is required'),
-
-    // purchase_cgst_amount: yup
-    //   .number()
-    //   .typeError('Central GST Amount must be a number')
-
-    //   // .positive('Central GST Amount must be a positive number')
-    //   .required('Central GST Amount is required'),
-
-    // purchase_sgst_amount: yup
-    //   .number()
-    //   .typeError('State GST Amount must be a number')
-    //   .min(1, 'State GST Amount must be greater than zero')
-    //   .required('State GST Amount is required'),
-
-    // purchase_sgst_amount: yup
-    //   .number()
-    //   .typeError('State GST Amount must be a number')
-
-    //   .required('State GST Amount is required'),
-
-    // purchase_igst_amount: yup
-    //   .number()
-    //   .typeError('Tax Amount must be a number')
-
-    //   // .positive('Tax Amount must be a positive zero')
-    //   .required('Tax Amount is required'),
-
-    // purchase_igst_amount: yup
-    //   .number()
-    //   .typeError('Tax Amount must be a number')
-    //   .min(1, 'Tax Amount must be greater than zero')
-    //   .required('Tax Amount is required'),
-
-    // purchase_gross_amount: yup
-    //   .number()
-    //   .typeError('Gross amount must be a number')
-    //   .positive('Gross amount must be a positive number')
-    //   .required('Gross amount is required'),
-
-    // purchase_discount_amount: yup
-    //   .number()
-    //   .typeError('Purchase discount amount must be a number')
-    //   .min(0, 'Purchase discount amount must be greater than zero'),
-
-    // purchase_taxable_amount: yup
-    //   .number()
-    //   .typeError('Taxable amount must be a number')
-
-    //   // .positive('Taxable amount amount must be greater than zero')
-    //   .required('Taxable amount is required'),
-
-    // purchase_net_amount: yup
-    //   .number()
-    //   .typeError('Net amount must be a number')
-
-    //   // .positive('Net amount amount must be greater than zero')
-    //   .required('Net amount is required')
   })
 
   const {
@@ -230,14 +135,6 @@ const ExistingPurchaseForm = props => {
     }
   })
 
-  // const watchFields = watch([
-  //   'purchase_unit_price',
-  //   'purchase_qty',
-  //   'purchase_discount',
-  //   'purchase_free_quantity',
-  //   'purchase_gst'
-  // ])
-
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
 
   const onSubmit = async params => {
@@ -258,7 +155,9 @@ const ExistingPurchaseForm = props => {
       purchase_gross_amount,
       purchase_discount_amount,
       purchase_taxable_amount,
-      purchase_net_amount
+      purchase_net_amount,
+      package_details,
+      manufacture
 
       // purchase_purchase_price,
     } = params
@@ -289,7 +188,9 @@ const ExistingPurchaseForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       stock_type: stock_type,
-      purchase_purchase_price: purchase_net_amount
+      purchase_purchase_price: purchase_net_amount,
+      package_details,
+      manufacture
     }
 
     submitItems(payload)
@@ -441,7 +342,8 @@ const ExistingPurchaseForm = props => {
         value: nestedRowMedicine.purchase_unit_id,
         stock_type: nestedRowMedicine.stock_type
       })
-
+      setValue('package_details', nestedRowMedicine?.package_details)
+      setValue('manufacture', nestedRowMedicine?.manufacture)
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
       }
@@ -449,6 +351,8 @@ const ExistingPurchaseForm = props => {
       setValue('purchase_expiry_date', dayjs(nestedRowMedicine.purchase_expiry_date))
     } else {
       setValue('purchase_expiry_date', null)
+      setValue('package_details', '')
+      setValue('manufacture', '')
       searchMedicineData('')
     }
   }, [])
@@ -466,19 +370,34 @@ const ExistingPurchaseForm = props => {
                   options={optionsMedicineList}
                   value={value}
                   getOptionLabel={option => option.label}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box>
+                        <Typography>{option.label}</Typography>
+                        <Typography variant='body2'>{option.package_details}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography>
+                      </Box>
+                    </li>
+                  )}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
                       setValue('purchase_batch_no', '')
                       setValue('purchase_expiry_date', null)
+                      setValue('package_details', '')
+                      setValue('manufacture', '')
 
                       return onChange(null)
                     } else {
                       if (val.stock_type === 'non_medical') {
                         setNonMedicalProduct(true)
+                        setValue('package_details', val?.package_details)
+                        setValue('manufacture', val?.manufacture)
                         setValue('purchase_expiry_date', dayjs(Date()))
                       } else {
                         setNonMedicalProduct(false)
+                        setValue('package_details', val?.package_details)
+                        setValue('manufacture', val?.manufacture)
                       }
 
                       return onChange(val)
@@ -506,6 +425,24 @@ const ExistingPurchaseForm = props => {
                 />
               )}
             />
+            {watch('package_details') && (
+              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                <Chip
+                  label={watch('package_details')}
+                  color='primary'
+                  variant='outlined'
+                  size='sm'
+                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                />
+                <Chip
+                  label={watch('manufacture')}
+                  color='primary'
+                  variant='outlined'
+                  size='sm'
+                  sx={{ fontSize: 11, height: '22px' }}
+                />
+              </Box>
+            )}
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -568,30 +505,6 @@ const ExistingPurchaseForm = props => {
           </Grid>
         )}
 
-        {/* <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_unit_price'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  label='Supplier Rate*'
-                  error={Boolean(errors.purchase_unit_price)}
-
-                  // helperText={errors.purchase_unit_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_unit_price && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_price?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid> */}
-
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -624,15 +537,6 @@ const ExistingPurchaseForm = props => {
                 <Button sx={{ mr: 2 }} type='submit' size='large' variant='contained'>
                   update
                 </Button>
-                {/* <Button
-                  onClick={() => {
-                    reset(defaultValues)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Reset
-                </Button> */}
               </>
             ) : (
               <>

@@ -93,7 +93,9 @@ const initialNestedRowMedicine = {
   purchase_igst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
-  purchase_igst_amount: 0
+  purchase_igst_amount: 0,
+  package_details: '',
+  manufacturer: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -449,7 +451,9 @@ const AddExistingPurchase = () => {
             label: item.name,
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
-            stock_type: item.stock_type
+            stock_type: item.stock_type,
+            package_details: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            manufacture: item.manufacturer_name
             // supplier_price: item.supplier_price
           }))
         )
@@ -559,7 +563,13 @@ const AddExistingPurchase = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -588,7 +598,9 @@ const AddExistingPurchase = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -599,7 +611,13 @@ const AddExistingPurchase = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -627,7 +645,9 @@ const AddExistingPurchase = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
       })
     }
   }
@@ -904,7 +924,11 @@ const AddExistingPurchase = () => {
                 ? editParams.purchase_details.map((el, index) => {
                     return (
                       <TableRow key={index}>
-                        <TableCell>{el.medicine_name}</TableCell>
+                        <TableCell>
+                          {el.medicine_name}
+                          <Typography variant='body2'>{el.package_details}</Typography>
+                          <Typography variant='body2'>{el.manufacture}</Typography>
+                        </TableCell>
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
                           {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}

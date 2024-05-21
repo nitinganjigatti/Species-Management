@@ -21,6 +21,7 @@ import {
   FormHelperText,
   Box,
   InputLabel,
+  FormLabel,
   Select
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
@@ -202,127 +203,6 @@ const ValidateImportPurchase = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const fileDataColumns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'id ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.05,
-      Width: 40,
-      minWidth: 200,
-      field: 'purchase_invoice_number',
-      headerName: 'Purchase Number ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.purchase_invoice_number}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      minWidth: 200,
-      field: 'stock_name',
-      headerName: 'Product name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      minWidth: 200,
-      field: 'supplier_name',
-      headerName: 'Supplier',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.05,
-      Width: 40,
-      minWidth: 200,
-      field: 'batch_no',
-      headerName: 'Batch Number ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.05,
-      Width: 40,
-      minWidth: 200,
-      field: 'qty',
-      headerName: 'Quantity',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.qty}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'Expiry date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'cgst',
-    //   headerName: 'CGST',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.cgst}%
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'igst',
-    //   headerName: 'IGST',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.igst}%
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'sgst',
-    //   headerName: 'SGST',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.sgst}%
-    //     </Typography>
-    //   )
-    // }
-  ]
-
   const insertIdFromConflictProducts = (mainObject, idFromConflictProducts) => {
     const { conflict_products, ...rest } = mainObject
 
@@ -373,11 +253,12 @@ const ValidateImportPurchase = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
                     <FormControl fullWidth>
+                      <FormLabel sx={{ m: 1 }}>Upload file</FormLabel>
+
                       <TextField
                         {...register('upload_file')}
                         type='file'
                         accept='.csv'
-                        label='Upload file'
                         disabled={loader}
                         error={Boolean(errors.upload_file)}
                         helperText={errors.upload_file?.message}
@@ -512,16 +393,7 @@ const ValidateImportPurchase = () => {
                       <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
                         <Card>
                           <CardHeader title='Invoices good to upload' />
-                          {/* <DataGrid
-                            columnVisibilityModel={{
-                              uid: false
-                            }}
-                            row={10}
-                            autoHeight
-                            autoWidth
-                            rows={uploadedFileData ? uploadedFileData : []}
-                            columns={fileDataColumns}
-                          /> */}
+
                           <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
                             <Table stickyHeader sx={{ minWidth: 650 }} aria-label='sticky table'>
                               <TableHead sx={{ backgroundColor: 'primary.bg' }}>
