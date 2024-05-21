@@ -253,7 +253,7 @@ const ValidateImportPurchase = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
                     <FormControl fullWidth>
-                      <FormLabel sx={{ m: 1 }}>Upload file</FormLabel>
+                      <FormLabel sx={{ m: 1 }}>Upload CSV file</FormLabel>
 
                       <TextField
                         {...register('upload_file')}
