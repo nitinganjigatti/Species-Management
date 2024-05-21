@@ -250,7 +250,7 @@ const FeedDetails = () => {
       headerName: 'INGREDIENTS',
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Avatar variant='square' src={params?.row?.ingredient_image ? params?.row?.ingredient_image : ''} />
+          <Avatar variant='square' src={params?.row?.image ? params?.row?.image : ''} />
           {params?.row?.ingredient_name ? params?.row?.ingredient_name : ''}
         </Box>
       )
@@ -262,7 +262,10 @@ const FeedDetails = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
-          <Avatar variant='round' src={params?.row?.image ? params?.row?.image : ''} />
+          <Avatar
+            variant='round'
+            src={params?.row?.created_by_user?.profile_pic ? params?.row?.created_by_user?.profile_pic : ''}
+          />
           <Box sx={{ display: 'flex', flexDirection: 'column', mx: 2 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
               {params?.row?.created_by_user?.user_name ? params?.row?.created_by_user?.user_name : ''}
@@ -305,7 +308,7 @@ const FeedDetails = () => {
       }
       setLoader(false)
     } catch (error) {
-      console.log('Feed list', error)
+      // console.log('Feed list', error)
       setLoader(false)
     }
   }
