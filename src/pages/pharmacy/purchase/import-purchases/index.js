@@ -16,7 +16,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  FormLabel
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { LoaderIcon } from 'react-hot-toast'
@@ -226,74 +227,6 @@ const ImportPurchase = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const fileDataColumns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'id ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.05,
-      Width: 40,
-      minWidth: 200,
-      field: 'po_no',
-      headerName: 'Purchase Number ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.po_no}
-        </Typography>
-      )
-    },
-
-    {
-      field: 'purchaseDetails',
-      headerName: 'Purchase Details',
-      flex: 1,
-      minWidth: 800,
-      children: [
-        {
-          flex: 0.05,
-          Width: 40,
-          field: 'id',
-          headerName: 'id',
-          renderCell: params => (
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.id}
-            </Typography>
-          )
-        },
-        {
-          flex: 0.2,
-          minWidth: 20,
-          field: 'expiry_date',
-          headerName: 'Expiry date',
-          renderCell: params => (
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {Utility.formatDisplayDate(params.row.expiry_date)}
-            </Typography>
-          )
-        },
-        {
-          flex: 0.2,
-          minWidth: 20,
-          field: 'stock_name',
-          headerName: 'Product name',
-          renderCell: params => (
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.stock_name}
-            </Typography>
-          )
-        }
-      ]
-    }
-  ]
-
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -317,11 +250,11 @@ const ImportPurchase = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
                     <FormControl fullWidth>
+                      <FormLabel sx={{ m: 1 }}>Upload CSV file</FormLabel>
                       <TextField
                         {...register('upload_file')}
                         type='file'
                         accept='.csv'
-                        label='Upload file'
                         disabled={loader}
                         error={Boolean(errors.upload_file)}
                         helperText={errors.upload_file?.message}
@@ -338,7 +271,6 @@ const ImportPurchase = () => {
                   </Grid>
                   {fileUploadErrors?.length > 0 ? (
                     <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
-                      {/* {console.log('fileUploadErrors', fileUploadErrors)} */}
                       <Card>
                         <CardHeader title='Rows with errors' />
                         <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
@@ -375,14 +307,7 @@ const ImportPurchase = () => {
                   ) : null}
                   {uploadedFileData.length > 0 ? (
                     <>
-                      {/* {console.log('uploadedFileData', uploadedFileData)} */}
                       <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
-                        {/* <DataGrid
-                          autoHeight
-                          autoWidth
-                          rows={uploadedFileData ? uploadedFileData : []}
-                          columns={fileDataColumns}
-                        /> */}
                         <Card>
                           <CardHeader title='Invoices good to upload' />
 
