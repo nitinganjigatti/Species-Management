@@ -18,6 +18,7 @@ import { useRouter } from 'next/router'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
+import Toaster from 'src/components/Toaster'
 
 const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval }) => {
   const router = useRouter()
@@ -53,11 +54,12 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
 
-        return toast(t => (
-          <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} t={t} />
-        ))
+        return Toaster({ type: 'success', message: response?.data })
+        // toast(t => (
+        //   <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} t={t} />
+        // ))
       } else {
-        alert('something went wrong')
+        return Toaster({ type: 'error', message: response?.data })
       }
     } catch (error) {}
   }
@@ -190,6 +192,8 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
         open={deleteDialogBox}
         type='ingredient'
         active={isActive}
+        recipeCount={IngredientsDetailsval.recipe_count}
+        dietCount={IngredientsDetailsval.diet_count}
         message={
           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
             {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?

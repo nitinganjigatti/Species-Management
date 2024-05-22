@@ -10,7 +10,17 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid, Avatar } from '@mui/material'
 
-const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, message, action, type }) => {
+const DeleteDialogConfirmation = ({
+  active,
+  handleClosenew,
+  open,
+  typeCount,
+  dietCount,
+  recipeCount,
+  message,
+  action,
+  type
+}) => {
   const [checked, setChecked] = useState(false)
 
   const handleChange = event => {
@@ -92,10 +102,10 @@ const DeleteDialogConfirmation = ({ active, handleClosenew, open, typeCount, mes
           <Typography sx={{ color: '#FA6140', pt: 6, fontSize: 14, fontWeight: 600 }}>
             This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
             {type === 'ingredient'
-              ? ' 15 recipes and 10 diets.'
+              ? `${recipeCount} recipes and ${dietCount} diets.`
               : type === 'feed'
               ? `${typeCount}  Ingredients`
-              : '20 diets.'}
+              : `${dietCount} diets`}
           </Typography>
           <Grid>
             <Typography sx={{ fontSize: 15 }}>
