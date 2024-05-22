@@ -553,6 +553,8 @@ const AddIngredientswithChoice = props => {
     }
   }
 
+  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
   return (
     <>
       <Drawer
@@ -637,8 +639,8 @@ const AddIngredientswithChoice = props => {
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
           onScroll={handleScroll}
         >
-          {console.log(ingredientList, 'ingredientList')}
-          {ingredientList?.map((item, index) => (
+          {/* {console.log(ingredientList, 'ingredientList')} */}
+          {sortedIngredientList?.map((item, index) => (
             <Box
               key={item?.id}
               sx={{

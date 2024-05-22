@@ -40,12 +40,12 @@ const RecipeCard = ({
       days: Day
     }))
 
-    console.log('Initial Values>>', initialSelectedDays)
+    console.log('Initial Values day Useeffect>>', initialSelectedDays)
     setSelectedDays(initialSelectedDays)
   }, [rows])
 
   const [selectedDays, setSelectedDays] = useState()
-  console.log('selectedDays', selectedDays, remarks)
+  console.log('selectedDays', selectedDays)
 
   const [expandedIndex, setExpandedIndex] = useState([])
 
@@ -149,15 +149,16 @@ const RecipeCard = ({
     }
   }
 
-  console.log('selectedCount >>', selectedCount)
+  // console.log('selectedCount >>', selectedCount)
 
   const handleSelected = () => {
-    console.log('Selected Data', selectedCardRecipe)
+    // console.log('Selected Data', selectedCardRecipe)
     handleSidebarClose()
 
     const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
-      console.log(selectedDaysForItem, 'selectedDaysForItem')
+
+      // console.log(selectedDaysForItem, 'selectedDaysForItem')
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
 
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
@@ -177,7 +178,7 @@ const RecipeCard = ({
     onChange(filteredItems)
   }
 
-  console.log('selectedCardRecipe >>', selectedCardRecipe)
+  // console.log('selectedCardRecipe >>', selectedCardRecipe)
 
   const handleAddRemarks = (event, cardId) => {
     const updatedCards = selectedCardRecipe.map(item => {
@@ -203,20 +204,22 @@ const RecipeCard = ({
 
   useEffect(() => {
     // Filter out duplicates based on id and mealid
-    console.log(rows, 'rows')
+    // console.log(rows, 'rows')
 
     const uniqueSelectedValues = allRecipeSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
     )
-    console.log(uniqueSelectedValues, 'uniqueSelectedValues')
+
+    // console.log(uniqueSelectedValues, 'uniqueSelectedValues')
 
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
     // Initialize a new array to store the updated selectedCardRecipe
     let updatedSelectedCardRecipe = []
-    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
+    // console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
 
     // Iterate over rows and check for matches
     rows.forEach(row => {
@@ -232,8 +235,9 @@ const RecipeCard = ({
         updatedSelectedCardRecipe.push(updatedRow)
       }
     })
-    console.log(updatedSelectedCardRecipe, 'updatedSelectedCardRecipe')
-    console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
+    // console.log(updatedSelectedCardRecipe, 'updatedSelectedCardRecipe')
+    // console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
 
     // Update selectedCardRecipe with matched objects
     const updatedSelectedCard =
@@ -251,8 +255,9 @@ const RecipeCard = ({
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
-      console.log(cardIds, 'cardIds')
-      console.log(days, 'days')
+
+      // console.log(cardIds, 'cardIds')
+      // console.log(days, 'days')
 
       // Update selectedDays state with the extracted values
       const updatedSelectedDays = []
@@ -273,15 +278,17 @@ const RecipeCard = ({
         days: Day
       }))
 
-      console.log('Initial Values>>', initialSelectedDays)
+      console.log('Initial Values Day>>', initialSelectedDays)
       setSelectedDays(initialSelectedDays)
     }
   }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen])
 
+  const sortedRecipeList = [...rows]?.sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+
   return (
     <Box>
       {/* Example Card */}
-      {rows?.map((item, index) => {
+      {sortedRecipeList?.map((item, index) => {
         return (
           <>
             <Box
@@ -355,7 +362,7 @@ const RecipeCard = ({
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '33px' }}>
                     <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
                     <Box sx={{ ml: '10px' }}>
-                      {console.log(item, 'item')}
+                      {/* {console.log(item, 'item')} */}
                       <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                         {item?.ingredients_count}&nbsp;
                         <span style={{ color: '#e55b3e' }}> (68%)</span>
