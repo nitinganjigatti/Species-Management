@@ -33,7 +33,7 @@ then
   ENV_TO_LOAD='production'
 elif [ $GITHUB_REF_NAME == 'release/farm' ]
 then
-  DEPLOY_SERVER=$DEPLOY_SERVER_PROD
+  DEPLOY_SERVER=$DEPLOY_SERVER_FARM
   ENV_TO_LOAD='farm'
 fi
 
