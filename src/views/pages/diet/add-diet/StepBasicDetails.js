@@ -353,6 +353,7 @@ const StepBasicDetails = ({
 
     return null
   }
+
   const handleAddIngerdientChoice = (val, index, type) => {
     console.log(val, 'val')
     console.log(index, 'index')
@@ -686,9 +687,11 @@ const StepBasicDetails = ({
         return field
       })
       console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
+
       // Set the final value using setfinalvalueingredientchoice
       setfinalvalueingredientchoice(updatedFieldsIngredients)
       console.log(filteredChildStateValue, 'filteredChildStateValue')
+
       return filteredChildStateValue
     })
   }
@@ -840,6 +843,7 @@ const StepBasicDetails = ({
                             label='Diet Type *'
                             placeholder='Search & Select'
                             error={Boolean(errors.diet_type_name)}
+
                             //name='diet_type_name'
                           />
                         )}

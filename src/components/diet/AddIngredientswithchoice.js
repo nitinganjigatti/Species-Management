@@ -156,6 +156,21 @@ const AddIngredientswithChoice = props => {
 
     // Get the remarks value
     const remarksData = remarks || ''
+    if (!feed_type) {
+      // toast.error('Please select a feed type.')
+
+      return
+    }
+
+    if (feed_type === 'Chopped') {
+      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      if (!cutSizeValue || !sizeValue) {
+        // toast.error('Cut size and size are required for chopped feed.')
+
+        return
+      }
+    }
 
     // Prepare the object to store values
     const boxValues = {
@@ -560,6 +575,7 @@ const AddIngredientswithChoice = props => {
             )
           )
         }
+
         return false
       })
 
@@ -598,6 +614,7 @@ const AddIngredientswithChoice = props => {
         if (duplicateIngredientIndex !== -1) {
           toast.error('Cannot update ingredient with the same preparation type in multiple places.')
           setingType('')
+
           return
         }
 
@@ -607,6 +624,7 @@ const AddIngredientswithChoice = props => {
 
         // Show success toast message for updating the ingredient
         toast.success('Ingredient updated successfully!')
+
         return
       }
     } else {
@@ -643,6 +661,7 @@ const AddIngredientswithChoice = props => {
           toast.error(
             `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
           )
+
           return
         }
       }
@@ -652,6 +671,7 @@ const AddIngredientswithChoice = props => {
         const updatedList = [...prevList, selectedIngredient]
         onChange(updatedList) // Call onChange with the updated list
         console.log(updatedList, 'updatedList')
+
         return updatedList
       })
 
@@ -757,7 +777,7 @@ const AddIngredientswithChoice = props => {
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
-                ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69'
                 })
               }}
