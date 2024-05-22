@@ -288,15 +288,17 @@ const IngredientDetail = () => {
                 )}
               </Grid>
               {/* <ModuleDeleteDialogConfirmation
-            active={isActive == '1' ? true : false}
-            handleClosenew={handleClosenew}
-            action={confirmDeleteAction}
-            open={deleteDialogBox}
-            type='ingredient'
-            message={
-              <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
-            }
-          /> */}
+                active={isActive}
+                handleClosenew={handleStatusClose}
+                action={confirmStatusUpdateAction}
+                open={statusDialog}
+                type='ingredient'
+                message={
+                  <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                    Deletion isn't possible!
+                  </span>
+                }
+              /> */}
               <ConfirmationDialog
                 icon={'mdi:delete'}
                 iconColor={'#ff3838'}
@@ -315,8 +317,11 @@ const IngredientDetail = () => {
                 recipeCount={IngredientsDetailsval.recipe_count}
                 dietCount={IngredientsDetailsval.diet_count}
                 message={
+                  // <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                  //   {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+                  // </span>
                   <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-                    {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+                    Deletion isn't possible!
                   </span>
                 }
               />

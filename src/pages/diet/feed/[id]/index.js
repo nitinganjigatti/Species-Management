@@ -140,7 +140,7 @@ const FeedDetails = () => {
       const response = await feedDelete(FeedDetailsValue?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
-
+        Router.push('/diet/feed')
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
