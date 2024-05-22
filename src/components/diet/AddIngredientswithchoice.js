@@ -156,6 +156,21 @@ const AddIngredientswithChoice = props => {
 
     // Get the remarks value
     const remarksData = remarks || ''
+    if (!feed_type) {
+      // toast.error('Please select a feed type.')
+
+      return
+    }
+
+    if (feed_type === 'Chopped') {
+      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      if (!cutSizeValue || !sizeValue) {
+        // toast.error('Cut size and size are required for chopped feed.')
+
+        return
+      }
+    }
 
     // Prepare the object to store values
     const boxValues = {
@@ -631,7 +646,7 @@ const AddIngredientswithChoice = props => {
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
-                ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69'
                 })
               }}
