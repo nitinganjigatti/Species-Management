@@ -765,7 +765,7 @@ const AddIngredients = props => {
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
-                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                ...(selectedCard.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69' // Change border color when isVisible is true
                 })
               }}
