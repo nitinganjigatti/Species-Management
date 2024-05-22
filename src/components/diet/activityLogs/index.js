@@ -3,6 +3,7 @@ import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+
 // import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
@@ -13,6 +14,7 @@ import Icon from 'src/@core/components/icon'
 import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
+
 // import UserSnackbar from 'src/components/utility/snackbar'
 
 const ActivityLogs = ({
@@ -58,6 +60,7 @@ const ActivityLogs = ({
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
           setActivityData(res?.data?.data)
+
           // setOpenSnackbar({
           //   ...openSnackbar,
           //   open: true,
@@ -75,6 +78,7 @@ const ActivityLogs = ({
       })
     } catch (error) {
       console.log('error', error)
+
       // setOpenSnackbar({
       //   ...openSnackbar,
       //   open: true,

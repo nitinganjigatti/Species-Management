@@ -758,7 +758,6 @@ const DietDetail = () => {
 
                                                         <Box sx={{ display: 'flex', gap: '12px' }}>
                                                           {Object?.entries(item?.days_of_weeks).map(([key, value]) => (
-                                                            // {item?.days_of_weeks?.map((val, index) => (
                                                             <Box
                                                               key={index}
                                                               sx={{

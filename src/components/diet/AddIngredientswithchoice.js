@@ -575,6 +575,7 @@ const AddIngredientswithChoice = props => {
             )
           )
         }
+
         return false
       })
 
@@ -613,6 +614,7 @@ const AddIngredientswithChoice = props => {
         if (duplicateIngredientIndex !== -1) {
           toast.error('Cannot update ingredient with the same preparation type in multiple places.')
           setingType('')
+
           return
         }
 
@@ -622,6 +624,7 @@ const AddIngredientswithChoice = props => {
 
         // Show success toast message for updating the ingredient
         toast.success('Ingredient updated successfully!')
+
         return
       }
     } else {
@@ -658,6 +661,7 @@ const AddIngredientswithChoice = props => {
           toast.error(
             `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
           )
+
           return
         }
       }
@@ -667,6 +671,7 @@ const AddIngredientswithChoice = props => {
         const updatedList = [...prevList, selectedIngredient]
         onChange(updatedList) // Call onChange with the updated list
         console.log(updatedList, 'updatedList')
+
         return updatedList
       })
 

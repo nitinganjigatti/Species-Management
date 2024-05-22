@@ -206,6 +206,7 @@ const StepPreviewDiet = ({
     console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
+
     const stateforHeader = dietTypesData.map(item => {
       const { weight, unit } = item
       const { name } = unit.value
@@ -1184,6 +1185,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   console.log(formData?.child?.length, 'lll')
+
                                   return (
                                     <TableRow key={index}>
                                       <TableCell
