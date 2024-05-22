@@ -205,6 +205,7 @@ const StepPreviewDiet = ({
   const handleReceiveDietTypes = dietTypesData => {
     console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
+    setActivitySidebarOpen(false)
 
     const stateforHeader = dietTypesData.map(item => {
       const { weight, unit } = item
@@ -261,7 +262,7 @@ const StepPreviewDiet = ({
       const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
       console.log(convertedData, 'convertedData')
 
-      const newarr = convertedData.map(item => {
+      const newarr = convertedData?.map(item => {
         // Splitting the string into minWeight, maxWeight, and unit name
         const [weight, unitName] = item.split('_')
         const matchedUom = uomprev.find(item => item.name === unitName)
@@ -663,7 +664,7 @@ const StepPreviewDiet = ({
     { id: 1, name: 'Mon', isActive: false },
     { id: 2, name: 'Tue', isActive: false },
     { id: 3, name: 'Wed', isActive: false },
-    { id: 4, name: 'Thrs', isActive: false },
+    { id: 4, name: 'Thu', isActive: false },
     { id: 5, name: 'Fri', isActive: false },
     { id: 6, name: 'Sat', isActive: false },
     { id: 7, name: 'Sun', isActive: false }
@@ -673,6 +674,111 @@ const StepPreviewDiet = ({
     const day = Day.find(d => d.id === dayId)
 
     return day ? day.name : ''
+  }
+
+  const getModal = (index, item) => {
+    return (
+      <Dialog
+        open={open}
+        onClose={handleClosed}
+        aria-labelledby='customized-dialog-title'
+        sx={{
+          '& .MuiDialog-paper': {
+            overflow: 'visible',
+            width: 500
+          },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.3)' // Custom background color with opacity
+          }
+        }}
+      >
+        <DialogTitle
+          id='customized-dialog-title'
+          sx={{
+            p: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant='h6'>Add Value</Typography>
+          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
+        </DialogTitle>
+        <DialogContent>
+          {/* <Typography variant='h6'>Add Value</Typography> */}
+          <Grid container spacing={5} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='quantity'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      type='number'
+                      label='Quantity '
+                      name='quantity'
+                      onChange={onChange}
+                      defaultValue={initialValues.quantity}
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                {console.log(uomList, 'uomList')}
+                <Controller
+                  name='feed_uom_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Autocomplete
+                      onChange={(event, newValue) => {
+                        onChange(newValue) // Update the form value
+                      }}
+                      defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
+                      options={transformedArray} // List of options with value and label
+                      getOptionLabel={option => option.label} // Function to get the label of the option
+                      getOptionValue={option => option.value}
+                      renderInput={params => (
+                        <TextField {...params} label='Select Unit' placeholder='Search & Select' />
+                      )}
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sx={{ pt: 5 }}>
+              <Controller
+                name='notes'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    multiline
+                    fullWidth
+                    label='Notes '
+                    name='notes'
+                    onChange={onChange}
+                    id='textarea-outlined'
+                    rows={3}
+                    defaultValue={initialValues.notes}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sx={{ textAlign: 'center', mb: 3 }} onClick={() => SelectQuantityclick(index, item)}>
+              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
+                ADD Quantity
+              </Button>{' '}
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
@@ -1078,6 +1184,8 @@ const StepPreviewDiet = ({
 
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
+                                  console.log(formData?.child?.length, 'lll')
+
                                   return (
                                     <TableRow key={index}>
                                       <TableCell
@@ -1086,7 +1194,14 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width: '500px',
+                                          width:
+                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                              ? '580px'
+                                              : formData?.child?.length === 1 || formData?.child?.length === 0
+                                              ? '660px'
+                                              : formData?.child?.length > 1
+                                              ? '500px'
+                                              : '580px',
                                           float: 'left'
                                         }}
                                       >
@@ -1313,7 +1428,7 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.feed_uom_name
+                                                      ? meal.quantity + ' ' + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1322,174 +1437,68 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </TableCell>
                                       {formData.child?.map((all, indexnew) => {
-                                        return (
-                                          <TableCell
-                                            key={index}
-                                            style={{
-                                              paddingLeft: '8px',
-                                              paddingRight: '8px',
-                                              height: '10px',
-                                              maxHeight: '100%',
-                                              border: 'none'
-                                            }}
-                                            onClick={() => handleClickOpen(index, item, all, 'ingredient')}
-                                          >
-                                            <Box
-                                              sx={{
-                                                height: '100%'
+                                        if (all !== 'Generic') {
+                                          return (
+                                            <TableCell
+                                              key={index}
+                                              style={{
+                                                paddingLeft: '8px',
+                                                paddingRight: '8px',
+                                                height: '10px',
+                                                maxHeight: '100%',
+                                                border: 'none'
                                               }}
+                                              onClick={() => handleClickOpen(index, item, all, 'ingredient')}
                                             >
                                               <Box
                                                 sx={{
-                                                  backgroundColor: '#0000000d',
-                                                  p: '10px',
-                                                  width: '125px',
-                                                  display: 'flex',
-                                                  justifyContent: 'center',
-                                                  alignItems: 'center',
-                                                  borderRadius: '8px',
                                                   height: '100%'
                                                 }}
                                               >
-                                                <Typography
+                                                <Box
                                                   sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
+                                                    backgroundColor: '#0000000d',
+                                                    p: '10px',
+                                                    width: '125px',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    borderRadius: '8px',
+                                                    height: '100%'
                                                   }}
                                                 >
-                                                  {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                    ? item.meal_type.map((meal, i) => {
-                                                        if (all.includes(meal.meal_value_header)) {
-                                                          return meal.quantity + ' ' + meal.feed_uom_name
-                                                        } else {
-                                                          return ''
-                                                        }
-                                                      })
-                                                    : item.meal_type
-                                                    ? item.meal_type.map((meal, i) => {
-                                                        return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.feed_uom_name
-                                                          : ''
-                                                      })
-                                                    : 'Add'}
-                                                </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          if (all.includes(meal.meal_value_header)) {
+                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                          } else {
+                                                            return ''
+                                                          }
+                                                        })
+                                                      : item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          return meal.meal_value_header === all
+                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            : ''
+                                                        })
+                                                      : 'Add'}
+                                                  </Typography>
+                                                </Box>
                                               </Box>
-                                            </Box>
-                                          </TableCell>
-                                        )
+                                            </TableCell>
+                                          )
+                                        }
                                       })}
 
-                                      <Dialog
-                                        open={open}
-                                        onClose={handleClosed}
-                                        aria-labelledby='customized-dialog-title'
-                                        sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
-                                      >
-                                        <DialogTitle
-                                          id='customized-dialog-title'
-                                          sx={{
-                                            p: 4,
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                          }}
-                                        >
-                                          <Typography variant='h6'>Add Value</Typography>
-                                          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
-                                        </DialogTitle>
-                                        <DialogContent>
-                                          {console.log(initialValues.quantity)}
-                                          <Grid container spacing={5} sx={{ mt: 1 }}>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                <Controller
-                                                  name='quantity'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <TextField
-                                                      type='number'
-                                                      label='Quantity '
-                                                      name='quantity'
-                                                      onChange={onChange}
-                                                      defaultValue={getValues('quantity')}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                                                {console.log(uomList, 'uomList')}
-                                                {console.log(initialValues.feed_uom_name, 'eee')}
-                                                <Controller
-                                                  name='feed_uom_name'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <Autocomplete
-                                                      defaultValue={
-                                                        getValues('feed_uom_name') && getValues('meal_value_uom_id')
-                                                          ? {
-                                                              label: getValues('feed_uom_name'),
-                                                              value: getValues('meal_value_uom_id')
-                                                            }
-                                                          : null
-                                                      }
-                                                      onChange={(event, newValue) => {
-                                                        onChange(newValue) // Update the form value
-                                                      }}
-                                                      options={transformedArray} // List of options with value and label
-                                                      getOptionLabel={option => option.label} // Function to get the label of the option
-                                                      getOptionValue={option => option.value}
-                                                      renderInput={params => (
-                                                        <TextField
-                                                          {...params}
-                                                          label='Select Unit'
-                                                          placeholder='Search & Select'
-                                                        />
-                                                      )}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-
-                                            <Grid item xs={12} sx={{ pt: 5 }}>
-                                              <Controller
-                                                name='notes'
-                                                control={control}
-                                                rules={{ required: true }}
-                                                render={({ field: { value, onChange } }) => (
-                                                  <TextField
-                                                    multiline
-                                                    fullWidth
-                                                    label='Notes '
-                                                    name='notes'
-                                                    onChange={onChange}
-                                                    id='textarea-outlined'
-                                                    rows={3}
-                                                    defaultValue={getValues('notes')}
-                                                  />
-                                                )}
-                                              />
-                                            </Grid>
-                                            <Grid
-                                              item
-                                              xs={12}
-                                              sx={{ textAlign: 'center', mb: 3 }}
-                                              onClick={() => SelectQuantityclick(index, item)}
-                                            >
-                                              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
-                                                ADD Quantity
-                                              </Button>{' '}
-                                            </Grid>
-                                          </Grid>
-                                        </DialogContent>
-                                      </Dialog>
+                                      {getModal(index, item)}
                                     </TableRow>
                                   )
                                 })}
@@ -1505,7 +1514,14 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width: '500px',
+                                          width:
+                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                              ? '580px'
+                                              : formData?.child?.length === 1 || formData?.child?.length === 0
+                                              ? '660px'
+                                              : formData?.child?.length > 1
+                                              ? '500px'
+                                              : '580px',
                                           float: 'left'
                                         }}
                                       >
@@ -1732,7 +1748,7 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.feed_uom_name
+                                                      ? meal.quantity + ' ' + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1741,158 +1757,67 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </TableCell>
                                       {formData.child?.map((all, indexnew) => {
-                                        return (
-                                          <TableCell
-                                            key={index}
-                                            style={{
-                                              paddingLeft: '8px',
-                                              paddingRight: '8px',
-                                              height: '10px',
-                                              maxHeight: '100%',
-                                              border: 'none'
-                                            }}
-                                            onClick={() => handleClickOpen(index, item, all, 'recipe')}
-                                          >
-                                            <Box
-                                              sx={{
-                                                height: '100%'
+                                        if (all !== 'Generic') {
+                                          return (
+                                            <TableCell
+                                              key={index}
+                                              style={{
+                                                paddingLeft: '8px',
+                                                paddingRight: '8px',
+                                                height: '10px',
+                                                maxHeight: '100%',
+                                                border: 'none'
                                               }}
+                                              onClick={() => handleClickOpen(index, item, all, 'recipe')}
                                             >
                                               <Box
                                                 sx={{
-                                                  backgroundColor: '#0000000d',
-                                                  p: '10px',
-                                                  width: '125px',
-                                                  display: 'flex',
-                                                  justifyContent: 'center',
-                                                  alignItems: 'center',
-                                                  borderRadius: '8px',
                                                   height: '100%'
                                                 }}
                                               >
-                                                <Typography
+                                                <Box
                                                   sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
+                                                    backgroundColor: '#0000000d',
+                                                    p: '10px',
+                                                    width: '125px',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    borderRadius: '8px',
+                                                    height: '100%'
                                                   }}
                                                 >
-                                                  {item.meal_type
-                                                    ? item.meal_type.map((meal, i) => {
-                                                        return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.feed_uom_name
-                                                          : ''
-                                                      })
-                                                    : 'Add'}
-                                                </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          if (all.includes(meal.meal_value_header)) {
+                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                          } else {
+                                                            return ''
+                                                          }
+                                                        })
+                                                      : item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          return meal.meal_value_header === all
+                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            : ''
+                                                        })
+                                                      : 'Add'}
+                                                  </Typography>
+                                                </Box>
                                               </Box>
-                                            </Box>
-                                          </TableCell>
-                                        )
+                                            </TableCell>
+                                          )
+                                        }
                                       })}
-                                      <Dialog
-                                        open={open}
-                                        onClose={handleClosed}
-                                        aria-labelledby='customized-dialog-title'
-                                        sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
-                                      >
-                                        <DialogTitle
-                                          id='customized-dialog-title'
-                                          sx={{
-                                            p: 4,
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                          }}
-                                        >
-                                          <Typography variant='h6'>Add Value</Typography>
-                                          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
-                                        </DialogTitle>
-                                        <DialogContent>
-                                          <Grid container spacing={5} sx={{ mt: 1 }}>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                <Controller
-                                                  name='quantity'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <TextField
-                                                      type='number'
-                                                      label='Quantity '
-                                                      name='quantity'
-                                                      onChange={onChange}
-                                                      defaultValue={initialValues.quantity}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                                                {console.log(uomList, 'uomList')}
-                                                <Controller
-                                                  name='feed_uom_name'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <Autocomplete
-                                                      onChange={(event, newValue) => {
-                                                        onChange(newValue) // Update the form value
-                                                      }}
-                                                      defaultValue={
-                                                        initialValues.feed_uom_name ? initialValues.feed_uom_name : null
-                                                      }
-                                                      options={transformedArray} // List of options with value and label
-                                                      getOptionLabel={option => option.label} // Function to get the label of the option
-                                                      getOptionValue={option => option.value}
-                                                      renderInput={params => (
-                                                        <TextField
-                                                          {...params}
-                                                          label='Select Unit'
-                                                          placeholder='Search & Select'
-                                                        />
-                                                      )}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-
-                                            <Grid item xs={12} sx={{ pt: 5 }}>
-                                              <Controller
-                                                name='notes'
-                                                control={control}
-                                                rules={{ required: true }}
-                                                render={({ field: { value, onChange } }) => (
-                                                  <TextField
-                                                    multiline
-                                                    fullWidth
-                                                    label='Notes '
-                                                    name='notes'
-                                                    onChange={onChange}
-                                                    id='textarea-outlined'
-                                                    rows={3}
-                                                    defaultValue={initialValues.notes}
-                                                  />
-                                                )}
-                                              />
-                                            </Grid>
-                                            <Grid
-                                              item
-                                              xs={12}
-                                              sx={{ textAlign: 'center', mb: 3 }}
-                                              onClick={() => SelectQuantityclick(index, item)}
-                                            >
-                                              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
-                                                ADD Quantity
-                                              </Button>{' '}
-                                            </Grid>
-                                          </Grid>
-                                        </DialogContent>
-                                      </Dialog>
+                                      {getModal(index, item)}
                                     </TableRow>
                                   )
                                 })}
@@ -1908,7 +1833,14 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width: '500px',
+                                          width:
+                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                              ? '580px'
+                                              : formData?.child?.length === 1 || formData?.child?.length === 0
+                                              ? '660px'
+                                              : formData?.child?.length > 1
+                                              ? '500px'
+                                              : '580px',
                                           float: 'left'
                                         }}
                                       >
@@ -2112,7 +2044,7 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + meal.feed_uom_name
+                                                      ? meal.quantity + ' ' + meal.feed_uom_name
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -2121,159 +2053,67 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </TableCell>
                                       {formData.child?.map((all, indexnew) => {
-                                        return (
-                                          <TableCell
-                                            key={index}
-                                            style={{
-                                              paddingLeft: '8px',
-                                              paddingRight: '8px',
-                                              height: '10px',
-                                              maxHeight: '100%',
-                                              border: 'none'
-                                            }}
-                                            onClick={() => handleClickOpen(index, item, all, 'ingredientwithchoice')}
-                                          >
-                                            <Box
-                                              sx={{
-                                                height: '100%'
+                                        if (all !== 'Generic') {
+                                          return (
+                                            <TableCell
+                                              key={index}
+                                              style={{
+                                                paddingLeft: '8px',
+                                                paddingRight: '8px',
+                                                height: '10px',
+                                                maxHeight: '100%',
+                                                border: 'none'
                                               }}
+                                              onClick={() => handleClickOpen(index, item, all, 'ingredientwithchoice')}
                                             >
                                               <Box
                                                 sx={{
-                                                  backgroundColor: '#0000000d',
-                                                  p: '10px',
-                                                  width: '125px',
-                                                  display: 'flex',
-                                                  justifyContent: 'center',
-                                                  alignItems: 'center',
-                                                  borderRadius: '8px',
                                                   height: '100%'
                                                 }}
                                               >
-                                                <Typography
+                                                <Box
                                                   sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
+                                                    backgroundColor: '#0000000d',
+                                                    p: '10px',
+                                                    width: '125px',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    borderRadius: '8px',
+                                                    height: '100%'
                                                   }}
                                                 >
-                                                  {item.meal_type
-                                                    ? item.meal_type.map((meal, i) => {
-                                                        return meal.meal_value_header === all
-                                                          ? meal.quantity + meal.feed_uom_name
-                                                          : ''
-                                                      })
-                                                    : 'Add'}
-                                                </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: '#000',
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          if (all.includes(meal.meal_value_header)) {
+                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                          } else {
+                                                            return ''
+                                                          }
+                                                        })
+                                                      : item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          return meal.meal_value_header === all
+                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            : ''
+                                                        })
+                                                      : 'Add'}
+                                                  </Typography>
+                                                </Box>
                                               </Box>
-                                            </Box>
-                                          </TableCell>
-                                        )
+                                            </TableCell>
+                                          )
+                                        }
                                       })}
-                                      <Dialog
-                                        open={open}
-                                        onClose={handleClosed}
-                                        aria-labelledby='customized-dialog-title'
-                                        sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: 500 } }}
-                                      >
-                                        <DialogTitle
-                                          id='customized-dialog-title'
-                                          sx={{
-                                            p: 4,
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                          }}
-                                        >
-                                          <Typography variant='h6'>Add Value</Typography>
-                                          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
-                                        </DialogTitle>
-                                        <DialogContent>
-                                          {/* <Typography variant='h6'>Add Value</Typography> */}
-                                          <Grid container spacing={5} sx={{ mt: 1 }}>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                <Controller
-                                                  name='quantity'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <TextField
-                                                      type='number'
-                                                      label='Quantity '
-                                                      name='quantity'
-                                                      onChange={onChange}
-                                                      defaultValue={initialValues.quantity}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12} sm={6}>
-                                              <FormControl fullWidth>
-                                                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                                                {console.log(uomList, 'uomList')}
-                                                <Controller
-                                                  name='feed_uom_name'
-                                                  control={control}
-                                                  rules={{ required: true }}
-                                                  render={({ field: { value, onChange } }) => (
-                                                    <Autocomplete
-                                                      onChange={(event, newValue) => {
-                                                        onChange(newValue) // Update the form value
-                                                      }}
-                                                      defaultValue={
-                                                        initialValues.feed_uom_name ? initialValues.feed_uom_name : null
-                                                      }
-                                                      options={transformedArray} // List of options with value and label
-                                                      getOptionLabel={option => option.label} // Function to get the label of the option
-                                                      getOptionValue={option => option.value}
-                                                      renderInput={params => (
-                                                        <TextField
-                                                          {...params}
-                                                          label='Select Unit'
-                                                          placeholder='Search & Select'
-                                                        />
-                                                      )}
-                                                    />
-                                                  )}
-                                                />
-                                              </FormControl>
-                                            </Grid>
-
-                                            <Grid item xs={12} sx={{ pt: 5 }}>
-                                              <Controller
-                                                name='notes'
-                                                control={control}
-                                                rules={{ required: true }}
-                                                render={({ field: { value, onChange } }) => (
-                                                  <TextField
-                                                    multiline
-                                                    fullWidth
-                                                    label='Notes '
-                                                    name='notes'
-                                                    onChange={onChange}
-                                                    id='textarea-outlined'
-                                                    rows={3}
-                                                    defaultValue={initialValues.notes}
-                                                  />
-                                                )}
-                                              />
-                                            </Grid>
-                                            <Grid
-                                              item
-                                              xs={12}
-                                              sx={{ textAlign: 'center', mb: 3 }}
-                                              onClick={() => SelectQuantityclick(index, item)}
-                                            >
-                                              <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
-                                                ADD Quantity
-                                              </Button>{' '}
-                                            </Grid>
-                                          </Grid>
-                                        </DialogContent>
-                                      </Dialog>
+                                      {getModal(index, item)}
                                     </TableRow>
                                   )
                                 })}

@@ -18,6 +18,7 @@ import { useRouter } from 'next/router'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
+import Toaster from 'src/components/Toaster'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
   const router = useRouter()
@@ -45,9 +46,10 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
       if (response.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
+        //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
+        return Toaster({ type: 'success', message: response?.message })
       } else {
-        alert('something went wrong')
+        return Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {}
   }
@@ -193,6 +195,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
         action={confirmDeleteAction}
         open={deleteDialogBox}
         active={isActive}
+        dietCount={IngredientsDetailsval.diet_count}
         type='recipe'
         message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Recipe?</span>}
       />

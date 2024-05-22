@@ -32,6 +32,7 @@ import RecipeListTabview from 'src/views/pages/ingredient/ingredient-detail/reci
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import Toaster from 'src/components/Toaster'
 
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
@@ -127,9 +128,10 @@ const IngredientDetail = () => {
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
 
-        return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
+        //return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
+        return Toaster({ type: 'success', message: response?.data })
       } else {
-        alert('something went wrong')
+        return Toaster({ type: 'error', message: response?.data })
       }
     } catch (error) {}
   }
@@ -310,6 +312,8 @@ const IngredientDetail = () => {
                 open={statusDialog}
                 type='ingredient'
                 active={isActive}
+                recipeCount={IngredientsDetailsval.recipe_count}
+                dietCount={IngredientsDetailsval.diet_count}
                 message={
                   <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                     {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?

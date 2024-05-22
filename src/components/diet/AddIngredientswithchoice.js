@@ -156,6 +156,21 @@ const AddIngredientswithChoice = props => {
 
     // Get the remarks value
     const remarksData = remarks || ''
+    if (!feed_type) {
+      // toast.error('Please select a feed type.')
+
+      return
+    }
+
+    if (feed_type === 'Chopped') {
+      const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
+      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      if (!cutSizeValue || !sizeValue) {
+        // toast.error('Cut size and size are required for chopped feed.')
+
+        return
+      }
+    }
 
     // Prepare the object to store values
     const boxValues = {
@@ -311,6 +326,7 @@ const AddIngredientswithChoice = props => {
         setSelectFeed(selectFeedObj)
       }
     } else {
+      setListOfIngredient(allIngredientchoiceSelectedValues)
       setSelectedCardIngredientchoice([])
       setSelectedDays([])
       setShowDays(false)
@@ -412,28 +428,159 @@ const AddIngredientswithChoice = props => {
   console.log('listOfIngredient', listOfIngredient)
   console.log(selectedCardIngchoice, 'selectedCardIngchoice')
 
+  // const handelSetIngredient = () => {
+  //   setShowDays(false)
+  //   setOpenIngredientchoice(false)
+  //   console.log(allIngredientchoiceSelectedValues, 'allIngredientchoiceSelectedValues')
+  //   console.log(selectedCardIngchoice, 'selectedCardIngchoice')
+  //   console.log(listOfIngredient, 'listOfIngredient')
+  //   // Collect data
+  //   if (ingType === 'addingIndex') {
+  //     // Find the index of the ingredient being updated
+  //     const existingIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
+  //       return (
+  //         index === ingredientChoiceIndex && // Check if the index matches
+  //         item.mealid === checkid && // Check if the mealid matches
+  //         item.ingredientList.some(ingredient => {
+  //           return selectedCardIngchoice.some(selectedIngredient => {
+  //             return selectedIngredient.ingredient_id === ingredient.ingredient_id
+  //           })
+  //         })
+  //       )
+  //     })
+  //     console.log(existingIngredientIndex, 'existingIngredientIndex')
+  //     // If the ingredient_id with the same mealid exists, update its values
+  //     if (existingIngredientIndex !== -1) {
+  //       // Clone the listOfIngredient to make changes
+  //       const updatedListOfIngredient = [...allIngredientchoiceSelectedValues]
+
+  //       // Update the ingredient at the specified index
+  //       updatedListOfIngredient[existingIngredientIndex] = {
+  //         ...updatedListOfIngredient[existingIngredientIndex],
+  //         ingredientList: selectedCardIngchoice,
+  //         days_of_week: selectedDays,
+  //         no_of_component_required: count,
+  //         remarks: remarks
+  //       }
+  //       console.log(listOfIngredient, 'listOfIngredient')
+
+  //       // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
+  //       const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
+  //         return (
+  //           index !== existingIngredientIndex && // Exclude the current index
+  //           item.mealid === checkid && // Check if the mealid matches
+  //           item.ingredientList.some(ingredient => {
+  //             return selectedCardIngchoice.some(selectedIngredient => {
+  //               return (
+  //                 selectedIngredient.ingredient_id === ingredient.ingredient_id &&
+  //                 selectedIngredient.preparation_type === ingredient.preparation_type
+  //               )
+  //             })
+  //           })
+  //         )
+  //       })
+
+  //       // If the same ingredient_id is found in another index with the same preparation_type, show an error toast
+  //       if (duplicateIngredientIndex !== -1) {
+  //         toast.error('Cannot update ingredient with the same preparation type in multiple places.')
+  //         setingType('')
+
+  //         return
+  //       }
+
+  //       // Set the updated listOfIngredient
+  //       setListOfIngredient(updatedListOfIngredient)
+  //       onChange(updatedListOfIngredient)
+
+  //       // Show success toast message for updating the ingredient
+  //       toast.success('Ingredient updated successfully!')
+
+  //       return
+  //     }
+  //   } else {
+  //     const selectedIngredient = {
+  //       ingredientList: selectedCardIngchoice,
+  //       days_of_week: selectedDays,
+  //       no_of_component_required: count,
+  //       remarks: remarks,
+  //       mealid: checkid
+  //     }
+
+  //     // Check if any ingredient with the same preparation_type and ingredient_id already exists for the same mealid
+  //     const matchedIngredient = listOfIngredient.find(item => {
+  //       return (
+  //         item.mealid === checkid && // Check if the mealid matches
+  //         item.ingredientList.some(ingredient => {
+  //           return selectedCardIngchoice.some(selectedIngredient => {
+  //             return (
+  //               selectedIngredient.preparation_type === ingredient.preparation_type &&
+  //               selectedIngredient.ingredient_id === ingredient.ingredient_id
+  //             )
+  //           })
+  //         })
+  //       )
+  //     })
+
+  //     if (matchedIngredient) {
+  //       const daysMatch = selectedDays.every(day => matchedIngredient.days_of_week.includes(day))
+  //       if (daysMatch) {
+  //         // If days_of_week arrays partially match, do not add
+  //         const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
+  //         console.log(
+  //           `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+  //         )
+  //         toast.error(
+  //           `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+  //         )
+
+  //         return
+  //       }
+  //     }
+
+  //     // Add the selected ingredient to the list of ingredients
+  //     setListOfIngredient(prevList => {
+  //       const updatedList = [...prevList, selectedIngredient]
+  //       onChange(updatedList) // Call onChange with the updated list
+  //       console.log(updatedList, 'updatedList')
+
+  //       return updatedList
+  //     })
+  //     setSelectedCardIngredientchoice([])
+  //     setVisibility([])
+  //     setSelectFeed({})
+
+  //     // Show success toast message
+  //     toast.success('Ingredient added successfully!')
+  //   }
+  // }
+
   const handelSetIngredient = () => {
     setShowDays(false)
     setOpenIngredientchoice(false)
-    console.log(allIngredientchoiceSelectedValues, 'allIngredientchoiceSelectedValues')
-    console.log(selectedCardIngchoice, 'selectedCardIngchoice')
+    console.log(allIngredientchoiceSelectedValues, 'allIngredientChoiceSelectedValues')
+    console.log(selectedCardIngchoice, 'selectedCardIngChoice')
     console.log(listOfIngredient, 'listOfIngredient')
-    // Collect data
+
     if (ingType === 'addingIndex') {
       // Find the index of the ingredient being updated
       const existingIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
-        return (
-          index === ingredientChoiceIndex && // Check if the index matches
-          item.mealid === checkid && // Check if the mealid matches
-          item.ingredientList.some(ingredient => {
-            return selectedCardIngchoice.some(selectedIngredient => {
-              return selectedIngredient.ingredient_id === ingredient.ingredient_id
-            })
-          })
-        )
+        if (index === ingredientChoiceIndex && item.mealid === checkid) {
+          // If ingredientList is empty, return true (match)
+          if (item.ingredientList.length === 0) return true
+
+          // Otherwise, check for matching ingredient_id
+          return item.ingredientList.some(ingredient =>
+            selectedCardIngchoice.some(
+              selectedIngredient => selectedIngredient.ingredient_id === ingredient.ingredient_id
+            )
+          )
+        }
+
+        return false
       })
+
       console.log(existingIngredientIndex, 'existingIngredientIndex')
-      // If the ingredient_id with the same mealid exists, update its values
+
       if (existingIngredientIndex !== -1) {
         // Clone the listOfIngredient to make changes
         const updatedListOfIngredient = [...allIngredientchoiceSelectedValues]
@@ -454,12 +601,11 @@ const AddIngredientswithChoice = props => {
             index !== existingIngredientIndex && // Exclude the current index
             item.mealid === checkid && // Check if the mealid matches
             item.ingredientList.some(ingredient => {
-              return selectedCardIngchoice.some(selectedIngredient => {
-                return (
+              return selectedCardIngchoice.some(
+                selectedIngredient =>
                   selectedIngredient.ingredient_id === ingredient.ingredient_id &&
                   selectedIngredient.preparation_type === ingredient.preparation_type
-                )
-              })
+              )
             })
           )
         })
@@ -495,12 +641,11 @@ const AddIngredientswithChoice = props => {
         return (
           item.mealid === checkid && // Check if the mealid matches
           item.ingredientList.some(ingredient => {
-            return selectedCardIngchoice.some(selectedIngredient => {
-              return (
+            return selectedCardIngchoice.some(
+              selectedIngredient =>
                 selectedIngredient.preparation_type === ingredient.preparation_type &&
                 selectedIngredient.ingredient_id === ingredient.ingredient_id
-              )
-            })
+            )
           })
         )
       })
@@ -529,6 +674,7 @@ const AddIngredientswithChoice = props => {
 
         return updatedList
       })
+
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
@@ -631,7 +777,7 @@ const AddIngredientswithChoice = props => {
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
-                ...(visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
+                ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69'
                 })
               }}

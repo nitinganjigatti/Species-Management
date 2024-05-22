@@ -3,7 +3,8 @@ import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
-import TimelineDot from '@mui/lab/TimelineDot'
+
+// import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
@@ -13,7 +14,8 @@ import Icon from 'src/@core/components/icon'
 import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 
 const ActivityLogs = ({
   activitySidebarOpen,
@@ -27,11 +29,11 @@ const ActivityLogs = ({
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(20)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  // const [openSnackbar, setOpenSnackbar] = useState({
+  //   open: false,
+  //   severity: '',
+  //   message: ''
+  // })
   const theme = useTheme()
 
   // Styled Timeline component
@@ -58,29 +60,31 @@ const ActivityLogs = ({
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
           setActivityData(res?.data?.data)
-          setOpenSnackbar({
-            ...openSnackbar,
-            open: true,
-            message: JSON.stringify(res?.data?.message),
-            severity: 'success'
-          })
+
+          // setOpenSnackbar({
+          //   ...openSnackbar,
+          //   open: true,
+          //   message: JSON.stringify(res?.data?.message),
+          //   severity: 'success'
+          // })
         } else {
-          setOpenSnackbar({
-            ...openSnackbar,
-            open: true,
-            message: JSON.stringify(res?.data?.message),
-            severity: 'error'
-          })
+          // setOpenSnackbar({
+          //   ...openSnackbar,
+          //   open: true,
+          //   message: JSON.stringify(res?.data?.message),
+          //   severity: 'error'
+          // })
         }
       })
     } catch (error) {
       console.log('error', error)
-      setOpenSnackbar({
-        ...openSnackbar,
-        open: true,
-        message: JSON.stringify(error),
-        severity: 'error'
-      })
+
+      // setOpenSnackbar({
+      //   ...openSnackbar,
+      //   open: true,
+      //   message: JSON.stringify(error),
+      //   severity: 'error'
+      // })
     }
   }
 
@@ -140,7 +144,9 @@ const ActivityLogs = ({
                 <Box>
                   <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
                   <Typography sx={{ fontWeight: 400, fontSize: '14px' }}>
-                    View a detailed history of ingredient actions, including updates, activations, and deactivations
+                    {/* View a detailed history of ingredient actions, including updates, activations, and deactivations */}
+                    View a detailed history of {activity_type.charAt(0).toUpperCase() + activity_type.slice(1)} actions,
+                    including updates, activations, and deactivations
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -320,7 +326,8 @@ const ActivityLogs = ({
                                     }}
                                   >
                                     {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
-                                    &nbsp; Ingredient
+                                    {/* &nbsp; Ingredient */}
+                                    &nbsp; {activity_type.charAt(0).toUpperCase() + activity_type.slice(1)}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -344,14 +351,14 @@ const ActivityLogs = ({
                     </Timeline>
                   </Box>
                 ))}
-                {openSnackbar.open ? (
+                {/* {openSnackbar.open ? (
                   <UserSnackbar
                     severity={openSnackbar?.severity}
                     status={true}
                     message={openSnackbar?.message}
                     handleClose={() => setOpenSnackbar({ ...openSnackbar, open: false })}
                   />
-                ) : null}
+                ) : null} */}
               </Box>
             ) : null}
           </Box>
