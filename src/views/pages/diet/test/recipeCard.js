@@ -284,11 +284,21 @@ const RecipeCard = ({
   }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen])
 
   const sortedRecipeList = [...rows]?.sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  console.log('sortedRecipeList :>> ', sortedRecipeList)
+
+  const calculateTotalQuantity = ingredients => {
+    return ingredients.reduce((total, ingredient) => {
+      return total + parseFloat(ingredient.quantity)
+    }, 0)
+  }
 
   return (
     <Box>
       {/* Example Card */}
       {sortedRecipeList?.map((item, index) => {
+        // const getQuantity = item?.by_percentage
+        console.log('calculateTotalQuantity :>> ', calculateTotalQuantity(item?.by_percentage))
+
         return (
           <>
             <Box
@@ -365,7 +375,7 @@ const RecipeCard = ({
                       {/* {console.log(item, 'item')} */}
                       <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                         {item?.ingredients_count}&nbsp;
-                        <span style={{ color: '#e55b3e' }}> (68%)</span>
+                        <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
                     </Box>
@@ -373,7 +383,7 @@ const RecipeCard = ({
                     <Box>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
-                        05 nos
+                        {item?.by_quantity?.length} nos
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
                     </Box>
