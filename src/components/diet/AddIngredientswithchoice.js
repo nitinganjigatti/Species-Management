@@ -684,6 +684,8 @@ const AddIngredientswithChoice = props => {
     }
   }
 
+  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
   return (
     <>
       <Drawer
@@ -768,8 +770,8 @@ const AddIngredientswithChoice = props => {
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
           onScroll={handleScroll}
         >
-          {console.log(ingredientList, 'ingredientList')}
-          {ingredientList?.map((item, index) => (
+          {/* {console.log(ingredientList, 'ingredientList')} */}
+          {sortedIngredientList?.map((item, index) => (
             <Box
               key={item?.id}
               sx={{
@@ -862,16 +864,10 @@ const AddIngredientswithChoice = props => {
                           value={selectFeed[item.id]?.id || ''}
                           onChange={e => handleChangeFeed(e, item)}
                           displayEmpty
-                          sx={{
-                            ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                              borderColor: !selectFeed[item.id]?.id ? 'red' : '#ffffff',
-                              borderWidth: '2px',
-                              borderStyle: 'solid',
-                              '&.Mui-focused': {
-                                borderColor: 'transparent'
-                              }
-                            })
-                          }}
+                          error={
+                            visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                            !selectFeed[item.id]?.id
+                          }
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -917,23 +913,10 @@ const AddIngredientswithChoice = props => {
                               variant='outlined'
                               value={cutSize[item.id]?.id || ''}
                               onChange={event => handelInputCutSize(event, item)}
-                              sx={{
-                                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                                  '& .MuiOutlinedInput-root': {
-                                    '& fieldset': {
-                                      borderColor: !cutSize[item.id]?.id && 'red',
-                                      borderWidth: '2px'
-                                    },
-                                    '&:hover fieldset': {
-                                      borderColor: !cutSize[item.id]?.id && 'red'
-                                    },
-                                    '&.Mui-focused fieldset': {
-                                      borderColor: !cutSize[item.id]?.id && 'default'
-                                    }
-                                  }
-                                }),
-                                borderRadius: 1 // Ensure borderRadius is applied correctly
-                              }}
+                              error={
+                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                !cutSize[item.id]?.id
+                              }
 
                               // onChange={event => setCutSize(event.target.value)}
                             />
@@ -946,16 +929,10 @@ const AddIngredientswithChoice = props => {
                               value={size[item.id]?.id || ''}
                               onChange={event => handleChangeSize(event, item)}
                               displayEmpty
-                              sx={{
-                                ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                                  borderColor: !size[item.id]?.id ? 'red' : '#ffffff',
-                                  borderWidth: '2px',
-                                  borderStyle: 'solid',
-                                  '&.Mui-focused': {
-                                    borderColor: 'transparent'
-                                  }
-                                })
-                              }}
+                              error={
+                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                !size[item.id]?.id
+                              }
                             >
                               <MenuItem value='' disabled>
                                 Select
