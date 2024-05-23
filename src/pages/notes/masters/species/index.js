@@ -1,13 +1,13 @@
-import { Avatar, Badge, Button, Card, CardHeader, Typography, debounce } from "@mui/material"
-import { DataGrid } from "@mui/x-data-grid"
-import { useCallback, useEffect, useState } from "react"
-import FallbackSpinner from "src/@core/components/spinner"
+import { Avatar, Badge, Button, Card, CardHeader, Typography, debounce } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
+import { useCallback, useEffect, useState } from 'react'
+import FallbackSpinner from 'src/@core/components/spinner'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-import { GetBannerImages, getSearchTaxonomyList, getSpeciesList, getVernacularSpeciesById } from "src/lib/api/species"
-import AddSpeciesSlideBar from "src/views/pages/species/SpeciesSlider"
-import { Try } from "@mui/icons-material"
-import toast from "react-hot-toast"
+import { GetBannerImages, getSearchTaxonomyList, getSpeciesList, getVernacularSpeciesById } from 'src/lib/api/species'
+import AddSpeciesSlideBar from 'src/views/pages/species/SpeciesSlider'
+import { Try } from '@mui/icons-material'
+import toast from 'react-hot-toast'
 
 const AddSpecies = () => {
   const [loader, setLoader] = useState(false)
@@ -20,43 +20,43 @@ const AddSpecies = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   const [editVernacularNames, setEditVernacularNames] = useState([])
-  const [editName, setEditName] = useState("")
-  const [speciesImage, setSpeciesImage] = useState("")
-  const [BannerImages , setBannerImages] = useState([])
+  const [editName, setEditName] = useState('')
+  const [commonName, setCommonName] = useState('')
+  const [speciesImage, setSpeciesImage] = useState('')
+  const [tsnId, setTsnId] = useState('')
+  const [editCommonId, setEditCommonId] = useState('')
+  const [BannerImages, setBannerImages] = useState([])
 
   const [taxonomy, setTaxonomy] = useState([])
 
-   console.log("Banner iMAGES >>" , BannerImages);
+  console.log('Banner iMAGES >>', BannerImages)
 
-  const fetchTaxonomy = async (searchValue) => {
+  const fetchTaxonomy = async searchValue => {
     try {
-      const response = await getSearchTaxonomyList(searchValue);
-      setTaxonomy(response?.data || []);
-      setOpen(true);
+      const response = await getSearchTaxonomyList(searchValue)
+      setTaxonomy(response?.data || [])
+      setOpen(true)
     } catch (error) {
-      console.error("Error fetching taxonomy list:", error);
+      console.error('Error fetching taxonomy list:', error)
     }
   }
 
-
-
+  console.log('Taxonomy >>', taxonomy)
 
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
-    setEditName("")
+    setEditName('')
     setEditVernacularNames([])
-    setSpeciesImage("")
+    setSpeciesImage('')
   }
 
   const handleSidebarClose = () => {
     setOpenDrawer(false)
   }
 
-
   const columns = [
-
     {
       flex: 0.4,
       minWidth: 20,
@@ -92,7 +92,6 @@ const AddSpecies = () => {
       )
     },
 
-
     {
       flex: 0.4,
       minWidth: 20,
@@ -103,16 +102,12 @@ const AddSpecies = () => {
           {params.row.complete_name}
         </Typography>
       )
-    },
-
-
+    }
   ]
 
   function loadServerRows(currentPage, data) {
     return data
   }
-
-
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
@@ -142,11 +137,8 @@ const AddSpecies = () => {
     [paginationModel]
   )
 
-
-
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
-      debugger
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column })
@@ -160,18 +152,12 @@ const AddSpecies = () => {
   const headerAction = (
     <>
       <div>
-        <Button
-          size='big'
-          variant='outlined'
-          onClick={() => addEventSidebarOpen()}
-        >
+        <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
           Add Species
         </Button>
       </div>
-
     </>
   )
-
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
@@ -184,16 +170,15 @@ const AddSpecies = () => {
     }
   }
 
-  const handleSearch = async (value) => {
-    setSearchValue(value);
+  const handleSearch = async value => {
+    setSearchValue(value)
 
     try {
-
-      await fetchTableData({ sort, searchValue: value, column: sortColumn });
+      await fetchTableData({ sort, searchValue: value, column: sortColumn })
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
-  };
+  }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -203,41 +188,42 @@ const AddSpecies = () => {
     sl_no: getSlNo(index)
   }))
 
-
-  const handleRowClick = async (params) => {
-    console.log("params >>", params);
-    setOpenDrawer(true);
-    const tsnId = params.row.id;
-    setEditName(params?.row?.complete_name);
-    setSpeciesImage(params?.row?.default_icon);
+  const handleRowClick = async params => {
+    console.log('params >>', params)
+    setOpenDrawer(true)
+    const tsnId = params.row.id
+    setTsnId(params.row.id)
+    setEditName(params?.row?.complete_name)
+    setCommonName(params?.row?.default_common_name)
+    setEditCommonId(params?.row?.default_common_name_id)
+    setSpeciesImage(params?.row?.default_icon)
 
     try {
-      const vernacularResponse = await getVernacularSpeciesById(tsnId);
+      const vernacularResponse = await getVernacularSpeciesById(tsnId)
       if (vernacularResponse?.success) {
-        setEditVernacularNames(vernacularResponse?.data);
-        toast.success("Vernacular Names fetched successfully");
+        setEditVernacularNames(vernacularResponse?.data)
+        toast.success('Vernacular Names fetched successfully')
       } else {
-        toast.error("Unable to fetch Vernacular Names");
+        toast.error('Unable to fetch Vernacular Names')
       }
-       debugger
-      // Fetch banner images
-      const bannerResponse = await GetBannerImages(tsnId);
-      if (bannerResponse?.success) {
-        setBannerImages(bannerResponse?.data); 
-        toast.success("Banner Images fetched successfully");
-      } else {
-        toast.error("Unable to fetch Banner Images");
+
+      // Manually trigger onChange event of Autocomplete with the selected taxonomy value
+      const selectedTaxonomy = taxonomy.find(item => item.taxonomy_id === tsnId)
+      if (selectedTaxonomy) {
+        setDefaultTaxonomy(selectedTaxonomy)
+        fetchSpeciesVernacularData(selectedTaxonomy)
+        setValue('tsn_id', selectedTaxonomy.taxonomy_id) // Set tsn_id in the form
+        setValue('scientificName', selectedTaxonomy.scientific_name) // Set scientificName in the form
       }
     } catch (error) {
-      console.log("Error:", error);
-      toast.error("Error fetching data");
+      console.log('Error:', error)
+      toast.error('Error fetching data')
     }
-  };
+  }
 
-  console.log("Vernacular >>", editVernacularNames);
+  console.log('Vernacular >>', editVernacularNames)
 
-
-
+  console.log('TSN iD>>', tsnId)
 
   return (
     <>
@@ -278,7 +264,7 @@ const AddSpecies = () => {
               }}
             />
           </Card>
-          {openDrawer &&
+          {openDrawer && (
             <AddSpeciesSlideBar
               drawerWidth={400}
               addEventSidebarOpen={openDrawer}
@@ -288,14 +274,16 @@ const AddSpecies = () => {
               taxonomy={taxonomy}
               fetchTaxonomy={fetchTaxonomy}
               editName={editName}
+              tsnId={tsnId}
+              commonName={commonName}
+              editCommonId={editCommonId}
               speciesImage={speciesImage}
-
             />
-          }
+          )}
         </>
       )}
     </>
   )
 }
 
-export default AddSpecies;
+export default AddSpecies
