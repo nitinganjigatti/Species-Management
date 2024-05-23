@@ -44,6 +44,7 @@ const AddIngredients = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
+  console.log('remarks :>> ', remarks)
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -255,9 +256,20 @@ const AddIngredients = props => {
     }
   }
 
-  const handleAddRemarks = event => {
-    event.stopPropagation()
-    setRemarks(event.target.value)
+  const handleAddRemarks = (event, item) => {
+    // event.stopPropagation()
+    // setRemarks(event.target.value)
+    const newRemarks = event.target.value
+    setRemarks(prevState => ({
+      ...prevState,
+      [item.id]: {
+        remarks: event.target.value
+      }
+    }))
+
+    if (remarks) {
+      handelCardSelection(event, item, null, null, null, selectedDays, newRemarks)
+    }
   }
 
   const handleDayClick = (event, dayId, dayName, cardId, item) => {
@@ -405,14 +417,13 @@ const AddIngredients = props => {
   //   setSelectedCard(filteredSelectedCard)
   // }, [checkid])
 
-  const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays) => {
+  const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
     event.stopPropagation()
-    console.log('handelCardSelection called :>> ')
-    console.log('Selected Days passed :>> ', selectedDays)
+    console.log('handelCardSelection newRemarks :>> ', newRemarks)
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
-    const remarksData = remarks || ''
+    const remarksData = newRemarks ? newRemarks : remarks[item.id]?.remarks || ''
 
     const selectedDaysForItem = selectedDays
       ?.filter(updatedDay => updatedDay.cardId === item.id)
@@ -435,14 +446,15 @@ const AddIngredients = props => {
         return
       }
     }
-    console.log(item, 'item')
+    // console.log(item, 'item')
+
     const boxValues = {
       ingredient_id: item.id,
       ingredient_name: item.ingredient_name,
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
       days_of_week: selectedDaysForItem,
-      remarks: remarksData,
+      remarks: newRemarks ? newRemarks : remarksData,
       mealid: checkid,
       ingredient_image: item.ingredient_image,
       feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
@@ -1020,8 +1032,8 @@ const AddIngredients = props => {
                           placeholder='Add Remarks (optional)'
                           variant='standard'
                           InputProps={{ disableUnderline: true }}
-                          {...props}
-                          onChange={handleAddRemarks}
+                          value={remarks[item.id]?.remarks || ''}
+                          onChange={event => handleAddRemarks(event, item)}
                         />
                       </FormControl>
                     </Box>

@@ -818,7 +818,7 @@ const StepBasicDetails = ({
 
                     return (
                       <Autocomplete
-                        value={uomList.find(option => option.id === value) || null}
+                        value={uomList?.find(option => option.id === value) || null}
                         disablePortal
                         id='diet_type_id'
                         options={uomList || []}
