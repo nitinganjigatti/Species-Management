@@ -435,7 +435,7 @@ const AddIngredients = props => {
         return
       }
     }
-
+    console.log(item, 'item')
     const boxValues = {
       ingredient_id: item.id,
       ingredient_name: item.ingredient_name,
@@ -444,6 +444,7 @@ const AddIngredients = props => {
       days_of_week: selectedDaysForItem,
       remarks: remarksData,
       mealid: checkid,
+      ingredient_image: item.ingredient_image,
       feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
       feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom : size[item.id]?.id || '') : ''
     }

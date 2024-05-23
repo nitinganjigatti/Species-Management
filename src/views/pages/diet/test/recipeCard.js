@@ -169,7 +169,9 @@ const RecipeCard = ({
         recipe_id: item.id ? item.id : null,
         days_of_week: selectedDayId,
         remarks: cardRemarks,
-        mealid: checkid
+        mealid: checkid,
+        recipe_image: item.recipe_image,
+        ingredients_count: item.ingredients_count
       }
     })
 
@@ -266,7 +268,20 @@ const RecipeCard = ({
           }))
         })
       })
-      setSelectedDays(updatedSelectedDays)
+      console.log(updatedSelectedDays, 'updatedSelectedDays')
+      // Merge updatedSelectedDays with rows
+      const finalSelectedDays = rows.map(row => {
+        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        if (updatedDay) {
+          return updatedDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day
+          }
+        }
+      })
+      setSelectedDays(finalSelectedDays)
     } else {
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
