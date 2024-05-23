@@ -35,14 +35,15 @@ const RecipeList = props => {
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   // console.log('paginationModel ??', paginationModel)
 
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, limit: paginationModel.pageSize }
+      const params = { page: ingredientPage, q: searchValue, sort }
       await getRecipeList({ params }).then(res => {
         // console.log('response', res)
         if (res.data.result.length > 0) {
@@ -66,11 +67,11 @@ const RecipeList = props => {
     // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
       // User has reached the bottom, perform your action here
-      // console.log('if')
+      setIngredientPage(++ingredientPage)
       setReachedEnd(true)
       try {
-        const nextPage = paginationModel.page + 1
-        const params = { page: nextPage, q: searchValue, sort, limit: paginationModel.pageSize, status: 1 }
+        // const nextPage = paginationModel.page + 1
+        const params = { page: ingredientPage, q: searchValue, sort }
 
         const res = await getRecipeList({ params })
 
@@ -78,7 +79,8 @@ const RecipeList = props => {
 
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-          setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
+
+          // setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
           setReachedEnd(false)
         } else {
           setReachedEnd(false) // Depending on your logic, you might want to set reached end to true
