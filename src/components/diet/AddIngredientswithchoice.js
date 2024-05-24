@@ -258,7 +258,8 @@ const AddIngredientswithChoice = props => {
     try {
       const params = {
         type: ['length', 'weight'],
-        page: 1
+        page: 1,
+        limit: 50
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
