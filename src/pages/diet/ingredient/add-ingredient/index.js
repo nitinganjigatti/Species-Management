@@ -50,12 +50,13 @@ const AddIngredient = () => {
   const fileInputRef = useRef(null)
 
   const router = useRouter()
-  const { id } = router.query
+  const { id, feedTypeId, feedTypeName } = router.query
   const [loading, setLoading] = useState(false)
   const [uomList, setUom] = useState([])
   const [FeedTypeList, setFeedTypeList] = useState([])
   const [defaultUom, setDefaultUom] = useState(null)
-  console.log('defaultUom', defaultUom)
+
+  // console.log('defaultUom', defaultUom)
   const [defaultFeedType, setDefaultFeedType] = useState(null)
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
@@ -99,8 +100,9 @@ const AddIngredient = () => {
   const schema = yup.object().shape({
     ingredientName: yup.string().required('Ingredient Name is Required'),
     feedType: yup.string().nullable().required('Feed Type is Required'),
-    uom: yup.string().nullable().required('UOM is Required'),
-    nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required'),
+
+    // uom: yup.string().nullable().required('UOM is Required'),
+    // nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required'),
     preprationTypes: yup
       .array()
       .of(
@@ -112,6 +114,24 @@ const AddIngredient = () => {
       .min(1, 'At least one preparation type is required')
       .required('At least one preparation type is required')
   })
+
+  const handleKeyUp = values => {
+    const waterPer = getValues('waterPercentage')
+    const dryMatterPer = getValues('dryMatterPercentage')
+    if (Number(waterPer) + Number(dryMatterPer) > 100) {
+      setError(`waterPercentage`, {
+        type: 'manual',
+        message: 'The total of Dry Matter and Water should not be more than 100%'
+      })
+      setError(`dryMatterPercentage`, {
+        type: 'manual',
+        message: 'The total of Dry Matter and Water should not be more than 100%'
+      })
+    } else {
+      clearErrors('waterPercentage')
+      clearErrors('dryMatterPercentage')
+    }
+  }
 
   useEffect(() => {
     if (id) {
@@ -129,9 +149,10 @@ const AddIngredient = () => {
           setValue('waterPercentage', res?.data?.water_percentage)
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
           setValue('nutritionalValuesPer', res?.data?.standard_unit)
-          console.log('res?.data?.standard_unit', res?.data?.standard_unit)
-          console.log('res?.data?.uom', res?.data?.uom)
-          console.log('res?', res)
+
+          // console.log('res?.data?.standard_unit', res?.data?.standard_unit)
+          // console.log('res?.data?.uom', res?.data?.uom)
+          // console.log('res?', res)
           setDefaultUom({
             id: res?.data?.uom_id,
             name: res?.data?.uom
@@ -149,6 +170,15 @@ const AddIngredient = () => {
       })
     }
   }, [])
+  useEffect(() => {
+    if (feedTypeId) {
+      setValue('feedType', feedTypeId)
+      setDefaultFeedType({
+        id: feedTypeId,
+        feed_type_name: feedTypeName
+      })
+    }
+  }, [feedTypeId])
 
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
@@ -177,6 +207,7 @@ const AddIngredient = () => {
     reset,
     control,
     setValue,
+    setError,
     watch,
     getValues,
     clearErrors,
@@ -219,7 +250,8 @@ const AddIngredient = () => {
     try {
       const params = {
         type: ['length', 'weight'],
-        page_no: 1
+        page_no: 1,
+        limit: 50
       }
       await getUnitsForIngredient({ params: params }).then(res => {
         setUom(res?.data?.result)
@@ -476,9 +508,11 @@ const AddIngredient = () => {
                   </Box>
 
                   <Box>
-                    <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>1. Ingredient details</Typography>
-                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={5.9}>
+                    <Typography sx={{ mt: '32px', mb: '20px', fontSize: 20, fontWeight: 500 }}>
+                      1. Ingredient details
+                    </Typography>
+                    <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
+                      <Grid item xs={12} sm={5.9} md={5.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientName'
@@ -503,7 +537,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item md={5.9}>
+                      <Grid item xs={12} sm={5.9} md={5.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='feedType'
@@ -548,9 +582,8 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                    </Grid>
-                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={5.9}>
+
+                      <Grid item xs={12} sm={5.9} md={5.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='waterPercentage'
@@ -561,7 +594,10 @@ const AddIngredient = () => {
                                 type='number'
                                 label='Percentage(%) of water'
                                 value={value}
-                                onChange={onChange}
+                                onChange={e => {
+                                  onChange(e.target.value)
+                                  handleKeyUp(value)
+                                }}
                                 inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of water'
                                 error={Boolean(errors.waterPercentage)}
@@ -576,7 +612,8 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item md={5.9}>
+
+                      <Grid item xs={12} sm={5.9} md={5.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='dryMatterPercentage'
@@ -587,7 +624,10 @@ const AddIngredient = () => {
                                 type='number'
                                 label='Percentage(%) of dry matter'
                                 value={value}
-                                onChange={onChange}
+                                onChange={e => {
+                                  onChange(e.target.value)
+                                  handleKeyUp(value)
+                                }}
                                 inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of dry matter'
                                 error={Boolean(errors.dryMatterPercentage)}
@@ -597,7 +637,7 @@ const AddIngredient = () => {
                           />
                           {errors.dryMatterPercentage && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors.dryMatterPercentage?.message}
+                              {errors?.dryMatterPercentage?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -609,9 +649,9 @@ const AddIngredient = () => {
                       <Divider />
                     </Box>
 
-                    <Typography sx={{ mt: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
-                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={3.9}>
+                    <Typography sx={{ my: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
+                    <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
+                      <Grid item xs={12} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='nutritionalValuesPer'
@@ -678,7 +718,7 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item md={3.9}>
+                      <Grid item xs={12} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='calorie'
@@ -712,7 +752,7 @@ const AddIngredient = () => {
                     <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={12}>
+                      <Grid item xs={12}>
                         <FormControl fullWidth>
                           <Controller
                             name='description'
@@ -749,7 +789,7 @@ const AddIngredient = () => {
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                       {imgSrc !== '' ? null : (
-                        <Grid item md={5.9}>
+                        <Grid item xs={12} sm={9} md={5.9}>
                           <input
                             type='file'
                             accept='image/*'
@@ -831,7 +871,7 @@ const AddIngredient = () => {
                       <Divider />
                     </Box>
 
-                    <Box sx={{ mt: '32px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <Box sx={{ mt: '32px', display: { sm: 'flex' }, gap: '20px', alignItems: 'center' }}>
                       <Typography sx={{ fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
                       <Box
                         sx={{ display: 'flex', gap: '5px', alignItems: 'center' }}
@@ -853,7 +893,7 @@ const AddIngredient = () => {
                     </Box>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item md={12}>
+                      <Grid item xs={12}>
                         <FormControl sx={{ mb: 6 }} fullWidth>
                           <Controller
                             name='preprationTypes'
@@ -887,11 +927,12 @@ const AddIngredient = () => {
                     </Grid>
                     <Grid item xs={12} sm={12} md={5}>
                       <Grid
-                        Grid
-                        sx={{ height: '100%' }}
-                        alignItems='flex-end'
-                        justifyContent='flex-end'
-                        gap={5}
+                        sx={{
+                          height: '100%',
+                          alignItems: 'flex-end',
+                          justifyContent: 'flex-end',
+                          gap: 5
+                        }}
                         container
                       >
                         <Button
@@ -907,8 +948,8 @@ const AddIngredient = () => {
                           disabled={
                             watch('ingredientName') === '' ||
                             watch('feedType') === '' ||
-                            watch('uom') === '' ||
-                            watch('nutritionalValuesPer') === '' ||
+                            errors.dryMatterPercentag ||
+                            errors.waterPercentage ||
                             watch('preprationTypes')?.length === 0 ||
                             submitLoader
                           }

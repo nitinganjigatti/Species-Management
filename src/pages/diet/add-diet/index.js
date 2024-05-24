@@ -44,6 +44,7 @@ const AddDiet = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
+  console.log('selectedCardRecipe :>> ', selectedCardRecipe)
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
 
   const [formData, setFormData] = useState({

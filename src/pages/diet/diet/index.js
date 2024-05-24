@@ -272,7 +272,7 @@ const Diet = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Diet Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>

@@ -132,6 +132,20 @@ const AddFeedType = () => {
         await updateFeedType({ ...payload }, id).then(res => {
           Router.push('/diet/feed')
           if (res?.success) {
+            Toaster({ type: 'success', message: res?.data })
+          } else {
+            Toaster({ type: 'error', message: res?.data })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
+    } else {
+      try {
+        await addFeedType(payload).then(res => {
+          if (res?.success) {
+            Router.push('/diet/feed')
+
             // return toast(
             //   t => (
             //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -143,7 +157,7 @@ const AddFeedType = () => {
             //           </Typography>
             //           <Divider sx={{ my: 2 }} />
             //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
-            //             {res?.data}
+            //             {res?.message}
             //           </Typography>
             //         </div>
             //       </Box>
@@ -175,7 +189,7 @@ const AddFeedType = () => {
             //           </Typography>
             //           <Divider sx={{ my: 2 }} />
             //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
-            //             {res?.data}
+            //             {res?.message}
             //           </Typography>
             //         </div>
             //       </Box>
@@ -194,79 +208,7 @@ const AddFeedType = () => {
             //     }
             //   }
             // )
-            Toaster({ type: 'error', message: res?.data })
-          }
-        })
-      } catch (error) {
-        console.log('error', error)
-      }
-    } else {
-      try {
-        await addFeedType(payload).then(res => {
-          if (res?.success) {
-            Router.push('/diet/feed')
-
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        Success!
-                      </Typography>
-                      <Divider sx={{ my: 2 }} />
-                      <Typography sx={{ fontWeight: 500 }} variant='body2'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
-          } else {
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        Error!
-                      </Typography>
-                      <Divider sx={{ my: 2 }} />
-                      <Typography sx={{ fontWeight: 500 }} variant='body2'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            Toaster({ type: 'error', message: res?.message })
           }
         })
       } catch (error) {

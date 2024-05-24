@@ -818,7 +818,7 @@ const StepBasicDetails = ({
 
                     return (
                       <Autocomplete
-                        value={uomList.find(option => option.id === value) || null}
+                        value={uomList?.find(option => option.id === value) || null}
                         disablePortal
                         id='diet_type_id'
                         options={uomList || []}
@@ -1047,17 +1047,33 @@ const StepBasicDetails = ({
                         const matchingField = all?.mealid === field.mealid
                         console.log(matchingField, 'matchingField')
                         console.log(index, 'index')
+                        console.log(all, 'all')
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
-                              {/* <Grid item xs={12} sm={0.5}>
-                                <Typography>1</Typography>
-                              </Grid> */}
-                              <Grid item xs={12} sm={2.2}>
-                                <Typography>{all?.recipe_name}</Typography>
+                              <Grid item xs={12} sm={0.5}>
+                                <Avatar
+                                  variant='square'
+                                  alt='Diet Image'
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    mr: 4,
+                                    background: '#E8F4F2',
+                                    padding: '8px',
+                                    borderRadius: '50%'
+                                  }}
+                                  src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
+                                ></Avatar>
                               </Grid>
-                              <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                                <Typography>{all?.preparation_type}</Typography>
+                              <Grid item xs={12} sm={2.2}>
+                                <Typography sx={{ pl: 3 }}>{all?.recipe_name}</Typography>
+                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  {'REP' + all?.recipe_id}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={12} sm={1.0} sx={{ pl: 2 }}>
+                                <Typography>{all?.ingredients_count}</Typography>
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
@@ -1134,15 +1150,31 @@ const StepBasicDetails = ({
                       allSelectedValues.map((all, index) => {
                         const matchingField = all?.mealid === field.mealid
                         console.log(matchingField, 'matchingField')
+                        console.log(all, 'all')
                         console.log(index, 'index')
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
-                              {/* <Grid item xs={12} sm={0.5}>
-                                <Typography></Typography>
-                              </Grid> */}
-                              <Grid item xs={12} sm={2.2}>
-                                <Typography>{all.ingredient_name}</Typography>
+                              <Grid item xs={12} sm={0.5}>
+                                <Avatar
+                                  variant='square'
+                                  alt='Diet Image'
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    mr: 4,
+                                    background: '#E8F4F2',
+                                    padding: '8px',
+                                    borderRadius: '50%'
+                                  }}
+                                  src={all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'}
+                                ></Avatar>
+                              </Grid>
+                              <Grid item xs={12} sm={1.8}>
+                                <Typography sx={{ pl: 3 }}>{all.ingredient_name}</Typography>
+                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  {'ING' + all?.ingredient_id}
+                                </Typography>
                               </Grid>
                               <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
                                 <Typography>{all.preparation_type}</Typography>

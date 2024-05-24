@@ -65,11 +65,18 @@ const ModuleDeleteDialogConfirmation = ({ active, handleClosenew, open, message,
         </span>
         <DialogTitle id='alert-dialog-title'>
           {message}
-          <Typography sx={{ mt: 2 }}>
-            This {type === 'ingredient' ? 'ingredient' : 'recipe'} has been used in{' '}
-            {type === 'ingredient' ? '15 recipes and 10 diets' : `${dietCount} diets`}, <br /> so deletion isn't
-            allowed.
-          </Typography>
+          {type === 'feed' ? (
+            <Typography sx={{ mt: 2 }}>
+              this feed type is not used in any recipe, <br />
+              so deletion isn't allowed.
+            </Typography>
+          ) : (
+            <Typography sx={{ mt: 2 }}>
+              This {type === 'ingredient' ? 'ingredient' : 'recipe'} has been used in{' '}
+              {type === 'ingredient' ? '15 recipes and 10 diets' : `${dietCount} diets`}, <br /> so deletion isn't
+              allowed.
+            </Typography>
+          )}
         </DialogTitle>
 
         <Card

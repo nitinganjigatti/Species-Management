@@ -140,6 +140,7 @@ const FeedDetails = () => {
       const response = await feedDelete(FeedDetailsValue?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+        Router.push('/diet/feed')
 
         return toast(
           t => (
@@ -570,7 +571,15 @@ const FeedDetails = () => {
                               <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
                                 <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Ingredients</Typography>
                                 <Button
-                                  onClick={() => Router.push('/diet/ingredient/add-ingredient')}
+                                  onClick={() =>
+                                    Router.push({
+                                      pathname: '/diet/ingredient/add-ingredient',
+                                      query: {
+                                        feedTypeId: FeedDetailsValue?.id,
+                                        feedTypeName: FeedDetailsValue?.feed_type_name
+                                      }
+                                    })
+                                  }
                                   sx={{ px: 7, py: 5, ml: 34 }}
                                   size='small'
                                   variant='contained'
