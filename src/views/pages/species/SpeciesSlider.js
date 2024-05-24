@@ -17,7 +17,7 @@ import Icon from 'src/@core/components/icon'
 import CloseIcon from '@mui/icons-material/Close'
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import { addSpecies, getSearchTaxonomyList, getSpeciesVernacularData } from 'src/lib/api/species'
+import { UpdateSpecies, addSpecies, getSearchTaxonomyList, getSpeciesVernacularData } from 'src/lib/api/species'
 import toast from 'react-hot-toast'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -154,6 +154,7 @@ const AddSpeciesSlideBar = ({
   }
 
   const onSubmit = async val => {
+    debugger
     console.log('Submit Value', val)
 
     val.vernacular_name = val.vernacular_name ? val.vernacular_name : ''
@@ -171,25 +172,43 @@ const AddSpeciesSlideBar = ({
     }
     console.log('Payload >>', payload)
 
-    const response = await addSpecies(payload)
-
-    if (response?.success) {
-      toast.success('Species Added Successfully')
-      setOpenDrawer(false)
+    if (editName && tsnId) {
+      const payload = {
+        tsn_id: tsnId,
+        vernacular_id: val.vernacular_id?.join(','),
+        scientificName: editName,
+        species_image: val.species_image ? val.species_image : '',
+        banner_images: val.banner_images ? val.banner_images : [],
+        zoo_id: 11
+      }
+      if (val?.vernacular_name) {
+        payload['vernacular_name'] = val?.vernacular_name
+      }
+      console.log('Payload >>', payload)
+      const response = await UpdateSpecies(payload, tsnId)
+      if (response.success) {
+        toast.success('Species Updated Successfully ')
+      } else {
+        toast.error('Unable to Update the Species')
+      }
     } else {
-      toast.error('Taxonomy already added')
+      const response = await addSpecies(payload)
+
+      if (response?.success) {
+        toast.success('Species Added Successfully')
+        setOpenDrawer(false)
+      } else {
+        toast.error('Taxonomy already added')
+      }
     }
   }
 
   useEffect(() => {
+    debugger
     if (editName) {
       setValue('tsn_id', tsnId)
       setValue('scientificName', editName)
       setValue('species_image', speciesImage)
-    }
-
-    if (editCommonId) {
-      setValue('vernacular_id', [editCommonId])
     }
   }, [])
 
@@ -370,6 +389,7 @@ const AddSpeciesSlideBar = ({
                                   setSelectedValues(selectedIds.join(','))
                                 }}
                                 renderValue={selected => {
+                                  console.log('Selected', selected)
                                   if (selected.length === 0) {
                                     return <em>Select Vernacular</em>
                                   }
@@ -398,46 +418,48 @@ const AddSpeciesSlideBar = ({
                     </>
                   ) : (
                     <>
-                      {vernacularData.length > 0 && (
-                        <Controller
-                          name='vernacular_id'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <>
-                              <Select
-                                sx={{ mt: 2 }}
-                                multiple
-                                fullWidth
-                                value={value || []}
-                                error={Boolean(errors.vernacular_id)}
-                                onChange={e => {
-                                  const selectedIds = e.target.value
-                                  onChange(selectedIds)
-                                  setSelectedValues(selectedIds.join(','))
-                                }}
-                                renderValue={selected => {
-                                  if (selected.length === 0) {
-                                    return <em>Select Vernacular</em>
-                                  }
-                                  return selected
-                                    .map(id => {
-                                      const selectedVernacular = vernacularData.find(item => item.vern_id === id)
-                                      return selectedVernacular ? selectedVernacular.vernacular_name : ''
-                                    })
-                                    .join(',')
-                                }}
-                              >
-                                {vernacularData.map((item, index) => (
-                                  <MenuItem key={index} value={item.vern_id}>
-                                    {item.vernacular_name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </>
-                          )}
-                        />
-                      )}
+                      {vernacularData.length > 0 &&
+                        (console.log('Adding Vernacular Data'),
+                        (
+                          <Controller
+                            name='vernacular_id'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <>
+                                <Select
+                                  sx={{ mt: 2 }}
+                                  multiple
+                                  fullWidth
+                                  value={value || []}
+                                  error={Boolean(errors.vernacular_id)}
+                                  onChange={e => {
+                                    const selectedIds = e.target.value
+                                    onChange(selectedIds)
+                                    setSelectedValues(selectedIds.join(','))
+                                  }}
+                                  renderValue={selected => {
+                                    if (selected.length === 0) {
+                                      return <em>Select Vernacular</em>
+                                    }
+                                    return selected
+                                      .map(id => {
+                                        const selectedVernacular = vernacularData.find(item => item.vern_id === id)
+                                        return selectedVernacular ? selectedVernacular.vernacular_name : ''
+                                      })
+                                      .join(',')
+                                  }}
+                                >
+                                  {vernacularData.map((item, index) => (
+                                    <MenuItem key={index} value={item.vern_id}>
+                                      {item.vernacular_name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </>
+                            )}
+                          />
+                        ))}
 
                       {errors.vernacular_id && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
@@ -478,7 +500,6 @@ const AddSpeciesSlideBar = ({
               <Button fullWidth sx={{ mt: 9, height: '50px' }} variant='contained' onClick={handleButtonClick}>
                 Add Gallery Images
               </Button>
-              {/* Display selected images from the state */}
               <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row' }}>
                 {selectedImages.map((image, index) => (
                   <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
