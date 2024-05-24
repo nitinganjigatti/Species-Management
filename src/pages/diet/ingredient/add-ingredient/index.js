@@ -247,7 +247,8 @@ const AddIngredient = () => {
     try {
       const params = {
         type: ['length', 'weight'],
-        page_no: 1
+        page_no: 1,
+        limit: 50
       }
       await getUnitsForIngredient({ params: params }).then(res => {
         setUom(res?.data?.result)
