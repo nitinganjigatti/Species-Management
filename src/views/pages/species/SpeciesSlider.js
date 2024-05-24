@@ -43,6 +43,7 @@ const AddSpeciesSlideBar = ({
   const [selectedImages, setSelectedImages] = useState([])
   const [defaultTaxonomy, setDefaultTaxonomy] = useState(null)
   const [selectedValues, setSelectedValues] = useState([])
+  const [selectedIds, setSelectedIds] = useState([])
   const fileInputRef = React.useRef(null)
 
   console.log('EditName>>', editName)
@@ -175,9 +176,9 @@ const AddSpeciesSlideBar = ({
     if (editName && tsnId) {
       const payload = {
         tsn_id: tsnId,
-        vernacular_id: val.vernacular_id?.join(','),
+        vernacular_id: val?.vernacular_id?.join(','),
         scientificName: editName,
-        species_image: val.species_image ? val.species_image : '',
+        species_image: val?.species_image,
         banner_images: val.banner_images ? val.banner_images : [],
         zoo_id: 11
       }
@@ -204,13 +205,14 @@ const AddSpeciesSlideBar = ({
   }
 
   useEffect(() => {
-    debugger
     if (editName) {
       setValue('tsn_id', tsnId)
       setValue('scientificName', editName)
       setValue('species_image', speciesImage)
     }
   }, [])
+
+  console.log('selected Values >>', selectedValues)
 
   return (
     <>
@@ -249,15 +251,10 @@ const AddSpeciesSlideBar = ({
                   return (
                     <Autocomplete
                       id='tsn_id'
-                      // value={defaultTaxonomy}
                       value={editName ? prefillDefault : defaultTaxonomy}
                       options={editName ? [prefillDefault] : taxonomy}
-                      // open={open}
-                      // onOpen={() => setOpen(true)}
-                      // onClose={() => setOpen(false)}
                       getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
                       isOptionEqualToValue={(option, value) => {
-                        console.log(option ? option.taxonomy_id === value.taxonomy_id : tsnId)
                         return option ? option.taxonomy_id === value.taxonomy_id : tsnId
                       }}
                       onChange={(e, val) => {
@@ -279,6 +276,7 @@ const AddSpeciesSlideBar = ({
                           {...params}
                           label='Choose Taxonomy*'
                           placeholder='Enter at least 3 characters'
+                          disabled={editName && true}
                           error={Boolean(errors.tsn_id)}
                         />
                       )}
@@ -347,6 +345,7 @@ const AddSpeciesSlideBar = ({
                     <TextField
                       sx={{ mt: 2 }}
                       value={editName ? editName : value}
+                      disabled={editName && true}
                       onChange={onChange}
                       placeholder='Scientific Name'
                       error={Boolean(errors.scientificName)}
@@ -375,6 +374,7 @@ const AddSpeciesSlideBar = ({
                           console.log('Selected IDs:', value)
                           const selectedIds = value || editVernacularNames.map(item => item.vern_id)
                           console.log('Prefill IDs:', selectedIds)
+
                           return (
                             <>
                               <Select
@@ -386,11 +386,10 @@ const AddSpeciesSlideBar = ({
                                 onChange={e => {
                                   const selectedIds = e.target.value
                                   onChange(selectedIds)
-                                  setSelectedValues(selectedIds.join(','))
                                 }}
                                 renderValue={selected => {
-                                  console.log('Selected', selected)
                                   if (selected.length === 0) {
+                                    setSelectedIds(selectedIds)
                                     return <em>Select Vernacular</em>
                                   }
                                   return selected
