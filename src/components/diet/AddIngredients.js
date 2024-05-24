@@ -44,7 +44,7 @@ const AddIngredients = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
-  console.log('remarks :>> ', remarks)
+  console.log('remarks i :>> ', remarks)
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -412,10 +412,10 @@ const AddIngredients = props => {
   //   props.removeingClick(item) // Pass the item to be removed
   // }
 
-  // useEffect(() => {
-  //   const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
-  //   setSelectedCard(filteredSelectedCard)
-  // }, [checkid])
+  useEffect(() => {
+    const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
+    setSelectedCard(filteredSelectedCard)
+  }, [checkid])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
     event.stopPropagation()
@@ -607,11 +607,15 @@ const AddIngredients = props => {
     // console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
     // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
+    const newRemarks = {}
+    const newUom = {}
+    const newCutSize = {}
 
     const newVisibility = selectedValuesWithCheckId?.map(item => ({
       id: String(item.ingredient_id),
       isVisible: true
     }))
+    console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
 
     selectedValuesWithCheckId?.forEach(item => {
       if (item.mealid === checkid) {
@@ -621,9 +625,22 @@ const AddIngredients = props => {
           id: preparationTypeId,
           name: preparationType
         }
+        newRemarks[item.ingredient_id] = {
+          remarks: item.remarks
+        }
+        newUom[item.ingredient_id] = {
+          id: item.feed_uom_id
+        }
+        newCutSize[item.ingredient_id] = {
+          id: item.feed_cut_size
+        }
       }
     })
     setSelectFeed(newSelectFeed)
+    setRemarks(newRemarks)
+    setSize(newUom)
+    setCutSize(newCutSize)
+
     setVisibility(newVisibility)
   }, [allSelectedValues, checkid, formData])
 
@@ -918,25 +935,6 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !cutSize[item.id]?.id
                               }
-                              // sx={{
-                              //   ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                              //     '& .MuiOutlinedInput-root': {
-                              //       '& fieldset': {
-                              //         borderColor: !cutSize[item.id]?.id && 'red',
-                              //         borderWidth: '2px'
-                              //       },
-                              //       '&:hover fieldset': {
-                              //         borderColor: !cutSize[item.id]?.id && 'red'
-                              //       },
-                              //       '&.Mui-focused fieldset': {
-                              //         borderColor: !cutSize[item.id]?.id && 'default'
-                              //       }
-                              //     }
-                              //   }),
-                              //   borderRadius: 1 // Ensure borderRadius is applied correctly
-                              // }}
-
-                              // onChange={event => setCutSize(event.target.value)}
                             />
                           </FormControl>
                         </Box>
