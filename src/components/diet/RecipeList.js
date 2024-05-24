@@ -31,21 +31,15 @@ const RecipeList = props => {
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
 
-  // console.log('ingredientList :>> ', ingredientList)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
-
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-
-  // console.log('paginationModel ??', paginationModel)
 
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
       const params = { page: ingredientPage, q: searchValue, sort }
       await getRecipeList({ params }).then(res => {
-        // console.log('response', res)
         if (res.data.result.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
           setReachedEnd(false)
@@ -75,8 +69,6 @@ const RecipeList = props => {
 
         const res = await getRecipeList({ params })
 
-        // console.log('res', res)
-
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
 
@@ -93,7 +85,6 @@ const RecipeList = props => {
 
   const searchData = useCallback(
     debounce(async search => {
-      // console.log('search')
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current

@@ -40,7 +40,7 @@ const AddIngredientswithChoice = props => {
     setingType,
     ingredientChoiceIndex
   } = props
-  // console.log('close', close())
+
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -58,12 +58,11 @@ const AddIngredientswithChoice = props => {
   const [uom, setUom] = useState([])
   const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
-  console.log('Selected days:', selectedDays)
+
   const [count, setCount] = useState(1)
   const [showDays, setShowDays] = useState(false)
 
   const handelShowBottom = (event, item, index) => {
-    console.log('item', item)
     event.stopPropagation()
 
     setVisibility(prevVisibility => {
@@ -145,11 +144,10 @@ const AddIngredientswithChoice = props => {
 
   // card selection
   const [selectedCardIngchoice, setSelectedCardIngredientchoice] = useState([])
-  console.log('selectedCardIngchoice', selectedCardIngchoice)
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, updatedSelectedDays) => {
     event.stopPropagation()
-    console.log(item, 'iem')
+
     // Get the selected feed value for the current item
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
@@ -300,7 +298,7 @@ const AddIngredientswithChoice = props => {
       const selectedValuesWithCheckId = allIngredientchoiceSelectedValues?.filter((item, index) => {
         return index === ingredientChoiceIndex && item?.mealid === checkid
       })
-      console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+
       // Check if selectedValuesWithCheckId is not empty
       if (selectedValuesWithCheckId?.length > 0) {
         // Extract ingredientList from selectedValuesWithCheckId
@@ -316,23 +314,51 @@ const AddIngredientswithChoice = props => {
         //setListOfIngredient(selectedValuesWithCheckId)
         // Create selectFeed object
         const selectFeedObj = {}
+        const newUom = {}
+        const newCutSize = {}
+        let newRemarks = ''
+        const newVisibility = []
+
         selectedValuesWithCheckId.forEach(item => {
           item.ingredientList.forEach(ingredient => {
             selectFeedObj[ingredient.ingredient_id] = {
               id: ingredient.preparation_type_id,
               name: ingredient.preparation_type
             }
+            newUom[ingredient.ingredient_id] = {
+              id: ingredient.feed_uom_id
+            }
+            newCutSize[ingredient.ingredient_id] = {
+              id: ingredient.feed_cut_size
+            }
+            newRemarks = item.remarks
+
+            // const newVisibility = [
+            //   {
+            //     id: String(ingredient.ingredient_id),
+            //     isVisible: true
+            //   }
+            // ]
+            // console.log('newVisibility :>> ', newVisibility)
+            // setVisibility(newVisibility)
           })
         })
+        setShowDays(false)
         setSelectFeed(selectFeedObj)
+        setSize(newUom)
+        setCutSize(newCutSize)
+        setRemarks(newRemarks)
       }
     } else {
+      setShowDays(false)
       setListOfIngredient(allIngredientchoiceSelectedValues)
       setSelectedCardIngredientchoice([])
       setSelectedDays([])
       setShowDays(false)
       setCount(1)
-      setSelectFeed([])
+      setSelectFeed({})
+      setSize({})
+      setCutSize({})
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex])
 
@@ -372,14 +398,14 @@ const AddIngredientswithChoice = props => {
     }))
 
     // Call handelCardSelection with the updated cutSize value
-    if (cutSize) {
+    if (newCutSize) {
       handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+    } else {
+      removeSelectedCard(event, item.id)
     }
   }
 
   const removeSelectedCard = (event, itemId) => {
-    console.log('removeSelectedCard Called')
-
     // Check if the card with itemId is present in the selectedCard state
     const cardIndex = selectedCardIngchoice.findIndex(card => card.ingredient_id === itemId)
 
@@ -426,8 +452,6 @@ const AddIngredientswithChoice = props => {
   }
 
   const [listOfIngredient, setListOfIngredient] = useState([])
-  console.log('listOfIngredient', listOfIngredient)
-  console.log(selectedCardIngchoice, 'selectedCardIngchoice')
 
   // const handelSetIngredient = () => {
   //   setShowDays(false)
@@ -558,9 +582,6 @@ const AddIngredientswithChoice = props => {
   const handelSetIngredient = () => {
     setShowDays(false)
     setOpenIngredientchoice(false)
-    console.log(allIngredientchoiceSelectedValues, 'allIngredientChoiceSelectedValues')
-    console.log(selectedCardIngchoice, 'selectedCardIngChoice')
-    console.log(listOfIngredient, 'listOfIngredient')
 
     if (ingType === 'addingIndex') {
       // Find the index of the ingredient being updated
@@ -580,8 +601,6 @@ const AddIngredientswithChoice = props => {
         return false
       })
 
-      console.log(existingIngredientIndex, 'existingIngredientIndex')
-
       if (existingIngredientIndex !== -1) {
         // Clone the listOfIngredient to make changes
         const updatedListOfIngredient = [...allIngredientchoiceSelectedValues]
@@ -594,7 +613,6 @@ const AddIngredientswithChoice = props => {
           no_of_component_required: count,
           remarks: remarks
         }
-        console.log(listOfIngredient, 'listOfIngredient')
 
         // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
         const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
@@ -656,9 +674,7 @@ const AddIngredientswithChoice = props => {
         if (daysMatch) {
           // If days_of_week arrays partially match, do not add
           const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
-          console.log(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
-          )
+
           toast.error(
             `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
           )
@@ -671,7 +687,6 @@ const AddIngredientswithChoice = props => {
       setListOfIngredient(prevList => {
         const updatedList = [...prevList, selectedIngredient]
         onChange(updatedList) // Call onChange with the updated list
-        console.log(updatedList, 'updatedList')
 
         return updatedList
       })
@@ -771,7 +786,6 @@ const AddIngredientswithChoice = props => {
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
           onScroll={handleScroll}
         >
-          {/* {console.log(ingredientList, 'ingredientList')} */}
           {sortedIngredientList?.map((item, index) => (
             <Box
               key={item?.id}
@@ -1050,7 +1064,7 @@ const AddIngredientswithChoice = props => {
                       placeholder='Add Remarks (optional)'
                       variant='standard'
                       InputProps={{ disableUnderline: true }}
-                      {...props}
+                      value={remarks}
                       onChange={handleAddRemarks}
                     />
                   </FormControl>
