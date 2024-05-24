@@ -55,6 +55,7 @@ const AddIngredient = () => {
   const [uomList, setUom] = useState([])
   const [FeedTypeList, setFeedTypeList] = useState([])
   const [defaultUom, setDefaultUom] = useState(null)
+
   // console.log('defaultUom', defaultUom)
   const [defaultFeedType, setDefaultFeedType] = useState(null)
   const [displayFile, setDisplayFile] = useState('')
@@ -99,6 +100,7 @@ const AddIngredient = () => {
   const schema = yup.object().shape({
     ingredientName: yup.string().required('Ingredient Name is Required'),
     feedType: yup.string().nullable().required('Feed Type is Required'),
+
     // uom: yup.string().nullable().required('UOM is Required'),
     // nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required'),
     preprationTypes: yup
@@ -147,6 +149,7 @@ const AddIngredient = () => {
           setValue('waterPercentage', res?.data?.water_percentage)
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
           setValue('nutritionalValuesPer', res?.data?.standard_unit)
+
           // console.log('res?.data?.standard_unit', res?.data?.standard_unit)
           // console.log('res?.data?.uom', res?.data?.uom)
           // console.log('res?', res)
@@ -945,8 +948,6 @@ const AddIngredient = () => {
                           disabled={
                             watch('ingredientName') === '' ||
                             watch('feedType') === '' ||
-                            // watch('uom') === '' ||
-                            // watch('nutritionalValuesPer') === '' ||
                             errors.dryMatterPercentag ||
                             errors.waterPercentage ||
                             watch('preprationTypes')?.length === 0 ||

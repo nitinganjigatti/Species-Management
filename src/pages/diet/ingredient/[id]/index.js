@@ -317,9 +317,6 @@ const IngredientDetail = () => {
                 recipeCount={IngredientsDetailsval.recipe_count}
                 dietCount={IngredientsDetailsval.diet_count}
                 message={
-                  // <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-                  //   {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
-                  // </span>
                   <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                     Deletion isn't possible!
                   </span>

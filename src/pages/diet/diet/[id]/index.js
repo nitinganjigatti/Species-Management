@@ -102,6 +102,7 @@ const DietDetail = () => {
     { value: '5', label: 'Saturday' },
     { value: '6', label: 'Sunday' }
   ]
+
   const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
     ({ theme }) => ({
       [`& .MuiTooltip-tooltip`]: {
@@ -350,17 +351,7 @@ const DietDetail = () => {
 
                                                 return (
                                                   <>
-                                                    <TableRow
-                                                      // sx={{
-                                                      //   borderBottom:
-                                                      //     itemData?.items?.length === 0
-                                                      //       ? '1px solid #C3CEC7'
-                                                      //       : index === itemData?.length - 1
-                                                      //       ? '1px solid #C3CEC7'
-                                                      //       : 'none'
-                                                      // }}
-                                                      key={index}
-                                                    >
+                                                    <TableRow key={index}>
                                                       {first ? (
                                                         <TableCell
                                                           sx={{

@@ -141,6 +141,7 @@ const FeedDetails = () => {
       if (response.success === true) {
         setDeleteDialogBox(false)
         Router.push('/diet/feed')
+
         return toast(
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -570,7 +571,6 @@ const FeedDetails = () => {
                               <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
                                 <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Ingredients</Typography>
                                 <Button
-                                  // onClick={() => Router.push('/diet/ingredient/add-ingredient')}
                                   onClick={() =>
                                     Router.push({
                                       pathname: '/diet/ingredient/add-ingredient',
