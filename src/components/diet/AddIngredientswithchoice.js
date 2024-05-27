@@ -46,6 +46,7 @@ const AddIngredientswithChoice = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
+  console.log('remarks :>> ', remarks)
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -318,7 +319,8 @@ const AddIngredientswithChoice = props => {
         let newRemarks = ''
         const newVisibility = []
 
-        selectedValuesWithCheckId.forEach(item => {
+        selectedValuesWithCheckId.forEach((item, itemIndex) => {
+          console.log('itemIndex :>> ', itemIndex)
           item.ingredientList.forEach(ingredient => {
             selectFeedObj[ingredient.ingredient_id] = {
               id: ingredient.preparation_type_id,
@@ -330,7 +332,9 @@ const AddIngredientswithChoice = props => {
             newCutSize[ingredient.ingredient_id] = {
               id: ingredient.feed_cut_size
             }
-            newRemarks = item.remarks
+            if (ingredient.ingredient_id) {
+              newRemarks = item?.remarks
+            }
 
             // const newVisibility = [
             //   {
@@ -341,7 +345,11 @@ const AddIngredientswithChoice = props => {
             // console.log('newVisibility :>> ', newVisibility)
             // setVisibility(newVisibility)
           })
+
+          console.log('newRemarks :>> ', newRemarks)
         })
+        console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
+
         setShowDays(false)
         setSelectFeed(selectFeedObj)
         setSize(newUom)
@@ -358,6 +366,7 @@ const AddIngredientswithChoice = props => {
       setSelectFeed({})
       setSize({})
       setCutSize({})
+      setRemarks('')
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex])
 
