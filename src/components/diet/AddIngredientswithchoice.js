@@ -45,8 +45,9 @@ const AddIngredientswithChoice = props => {
   const [selectFeed, setSelectFeed] = useState({})
 
   const [searchValue, setSearchValue] = useState('')
+  console.log('searchValue ingWC :>> ', searchValue)
   const [remarks, setRemarks] = useState('')
-  console.log('remarks :>> ', remarks)
+
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -320,7 +321,6 @@ const AddIngredientswithChoice = props => {
         const newVisibility = []
 
         selectedValuesWithCheckId.forEach((item, itemIndex) => {
-          console.log('itemIndex :>> ', itemIndex)
           item.ingredientList.forEach(ingredient => {
             selectFeedObj[ingredient.ingredient_id] = {
               id: ingredient.preparation_type_id,
@@ -345,10 +345,7 @@ const AddIngredientswithChoice = props => {
             // console.log('newVisibility :>> ', newVisibility)
             // setVisibility(newVisibility)
           })
-
-          console.log('newRemarks :>> ', newRemarks)
         })
-        console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
 
         setShowDays(false)
         setSelectFeed(selectFeedObj)
@@ -373,9 +370,10 @@ const AddIngredientswithChoice = props => {
   const searchData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
+        console.log('search ingwc :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: ingredientPage, q: search, sort }
+          const params = { page: 1, q: search, sort }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)

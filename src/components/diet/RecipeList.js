@@ -88,7 +88,7 @@ const RecipeList = props => {
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: ingredientPage, q: search, sort, status: 1 }
+          const params = { page: 1, q: search, sort, status: 1 }
           await getRecipeList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
