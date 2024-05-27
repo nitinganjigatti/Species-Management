@@ -21,6 +21,7 @@ const RecipeCard = ({
   addEventSidebarOpen
 }) => {
   const [remarks, setRemarks] = useState({})
+  console.log('remarks', remarks)
 
   const [selectedCount, setSelectedCount] = useState([])
 
@@ -246,8 +247,10 @@ const RecipeCard = ({
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+      const newRemarks = {}
 
       // Update selectedDays state with the extracted values
+      console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
       const updatedSelectedDays = []
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
@@ -263,6 +266,7 @@ const RecipeCard = ({
       // Merge updatedSelectedDays with rows
       const finalSelectedDays = rows.map(row => {
         const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        console.log('updatedDay :>> ', updatedDay)
         if (updatedDay) {
           return updatedDay
         } else {
@@ -273,6 +277,20 @@ const RecipeCard = ({
         }
       })
       setSelectedDays(finalSelectedDays)
+
+      selectedValuesWithCheckId?.forEach(item => {
+        console.log('item for remarks ', item)
+        if (item.mealid === checkid) {
+          newRemarks[item.recipe_id] = item.remarks
+        }
+      })
+
+      setRemarks(newRemarks)
+
+      // setRemarks({
+      //   ...remarks,
+      //   [cardIds]: event.target.value
+      // })
     } else {
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
