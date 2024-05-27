@@ -662,7 +662,7 @@ const IndividualRequest = () => {
       headerName: 'Vehicle No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -714,7 +714,7 @@ const IndividualRequest = () => {
             {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
-              params?.row?.shipment_status === 'Shipped' && (
+              (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>

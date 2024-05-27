@@ -1178,8 +1178,6 @@ const AddRequestForm = () => {
           <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
             <TableRow>
               <TableCell>Product Name</TableCell>
-              <TableCell>Package details</TableCell>
-              <TableCell>manufacture</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Action</TableCell>
@@ -1200,17 +1198,10 @@ const AddRequestForm = () => {
                         {el.prescription_required ? (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
                         ) : null}
+                        <Typography variant='body2'>{el.package}</Typography>
+                        <Typography variant='body2'>{el.manufacture}</Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.package}
-                        </Typography>{' '}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.manufacture}
-                        </Typography>{' '}
-                      </TableCell>
+
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
                         {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>

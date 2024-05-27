@@ -47,6 +47,7 @@ const defaultValues = {
   purchase_cgst: 0,
   purchase_sgst: 0,
   purchase_igst: 0,
+  purchase_gst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
   purchase_igst_amount: 0,
@@ -77,22 +78,11 @@ const PurchaseItemForm = props => {
   console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
-    // product: yup.string().required('Product name is required'),
     product: yup.object().shape({
       value: yup.string().required('Product name is required'),
       label: yup.string().required('Product name is required'),
       stock_type: yup.string().nullable()
     }),
-
-    // purchase_expiry_date: yup.date().typeError('Select valid expiry date').required('Expiry date is required'),
-    // purchase_expiry_date: yup
-    //   .date()
-    //   .typeError('Select a valid expiry date')
-    //   .when(['product.stock_type'], (stockType, schema) => {
-    //     console.log('product.stock_type', stockType[0])
-
-    //     return stockType[0] === 'non_medical' ? schema.notRequired() : schema.required('Expiry date is required')
-    //   }),
 
     purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
       const result =
@@ -128,71 +118,117 @@ const PurchaseItemForm = props => {
       .min(1, 'Purchase quantity must be greater than zero')
       .required('Purchase quantity is required'),
 
-    // purchase_qty: yup.string().required('Purchase quantity is required'),
-    // purchase_purchase_price: yup.string().required('Total purchase price is required'),
-    // purchase_free_quantity: yup
-    //   .number()
-    //   .typeError('Free quantity must be a number')
-    //   .min(0, 'Free quantity must be greater than zero'),
     purchase_discount: yup
       .number()
       .typeError('Discount must be a number')
       .min(0, 'Discount must be greater than zero')
       .required('Discount is required'),
+
+    // purchase_cgst: yup
+    //   .number()
+    //   .typeError('Central GST must be a number')
+    //   .min(1, 'Central GST must be greater than zero')
+    //   .required('Central GST is required'),
+    // purchase_sgst: yup
+    //   .number()
+    //   .typeError('State GST must be a number')
+    //   .min(1, 'State GST must be greater than zero')
+    //   .required('State GST is required'),
+    // purchase_igst: yup
+    //   .number()
+    //   .typeError('GST must be a number')
+    //   .min(1, 'GST must be greater than zero')
+    //   .required('GST is required'),
     purchase_cgst: yup
       .number()
       .typeError('Central GST must be a number')
-      .min(1, 'Central GST must be greater than zero')
-      .required('Central GST is required'),
+      .when('purchase_igst', {
+        is: purchase_igst => purchase_igst > 0,
+        then: () =>
+          yup
+            .number()
+            .min(0, 'Central GST must be greater positive number')
+            .notRequired()
+            .test('zero_cgst', 'Central GST must be zero when IGST is greater than 0', value => value === 0),
+        otherwise: () =>
+          yup.number().min(1, 'Central GST must be greater positive number').required('Central GST is required')
+      }),
+
     purchase_sgst: yup
       .number()
       .typeError('State GST must be a number')
-      .min(1, 'State GST must be greater than zero')
-      .required('State GST is required'),
+      .when('purchase_igst', {
+        is: purchase_igst => purchase_igst > 0,
+        then: () =>
+          yup
+            .number()
+            .min(0, 'State GST must be greater positive number')
+            .notRequired()
+            .test('zero_sgst', 'State GST must be zero when IGST is greater than 0', value => value === 0),
+        otherwise: () =>
+          yup.number().min(1, 'State GST must be greater positive number').required('State GST is required')
+      }),
+
+    // purchase_igst: yup
+    //   .number()
+    //   .typeError('GST must be a number')
+    //   .min(1, 'GST must be greater than zero')
+    //   .required('GST is required')
+    //   .test(
+    //     'igst_no_cgst_sgst',
+    //     'If IGST has a value, CGST and SGST should not have values greater than 0',
+    //     function (value) {
+    //       const { purchase_cgst, purchase_sgst } = this.parent
+    //       if (value > 0 && (purchase_cgst > 0 || purchase_sgst > 0)) {
+    //         return false
+    //       }
+
+    //       return true
+    //     }
+    //   ),
+
     purchase_igst: yup
       .number()
       .typeError('GST must be a number')
-      .min(0, 'GST must be greater than zero')
-      .required('GST is required'),
+      .min(0, 'GST must be at least 0')
+      .test('igst_conditional', 'IGST must be  positive number if CGST and SGST both are not there', function (value) {
+        const { purchase_cgst, purchase_sgst } = this.parent
+        if (purchase_cgst === 0 && purchase_sgst === 0) {
+          return value > 0
+        }
 
-    // purchase_cgst_amount: yup
-    //   .number()
-    //   .typeError('Central GST Amount must be a number')
-    //   .min(1, 'Central GST Amount must be greater than zero')
-    //   .required('Central GST Amount is required'),
+        return true
+      })
+      .test(
+        'igst_no_cgst_sgst',
+        'If IGST has a value, CGST and SGST should not have values greater than 0',
+        function (value) {
+          const { purchase_cgst, purchase_sgst } = this.parent
+          if (value) {
+            return purchase_cgst === 0 && purchase_sgst === 0
+          }
+
+          return true
+        }
+      ),
 
     purchase_cgst_amount: yup
       .number()
       .typeError('Central GST Amount must be a number')
 
-      // .positive('Central GST Amount must be a positive number')
       .required('Central GST Amount is required'),
-
-    // purchase_sgst_amount: yup
-    //   .number()
-    //   .typeError('State GST Amount must be a number')
-    //   .min(1, 'State GST Amount must be greater than zero')
-    //   .required('State GST Amount is required'),
 
     purchase_sgst_amount: yup
       .number()
       .typeError('State GST Amount must be a number')
 
-      // .positive('State GST Amount must be a positive number')
       .required('State GST Amount is required'),
 
     purchase_igst_amount: yup
       .number()
       .typeError('Tax Amount must be a number')
 
-      // .positive('Tax Amount must be a positive zero')
       .required('Tax Amount is required'),
-
-    // purchase_igst_amount: yup
-    //   .number()
-    //   .typeError('Tax Amount must be a number')
-    //   .min(1, 'Tax Amount must be greater than zero')
-    //   .required('Tax Amount is required'),
 
     purchase_gross_amount: yup
       .number()
@@ -209,14 +245,12 @@ const PurchaseItemForm = props => {
       .number()
       .typeError('Taxable amount must be a number')
 
-      // .positive('Taxable amount amount must be greater than zero')
       .required('Taxable amount is required'),
 
     purchase_net_amount: yup
       .number()
       .typeError('Net amount must be a number')
 
-      // .positive('Net amount amount must be greater than zero')
       .required('Net amount is required')
   })
 
@@ -260,6 +294,7 @@ const PurchaseItemForm = props => {
       purchase_qty,
       purchase_free_quantity,
       purchase_discount,
+      purchase_gst,
       purchase_cgst,
       purchase_sgst,
       purchase_igst,
@@ -294,6 +329,7 @@ const PurchaseItemForm = props => {
       purchase_cgst,
       purchase_sgst,
       purchase_igst,
+      purchase_gst,
       purchase_cgst_amount,
       purchase_sgst_amount,
       purchase_igst_amount,
@@ -353,9 +389,7 @@ const PurchaseItemForm = props => {
 
     const purchase_sgst = checkNumber(updatedValues.purchase_sgst)
 
-    const purchase_igst = purchase_cgst + purchase_sgst
-
-    // const purchase_igst = checkNumber(updatedValues.purchase_igst)
+    const purchase_igst = checkNumber(updatedValues.purchase_igst)
 
     const totalPurchasedQty = purchase_qty - purchase_free_quantity
 
@@ -368,12 +402,19 @@ const PurchaseItemForm = props => {
     const purchase_cgst_amount = parseFloat(totalAmountAfterDiscount * (purchase_cgst / 100))
 
     const purchase_sgst_amount = parseFloat(totalAmountAfterDiscount * (purchase_sgst / 100))
+    const purchase_gst = purchase_sgst + purchase_cgst
+    const purchase_gst_amount = parseFloat(totalAmountAfterDiscount * (purchase_gst / 100))
 
     const discountAmount = calculateDiscountAmount(grossAmount, purchase_discount)
 
     const taxableAmount = calculateAmountAfterDiscount(grossAmount, purchase_discount)
 
-    const netAmount = taxableAmount + purchase_igst_amount
+    let netAmount
+    if (purchase_igst_amount === 0 || purchase_igst_amount === '0') {
+      netAmount = taxableAmount + purchase_gst_amount
+    } else {
+      netAmount = taxableAmount + purchase_igst_amount
+    }
 
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
@@ -394,15 +435,25 @@ const PurchaseItemForm = props => {
       //   ? parseFloat(purchase_sgst_amount).toFixed(2)
       //   : parseFloat(purchase_sgst_amount).toFixed(5)
     )
-    setValue(
-      'purchase_igst',
-      checkFloatValue(purchase_igst)
 
-      // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
-    )
+    // setValue(
+    //   'purchase_igst',
+    //   checkFloatValue(purchase_igst)
+
+    //   // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
+    // )
     setValue(
       'purchase_igst_amount',
       checkFloatValue(purchase_igst_amount)
+
+      // purchase_igst_amount >= 0.01
+      //   ? parseFloat(purchase_igst_amount).toFixed(2)
+      //   : parseFloat(purchase_igst_amount).toFixed(5)
+    )
+
+    setValue(
+      'purchase_gst',
+      checkFloatValue(purchase_gst_amount)
 
       // purchase_igst_amount >= 0.01
       //   ? parseFloat(purchase_igst_amount).toFixed(2)
@@ -505,16 +556,12 @@ const PurchaseItemForm = props => {
                       return onChange(null)
                     } else {
                       if (val.stock_type === 'non_medical') {
-                        console.log('medicine data', val)
                         setNonMedicalProduct(true)
-
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
                         setValue('purchase_expiry_date', dayjs(Date()))
                       } else {
                         setNonMedicalProduct(false)
-                        console.log('medicine data', val)
-
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
                       }
@@ -579,7 +626,9 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-                      if (product?.product?.value !== '' && e.target.value !== '') {
+                      console.log('product', product)
+                      console.log('event', e?.target?.value)
+                      if (product?.product?.value !== '' && e?.target?.value !== '') {
                         field?.onBlur()
                         checkMedicineExpiryDate(product?.product?.value, e.target.value)
                       }
@@ -767,6 +816,29 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <Controller
+              name='purchase_igst'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label='IGST in %*'
+                  onKeyUp={e => {
+                    calculateStuff()
+                  }}
+                  error={Boolean(errors.purchase_igst)}
+
+                  // helperText={errors.purchase_gst?.message}
+                />
+              )}
+            />
+            {errors.purchase_igst && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_igst?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
@@ -817,32 +889,24 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
-
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
-              name='purchase_igst'
+              name='purchase_gst'
               control={control}
+              defaultValue=''
               render={({ field }) => (
                 <TextField
-                  {...field}
                   disabled={true}
-                  label='GST in %*'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_igst)}
-
-                  // helperText={errors.purchase_gst?.message}
+                  {...field}
+                  label='GST Amount'
+                  error={Boolean(errors.purchase_gst)}
+                  helperText={errors.purchase_gst?.message}
                 />
               )}
             />
-            {errors.purchase_igst && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_igst?.message}</FormHelperText>
-            )}
           </FormControl>
         </Grid>
-
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -853,7 +917,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   disabled={true}
                   {...field}
-                  label='Tax Amount'
+                  label='IGST Amount'
                   error={Boolean(errors.purchase_igst_amount)}
                   helperText={errors.purchase_igst_amount?.message}
                 />

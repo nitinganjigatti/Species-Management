@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react'
 
-import { DataGrid } from '@mui/x-data-grid'
 import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
 import {
@@ -16,14 +15,16 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  Divider,
   TableRow,
-  FormLabel
+  FormLabel,
+  Box
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { LoaderIcon } from 'react-hot-toast'
 import IconButton from '@mui/material/IconButton'
+import { styled, useTheme } from '@mui/material/styles'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 import Error404 from 'src/pages/404'
@@ -38,6 +39,15 @@ import { useForm } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
+
+const CalcWrapper = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  '&:not(:last-of-type)': {
+    marginBottom: theme.spacing(2)
+  }
+}))
 
 const ImportPurchase = () => {
   const defaultValues = {
@@ -248,7 +258,7 @@ const ImportPurchase = () => {
             <form ref={formRef} autoComplete='off'>
               <CardContent>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
+                  <Grid item xs={12} sm={5} sx={{ my: 2, ml: 6 }}>
                     <FormControl fullWidth>
                       <FormLabel sx={{ m: 1 }}>Upload CSV file</FormLabel>
                       <TextField
@@ -262,43 +272,209 @@ const ImportPurchase = () => {
                         InputProps={{
                           endAdornment: (
                             <InputAdornment position='end'>
-                              {loader ? <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton> : null}
+                              {loader ? (
+                                <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton>
+                              ) : getValues('upload_file') !== '' ? (
+                                <Icon
+                                  color='error.main'
+                                  onClick={() => {
+                                    reset(defaultValues)
+                                    setFileUploadErrors([])
+                                    setUploadedFileData([])
+                                    setLoader(false)
+                                  }}
+                                  icon='mdi:close'
+                                />
+                              ) : null}
                             </InputAdornment>
                           )
                         }}
                       />
                     </FormControl>
                   </Grid>
+
                   {fileUploadErrors?.length > 0 ? (
                     <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
                       <Card>
                         <CardHeader title='Rows with errors' />
                         <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-                          <Table stickyHeader sx={{ minWidth: 650 }} aria-label='simple table'>
+                          <Table stickyHeader sx={{ minWidth: 650, overflowX: 'scroll' }} aria-label='simple table'>
                             <TableHead sx={{ backgroundColor: 'primary.bg' }}>
                               <TableRow>
-                                <TableCell>Purchase invoice no</TableCell>
-                                <TableCell>Error Details</TableCell>
-                                <TableCell>Supplier name</TableCell>
-                                <TableCell>Product name</TableCell>
-                                <TableCell>Purchase date</TableCell>
+                                <TableCell width={100}>Purchase invoice no</TableCell>
+                                <TableCell width={100}>Error Details</TableCell>
+                                {/* <TableCell>Error Details</TableCell> */}
+                                <TableCell width={'100%'}></TableCell>
+                                <TableCell></TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {fileUploadErrors?.map((el, index) => {
-                                return (
-                                  <TableRow key={index}>
-                                    <TableCell>{el?.purchase_invoice_number}</TableCell>
-                                    <TableCell sx={{ color: 'error.main' }}>
-                                      {' '}
-                                      In {el.key} Row {el.value}
-                                    </TableCell>
-                                    <TableCell>{el?.supplier_name}</TableCell>
-                                    <TableCell>{el?.product_name}</TableCell>
-                                    <TableCell>{el.purchase_date}</TableCell>
-                                  </TableRow>
-                                )
-                              })}
+                              {fileUploadErrors.length > 0
+                                ? fileUploadErrors?.map((el, index, array) => {
+                                    const isFirstRow =
+                                      index ===
+                                      array.findIndex(
+                                        item => item?.purchase_invoice_number === el?.purchase_invoice_number
+                                      )
+
+                                    return (
+                                      <TableRow key={index}>
+                                        {isFirstRow && (
+                                          <TableCell
+                                            rowSpan={
+                                              array.filter(
+                                                item => item?.purchase_invoice_number === el?.purchase_invoice_number
+                                              ).length
+                                            }
+                                            style={{
+                                              borderRight: '1px solid #ccc'
+                                            }}
+                                          >
+                                            {el?.purchase_invoice_number}
+                                          </TableCell>
+                                        )}
+                                        {isFirstRow && (
+                                          <TableCell
+                                            sx={{ minWidth: 180 }}
+                                            rowSpan={array.filter(item => item?.key === el?.key).length}
+                                            style={{
+                                              borderRight: '1px solid #ccc'
+                                            }}
+                                          >
+                                            <Typography variant='subtitle2' color='error.main'>
+                                              In {el.key} Row {el.value}
+                                            </Typography>
+                                          </TableCell>
+                                        )}
+
+                                        <TableCell>
+                                          <TableHead>
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Product Name
+                                            </TableCell>
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Batch No.
+                                            </TableCell>
+
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Quantity
+                                            </TableCell>
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Expire date
+                                            </TableCell>
+
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Purchase amount
+                                            </TableCell>
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Discount amount
+                                            </TableCell>
+                                            <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                              Taxable amount
+                                            </TableCell>
+                                            <TableCell
+                                              sx={{
+                                                backgroundColor: 'transparent',
+                                                minWidth: 130,
+                                                textAlign: 'center'
+                                              }}
+                                            >
+                                              CGST
+                                              <Grid container>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Rate
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Amount
+                                                </Grid>
+                                              </Grid>
+                                            </TableCell>
+                                            <TableCell
+                                              sx={{
+                                                backgroundColor: 'transparent',
+                                                textAlign: 'center',
+
+                                                minWidth: 130
+                                              }}
+                                            >
+                                              SGST
+                                              <Grid container>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Rate
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Amount
+                                                </Grid>
+                                              </Grid>
+                                            </TableCell>
+                                            <TableCell sx={{ backgroundColor: 'transparent', textAlign: 'center' }}>
+                                              IGST
+                                              <Grid container>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Rate
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  Amount
+                                                </Grid>
+                                              </Grid>
+                                            </TableCell>
+                                          </TableHead>
+                                          {el?.data?.map((el, index) => {
+                                            return (
+                                              <TableRow key={index}>
+                                                <TableCell>{el?.stock_name}</TableCell>
+                                                <TableCell>{el?.batch_no}</TableCell>
+                                                <TableCell>{el?.qty}</TableCell>
+                                                <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
+                                                <TableCell>{el?.purchase_price.toFixed(2)}</TableCell>
+                                                <TableCell>{el?.discount_amount}</TableCell>
+                                                <TableCell>{el?.taxable_amount}</TableCell>
+                                                <TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.cgst}%
+                                                  </TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.cgst_amount}
+                                                  </TableCell>
+                                                </TableCell>
+                                                <TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.sgst}%
+                                                  </TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.sgst_amount}
+                                                  </TableCell>
+                                                </TableCell>{' '}
+                                                <TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.igst}%
+                                                  </TableCell>
+                                                  <TableCell
+                                                    sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                  >
+                                                    {el?.igst_amount}
+                                                  </TableCell>
+                                                </TableCell>
+                                              </TableRow>
+                                            )
+                                          })}
+                                        </TableCell>
+                                        <TableCell></TableCell>
+                                        {/*  <TableCell>{el.purchase_date}</TableCell> */}
+                                      </TableRow>
+                                    )
+                                  })
+                                : null}
                             </TableBody>
                           </Table>
                         </TableContainer>
@@ -310,14 +486,14 @@ const ImportPurchase = () => {
                       <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
                         <Card>
                           <CardHeader title='Invoices good to upload' />
-
+                          {console.log('uploadedFileData', uploadedFileData)}
                           <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-                            <Table stickyHeader sx={{ minWidth: 650 }} aria-label='sticky table'>
+                            <Table stickyHeader sx={{ minWidth: 650, overflowX: 'scroll' }} aria-label='sticky table'>
                               <TableHead>
                                 <TableRow>
                                   <TableCell>Purchase invoice no</TableCell>
 
-                                  <TableCell>Purchase Details</TableCell>
+                                  <TableCell></TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
@@ -340,34 +516,131 @@ const ImportPurchase = () => {
 
                                           <TableHead>
                                             <TableRow>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Batch No.</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
                                                 Product Name
                                               </TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Quantity</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>Expire date</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>
-                                                Purchase amount
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Batch No.
                                               </TableCell>
 
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>CGST</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
-                                              <TableCell sx={{ backgroundColor: 'transparent' }}>SGST</TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Quantity
+                                              </TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Expire date
+                                              </TableCell>
+
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Purchase amount
+                                              </TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Discount amount
+                                              </TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
+                                                Taxable amount
+                                              </TableCell>
+                                              <TableCell
+                                                sx={{
+                                                  backgroundColor: 'transparent',
+                                                  minWidth: 130,
+                                                  textAlign: 'center'
+                                                }}
+                                              >
+                                                CGST
+                                                <Grid container>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Rate
+                                                  </Grid>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Amount
+                                                  </Grid>
+                                                </Grid>
+                                              </TableCell>
+                                              <TableCell
+                                                sx={{
+                                                  backgroundColor: 'transparent',
+                                                  textAlign: 'center',
+                                                  minWidth: 130
+                                                }}
+                                              >
+                                                SGST
+                                                <Grid container>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Rate
+                                                  </Grid>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Amount
+                                                  </Grid>
+                                                </Grid>
+                                              </TableCell>
+                                              <TableCell
+                                                sx={{
+                                                  backgroundColor: 'transparent',
+                                                  textAlign: 'center',
+                                                  minWidth: 130
+                                                }}
+                                              >
+                                                IGST
+                                                <Grid container>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Rate
+                                                  </Grid>
+                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                    Amount
+                                                  </Grid>
+                                                </Grid>
+                                              </TableCell>
+                                              {/* <TableCell sx={{ backgroundColor: 'transparent' }}>IGST</TableCell>
+                                              <TableCell sx={{ backgroundColor: 'transparent' }}>SGST</TableCell> */}
                                             </TableRow>
                                           </TableHead>
                                           <TableBody>
                                             {el?.purchaseDetails?.map((el, index) => {
                                               return (
                                                 <TableRow key={index}>
-                                                  <TableCell>{el?.batch_no}</TableCell>
                                                   <TableCell>{el?.stock_name}</TableCell>
+                                                  <TableCell>{el?.batch_no}</TableCell>
                                                   <TableCell>{el?.qty}</TableCell>
                                                   <TableCell>{Utility.formatDisplayDate(el.expiry_date)}</TableCell>
-                                                  <TableCell>{el?.purchase_price}</TableCell>
-
-                                                  <TableCell>{el?.cgst}%</TableCell>
-                                                  <TableCell>{el?.igst}%</TableCell>
-                                                  <TableCell>{el?.sgst}%</TableCell>
+                                                  <TableCell>{el?.purchase_price.toFixed(2)}</TableCell>
+                                                  <TableCell>{el?.discount_amount}</TableCell>
+                                                  <TableCell>{el?.taxable_amount}</TableCell>
+                                                  <TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.cgst}%
+                                                    </TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.cgst_amount}
+                                                    </TableCell>
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.sgst}%
+                                                    </TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.sgst_amount}
+                                                    </TableCell>
+                                                  </TableCell>{' '}
+                                                  <TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.igst}%
+                                                    </TableCell>
+                                                    <TableCell
+                                                      sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}
+                                                    >
+                                                      {el?.igst_amount}
+                                                    </TableCell>
+                                                  </TableCell>
                                                 </TableRow>
                                               )
                                             })}
@@ -406,6 +679,7 @@ const ImportPurchase = () => {
                       reset(defaultValues)
                       setFileUploadErrors([])
                       setUploadedFileData([])
+                      setLoader(false)
                     }}
                   >
                     Cancel

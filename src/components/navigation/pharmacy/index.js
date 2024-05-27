@@ -39,7 +39,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const existingPurchase = {
     title: 'Add Existing Inventory',
     icon: 'raphael:cart',
-    path: '/pharmacy/existing-purchase/add-existing-purchase'
+    path: '/pharmacy/purchase/add-purchase/existing-purchases'
   }
 
   const report = {

@@ -213,10 +213,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           shipping_id: orderId,
           shipment_id: response?.data?.shipment_id,
           shipment_date: response?.data?.shipment_date,
-          person_shipping: response?.data?.person_shipping,
           shipment_status: response?.data?.shipment_status,
           vehicle_no: response?.data?.vehicle_no,
-          item_details: disputeLineItems
+          item_details: disputeLineItems,
+          person_shipping: response?.data?.person_shipping
+            ? response?.data?.person_shipping
+            : response?.data?.receiver_name
         })
         // debugger
         console.log('orderData datta', orderData)

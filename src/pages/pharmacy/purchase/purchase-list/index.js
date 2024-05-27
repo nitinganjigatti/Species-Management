@@ -202,7 +202,7 @@ const ListOfPurchase = () => {
           Router.push({
             pathname: '/pharmacy/purchase/import-purchases/'
 
-            // pathname: '/pharmacy/purchase/validate-import-purchase/'
+            // pathname: '/pharmacy/purchase/import-purchases/v2'
           })
         }}
         title='Import Inventory'

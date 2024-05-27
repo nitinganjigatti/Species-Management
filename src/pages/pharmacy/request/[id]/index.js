@@ -49,6 +49,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
+import { height, minHeight } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -385,12 +386,12 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box sx={{ width: '100%' }}>
           <Typography
             variant='body2'
             sx={{
@@ -399,7 +400,7 @@ const IndividualRequest = () => {
             }}
           >
             <Tooltip title={params.row.stock_name} placement='top'>
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
                 {params.row.stock_name}
               </Typography>
             </Tooltip>
@@ -410,39 +411,52 @@ const IndividualRequest = () => {
           {!isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) == 1 ? (
             <CustomChip sx={{ mx: 2 }} label='PR' skin='light' color='success' size='small' />
           ) : null}
-        </div>
+          <Tooltip
+            title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacturer} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacturer}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
 
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip
-          title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          placement='top'
-        >
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacturer',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacturer} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacturer}
-          </Typography>
-        </Tooltip>
-      )
-    },
+    // {
+    //   flex: 0.1,
+    //   minWidth: 100,
+    //   field: 'Package',
+    //   headerName: 'Package',
+    //   renderCell: params => (
+    //     <Tooltip
+    //       title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+    //       placement='top'
+    //     >
+    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //         {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
+    // {
+    //   flex: 0.1,
+    //   minWidth: 150,
+    //   field: 'manufacturer',
+    //   headerName: 'Manufacturer',
+    //   renderCell: params => (
+    //     <Tooltip title={params?.row?.manufacturer} placement='top'>
+    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //         {params?.row?.manufacturer}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -680,20 +694,27 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
-          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.medicin_name}</div>
-          </Typography> */}
+          <Tooltip title={params?.row?.package} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.package}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacture} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacture}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -709,32 +730,7 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip title={params?.row?.package} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.package}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacture',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacture} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacture}
-          </Typography>
-        </Tooltip>
-      )
-    },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -839,7 +835,7 @@ const IndividualRequest = () => {
       headerName: 'Vehicle No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -892,7 +888,7 @@ const IndividualRequest = () => {
             {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
-              params?.row?.shipment_status === 'Shipped' && (
+              (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
