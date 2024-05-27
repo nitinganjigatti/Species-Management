@@ -1,5 +1,5 @@
 import Error404 from 'src/pages/404'
-import AddExistingPurchase from 'src/components/pharmacy/existing-purchase/AddExistingPurchase'
+import AddExistingPurchase from 'src/components/pharmacy/purchase/AddExistingPurchase'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 

@@ -48,7 +48,7 @@ import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import ExistingPurchaseForm from 'src/views/pages/pharmacy/existing-purchase-item/ExistingPurchaseForm'
+import ExistingPurchaseForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm/ExistingPurchaseForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
