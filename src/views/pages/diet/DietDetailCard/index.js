@@ -310,7 +310,7 @@ const DietDetailCard = ({ dietDetails }) => {
         <ConfirmationDialog
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
-          title={'Are you sure you want to delete this Feed?'}
+          title={'Are you sure you want to delete this Diet?'}
           dialogBoxStatus={deleteDialogBox}
           onClose={handleCloseDetele}
           ConfirmationText={'Delete'}
