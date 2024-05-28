@@ -75,6 +75,7 @@ const DietDetailCard = ({ dietDetails }) => {
       if (response.success === true) {
         setDeleteDialogBox(false)
         Toaster({ type: 'success', message: response?.message })
+        Router.push('/diet/diet')
       } else {
         setDeleteDialogBox(false)
         Toaster({ type: 'error', message: response.message })

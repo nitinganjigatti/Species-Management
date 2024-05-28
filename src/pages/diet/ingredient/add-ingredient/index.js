@@ -357,7 +357,6 @@ const AddIngredient = () => {
             setSubmitLoader(false)
             Toaster({ type: 'success', message: JSON?.stringify(res?.message) })
 
-            // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
           } else {
