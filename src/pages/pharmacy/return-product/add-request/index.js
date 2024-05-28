@@ -352,7 +352,7 @@ const AddReturnRequest = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({ params: { q: 'central', column: 'type' } })
+      const response = await getStoreList({ params: { type: 'central' } })
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
@@ -820,8 +820,7 @@ const AddReturnRequest = () => {
                 <TableRow>
                   <TableCell>Product Name</TableCell>
                   <TableCell>Batch No</TableCell>
-                  <TableCell>Package details</TableCell>
-                  <TableCell>Manufacturer</TableCell>
+
                   <TableCell>Expiry Date</TableCell>
                   <TableCell>Priority</TableCell>
                   <TableCell>Quantity</TableCell>
@@ -841,22 +840,15 @@ const AddReturnRequest = () => {
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
                             ) : null}
+                            <Typography variant='body2'>{el.packageDetails}</Typography>
+                            <Typography variant='body2'>{el.manufacture}</Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.request_item_batch_no}
                             </Typography>
                           </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.packageDetails}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.manufacture}
-                            </Typography>
-                          </TableCell>
+
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
