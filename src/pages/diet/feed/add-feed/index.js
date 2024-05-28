@@ -1,10 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
   CardHeader,
+  Divider,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -15,7 +17,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useContext } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { AddButton } from 'src/components/Buttons'
 import * as yup from 'yup'
@@ -25,8 +27,17 @@ import Router, { useRouter } from 'next/router'
 import UserSnackbar from 'src/components/utility/snackbar'
 import toast from 'react-hot-toast'
 
+import Error404 from 'src/pages/404'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
+  const authData = useContext(AuthContext)
+
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const router = useRouter()
   const { id } = router.query
@@ -81,8 +92,6 @@ const AddFeedType = () => {
         setImgSrc(reader?.result)
       }
       setDisplayFile(files[0]?.name)
-
-      // setValue('feedImg', reader?.result)
       reader?.readAsDataURL(files[0])
       setValue('feedImg', files[0])
       clearErrors('feedImg')
@@ -92,14 +101,11 @@ const AddFeedType = () => {
   const removeSelectedImage = () => {
     setImgSrc('')
     setValue('feedImg', '')
-
-    // setDisplayFile('')
   }
 
   useEffect(() => {
-    if (id) {
+    if (id && dietModule) {
       getFeedById(id).then(res => {
-        // console.log('res', res?.data)
         setImgSrc(res?.data?.image)
         setValue('name', res?.data?.feed_type_name)
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
@@ -121,67 +127,14 @@ const AddFeedType = () => {
       feed_type_image: getValues('feedImg')
     }
 
-    console.log('submit', payload)
     if (id) {
       try {
         await updateFeedType({ ...payload }, id).then(res => {
           Router.push('/diet/feed')
           if (res?.success) {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            Toaster({ type: 'success', message: res?.data })
           } else {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            Toaster({ type: 'error', message: res?.data })
           }
         })
       } catch (error) {
@@ -191,63 +144,71 @@ const AddFeedType = () => {
       try {
         await addFeedType(payload).then(res => {
           if (res?.success) {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.data, severity: 'success' })
             Router.push('/diet/feed')
 
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            // return toast(
+            //   t => (
+            //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            //         <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+            //         <div>
+            //           <Typography sx={{ fontWeight: 500 }} variant='h5'>
+            //             Success!
+            //           </Typography>
+            //           <Divider sx={{ my: 2 }} />
+            //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
+            //             {res?.message}
+            //           </Typography>
+            //         </div>
+            //       </Box>
+            //       <IconButton
+            //         onClick={() => toast.dismiss(t.id)}
+            //         style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            //       >
+            //         <Icon icon='mdi:close' fontSize={24} />
+            //       </IconButton>
+            //     </Box>
+            //   ),
+            //   {
+            //     style: {
+            //       minWidth: '450px',
+            //       minHeight: '130px'
+            //     }
+            //   }
+            // )
+            Toaster({ type: 'success', message: res?.data })
           } else {
-            // setOpenSnackbar({ ...openSnackbar, open: true, message: res?.message, severity: 'warning' })
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            // return toast(
+            //   t => (
+            //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            //         <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
+            //         <div>
+            //           <Typography sx={{ fontWeight: 500 }} variant='h5'>
+            //             Error!
+            //           </Typography>
+            //           <Divider sx={{ my: 2 }} />
+            //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
+            //             {res?.message}
+            //           </Typography>
+            //         </div>
+            //       </Box>
+            //       <IconButton
+            //         onClick={() => toast.dismiss(t.id)}
+            //         style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            //       >
+            //         <Icon icon='mdi:close' fontSize={24} />
+            //       </IconButton>
+            //     </Box>
+            //   ),
+            //   {
+            //     style: {
+            //       minWidth: '450px',
+            //       minHeight: '130px'
+            //     }
+            //   }
+            // )
+            Toaster({ type: 'error', message: res?.message })
           }
         })
       } catch (error) {
@@ -270,18 +231,29 @@ const AddFeedType = () => {
   }
 
   return (
-    <Card>
-      <CardContent>
-        <Typography sx={{ mb: '20px' }} variant='h6'>
-          {id ? 'Update Feed Type' : 'New Feed Type'}
-        </Typography>
-        {/* <Typography sx={{ mb: 1 }}>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') ? (
+        <Box>
+          <Box sx={{ py: 2 }}>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
+                Feed Type
+              </Typography>
+              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new Feed Type</Typography>
+            </Breadcrumbs>
+          </Box>
+          <Card>
+            <CardContent>
+              <Typography sx={{ mb: '20px' }} variant='h6'>
+                {id ? 'Update Feed Type' : 'New Feed Type'}
+              </Typography>
+              {/* <Typography sx={{ mb: 1 }}>
           {id ? 'Update Feed type' : 'Add New Feed type'} and write some description for it
         </Typography> */}
 
-        <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-          {/* {editParams?.id !== null ? ( */}
-          {/* <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
+              <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+                {/* {editParams?.id !== null ? ( */}
+                {/* <FormControl fullWidth sx={{ my: 2 }} error={Boolean(errors.radio)}>
             <Controller
               name='status'
               control={control}
@@ -309,99 +281,110 @@ const AddFeedType = () => {
               </FormHelperText>
             )}
           </FormControl> */}
-          <FormControl sx={{ width: '50%', mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Feed Type*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Enter Feed Type'
-                  error={Boolean(errors.name)}
-                  name='name'
+                <FormControl sx={{ width: '50%', mb: 6 }}>
+                  <Controller
+                    name='name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        label='Feed Type*'
+                        value={value}
+                        onChange={onChange}
+                        placeholder='Enter Feed Type'
+                        error={Boolean(errors.name)}
+                        name='name'
+                      />
+                    )}
+                  />
+                  {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message}</FormHelperText>}
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 6 }}>
+                  <Controller
+                    name='description'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        rows={4}
+                        multiline
+                        label='Description'
+                        value={value}
+                        onChange={onChange}
+                        placeholder='Description'
+                        error={Boolean(errors.description)}
+                        name='description'
+                      />
+                    )}
+                  />
+                  {errors.description && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={e => handleInputImageChange(e)}
+                  style={{ display: 'none' }}
+                  name='feedImg'
+                  ref={fileInputRef}
                 />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='description'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  rows={4}
-                  multiline
-                  label='Description'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Description'
-                  error={Boolean(errors.description)}
-                  name='description'
-                />
-              )}
-            />
-            {errors.description && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
-            )}
-          </FormControl>
-          <input
-            type='file'
-            accept='image/*'
-            onChange={e => handleInputImageChange(e)}
-            style={{ display: 'none' }}
-            name='feedImg'
-            ref={fileInputRef}
-          />
-          {imgSrc !== '' && (
-            <Box
-              sx={{
-                display: 'flex'
-              }}
-            >
-              <Box sx={{ display: 'flex' }}>
-                <img
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    padding: '0.1875rem',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(93, 89, 98, 0.14)'
-                  }}
-                  width={50}
-                  height={50}
-                  alt='Uploaded image'
-                  src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
-                />
+                {imgSrc !== '' && (
+                  <Box
+                    sx={{
+                      display: 'flex'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex' }}>
+                      <img
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          padding: '0.1875rem',
+                          borderRadius: '10px',
+                          border: '1px solid rgba(93, 89, 98, 0.14)',
+                          objectFit: 'cover',
+                          objectPosition: 'center'
+                        }}
+                        width={50}
+                        height={50}
+                        alt='Uploaded image'
+                        src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                      />
 
-                <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
-                <Box sx={{ cursor: 'pointer', margin: '10px' }}>
-                  <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
-                    {' '}
-                  </Icon>
-                </Box>
-              </Box>
-            </Box>
-          )}
+                      <Typography sx={{ margin: '10px' }}>{displayFile}</Typography>
+                      <Box sx={{ cursor: 'pointer', margin: '10px' }}>
+                        <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
+                          {' '}
+                        </Icon>
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
 
-          {imgSrc === '' && (
-            <Button variant='outlined' onClick={handleAddImageClick}>
-              ADD IMAGE
-            </Button>
-          )}
-          {errors.feedImg && <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>}
+                {imgSrc === '' && (
+                  <Button variant='outlined' onClick={handleAddImageClick}>
+                    ADD IMAGE
+                  </Button>
+                )}
+                {errors.feedImg && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>
+                )}
 
-          <RenderSidebarFooter />
-          {openSnackbar.open ? (
-            <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-          ) : null}
-        </form>
-      </CardContent>
-    </Card>
+                <RenderSidebarFooter />
+                {openSnackbar.open ? (
+                  <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+                ) : null}
+              </form>
+            </CardContent>
+          </Card>
+        </Box>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }
 

@@ -68,6 +68,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import { borderBottom } from '@mui/system'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -91,7 +92,9 @@ const initialNestedRowMedicine = {
   control_substance: false,
   control_substance_file: '',
   prescription_required: false,
-  prescription_required_file: ''
+  prescription_required_file: '',
+  package: '',
+  manufacture: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -173,6 +176,8 @@ const AddRequestForm = () => {
       control_substance_file: nestedRowMedicine.control_substance_file,
       prescription_required: nestedRowMedicine.prescription_required,
       prescription_required_file: nestedRowMedicine.prescription_required_file,
+      package: nestedRowMedicine.package,
+      manufacture: nestedRowMedicine.manufacture,
       request_item_leaf_id: ''
     }
 
@@ -224,16 +229,12 @@ const AddRequestForm = () => {
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-
-    // if (!values.control_substance_file) {
-    //   itemErrors.control_substance_file = 'This field is required'
+    // removing mandatory conation
+    // if (values.control_substance === true) {
+    //   if (values.control_substance_file.length === 0) {
+    //     itemErrors.control_substance_file = 'This field is required'
+    //   }
     // }
-    // if (values.control_substance) {
-    if (values.control_substance === true) {
-      if (values.control_substance_file.length === 0) {
-        itemErrors.control_substance_file = 'This field is required'
-      }
-    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -276,14 +277,15 @@ const AddRequestForm = () => {
 
       return
     }
+    // removing mandatory conation
 
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    // if (nestedRowMedicine.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
 
-        return
-      }
-    }
+    //     return
+    //   }
+    // }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -343,13 +345,15 @@ const AddRequestForm = () => {
 
       return
     }
-    if (nestedRowMedicine.control_substance === true) {
-      if (nestedRowMedicine.control_substance_file.length === 0) {
-        setItemErrors(validate(nestedRowMedicine))
+    // removing mandatory conation
 
-        return
-      }
-    }
+    // if (nestedRowMedicine.control_substance === true) {
+    //   if (nestedRowMedicine.control_substance_file.length === 0) {
+    //     setItemErrors(validate(nestedRowMedicine))
+
+    //     return
+    //   }
+    // }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -415,7 +419,10 @@ const AddRequestForm = () => {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
-            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label})`,
+            name: item.name,
+            package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+            manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
 
             prescription_required: item.prescription_required === '1' ? true : false
@@ -446,7 +453,7 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    // console.log('result', result)
+    console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -462,7 +469,9 @@ const AddRequestForm = () => {
           prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
           id: el?.id,
           request_item_detail_id: el?.id,
-          dispatch_item_id: el?.dispatch_item_id
+          dispatch_item_id: el?.dispatch_item_id,
+          package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+          manufacture: el?.manufacturer
         }
       })
 
@@ -498,8 +507,9 @@ const AddRequestForm = () => {
         control_substance_file: getItems[0].control_substance_file,
         prescription_required: getItems[0].prescription_required,
         prescription_required_file: getItems[0].prescription_required_file,
-
-        id: getItems[0].id
+        id: getItems[0].id,
+        package: getItems[0].package,
+        manufacture: getItems[0].manufacture
       })
     } else {
       const getItems = editParams.request_item_details.filter(el => {
@@ -519,7 +529,9 @@ const AddRequestForm = () => {
           ? getItems[0].prescription_required_file
           : '',
 
-        prescription_required: getItems[0].prescription_required
+        prescription_required: getItems[0].prescription_required,
+        package: getItems[0].package,
+        manufacture: getItems[0].manufacture
       })
     }
   }
@@ -617,26 +629,37 @@ const AddRequestForm = () => {
   const createForm = () => {
     return (
       // <CardContent>
-      <form
-      // addItemsToTable={addMultipleMedicine(addItemsToTable)}
-      >
-        <Grid container spacing={5}>
+      <form style={{ width: '100%' }}>
+        <Grid container spacing={5} xs={12}>
           <Grid item xs={12} sm={6}>
+            {console.log('options list', optionsMedicineList)}
             <FormControl fullWidth>
               <Autocomplete
-                forcePopupIcon={false}
-                inputProps={{ tabIndex: '6' }}
-                disablePortal
+                // sx={{ zIndex: 1 }}
+                // forcePopupIcon={false}
+                // inputProps={{ tabIndex: '6' }}
+                // disablePortal
                 id='autocomplete-controlled'
                 options={optionsMedicineList}
-                value={nestedRowMedicine.medicine_name}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <Box>
+                      <Typography>{option.name}</Typography>
+                      <Typography variant='body2'>{option.package}</Typography>
+                      <Typography variant='body2'>{option.manufacture}</Typography>
+                    </Box>
+                  </li>
+                )}
+                value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                 onChange={(event, newValue) => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    medicine_name: newValue?.label,
+                    medicine_name: newValue?.name,
                     request_item_medicine_id: newValue?.value,
                     control_substance: newValue?.control_substance,
-                    prescription_required: newValue?.prescription_required
+                    prescription_required: newValue?.prescription_required,
+                    package: newValue?.package,
+                    manufacture: newValue?.manufacture
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -656,7 +679,32 @@ const AddRequestForm = () => {
                     error={Boolean(itemErrors.medicine_name)}
                   />
                 )}
+                // getOptionLabel={option => option?.label}
+                // renderOption={option => (
+                //   <Box sx={{ my: 3, mx: 2 }}>
+                //     <div>{option.key.split('Manufacturer')[0]}</div>
+                //     <div>{option.key.split('Manufacturer')[1]}</div>
+                //   </Box>
+                // )}
               />
+              {nestedRowMedicine.medicine_name && (
+                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                  <Chip
+                    label={nestedRowMedicine.package}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  />
+                  <Chip
+                    label={nestedRowMedicine.manufacture}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ fontSize: 11, height: '22px' }}
+                  />
+                </Box>
+              )}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                   This field is required
@@ -1150,7 +1198,10 @@ const AddRequestForm = () => {
                         {el.prescription_required ? (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
                         ) : null}
+                        <Typography variant='body2'>{el.package}</Typography>
+                        <Typography variant='body2'>{el.manufacture}</Typography>
                       </TableCell>
+
                       <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
                         {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>

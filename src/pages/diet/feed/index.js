@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Router from 'next/router'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import { DataGrid } from '@mui/x-data-grid'
@@ -21,6 +21,11 @@ import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import toast from 'react-hot-toast'
+import Tooltip from '@mui/material/Tooltip'
+
+import Error404 from 'src/pages/404'
+
+import { AuthContext } from 'src/context/AuthContext'
 
 const FeedTypes = () => {
   const [rows, setRows] = useState([])
@@ -31,6 +36,11 @@ const FeedTypes = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [searchValue, setSearchValue] = useState('')
+
+  const authData = useContext(AuthContext)
+
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   function loadServerRows(currentPage, data) {
     return data
@@ -104,7 +114,9 @@ const FeedTypes = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
+    if (dietModule) {
+      fetchTableData(sort, searchValue, sortColumning, status)
+    }
   }, [fetchTableData, status])
 
   const columns = [
@@ -125,10 +137,12 @@ const FeedTypes = () => {
       field: 'feed_type_name',
       headerName: 'FEEDS',
       renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
-          {params.row.feed_type_name}
-        </Box>
+        <Tooltip title={params.row.feed_type_name} placement='right'>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+            {params.row.feed_type_name}
+          </Box>
+        </Tooltip>
       )
     },
     {
@@ -137,9 +151,11 @@ const FeedTypes = () => {
       field: 'desc',
       headerName: 'DESCRIPTION',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.desc}
-        </Typography>
+        <Tooltip title={params.row.desc} placement='bottom'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.desc}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -205,12 +221,16 @@ const FeedTypes = () => {
   }
 
   const headerAction = (
-    <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-      <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; NEW
-      </Button>
-    </Box>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+        <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+          <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; NEW
+          </Button>
+        </Box>
+      )}
+    </>
   )
 
   const TabBadge = ({ label, totalCount }) => (
@@ -271,18 +291,26 @@ const FeedTypes = () => {
   }
 
   return (
-    <Grid>
-      <TabContext value={status}>
-        <TabList onChange={handleChange}>
-          <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-          <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-          <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-        </TabList>
-        <TabPanel value=''>{tableData()}</TabPanel>
-        <TabPanel value='1'>{tableData()}</TabPanel>
-        <TabPanel value='0'>{tableData()}</TabPanel>
-      </TabContext>
-    </Grid>
+    <>
+      {dietModule ? (
+        <Grid>
+          <TabContext value={status}>
+            <TabList onChange={handleChange}>
+              <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+              <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+              <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+            </TabList>
+            <TabPanel value=''>{tableData()}</TabPanel>
+            <TabPanel value='1'>{tableData()}</TabPanel>
+            <TabPanel value='0'>{tableData()}</TabPanel>
+          </TabContext>
+        </Grid>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }
 

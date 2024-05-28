@@ -13,6 +13,9 @@ const ComposeNavigation = () => {
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
 
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -30,8 +33,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...labNav)
   }
 
-  const dietNav = dietNavigation()
-  navigationArray.push(...dietNav)
+  if (dietModule) {
+    const dietNav = dietNavigation()
+    navigationArray.push(...dietNav)
+  }
 
   return navigationArray
 }

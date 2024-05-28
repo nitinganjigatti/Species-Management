@@ -122,7 +122,8 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
             style={{
               height: '100%',
               width: '100%',
-              borderRadius: '50%'
+              borderRadius: '50%',
+              objectFit: 'cover'
             }}
           />
           <Icon

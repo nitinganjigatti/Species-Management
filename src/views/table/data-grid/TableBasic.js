@@ -27,6 +27,7 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
             sl_no: false,
             id: false
           }}
+          getRowHeight={() => 70}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
           autoHeight

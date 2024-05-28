@@ -18,6 +18,7 @@ import { useRouter } from 'next/router'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
+import Toaster from 'src/components/Toaster'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
   const router = useRouter()
@@ -45,9 +46,10 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
       if (response.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} />)
+        //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
+        return Toaster({ type: 'success', message: response?.message })
       } else {
-        alert('something went wrong')
+        return Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {}
   }
@@ -80,9 +82,13 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
                 alt='Ingredient Image'
                 sx={{
                   width: '100%',
-                  height: '100%'
+                  height: IngredientsDetailsval.recipe_image ? '100%' : '250px'
                 }}
-                src={IngredientsDetailsval.recipe_image ? IngredientsDetailsval.recipe_image : '/icons/recipedummy.svg'}
+                src={
+                  IngredientsDetailsval.recipe_image
+                    ? IngredientsDetailsval.recipe_image
+                    : '/icons/icon_recipe_fill.png'
+                }
               ></Avatar>
             </div>
           </CardContent>
@@ -178,7 +184,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal: 0 + ' Kcal'}
+                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal : 0 + ' Kcal'}
               </Typography>
             </Box>
           </Box>
@@ -189,6 +195,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
         action={confirmDeleteAction}
         open={deleteDialogBox}
         active={isActive}
+        dietCount={IngredientsDetailsval.diet_count}
         type='recipe'
         message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Recipe?</span>}
       />

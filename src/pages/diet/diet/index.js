@@ -28,8 +28,6 @@ import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import { useTheme } from '@mui/material/styles'
-
-// import { Data } from './data'
 import { getDietList } from 'src/lib/api/diet/dietList'
 
 import RecipeList from 'src/components/diet/RecipeList'
@@ -94,14 +92,14 @@ const Diet = () => {
   //   }
   // }
 
-  const onClose = () => {
-    setDialog(false)
-  }
+  // const onClose = () => {
+  //   setDialog(false)
+  // }
 
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-    setSelectedCard([])
-  }
+  // const addEventSidebarOpen = () => {
+  //   setOpenDrawer(true)
+  //   setSelectedCard([])
+  // }
 
   const handleSidebarClose = () => {
     console.log('close event clicked')
@@ -188,10 +186,10 @@ const Diet = () => {
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
-      <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+      {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add Recipe
-      </Button>
+      </Button> */}
     </div>
   )
 
@@ -274,9 +272,9 @@ const Diet = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Diet Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
-            src={params.row.diet_image ? params.row.diet_image : null}
+            src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -434,7 +432,7 @@ const Diet = () => {
           <>
             <Card>
               <CardHeader title='Diet' action={headerAction} />
-              <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
+              {/* <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>Show</Typography>
                 </Grid>
@@ -453,7 +451,7 @@ const Diet = () => {
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>entries</Typography>
                 </Grid>
-              </Grid>
+              </Grid> */}
               <Grid>
                 {/* <TabList
                   onChange={handleChange}
@@ -515,7 +513,7 @@ const Diet = () => {
               />
             </Card>
 
-            <RecipeList
+            {/* <RecipeList
               recipeList={recipeList}
               setSelectedCard={setSelectedCard}
               selectedCard={selectedCard}
@@ -523,7 +521,7 @@ const Diet = () => {
               addEventSidebarOpen={openDrawer}
               handleSidebarClose={handleSidebarClose}
               submitLoader={submitLoader}
-            />
+            /> */}
           </>
         )}
       </>

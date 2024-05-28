@@ -71,8 +71,9 @@ const editParamsInitialState = {
   discount_amount: 0,
   discount_percentage: 0,
   net_amount: 0,
-
-  tax_amount: 0
+  tax_amount: 0,
+  purchase_order_no: '',
+  requested_by: ''
 }
 
 const initialNestedRowMedicine = {
@@ -85,12 +86,15 @@ const initialNestedRowMedicine = {
   purchase_expiry_date: '',
   purchase_stock_item_id: '',
   purchase_gst_type: '',
+  purchase_gst: 0,
   purchase_cgst: 0,
   purchase_sgst: 0,
   purchase_igst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
-  purchase_igst_amount: 0
+  purchase_igst_amount: 0,
+  package_details: '',
+  manufacturer: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -216,6 +220,11 @@ const AddPurchaseForm = () => {
 
   const calculate_sgst_tax_amount = editParams.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_sgst_amount ? row.purchase_sgst_amount : 0),
+    0
+  )
+
+  const calculate_igst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_igst_amount ? row.purchase_igst_amount : 0),
     0
   )
 
@@ -484,10 +493,14 @@ const AddPurchaseForm = () => {
     postData.po_date = data.po_date
     postData.supplier_id = data.supplier_id
     postData.po_no = data.po_no
+    postData.purchase_order_no = data.purchase_order_no
+    postData.requested_by = data.requested_by
 
     postData.cgst = calculate_cgst_tax_amount
     postData.sgst = calculate_sgst_tax_amount
-    postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    // postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.igst = calculate_igst_tax_amount
+
     postData.total_amount = totalLineItemsAmount
     postData.net_amount = totalLineItemsPurchase
     // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
@@ -611,7 +624,9 @@ const AddPurchaseForm = () => {
             label: item.name,
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
-            stock_type: item.stock_type
+            stock_type: item.stock_type,
+            package_details: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            manufacture: item.manufacturer_name
             // supplier_price: item.supplier_price
           }))
         )
@@ -676,7 +691,9 @@ const AddPurchaseForm = () => {
             ...el,
             medicine_name: el?.stock_item_name,
             id: el?.id,
-            stock_type: el?.stock_type
+            stock_type: el?.stock_type,
+            package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+            manufacture: el?.manufacturer
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -723,7 +740,9 @@ const AddPurchaseForm = () => {
           discount_percentage: result?.data?.discount_percentage,
           net_amount: result?.data?.net_amount,
           tax_amount: result?.data?.tax_amount,
-          taxable_amount: result?.data?.taxable_amount
+          taxable_amount: result?.data?.taxable_amount,
+          purchase_order_no: result?.data?.purchase_order_no,
+          requested_by: result?.data?.requested_by
         })
 
         // setSuppliers([{ id: result?.data?.supplier_id, company_name: result?.data?.company_name }])
@@ -732,7 +751,9 @@ const AddPurchaseForm = () => {
           supplier_id: result?.data?.supplier_id,
           po_date: result?.data?.po_date,
           po_no: result?.data?.po_no,
-          description: result?.data?.description
+          description: result?.data?.description,
+          purchase_order_no: result?.data?.purchase_order_no,
+          requested_by: result?.data?.requested_by
         })
       }
     } catch (error) {
@@ -748,7 +769,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -768,6 +795,7 @@ const AddPurchaseForm = () => {
         purchase_free_quantity: getItems[0].purchase_free_quantity,
         purchase_discount: getItems[0].purchase_discount,
         purchase_cgst: getItems[0].purchase_cgst,
+        purchase_gst: getItems[0].purchase_gst,
         purchase_sgst: getItems[0].purchase_sgst,
         purchase_igst: getItems[0].purchase_igst,
         purchase_cgst_amount: getItems[0].purchase_cgst_amount,
@@ -777,7 +805,9 @@ const AddPurchaseForm = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -788,7 +818,13 @@ const AddPurchaseForm = () => {
       })
 
       setOptionsMedicineList([
-        { value: getItems[0].purchase_unit_id, label: getItems[0]?.medicine_name, stock_type: getItems[0]?.stock_type }
+        {
+          value: getItems[0].purchase_unit_id,
+          label: getItems[0]?.medicine_name,
+          stock_type: getItems[0]?.stock_type,
+          package_details: getItems[0]?.package_details,
+          manufacture: getItems[0]?.manufacture
+        }
       ])
 
       setNestedRowMedicine({
@@ -807,8 +843,10 @@ const AddPurchaseForm = () => {
         purchase_free_quantity: getItems[0].purchase_free_quantity,
         purchase_discount: getItems[0].purchase_discount,
         purchase_cgst: getItems[0].purchase_cgst,
+        purchase_gst: getItems[0].purchase_gst,
         purchase_sgst: getItems[0].purchase_sgst,
         purchase_igst: getItems[0].purchase_igst,
+
         purchase_cgst_amount: getItems[0].purchase_cgst_amount,
         purchase_sgst_amount: getItems[0].purchase_sgst_amount,
         purchase_igst_amount: getItems[0].purchase_igst_amount,
@@ -816,7 +854,9 @@ const AddPurchaseForm = () => {
         purchase_discount_amount: getItems[0].purchase_discount_amount,
         purchase_taxable_amount: getItems[0].purchase_taxable_amount,
         purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price
+        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        package_details: getItems[0]?.package_details,
+        manufacture: getItems[0]?.manufacture
       })
     }
   }
@@ -1025,7 +1065,8 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto', mb: 5 }}>
+
+            <Grid item xs={12} sm={6} lg={6}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -1053,6 +1094,46 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='purchase_order_no'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='purchase_order_no'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.purchase_order_no)}
+                      label='Purchase order number'
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='requested_by'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='requested_by'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.po_no)}
+                      label='Requested by'
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
           </Grid>
         </CardContent>
         <CardContent>
@@ -1077,18 +1158,90 @@ const AddPurchaseForm = () => {
           </Grid>
         </CardContent>
         <TableContainer>
-          <Table>
+          <Table stickyHeader sx={{ minWidth: 650, overflowX: 'scroll' }} aria-label='simple table'>
             <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
               <TableRow>
-                <TableCell width='14%'>Product Name</TableCell>
-                <TableCell width='10%'>Batch</TableCell>
-                <TableCell>Expiry Date</TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: 300
+                  }}
+                >
+                  Product Name
+                </TableCell>
+
+                <TableCell>Batch</TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: 130,
+                    textAlign: 'center'
+                  }}
+                >
+                  Expiry Date
+                </TableCell>
                 <TableCell align='right'>Quantity</TableCell>
                 {/* <TableCell align='right'>Free Quantity</TableCell> */}
                 <TableCell align='right'>Rate</TableCell>
-                <TableCell align='right'>Discount in %</TableCell>
-                <TableCell align='right'>GST in %</TableCell>
-                <TableCell align='right'>Net Amount</TableCell>
+                <TableCell
+                  align='right'
+                  sx={{
+                    minWidth: 130
+                  }}
+                >
+                  Discount in %
+                </TableCell>
+                {/* <TableCell align='right'>GST in %</TableCell> */}
+                <TableCell
+                  align='right'
+                  sx={{
+                    minWidth: 130
+                  }}
+                >
+                  Net Amount
+                </TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: 130,
+                    textAlign: 'center'
+                  }}
+                >
+                  CGST
+                  <Grid container>
+                    <Grid item xs={6}>
+                      Rate
+                    </Grid>
+                    <Grid item xs={6}>
+                      Amount
+                    </Grid>
+                  </Grid>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    textAlign: 'center',
+
+                    minWidth: 130
+                  }}
+                >
+                  SGST
+                  <Grid container>
+                    <Grid item xs={6}>
+                      Rate
+                    </Grid>
+                    <Grid item xs={6}>
+                      Amount
+                    </Grid>
+                  </Grid>
+                </TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
+                  IGST
+                  <Grid container>
+                    <Grid item xs={6}>
+                      Rate
+                    </Grid>
+                    <Grid item xs={6}>
+                      Amount
+                    </Grid>
+                  </Grid>
+                </TableCell>
                 <TableCell align='right'>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -1096,8 +1249,12 @@ const AddPurchaseForm = () => {
               {editParams.purchase_details
                 ? editParams.purchase_details.map((el, index) => {
                     return (
-                      <TableRow key={index}>
-                        <TableCell>{el.medicine_name}</TableCell>
+                      <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                        <TableCell>
+                          {el.medicine_name}
+                          <Typography variant='body2'>{el.package_details}</Typography>
+                          <Typography variant='body2'>{el.manufacture}</Typography>
+                        </TableCell>
                         <TableCell>{el.purchase_batch_no}</TableCell>
                         <TableCell>
                           {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
@@ -1106,9 +1263,32 @@ const AddPurchaseForm = () => {
                         {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                         <TableCell align='right'>{el.purchase_unit_price}</TableCell>
                         <TableCell align='right'>{el.purchase_discount}%</TableCell>
-
-                        <TableCell align='right'>{el.purchase_igst}%</TableCell>
+                        {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
                         <TableCell align='right'>{el.purchase_net_amount}</TableCell>
+                        <TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_cgst}%
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_cgst_amount}
+                          </TableCell>
+                        </TableCell>
+                        <TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_sgst}%
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_sgst_amount}
+                          </TableCell>
+                        </TableCell>{' '}
+                        <TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_igst}%
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
+                            {el?.purchase_igst_amount}
+                          </TableCell>
+                        </TableCell>
                         <TableCell align='center'>
                           {el.id ? null : (
                             <IconButton
@@ -1165,7 +1345,7 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>Total Amount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
+                      {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1177,7 +1357,7 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>Discount :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsDiscount}
+                      {totalLineItemsDiscount?.toFixed(2)}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1189,13 +1369,19 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>CGST :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_cgst_tax_amount}
+                      {calculate_cgst_tax_amount?.toFixed(2)}
                     </Typography>
                   </CalcWrapper>
                   <CalcWrapper>
                     <Typography variant='body2'>SGST :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_sgst_tax_amount}
+                      {calculate_sgst_tax_amount?.toFixed(2)}
+                    </Typography>
+                  </CalcWrapper>
+                  <CalcWrapper>
+                    <Typography variant='body2'>IGST :</Typography>
+                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                      {calculate_igst_tax_amount?.toFixed(2)}
                     </Typography>
                   </CalcWrapper>
                   <Divider
@@ -1256,7 +1442,7 @@ const AddPurchaseForm = () => {
                   <CalcWrapper>
                     <Typography variant='body2'>Grand Total :</Typography>
                     <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase}
+                      {totalLineItemsPurchase?.toFixed(2)}
                     </Typography>
                   </CalcWrapper>
 
@@ -1287,8 +1473,6 @@ const AddPurchaseForm = () => {
             {id ? null : (
               <Button
                 onClick={() => {
-                  console.log('editParamsInitialState', editParamsInitialState)
-                  debugger
                   reset(editParamsInitialState)
                   setEditParams(editParamsInitialState)
                 }}

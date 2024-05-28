@@ -82,7 +82,8 @@ const AddRecipe = () => {
     try {
       const params = {
         type: ['length', 'weight'],
-        page: 1
+        page: 1,
+        limit: 50
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
@@ -269,7 +270,7 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' />)
+        return toast(t => <AddToasterforSuccess type='Recipe' t={t} />)
       }
     } else {
       const numericFormData = {
@@ -320,7 +321,7 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' id={id} />)
+        return toast(t => <AddToasterforSuccess type='Recipe' id={id} t={t} />)
       }
     }
   }

@@ -18,36 +18,49 @@ import { useRouter } from 'next/router'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
+import Toaster from 'src/components/Toaster'
 
-const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
+const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval }) => {
   const router = useRouter()
-  const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || false)
+  const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
 
   const handleClosenew = () => {
     setDeleteDialogBox(false)
-    setIsActive(IngredientsDetailsval.active)
+
+    // setIsActive(IngredientsDetailsval.active)
   }
+
+  useEffect(() => {
+    setIsActive(IngredientsDetailsval?.active)
+  }, [IngredientsDetailsval])
 
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
-    setIsActive(newIsActive)
+    setActivePayload(newIsActive)
+
+    // setIsActive(newIsActive)
     setDeleteDialogBox(true)
-    console.log(deleteDialogBox, 'deleteDialogBox')
+
+    // console.log(deleteDialogBox, 'deleteDialogBox')
   }
 
   const confirmDeleteAction = async () => {
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: isActive })
+      const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: activePayload })
       console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
 
-        return toast(t => <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} />)
-      } else { 
-        alert('something went wrong')
+        return Toaster({ type: 'success', message: response?.data })
+
+        // toast(t => (
+        //   <ToasterforSuccess isActive={isActive} type='Ingredient' id={IngredientsDetailsval.id} t={t} />
+        // ))
+      } else {
+        return Toaster({ type: 'error', message: response?.data })
       }
     } catch (error) {}
   }
@@ -88,7 +101,7 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
                   height: 70,
                   background: '#fff'
                 }}
-                src={IngredientsDetailsval.image ? IngredientsDetailsval.image : null}
+                src={IngredientsDetailsval.image ? IngredientsDetailsval.image : '/icons/icon_ingredient_fill.png'}
               >
                 {IngredientsDetailsval.image ? null : <Icon icon='noto:red-apple' fontSize={'94px'} />}
               </Avatar>
@@ -98,15 +111,9 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
           <Grid item>
             <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>{'ING' + IngredientsDetailsval.id}</Typography>
             <FormControlLabel
-              control={
-                <Switch
-                  checked={IngredientsDetailsval.active === '1' ? true : false}
-                  onChange={handleSwitchChange}
-                  fontSize={2}
-                />
-              }
+              control={<Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />}
               labelPlacement='start'
-              label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
+              label={isActive === '1' ? 'Active' : 'InActive'}
             />
           </Grid>
         </div>
@@ -186,7 +193,13 @@ const IngredientDetailCardview = ({ IngredientsDetailsval }) => {
         open={deleteDialogBox}
         type='ingredient'
         active={isActive}
-        message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Ingredient?</span>}
+        recipeCount={IngredientsDetailsval.recipe_count}
+        dietCount={IngredientsDetailsval.diet_count}
+        message={
+          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+            {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+          </span>
+        }
       />
     </Grid>
   )

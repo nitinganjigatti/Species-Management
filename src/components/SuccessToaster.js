@@ -4,7 +4,7 @@ import { Typography, Box, Divider } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 
-const ToasterforSuccess = ({ isActive, type, id }) => {
+const ToasterforSuccess = ({ isActive, type, id, t }) => {
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -21,10 +21,7 @@ const ToasterforSuccess = ({ isActive, type, id }) => {
           </Typography>
         </div>
       </Box>
-      <IconButton
-        onClick={() => toast.dismiss(t.id)}
-        style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-      >
+      <IconButton onClick={() => toast.dismiss(id)} style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}>
         <Icon icon='mdi:close' fontSize={24} />
       </IconButton>
     </Box>

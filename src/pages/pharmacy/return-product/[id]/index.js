@@ -135,7 +135,9 @@ const IndividualReturnRequest = () => {
             from_store_name: el.from_store_name,
             to_store_name: el.to_store_name,
             total_requested_qty: el.total_requested_qty,
-            total_dispatch_qty: el.total_dispatch_qty
+            total_dispatch_qty: el.total_dispatch_qty,
+            package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+            manufacture: el?.manufacturer
           }
 
           return items
@@ -329,6 +331,36 @@ const IndividualReturnRequest = () => {
       )
     },
 
+    {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'Package',
+      headerName: 'Package',
+      renderCell: params => (
+        <Tooltip
+          title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+          placement='top'
+        >
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'manufacturer',
+      headerName: 'Manufacturer',
+      renderCell: params => (
+        <Tooltip title={params?.row?.manufacturer} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.manufacturer}
+          </Typography>
+        </Tooltip>
+      )
+    },
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -450,6 +482,32 @@ const IndividualReturnRequest = () => {
         </div>
       )
     },
+    {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'Package',
+      headerName: 'Package',
+      renderCell: params => (
+        <Tooltip title={params?.row?.package} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.package}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'manufacture',
+      headerName: 'Manufacturer',
+      renderCell: params => (
+        <Tooltip title={params?.row?.manufacture} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.manufacture}
+          </Typography>
+        </Tooltip>
+      )
+    },
 
     {
       flex: 0.2,
@@ -546,7 +604,7 @@ const IndividualReturnRequest = () => {
       headerName: 'Vehicle No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -598,7 +656,7 @@ const IndividualReturnRequest = () => {
             {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
-              params?.row?.shipment_status === 'Shipped' && (
+              (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
