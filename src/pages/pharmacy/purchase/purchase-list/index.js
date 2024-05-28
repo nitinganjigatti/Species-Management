@@ -14,13 +14,13 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 
 const ListOfPurchase = () => {
@@ -180,9 +180,20 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <div>
+    <Grid sx={{ display: 'flex', gap: 2 }}>
+      <ExcelExportButton
+        disabled={total === 0 ? true : false}
+        action={() => {
+          Router.push({
+            pathname: '/pharmacy/purchase/import-purchases/'
+
+            // pathname: '/pharmacy/purchase/import-purchases/v2'
+          })
+        }}
+        title='Import Inventory'
+      />
       <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
-    </div>
+    </Grid>
   )
 
   const onRowClick = params => {
