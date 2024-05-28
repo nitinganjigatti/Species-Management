@@ -317,9 +317,9 @@ const IndividualReturnRequest = () => {
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box>
           <Tooltip title={params.row.stock_name} placement='top'>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params.row.stock_name}
             </Typography>
           </Tooltip>
@@ -327,37 +327,20 @@ const IndividualReturnRequest = () => {
           {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
           ) : null}
-        </div>
-      )
-    },
-
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip
-          title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          placement='top'
-        >
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacturer',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacturer} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacturer}
-          </Typography>
-        </Tooltip>
+          <Tooltip
+            title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacturer} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacturer}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
 
@@ -473,39 +456,23 @@ const IndividualReturnRequest = () => {
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box>
           <Tooltip title={params?.row?.medicin_name} placement='top'>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params?.row?.medicin_name}
             </Typography>
           </Tooltip>
-        </div>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip title={params?.row?.package} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.package}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacture',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacture} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacture}
-          </Typography>
-        </Tooltip>
+          <Tooltip title={params?.row?.package} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.package}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacture} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacture}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
 

@@ -677,7 +677,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               render={({ field: { value, onChange } }) => {
                                 return (
                                   <Autocomplete
-                                    disablePortal
                                     id={parseInt(`product_batches[${index}].batch_no`)}
                                     options={batchItems}
                                     getOptionLabel={option => option?.batch_no}
@@ -685,8 +684,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                     }
                                     onChange={(e, val) => {
-                                      console.log('valllll', val)
-
                                       // if (val === null) {
                                       //   setValue(`product_batches[${index}].expiry_date`, '')
 

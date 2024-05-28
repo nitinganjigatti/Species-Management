@@ -75,7 +75,9 @@ const editParamsInitialState = {
   discount_percentage: 0,
   net_amount: 0,
 
-  tax_amount: 0
+  tax_amount: 0,
+  purchase_order_no: '',
+  requested_by: ''
 }
 
 const initialNestedRowMedicine = {
@@ -343,6 +345,8 @@ const AddExistingPurchase = () => {
     postData.po_date = data.po_date
     postData.supplier_id = data.supplier_id
     postData.po_no = data.po_no
+    postData.purchase_order_no = data.purchase_order_no
+    postData.requested_by = data.requested_by
 
     postData.cgst = calculate_cgst_tax_amount
     postData.sgst = calculate_sgst_tax_amount
@@ -848,7 +852,7 @@ const AddExistingPurchase = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto', mb: 5 }}>
+            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto' }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -874,6 +878,46 @@ const AddExistingPurchase = () => {
                     This field is required
                   </FormHelperText>
                 )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='purchase_order_no'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='purchase_order_no'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.purchase_order_no)}
+                      label='Purchase order number'
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='requested_by'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='requested_by'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.po_no)}
+                      label='Requested by'
+                    />
+                  )}
+                />
               </FormControl>
             </Grid>
           </Grid>
