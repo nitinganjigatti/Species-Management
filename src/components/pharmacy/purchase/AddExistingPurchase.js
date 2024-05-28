@@ -226,6 +226,11 @@ const AddExistingPurchase = () => {
     0
   )
 
+  const calculate_igst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_igst_amount ? row.purchase_igst_amount : 0),
+    0
+  )
+
   const addItemsToTable = payload => {
     const updatedNestedRows = [...editParams.purchase_details, payload]
     setEditParams({
@@ -350,7 +355,9 @@ const AddExistingPurchase = () => {
 
     postData.cgst = calculate_cgst_tax_amount
     postData.sgst = calculate_sgst_tax_amount
-    postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    // postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.igst = calculate_igst_tax_amount
+
     postData.total_amount = totalLineItemsAmount
     postData.net_amount = totalLineItemsPurchase
     // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
@@ -1019,75 +1026,79 @@ const AddExistingPurchase = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        {/* <Grid item xs={6}>
-          <Grid container>
-            <Grid
-              item
-              xs={12}
-              sm={4}
-              lg={4}
-              sx={{
-                mb: { sm: 0, xs: 4 },
-                mt: { xs: 4 },
-                order: { sm: 2, xs: 1 },
-                marginLeft: 'auto',
-                mr: { sm: 12, xs: 0 }
-              }}
-            >
-              <Card>
-                <CardContent sx={{ pt: 8 }}>
-                  <CalcWrapper>
-                    <Typography variant='body2'>Total Amount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>Discount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsDiscount}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>CGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_cgst_tax_amount}
-                    </Typography>
-                  </CalcWrapper>
-                  <CalcWrapper>
-                    <Typography variant='body2'>SGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_sgst_tax_amount}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
+        {/* <Grid container>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            lg={4}
+            sx={{
+              mb: { sm: 0, xs: 4 },
+              mt: { xs: 4 },
+              order: { sm: 2, xs: 1 },
+              marginLeft: 'auto',
+              mr: { sm: 12, xs: 0 }
+            }}
+          >
+            <Card>
+              <CardContent sx={{ pt: 8 }}>
+                <CalcWrapper>
+                  <Typography variant='body2'>Total Amount :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>Discount :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsDiscount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>CGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_cgst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <CalcWrapper>
+                  <Typography variant='body2'>SGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_sgst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <CalcWrapper>
+                  <Typography variant='body2'>IGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_igst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
 
-                  <CalcWrapper>
-                    <Typography variant='body2'>Grand Total :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase}
-                    </Typography>
-                  </CalcWrapper>
-                </CardContent>
-              </Card>
-            </Grid>
+                <CalcWrapper>
+                  <Typography variant='body2'>Grand Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsPurchase?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid> */}
         <Grid item xs={12}>

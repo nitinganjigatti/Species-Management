@@ -1158,7 +1158,7 @@ const AddPurchaseForm = () => {
                       type='text'
                       name='requested_by'
                       disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
+                      error={Boolean(errors.requested_by)}
                       label='Requested by'
                     />
                   )}
