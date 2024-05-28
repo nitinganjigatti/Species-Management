@@ -127,91 +127,95 @@ const PurchaseItemForm = props => {
     // purchase_cgst: yup
     //   .number()
     //   .typeError('Central GST must be a number')
-    //   .min(1, 'Central GST must be greater than zero')
-    //   .required('Central GST is required'),
+    //   .when('purchase_igst', {
+    //     is: purchase_igst => purchase_igst > 0,
+    //     then: () =>
+    //       yup
+    //         .number()
+    //         .min(0, 'Central GST must be greater positive number')
+    //         .notRequired()
+    //         .test('zero_cgst', 'Central GST must be zero when IGST is greater than 0', value => value === 0),
+    //     otherwise: () =>
+    //       yup.number().min(1, 'Central GST must be greater positive number').required('Central GST is required')
+    //   }),
+
     // purchase_sgst: yup
     //   .number()
     //   .typeError('State GST must be a number')
-    //   .min(1, 'State GST must be greater than zero')
-    //   .required('State GST is required'),
-    // purchase_igst: yup
-    //   .number()
-    //   .typeError('GST must be a number')
-    //   .min(1, 'GST must be greater than zero')
-    //   .required('GST is required'),
-    purchase_cgst: yup
-      .number()
-      .typeError('Central GST must be a number')
-      .when('purchase_igst', {
-        is: purchase_igst => purchase_igst > 0,
-        then: () =>
-          yup
-            .number()
-            .min(0, 'Central GST must be greater positive number')
-            .notRequired()
-            .test('zero_cgst', 'Central GST must be zero when IGST is greater than 0', value => value === 0),
-        otherwise: () =>
-          yup.number().min(1, 'Central GST must be greater positive number').required('Central GST is required')
-      }),
-
-    purchase_sgst: yup
-      .number()
-      .typeError('State GST must be a number')
-      .when('purchase_igst', {
-        is: purchase_igst => purchase_igst > 0,
-        then: () =>
-          yup
-            .number()
-            .min(0, 'State GST must be greater positive number')
-            .notRequired()
-            .test('zero_sgst', 'State GST must be zero when IGST is greater than 0', value => value === 0),
-        otherwise: () =>
-          yup.number().min(1, 'State GST must be greater positive number').required('State GST is required')
-      }),
+    //   .when('purchase_igst', {
+    //     is: purchase_igst => purchase_igst > 0,
+    //     then: () =>
+    //       yup
+    //         .number()
+    //         .min(0, 'State GST must be greater positive number')
+    //         .notRequired()
+    //         .test('zero_sgst', 'State GST must be zero when IGST is greater than 0', value => value === 0),
+    //     otherwise: () =>
+    //       yup.number().min(1, 'State GST must be greater positive number').required('State GST is required')
+    //   }),
 
     // purchase_igst: yup
     //   .number()
     //   .typeError('GST must be a number')
-    //   .min(1, 'GST must be greater than zero')
-    //   .required('GST is required')
+    //   .min(0, 'GST must be at least 0')
+    //   .test('igst_conditional', 'IGST must be  positive number if CGST and SGST both are not there', function (value) {
+    //     const { purchase_cgst, purchase_sgst } = this.parent
+    //     if (purchase_cgst === 0 && purchase_sgst === 0) {
+    //       return value > 0
+    //     }
+
+    //     return true
+    //   })
     //   .test(
     //     'igst_no_cgst_sgst',
     //     'If IGST has a value, CGST and SGST should not have values greater than 0',
     //     function (value) {
     //       const { purchase_cgst, purchase_sgst } = this.parent
-    //       if (value > 0 && (purchase_cgst > 0 || purchase_sgst > 0)) {
-    //         return false
+    //       if (value) {
+    //         return purchase_cgst === 0 && purchase_sgst === 0
     //       }
 
     //       return true
     //     }
     //   ),
-
-    purchase_igst: yup
+    purchase_cgst: yup
       .number()
-      .typeError('GST must be a number')
-      .min(0, 'GST must be at least 0')
-      .test('igst_conditional', 'IGST must be  positive number if CGST and SGST both are not there', function (value) {
-        const { purchase_cgst, purchase_sgst } = this.parent
-        if (purchase_cgst === 0 && purchase_sgst === 0) {
-          return value > 0
+      .typeError('Central GST must be a number')
+      .min(0, 'Central GST must be at least 0')
+      .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
+        const { purchase_sgst, purchase_igst } = this.parent
+        if (value > 0) {
+          return purchase_sgst > 0 && purchase_igst === 0
         }
 
         return true
-      })
-      .test(
-        'igst_no_cgst_sgst',
-        'If IGST has a value, CGST and SGST should not have values greater than 0',
-        function (value) {
-          const { purchase_cgst, purchase_sgst } = this.parent
-          if (value) {
-            return purchase_cgst === 0 && purchase_sgst === 0
-          }
+      }),
 
-          return true
+    purchase_sgst: yup
+      .number()
+      .typeError('State GST must be a number')
+      .min(0, 'State GST must be at least 0')
+      .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
+        const { purchase_cgst, purchase_igst } = this.parent
+        if (value > 0) {
+          return purchase_cgst > 0 && purchase_igst === 0
         }
-      ),
 
+        return true
+      }),
+
+    purchase_igst: yup
+      .number()
+      .typeError('IGST must be a number')
+      .min(0, 'IGST must be at least 0')
+      .test('igst_conditional', 'IGST must be zero if either CGST or SGST is present', function (value) {
+        const { purchase_cgst, purchase_sgst } = this.parent
+        if (value > 0) {
+          return purchase_cgst === 0 && purchase_sgst === 0
+        }
+
+        return true
+      }),
     purchase_cgst_amount: yup
       .number()
       .typeError('Central GST Amount must be a number')
