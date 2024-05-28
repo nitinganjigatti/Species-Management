@@ -428,36 +428,6 @@ const IndividualRequest = () => {
       )
     },
 
-    // {
-    //   flex: 0.1,
-    //   minWidth: 100,
-    //   field: 'Package',
-    //   headerName: 'Package',
-    //   renderCell: params => (
-    //     <Tooltip
-    //       title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-    //       placement='top'
-    //     >
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
-    // {
-    //   flex: 0.1,
-    //   minWidth: 150,
-    //   field: 'manufacturer',
-    //   headerName: 'Manufacturer',
-    //   renderCell: params => (
-    //     <Tooltip title={params?.row?.manufacturer} placement='top'>
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {params?.row?.manufacturer}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
-
     {
       flex: 0.2,
       minWidth: 20,

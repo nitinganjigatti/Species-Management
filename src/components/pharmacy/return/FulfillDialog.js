@@ -590,7 +590,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               render={({ field: { value, onChange } }) => {
                                 return (
                                   <Autocomplete
-                                    disablePortal
                                     id={`product_batches[${index}].batch_no`}
                                     options={batchItems}
                                     getOptionLabel={option => option?.batch_no}

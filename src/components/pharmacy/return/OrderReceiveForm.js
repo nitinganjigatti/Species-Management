@@ -218,7 +218,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           item_details: disputeLineItems,
           person_shipping: response?.data?.person_shipping
             ? response?.data?.person_shipping
-            : response?.data?.receiver_name
+            : response?.data?.receiver_name,
+          phone_number: response?.data?.phone_number
         })
         // debugger
         console.log('orderData datta', orderData)
@@ -1119,7 +1120,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           picked_up: orderData.picked_up,
           request_id: requestId,
           comments: disputeItemDetails.comments,
-          item_status: item.status
+          item_status: item.status,
+          phone_number: orderData?.phone_number
         }
         // "shipment_item_id": "108",
         // "shipment_date": "2023-12-07",
