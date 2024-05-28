@@ -65,7 +65,7 @@ export default function AddProduct() {
   const [responseImage, setResponseImage] = useState()
 
   useEffect(() => {
-    getStoreList({ params: { q: 'central', column: 'type' } })
+    getStoreList({ params: { type: 'central' } })
       .then(res => setStoreList(res.data))
       .catch(err => console.log(err))
   }, [])
