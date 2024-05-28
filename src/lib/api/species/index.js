@@ -30,7 +30,7 @@ export async function getVernacularSpeciesById(id) {
   return response.data
 }
 
-export async function AddBannerImages(params) {
+export async function UploadBannerImages(params) {
   const response = await axiosFormPost({ url: `${TAXONOMY_URL}/bannerUpload`, body: params, pharmacy: true })
   return response.data
 }
@@ -39,6 +39,12 @@ export async function GetBannerImages(id) {
   debugger
   const response = await axiosGet({ url: `${Banner_URL}?tsn_id=${id}`, pharmacy: true })
   return response.data
+}
+
+export async function DeleteBannerById(params) {
+  const response = await axiosFormPost({ url: `/master/banner/delete`, body: params , pharmacy: true })
+
+  return response?.data
 }
 
 export async function UpdateSpecies(payload, id) {

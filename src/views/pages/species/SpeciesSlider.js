@@ -17,10 +17,18 @@ import Icon from 'src/@core/components/icon'
 import CloseIcon from '@mui/icons-material/Close'
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import { UpdateSpecies, addSpecies, getSearchTaxonomyList, getSpeciesVernacularData } from 'src/lib/api/species'
+import {
+  DeleteBannerById,
+  UpdateSpecies,
+  UploadBannerImages,
+  addSpecies,
+  getSearchTaxonomyList,
+  getSpeciesVernacularData
+} from 'src/lib/api/species'
 import toast from 'react-hot-toast'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { bn } from 'date-fns/locale'
 
 const AddSpeciesSlideBar = ({
   handleSidebarClose,
@@ -32,9 +40,13 @@ const AddSpeciesSlideBar = ({
   tsnId,
   commonName,
   editCommonId,
-  speciesImage
+  speciesImage,
+  BannerImages,
+  setBannerImages
 }) => {
   console.log('editValues >>', editVernacularNames, editCommonId)
+
+  console.log('Banner Images >>>', BannerImages)
 
   const [displayProfile, setDisplayProfile] = useState('')
   const [searchValue, setSearchValue] = useState('')
@@ -106,6 +118,7 @@ const AddSpeciesSlideBar = ({
   }
 
   const handleFileChange = e => {
+    debugger
     const files = e.target.files
     const imagesArray = []
     const filesArray = []
@@ -132,13 +145,45 @@ const AddSpeciesSlideBar = ({
     }
   }
 
-  const handleRemoveImage = indexToRemove => {
+  console.log('GetValues >>', getValues())
+
+  const handleRemoveImage = async imageId => {
+    debugger
+    try {
+      const response = await DeleteBannerById(imageId)
+      if (response?.success) {
+        console.log('Image deleted successfully:', imageId)
+        console.log('Previous bannerImages:', BannerImages)
+
+        const indexToRemove = BannerImages.findIndex(image => image.id === imageId.id)
+
+        if (indexToRemove !== -1) {
+          const updatedBannerImages = [...BannerImages]
+
+          updatedBannerImages.splice(indexToRemove, 1)
+
+          setBannerImages(updatedBannerImages)
+
+          console.log('Updated bannerImages:', BannerImages)
+        } else {
+          console.log('Image not found in bannerImages array')
+        }
+      } else {
+        console.log('Error in Deleting:', response?.error)
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }
+
+  const handleAddRemoveImage = indexToRemove => {
     const updatedImages = selectedImages.filter((image, index) => index !== indexToRemove)
     setValue('banner_images', updatedImages)
     setSelectedImages(updatedImages)
   }
 
   const handleInputImageChange = file => {
+    debugger
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
@@ -156,15 +201,13 @@ const AddSpeciesSlideBar = ({
 
   const onSubmit = async val => {
     debugger
-    console.log('Submit Value', val)
+    val.vernacular_id = val.vernacular_id !== undefined && val.vernacular_id !== '' ? val.vernacular_id : null
 
     val.vernacular_name = val.vernacular_name ? val.vernacular_name : ''
 
-    val.vernacular_id = val.vernacular_id !== undefined && val.vernacular_id !== '' ? val.vernacular_id : null
-
     const payload = {
       tsn_id: val.tsn_id,
-      vernacular_id: val.vernacular_id?.join(','),
+      vernacular_id: val?.vernacular_id ? val?.vernacular_id : null,
       vernacular_name: val.vernacular_name ? val.vernacular_name : '',
       scientificName: val.scientificName,
       species_image: val.species_image ? val.species_image : '',
@@ -176,7 +219,10 @@ const AddSpeciesSlideBar = ({
     if (editName && tsnId) {
       const payload = {
         tsn_id: tsnId,
-        vernacular_id: val?.vernacular_id?.join(','),
+        vernacular_id:
+          Array.isArray(val?.vernacular_id) && val?.vernacular_id.length === 1 && val?.vernacular_id[0] === null
+            ? editCommonId
+            : val?.vernacular_id,
         scientificName: editName,
         species_image: val?.species_image,
         banner_images: val.banner_images ? val.banner_images : [],
@@ -186,11 +232,22 @@ const AddSpeciesSlideBar = ({
         payload['vernacular_name'] = val?.vernacular_name
       }
       console.log('Payload >>', payload)
-      const response = await UpdateSpecies(payload, tsnId)
-      if (response.success) {
-        toast.success('Species Updated Successfully ')
+      const Bannerparams = {
+        tsn_id: tsnId,
+        banner_images: val.banner_images
+      }
+      // Upload banner images
+      const bannerUploadResponse = await UploadBannerImages(Bannerparams)
+      if (bannerUploadResponse.success) {
+        const response = await UpdateSpecies(payload, tsnId)
+        if (response.success) {
+          toast.success('Species Updated Successfully ')
+          setOpenDrawer(false)
+        } else {
+          toast.error('Unable to Update the Species')
+        }
       } else {
-        toast.error('Unable to Update the Species')
+        toast.error('Unable to upload banner images')
       }
     } else {
       const response = await addSpecies(payload)
@@ -208,11 +265,19 @@ const AddSpeciesSlideBar = ({
     if (editName) {
       setValue('tsn_id', tsnId)
       setValue('scientificName', editName)
-      setValue('species_image', speciesImage)
+      // setValue('species_image', speciesImage)
     }
   }, [])
 
+  // useEffect(() => {
+  //   setValue('species_image', displayProfile)
+  // }, [displayProfile])
+
   console.log('selected Values >>', selectedValues)
+
+  console.log('Edit Vernacular Values >', commonName)
+
+  console.log('aiMAGE ?', displayProfile, speciesImage)
 
   return (
     <>
@@ -286,7 +351,6 @@ const AddSpeciesSlideBar = ({
               />
               {errors.tsn_id && <FormHelperText sx={{ color: 'error.main' }}>{errors.tsn_id.message}</FormHelperText>}
             </FormControl>
-
             <Box>
               <Avatar
                 sx={{
@@ -333,7 +397,6 @@ const AddSpeciesSlideBar = ({
                 {displayProfile ? 'Change Display Picture' : 'Add Display Picture'}
               </Typography>
             </Box>
-
             <Box>
               <FormControl fullWidth sx={{ mt: 6 }}>
                 <Typography sx={{ mt: 1 }}>Scientific Name</Typography>
@@ -358,7 +421,6 @@ const AddSpeciesSlideBar = ({
                 )}
               </FormControl>
             </Box>
-
             <Box>
               <FormControl fullWidth sx={{ mt: 6 }}>
                 <Typography>Common Names</Typography>
@@ -372,36 +434,38 @@ const AddSpeciesSlideBar = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => {
                           console.log('Selected IDs:', value)
-                          const selectedIds = value || editVernacularNames.map(item => item.vern_id)
-                          console.log('Prefill IDs:', selectedIds)
+                          const selectedId =
+                            value ||
+                            (editVernacularNames.length > 0
+                              ? editVernacularNames[0].vern_id
+                                ? editVernacularNames[0].vern_id
+                                : editVernacularNames[0].id
+                              : null)
+                          console.log('Prefill ID:', selectedId)
 
                           return (
                             <>
                               <Select
                                 sx={{ mt: 2 }}
-                                multiple
                                 fullWidth
-                                value={selectedIds}
+                                value={selectedId}
                                 error={Boolean(errors.vernacular_id)}
                                 onChange={e => {
-                                  const selectedIds = e.target.value
-                                  onChange(selectedIds)
+                                  const selectedId = e.target.value
+                                  onChange(selectedId)
                                 }}
                                 renderValue={selected => {
-                                  if (selected.length === 0) {
-                                    setSelectedIds(selectedIds)
+                                  if (!selected) {
                                     return <em>Select Vernacular</em>
                                   }
-                                  return selected
-                                    .map(id => {
-                                      const selectedVernacular = editVernacularNames.find(item => item.vern_id === id) // Change to vern_id
-                                      return selectedVernacular ? selectedVernacular.vernacular_name : ''
-                                    })
-                                    .join(',')
+                                  const selectedVernacular = editVernacularNames.find(item =>
+                                    item.vern_id ? item.vern_id === selected : item.id === selected
+                                  )
+                                  return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                 }}
                               >
                                 {editVernacularNames.map((item, index) => (
-                                  <MenuItem key={index} value={item.vern_id}>
+                                  <MenuItem key={index} value={item.vern_id ? item.vern_id : item.id}>
                                     {item.vernacular_name}
                                   </MenuItem>
                                 ))}
@@ -417,9 +481,8 @@ const AddSpeciesSlideBar = ({
                     </>
                   ) : (
                     <>
-                      {vernacularData.length > 0 &&
-                        (console.log('Adding Vernacular Data'),
-                        (
+                      {vernacularData.length > 0 && (
+                        <>
                           <Controller
                             name='vernacular_id'
                             control={control}
@@ -428,25 +491,20 @@ const AddSpeciesSlideBar = ({
                               <>
                                 <Select
                                   sx={{ mt: 2 }}
-                                  multiple
                                   fullWidth
-                                  value={value || []}
+                                  value={value || ''}
                                   error={Boolean(errors.vernacular_id)}
                                   onChange={e => {
-                                    const selectedIds = e.target.value
-                                    onChange(selectedIds)
-                                    setSelectedValues(selectedIds.join(','))
+                                    const selectedId = e.target.value
+                                    onChange(selectedId)
+                                    setSelectedValues(selectedId)
                                   }}
                                   renderValue={selected => {
-                                    if (selected.length === 0) {
+                                    if (!selected) {
                                       return <em>Select Vernacular</em>
                                     }
-                                    return selected
-                                      .map(id => {
-                                        const selectedVernacular = vernacularData.find(item => item.vern_id === id)
-                                        return selectedVernacular ? selectedVernacular.vernacular_name : ''
-                                      })
-                                      .join(',')
+                                    const selectedVernacular = vernacularData.find(item => item.vern_id === selected)
+                                    return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                   }}
                                 >
                                   {vernacularData.map((item, index) => (
@@ -458,14 +516,15 @@ const AddSpeciesSlideBar = ({
                               </>
                             )}
                           />
-                        ))}
-
-                      {errors.vernacular_id && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
+                          {errors.vernacular_id && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
+                          )}
+                        </>
                       )}
                     </>
                   )}
                 </FormControl>
+
                 {vernacularData.length > 0 && <Typography sx={{ ml: '140px', mt: 5 }}>or</Typography>}
                 <Controller
                   name='vernacular_name'
@@ -486,7 +545,6 @@ const AddSpeciesSlideBar = ({
                 )}
               </FormControl>
             </Box>
-
             <Box>
               <input
                 type='file'
@@ -494,37 +552,70 @@ const AddSpeciesSlideBar = ({
                 style={{ display: 'none' }}
                 name='banner_images'
                 multiple
-                onChange={e => handleFileChange(e)}
+                onChange={handleFileChange}
               />
               <Button fullWidth sx={{ mt: 9, height: '50px' }} variant='contained' onClick={handleButtonClick}>
                 Add Gallery Images
               </Button>
-              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row' }}>
-                {selectedImages.map((image, index) => (
-                  <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
-                    <img
-                      src={image}
-                      alt={`Image ${index}`}
-                      style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 4 }}
-                    />
-                    <IconButton
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        mb: 5,
-                        color: 'white',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                      }}
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-                ))}
+              <Box sx={{ mt: 4, display: 'flex', flexDirection: 'row' }}>
+                {BannerImages.length > 0 // Conditionally rendering based on bannerImages
+                  ? BannerImages.map((image, index) => (
+                      <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                        <img
+                          src={image.image_url} // Assuming the URL is stored in 'image_url'
+                          alt={`Banner Image ${index}`}
+                          style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 4 }}
+                        />
+                        <IconButton
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: 30,
+                            height: 30,
+                            mb: 5,
+                            color: 'white',
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }}
+                          onClick={() => handleRemoveImage(image)}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    ))
+                  : selectedImages.map(
+                      (
+                        image,
+                        index // Render selected images if bannerImages is empty
+                      ) => (
+                        <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                          <img
+                            src={image}
+                            alt={`Image ${index}`}
+                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                          />
+                          <IconButton
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              width: 30,
+                              height: 30,
+                              mb: 5,
+                              color: 'white',
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                            }}
+                            onClick={() => handleAddRemoveImage(index)}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      )
+                    )}
               </Box>
             </Box>
-            <Typography variant='body' sx={{ fontSize: '13px', mt: 6 }}>
+
+            <Typography variant='body' sx={{ fontSize: '13px' }}>
               Add images in JPG or PNG format only. Preferrable dimension of the image is 2000 width x 1250 height
             </Typography>
             <Box>

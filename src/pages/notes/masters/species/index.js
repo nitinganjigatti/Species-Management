@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-import { GetBannerImages, getSearchTaxonomyList, getSpeciesList, getVernacularSpeciesById } from 'src/lib/api/species'
+import {
+  AddBannerImages,
+  GetBannerImages,
+  getSearchTaxonomyList,
+  getSpeciesList,
+  getVernacularSpeciesById
+} from 'src/lib/api/species'
 import AddSpeciesSlideBar from 'src/views/pages/species/SpeciesSlider'
 import { Try } from '@mui/icons-material'
 import toast from 'react-hot-toast'
@@ -27,11 +33,8 @@ const AddSpecies = () => {
   const [speciesImage, setSpeciesImage] = useState('')
   const [tsnId, setTsnId] = useState('')
   const [editCommonId, setEditCommonId] = useState('')
-  const [BannerImages, setBannerImages] = useState([])
-
   const [taxonomy, setTaxonomy] = useState([])
-
-  console.log('Banner iMAGES >>', BannerImages)
+  const [bannerImages, setBannerImages] = useState([])
 
   const fetchTaxonomy = async searchValue => {
     try {
@@ -42,8 +45,6 @@ const AddSpecies = () => {
       console.error('Error fetching taxonomy list:', error)
     }
   }
-
-  console.log('Taxonomy >>', taxonomy)
 
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
@@ -124,6 +125,7 @@ const AddSpecies = () => {
         }
 
         await getSpeciesList(params).then(res => {
+          console.log('Response >>>', res)
           setTotal(parseInt(res?.data?.taxonomy_total))
 
           setRows(loadServerRows(paginationModel.page, res?.data?.taxonomy_list))
@@ -199,21 +201,24 @@ const AddSpecies = () => {
     setSpeciesImage(params?.row?.default_icon)
 
     try {
+      // Call your first API
       const vernacularResponse = await getVernacularSpeciesById(tsnId)
       if (vernacularResponse?.success) {
         setEditVernacularNames(vernacularResponse?.data)
-        toast.success('Vernacular Names fetched successfully')
       } else {
         toast.error('Unable to fetch Vernacular Names')
       }
 
-      // Manually trigger onChange event of Autocomplete with the selected taxonomy value
-      const selectedTaxonomy = taxonomy.find(item => item.taxonomy_id === tsnId)
-      if (selectedTaxonomy) {
-        setDefaultTaxonomy(selectedTaxonomy)
-        fetchSpeciesVernacularData(selectedTaxonomy)
-        setValue('tsn_id', selectedTaxonomy.taxonomy_id) // Set tsn_id in the form
-        setValue('scientificName', selectedTaxonomy.scientific_name) // Set scientificName in the form
+      // Call the addBannerImages API
+      const addBannerResponse = await GetBannerImages(tsnId) // Assuming tsnId is required for this API call
+      if (addBannerResponse?.success) {
+        // Handle success response
+        console.log('Banner images added successfully:', addBannerResponse.data)
+        setBannerImages(addBannerResponse.data)
+      } else {
+        // Handle error response
+        console.log('Failed to add banner images:', addBannerResponse?.error)
+        toast.error('Failed to add banner images')
       }
     } catch (error) {
       console.log('Error:', error)
@@ -271,13 +276,15 @@ const AddSpecies = () => {
               setOpenDrawer={setOpenDrawer}
               handleSidebarClose={handleSidebarClose}
               editVernacularNames={editVernacularNames}
-              taxonomy={taxonomy}
               fetchTaxonomy={fetchTaxonomy}
+              taxonomy={taxonomy}
               editName={editName}
               tsnId={tsnId}
               commonName={commonName}
               editCommonId={editCommonId}
               speciesImage={speciesImage}
+              BannerImages={bannerImages}
+              setBannerImages={setBannerImages}
             />
           )}
         </>
