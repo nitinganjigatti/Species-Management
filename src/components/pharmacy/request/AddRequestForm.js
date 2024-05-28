@@ -386,7 +386,7 @@ const AddRequestForm = () => {
     // setLoader(true)
     try {
       //params: { q: 'central', column: 'type' }
-      const response = await getStoreList({ params: { q: 'central', column: 'type' } })
+      const response = await getStoreList({ params: { type: 'central' } })
       if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
