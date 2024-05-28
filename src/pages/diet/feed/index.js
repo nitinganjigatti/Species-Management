@@ -109,12 +109,18 @@ const FeedTypes = () => {
       field: 'feed_type_name',
       headerName: 'FEEDS',
       renderCell: params => (
-        <Tooltip title={params.row.feed_type_name} placement='right'>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
-            {params.row.feed_type_name}
-          </Box>
-        </Tooltip>
+        <>
+          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+          <Tooltip title={params.row.feed_type_name} placement='right'>
+            <Typography
+              variant='body2'
+              sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {' '}
+              {params.row.feed_type_name}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
@@ -124,7 +130,7 @@ const FeedTypes = () => {
       headerName: 'DESCRIPTION',
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {params.row.desc}
           </Typography>
         </Tooltip>

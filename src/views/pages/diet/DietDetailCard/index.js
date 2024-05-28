@@ -17,10 +17,9 @@ import { useTheme } from '@mui/material/styles'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
-import toast from 'react-hot-toast'
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
-import IconButton from '@mui/material/IconButton'
 import moment from 'moment'
+import Toaster from 'src/components/Toaster'
 
 const DietDetailCard = ({ dietDetails }) => {
   const router = useRouter()
@@ -75,70 +74,10 @@ const DietDetailCard = ({ dietDetails }) => {
       const response = await deleteDiet(dietDetails?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response?.message}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({ type: 'success', message: response?.message })
       } else {
         setDeleteDialogBox(false)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:error' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Error!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
       console.log('error', error)
@@ -158,50 +97,20 @@ const DietDetailCard = ({ dietDetails }) => {
       const response = await dietStatusChange({ status: activePayload }, dietDetails?.id)
 
       console.log(response, 'response')
-      if (response.success === true) {
-        setIsActive(isActive == '0' ? '1' : '0')
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                    {/* Recipe {'REP' + FeedDetailsValue.id} has been successfully{' '}
-                    {isActive === 1 ? 'activated' : 'deactivated'} */}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+      if (response.success) {
+        setIsActive(isActive === '0' ? '1' : '0')
+        Toaster({ type: 'success', message: response.message })
       } else {
         alert('something went wrong')
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
   return (
     <Card>
-      {console.log(dietDetails, 'dietDetails')}
+      {/* {console.log(dietDetails, 'dietDetails')} */}
       <CardContent>
         <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
           <Grid md={3.8} item>
@@ -296,17 +205,18 @@ const DietDetailCard = ({ dietDetails }) => {
                     <Icon
                       icon='fluent:copy-32-regular'
                       style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-
-                      // onClick={() =>
-                      //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                      // }
+                      onClick={() =>
+                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'copy' } })
+                      }
                     />
                   </Box>
                   <Box>
                     <Icon
                       icon='bx:pencil'
-                      style={{ fontSize: 24 }}
-                      onClick={() => Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id } })}
+                      style={{ fontSize: 24, cursor: 'pointer' }}
+                      onClick={() =>
+                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                      }
                     />
                   </Box>
                   <Box>
@@ -315,7 +225,7 @@ const DietDetailCard = ({ dietDetails }) => {
                         handlelOpenDelete()
                       }}
                       icon='material-symbols:delete-outline'
-                      style={{ fontSize: 24 }}
+                      style={{ fontSize: 24, cursor: 'pointer' }}
                     />
                   </Box>
                 </Box>

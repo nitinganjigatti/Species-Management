@@ -35,6 +35,7 @@ import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -556,7 +557,7 @@ const FeedDetails = () => {
                         </Grid>
                       </Grid>
 
-                      <ModuleDeleteDialogConfirmation
+                      {/* <ModuleDeleteDialogConfirmation
                         handleClosenew={handleClosenew}
                         action={confirmStatusAction}
                         open={statusDialog}
@@ -564,6 +565,23 @@ const FeedDetails = () => {
                         active={isActive == '1'}
                         message={
                           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                            Deletion isn't possible!
+                          </span>
+                        }
+                      /> */}
+                      <DeleteDialogConfirmation
+                        handleClosenew={handleClosenew}
+                        action={confirmStatusAction}
+                        open={statusDialog}
+                        typeCount={FeedDetailsValue?.ingredients}
+                        type='feed'
+                        // active={isActive}
+                        active={isActive == '1'}
+                        dietCount={FeedDetailsValue.ingredients}
+                        actionType={'confirm'}
+                        message={
+                          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                            {/* {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type? */}
                             Deletion isn't possible!
                           </span>
                         }

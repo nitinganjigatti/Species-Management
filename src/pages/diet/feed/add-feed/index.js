@@ -44,12 +44,13 @@ const AddFeedType = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
+  const [btnLoader, setBtnLoader] = useState(false)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  // const [openSnackbar, setOpenSnackbar] = useState({
+  //   open: false,
+  //   severity: '',
+  //   message: ''
+  // })
 
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
@@ -120,7 +121,7 @@ const AddFeedType = () => {
     const { status, name, description, feedImg } = { ...params }
 
     const payload = {
-      active: status == 'inactive' ? 0 : 1,
+      status: status == 'inactive' ? 0 : 1,
       feed_type_name: name,
       desc: description,
       feed_type_key: name,
@@ -129,11 +130,16 @@ const AddFeedType = () => {
 
     if (id) {
       try {
+        setBtnLoader(true)
         await updateFeedType({ ...payload }, id).then(res => {
-          Router.push('/diet/feed')
           if (res?.success) {
+            setBtnLoader(false)
+
+            Router.push('/diet/feed')
+
             Toaster({ type: 'success', message: res?.data })
           } else {
+            setBtnLoader(false)
             Toaster({ type: 'error', message: res?.data })
           }
         })
@@ -142,12 +148,15 @@ const AddFeedType = () => {
       }
     } else {
       try {
+        setBtnLoader(true)
         await addFeedType(payload).then(res => {
           if (res?.success) {
             Router.push('/diet/feed')
+            setBtnLoader(false)
 
             Toaster({ type: 'success', message: res?.data })
           } else {
+            setBtnLoader(false)
             Toaster({ type: 'error', message: res?.message })
           }
         })
@@ -160,7 +169,13 @@ const AddFeedType = () => {
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton size='large' type='submit' variant='contained' disabled={watch('name') === ''}>
+        <LoadingButton
+          loading={btnLoader}
+          size='large'
+          type='submit'
+          variant='contained'
+          disabled={watch('name') === '' || btnLoader}
+        >
           {id ? 'Update' : 'Save'}
         </LoadingButton>
         <Button onClick={() => Router.push('/diet/feed')} size='large' type='reset' color='error' variant='outlined'>
@@ -312,9 +327,9 @@ const AddFeedType = () => {
                 )}
 
                 <RenderSidebarFooter />
-                {openSnackbar.open ? (
+                {/* {openSnackbar.open ? (
                   <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-                ) : null}
+                ) : null} */}
               </form>
             </CardContent>
           </Card>

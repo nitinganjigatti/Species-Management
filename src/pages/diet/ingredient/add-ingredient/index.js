@@ -362,7 +362,18 @@ const AddIngredient = () => {
             reset()
           } else {
             setSubmitLoader(false)
-            Toaster({ type: 'warning', message: JSON?.stringify(res?.message) })
+            // Object.entries(res?.message).map(([key, value]) => {
+            //   Toaster({
+            //     type: 'error',
+            //     message: value
+            //   })
+            // })
+
+            Toaster({
+              type: 'error',
+              // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
+              message: res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message
+            })
           }
         })
       } catch (error) {
@@ -638,7 +649,7 @@ const AddIngredient = () => {
                               <TextField
                                 inputProps={{ min: 0 }}
                                 type='number'
-                                label='Enter nutritional values per *'
+                                label='Enter nutritional values per'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter nutritional values per'
@@ -682,7 +693,7 @@ const AddIngredient = () => {
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select unit of measurement (UOM) *'
+                                    label='Select unit of measurement (UOM) '
                                     placeholder='Search & Select'
                                     error={Boolean(errors.uom)}
                                   />

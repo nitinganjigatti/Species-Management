@@ -281,7 +281,9 @@ const IngredientDetail = () => {
                 action={confirmStatusUpdateAction}
                 open={statusDialog}
                 type='ingredient'
-                active={isActive}
+                // active={isActive}
+                active={isActive == '1'}
+                actionType={'confirm'}
                 recipeCount={IngredientsDetailsval.recipe_count}
                 dietCount={IngredientsDetailsval.diet_count}
                 message={
