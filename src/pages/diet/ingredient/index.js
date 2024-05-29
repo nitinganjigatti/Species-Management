@@ -15,11 +15,9 @@ import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
 import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
-import toast from 'react-hot-toast'
 import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -37,6 +35,7 @@ import AddIngredients from 'src/components/diet/AddIngredients'
 import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const roleColors = {
   active: 'success',
@@ -185,40 +184,14 @@ const IngredientsList = () => {
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({
+          type: 'success',
+          message: `Ingredient ${'ING' + rowData.id} has been successfully ${
+            newIsActive === 1 ? 'actiavted' : 'deactivated'
+          }`
+        })
       } else {
-        alert('something went wrong')
+        Toaster({ type: 'error', message: 'something went wrong' })
       }
     } catch (error) {
       console.error('Error updating ingredient status:', error)

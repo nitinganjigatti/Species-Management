@@ -197,6 +197,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
         active={isActive}
         dietCount={IngredientsDetailsval.diet_count}
         type='recipe'
+        ingredientCount={IngredientsDetailsval?.total_ingredients}
         message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Recipe?</span>}
       />
     </Grid>

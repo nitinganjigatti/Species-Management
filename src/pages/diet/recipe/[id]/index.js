@@ -238,6 +238,7 @@ const RecipeDetail = () => {
             open={deleteDialogBox}
             type='recipe'
             dietCount={IngredientsDetailsval.diet_count}
+            ingredientCount={IngredientsDetailsval.total_ingredients}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }
