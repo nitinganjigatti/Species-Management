@@ -366,9 +366,11 @@ const Diet = () => {
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
               {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-            </Typography>
+            {params.row.created_at && (
+              <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+                Created on {params.row.created_at}
+              </Typography>
+            )}
           </Box>
         </Box>
       )
