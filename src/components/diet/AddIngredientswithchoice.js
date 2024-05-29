@@ -46,6 +46,7 @@ const AddIngredientswithChoice = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
+  console.log('remarks :>> ', remarks)
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -169,6 +170,7 @@ const AddIngredientswithChoice = props => {
         return
       }
     }
+    console.log(item, 'item')
 
     // Prepare the object to store values
     const boxValues = {
@@ -178,7 +180,8 @@ const AddIngredientswithChoice = props => {
       preparation_type: feed_type,
       // days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       // remarks: remarksData,
-      mealid: checkid
+      mealid: checkid,
+      ingredient_image: item.image
     }
 
     if (feed_type === 'Chopped') {
@@ -319,7 +322,8 @@ const AddIngredientswithChoice = props => {
         let newRemarks = ''
         const newVisibility = []
 
-        selectedValuesWithCheckId.forEach(item => {
+        selectedValuesWithCheckId.forEach((item, itemIndex) => {
+          console.log('itemIndex :>> ', itemIndex)
           item.ingredientList.forEach(ingredient => {
             selectFeedObj[ingredient.ingredient_id] = {
               id: ingredient.preparation_type_id,
@@ -331,7 +335,9 @@ const AddIngredientswithChoice = props => {
             newCutSize[ingredient.ingredient_id] = {
               id: ingredient.feed_cut_size
             }
-            newRemarks = item.remarks
+            if (ingredient.ingredient_id) {
+              newRemarks = item?.remarks
+            }
 
             // const newVisibility = [
             //   {
@@ -342,7 +348,11 @@ const AddIngredientswithChoice = props => {
             // console.log('newVisibility :>> ', newVisibility)
             // setVisibility(newVisibility)
           })
+
+          console.log('newRemarks :>> ', newRemarks)
         })
+        console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
+
         setShowDays(false)
         setSelectFeed(selectFeedObj)
         setSize(newUom)
@@ -359,6 +369,7 @@ const AddIngredientswithChoice = props => {
       setSelectFeed({})
       setSize({})
       setCutSize({})
+      setRemarks('')
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex])
 
@@ -850,10 +861,8 @@ const AddIngredientswithChoice = props => {
                       variant='square'
                       alt='Medicine Image'
                       sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : null}
-                    >
-                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
-                    </Avatar>
+                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                    ></Avatar>
                   </Box>
                 )}
                 <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>

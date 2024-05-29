@@ -947,7 +947,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
@@ -958,7 +959,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>FEMALE </Typography>
@@ -969,7 +971,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>MALE</Typography>
@@ -983,7 +986,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
@@ -994,7 +998,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Juvenile </Typography>
@@ -1005,7 +1010,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Young</Typography>
@@ -1016,7 +1022,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Adult</Typography>
@@ -1027,7 +1034,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '157px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Undetermined</Typography>
@@ -1038,7 +1046,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Old</Typography>
@@ -1052,7 +1061,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
@@ -1066,7 +1076,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
@@ -1080,7 +1091,8 @@ const StepPreviewDiet = ({
                                     backgroundColor: '#C1D3D099',
                                     height: '40px',
                                     width: '137px',
-                                    borderRight: '1px solid #C3CEC7'
+                                    borderRight: '1px solid #C3CEC7',
+                                    textAlign: 'center'
                                   }}
                                 >
                                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{all}</Typography>
@@ -1198,7 +1210,7 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
@@ -1428,7 +1440,8 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1478,7 +1491,10 @@ const StepPreviewDiet = ({
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -1486,7 +1502,8 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
                                                       : 'Add'}
@@ -1518,7 +1535,7 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
@@ -1559,16 +1576,45 @@ const StepPreviewDiet = ({
                                                     {item?.recipe_name}
                                                   </Typography>
                                                 )}
-                                                {item?.preparation_type && (
+                                              </Box>
+                                              {console.log(item, 'kkkk')}
+                                              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                                                {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
                                                       color: '#7A8684',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap'
                                                     }}
                                                   >
-                                                    &nbsp;-&nbsp; {item?.preparation_type}
+                                                    {item?.ingredient_name.map((name, index) => (
+                                                      <Box
+                                                        key={index}
+                                                        sx={{
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          marginRight: '10px'
+                                                        }}
+                                                      >
+                                                        {name}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            marginLeft: '2px',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem'
+                                                          }}
+                                                        >
+                                                          {parseFloat(item?.quantity[index])}
+                                                          {''}
+                                                          {item?.quantity_type[index] === 'percentage' ? '%' : ''}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
                                                   </Typography>
                                                 )}
                                               </Box>
@@ -1748,7 +1794,8 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -1798,7 +1845,10 @@ const StepPreviewDiet = ({
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -1806,7 +1856,8 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
                                                       : 'Add'}
@@ -1837,7 +1888,7 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
@@ -2044,7 +2095,8 @@ const StepPreviewDiet = ({
                                               {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
                                                 : 'Add'}
@@ -2094,7 +2146,10 @@ const StepPreviewDiet = ({
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -2102,7 +2157,8 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
                                                       : 'Add'}

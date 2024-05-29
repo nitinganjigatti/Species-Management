@@ -43,6 +43,7 @@ const AddIngredients = props => {
 
   const [searchValue, setSearchValue] = useState('')
   const [remarks, setRemarks] = useState('')
+  console.log('remarks i :>> ', remarks)
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
@@ -305,6 +306,7 @@ const AddIngredients = props => {
         return
       }
     }
+    console.log(item, 'item')
 
     const boxValues = {
       ingredient_id: item.id,
@@ -314,7 +316,7 @@ const AddIngredients = props => {
       days_of_week: selectedDaysForItem,
       remarks: newRemarks ? newRemarks : remarksData,
       mealid: checkid,
-      ingredient_image: item.ingredient_image,
+      ingredient_image: item.image,
       feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
       feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom : size[item.id]?.id || '') : ''
     }
@@ -702,7 +704,7 @@ const AddIngredients = props => {
                       variant='square'
                       alt='Medicine Image'
                       sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : null}
+                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
                     >
                       {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
                     </Avatar>

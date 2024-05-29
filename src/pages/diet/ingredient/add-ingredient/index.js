@@ -44,6 +44,7 @@ import { useDropzone } from 'react-dropzone'
 import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const AddIngredient = () => {
   const theme = useTheme()
@@ -336,22 +337,12 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'success'
-            })
+            Toaster({ type: 'success', message: JSON?.stringify(res?.message) })
 
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'warning'
-            })
+            Toaster({ type: 'warning', message: JSON?.stringify(res?.message) })
           }
         })
       } catch (error) {
@@ -364,23 +355,25 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'success'
-            })
+            Toaster({ type: 'success', message: JSON?.stringify(res?.message) })
 
-            // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
           } else {
             setSubmitLoader(false)
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'warning'
+
+            // Object.entries(res?.message).map(([key, value]) => {
+            //   Toaster({
+            //     type: 'error',
+            //     message: value
+            //   })
+            // })
+
+            Toaster({
+              type: 'error',
+
+              // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
+              message: res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message
             })
           }
         })
@@ -391,10 +384,6 @@ const AddIngredient = () => {
     }
   }
 
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar({ ...openSnackbar, open: status, message: JSON?.stringify(message), severity: severity })
-  }
-
   const handlePreparationSubmitData = async payload => {
     try {
       setPreparationTypeSubmitLoader(true)
@@ -403,7 +392,7 @@ const AddIngredient = () => {
       response = await addPreparationType(payload)
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        Toaster({ type: 'success', message: JSON?.stringify(response?.message) })
 
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()
@@ -413,11 +402,11 @@ const AddIngredient = () => {
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()
 
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        Toaster({ type: 'error', message: JSON?.stringify(response?.message) })
       }
     } catch (e) {
       setPreparationTypeSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      Toaster({ type: 'error', message: JSON?.stringify(e) })
     }
   }
 
@@ -661,7 +650,7 @@ const AddIngredient = () => {
                               <TextField
                                 inputProps={{ min: 0 }}
                                 type='number'
-                                label='Enter nutritional values per *'
+                                label='Enter nutritional values per'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter nutritional values per'
@@ -705,7 +694,7 @@ const AddIngredient = () => {
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select unit of measurement (UOM) *'
+                                    label='Select unit of measurement (UOM) '
                                     placeholder='Search & Select'
                                     error={Boolean(errors.uom)}
                                   />

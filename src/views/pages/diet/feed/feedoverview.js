@@ -16,17 +16,16 @@ import toast from 'react-hot-toast'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import { feedStatusChange } from 'src/lib/api/diet/getFeedDetails'
 import IconButton from '@mui/material/IconButton'
+import Toaster from 'src/components/Toaster'
 
 const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
-  // const [isActive, setIsActive] = useState(FeedDetailsValue?.active || '0')
   const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
 
   const handleClosenew = () => {
     setConfirmDialogBox(false)
-
-    // setIsActive(FeedDetailsValue.active)
   }
+
   useEffect(() => {
     setIsActive(FeedDetailsValue?.active)
   }, [FeedDetailsValue])
@@ -34,8 +33,6 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
     setActivePayload(newIsActive)
-
-    // setIsActive(newIsActive)
     setConfirmDialogBox(true)
   }
 
@@ -45,43 +42,13 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
       const response = await feedStatusChange({ status: activePayload }, FeedDetailsValue?.id)
 
       // console.log(response, 'response')
-      if (response?.success === true) {
-        setIsActive(isActive === '0' ? '1' : '0')
+      if (response?.success) {
+        setIsActive(Number(isActive) === 0 ? '1' : '0')
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                    {/* Recipe {'REP' + FeedDetailsValue.id} has been successfully{' '}
-                    {isActive === 1 ? 'activated' : 'deactivated'} */}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        // setIsActive(!isActive)
+        Toaster({ type: 'success', message: response.message })
       } else {
-        alert('something went wrong')
+        Toaster({ type: 'error', message: 'something went wrong' })
       }
     } catch (error) {}
   }
@@ -270,6 +237,8 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
             typeCount={FeedDetailsValue?.ingredients}
             type='feed'
             active={isActive}
+            dietCount={FeedDetailsValue.ingredients}
+            actionType={'confirm'}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                 {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type?

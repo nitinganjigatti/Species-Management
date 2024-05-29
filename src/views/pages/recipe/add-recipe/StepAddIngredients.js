@@ -81,7 +81,7 @@ const StepAddIngredients = ({
   handleNext,
   handlePrev,
   uomList,
-  IngredientTypeList,
+  fullIngredientList,
   IngredientTypeListSearch,
   onCancelIconClick,
   handleIngredientChange
@@ -293,6 +293,39 @@ const StepAddIngredients = ({
           }
         }
       )
+    } else if (calculateTotalQuantity() < 100) {
+      window.scrollTo(0, 0)
+
+      return toast(
+        t => (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Icon icon='jam:alert-f' style={{ marginRight: '20px', fontSize: 50, color: 'rgb(255 0 0 / 80%)' }} />
+              <div>
+                <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                  Alert!
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  Percentage added should be qual to 100%
+                </Typography>
+              </div>
+            </Box>
+            <IconButton
+              onClick={() => toast.dismiss(t.id)}
+              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            >
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+        ),
+        {
+          style: {
+            minWidth: '450px',
+            minHeight: '130px'
+          }
+        }
+      )
     } else {
       window.scrollTo(0, 0)
 
@@ -317,8 +350,8 @@ const StepAddIngredients = ({
     try {
       const response = await getPreparationTypeList(ingredientId)
       if (response.success === true) {
-        console.log(IngredientTypeList, 'IngredientTypeList')
-        const ingredient = IngredientTypeList.find(item => item.id === ingredientId)
+        console.log(fullIngredientList, 'fullIngredientList')
+        const ingredient = fullIngredientList.find(item => item.id === ingredientId)
         if (ingredient) {
           // Update the preparationTypeList array based on the section
           if (section === 'by_percentage') {
@@ -441,7 +474,7 @@ const StepAddIngredients = ({
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={3.6}>
-                    {console.log(IngredientTypeList, 'IngredientTypeList')}
+                    {console.log(fullIngredientList, 'fullIngredientList')}
                     <FormControl fullWidth>
                       <Controller
                         name={`by_percentage[${index}].ingredient_id`}
@@ -449,11 +482,11 @@ const StepAddIngredients = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
-                            value={IngredientTypeList.find(option => option.id === value) || null}
+                            value={fullIngredientList.find(option => option.id === value) || null}
                             disablePortal
                             id={`by_percentage[${index}].ingredient_id`}
                             placeholder='Search & Select'
-                            options={IngredientTypeList || []}
+                            options={fullIngredientList || []}
                             getOptionLabel={option => option?.ingredient_name}
                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                             onChange={(e, val) => {
@@ -562,6 +595,8 @@ const StepAddIngredients = ({
                           >
                             {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
                               ? "you've hit 100% limit"
+                              : fieldsIngredients.length > 1 && calculateTotalQuantity() < 100
+                              ? 'Limit should be equal to 100%'
                               : ''}
                           </span>
                         </Grid>
@@ -650,11 +685,11 @@ const StepAddIngredients = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
-                            value={IngredientTypeList.find(option => option.id === value) || null}
+                            value={fullIngredientList.find(option => option.id === value) || null}
                             disablePortal
                             id={`by_quantity[${index}].ingredient_id`}
                             placeholder='Search & Select'
-                            options={IngredientTypeList || []}
+                            options={fullIngredientList || []}
                             getOptionLabel={option => option?.ingredient_name}
                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                             onChange={(e, val) => {
