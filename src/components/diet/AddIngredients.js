@@ -42,7 +42,7 @@ const AddIngredients = props => {
   const [selectFeed, setSelectFeed] = useState({})
 
   const [searchValue, setSearchValue] = useState('')
-  console.log('searchValue ing :>> ', searchValue)
+
   const [remarks, setRemarks] = useState('')
 
   const [cutSize, setCutSize] = useState({})
@@ -50,6 +50,8 @@ const AddIngredients = props => {
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
+
+  const [totalCount, setTotalCount] = useState('')
 
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
@@ -350,10 +352,11 @@ const AddIngredients = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort }
+      const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -401,23 +404,29 @@ const AddIngredients = props => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-      // User has reached the bottom, perform your action here
 
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
-      try {
-        const params = { page: ingredientPage, q: searchValue, sort }
-        await getIngredientList({ params }).then(res => {
-          if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false)
-          }
-        })
-      } catch (error) {
-        console.error(error)
+    if (totalCount > ingredientList.length) {
+      console.log('api :>> ')
+
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
+
+        setIngredientPage(++ingredientPage)
+
+        setReachedEnd(true)
+        try {
+          const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
+          await getIngredientList({ params }).then(res => {
+            if (res?.data?.result?.length > 0) {
+              setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }

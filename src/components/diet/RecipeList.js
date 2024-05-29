@@ -30,6 +30,7 @@ const RecipeList = props => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
+  const [totalCount, setTotalCount] = useState('')
 
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
@@ -42,6 +43,7 @@ const RecipeList = props => {
       await getRecipeList({ params }).then(res => {
         if (res.data.result.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -59,26 +61,28 @@ const RecipeList = props => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-      // User has reached the bottom, perform your action here
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
-      try {
-        // const nextPage = paginationModel.page + 1
-        const params = { page: ingredientPage, q: searchValue, sort }
+    if (totalCount > ingredientList.length) {
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
+        setIngredientPage(++ingredientPage)
+        setReachedEnd(true)
+        try {
+          // const nextPage = paginationModel.page + 1
+          const params = { page: ingredientPage, q: searchValue, sort }
 
-        const res = await getRecipeList({ params })
+          const res = await getRecipeList({ params })
 
-        if (res?.data?.result?.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          if (res?.data?.result?.length > 0) {
+            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
 
-          // setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
-          setReachedEnd(false)
-        } else {
-          setReachedEnd(false) // Depending on your logic, you might want to set reached end to true
+            // setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
+            setReachedEnd(false)
+          } else {
+            setReachedEnd(false) // Depending on your logic, you might want to set reached end to true
+          }
+        } catch (error) {
+          console.error(error)
         }
-      } catch (error) {
-        console.error(error)
       }
     }
   }

@@ -45,7 +45,7 @@ const AddIngredientswithChoice = props => {
   const [selectFeed, setSelectFeed] = useState({})
 
   const [searchValue, setSearchValue] = useState('')
-  console.log('searchValue ingWC :>> ', searchValue)
+
   const [remarks, setRemarks] = useState('')
 
   const [cutSize, setCutSize] = useState({})
@@ -53,6 +53,9 @@ const AddIngredientswithChoice = props => {
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
+  console.log('ingredientList :>> ', ingredientList)
+  const [totalCount, setTotalCount] = useState('')
+  console.log('totalCount :>> ', totalCount)
 
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
@@ -226,6 +229,7 @@ const AddIngredientswithChoice = props => {
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -272,23 +276,26 @@ const AddIngredientswithChoice = props => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-      // User has reached the bottom, perform your action here
+    if (totalCount > ingredientList.length) {
+      console.log('api :>> ')
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
 
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
-      try {
-        const params = { page: ingredientPage, q: searchValue, sort }
-        await getIngredientList({ params }).then(res => {
-          if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false)
-          }
-        })
-      } catch (error) {
-        console.error(error)
+        setIngredientPage(++ingredientPage)
+        setReachedEnd(true)
+        try {
+          const params = { page: ingredientPage, q: searchValue, sort }
+          await getIngredientList({ params }).then(res => {
+            if (res?.data?.result?.length > 0) {
+              setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }
