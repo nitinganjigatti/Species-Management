@@ -342,7 +342,7 @@ const ImportPurchase = () => {
                                             }}
                                           >
                                             <Typography variant='subtitle2' color='error.main'>
-                                              In {el.key} Row {el.value}
+                                              Row {el.key}, {el.value}
                                             </Typography>
                                           </TableCell>
                                         )}
