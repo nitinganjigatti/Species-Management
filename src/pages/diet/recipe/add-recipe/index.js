@@ -45,6 +45,7 @@ const AddRecipe = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+  const [fullIngredientList, setFullIngredientList] = useState([])
 
   const [formData, setFormData] = useState({
     recipe_name: '',
@@ -78,6 +79,11 @@ const AddRecipe = () => {
     desc: ''
   })
 
+  useEffect(() => {
+    getUnitsList()
+    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+  }, [])
+
   const getUnitsList = async () => {
     try {
       const params = {
@@ -93,13 +99,13 @@ const AddRecipe = () => {
     }
   }
 
-  const IngredientTypeListSearch = debounce(async value => {
-    try {
-      await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
-    } catch (e) {
-      console.log(e)
-    }
-  }, 500)
+  // const IngredientTypeListSearch = debounce(async value => {
+  //   try {
+  //     await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }, 500)
 
   const callIngredientTypeList = async ({ status, page, limit, q }) => {
     try {
@@ -113,11 +119,26 @@ const AddRecipe = () => {
       }
       await getIngredientList({ params: params }).then(res => {
         setIngredientTypeList(res?.data?.result)
+        setFullIngredientList(res?.data?.result)
       })
     } catch (e) {
       console.log(e)
     }
   }
+
+  const IngredientTypeListSearch = debounce(value => {
+    console.log(value, 'value')
+    if (value) {
+      const filteredList = fullIngredientList.filter(ingredient =>
+        ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
+      )
+      console.log(filteredList, 'filteredList')
+      setIngredientTypeList(filteredList)
+    } else {
+      // If no search value, show the full list
+      setIngredientTypeList(fullIngredientList)
+    }
+  }, 500)
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -172,10 +193,6 @@ const AddRecipe = () => {
       console.log('Feed list', error)
     }
   }
-  useEffect(() => {
-    getUnitsList()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [])
 
   useEffect(() => {
     console.log(id, 'id')
@@ -346,7 +363,7 @@ const AddRecipe = () => {
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
-            IngredientTypeList={IngredientTypeList}
+            fullIngredientList={fullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
           />

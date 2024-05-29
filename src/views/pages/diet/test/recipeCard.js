@@ -149,7 +149,7 @@ const RecipeCard = ({
 
   const handleSelected = () => {
     handleSidebarClose()
-
+    console.log(selectedCardRecipe, 'selectedCardRecipe')
     const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 
@@ -159,6 +159,11 @@ const RecipeCard = ({
 
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
+      // Extract ingredient names from the ingredients array
+      const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
+      const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
+      const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
+
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
@@ -166,7 +171,10 @@ const RecipeCard = ({
         remarks: cardRemarks,
         mealid: checkid,
         recipe_image: item.recipe_image,
-        ingredients_count: item.ingredients_count
+        ingredients_count: item.ingredients_count,
+        ingredient_name: ingredientNames,
+        quantity: quantity,
+        quantity_type: quantityper
       }
     })
 
@@ -354,7 +362,7 @@ const RecipeCard = ({
                         top: '6.8px',
                         left: '6.8px'
                       }}
-                      src={item?.recipe_image ? item?.recipe_image : '/icons/recipedummy.svg'}
+                      src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
                     ></Avatar>
                   )}
                 </Box>

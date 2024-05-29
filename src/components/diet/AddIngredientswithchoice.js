@@ -169,7 +169,7 @@ const AddIngredientswithChoice = props => {
         return
       }
     }
-
+    console.log(item, 'item')
     // Prepare the object to store values
     const boxValues = {
       ingredient_id: item.id,
@@ -178,7 +178,8 @@ const AddIngredientswithChoice = props => {
       preparation_type: feed_type,
       // days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       // remarks: remarksData,
-      mealid: checkid
+      mealid: checkid,
+      ingredient_image: item.image
     }
 
     if (feed_type === 'Chopped') {
@@ -850,10 +851,8 @@ const AddIngredientswithChoice = props => {
                       variant='square'
                       alt='Medicine Image'
                       sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : null}
-                    >
-                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
-                    </Avatar>
+                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                    ></Avatar>
                   </Box>
                 )}
                 <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>

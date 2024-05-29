@@ -54,7 +54,8 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   diet_name: yup.string().required('Diet name is required'),
-  diet_type_name: yup.string().required('Diet type is required'),
+  //diet_type_name: yup.string().required('Diet type is required'),
+  diet_type_id: yup.string().required('Diet type is required'),
   meal_data: yup.array().of(
     yup.object().shape({
       meal_name: yup.string().required('Meal name is required'),
@@ -491,7 +492,7 @@ const StepBasicDetails = ({
       // If any invalid indexes found, display a toast error
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
-          toast.error(`Meal ${index + 1} must contain at least one of ingredient, recipe, or ingredientwithchoice.`)
+          toast.error(`Meal ${index + 1} must contain at least one of Ingredient, Recipe, or Ingredients with choice.`)
         })
 
         return
@@ -522,10 +523,9 @@ const StepBasicDetails = ({
       const fromTime = new Date(meal_from_time).getTime()
       const toTime = new Date(meal_to_time).getTime()
 
-      // Check if meal_from_time is greater than meal_to_time
+      // Check if meal_from_time is greater than or equal to meal_to_time
       if (fromTime >= toTime) {
         lastOverlapIndex = index
-
         return
       }
 
@@ -535,13 +535,11 @@ const StepBasicDetails = ({
           const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
           const currentToTime = new Date(mealData[i].meal_to_time).getTime()
 
-          // Check for overlap or one-minute difference
+          // Check for overlap
           if (
             (fromTime >= currentFromTime && fromTime < currentToTime) ||
-            (toTime > currentFromTime && toTime <= currentToTime) ||
-            Math.abs(fromTime - currentToTime) < 60000
+            (toTime > currentFromTime && toTime <= currentToTime)
           ) {
-            // Check for 1-minute difference
             lastOverlapIndex = index
             break
           }
@@ -577,7 +575,7 @@ const StepBasicDetails = ({
           onClick={() => {
             appendIngredients({
               mealid: `meal${fieldsIngredients.length}`,
-              meal_name: '',
+              meal_name: `Meal ${fieldsIngredients.length + 1}`,
               meal_from_time: '',
               meal_to_time: '',
               notes: ''
@@ -834,7 +832,7 @@ const StepBasicDetails = ({
                             setFormValue('diet_type_id', val.id) // Set the diet_type_id value
                             setFormValue('diet_type_name', val.diet_type_name) // Set the diet_type value
                             setFormValue('child', val.child)
-                            trigger('diet_type_name')
+                            trigger('diet_type_id')
                           }
                         }}
                         renderInput={params => (
@@ -842,9 +840,8 @@ const StepBasicDetails = ({
                             {...params}
                             label='Diet Type *'
                             placeholder='Search & Select'
-                            error={Boolean(errors.diet_type_name)}
-
-                            //name='diet_type_name'
+                            error={Boolean(errors.diet_type_id)}
+                            name='diet_type_id'
                           />
                         )}
                       />
@@ -852,8 +849,8 @@ const StepBasicDetails = ({
                   }}
                 />
 
-                {errors?.diet_type_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_name?.message}</FormHelperText>
+                {errors?.diet_type_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -1323,6 +1320,7 @@ const StepBasicDetails = ({
                               >
                                 {console.log(selectedCard, 'selectedCard')}
                                 {all?.ingredientList?.map((all, index) => {
+                                  console.log(all, 'all')
                                   return (
                                     <Grid item key={index}>
                                       <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
@@ -1335,7 +1333,7 @@ const StepBasicDetails = ({
                                             padding: '14px'
                                           }}
                                         >
-                                          <Avatar
+                                          {/* <Avatar
                                             variant='square'
                                             alt='Medicine Image'
                                             sx={{
@@ -1346,10 +1344,25 @@ const StepBasicDetails = ({
                                               padding: '2px',
                                               borderRadius: '4px'
                                             }}
-                                            src={all?.image}
+                                            src={all?.ingredient_image?all?.ingredient_image:""}
                                           >
                                             {null ?? <Icon icon='healthicons:fruits-outline' />}
-                                          </Avatar>
+                                          </Avatar> */}
+                                          <Avatar
+                                            variant='square'
+                                            alt='Diet Image'
+                                            sx={{
+                                              width: 40,
+                                              height: 40,
+                                              mr: 4,
+                                              background: '#E8F4F2',
+                                              padding: '8px',
+                                              borderRadius: '50%'
+                                            }}
+                                            src={
+                                              all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'
+                                            }
+                                          ></Avatar>
                                           <Box
                                             sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                                           >
