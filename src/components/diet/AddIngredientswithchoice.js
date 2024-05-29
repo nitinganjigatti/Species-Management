@@ -171,6 +171,7 @@ const AddIngredientswithChoice = props => {
       }
     }
     console.log(item, 'item')
+
     // Prepare the object to store values
     const boxValues = {
       ingredient_id: item.id,

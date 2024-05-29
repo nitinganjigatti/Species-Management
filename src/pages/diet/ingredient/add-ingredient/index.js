@@ -361,6 +361,7 @@ const AddIngredient = () => {
             reset()
           } else {
             setSubmitLoader(false)
+
             // Object.entries(res?.message).map(([key, value]) => {
             //   Toaster({
             //     type: 'error',
@@ -370,6 +371,7 @@ const AddIngredient = () => {
 
             Toaster({
               type: 'error',
+
               // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
               message: res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message
             })

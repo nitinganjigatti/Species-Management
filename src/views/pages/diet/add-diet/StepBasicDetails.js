@@ -54,6 +54,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   diet_name: yup.string().required('Diet name is required'),
+
   //diet_type_name: yup.string().required('Diet type is required'),
   diet_type_id: yup.string().required('Diet type is required'),
   meal_data: yup.array().of(
@@ -526,6 +527,7 @@ const StepBasicDetails = ({
       // Check if meal_from_time is greater than or equal to meal_to_time
       if (fromTime >= toTime) {
         lastOverlapIndex = index
+
         return
       }
 
@@ -1321,6 +1323,7 @@ const StepBasicDetails = ({
                                 {console.log(selectedCard, 'selectedCard')}
                                 {all?.ingredientList?.map((all, index) => {
                                   console.log(all, 'all')
+
                                   return (
                                     <Grid item key={index}>
                                       <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>

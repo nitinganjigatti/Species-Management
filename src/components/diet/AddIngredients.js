@@ -307,6 +307,7 @@ const AddIngredients = props => {
       }
     }
     console.log(item, 'item')
+
     const boxValues = {
       ingredient_id: item.id,
       ingredient_name: item.ingredient_name,

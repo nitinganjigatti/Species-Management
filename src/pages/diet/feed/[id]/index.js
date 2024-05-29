@@ -575,7 +575,6 @@ const FeedDetails = () => {
                         open={statusDialog}
                         typeCount={FeedDetailsValue?.ingredients}
                         type='feed'
-                        // active={isActive}
                         active={isActive == '1'}
                         dietCount={FeedDetailsValue.ingredients}
                         actionType={'confirm'}
