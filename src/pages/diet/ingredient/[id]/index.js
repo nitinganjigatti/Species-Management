@@ -137,6 +137,7 @@ const IngredientDetail = () => {
     try {
       setDeleteDialogBox(false)
       const response = await deleteIngredient(id)
+
       // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
@@ -281,7 +282,6 @@ const IngredientDetail = () => {
                 action={confirmStatusUpdateAction}
                 open={statusDialog}
                 type='ingredient'
-                // active={isActive}
                 active={isActive == '1'}
                 actionType={'confirm'}
                 recipeCount={IngredientsDetailsval.recipe_count}

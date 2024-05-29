@@ -151,6 +151,7 @@ const RecipeCard = ({
   const handleSelected = () => {
     handleSidebarClose()
     console.log(selectedCardRecipe, 'selectedCardRecipe')
+
     const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 

@@ -44,6 +44,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
       // console.log(response, 'response')
       if (response?.success) {
         setIsActive(Number(isActive) === 0 ? '1' : '0')
+
         // setIsActive(!isActive)
         Toaster({ type: 'success', message: response.message })
       } else {
@@ -237,7 +238,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
             type='feed'
             active={isActive}
             dietCount={FeedDetailsValue.ingredients}
-            actionType={'confirm'}
+            // actionType={'confirm'}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                 {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type?
