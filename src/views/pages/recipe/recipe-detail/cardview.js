@@ -142,7 +142,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.portion_size + ' ' + 'g'}
+                {IngredientsDetailsval.portion_size + ' ' + IngredientsDetailsval.portion_uom_name}
               </Typography>
             </Box>
           </Box>

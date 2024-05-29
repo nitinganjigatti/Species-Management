@@ -367,7 +367,7 @@ const Diet = () => {
               {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
             </Typography>
           </Box>
         </Box>

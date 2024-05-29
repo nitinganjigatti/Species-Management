@@ -26,6 +26,7 @@ const defaultValues = {
   recipe_name: '',
   portion_size: '',
   portion_uom_id: '',
+  portion_uom_name: '',
   nutrional_value: '',
   nutrional_uom_id: '',
   kcal: ''
@@ -52,6 +53,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     handleSubmit,
     clearErrors,
     watch,
+    setValue,
     formState: { errors }
   } = useForm({
     mode: 'all',
@@ -208,9 +210,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       isOptionEqualToValue={(option, value) => option?._id === value?._id}
                       onChange={(e, val) => {
                         if (val === null) {
-                          return onChange('')
+                          onChange('')
+                          setValue('portion_uom_name', '')
                         } else {
-                          return onChange(val._id)
+                          onChange(val._id)
+                          setValue('portion_uom_name', val.name)
                         }
                       }}
                       renderInput={params => (

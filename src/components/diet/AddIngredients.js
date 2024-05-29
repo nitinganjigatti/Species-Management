@@ -554,7 +554,7 @@ const AddIngredients = props => {
   }
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
-
+  console.log(selectedCard, 'selectedCard')
   return (
     <>
       <Drawer

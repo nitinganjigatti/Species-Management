@@ -1333,21 +1333,6 @@ const StepBasicDetails = ({
                                             padding: '14px'
                                           }}
                                         >
-                                          {/* <Avatar
-                                            variant='square'
-                                            alt='Medicine Image'
-                                            sx={{
-                                              width: 50,
-                                              height: 50,
-                                              mr: 1,
-                                              background: '#E8F4F2',
-                                              padding: '2px',
-                                              borderRadius: '4px'
-                                            }}
-                                            src={all?.ingredient_image?all?.ingredient_image:""}
-                                          >
-                                            {null ?? <Icon icon='healthicons:fruits-outline' />}
-                                          </Avatar> */}
                                           <Avatar
                                             variant='square'
                                             alt='Diet Image'

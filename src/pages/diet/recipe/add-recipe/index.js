@@ -51,6 +51,7 @@ const AddRecipe = () => {
     recipe_name: '',
     portion_size: '',
     portion_uom_id: '',
+    portion_uom_name: '',
     nutrional_value: '',
     nutrional_uom_id: '',
     kcal: '',
