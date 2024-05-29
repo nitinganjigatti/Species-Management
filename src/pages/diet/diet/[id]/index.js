@@ -501,26 +501,33 @@ const DietDetail = () => {
                                                                         >
                                                                           {item?.ingredient_name}
                                                                         </Typography>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            fontWeight: 400,
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '18px',
-                                                                            color: '#1F415B'
-                                                                          }}
-                                                                        >
-                                                                          &nbsp;-&nbsp;{item?.preparation_type_label}
-                                                                        </Typography>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            fontWeight: 400,
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '18px',
-                                                                            color: '#1F415B'
-                                                                          }}
-                                                                        >
-                                                                          &nbsp;-&nbsp;{item?.feed_uom_name}
-                                                                        </Typography>
+                                                                        {item?.preparation_type_label ||
+                                                                          (item?.preparation_type && (
+                                                                            <Typography
+                                                                              sx={{
+                                                                                fontWeight: 400,
+                                                                                fontSize: '14px',
+                                                                                lineHeight: '18px',
+                                                                                color: '#1F415B'
+                                                                              }}
+                                                                            >
+                                                                              &nbsp;-&nbsp;
+                                                                              {item?.preparation_type_label ||
+                                                                                item?.preparation_type}
+                                                                            </Typography>
+                                                                          ))}
+                                                                        {item?.feed_uom_name && (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '18px',
+                                                                              color: '#1F415B'
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp;{item?.feed_uom_name}
+                                                                          </Typography>
+                                                                        )}
                                                                       </Box>
                                                                     </>
                                                                   ))}
