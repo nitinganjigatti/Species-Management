@@ -232,22 +232,27 @@ const AddSpeciesSlideBar = ({
         payload['vernacular_name'] = val?.vernacular_name
       }
       console.log('Payload >>', payload)
-      const Bannerparams = {
-        tsn_id: tsnId,
-        banner_images: val.banner_images
-      }
-      // Upload banner images
-      const bannerUploadResponse = await UploadBannerImages(Bannerparams)
-      if (bannerUploadResponse.success) {
-        const response = await UpdateSpecies(payload, tsnId)
-        if (response.success) {
-          toast.success('Species Updated Successfully ')
-          setOpenDrawer(false)
-        } else {
-          toast.error('Unable to Update the Species')
+
+      // Only upload banner images if the array is not empty
+      if (val.banner_images && val.banner_images.length > 0) {
+        const Bannerparams = {
+          tsn_id: tsnId,
+          banner_images: val.banner_images
         }
+        // Upload banner images
+        const bannerUploadResponse = await UploadBannerImages(Bannerparams)
+        if (!bannerUploadResponse.success) {
+          toast.error('Unable to upload banner images')
+          return
+        }
+      }
+
+      const response = await UpdateSpecies(payload, tsnId)
+      if (response.success) {
+        toast.success('Species Updated Successfully ')
+        setOpenDrawer(false)
       } else {
-        toast.error('Unable to upload banner images')
+        toast.error('Unable to Update the Species')
       }
     } else {
       const response = await addSpecies(payload)
@@ -265,13 +270,8 @@ const AddSpeciesSlideBar = ({
     if (editName) {
       setValue('tsn_id', tsnId)
       setValue('scientificName', editName)
-      // setValue('species_image', speciesImage)
     }
   }, [])
-
-  // useEffect(() => {
-  //   setValue('species_image', displayProfile)
-  // }, [displayProfile])
 
   console.log('selected Values >>', selectedValues)
 
@@ -427,58 +427,62 @@ const AddSpeciesSlideBar = ({
 
                 <FormControl fullWidth>
                   {editVernacularNames.length > 0 ? (
-                    <>
-                      <Controller
-                        name='vernacular_id'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          console.log('Selected IDs:', value)
-                          const selectedId =
-                            value ||
-                            (editVernacularNames.length > 0
-                              ? editVernacularNames[0].vern_id
+                    (console.log('Veenacular ??', editVernacularNames),
+                    (
+                      <>
+                        <Controller
+                          name='vernacular_id'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => {
+                            console.log('Selected IDs:', value)
+                            const selectedId =
+                              value ||
+                              (editVernacularNames.length > 0
                                 ? editVernacularNames[0].vern_id
-                                : editVernacularNames[0].id
-                              : null)
-                          console.log('Prefill ID:', selectedId)
+                                  ? editVernacularNames[0].vern_id
+                                  : editVernacularNames[0].id
+                                : null)
+                            console.log('Prefill ID:', selectedId)
 
-                          return (
-                            <>
-                              <Select
-                                sx={{ mt: 2 }}
-                                fullWidth
-                                value={selectedId}
-                                error={Boolean(errors.vernacular_id)}
-                                onChange={e => {
-                                  const selectedId = e.target.value
-                                  onChange(selectedId)
-                                }}
-                                renderValue={selected => {
-                                  if (!selected) {
-                                    return <em>Select Vernacular</em>
-                                  }
-                                  const selectedVernacular = editVernacularNames.find(item =>
-                                    item.vern_id ? item.vern_id === selected : item.id === selected
-                                  )
-                                  return selectedVernacular ? selectedVernacular.vernacular_name : ''
-                                }}
-                              >
-                                {editVernacularNames.map((item, index) => (
-                                  <MenuItem key={index} value={item.vern_id ? item.vern_id : item.id}>
-                                    {item.vernacular_name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                              <Typography sx={{ ml: '140px', mt: 5 }}>or</Typography>
-                            </>
-                          )
-                        }}
-                      />
-                      {errors.vernacular_id && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
-                      )}
-                    </>
+                            return (
+                              <>
+                                <Select
+                                  sx={{ mt: 2 }}
+                                  fullWidth
+                                  value={selectedId} // Set the value of the Select component to selectedId
+                                  error={Boolean(errors.vernacular_id)}
+                                  onChange={e => {
+                                    const selectedId = e.target.value
+                                    onChange(selectedId)
+                                  }}
+                                  renderValue={selected => {
+                                    if (!selected) {
+                                      return <em>Select Vernacular</em>
+                                    }
+                                    const selectedVernacular = editVernacularNames.find(item =>
+                                      item.vern_id ? item.vern_id === selected : item.id === selected
+                                    )
+                                    return selectedVernacular ? selectedVernacular.vernacular_name : ''
+                                  }}
+                                >
+                                  {editVernacularNames.map((item, index) => (
+                                    <MenuItem key={index} value={item.vern_id ? item.vern_id : item.id}>
+                                      {item.vernacular_name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+
+                                <Typography sx={{ ml: '140px', mt: 5 }}>or</Typography>
+                              </>
+                            )
+                          }}
+                        />
+                        {errors.vernacular_id && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
+                        )}
+                      </>
+                    ))
                   ) : (
                     <>
                       {vernacularData.length > 0 && (
@@ -559,12 +563,12 @@ const AddSpeciesSlideBar = ({
               </Button>
               <Box sx={{ mt: 4, display: 'flex', flexDirection: 'row' }}>
                 {BannerImages.length > 0 // Conditionally rendering based on bannerImages
-                  ? BannerImages.map((image, index) => (
+                  ? [...BannerImages, ...selectedImages].map((image, index) => (
                       <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
                         <img
-                          src={image.image_url} // Assuming the URL is stored in 'image_url'
-                          alt={`Banner Image ${index}`}
-                          style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 4 }}
+                          src={image.image_url ? image.image_url : image}
+                          alt={`Image ${index}`}
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
                         />
                         <IconButton
                           sx={{

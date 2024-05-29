@@ -51,6 +51,7 @@ const AddSpecies = () => {
     setEditName('')
     setEditVernacularNames([])
     setSpeciesImage('')
+    setBannerImages([])
   }
 
   const handleSidebarClose = () => {
@@ -191,6 +192,7 @@ const AddSpecies = () => {
   }))
 
   const handleRowClick = async params => {
+    debugger
     console.log('params >>', params)
     setOpenDrawer(true)
     const tsnId = params.row.id
@@ -201,7 +203,6 @@ const AddSpecies = () => {
     setSpeciesImage(params?.row?.default_icon)
 
     try {
-      // Call your first API
       const vernacularResponse = await getVernacularSpeciesById(tsnId)
       if (vernacularResponse?.success) {
         setEditVernacularNames(vernacularResponse?.data)
@@ -209,11 +210,11 @@ const AddSpecies = () => {
         toast.error('Unable to fetch Vernacular Names')
       }
 
-      // Call the addBannerImages API
-      const addBannerResponse = await GetBannerImages(tsnId) // Assuming tsnId is required for this API call
+      const addBannerResponse = await GetBannerImages(tsnId)
+
       if (addBannerResponse?.success) {
-        // Handle success response
         console.log('Banner images added successfully:', addBannerResponse.data)
+        console.log('Get Values ??', addBannerResponse.data)
         setBannerImages(addBannerResponse.data)
       } else {
         // Handle error response
