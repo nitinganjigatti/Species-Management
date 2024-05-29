@@ -40,6 +40,7 @@ const AddIngredients = props => {
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
+  console.log('selectFeed :>> ', selectFeed)
 
   const [searchValue, setSearchValue] = useState('')
 
@@ -47,6 +48,7 @@ const AddIngredients = props => {
 
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
+
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
@@ -124,25 +126,6 @@ const AddIngredients = props => {
     }
   }
 
-  // const handleChangeFeed = (event, item) => {
-  //   event.stopPropagation()
-  //   const { value } = event.target
-
-  //   const selectedFeedType = item.preparation_types.find(type => type.id === value)
-
-  //   setSelectFeed(prevState => ({
-  //     ...prevState,
-  //     [item.id]: {
-  //       id: selectedFeedType.id,
-  //       name: selectedFeedType.label
-  //     }
-  //   }))
-
-  //   if (selectedFeedType.label !== 'Chopped') {
-  //     handelCardSelection(event, item, selectedFeedType, null, null, selectedDays)
-  //   }
-  // }
-
   const handleChangeFeed = (event, item) => {
     event.stopPropagation()
     const { value } = event.target
@@ -160,7 +143,7 @@ const AddIngredients = props => {
     // Log the current selectedFeedType and selectedDays
 
     // Update selectedDays if necessary before calling handelCardSelection
-    if (selectedFeedType.label !== 'Chopped') {
+    if (selectedFeedType.label) {
       setSelectedDays(prevSelectedDays => {
         const existingIndex = prevSelectedDays.findIndex(
           selectedItem => selectedItem && selectedItem.cardId === item.id
@@ -182,9 +165,9 @@ const AddIngredients = props => {
 
       // Ensure that handelCardSelection uses the updated selectedDays state
       setSelectedDays(currentSelectedDays => {
-        if (selectedFeedType.label !== 'Chopped') {
-          handelCardSelection(event, item, selectedFeedType, null, null, currentSelectedDays)
-        }
+        // if (selectedFeedType.label !== 'Chopped') {
+        handelCardSelection(event, item, selectedFeedType, null, null, currentSelectedDays)
+        // }
 
         return currentSelectedDays
       })
@@ -193,21 +176,28 @@ const AddIngredients = props => {
 
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
+    const { value } = event.target
 
-    const newUom = event.target.value
+    // const newUom = event.target.value
+    console.log('Selected value:', value)
+    console.log('UOM array:', uom)
+
+    // Find the selected UOM object based on the value
+    const newUom = uom.find(type => Number(type._id) === Number(value))
+    console.log('uomValue :>> ', newUom)
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
+        id: event.target.value,
+        name: newUom?.name
       }
     }))
 
     // Update the state with the new object
     // setSize(updatedObject)
 
-    if (cutSize) {
+    if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
   }
@@ -277,6 +267,7 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
+  console.log('selectedCard :>> ', selectedCard)
 
   useEffect(() => {
     const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
@@ -302,7 +293,7 @@ const AddIngredients = props => {
 
     if (feed_type === 'Chopped') {
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
       if (!cutSizeValue || !sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
 
@@ -320,7 +311,8 @@ const AddIngredients = props => {
       mealid: checkid,
       ingredient_image: item.ingredient_image,
       feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
-      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom : size[item.id]?.id || '') : ''
+      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
+      feed_uom_name: feed_type === 'Chopped' ? (newUom ? newUom.name : size[item.id]?.name || '') : ''
     }
 
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
@@ -809,17 +801,6 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
-                              // sx={{
-                              //   ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                              //     borderColor: !size[item.id]?.id ? 'red' : '#ffffff',
-                              //     borderWidth: '2px',
-                              //     borderStyle: 'solid',
-                              //     borderRadius: 1,
-                              //     '&.Mui-focused': {
-                              //       borderColor: 'transparent'
-                              //     }
-                              //   })
-                              // }}
                             >
                               <MenuItem value='' disabled>
                                 Select

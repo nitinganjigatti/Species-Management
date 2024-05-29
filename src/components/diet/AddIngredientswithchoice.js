@@ -126,13 +126,14 @@ const AddIngredientswithChoice = props => {
 
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
-    const newUom = event.target.value
+    // const newUom = event.target.value
+    const newUom = uom.find(type => Number(type._id) === Number(value))
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
+        id: event.target.value,
+        name: newUom?.name
       }
     }))
 
@@ -189,11 +190,13 @@ const AddIngredientswithChoice = props => {
     if (feed_type === 'Chopped') {
       // Include cut size and its dropdown only if feedType is "Chopped"
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
+      const sizeName = newUom ? newUom?.name : size[item.id]?.name || ''
 
       // Update boxValues with cut size and size
       boxValues.feed_cut_size = cutSizeValue
       boxValues.feed_uom_id = sizeValue
+      boxValues.feed_uom_name = sizeName
     }
 
     // Check if the boxValues already exist in selectedCardIngchoice
