@@ -1014,7 +1014,7 @@ const IndividualRequest = () => {
                   {/* Medicine Listing */}
                 </CardContent>
                 {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
               </Card>
               {/* Dispatch list */}
@@ -1049,7 +1049,7 @@ const IndividualRequest = () => {
                     </Grid>
                   </Grid>
                 </CardContent> */}
-                    <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
                   </Card>
                 </>
               ) : null}
