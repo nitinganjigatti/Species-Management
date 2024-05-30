@@ -1251,18 +1251,32 @@ const StepPreviewDiet = ({
                                                     {item?.ingredient_name}
                                                   </Typography>
                                                 )}
-                                                {item?.preparation_type && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#7A8684',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    &nbsp;-&nbsp; {item?.preparation_type}
-                                                  </Typography>
-                                                )}
+                                                {item?.preparation_type &&
+                                                  (item?.feed_cut_size ? (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#7A8684',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                      {item?.feed_cut_size + item.feed_uom_name}
+                                                    </Typography>
+                                                  ) : (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#7A8684',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {item?.preparation_type}
+                                                      {item?.feed_cut_size + item.feed_uom_name}
+                                                    </Typography>
+                                                  ))}
                                               </Box>
 
                                               {item?.ingredient?.length > 0 && (
@@ -1961,26 +1975,30 @@ const StepPreviewDiet = ({
                                                       >
                                                         {item?.ingredient_name}
                                                       </Typography>
-                                                      <Typography
-                                                        sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '14px',
-                                                          lineHeight: '18px',
-                                                          color: '#1F415B'
-                                                        }}
-                                                      >
-                                                        &nbsp;-&nbsp;{item?.preparation_type}
-                                                      </Typography>
-                                                      <Typography
-                                                        sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '14px',
-                                                          lineHeight: '18px',
-                                                          color: '#1F415B'
-                                                        }}
-                                                      >
-                                                        &nbsp;-&nbsp;{item?.feed_uom_name}
-                                                      </Typography>
+                                                      {item?.feed_cut_size ? (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: '#1F415B'
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                          {item?.feed_cut_size + item.feed_uom_name}
+                                                        </Typography>
+                                                      ) : (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: '#1F415B'
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}
+                                                        </Typography>
+                                                      )}
                                                     </Box>
                                                   </>
                                                 ))}

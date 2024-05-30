@@ -47,60 +47,34 @@ const defaultValues = {
   desc: ''
 }
 
-const schema = yup
-  .object()
-  .shape({
-    by_percentage: yup.array().of(
-      yup.object().shape({
-        ingredient_id: yup.string().required('Ingredient is required'),
-        quantity: yup
-          .string()
-          .required('Quantity is required')
-          .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-            return parseFloat(value) <= 100
-          }),
-        preparation_type_id: yup.string().required('Preparation type is required')
-      })
-    ),
+const schema = yup.object().shape({
+  by_percentage: yup.array().of(
+    yup.object().shape({
+      ingredient_id: yup.string().required('Ingredient is required'),
+      quantity: yup
+        .string()
+        .required('Quantity is required')
+        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+          return parseFloat(value) <= 100
+        }),
+      preparation_type_id: yup.string().required('Preparation type is required')
+    })
+  ),
 
-    by_quantity: yup.array().of(
-      yup.object().shape({
-        ingredient_id: yup.string().required('Ingredient is required'),
-        uom_id: yup.string().required('Uom is required'),
-        quantity: yup
-          .string()
-          .required('Quantity is required')
-          .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-            return parseFloat(value) <= 100
-          }),
-        preparation_type_id: yup.string().required('Preparation type is required')
-      })
-    )
-  })
-  .test(
-    'by_percentage_or_by_quantity',
-    'You must fill out all fields for either by_percentage or by_quantity',
-    function (value) {
-      const byPercentageValid = value.by_percentage.some(
-        item =>
-          item.ingredient_id &&
-          item.quantity &&
-          item.preparation_type_id &&
-          !Object.values(item).some(field => field === '')
-      )
-
-      const byQuantityValid = value.by_quantity.some(
-        item =>
-          item.ingredient_id &&
-          item.uom_id &&
-          item.quantity &&
-          item.preparation_type_id &&
-          !Object.values(item).some(field => field === '')
-      )
-
-      return byPercentageValid || byQuantityValid
-    }
+  by_quantity: yup.array().of(
+    yup.object().shape({
+      ingredient_id: yup.string().required('Ingredient is required'),
+      uom_id: yup.string().required('Uom is required'),
+      quantity: yup
+        .string()
+        .required('Quantity is required')
+        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+          return parseFloat(value) <= 100
+        }),
+      preparation_type_id: yup.string().required('Preparation type is required')
+    })
   )
+})
 
 const StepAddIngredients = ({
   formData,

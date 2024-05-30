@@ -125,9 +125,11 @@ const AddIngredientswithChoice = props => {
   }
 
   const handleChangeSize = (event, item) => {
+    console.log(event, 'event')
+    console.log(item, 'item')
     event.stopPropagation()
     // const newUom = event.target.value
-    const newUom = uom.find(type => Number(type._id) === Number(value))
+    const newUom = uom.find(type => Number(type._id) === Number(item.uom_id))
 
     setSize(prevState => ({
       ...prevState,
