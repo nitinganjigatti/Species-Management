@@ -99,7 +99,8 @@ const ImportPurchase = () => {
     // const formData = new FormData()
     const formData = new FormData(formRef.current)
 
-    // formData.append('upload_file', getValues('upload_file')[0])
+    // console.log('upload file', getValues('upload_file'))
+
     formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
     try {
@@ -177,9 +178,9 @@ const ImportPurchase = () => {
     if (file && file.type === 'text/csv') {
       reset({}, { errors: true })
       setLoader(true)
-
+      const confirmLabel = 0
       const formData = new FormData(formRef.current)
-      formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
+      formData.append('is_confirm', confirmLabel)
 
       const result = await uploadPurchaseFile(formData)
       setSubmitLoader(true)
@@ -210,7 +211,7 @@ const ImportPurchase = () => {
         }
       }
 
-      if (result?.message === 'Please upload the proper csv file.' && result?.success === false) {
+      if (result?.message !== '' && result?.success === false) {
         toast.error(result.message)
         setSubmitLoader(false)
         setLoader(false)
@@ -342,7 +343,7 @@ const ImportPurchase = () => {
                                             }}
                                           >
                                             <Typography variant='subtitle2' color='error.main'>
-                                              In {el.key} Row {el.value}
+                                              Row {el.key}, {el.value}
                                             </Typography>
                                           </TableCell>
                                         )}
