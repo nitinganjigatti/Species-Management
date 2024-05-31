@@ -214,4 +214,6 @@ export const UPDATE = 'update'
 
 export const TYPE = 'type'
 
-export const ADD_NURSERY = "egg/nursery"
+export const ADD_NURSERY = 'egg/nursery'
+
+export const ROOM_LIST = 'room/list'
