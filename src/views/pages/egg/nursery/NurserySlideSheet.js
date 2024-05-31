@@ -12,12 +12,12 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { Fragment, useContext, useEffect } from 'react'
+import { Fragment, useContext } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
-import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
+import { AddNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
 
 const schema = yup.object().shape({
@@ -25,7 +25,7 @@ const schema = yup.object().shape({
   site_id: yup.string().required('Select Site')
 })
 
-const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSite, fetchTableData }) => {
+const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
   const authData = useContext(AuthContext)
 
   const defaultValues = {
@@ -36,8 +36,6 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
   const {
     control,
     handleSubmit,
-    getValues,
-    setValue,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -50,53 +48,34 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton variant='contained' type='submit' loading={loading}>
+        <LoadingButton variant='contained' type='submit'>
           Submit
         </LoadingButton>
       </Fragment>
     )
   }
 
-  console.log('GetValues >>', getValues())
-
-  useEffect(() => {
-    setValue('nursery_name', editName), setValue('site_id', editSite)
-  }, [editNurseryId])
-
   const onSubmit = async values => {
+    debugger
     try {
-      if (editNurseryId) {
-        const payload = {
-          nursery_name: values?.nursery_name,
-          site_id: values?.site_id
-        }
-        const response = await UpdateNursery(editNurseryId, payload)
-        if (response.success) {
-          toast.success('Nursery updated Successfully')
-          setOpenDrawer(false)
-          fetchTableData()
-        } else {
-          toast.error('Unable to update Nursery')
-        }
+      console.log('Val>>', values)
+
+      const payload = {
+        nursery_name: values?.nursery_name,
+        site_id: values?.site_id
+      }
+
+      const response = await AddNursery(payload)
+
+      if (response.success) {
+        setOpenDrawer(false)
+        toast.success('Nursery added Successfully')
       } else {
-        const payload = {
-          nursery_name: values?.nursery_name,
-          site_id: values?.site_id
-        }
-
-        const response = await AddNursery(payload)
-
-        if (response.success) {
-          toast.success('Nursery added Successfully')
-          setOpenDrawer(false)
-          fetchTableData()
-        } else {
-          toast.error('Unable to add Nursery')
-        }
+        toast.error('Unable to add Nursery')
       }
     } catch (error) {
-      console.error('Error while adding/updating nursery:', error)
-      toast.error('An error occurred while adding/updating nursery')
+      console.error('Error while adding nursery:', error)
+      toast.error('An error occurred while adding nursery')
     }
   }
 
@@ -113,10 +92,10 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
               p: theme => theme.spacing(3, 3.255, 3, 5.255)
             }}
           >
-            <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
+            <Typography variant='h6'>Add Nursery</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
+                <Icon icon='mdi:close' fontSize={20} onClick={closeSideSheet} />
               </IconButton>
             </Box>
           </Box>
@@ -128,10 +107,10 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
                 <Controller
                   name='nursery_name'
                   control={control}
-                  rules={{ required: !editNurseryId }}
+                  rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Nursery Name*'
+                      label='Nursery Name'
                       value={value}
                       onChange={onChange}
                       focused={value !== ''}
@@ -141,7 +120,7 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
                     />
                   )}
                 />
-                {errors?.nursery_name && (
+                {errors.nursery_name && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
                 )}
               </FormControl>
@@ -159,14 +138,14 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
                       <Select
                         name='site_id'
                         value={value}
-                        label='Site *'
+                        label='Site'
                         onChange={onChange}
                         error={Boolean(errors?.site_id)}
                         labelId='site_id'
                       >
                         {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                           return (
-                            <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
+                            <MenuItem key={index} value={item?.site_id}>
                               {item?.site_name}
                             </MenuItem>
                           )
@@ -174,7 +153,9 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
                       </Select>
                     )}
                   />
-                  {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
+                  {errors?.site_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+                  )}
                 </FormControl>
               )}
 
