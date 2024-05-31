@@ -3,16 +3,14 @@ import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
+import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import moment from 'moment'
-import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
-import { useRouter } from 'next/router'
 
 const NurseryList = () => {
-  const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -24,6 +22,7 @@ const NurseryList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
   const fetchTableData = useCallback(
     async (sort, q, column) => {
       try {
@@ -33,7 +32,7 @@ const NurseryList = () => {
           sort,
           search: q,
           column,
-          page_no: paginationModel.page + 1,
+          page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
@@ -73,6 +72,7 @@ const NurseryList = () => {
     }, 1000),
     []
   )
+
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
@@ -163,13 +163,16 @@ const NurseryList = () => {
           </Box>
         </Box>
       )
+    },
+
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'Action',
+      headerName: 'Action',
+      renderCell: params => <Button>Edit</Button>
     }
   ]
-
-  const handleCellClick = params => {
-    console.log('Params >>', params.row)
-    router.push(`/egg/nursery/${params.row.id}`)
-  }
 
   const headerAction = (
     <div>
@@ -181,6 +184,8 @@ const NurseryList = () => {
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  console.log('Get no', getSlNo)
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
@@ -217,7 +222,7 @@ const NurseryList = () => {
           columns={columns}
           sortingMode='server'
           paginationMode='server'
-          pageSizeOptions={[7, 10, 15, 25]}
+          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -233,18 +238,11 @@ const NurseryList = () => {
               onChange: event => handleSearch(event.target.value)
             }
           }}
-          onCellClick={handleCellClick}
+
+          // onCellClick={onCellClick}
         />
       </Card>
-      {openDrawer && (
-        <NurseryAddComponent
-          closeSideSheet={closeSideSheet}
-          setOpenDrawer={setOpenDrawer}
-          loading={loading}
-          // onSubmit={onSubmit}
-          fetchTableData={fetchTableData}
-        />
-      )}
+      {openDrawer && <NurserySlider closeSideSheet={closeSideSheet} setOpenDrawer={setOpenDrawer} />}
     </>
   )
 }
