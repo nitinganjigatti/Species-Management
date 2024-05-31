@@ -1,0 +1,172 @@
+import { yupResolver } from '@hookform/resolvers/yup'
+import { LoadingButton } from '@mui/lab'
+import {
+  Box,
+  Drawer,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material'
+import { Fragment, useContext } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import Icon from 'src/@core/components/icon'
+import * as yup from 'yup'
+import { AuthContext } from 'src/context/AuthContext'
+import { AddNursery } from 'src/lib/api/egg/nursery'
+import toast from 'react-hot-toast'
+
+const schema = yup.object().shape({
+  nursery_name: yup.string().required('Nursery Name is required'),
+  site_id: yup.string().required('Select Site')
+})
+
+const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
+  const authData = useContext(AuthContext)
+
+  const defaultValues = {
+    nursery_name: '',
+    site_id: ''
+  }
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const RenderSidebarFooter = () => {
+    return (
+      <Fragment>
+        <LoadingButton variant='contained' type='submit'>
+          Submit
+        </LoadingButton>
+      </Fragment>
+    )
+  }
+
+  const onSubmit = async values => {
+    debugger
+    try {
+      console.log('Val>>', values)
+
+      const payload = {
+        nursery_name: values?.nursery_name,
+        site_id: values?.site_id
+      }
+
+      const response = await AddNursery(payload)
+
+      if (response.success) {
+        setOpenDrawer(false)
+        toast.success('Nursery added Successfully')
+      } else {
+        toast.error('Unable to add Nursery')
+      }
+    } catch (error) {
+      console.error('Error while adding nursery:', error)
+      toast.error('An error occurred while adding nursery')
+    }
+  }
+
+  return (
+    <>
+      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
+        <div>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              backgroundColor: 'background.default',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255)
+            }}
+          >
+            <Typography variant='h6'>Add Nursery</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} onClick={closeSideSheet} />
+              </IconButton>
+            </Box>
+          </Box>
+
+          {/* drower */}
+          <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+            <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+              <FormControl fullWidth sx={{ mb: 6 }}>
+                <Controller
+                  name='nursery_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Nursery Name'
+                      value={value}
+                      onChange={onChange}
+                      focused={value !== ''}
+                      placeholder='Nursery Name'
+                      error={Boolean(errors.nursery_name)}
+                      name='nursery_name'
+                    />
+                  )}
+                />
+                {errors.nursery_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
+                )}
+              </FormControl>
+
+              {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                <FormControl fullWidth sx={{ mb: 6 }}>
+                  <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                    Site
+                  </InputLabel>
+                  <Controller
+                    name='site_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        name='site_id'
+                        value={value}
+                        label='Site'
+                        onChange={onChange}
+                        error={Boolean(errors?.site_id)}
+                        labelId='site_id'
+                      >
+                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                          return (
+                            <MenuItem key={index} value={item?.site_id}>
+                              {item?.site_name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
+                    )}
+                  />
+                  {errors?.site_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <RenderSidebarFooter />
+              </Box>
+            </form>
+          </Box>
+        </div>
+      </Drawer>
+    </>
+  )
+}
+export default NurserySlider
