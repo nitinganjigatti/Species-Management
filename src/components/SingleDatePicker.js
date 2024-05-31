@@ -11,7 +11,7 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name, disabled = false }) => {
+const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, name, disabled = false }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
@@ -21,6 +21,7 @@ const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name, disabl
         id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
+        maxDate={maxDate ? maxDate : null}
         placeholderText='select a date'
         customInput={
           <CustomInput
