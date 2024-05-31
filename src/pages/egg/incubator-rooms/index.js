@@ -11,7 +11,7 @@ import {
   Link,
   Grid
 } from '@mui/material'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -20,6 +20,9 @@ import CustomChip from 'src/@core/components/mui/chip'
 import { debounce } from 'lodash'
 import Router from 'next/router'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
+import moment from 'moment'
+import AddIncubatorRoom from 'src/components/egg/addIncubatorRoom'
 
 const RoomsList = () => {
   const theme = useTheme()
@@ -28,10 +31,11 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+  const [sortColumn, setSortColumn] = useState('room_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
+  const [isOpen, setIsopen] = useState(false)
 
   const headerAction = (
     <>
@@ -50,12 +54,14 @@ const RoomsList = () => {
     </>
   )
 
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = data?.map((row, index) => ({
-    ...row
+  console.log('Get no', getSlNo)
 
-    // sl_no: getSlNo(index)
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    id: row.room_id,
+    sl_no: getSlNo(index)
   }))
 
   const handleSortModel = newModel => {
@@ -71,7 +77,7 @@ const RoomsList = () => {
     debounce(async (sort, q, sortColumn, status) => {
       setSearchValue(q)
       try {
-        // await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, sortColumn, status)
       } catch (error) {
         console.error(error)
       }
@@ -81,21 +87,21 @@ const RoomsList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.05,
+    //   Width: 40,
+    //   field: 'uid',
+    //   headerName: 'SL ',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.5,
       minWidth: 30,
@@ -104,7 +110,7 @@ const RoomsList = () => {
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.nursery}
+            {params.row.nursery_name}
           </Typography>
         </Box>
       )
@@ -116,7 +122,7 @@ const RoomsList = () => {
       headerName: 'site',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.site}
+          {params.row.site_name}
         </Typography>
       )
     },
@@ -127,7 +133,7 @@ const RoomsList = () => {
       headerName: 'room',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.room}
+          {params.row.room_name}
         </Typography>
       )
     },
@@ -138,7 +144,7 @@ const RoomsList = () => {
       headerName: 'Incubator',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.Incubator}
+          {params.row.no_of_incubators}
         </Typography>
       )
     },
@@ -149,8 +155,7 @@ const RoomsList = () => {
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          {/* <Avatar
+          <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
@@ -162,10 +167,10 @@ const RoomsList = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user?.profile_pic ? (
+            {params.row.user_profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
+                src={params.row.user_profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -174,12 +179,12 @@ const RoomsList = () => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
-          </Box> */}
+          </Box>
         </Box>
       )
     },
@@ -223,6 +228,39 @@ const RoomsList = () => {
       return
     }
   }
+
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          sort,
+          search: q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await GetRoomList({ params: params }).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
 
   return (
     <>
@@ -324,6 +362,10 @@ const RoomsList = () => {
           </Grid>
         </Box>
       )}
+
+      <>
+        <AddIncubatorRoom setIsopen={setIsopen} isOpen={isOpen} />
+      </>
     </>
   )
 }
