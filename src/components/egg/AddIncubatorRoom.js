@@ -1,7 +1,280 @@
-import React from 'react'
+import {
+  Box,
+  Card,
+  Drawer,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material'
+import React, { useContext, useEffect, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import Icon from 'src/@core/components/icon'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { AuthContext } from 'src/context/AuthContext'
+import { LoadingButton } from '@mui/lab'
+import toast from 'react-hot-toast'
+import { AddRoom, EditRoom } from 'src/lib/api/egg/room/getRoom'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
-const AddIncubatorRoom = () => {
-  return <div>AddIncubatorRoom</div>
+const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams }) => {
+  console.log('editParams :>> ', editParams)
+  const [loader, setLoader] = useState(false)
+  const authData = useContext(AuthContext)
+  const [nurseryList, setNurseryList] = useState([])
+  console.log('nurseryList :>> ', nurseryList)
+  const id = editParams?.room_id
+
+  const defaultValues = {
+    room_name: '',
+    site_id: '',
+    nursery_id: ''
+  }
+
+  const schema = yup.object().shape({
+    room_name: yup.string().required('Room Name is required'),
+    site_id: yup.string().required('Select Site'),
+    nursery_id: yup.string().required('Nursery is required')
+  })
+
+  const {
+    setValue,
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const NurseryList = async () => {
+    try {
+      const params = {
+        // type: ['length', 'weight'],
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const onSubmit = async values => {
+    setLoader(true)
+    try {
+      const payload = {
+        room_name: values?.room_name,
+        site_id: values?.site_id,
+
+        nursery_id: values?.nursery_id
+      }
+      console.log('payload :>> ', payload)
+
+      if (editParams?.nursery_id && editParams?.room_name) {
+        const response = await EditRoom(id, payload)
+
+        if (response.success) {
+          setLoader(false)
+
+          setIsOpen(false)
+          toast.success('Room updated Successfully')
+        } else {
+          setLoader(false)
+          toast.error('Unable to add Room')
+        }
+      } else {
+        const response = await AddRoom(payload)
+
+        if (response.success) {
+          setLoader(false)
+
+          setIsOpen(false)
+          toast.success('Room added Successfully')
+        } else {
+          setLoader(true)
+          toast.error('Unable to add Room')
+        }
+      }
+    } catch (error) {
+      console.error('Error while adding room:', error)
+      toast.error('An error occurred while adding room')
+    }
+  }
+
+  if (editParams?.nursery_id && editParams?.room_name) {
+    setValue('room_name', editParams?.room_name)
+    setValue('site_id', editParams?.site_id)
+    setValue('nursery_id', editParams?.nursery_id)
+  }
+
+  return (
+    <>
+      <Drawer
+        anchor='right'
+        open={isOpen}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: '#dbe0de',
+          gap: '24px'
+        }}
+      >
+        <Box
+          className='sidebar-header'
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255),
+            px: '24px'
+          }}
+        >
+          <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Icon
+              style={{ marginLeft: -8 }}
+              icon='material-symbols-light:add-notes-outline-rounded'
+              fontSize={'32px'}
+            />
+            <Typography variant='h6'>Add Room</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton size='small' onClick={() => setIsOpen(false)} sx={{ color: 'text.primary' }}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='room_name'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    label='Room Name'
+                    value={value}
+                    onChange={onChange}
+                    focused={value !== ''}
+                    placeholder='Room Name'
+                    error={Boolean(errors.room_name)}
+                    name='room_name'
+                  />
+                )}
+              />
+              {errors.room_name && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
+              )}
+            </FormControl>
+
+            {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                  Site
+                </InputLabel>
+                <Controller
+                  name='site_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='site_id'
+                      value={value}
+                      label='Site'
+                      onChange={onChange}
+                      error={Boolean(errors?.site_id)}
+                      labelId='site_id'
+                    >
+                      {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                        return (
+                          <MenuItem key={index} value={item?.site_id}>
+                            {item?.site_name}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
+                  )}
+                />
+                {errors?.site_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+                )}
+              </FormControl>
+            )}
+
+            <FormControl fullWidth>
+              <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
+                Nursery
+              </InputLabel>
+              <Controller
+                name='nursery_id'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    name='nursery_id'
+                    value={value}
+                    label='Nursery'
+                    onChange={onChange}
+                    error={Boolean(errors?.nursery_id)}
+                    labelId='nursery_id'
+                  >
+                    {nurseryList?.map((item, index) => {
+                      return (
+                        <MenuItem key={index} value={item?.nursery_id}>
+                          {item?.nursery_name}
+                        </MenuItem>
+                      )
+                    })}
+                  </Select>
+                )}
+              />
+              {errors?.nursery_id && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Card>
+
+          <Box
+            sx={{
+              height: '122px',
+              width: '100%',
+              maxWidth: '562px',
+              position: 'fixed',
+              bottom: 0,
+              px: 4,
+              bgcolor: 'white',
+              alignItems: 'center',
+              justifyContent: 'center',
+              display: 'flex'
+            }}
+          >
+            <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
+              ADD ROOM
+            </LoadingButton>
+          </Box>
+        </form>
+      </Drawer>
+    </>
+  )
 }
 
 export default AddIncubatorRoom

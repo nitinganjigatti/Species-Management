@@ -226,17 +226,7 @@ const RoomDetails = () => {
       try {
         setLoader(true)
 
-        const params = {
-          sort,
-          search: q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await GetRoomDetails(id, params).then(res => {
-          // setTotal(parseInt(res?.data?.total_count))
-          // setRows(loadServerRows(paginationModel.page, res?.data))
+        await GetRoomDetails(id).then(res => {
           setDetailsData(res?.data)
         })
         setLoader(false)
