@@ -2,7 +2,6 @@ import { ADD_NURSERY } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../../utility'
 
 export async function AddNursery(payload) {
-  debugger
   const response = await axiosFormPost({ url: `${ADD_NURSERY}/add`, body: payload, pharmacy: true })
   return response.data
 }
@@ -18,7 +17,6 @@ export async function GetNurseryDetailsById(id) {
 }
 
 export async function UpdateNursery(id, payload) {
-  debugger
   const response = await axiosFormPost({ url: `${ADD_NURSERY}/${id}/edit`, body: payload, pharmacy: true })
   return response.data
 }
