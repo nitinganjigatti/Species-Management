@@ -166,7 +166,7 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, editNurseryId
         <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setDrawer(true)}>
           <Icon icon='mdi:pencil-outline' />
         </IconButton>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; {ButtonName}
         </Button>
