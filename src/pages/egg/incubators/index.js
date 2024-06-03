@@ -39,28 +39,170 @@ import redBlink from 'public/images/branding/Antz_logo_h_color.svg'
 
 import { AuthContext } from 'src/context/AuthContext'
 import { getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
-import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
+import AddIncubators from './addIncubators'
 import Styles from './dot.module.css'
-import { getIncubatorList } from 'src/lib/api/egg/incubator'
 
 const roleColors = {
   active: 'success',
   inactive: 'error'
 }
 
-const IncubatorsList = () => {
-  const cuurent_date = moment().format('YYYY-MM-DD')
+const tableData = [
+  {
+    id: 1,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 2,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Alert',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 3,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 4,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 5,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 6,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Alert',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 7,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Alert',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 8,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 9,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Alert',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  },
+  {
+    id: 10,
+    incubators_id: 'INC 0001 / 24',
+    censors: 'Good',
+    availability: 'Fully Occupied',
+    site: 'Site Name XYZ',
+    room_no: 123,
+    eggs: 7,
+    added_by: {
+      profile_pic: '',
+      user_name: 'Jordan Stevenson',
+      created_at: '10/10/2023'
+    }
+  }
+]
 
+const IncubatorsList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState(tableData || [])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 20 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
+  const [check, setCheck] = useState(false)
+  const [selectedIngredient, setSelectedIngredient] = useState()
 
   const [uomList, setUom] = useState([])
   const [defaultUom, setDefaultUom] = useState(null)
@@ -94,31 +236,31 @@ const IncubatorsList = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
-    // setStatus(newValue)
+    setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (sort, q, sortColumn, status) => {
       try {
-        console.log('til_date', cuurent_date)
         setLoading(true)
 
         const params = {
+          sort,
           q,
-          // sortColumn,
-          til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          status
         }
 
-        await getIncubatorList(params).then(res => {
+        await getIngredientList({ params: params }).then(res => {
           console.log('response', res)
 
           // Generate uid field based on the index
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
+          let listWithId = res.data.result.map((el, i) => {
+            return { ...el, uid: i + 1 }
           })
-          setTotal(parseInt(res?.data?.data?.total_count))
+          setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
 
           // setstatusCheckval(res?.data?.result.map(all => all.active))
@@ -132,11 +274,11 @@ const IncubatorsList = () => {
     [paginationModel]
   )
 
-  useEffect(() => {
-    // if (eggModule) {
-    fetchTableData(searchValue)
-    // }
-  }, [fetchTableData])
+  // useEffect(() => {
+  //   if (eggModule) {
+  //     fetchTableData(sort, searchValue, sortColumning, status)
+  //   }
+  // }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -154,17 +296,16 @@ const IncubatorsList = () => {
     // }
   }
 
-  const searchTableData = useCallback(
-    debounce(async q => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  const searchTableData = useCallback()
+  // debounce(async (sort, q, sortColumn, status) => {
+  //   setSearchValue(q)
+  //   try {
+  //     await fetchTableData(sort, q, sortColumn, status)
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }, 1000),
+  // []
 
   // const handleSidebarOpen = () => {
   //   setDialog(true)
@@ -188,17 +329,16 @@ const IncubatorsList = () => {
   )
 
   const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(value)
+    // setSearchValue(value)
+    // searchTableData(sort, value, sortColumning, status)
   }
 
   const columns = [
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL ',
-      sortable: false,
       renderCell: params => (
         <Typography
           sx={{
@@ -212,13 +352,11 @@ const IncubatorsList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.35,
       minWidth: 30,
-      sortable: false,
-      field: 'incubator_code',
-      headerName: 'INCUBATOR ID',
+      field: 'incubators_id',
+      headerName: 'INCUBATORS ID',
       renderCell: params => (
         <Typography
           noWrap
@@ -229,49 +367,47 @@ const IncubatorsList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.incubator_code ? params.row.incubator_code : '-'}
+          {params.row.incubators_id ? params.row.incubators_id : '-'}
         </Typography>
       )
     },
-    // {
-    //   flex: 0.3,
-    //   minWidth: 10,
-    //   field: 'censors',
-    //   sortable: false,
-    //   headerName: 'CENSORS',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Typography
-    //         style={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '400',
-    //           lineHeight: '19.36px'
-    //         }}
-    //       >
-    //         2
-    //       </Typography>{' '}
-    //       {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.censors === 'Good' && (
-    //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
-    //       )}
-    //       <Typography
-    //         sx={{
-    //           color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         {params.row.censors ? params.row.censors : '-'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'censors',
+      headerName: 'CENSORS',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            2
+          </Typography>{' '}
+          {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
+          {params.row.censors === 'Good' && (
+            <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
+          )}
+          <Typography
+            sx={{
+              color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+              fontSize: '14px',
+              fontWeight: '500',
+              lineHeight: '16.94px'
+            }}
+          >
+            {params.row.censors ? params.row.censors : '-'}
+          </Typography>
+        </Box>
+      )
+    },
     {
       flex: 0.35,
       minWidth: 10,
-      sortable: false,
       field: 'availability',
       headerName: 'AVAILABILITY',
       renderCell: params => (
@@ -290,8 +426,7 @@ const IncubatorsList = () => {
     {
       flex: 0.35,
       minWidth: 20,
-      sortable: false,
-      field: 'site_name',
+      field: 'site',
       headerName: 'SITE',
       renderCell: params => (
         <Typography
@@ -302,15 +437,14 @@ const IncubatorsList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.site_name ? params.row.site_name : '-'}
+          {params.row.site ? params.row.site : '-'}
         </Typography>
       )
     },
     {
       flex: 0.24,
       minWidth: 20,
-      sortable: false,
-      field: 'room_name',
+      field: 'room_no',
       headerName: 'ROOM NO',
       renderCell: params => (
         <Typography
@@ -321,15 +455,14 @@ const IncubatorsList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.room_name ? params.row.room_name : '-'}
+          {params.row.room_no ? params.row.room_no : '-'}
         </Typography>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
-      sortable: false,
-      field: 'no_of_eggs',
+      field: 'eggs',
       headerName: 'EGGS',
       renderCell: params => (
         <Typography
@@ -340,14 +473,13 @@ const IncubatorsList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
+          {params.row.eggs ? params.row.eggs : '-'}
         </Typography>
       )
     },
     {
       flex: 0.5,
       minWidth: 60,
-      sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
       renderCell: params => (
@@ -364,10 +496,10 @@ const IncubatorsList = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.user_profile_pic ? (
+            {params.row.added_by?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.user_profile_pic}
+                src={params.row.added_by?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -384,7 +516,7 @@ const IncubatorsList = () => {
                 lineHeight: '16.94px'
               }}
             >
-              {params.row.user_full_name ? params.row.user_full_name : '-'}
+              {params.row.added_by?.user_name ? params.row.added_by?.user_name : '-'}
             </Typography>
             <Typography
               noWrap
@@ -395,7 +527,9 @@ const IncubatorsList = () => {
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row?.added_by?.created_at
+                ? 'Created on' + ' ' + moment(params.row?.added_by?.created_at).format('DD/MM/YYYY')
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -404,11 +538,16 @@ const IncubatorsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
-
+    // console.log(params, 'params')
+    // const clickedColumn = params.field !== 'switch'
+    // if (clickedColumn) {
+    //   const data = params.row
     Router.push({
-      pathname: `/egg/incubators/${params.row?.id}`
+      pathname: `/egg/incubators/6`
     })
+    // } else {
+    //   return
+    // }
   }
 
   // const TabBadge = ({ label, totalCount }) => (
@@ -598,7 +737,6 @@ const IncubatorsList = () => {
             columnVisibilityModel={{
               sl_no: false
             }}
-            // sortModel={}
             hideFooterSelectedRowCount
             disableColumnSelector={true}
             autoHeight
@@ -626,7 +764,7 @@ const IncubatorsList = () => {
             }}
             onCellClick={onCellClick}
           />
-          <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+          <AddIncubators sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
         </Card>
       )}
     </>
