@@ -34,7 +34,7 @@ const NurseryList = () => {
           sort,
           search: q,
           column,
-          page: paginationModel.page + 1,
+          page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
