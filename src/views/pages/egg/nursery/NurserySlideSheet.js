@@ -57,12 +57,11 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
     )
   }
 
-  useEffect(() => {
-    setValue('nursery_name', editName)
-    setValue('site_id', editSite)
-  }, [editNurseryId])
-
   console.log('GetValues >>', getValues())
+
+  useEffect(() => {
+    setValue('nursery_name', editName), setValue('site_id', editSite)
+  }, [editNurseryId])
 
   const onSubmit = async values => {
     try {
@@ -114,7 +113,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
               p: theme => theme.spacing(3, 3.255, 3, 5.255)
             }}
           >
-            <Typography variant='h6'>Add Nursery</Typography>
+            <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} onClick={closeSideSheet} />
@@ -133,7 +132,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       label='Nursery Name*'
-                      value={value ? value : editName}
+                      value={value}
                       onChange={onChange}
                       focused={value !== ''}
                       placeholder='Nursery Name'
@@ -159,7 +158,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
                     render={({ field: { value, onChange } }) => (
                       <Select
                         name='site_id'
-                        value={value ? value : editSite}
+                        value={value}
                         label='Site *'
                         onChange={onChange}
                         error={Boolean(errors?.site_id)}
