@@ -48,10 +48,10 @@ const DetailCard = ({ DetailsListData }) => {
               overflow: 'hidden'
             }}
           >
-            {DetailsListData?.Avatar?.profile_Pic ? (
+            {params.row.user_profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={DetailsListData?.Avatar?.profile_Pic}
+                src={params.row.user_profile_pic}
                 alt='Profile'
               />
             ) : (
