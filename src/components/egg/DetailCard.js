@@ -1,8 +1,12 @@
-import { Avatar, Button, Card, CardHeader, Typography } from '@mui/material'
+import { Avatar, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
 import { Box, Stack } from '@mui/system'
+import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
+import { GetRoomByNursery } from 'src/lib/api/egg/nursery'
 
 const DetailCard = ({ DetailsListData }) => {
   console.log('DetailsListData :>> ', DetailsListData)
@@ -34,8 +38,7 @@ const DetailCard = ({ DetailsListData }) => {
 
         <Box m={2} sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Avatar
-            variant='square'
-            alt='Medicine Image'
+            variant='rounded'
             sx={{
               width: 30,
               height: 30,

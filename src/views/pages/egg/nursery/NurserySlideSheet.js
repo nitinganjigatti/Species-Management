@@ -12,12 +12,12 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { Fragment, useContext } from 'react'
+import { Fragment, useContext, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
-import { AddNursery } from 'src/lib/api/egg/nursery'
+import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
 
 const schema = yup.object().shape({
@@ -25,7 +25,7 @@ const schema = yup.object().shape({
   site_id: yup.string().required('Select Site')
 })
 
-const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
+const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editSite, fetchTableData }) => {
   const authData = useContext(AuthContext)
 
   const defaultValues = {
@@ -36,6 +36,8 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
   const {
     control,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -48,34 +50,54 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton variant='contained' type='submit'>
+        <LoadingButton variant='contained' type='submit' loading={loading}>
           Submit
         </LoadingButton>
       </Fragment>
     )
   }
 
+  useEffect(() => {
+    setValue('nursery_name', editName)
+    setValue('site_id', editSite)
+  }, [editNurseryId])
+
+  console.log('GetValues >>', getValues())
+
   const onSubmit = async values => {
-    debugger
     try {
-      console.log('Val>>', values)
-
-      const payload = {
-        nursery_name: values?.nursery_name,
-        site_id: values?.site_id
-      }
-
-      const response = await AddNursery(payload)
-
-      if (response.success) {
-        setOpenDrawer(false)
-        toast.success('Nursery added Successfully')
+      if (editNurseryId) {
+        const payload = {
+          nursery_name: values?.nursery_name,
+          site_id: values?.site_id
+        }
+        const response = await UpdateNursery(editNurseryId, payload)
+        if (response.success) {
+          toast.success('Nursery updated Successfully')
+          closeSideSheet()
+          fetchTableData()
+        } else {
+          toast.error('Unable to update Nursery')
+        }
       } else {
-        toast.error('Unable to add Nursery')
+        const payload = {
+          nursery_name: values?.nursery_name,
+          site_id: values?.site_id
+        }
+
+        const response = await AddNursery(payload)
+
+        if (response.success) {
+          toast.success('Nursery added Successfully')
+          closeSideSheet()
+          fetchTableData()
+        } else {
+          toast.error('Unable to add Nursery')
+        }
       }
     } catch (error) {
-      console.error('Error while adding nursery:', error)
-      toast.error('An error occurred while adding nursery')
+      console.error('Error while adding/updating nursery:', error)
+      toast.error('An error occurred while adding/updating nursery')
     }
   }
 
@@ -107,11 +129,11 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
                 <Controller
                   name='nursery_name'
                   control={control}
-                  rules={{ required: true }}
+                  rules={{ required: !editNurseryId }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Nursery Name'
-                      value={value}
+                      label='Nursery Name*'
+                      value={value ? value : editName}
                       onChange={onChange}
                       focused={value !== ''}
                       placeholder='Nursery Name'
@@ -120,7 +142,7 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
                     />
                   )}
                 />
-                {errors.nursery_name && (
+                {errors?.nursery_name && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
                 )}
               </FormControl>
@@ -137,15 +159,15 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
                     render={({ field: { value, onChange } }) => (
                       <Select
                         name='site_id'
-                        value={value}
-                        label='Site'
+                        value={value ? value : editSite}
+                        label='Site *'
                         onChange={onChange}
                         error={Boolean(errors?.site_id)}
                         labelId='site_id'
                       >
                         {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                           return (
-                            <MenuItem key={index} value={item?.site_id}>
+                            <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
                               {item?.site_name}
                             </MenuItem>
                           )
@@ -153,9 +175,7 @@ const NurserySlider = ({ closeSideSheet, setOpenDrawer }) => {
                       </Select>
                     )}
                   />
-                  {errors?.site_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
-                  )}
+                  {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
                 </FormControl>
               )}
 
