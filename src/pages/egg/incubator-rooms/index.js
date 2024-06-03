@@ -27,8 +27,6 @@ import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 
 const RoomsList = () => {
   const theme = useTheme()
-  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null }
-  const [editParams, setEditParams] = useState(editParamsInitialState)
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -63,12 +61,12 @@ const RoomsList = () => {
   }))
 
   const handleSortModel = newModel => {
-    // if (newModel.length) {
-    //   setSort(newModel[0].sort)
-    //   setsortColumning(newModel[0].field)
-    //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    // } else {
-    // }
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+    } else {
+    }
   }
 
   const searchTableData = useCallback(
@@ -215,35 +213,36 @@ const RoomsList = () => {
         //   }}
         // />
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <>
-          {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
-          selectedPharmacy.permission.key === 'ADD') && */}
-          {/* {pharmacyRole && ( */}
-          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            {/* {parseInt(params.row.zoo_id) === 0 ? null : ( */}
-            <IconButton
-              size='small'
-              sx={{ mr: 0.5 }}
-              onClick={event =>
-                handleEdit(event, params.row.site_id, params.row.room_name, params.row.nursery_id, params.row.room_id)
-              }
-              aria-label='Edit'
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-            {/* )} */}
-          </Box>
-          {/* )} */}
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
+    //       selectedPharmacy.permission.key === 'ADD') && */}
+    //       {/* {pharmacyRole && ( */}
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         {/* {parseInt(params.row.zoo_id) === 0 ? null : ( */}
+    //         <IconButton
+    //           size='small'
+    //           sx={{ mr: 0.5 }}
+    //           onClick={event =>
+    //             handleEdit(event, params.row.site_id, params.row.room_name, params.row.nursery_id, params.row.room_id)
+    //           }
+    //           aria-label='Edit'
+    //         >
+    //           <Icon icon='mdi:pencil-outline' />
+    //         </IconButton>
+    //         {/* )} */}
+    //       </Box>
+    //       {/* )} */}
+    //     </>
+    //   )
+    // }
   ]
 
   const onCellClick = params => {
@@ -274,7 +273,7 @@ const RoomsList = () => {
           sort,
           search: q,
 
-          column,
+          // column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -397,15 +396,10 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
+        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
       </>
     </>
   )
 }
 
 export default RoomsList
-
-const data = [
-  { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
-  { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
-]

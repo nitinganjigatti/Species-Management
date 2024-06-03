@@ -26,12 +26,15 @@ import { debounce } from 'lodash'
 import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import DetailCard from 'src/components/egg/DetailCard'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 
 const RoomDetails = () => {
   const router = useRouter()
   const { id } = router.query
   console.log('id :>> ', id)
   const theme = useTheme()
+  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null }
+  const [editParams, setEditParams] = useState(editParamsInitialState)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -42,21 +45,24 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+  const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
 
   console.log('detailsData :>> ', detailsData)
 
-  const [isOpen, setIsOpen] = useState(false)
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  console.log('Get no', getSlNo)
 
-  // console.log('Get no', getSlNo)
+  const indexedRows = data?.map((row, index) => ({
+    ...data,
+    id: row.id
 
-  // const indexedRows = rows?.map((row, index) => ({
-  //   ...row,
-  //   id: row.room_id,
-  //   sl_no: getSlNo(index)
-  // }))
+    // ...row,
+    // id: row.room_id
+
+    // sl_no: getSlNo(index)
+  }))
 
   const handleSortModel = newModel => {
     // if (newModel.length) {
@@ -104,7 +110,7 @@ const RoomDetails = () => {
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.nursery_name}
+            {params.row[0].nursery}
           </Typography>
         </Box>
       )
@@ -116,7 +122,7 @@ const RoomDetails = () => {
       headerName: 'site',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.site_name}
+          {params.row[0].site}
         </Typography>
       )
     },
@@ -127,7 +133,7 @@ const RoomDetails = () => {
       headerName: 'room',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.room_name}
+          {params.row[0].room}
         </Typography>
       )
     },
@@ -138,7 +144,7 @@ const RoomDetails = () => {
       headerName: 'Incubator',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.no_of_incubators}
+          {params.row[0].Incubator}
         </Typography>
       )
     },
@@ -254,11 +260,26 @@ const RoomDetails = () => {
     [paginationModel]
   )
 
+  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+    event.stopPropagation()
+    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+    setIsOpen(true)
+  }
+
   const headerAction = (
     <>
       <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+        <IconButton
+          sx={{ px: 3, py: 6, mr: 4 }}
+          onClick={event =>
+            handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
+          }
+        >
+          <Icon icon='iconamoon:edit-light' fontSize={28} color={'black'} />
+        </IconButton>
+
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
+          <Icon icon='mdi:add' fontSize={30} />
           &nbsp; ADD INCUBATOR
         </Button>
       </Box>
@@ -268,24 +289,6 @@ const RoomDetails = () => {
   useEffect(() => {
     fetchDetailsData(sort, searchValue, sortColumn)
   }, [fetchDetailsData])
-
-  // if (detailsData?.room_name) {
-  //   setDetailsListData({
-  //     list: {
-  //       Room: detailsData?.room_name,
-  //       NurseryName: detailsData?.nursery_name,
-  //       Site: detailsData?.site_name,
-  //       Incubator: detailsData?.no_of_incubators,
-  //       Eggs: detailsData?.no_of_eggs
-  //     },
-  //     Avatar: {
-  //       profile_Pic: detailsData?.user_profile_pic,
-  //       user_Name: detailsData?.user_full_name,
-  //       create_at: detailsData?.created_at,
-  //       site_id: detailsData?.site_id
-  //     }
-  //   })
-  // }
 
   return (
     <>
@@ -308,11 +311,61 @@ const RoomDetails = () => {
 
             <Card>
               <CardHeader title='Rooms Details' action={headerAction} />
+
               <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+
+              <Box sx={{ px: 3 }}>
+                <DataGrid
+                  hideFooterPagination
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+
+                  // onCellClick={onCellClick}
+                />
+              </Box>
             </Card>
           </Grid>
         </Grid>
       )}
+
+      <>
+        <AddIncubatorRoom callApi={fetchDetailsData} isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
+      </>
     </>
   )
 }

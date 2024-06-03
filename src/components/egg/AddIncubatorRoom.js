@@ -19,10 +19,11 @@ import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import { AddRoom, EditRoom } from 'src/lib/api/egg/room/getRoom'
+import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { Router } from 'next/navigation'
 
-const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams }) => {
+const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
@@ -93,7 +94,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams }) => {
           setLoader(false)
 
           setIsOpen(false)
+          reset()
+
           toast.success('Room updated Successfully')
+          callApi('')
         } else {
           setLoader(false)
           toast.error('Unable to add Room')
@@ -105,7 +109,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams }) => {
           setLoader(false)
 
           setIsOpen(false)
+          reset()
+
           toast.success('Room added Successfully')
+          callApi('')
         } else {
           setLoader(true)
           toast.error('Unable to add Room')
