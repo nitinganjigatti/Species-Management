@@ -35,7 +35,7 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('room_name')
+  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -273,6 +273,7 @@ const RoomsList = () => {
         const params = {
           sort,
           search: q,
+
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize

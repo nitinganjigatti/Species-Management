@@ -42,6 +42,8 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+  const [DetailsListData, setDetailsListData] = useState({})
+
   console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
@@ -228,6 +230,21 @@ const RoomDetails = () => {
 
         await GetRoomDetails(id).then(res => {
           setDetailsData(res?.data)
+          setDetailsListData({
+            list: {
+              Room: res?.data?.room_name,
+              NurseryName: res?.data?.nursery_name,
+              Site: res?.data?.site_name,
+              Incubator: res?.data?.no_of_incubators,
+              Eggs: res?.data?.no_of_eggs
+            },
+            Avatar: {
+              profile_Pic: res?.data?.user_profile_pic,
+              user_Name: res?.data?.user_full_name,
+              create_at: res?.data?.created_at,
+              site_id: res?.data?.site_id
+            }
+          })
         })
         setLoader(false)
       } catch (e) {
@@ -237,9 +254,38 @@ const RoomDetails = () => {
     [paginationModel]
   )
 
+  const headerAction = (
+    <>
+      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; ADD INCUBATOR
+        </Button>
+      </Box>
+    </>
+  )
+
   useEffect(() => {
     fetchDetailsData(sort, searchValue, sortColumn)
   }, [fetchDetailsData])
+
+  // if (detailsData?.room_name) {
+  //   setDetailsListData({
+  //     list: {
+  //       Room: detailsData?.room_name,
+  //       NurseryName: detailsData?.nursery_name,
+  //       Site: detailsData?.site_name,
+  //       Incubator: detailsData?.no_of_incubators,
+  //       Eggs: detailsData?.no_of_eggs
+  //     },
+  //     Avatar: {
+  //       profile_Pic: detailsData?.user_profile_pic,
+  //       user_Name: detailsData?.user_full_name,
+  //       create_at: detailsData?.created_at,
+  //       site_id: detailsData?.site_id
+  //     }
+  //   })
+  // }
 
   return (
     <>
@@ -260,7 +306,10 @@ const RoomDetails = () => {
               <Typography color='text.primary'>Room Details</Typography>
             </Breadcrumbs>
 
-            <DetailCard detailsData={detailsData} ButtonName={'ADD INCUBATOR'} />
+            <Card>
+              <CardHeader title='Rooms Details' action={headerAction} />
+              <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+            </Card>
           </Grid>
         </Grid>
       )}
