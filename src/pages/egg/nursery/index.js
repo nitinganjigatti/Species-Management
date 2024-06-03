@@ -12,7 +12,7 @@ const NurseryList = () => {
   const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
