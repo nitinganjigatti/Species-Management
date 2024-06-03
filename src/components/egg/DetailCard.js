@@ -194,32 +194,32 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, editNurseryId
         >
           <Box m={2}>
             <Typography variant='body1'>{title ? 'Nursery Name' : 'Room'}</Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>
               {title ? nurseryData?.nursery_name : detailsData?.room_name}
             </Typography>
           </Box>
           <Box m={2}>
             <Typography variant='body1'>{title ? 'Site' : 'Nursery Name'}</Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>
               {title ? nurseryData?.site_name : detailsData?.nursery_name}
             </Typography>
           </Box>
           <Box m={2}>
             <Typography variant='body1'>{title ? 'Rooms' : 'Site'}</Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>
               {title ? nurseryData?.no_of_rooms : detailsData?.site_name}
             </Typography>
           </Box>
           <Box m={2}>
             <Typography>Incubators</Typography>
-            <Typography variant='h6'>
+            <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>
               {title ? nurseryData?.no_of_incubators : detailsData?.no_of_incubators}
             </Typography>
           </Box>
 
           <Box m={2}>
             <Typography variant='body1'>Eggs</Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>
               {title ? nurseryData?.no_of_eggs : detailsData?.no_of_eggs}
             </Typography>
           </Box>
