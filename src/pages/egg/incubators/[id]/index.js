@@ -10,14 +10,16 @@ import {
   Typography
 } from '@mui/material'
 import { Box, display } from '@mui/system'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
-import AddIncubators from '../addIncubators'
+import AddIncubators from '../../../../views/pages/egg/incubator/addIncubators'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import moment from 'moment'
 import ActivityLogs from 'src/components/diet/activityLogs'
+import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
+import { useRouter } from 'next/router'
 
 const tableData = [
   {
@@ -164,6 +166,8 @@ const tableData = [
 
 const IncubatorDetails = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -175,6 +179,7 @@ const IncubatorDetails = () => {
   const [dialog, setDialog] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
+  const [incubatorDetail, setIncubatorDetail] = useState(null)
 
   const handleSidebarClose = () => {
     setDialog(false)
@@ -192,6 +197,7 @@ const IncubatorDetails = () => {
     {
       flex: 0.05,
       Width: 40,
+      sortable: false,
       field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
@@ -210,6 +216,7 @@ const IncubatorDetails = () => {
     {
       flex: 0.5,
       minWidth: 60,
+      sortable: false,
       field: 'egg_number',
       headerName: 'EGG NUMBER',
       renderCell: params => (
@@ -269,6 +276,7 @@ const IncubatorDetails = () => {
     {
       flex: 0.5,
       minWidth: 60,
+      sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
       renderCell: params => (
@@ -327,6 +335,7 @@ const IncubatorDetails = () => {
     {
       flex: 0.35,
       minWidth: 30,
+      sortable: false,
       field: 'days_in_incubation',
       headerName: 'Days In Incubation',
       renderCell: params => (
@@ -346,6 +355,7 @@ const IncubatorDetails = () => {
     {
       flex: 0.35,
       minWidth: 10,
+      sortable: false,
       field: 'stage',
       headerName: 'Stage',
       renderCell: params => (
@@ -701,6 +711,21 @@ const IncubatorDetails = () => {
   //   }
   // }, [fetchTableData, status])
 
+  useEffect(() => {
+    if (id) {
+      try {
+        getIncubatorDetail(id).then(res => {
+          if (res.data) {
+            setIncubatorDetail(res?.data?.data)
+            console.log('res', res)
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
+    }
+  }, [id])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -782,13 +807,7 @@ const IncubatorDetails = () => {
                   overflow: 'hidden'
                 }}
               >
-                {/* {params.row.added_by?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.added_by?.profile_pic}
-                alt='Profile'
-              />
-            ) : ( */}
+                s
                 <Icon icon='mdi:user' />
                 {/* )} */}
               </Avatar>
@@ -1070,6 +1089,7 @@ const IncubatorDetails = () => {
             />
             <AddIncubators
               isEdit={isEdit}
+              incubatorDetail={incubatorDetail}
               drawerWidth={400}
               sidebarOpen={dialog}
               handleSidebarClose={handleSidebarClose}
