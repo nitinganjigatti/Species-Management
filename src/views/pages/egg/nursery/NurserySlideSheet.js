@@ -51,7 +51,7 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
     return (
       <Fragment>
         <LoadingButton variant='contained' type='submit' loading={loading}>
-          Submit
+          {editNurseryId ? 'Update Nursery' : 'Add Nursery'}
         </LoadingButton>
       </Fragment>
     )
