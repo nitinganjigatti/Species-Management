@@ -29,7 +29,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
-  const [nurseryList, setNurseryList] = useState([])
+  const [nurseryList, setNurseryList] = useState([]) 
   console.log('nurseryList :>> ', nurseryList)
   const id = editParams?.room_id
 

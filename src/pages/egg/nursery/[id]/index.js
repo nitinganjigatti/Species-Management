@@ -3,6 +3,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
@@ -19,6 +20,7 @@ const NurseryDetails = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
+  const [openRoomSideBar, setOpenRoomSidebar] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const router = useRouter()
@@ -220,6 +222,7 @@ const NurseryDetails = () => {
         ButtonName={'ADD ROOM'}
         nurseryData={nurseryData}
         setOpenDrawer={setOpenDrawer}
+        setOpenRoomSidebar={setOpenRoomSidebar}
         editName={editName}
         editNurseryId={editNurseryId}
         editSite={editSite}
@@ -267,6 +270,7 @@ const NurseryDetails = () => {
           editNurseryId={editNurseryId}
         />
       )}
+      {openRoomSideBar && <AddIncubatorRoom />}
     </Card>
   )
 }
