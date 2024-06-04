@@ -217,16 +217,7 @@ const NurseryDetails = () => {
 
   return (
     <Card>
-      <DetailCard
-        title='Nursery Details'
-        ButtonName={'ADD ROOM'}
-        nurseryData={nurseryData}
-        setOpenDrawer={setOpenDrawer}
-        setOpenRoomSidebar={setOpenRoomSidebar}
-        editName={editName}
-        editNurseryId={editNurseryId}
-        editSite={editSite}
-      />{' '}
+      <DetailCard title='Nursery Details' ButtonName={'ADD ROOM'} nurseryData={nurseryData} setOpenDrawer={setOpenDrawer} />{' '}
       {rows?.length > 0 ? (
         <DataGrid
           sx={{

@@ -8,7 +8,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import { GetRoomByNursery } from 'src/lib/api/egg/nursery'
 
-const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer, setOpenRoomSidebar }) => {
+const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer }) => {
   const [drawer, setDrawer] = useState(false)
   const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('nursery_name')
@@ -24,7 +24,7 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
         <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
           <Icon icon='mdi:pencil-outline' />
         </IconButton>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' >
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; {ButtonName}
         </Button>
