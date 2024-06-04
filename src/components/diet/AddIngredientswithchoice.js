@@ -35,7 +35,6 @@ const AddIngredientswithChoice = props => {
     allIngredientchoiceSelectedValues,
     checkid,
     formData,
-    childIngredeintchoiceStateValue,
     ingType,
     setingType,
     ingredientChoiceIndex
@@ -139,7 +138,6 @@ const AddIngredientswithChoice = props => {
       }
     }))
 
-    // setSize(event.target.value)
     if (size) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
@@ -309,13 +307,11 @@ const AddIngredientswithChoice = props => {
   }
 
   useEffect(() => {
-    // Filter selected values based on checkid
     if (ingType === 'addingIndex') {
       const selectedValuesWithCheckId = allIngredientchoiceSelectedValues?.filter((item, index) => {
         return index === ingredientChoiceIndex && item?.mealid === checkid
       })
-
-      // Check if selectedValuesWithCheckId is not empty
+      console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
       if (selectedValuesWithCheckId?.length > 0) {
         // Extract ingredientList from selectedValuesWithCheckId
         const ingredientLists = selectedValuesWithCheckId.flatMap(item => item.ingredientList)
@@ -350,19 +346,9 @@ const AddIngredientswithChoice = props => {
             if (ingredient.ingredient_id) {
               newRemarks = item?.remarks
             }
-
-            // const newVisibility = [
-            //   {
-            //     id: String(ingredient.ingredient_id),
-            //     isVisible: true
-            //   }
-            // ]
-            // console.log('newVisibility :>> ', newVisibility)
-            // setVisibility(newVisibility)
           })
         })
 
-        setShowDays(false)
         setSelectFeed(selectFeedObj)
         setSize(newUom)
         setCutSize(newCutSize)
@@ -380,7 +366,7 @@ const AddIngredientswithChoice = props => {
       setCutSize({})
       setRemarks('')
     }
-  }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex])
+  }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex, open])
 
   const searchData = useCallback(
     debounce(async search => {
@@ -396,7 +382,6 @@ const AddIngredientswithChoice = props => {
             }
           })
         } catch (error) {
-          // console.error(error)
           setIngredientPage(1)
         }
       }
@@ -715,8 +700,6 @@ const AddIngredientswithChoice = props => {
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
-
-      // Show success toast message
       toast.success('Ingredient added successfully!')
     }
   }
@@ -1064,7 +1047,7 @@ const AddIngredientswithChoice = props => {
                         alignItems: 'center',
                         cursor: 'pointer',
                         '&:hover': {
-                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede', // Change to red for unselected days on hover
+                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
                           color: selectedDays.includes(day.id) ? 'white' : 'black'
                         },
                         color: selectedDays.includes(day.id) ? 'white' : 'black'

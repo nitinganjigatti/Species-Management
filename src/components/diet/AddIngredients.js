@@ -140,16 +140,12 @@ const AddIngredients = props => {
       }
     }))
 
-    // Log the current selectedFeedType and selectedDays
-
-    // Update selectedDays if necessary before calling handelCardSelection
     if (selectedFeedType.label) {
       setSelectedDays(prevSelectedDays => {
         const existingIndex = prevSelectedDays.findIndex(
           selectedItem => selectedItem && selectedItem.cardId === item.id
         )
 
-        // If the item doesn't exist, add it with all days selected
         if (existingIndex === -1) {
           const allDays = Array.from({ length: 8 }, (_, i) => ({
             dayId: i,
@@ -163,7 +159,6 @@ const AddIngredients = props => {
         return prevSelectedDays
       })
 
-      // Ensure that handelCardSelection uses the updated selectedDays state
       setSelectedDays(currentSelectedDays => {
         // if (selectedFeedType.label !== 'Chopped') {
         handelCardSelection(event, item, selectedFeedType, null, null, currentSelectedDays)
@@ -194,17 +189,12 @@ const AddIngredients = props => {
       }
     }))
 
-    // Update the state with the new object
-    // setSize(updatedObject)
-
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
   }
 
   const handleAddRemarks = (event, item) => {
-    // event.stopPropagation()
-    // setRemarks(event.target.value)
     const newRemarks = event.target.value
     setRemarks(prevState => ({
       ...prevState,
@@ -319,13 +309,9 @@ const AddIngredients = props => {
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
 
     if (existingIndex !== -1) {
-      // If the card already exists, update its values
-
       selectedCard[existingIndex] = boxValues
       setSelectedCard([...selectedCard])
     } else {
-      // If the card is new, add it to selectedCard
-
       setSelectedCard(prevValues => [...prevValues, boxValues])
     }
   }
@@ -375,8 +361,6 @@ const AddIngredients = props => {
   useEffect(() => {
     fetchData()
   }, [])
-
-  // uom
 
   const getUnitsList = async () => {
     try {
@@ -438,7 +422,7 @@ const AddIngredients = props => {
     const updatedSelectedCard =
       selectedValuesWithCheckId?.map(item => ({
         ...item,
-        ingredient_id: String(item.ingredient_id) // Convert ingredient_id to string
+        ingredient_id: String(item.ingredient_id)
       })) || []
 
     setSelectedCard(updatedSelectedCard)
@@ -512,7 +496,6 @@ const AddIngredients = props => {
             }
           })
         } catch (error) {
-          // console.error(error)
           setIngredientPage(1)
         }
       }
@@ -533,9 +516,7 @@ const AddIngredients = props => {
         // name: selectedFeedType.label
       }
     }))
-    // setCutSize(event.target.value)
 
-    // Call handelCardSelection with the updated cutSize value
     if (newCutSize) {
       handelCardSelection(event, item, null, newCutSize, null, selectedDays)
     } else {
@@ -550,7 +531,6 @@ const AddIngredients = props => {
     const cardIndex = selectedCard.findIndex(card => card.ingredient_id === itemId)
 
     if (cardIndex !== -1) {
-      // If the card is found, remove it from the selectedCard state
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
@@ -850,14 +830,14 @@ const AddIngredients = props => {
                                   selectedDay.cardId === item.id &&
                                   selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                               )
-                                ? '#203e56' // Keep background color same for selected days on hover
-                                : '#dedede', // Change background color to red for unselected days on hover
+                                ? '#203e56'
+                                : '#dedede',
                               color: selectedDays.some(
                                 selectedDay =>
                                   selectedDay.cardId === item.id &&
                                   selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                               )
-                                ? 'white' // Keep background color same for selected days on hover
+                                ? 'white'
                                 : 'black'
                             },
                             color: selectedDays.some(

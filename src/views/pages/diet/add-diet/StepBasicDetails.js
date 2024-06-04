@@ -73,7 +73,6 @@ const StepBasicDetails = ({
   handleNext,
   formData,
   uomList,
-  popperPlacement,
   selectedCard,
   setSelectedCard,
   setSelectedCardRecipe,
@@ -155,32 +154,26 @@ const StepBasicDetails = ({
     console.log(fieldsIngredients, 'fieldsIngredients')
     setChildStateValue(value)
 
-    // Remove duplicates from the new value based on id and mealid
     const uniqueValues = value.filter(
       (val, index, self) =>
         index === self.findIndex(v => v.ingredient_id === val.ingredient_id && v.mealid === val.mealid)
     )
     setAllSelectedValues(prevState => {
-      // Filter out duplicates from the previous state
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
             uniqueVal => uniqueVal.ingredient_id === prevVal?.ingredient_id && uniqueVal.mealid === prevVal?.mealid
           )
       )
-
-      // Combine unique values from the new value with filtered previous state
       const updatedValues = [...filteredPrevState, ...uniqueValues]
       console.log(fieldsIngredients)
       console.log(updatedValues)
 
-      // Update the fieldsIngredients with the new values
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
         field.ingredient = updatedValues.filter(up => up?.mealid === field.mealid)
       }
 
-      // Return the updated values to setAllSelectedValues
       return updatedValues
     })
 
@@ -192,8 +185,6 @@ const StepBasicDetails = ({
     console.log(value, 'card')
     console.log(fieldsIngredients, 'fieldsIngredients')
     setRecipeChildStateValue(value)
-
-    // Remove duplicates from the new value based on id and mealid
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
     )
@@ -206,8 +197,6 @@ const StepBasicDetails = ({
             uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.mealid === prevVal?.mealid
           )
       )
-
-      // Combine unique values from the new value with filtered previous state
       const updatedValues = [...filteredPrevState, ...uniqueValues]
       console.log(fieldsIngredients)
       console.log(updatedValues)
@@ -272,16 +261,16 @@ const StepBasicDetails = ({
                   ...ingredient,
                   ingredient_id: String(ingredient.ingredient_id)
                 }))
-                .filter(ingredient => ingredient) // Remove undefined values
+                .filter(ingredient => ingredient)
 
               return {
                 ...ingChoice,
                 ingredientList: updatedIngredientList
               }
             })
-            .filter(ingChoice => ingChoice) // Remove undefined values
+            .filter(ingChoice => ingChoice)
         })
-        .filter(all => all) // Remove undefined values
+        .filter(all => all)
 
       setAllIngredientchoiceSelectedValues(flattenedIngchoice)
     }
@@ -298,12 +287,9 @@ const StepBasicDetails = ({
     if (checkid) {
       const filteredValues = allSelectedValues.filter(value => value?.mealid === checkid)
 
-      // Update childStateValue with the filtered values
       setChildStateValue(filteredValues)
 
       const filteredValuesing = allIngredientchoiceSelectedValues.filter(value => value?.mealid === checkid)
-
-      // Update childStateValue with the filtered values
       setIngredientchoiceChildStateValue(filteredValuesing)
     }
   }, [checkid, allSelectedValues, allIngredientchoiceSelectedValues, formData])
@@ -313,19 +299,15 @@ const StepBasicDetails = ({
       if (!errors) return
 
       let firstErrorField = null
-      console.log(errors, 'errors')
 
-      // Check for top-level errors
       for (const errorKey in errors) {
         const errorObject = errors[errorKey]
 
-        // Check if the error is a direct field error
         if (errorObject?.ref?.name) {
           firstErrorField = errorObject.ref.name
           break
         }
 
-        // Check if the error is a nested error (array of errors)
         if (Array.isArray(errorObject)) {
           for (const error of errorObject) {
             console.log(error, 'error')
@@ -343,7 +325,6 @@ const StepBasicDetails = ({
       console.log(firstErrorField, 'firstErrorField')
 
       if (firstErrorField) {
-        // Select the input element by the field reference
         const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
         console.log(errorElement, 'errorElement')
 
@@ -372,7 +353,6 @@ const StepBasicDetails = ({
     setingType(type)
     setingredientChoiceIndex(index)
 
-    // Update childStateValue with objects having matching mealid
     setIngredientchoiceChildStateValue(prevState => {
       const newState = prevState.filter(item => item.mealid === val.id)
 
@@ -397,7 +377,6 @@ const StepBasicDetails = ({
     setOpenIngredient(true)
     setcheckid(val.mealid)
 
-    // Update childStateValue with objects having matching mealid
     setChildStateValue(prevState => {
       const newState = prevState.filter(item => item.mealid === val.id)
 
@@ -421,9 +400,7 @@ const StepBasicDetails = ({
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
 
-      // Update the meal_data array with ingredients from finalvalue
       const updatedAddMeals = data.meal_data.map((meal, index) => {
-        // Check if finalvalue has corresponding index
         if (finalvalue[index]) {
           return {
             ...meal,
@@ -434,9 +411,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      // Update the meal_data array with ingredients from finalvalue
       const updatedAddMealswithingChoice = updatedAddMeals.map((meal, index) => {
-        // Check if finalvalue has corresponding index
         if (finalvalueingredientchoice[index]) {
           return {
             ...meal,
@@ -447,9 +422,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      // Update the meal_data array with recipes from finalrecipevalue
       const updatedAddMealsWithRecipes = updatedAddMealswithingChoice.map((meal, index) => {
-        // Check if finalrecipevalue has corresponding index
         if (finalvaluerecipe[index]) {
           return {
             ...meal,
@@ -460,13 +433,11 @@ const StepBasicDetails = ({
         return meal
       })
 
-      // Merge the updatedAddMeals and updatedAddMealsWithRecipes arrays
       const mergedAddMeals = updatedAddMealsWithRecipes.map((meal, index) => ({
         ...meal,
         ingredient: updatedAddMeals[index].ingredient
       }))
 
-      // Merge the image data with other form data
       const formDataWithImage = {
         ...data,
         diet_image: uploadedImage,
@@ -474,7 +445,6 @@ const StepBasicDetails = ({
       }
       console.log(formDataWithImage, 'formDataWithImage')
 
-      // Validate each object in meal_data
       const invalidIndexes = formDataWithImage.meal_data.reduce((invalidIndexes, meal, index) => {
         if (
           (!meal.ingredient || meal.ingredient.length === 0) &&
@@ -1422,195 +1392,6 @@ const StepBasicDetails = ({
               ) : (
                 ''
               )}
-
-              {/* <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                  <Typography variant='h6'>Ingredients with choice</Typography>
-                </Box>
-                {console.log(fieldsIngredients, 'fieldsIngredients')}
-                <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
-                  <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                    {ingredients.map((ingredient, index) => (
-                      <Grid
-                        item
-                        xs={12}
-                        sm={
-                          ingredient.label === 'No'
-                            ? 0.5
-                            : ingredient.label === 'Ingredient'
-                            ? 2.2
-                            : ingredient.label === 'Prep types'
-                            ? 1.5
-                            : 3.7
-                        }
-                        key={index}
-                        sx={{ py: 4, px: 2, textAlign: 'center' }}
-                      >
-                        <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-
-                    <Grid
-                      container
-                      sx={{ background: '#00afd633', padding: '0px 0px 15px 15px', borderRadius: '8px', mt: 3 }}
-                    >
-                      {console.log(selectedCard, 'selectedCard')}
-                      {selectedCard?.map(all => {
-                        return (
-                          <Grid item>
-                            <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                              <CardContent
-                                sx={{
-                                  gap: 3,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'flex-start',
-                                  padding: '14px'
-                                }}
-                              >
-                                <Avatar
-                                  variant='square'
-                                  alt='Medicine Image'
-                                  sx={{
-                                    width: 50,
-                                    height: 50,
-                                    mr: 1,
-                                    background: '#E8F4F2',
-                                    padding: '2px',
-                                    borderRadius: '4px'
-                                  }}
-                                  src={all.image}
-                                >
-                                  {null ?? <Icon icon='healthicons:fruits-outline' />}
-                                </Avatar>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                  <span>{all.name}</span>
-                                  <span style={{ color: '#7A8684', fontSize: 13 }}>{'ING' + all.id}</span>
-
-                                  <span style={{ color: '#7A8684', fontSize: 13 }}>{all.feedType}</span>
-                                </Box>
-                                <Icon
-                                  onClick={() => removeCancelIcon(all)}
-                                  style={{ position: 'relative', left: '28%' }}
-                                  icon='iconoir:cancel'
-                                />
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                        )
-                      })}
-
-                      <Grid item>
-                        <Card sx={{ width: '100px', height: '90px', mr: 4, boxShadow: 'none', mt: 3, padding: 3 }}>
-                          <CardContent
-                            sx={{
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              padding: 2
-                            }}
-                            onClick={() => handleAddIngerdientChoicewithindex(field, index, 'addingIndex')}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <Icon
-                                style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
-                                icon='material-symbols:add'
-                              />
-
-                              <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>Add</span>
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-
-                  <Grid container sx={{ px: 5, py: 5 }}>
-                    <Grid item xs={12} sm={0.5}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={2.2}>
-                      <Typography>1</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
-                      <Typography>5</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid container spacing={7} sx={{ pl: 2 }}>
-                        <Grid item>
-                          <Typography>M</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>W</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>T</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>F</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>S</Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    <Grid item xs={12} sm={3.7}>
-                      <Grid sx={{ pl: 7 }}>
-                        <Typography>5</Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid> */}
 
               <Grid sx={{ pb: 12 }}>
                 <Typography

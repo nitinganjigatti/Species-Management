@@ -612,25 +612,6 @@ const StepPreviewDiet = ({
 
   useEffect(() => {
     const mediaElements = document.getElementsByClassName('test')
-    // formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-    //                                           ? '580px'
-    //                                           : formData?.child?.length === 1 || formData?.child?.length === 0
-    //                                           ? '680px'
-    //                                           : formData?.child?.length > 1
-    //                                           ? '500px'
-    //                                           : '580px',
-    // for (const mediaElement of mediaElements) {
-    //   if (screenSize.width === 1800) {
-    //     mediaElement.style.width = '566px'
-    //   } else if (screenSize.width === 1600 ) {
-    //     mediaElement.style.width = '500px'
-    //   } else if (screenSize.width === 1440) {
-    //     mediaElement.style.width = '500px'
-    //   } else if (screenSize.width === 1920) {
-    //     mediaElement.style.width = '568px'
-    //   }
-    // }
-
     for (const mediaElement of mediaElements) {
       if (screenSize.width === 1800) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
@@ -796,7 +777,7 @@ const StepPreviewDiet = ({
             width: 500
           },
           '& .MuiBackdrop-root': {
-            backgroundColor: id ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.3)' // Custom background color with opacity
+            backgroundColor: id ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.3)'
           }
         }}
       >
@@ -835,7 +816,6 @@ const StepPreviewDiet = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                 {console.log(uomList, 'uomList')}
                 <Controller
                   name='feed_uom_name'
@@ -848,7 +828,7 @@ const StepPreviewDiet = ({
                       }}
                       defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
                       options={transformedArray} // List of options with value and label
-                      getOptionLabel={option => option.label} // Function to get the label of the option
+                      getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                       renderInput={params => (
                         <TextField {...params} label='Select Unit' placeholder='Search & Select' />
@@ -1001,24 +981,35 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#C1D3D04D',
+                            backgroundColor: '#fff',
                             pl: '16px',
                             py: 0,
                             width: '180px',
                             position: 'sticky',
-                            left: 0
+                            left: 0,
+                            paddingRight: '0px'
                           }}
                           className={classes.sticky}
                         >
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: '12px',
-                              lineHeight: '16px',
-                              fontWeight: 600
+                              display: 'flex',
+                              alignItems: 'center',
+                              height: '100%',
+                              backgroundColor: '#C1D3D04D',
+                              paddingLeft: '20px'
                             }}
                           >
-                            TIME
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '12px',
+                                lineHeight: '16px',
+                                fontWeight: 600
+                              }}
+                            >
+                              TIME
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell
                           sx={{
@@ -1252,12 +1243,12 @@ const StepPreviewDiet = ({
                                   width: '180px',
                                   border: 'none',
                                   pl: 0,
-                                  pr: '36px'
+                                  pr: '36px',
+                                  background: '#fff'
                                 }}
                                 component='th'
                                 scope='row'
                               >
-                                {/* <Typography>Meal Name :</Typography> */}
                                 <Box
                                   sx={{
                                     borderRadius: '25px',
