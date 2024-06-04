@@ -358,6 +358,7 @@ const FeedDetails = () => {
                           isActive={isActive}
                           setIsActive={setIsActive}
                           FeedDetailsValue={FeedDetailsValue}
+                          permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
                         <Grid item xs={8}>
                           <TabContext value={value}>
