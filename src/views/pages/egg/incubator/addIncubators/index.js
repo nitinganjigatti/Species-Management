@@ -152,7 +152,6 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
             actionApi('')
             reset()
             handleSidebarClose()
-          } else {
           }
         })
       } catch (error) {
@@ -171,7 +170,6 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
             actionApi('')
             reset()
             handleSidebarClose()
-          } else {
           }
         })
       } catch (error) {
@@ -179,6 +177,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
       }
     }
   }
+
   const onError = errors => {
     console.log('Form errros', errors)
   }
@@ -186,14 +185,15 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
   const RenderSidebarFooter = () => {
     return (
       <LoadingButton fullWidth size='large' type='submit' variant='contained'>
-        {isEdit ? 'EDIT' : 'ADD'} INCUBATOR
+        ADD INCUBATOR
       </LoadingButton>
     )
   }
 
-  // const CustomPopper = styled(props => <Popper {...props} placement='bottom-start' />)({
-  //   zIndex: 2000 // Ensure it appears above other elements
-  // })
+  const CustomPopper = styled(props => <Popper {...props} placement='bottom-start' />)({
+    zIndex: 2000 // Ensure it appears above other elements
+  })
+
   return (
     <Drawer
       anchor='right'
