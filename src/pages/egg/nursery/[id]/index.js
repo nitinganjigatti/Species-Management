@@ -97,6 +97,7 @@ const NurseryDetails = () => {
     }, 1000),
     []
   )
+
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)

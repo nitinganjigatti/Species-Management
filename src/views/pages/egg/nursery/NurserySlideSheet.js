@@ -188,4 +188,5 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
     </>
   )
 }
+
 export default NurserySlider
