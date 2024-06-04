@@ -181,6 +181,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const submitItems = () => {
     const dietTypesData = getValues('diet_types')
+    console.log(dietTypesData, 'dietTypesData')
     sendDietTypesToParent(dietTypesData)
   }
 
@@ -213,45 +214,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }
 
-  // const handleKeyUp2 = index => {
-  //   const values = getValues('diet_types')
-  //   const item = values[index]
-  //   const duplicateMin = values
-  //     ?.map(value => Number(value?.weight))
-  //     ?.some((value, idx) => idx !== index && value === Number(item?.weight))
-  //   const duplicateMax = values
-  //     ?.map(value => Number(value?.maxWeight))
-  //     ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
-  //   if (duplicateMin && duplicateMax) {
-  //     setError(`diet_types[${index}].maxWeight`, {
-  //       type: 'manual',
-  //       message: 'same range value be not allowed'
-  //     })
-  //   } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
-  //     setError(`diet_types[${index}].maxWeight`, {
-  //       type: 'manual',
-  //       message: 'Max Weight should be greater'
-  //     })
-  //   } else {
-  //     clearErrors(`diet_types[${index}]`, 'maxWeight')
-  //   }
-  // }
-
-  // const handleUnitKeyUp = index => {
-  //   if (
-  //     getValues('diet_types')?.filter(
-  //       (val, i) => val?.unit?.value?._id == getValues('diet_types')[index]?.unit?.value?._id
-  //     ).length > 1
-  //   ) {
-  //     setError(`diet_types[${index}].unit`, {
-  //       type: 'manual',
-  //       message: 'Unit already selected'
-  //     })
-  //   } else {
-  //     clearErrors(`diet_types[${index}].unit`)
-  //   }
-  // }
-
   useEffect(() => {
     if (dietTypes?.length > 0 && activitySidebarOpen) {
       setValue('diet_types', dietTypes)
@@ -259,6 +221,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [dietTypes, activitySidebarOpen])
 
+  console.log(dis, 'dis')
+  console.log(errors, 'nknn')
   return (
     <div>
       <Drawer
@@ -329,6 +293,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
+                                    setDis(false)
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
@@ -401,12 +366,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                       checkDisabled()
                                     } else if (!val) {
                                       checkDisabled()
-
+                                      setDis(false)
                                       // handleUnitKeyUp(index)
                                     } else {
                                       // onChange(val?._id)
                                       onChange(val)
-
+                                      setDis(false)
                                       // handleUnitKeyUp(index)
                                       checkDisabled()
                                     }

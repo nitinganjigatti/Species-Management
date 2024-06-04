@@ -51,6 +51,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Global css styles
 import '../../styles/globals.css'
+//import '../../styles/previewDiet.css'
 
 import { PharmacyProvider } from 'src/context/PharmacyContext'
 

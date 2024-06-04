@@ -42,7 +42,7 @@ const AddPreparationType = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  debugger
+  // debugger
   console.log(editParams)
 
   const {

@@ -394,8 +394,6 @@ const StepBasicDetails = ({
   }
 
   const handleAddIngerdient = (val, index) => {
-    console.log(val, 'raghu')
-    console.log(index, 'ppp')
     setOpenIngredient(true)
     setcheckid(val.mealid)
 

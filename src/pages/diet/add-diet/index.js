@@ -13,6 +13,7 @@ import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import IconButton from '@mui/material/IconButton'
 import toast from 'react-hot-toast'
+import Toaster from 'src/components/Toaster'
 
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
@@ -155,6 +156,38 @@ const AddDiet = () => {
             meal_to_time: formatTime(meal.meal_to_time)
           }))
         }))
+
+        const dietTypesData = data.child
+
+        // const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
+        const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
+        console.log(convertedData, 'convertedData')
+
+        const newarr = convertedData?.map(item => {
+          // Splitting the string into minWeight, maxWeight, and unit name
+          const [weight, unitName] = item.split('_')
+          const matchedUom = uomprev.find(item => item.name === unitName)
+
+          return {
+            meal_value_header: parseFloat(weight), // Convert to number
+            weight_uom_id: parseFloat(matchedUom?._id),
+            weight_uom_label: unitName
+          }
+        })
+        console.log(newarr, 'newarr')
+        const newarrdiet = newarr?.map((item, index) => ({
+          unit: {
+            value: {
+              _id: item.weight_uom_id,
+              name: item.weight_uom_label,
+              description: item.weight_uom_label
+            }
+          },
+          weight: parseInt(item.meal_value_header)
+        }))
+
+        document.cookie = `dietTypeChildValues=${JSON.stringify(data.child)}; path=/`
+        document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -230,6 +263,40 @@ const AddDiet = () => {
 
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
+
+    let mealTypeError = false
+    let genericError = false
+
+    formData.meal_data.forEach(item => {
+      const { ingredientwithchoice, recipe, ingredient } = item
+
+      const checkMealType = data => {
+        if (data && data.length > 0) {
+          if (!data.every(d => d.meal_type && Array.isArray(d.meal_type) && d.meal_type.length > 0)) {
+            mealTypeError = true
+            return false
+          }
+          if (!data.every(d => d.meal_type.some(mealType => mealType.meal_value_header === 'Generic'))) {
+            genericError = true
+            return false
+          }
+        }
+        return true
+      }
+
+      checkMealType(ingredientwithchoice)
+      checkMealType(recipe)
+      checkMealType(ingredient)
+    })
+
+    if (mealTypeError) {
+      return Toaster({ type: 'error', message: 'Enter the values of the meal' })
+    }
+
+    if (genericError) {
+      return Toaster({ type: 'error', message: 'Please enter all the Generic values' })
+    }
+
     if (!id) {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData

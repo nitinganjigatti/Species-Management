@@ -270,7 +270,7 @@ const AddIngredient = () => {
 
   const getPreparationList = useCallback(async (sort, q, column) => {
     try {
-      await getPreparationTypeList({ sort, q, limit: 10, column }).then(res => {
+      await getPreparationTypeList({ sort, q, limit: 10, column, status: 1 }).then(res => {
         setOptions(res?.data?.result)
       })
     } catch (e) {

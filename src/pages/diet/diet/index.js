@@ -77,24 +77,6 @@ const Diet = () => {
     setTotal(0)
     setStatus(newValue)
   }
-
-  // const handleStatusChange = (event, newValue) => {
-  //   debugger
-  //   setStatus(newValue)
-
-  //   const newData = [...Dietdata]
-  //   if (newValue === '2') {
-  //     setFilterStatusData(newData)
-  //   } else {
-  //     const filterList = newData?.filter(item => item.active === newValue)
-  //     setFilterStatusData(filterList)
-  //   }
-  // }
-
-  // const onClose = () => {
-  //   setDialog(false)
-  // }
-
   // const addEventSidebarOpen = () => {
   //   setOpenDrawer(true)
   //   setSelectedCard([])
@@ -113,9 +95,7 @@ const Diet = () => {
         const params = {
           sort,
           q,
-
           sortColumn,
-
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           status
@@ -123,18 +103,12 @@ const Diet = () => {
 
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
-
-          // setDietData(res?.data?.result)
-
-          // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
+            return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
-
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
