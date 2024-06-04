@@ -27,8 +27,11 @@ import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import DetailCard from 'src/components/egg/DetailCard'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+import { getIncubatorList } from 'src/lib/api/egg/incubator'
+import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 
 const RoomDetails = () => {
+  const cuurent_date = moment().format('YYYY-MM-DD')
   const router = useRouter()
   const { id } = router.query
   console.log('id :>> ', id)
@@ -47,21 +50,58 @@ const RoomDetails = () => {
   const [detailsData, setDetailsData] = useState({})
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
+  const [dialog, setDialog] = useState(false)
 
   console.log('detailsData :>> ', detailsData)
 
+  const fetchTableData = useCallback(
+    async q => {
+      try {
+        console.log('til_date', cuurent_date)
+        setLoading(true)
+
+        const params = {
+          q,
+
+          // sortColumn,
+          til_date: cuurent_date,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await getIncubatorList(params).then(res => {
+          console.log('response', res)
+
+          // Generate uid field based on the index
+          let listWithId = res?.data?.data?.result?.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setTotal(parseInt(res?.data?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+
+          // setstatusCheckval(res?.data?.result.map(all => all.active))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    // if (eggModule) {
+    fetchTableData(searchValue)
+
+    // }
+  }, [fetchTableData])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  console.log('Get no', getSlNo)
-
-  const indexedRows = data?.map((row, index) => ({
-    ...data,
-    id: row.id
-
-    // ...row,
-    // id: row.room_id
-
-    // sl_no: getSlNo(index)
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
   }))
 
   const handleSortModel = newModel => {
@@ -74,10 +114,10 @@ const RoomDetails = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }
@@ -85,85 +125,170 @@ const RoomDetails = () => {
     []
   )
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(sort, value, sortColumning, status)
-  // }
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(value)
+  }
 
   const columns = [
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'id',
+      headerName: 'SL ',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.35,
+      minWidth: 30,
+      sortable: false,
+      field: 'incubator_code',
+      headerName: 'INCUBATOR ID',
+      renderCell: params => (
+        <Typography
+          noWrap
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.incubator_code ? params.row.incubator_code : '-'}
+        </Typography>
+      )
+    },
+
     // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'uid',
-    //   headerName: 'SL ',
+    //   flex: 0.3,
+    //   minWidth: 10,
+    //   field: 'censors',
+    //   sortable: false,
+    //   headerName: 'CENSORS',
     //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.id}
-    //     </Typography>
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Typography
+    //         style={{
+    //           color: theme.palette.customColors.OnSurfaceVariant,
+    //           fontSize: '16px',
+    //           fontWeight: '400',
+    //           lineHeight: '19.36px'
+    //         }}
+    //       >
+    //         2
+    //       </Typography>{' '}
+    //       {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
+    //       {params.row.censors === 'Good' && (
+    //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
+    //       )}
+    //       <Typography
+    //         sx={{
+    //           color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+    //           fontSize: '14px',
+    //           fontWeight: '500',
+    //           lineHeight: '16.94px'
+    //         }}
+    //       >
+    //         {params.row.censors ? params.row.censors : '-'}
+    //       </Typography>
+    //     </Box>
     //   )
     // },
     {
-      flex: 0.5,
-      minWidth: 30,
-      field: 'nursery_name',
-      headerName: 'nursery name',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row[0].nursery}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 10,
-      field: 'site',
-      headerName: 'site',
+      sortable: false,
+      field: 'availability',
+      headerName: 'AVAILABILITY',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row[0].site}
+        <Typography
+          sx={{
+            color: theme.palette.primary.dark,
+            fontSize: '14px',
+            fontWeight: '500',
+            lineHeight: '16.94px'
+          }}
+        >
+          {params.row.availability ? params.row.availability : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      flex: 0.35,
+      minWidth: 20,
+      sortable: false,
+      field: 'site_name',
+      headerName: 'SITE',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.24,
+      minWidth: 20,
+      sortable: false,
       field: 'room_name',
-      headerName: 'room',
+      headerName: 'ROOM NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row[0].room}
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.room_name ? params.row.room_name : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
+      flex: 0.2,
       minWidth: 20,
-      field: 'Incubator',
-      headerName: 'Incubator',
+      sortable: false,
+      field: 'no_of_eggs',
+      headerName: 'EGGS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row[0].Incubator}
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'egg',
-      headerName: 'Egg',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.no_of_eggs}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.6,
+      flex: 0.5,
       minWidth: 60,
-      field: 'user_name',
-      headerName: 'CREATED BY',
+      sortable: false,
+      field: 'added_by',
+      headerName: 'ADDED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -189,38 +314,30 @@ const RoomDetails = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '16.94px'
+              }}
+            >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '14.52px'
+              }}
+            >
+              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'status',
-      headerName: 'STATUS',
-      renderCell: params => (
-        <Typography>Status</Typography>
-
-        // <CustomChip
-        //   skin='light'
-        //   size='small'
-        //   label={params.row?.active === '1' ? 'Active' : 'InActive'}
-        //   color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
-        //   sx={{
-        //     height: 20,
-        //     fontWeight: 600,
-        //     borderRadius: '5px',
-        //     fontSize: '0.875rem',
-        //     textTransform: 'capitalize',
-        //     '& .MuiChip-label': { mt: -0.25 }
-        //   }}
-        // />
       )
     }
   ]
@@ -282,7 +399,7 @@ const RoomDetails = () => {
           />
         </IconButton>
 
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setDialog(true)}>
           <Icon icon='mdi:add' fontSize={30} />
           &nbsp; ADD INCUBATOR
         </Button>
@@ -293,6 +410,18 @@ const RoomDetails = () => {
   useEffect(() => {
     fetchDetailsData(sort, searchValue, sortColumn)
   }, [fetchDetailsData])
+
+  // const onCellClick = params => {
+  //   console.log(params, 'params')
+
+  //   Router.push({
+  //     pathname: `/egg/incubators/${params.row?.id}`
+  //   })
+  // }
+
+  const handleSidebarClose = () => {
+    setDialog(false)
+  }
 
   return (
     <>
@@ -318,9 +447,8 @@ const RoomDetails = () => {
 
               <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
 
-              <Box sx={{ px: 3 }}>
+              <Box sx={{ px: 8 }}>
                 <DataGrid
-                  hideFooterPagination
                   sx={{
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
@@ -333,7 +461,9 @@ const RoomDetails = () => {
                   columnVisibilityModel={{
                     sl_no: false
                   }}
-                  hideFooterSelectedRowCount
+                  // sortModel={}
+                  hideFooterPagination
+                  // hideFooterSelectedRowCount
                   disableColumnSelector={true}
                   autoHeight
                   pagination
@@ -369,6 +499,7 @@ const RoomDetails = () => {
 
       <>
         <AddIncubatorRoom callApi={fetchDetailsData} isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
+        <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
       </>
     </>
   )
