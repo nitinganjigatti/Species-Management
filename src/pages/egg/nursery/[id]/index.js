@@ -28,11 +28,25 @@ const NurseryDetails = () => {
 
   useEffect(() => {
     const fetchNurseryById = async () => {
-      const response = await GetNurseryDetailsById(id)
-      setNurseryData(response?.data)
+      const res = await GetNurseryDetailsById(id)
+      setNurseryData({
+        list: {
+          NurseryName: res?.data?.nursery_name,
+          Room: res?.data?.no_of_rooms,
+          Site: res?.data?.site_name,
+          Incubator: res?.data?.no_of_incubators,
+          Eggs: res?.data?.no_of_eggs
+        },
+        Avatar: {
+          profile_Pic: res?.data?.user_profile_pic,
+          user_Name: res?.data?.user_full_name,
+          create_at: res?.data?.created_at,
+          site_id: res?.data?.site_id
+        }
+      })
       setEditNurseryId(id)
-      setEditName(response.data?.nursery_name)
-      setEditSite(response?.data?.site_id)
+      setEditName(res.data?.nursery_name)
+      setEditSite(res?.data?.site_id)
     }
     fetchNurseryById()
   }, [])
@@ -64,6 +78,8 @@ const NurseryDetails = () => {
     [nurseryData]
   )
 
+  console.log('Nursery Details >>', nurseryData)
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
@@ -92,6 +108,22 @@ const NurseryDetails = () => {
     } else {
     }
   }
+
+  // setDetailsListData({
+  //   list: {
+  //     Room: res?.data?.room_name,
+  //     NurseryName: res?.data?.nursery_name,
+  //     Site: res?.data?.site_name,
+  //     Incubator: res?.data?.no_of_incubators,
+  //     Eggs: res?.data?.no_of_eggs
+  //   },
+  //   Avatar: {
+  //     profile_Pic: res?.data?.user_profile_pic,
+  //     user_Name: res?.data?.user_full_name,
+  //     create_at: res?.data?.created_at,
+  //     site_id: res?.data?.site_id
+  //   }
+  // })
 
   const columns = [
     {

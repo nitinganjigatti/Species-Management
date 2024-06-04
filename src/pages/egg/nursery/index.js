@@ -7,6 +7,7 @@ import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
 import moment from 'moment'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
+import { styled } from '@mui/system'
 
 const NurseryList = () => {
   const router = useRouter()
@@ -86,7 +87,22 @@ const NurseryList = () => {
     setOpenDrawer(false)
   }
 
+  const StyledRow = styled('div')({
+    borderBottom: '1px solid #ccc'
+  })
+
   const columns = [
+    {
+      flex: 0.2,
+      minWidth: 30,
+      field: 'id',
+      headerName: 'No',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
     {
       flex: 0.3,
       minWidth: 30,
