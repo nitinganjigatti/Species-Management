@@ -23,7 +23,14 @@ const composeEggNavigation = () => {
     activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
   }
 
-  const dietNavigation = [title, nursery, incubatorRoom, incubators]
+  const eggs = {
+    title: 'Eggs',
+    path: '/egg/eggs',
+    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+  }
+
+  const dietNavigation = [title, nursery, incubatorRoom, incubators, eggs]
 
   return dietNavigation
 }
