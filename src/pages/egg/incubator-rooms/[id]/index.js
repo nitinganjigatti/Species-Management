@@ -65,7 +65,7 @@ const RoomDetails = () => {
 
           // sortColumn,
           til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
+          page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 

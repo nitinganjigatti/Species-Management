@@ -25,6 +25,7 @@ const NurseryList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
   const fetchTableData = useCallback(
     async (sort, q, column) => {
       try {
@@ -74,6 +75,7 @@ const NurseryList = () => {
     }, 1000),
     []
   )
+
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)

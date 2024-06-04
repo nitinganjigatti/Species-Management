@@ -184,6 +184,7 @@ const IncubatorDetails = () => {
   const handleSidebarClose = () => {
     setDialog(false)
   }
+
   const handleActivitySidebarClose = () => {
     setActivitySidebarOpen(false)
   }
@@ -191,6 +192,7 @@ const IncubatorDetails = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
   const columns = [
     {
       flex: 0.05,
@@ -369,6 +371,7 @@ const IncubatorDetails = () => {
         </Typography>
       )
     },
+
     // {
     //   flex: 0.35,
     //   minWidth: 10,
@@ -746,6 +749,7 @@ const IncubatorDetails = () => {
         <Button
           size='small'
           variant='contained'
+
           // onClick={() => setDialog(true)}
         >
           <Icon icon='mdi:add' fontSize={20} />
@@ -769,6 +773,7 @@ const IncubatorDetails = () => {
     Router.push({
       pathname: `/egg/incubators/6`
     })
+
     // } else {
     //   return
     // }
@@ -854,6 +859,7 @@ const IncubatorDetails = () => {
                 icon='ion:time-outline'
                 style={{ fontSize: 24, cursor: 'pointer' }}
                 onClick={() => setActivitySidebarOpen(true)}
+
                 // onClick={() =>
                 //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
                 // }
