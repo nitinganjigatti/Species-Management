@@ -189,31 +189,32 @@ const RoomsList = () => {
           </Box>
         </Box>
       )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'status',
-      headerName: 'STATUS',
-      renderCell: params => (
-        <Typography>Status</Typography>
-
-        // <CustomChip
-        //   skin='light'
-        //   size='small'
-        //   label={params.row?.active === '1' ? 'Active' : 'InActive'}
-        //   color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
-        //   sx={{
-        //     height: 20,
-        //     fontWeight: 600,
-        //     borderRadius: '5px',
-        //     fontSize: '0.875rem',
-        //     textTransform: 'capitalize',
-        //     '& .MuiChip-label': { mt: -0.25 }
-        //   }}
-        // />
-      )
     }
+
+    // {
+    //   flex: 0.3,
+    //   minWidth: 10,
+    //   field: 'status',
+    //   headerName: 'STATUS',
+    //   renderCell: params => (
+    //     <Typography>Status</Typography>
+
+    //     // <CustomChip
+    //     //   skin='light'
+    //     //   size='small'
+    //     //   label={params.row?.active === '1' ? 'Active' : 'InActive'}
+    //     //   color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
+    //     //   sx={{
+    //     //     height: 20,
+    //     //     fontWeight: 600,
+    //     //     borderRadius: '5px',
+    //     //     fontSize: '0.875rem',
+    //     //     textTransform: 'capitalize',
+    //     //     '& .MuiChip-label': { mt: -0.25 }
+    //     //   }}
+    //     // />
+    //   )
+    // }
 
     // {
     //   flex: 0.2,
@@ -311,7 +312,7 @@ const RoomsList = () => {
               <Card sx={{ px: 5, py: 3 }}>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
 
-                <Box sx={{ py: 4, px: 4 }}>
+                {/* <Box sx={{ py: 4, px: 4 }}>
                   <Stack direction='row' gap={3}>
                     <Typography variant='h6'>Legends : </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
@@ -345,7 +346,7 @@ const RoomsList = () => {
                       </Typography>
                     </Box>
                   </Stack>
-                </Box>
+                </Box> */}
 
                 <Box sx={{ px: 3 }}>
                   <DataGrid
