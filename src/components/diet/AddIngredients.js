@@ -838,15 +838,27 @@ const AddIngredients = props => {
                                 selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                             )
                               ? '#203e56'
-                              : '#dedede',
+                              : '#dedede66',
                             borderRadius: 5,
                             p: 2,
                             justifyContent: 'center',
                             alignItems: 'center',
                             cursor: 'pointer',
                             '&:hover': {
-                              bgcolor: '#203e56',
-                              color: 'white'
+                              backgroundColor: selectedDays.some(
+                                selectedDay =>
+                                  selectedDay.cardId === item.id &&
+                                  selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                              )
+                                ? '#203e56' // Keep background color same for selected days on hover
+                                : '#dedede', // Change background color to red for unselected days on hover
+                              color: selectedDays.some(
+                                selectedDay =>
+                                  selectedDay.cardId === item.id &&
+                                  selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                              )
+                                ? 'white' // Keep background color same for selected days on hover
+                                : 'black'
                             },
                             color: selectedDays.some(
                               selectedDay =>

@@ -1057,15 +1057,15 @@ const AddIngredientswithChoice = props => {
                       sx={{
                         fontSize: 11,
                         fontWeight: 'bold',
-                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
+                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede66',
                         borderRadius: 5,
                         p: 2,
                         justifyContent: 'center',
                         alignItems: 'center',
                         cursor: 'pointer',
                         '&:hover': {
-                          bgcolor: '#203e56',
-                          color: 'white'
+                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede', // Change to red for unselected days on hover
+                          color: selectedDays.includes(day.id) ? 'white' : 'black'
                         },
                         color: selectedDays.includes(day.id) ? 'white' : 'black'
                       }}
