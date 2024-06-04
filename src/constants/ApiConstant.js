@@ -217,3 +217,11 @@ export const TYPE = 'type'
 export const ADD_NURSERY = 'egg/nursery'
 
 export const ROOM_LIST = 'room/list'
+
+export const EGG = 'egg'
+
+export const NURSERY = 'nursery'
+
+export const INCUBATOR = 'incubator'
+
+export const EDIT = 'edit'
