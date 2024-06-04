@@ -5,7 +5,6 @@ import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 const NurseryAddComponent = ({ closeSideSheet, setOpenDrawer, loading , fetchTableData }) => {
   return (
     <NurserySlider
-      closeSideSheet={closeSideSheet}
       setOpenDrawer={setOpenDrawer}
       fetchTableData={fetchTableData}
       loading={loading}
