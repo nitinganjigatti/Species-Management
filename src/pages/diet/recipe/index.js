@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
@@ -26,6 +26,7 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
+import { AuthContext } from 'src/context/AuthContext'
 
 // Styled TabList component
 
@@ -46,6 +47,10 @@ const RecipeList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   function loadServerRows(currentPage, data) {
     return data
@@ -126,12 +131,16 @@ const RecipeList = () => {
   )
 
   const headerAction = (
-    <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/recipe/add-recipe')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-    </div>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+        <div>
+          <Button size='small' variant='contained' onClick={() => Router.push('/diet/recipe/add-recipe')}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+        </div>
+      )}
+    </>
   )
 
   const handleSwitchChange = async (event, rowData) => {

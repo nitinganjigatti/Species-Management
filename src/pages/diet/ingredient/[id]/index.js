@@ -210,6 +210,7 @@ const IngredientDetail = () => {
                           isActive={isActive}
                           setIsActive={setIsActive}
                           IngredientsDetailsval={IngredientsDetailsval}
+                          permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
 
                         <Grid item xs={8}>

@@ -20,7 +20,7 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
 
-const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
+const RecipeDetailCardview = ({ IngredientsDetailsval, permission }) => {
   const router = useRouter()
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
@@ -116,7 +116,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval }) => {
                   control={
                     <Switch
                       checked={IngredientsDetailsval.active === '1' ? true : false}
-                      onChange={handleSwitchChange}
+                      onChange={permission ? handleSwitchChange : null}
                       fontSize={2}
                     />
                   }
