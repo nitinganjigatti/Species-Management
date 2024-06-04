@@ -9,7 +9,8 @@ import {
   Tooltip,
   Typography,
   Link,
-  Grid
+  Grid,
+  IconButton
 } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -22,33 +23,28 @@ import Router from 'next/router'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
-import AddIncubatorRoom from 'src/components/egg/addIncubatorRoom'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 
 const RoomsList = () => {
   const theme = useTheme()
+
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('room_name')
+  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
-  const [isOpen, setIsopen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const headerAction = (
     <>
       <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <Button
-          sx={{ px: 7, py: 5 }}
-          size='small'
-          variant='contained'
-
-          // onClick={() => Router.push('/egg/feed/')}
-        >
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
           <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD NEW
+          &nbsp; ADD ROOM
         </Button>
       </Box>
     </>
@@ -65,12 +61,12 @@ const RoomsList = () => {
   }))
 
   const handleSortModel = newModel => {
-    // if (newModel.length) {
-    //   setSort(newModel[0].sort)
-    //   setsortColumning(newModel[0].field)
-    //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    // } else {
-    // }
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+    } else {
+    }
   }
 
   const searchTableData = useCallback(
@@ -88,6 +84,12 @@ const RoomsList = () => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn, status)
+  }
+
+  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+    event.stopPropagation()
+    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+    setIsOpen(true)
   }
 
   const columns = [
@@ -212,6 +214,35 @@ const RoomsList = () => {
         // />
       )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
+    //       selectedPharmacy.permission.key === 'ADD') && */}
+    //       {/* {pharmacyRole && ( */}
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         {/* {parseInt(params.row.zoo_id) === 0 ? null : ( */}
+    //         <IconButton
+    //           size='small'
+    //           sx={{ mr: 0.5 }}
+    //           onClick={event =>
+    //             handleEdit(event, params.row.site_id, params.row.room_name, params.row.nursery_id, params.row.room_id)
+    //           }
+    //           aria-label='Edit'
+    //         >
+    //           <Icon icon='mdi:pencil-outline' />
+    //         </IconButton>
+    //         {/* )} */}
+    //       </Box>
+    //       {/* )} */}
+    //     </>
+    //   )
+    // }
   ]
 
   const onCellClick = params => {
@@ -241,8 +272,9 @@ const RoomsList = () => {
         const params = {
           sort,
           search: q,
-          column,
-          page: paginationModel.page + 1,
+
+          // column,
+          page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
@@ -364,15 +396,10 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom setIsopen={setIsopen} isOpen={isOpen} />
+        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
       </>
     </>
   )
 }
 
 export default RoomsList
-
-const data = [
-  { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
-  { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
-]
