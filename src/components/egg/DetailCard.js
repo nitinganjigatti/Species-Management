@@ -266,37 +266,38 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, editNurseryId
             </Box>
           </Box>
         </Stack>
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+        {rows?.length > 0 ? (
+          <DataGrid
+            sx={{
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          hideFooterPagination={true}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[5, 7, 10, 15]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-        />
-        {indexedRows?.length === 0 && !loading && (
-          <Typography variant='body1' align='center' mt={2}>
-            No record found.
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              }
+            }}
+            columnVisibilityModel={{
+              sl_no: false
+            }}
+            hideFooterSelectedRowCount
+            disableColumnSelector={true}
+            autoHeight
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            hideFooterPagination={true}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[5, 7, 10, 15]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            onPaginationModelChange={setPaginationModel}
+            loading={loading}
+          />
+        ) : (
+          <Typography variant='h6' sx={{ padding: '10px', textAlign: 'center' }}>
+            No Record Found
           </Typography>
         )}
       </Card>
