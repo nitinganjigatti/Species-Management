@@ -43,11 +43,6 @@ import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
 import Styles from './dot.module.css'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 
-const roleColors = {
-  active: 'success',
-  inactive: 'error'
-}
-
 const IncubatorsList = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
 
@@ -62,9 +57,6 @@ const IncubatorsList = () => {
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
 
-  const [uomList, setUom] = useState([])
-  const [defaultUom, setDefaultUom] = useState(null)
-
   const authData = useContext(AuthContext)
   const eggModule = authData?.userData?.roles?.settings?.egg_module
   const eggModuleAccess = authData?.userData?.roles?.settings?.egg_module_access
@@ -72,25 +64,6 @@ const IncubatorsList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
-
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        type: ['length', 'weight'],
-        page_no: 1,
-        limit: 50
-      }
-      await getUnitsForIngredient({ params: params }).then(res => {
-        setUom(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  useEffect(() => {
-    getUnitsList()
-  }, [])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
