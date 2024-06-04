@@ -240,7 +240,6 @@ const NurseryList = () => {
       </Card>
       {openDrawer && (
         <NurseryAddComponent
-          closeSideSheet={closeSideSheet}
           setOpenDrawer={setOpenDrawer}
           loading={loading}
           // onSubmit={onSubmit}

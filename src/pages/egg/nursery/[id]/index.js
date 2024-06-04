@@ -1,17 +1,30 @@
-import { Card, CardContent, CardHeader, Box, Typography } from '@mui/material'
+import { Card, CardContent, CardHeader, Box, Typography, debounce, Avatar } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
+import moment from 'moment'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import DetailCard from 'src/components/egg/DetailCard'
-import { GetNurseryDetailsById } from 'src/lib/api/egg/nursery'
+import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
+import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 
 const NurseryDetails = () => {
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
   const [editNurseryId, setEditNurseryId] = useState(null)
+  const [searchValue, setSearchValue] = useState('')
+  const [sort, setSort] = useState('asc')
+  const [sortColumn, setSortColumn] = useState('nursery_name')
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [total, setTotal] = useState(0)
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const router = useRouter()
   const { id } = router.query
+
+  console.log('rows >>', rows)
 
   useEffect(() => {
     const fetchNurseryById = async () => {
@@ -26,17 +39,204 @@ const NurseryDetails = () => {
 
   console.log('Id >>', editNurseryId)
 
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const closeSideSheet = () => {
+    setOpenDrawer(false)
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
+
+        await GetRoomByNursery(id).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
+      }
+    },
+    [nurseryData]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const columns = [
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'Nursery Name',
+      headerName: 'Nursery Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.nursery_name}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'ROOMS',
+      headerName: 'ROOMS',
+      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.room_name}</Box>
+    },
+
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'INCUBATORS',
+      headerName: 'INCUBATORS',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
+      )
+    },
+
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'SITE NAME',
+      headerName: 'SITE NAME',
+      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
+    },
+    {
+      flex: 0.4,
+      minWidth: 60,
+      field: 'ADDED BY',
+      headerName: 'ADDED BY',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* {renderClient(params)} */}
+          <Avatar
+            variant='rounded'
+            sx={{
+              width: 30,
+              height: 30,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.user_profile_pic ? (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src={params.row.user_profile_pic}
+                alt='Profile'
+              />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+              {params.row.user_full_name ? params.row.user_full_name : '-'}
+            </Typography>
+            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    }
+  ]
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    id: row.nursery_id,
+    sl_no: getSlNo(index)
+  }))
+
   return (
-    <>
+    <Card>
       <DetailCard
         title='Nursery Details'
         ButtonName={'ADD ROOM'}
         nurseryData={nurseryData}
+        setOpenDrawer={setOpenDrawer}
         editName={editName}
         editNurseryId={editNurseryId}
         editSite={editSite}
-      />
-    </>
+      />{' '}
+      {rows?.length > 0 ? (
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          hideFooterPagination={true}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[5, 7, 10, 15]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+        />
+      ) : (
+        <Typography variant='h6' sx={{ padding: '10px', textAlign: 'center' }}>
+          No Record Found
+        </Typography>
+      )}
+      {openDrawer && (
+        <NurserySlider
+          setOpenDrawer={setOpenDrawer}
+          editName={editName}
+          fetchTableData={fetchTableData}
+          editSite={editSite}
+          editNurseryId={editNurseryId}
+        />
+      )}
+    </Card>
   )
 }
 
