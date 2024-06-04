@@ -25,7 +25,7 @@ const schema = yup.object().shape({
   site_id: yup.string().required('Select Site')
 })
 
-const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editSite, fetchTableData }) => {
+const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSite, fetchTableData }) => {
   const authData = useContext(AuthContext)
 
   const defaultValues = {
@@ -73,7 +73,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
           toast.success('Nursery updated Successfully')
-          closeSideSheet()
+          setOpenDrawer(false)
           fetchTableData()
         } else {
           toast.error('Unable to update Nursery')
@@ -88,7 +88,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
 
         if (response.success) {
           toast.success('Nursery added Successfully')
-          closeSideSheet()
+          setOpenDrawer(false)
           fetchTableData()
         } else {
           toast.error('Unable to add Nursery')
@@ -116,7 +116,7 @@ const NurserySlider = ({ closeSideSheet, loading, editNurseryId, editName, editS
             <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={closeSideSheet} />
+                <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
               </IconButton>
             </Box>
           </Box>
