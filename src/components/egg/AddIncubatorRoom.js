@@ -22,8 +22,10 @@ import toast from 'react-hot-toast'
 import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { Router } from 'next/navigation'
+import { useTheme } from '@mui/material/styles'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
+  const theme = useTheme()
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
@@ -141,144 +143,148 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+
           gap: '24px'
         }}
       >
-        <Box
-          className='sidebar-header'
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            px: '24px'
-          }}
-        >
-          <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Icon
-              style={{ marginLeft: -8 }}
-              icon='material-symbols-light:add-notes-outline-rounded'
-              fontSize={'32px'}
-            />
-            <Typography variant='h6'>Add Room</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' onClick={() => setIsOpen(false)} sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Box>
-        </Box>
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='room_name'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Room Name'
-                    value={value}
-                    onChange={onChange}
-                    focused={value !== ''}
-                    placeholder='Room Name'
-                    error={Boolean(errors.room_name)}
-                    name='room_name'
-                  />
-                )}
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <Icon
+                style={{ marginLeft: -8 }}
+                icon='material-symbols-light:add-notes-outline-rounded'
+                fontSize={'32px'}
               />
-              {errors.room_name && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
-              )}
-            </FormControl>
+              <Typography variant='h6'>Add Room</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' onClick={() => setIsOpen(false)} sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            </Box>
+          </Box>
 
-            {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
               <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-                  Site
+                <Controller
+                  name='room_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Room Name'
+                      value={value}
+                      onChange={onChange}
+                      focused={value !== ''}
+                      placeholder='Room Name'
+                      error={Boolean(errors.room_name)}
+                      name='room_name'
+                    />
+                  )}
+                />
+                {errors.room_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
+                )}
+              </FormControl>
+
+              {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                    Site
+                  </InputLabel>
+                  <Controller
+                    name='site_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        name='site_id'
+                        value={value}
+                        label='Site'
+                        onChange={onChange}
+                        error={Boolean(errors?.site_id)}
+                        labelId='site_id'
+                      >
+                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                          return (
+                            <MenuItem key={index} value={item?.site_id}>
+                              {item?.site_name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
+                    )}
+                  />
+                  {errors?.site_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
+                  Nursery
                 </InputLabel>
                 <Controller
-                  name='site_id'
+                  name='nursery_id'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <Select
-                      name='site_id'
+                      name='nursery_id'
                       value={value}
-                      label='Site'
+                      label='Nursery'
                       onChange={onChange}
-                      error={Boolean(errors?.site_id)}
-                      labelId='site_id'
+                      error={Boolean(errors?.nursery_id)}
+                      labelId='nursery_id'
                     >
-                      {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      {nurseryList?.map((item, index) => {
                         return (
-                          <MenuItem key={index} value={item?.site_id}>
-                            {item?.site_name}
+                          <MenuItem key={index} value={item?.nursery_id}>
+                            {item?.nursery_name}
                           </MenuItem>
                         )
                       })}
                     </Select>
                   )}
                 />
-                {errors?.site_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
+                {errors?.nursery_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
                 )}
               </FormControl>
-            )}
+            </Card>
 
-            <FormControl fullWidth>
-              <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
-                Nursery
-              </InputLabel>
-              <Controller
-                name='nursery_id'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <Select
-                    name='nursery_id'
-                    value={value}
-                    label='Nursery'
-                    onChange={onChange}
-                    error={Boolean(errors?.nursery_id)}
-                    labelId='nursery_id'
-                  >
-                    {nurseryList?.map((item, index) => {
-                      return (
-                        <MenuItem key={index} value={item?.nursery_id}>
-                          {item?.nursery_name}
-                        </MenuItem>
-                      )
-                    })}
-                  </Select>
-                )}
-              />
-              {errors?.nursery_id && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Card>
-
-          <Box
-            sx={{
-              height: '122px',
-              width: '100%',
-              maxWidth: '562px',
-              position: 'fixed',
-              bottom: 0,
-              px: 4,
-              bgcolor: 'white',
-              alignItems: 'center',
-              justifyContent: 'center',
-              display: 'flex'
-            }}
-          >
-            <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
-              ADD ROOM
-            </LoadingButton>
-          </Box>
-        </form>
+            <Box
+              sx={{
+                height: '122px',
+                width: '100%',
+                maxWidth: '562px',
+                position: 'fixed',
+                bottom: 0,
+                px: 4,
+                bgcolor: 'white',
+                alignItems: 'center',
+                justifyContent: 'center',
+                display: 'flex'
+              }}
+            >
+              <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
+                ADD ROOM
+              </LoadingButton>
+            </Box>
+          </form>
+        </Box>
       </Drawer>
     </>
   )

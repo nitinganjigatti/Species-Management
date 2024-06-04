@@ -275,7 +275,11 @@ const RoomDetails = () => {
             handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
           }
         >
-          <Icon icon='iconamoon:edit-light' fontSize={28} color={'black'} />
+          <Icon
+            icon='material-symbols:edit-outline'
+            fontSize={28}
+            color={theme.palette.customColors.OnSurfaceVariant}
+          />
         </IconButton>
 
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
