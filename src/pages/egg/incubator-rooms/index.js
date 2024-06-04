@@ -275,7 +275,7 @@ const RoomsList = () => {
           search: q,
 
           // column,
-          page_no: paginationModel.page + 1,
+          page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
