@@ -2,8 +2,13 @@ import { ADD_NURSERY, ROOM_LIST } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../../utility'
 
 export async function AddRoom(payload) {
-  debugger
-  const response = await axiosFormPost({ url: `${ADD_NURSERY}/add`, body: payload, pharmacy: true })
+  const response = await axiosFormPost({ url: `${ADD_NURSERY}/room/add`, body: payload, pharmacy: true })
+
+  return response.data
+}
+
+export async function EditRoom(id, payload) {
+  const response = await axiosFormPost({ url: `${ADD_NURSERY}/room/${id}/edit`, body: payload, pharmacy: true })
 
   return response.data
 }
@@ -14,8 +19,8 @@ export async function GetRoomList({ params }) {
   return response.data
 }
 
-export async function GetRoomDetails(id, params) {
-  const response = await axiosGet({ url: `${ADD_NURSERY}/room/${id}`, params })
+export async function GetRoomDetails(id) {
+  const response = await axiosGet({ url: `${ADD_NURSERY}/room/${id}` })
 
   return response.data
 }
