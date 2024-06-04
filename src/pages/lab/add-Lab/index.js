@@ -79,6 +79,7 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
+  console.log('isDefault :>> ', isDefault)
   // console.log('isDefault', isDefault)
 
   // edit call
@@ -810,7 +811,7 @@ const AddLab = () => {
                                 // control={<Switch checked={value} onChange={onChange} />}
                                 control={
                                   <Switch
-                                    checked={isDefault}
+                                    checked={Number(isDefault)}
                                     onChange={e => {
                                       onChange(e.target.checked ? 1 : 0)
                                       handleSwitchChange(e.target.checked)
