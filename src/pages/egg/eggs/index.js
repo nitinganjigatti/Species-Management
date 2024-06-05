@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  Divider,
   Grid,
   Tab,
   Tooltip,
@@ -21,6 +22,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import Router from 'next/router'
+import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
 
 const tableDatas = [
   {
@@ -234,6 +236,7 @@ const tableDatas = [
     }
   }
 ]
+
 const EggList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
@@ -245,6 +248,9 @@ const EggList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('1')
+  const [isDiscarded, setIsDiscarded] = useState('toBeDiscarded')
+  const [hover, setHover] = useState(false)
+  console.log('isDiscarded :>> ', isDiscarded)
 
   const columns = [
     {
@@ -432,54 +438,68 @@ const EggList = () => {
       field: 'collected_by',
       headerName: 'ADDED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.collected_by?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.collected_by?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              noWrap
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: '500',
-                lineHeight: '16.94px'
-              }}
-            >
-              {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
-            </Typography>
-            <Typography
-              noWrap
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: '400',
-                lineHeight: '14.52px'
-              }}
-            >
-              {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {isDiscarded === 'toBeDiscarded' ? (
+            <>
+              <div>
+                <DiscardStatusCell
+                  params={params}
+
+                  // hover={hover} setHover={setHover}
+                />
+              </div>
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar
+                variant='square'
+                alt='Medicine Image'
+                sx={{
+                  width: 30,
+                  height: 30,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {params.row.collected_by?.profile_pic ? (
+                  <img
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    src={params.row.collected_by?.profile_pic}
+                    alt='Profile'
+                  />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '16.94px'
+                  }}
+                >
+                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+                </Typography>
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: '12px',
+                    fontWeight: '400',
+                    lineHeight: '14.52px'
+                  }}
+                >
+                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </>
       )
     }
   ]
@@ -493,6 +513,7 @@ const EggList = () => {
       // pathname: `/egg/eggs/${data?.id}`
       pathname: `/egg/eggs/6`
     })
+
     // } else {
     //   return
     // }
@@ -514,6 +535,11 @@ const EggList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setStatus(newValue)
+  }
+
+  const handleTabs = (event, newValue) => {
+    setTotal(0)
+    setIsDiscarded(newValue)
   }
 
   //   const fetchTableData = useCallback(
@@ -568,6 +594,7 @@ const EggList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setsortColumning(newModel[0].field)
+
       //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
@@ -609,50 +636,53 @@ const EggList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
+          <Box>
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-            onCellClick={onCellClick}
-          />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Box>
         )}
       </>
     )
   }
+
   return (
     <>
       <Card>
@@ -665,10 +695,38 @@ const EggList = () => {
               <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} />
               <Tab value='4' label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />} />
             </TabList>
-            <TabPanel value='1'>{tableData()}</TabPanel>
-            <TabPanel value='2'>{tableData()}</TabPanel>
-            <TabPanel value='3'>{tableData()}</TabPanel>
-            <TabPanel value='4'>{tableData()}</TabPanel>
+            <TabPanel value='1'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='2'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='3'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='4'>
+              <Divider sx={{ mt: -3, mb: 3 }} />
+              <TabContext value={isDiscarded}>
+                <TabList onChange={handleTabs}>
+                  <Tab
+                    value='toBeDiscarded'
+                    label={<TabBadge label='To Be Discarded' totalCount={status === '' ? total : null} />}
+                  />
+                  <Tab
+                    value='discarded'
+                    label={<TabBadge label='Discarded' totalCount={status === '' ? total : null} />}
+                  />
+                </TabList>
+                <TabPanel value='toBeDiscarded'>{tableData()}</TabPanel>
+                <TabPanel value='discarded'>{tableData()}</TabPanel>
+              </TabContext>
+            </TabPanel>
           </TabContext>
         </CardContent>
       </Card>
