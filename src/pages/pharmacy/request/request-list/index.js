@@ -420,11 +420,22 @@ const RequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'request_date',
+      field: 'request',
       headerName: 'Days',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.daysFromToday(params.row.request_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'request_date',
+      headerName: 'Requested Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },

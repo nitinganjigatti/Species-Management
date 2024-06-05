@@ -153,3 +153,7 @@ export const DASHBOARD_STORE_WISE_PENDING_REQUEST = 'storewise-pending-request'
 export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
 
 export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
+
+export const STOCK_ADJUSTMENT = 'stock-adjustment'
+
+export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
