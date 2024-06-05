@@ -8,7 +8,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import { GetRoomByNursery } from 'src/lib/api/egg/nursery'
 
-const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer }) => {
+const DetailCard = ({ title, DetailsListData, detailsData, ButtonName, setOpenDrawer }) => {
   const [drawer, setDrawer] = useState(false)
   const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('nursery_name')
@@ -34,8 +34,8 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
             m: 4
           }}
         >
-          {detailsData?.list &&
-            Object?.entries(detailsData?.list).map(([key, value]) => (
+          {DetailsListData?.list &&
+            Object?.entries(DetailsListData?.list).map(([key, value]) => (
               <Box key={key} m={2}>
                 <Typography variant='body1'>{key}</Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>{value}</Typography>
@@ -55,10 +55,10 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
                 overflow: 'hidden'
               }}
             >
-              {detailsData?.Avatar?.profile_Pic ? (
+              {DetailsListData?.Avatar?.profile_Pic ? (
                 <img
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  src={detailsData?.Avatar?.profile_Pic}
+                  src={DetailsListData?.Avatar?.profile_Pic}
                   alt='Profile'
                 />
               ) : (
@@ -67,11 +67,11 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
             </Avatar>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-                {detailsData?.Avatar?.user_Name}
+                {DetailsListData?.Avatar?.user_Name}
               </Typography>
               <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-                {detailsData?.Avatar?.create_at
-                  ? 'Created on ' + moment(detailsData?.Avatar?.create_at).format('DD/MM/YYYY')
+                {DetailsListData?.Avatar?.create_at
+                  ? 'Created on ' + moment(DetailsListData?.Avatar?.create_at).format('DD/MM/YYYY')
                   : '-'}
               </Typography>
             </Box>

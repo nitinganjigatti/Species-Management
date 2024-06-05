@@ -239,7 +239,7 @@ const NurseryDetails = () => {
       <DetailCard
         title='Nursery Details'
         ButtonName={'ADD ROOM'}
-        detailsData={nurseryData}
+        DetailsListData={nurseryData}
         setOpenDrawer={setOpenDrawer}
       />{' '}
       {rows?.length > 0 ? (
