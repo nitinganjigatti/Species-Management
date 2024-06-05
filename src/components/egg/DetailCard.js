@@ -18,25 +18,9 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  const headerAction = (
-    <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-          <Icon icon='mdi:pencil-outline' />
-        </IconButton>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; {ButtonName}
-        </Button>
-      </Box>
-    </>
-  )
-
   return (
     <>
-      <Card sx={{ px: 5, py: 3 }}>
-        <CardHeader title={title ? title : 'Rooms Details'} action={headerAction} />
-
+      <Box sx={{ px: 5, py: 3 }}>
         <Stack
           direction='row'
           sx={{
@@ -50,8 +34,8 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
             m: 4
           }}
         >
-          {nurseryData?.list &&
-            Object?.entries(nurseryData?.list).map(([key, value]) => (
+          {detailsData?.list &&
+            Object?.entries(detailsData?.list).map(([key, value]) => (
               <Box key={key} m={2}>
                 <Typography variant='body1'>{key}</Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>{value}</Typography>
@@ -71,10 +55,10 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
                 overflow: 'hidden'
               }}
             >
-              {nurseryData?.Avatar?.profile_Pic ? (
+              {detailsData?.Avatar?.profile_Pic ? (
                 <img
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  src={nurseryData?.Avatar?.profile_Pic}
+                  src={detailsData?.Avatar?.profile_Pic}
                   alt='Profile'
                 />
               ) : (
@@ -83,26 +67,17 @@ const DetailCard = ({ title, nurseryData, detailsData, ButtonName, setOpenDrawer
             </Avatar>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-                {nurseryData?.Avatar?.user_Name}
+                {detailsData?.Avatar?.user_Name}
               </Typography>
               <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-                {nurseryData?.Avatar?.create_at
-                  ? 'Created on ' + moment(nurseryData?.Avatar?.create_at).format('DD/MM/YYYY')
+                {detailsData?.Avatar?.create_at
+                  ? 'Created on ' + moment(detailsData?.Avatar?.create_at).format('DD/MM/YYYY')
                   : '-'}
               </Typography>
             </Box>
           </Box>
         </Stack>
-      </Card>
-      {/* {drawer && (
-        <NurserySlider
-          closeSideSheet={closeSideSheet}
-          editName={editName}
-          fetchTableData={fetchTableData}
-          editSite={editSite}
-          editNurseryId={editNurseryId}
-        /> */}
-      {/* )} */}
+      </Box>
     </>
   )
 }

@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, Box, Typography, debounce, Avatar } from '@mui/material'
+import { Icon } from '@iconify/react'
+import { Card, CardContent, CardHeader, Box, Typography, debounce, Avatar, IconButton, Button } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -17,6 +18,8 @@ const NurseryDetails = () => {
   const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [openDrawer, setOpenDrawer] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
@@ -216,9 +219,29 @@ const NurseryDetails = () => {
     sl_no: getSlNo(index)
   }))
 
+  const headerAction = (
+    <>
+      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+        <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+          <Icon icon='mdi:pencil-outline' />
+        </IconButton>
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; ADD ROOM
+        </Button>
+      </Box>
+    </>
+  )
+
   return (
     <Card>
-      <DetailCard title='Nursery Details' ButtonName={'ADD ROOM'} nurseryData={nurseryData} setOpenDrawer={setOpenDrawer} />{' '}
+      <CardHeader title={'Rooms Details'} action={headerAction} />
+      <DetailCard
+        title='Nursery Details'
+        ButtonName={'ADD ROOM'}
+        detailsData={nurseryData}
+        setOpenDrawer={setOpenDrawer}
+      />{' '}
       {rows?.length > 0 ? (
         <DataGrid
           sx={{
@@ -262,7 +285,7 @@ const NurseryDetails = () => {
           editNurseryId={editNurseryId}
         />
       )}
-      {openRoomSideBar && <AddIncubatorRoom />}
+      <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
     </Card>
   )
 }
