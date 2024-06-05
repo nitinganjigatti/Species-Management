@@ -611,43 +611,49 @@ const StepPreviewDiet = ({
   console.log(screenSize.width, 'pppp')
 
   useEffect(() => {
-    const mediaElements = document.getElementsByClassName('test')
+    const mediaElements = document.getElementsByClassName('cellmodule')
     for (const mediaElement of mediaElements) {
-      if (screenSize.width === 1800) {
+      if (screenSize.width === 1821) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
           mediaElement.style.width = '580px'
         } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '680px'
-        } else if (formData?.child?.length > 1) {
-          mediaElement.style.width = '665px'
+          mediaElement.style.width = '850px'
+        } else if (formData?.child?.length === 2) {
+          mediaElement.style.width = '660px'
+        } else if (formData?.child?.length > 2) {
+          mediaElement.style.width = '510px'
         } else {
           mediaElement.style.width = '566px' // Default width for 1440 if no specific condition is met
         }
-      } else if (screenSize.width === 1600) {
+      } else if (screenSize.width === 1619) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
           mediaElement.style.width = '580px'
         } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '680px'
-        } else if (formData?.child?.length > 1) {
+          mediaElement.style.width = '790px'
+        } else if (formData?.child?.length === 2) {
           mediaElement.style.width = '605px'
+        } else if (formData?.child?.length > 2) {
+          mediaElement.style.width = '510px'
         } else {
           mediaElement.style.width = '500px' // Default width for 1440 if no specific condition is met
         }
-      } else if (screenSize.width === 1440) {
+      } else if (screenSize.width === 1457) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
           mediaElement.style.width = '580px'
         } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
           mediaElement.style.width = '680px'
-        } else if (formData?.child?.length > 1) {
+        } else if (formData?.child?.length == 2) {
+          mediaElement.style.width = '518px'
+        } else if (formData?.child?.length > 2) {
           mediaElement.style.width = '500px'
         } else {
           mediaElement.style.width = '500px' // Default width for 1440 if no specific condition is met
         }
-      } else if (screenSize.width === 1920) {
+      } else if (screenSize.width === 1943) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
           mediaElement.style.width = '580px'
         } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '680px'
+          mediaElement.style.width = '860px'
         } else if (formData?.child?.length > 1) {
           mediaElement.style.width = '665px'
         } else {
@@ -1244,55 +1250,74 @@ const StepPreviewDiet = ({
                                   border: 'none',
                                   pl: 0,
                                   pr: '36px',
-                                  background: '#fff'
+                                  background: '#fff',
+                                  height: '100px',
+                                  //display: 'flex',
+                                  //flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  overflow: 'hidden',
+                                  position: 'sticky'
                                 }}
                                 component='th'
                                 scope='row'
                               >
-                                <Box
-                                  sx={{
-                                    borderRadius: '25px',
-                                    border: `2px dotted #00AFD6`,
-                                    py: '5px',
-                                    px: '4px'
+                                <span
+                                  style={{
+                                    position: 'absolute', // Change this to absolute
+                                    top: '70px', // Center vertically
+                                    transform: 'translateY(-50%)', // Adjust to center properly
+                                    //display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    width: '70%'
                                   }}
                                 >
-                                  <Typography
+                                  <Box
                                     sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
+                                      borderRadius: '25px',
+                                      border: `2px dotted #00AFD6`,
+                                      py: '5px',
+                                      px: '4px'
                                     }}
                                   >
-                                    {startTimes}
-                                  </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                  <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
-                                </Box>
+                                    <Typography
+                                      sx={{
+                                        textAlign: 'center',
+                                        color: '#00AFD6',
+                                        fontWeight: 500,
+                                        fontSize: '16px',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      {startTimes}
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
+                                  </Box>
 
-                                <Box
-                                  sx={{
-                                    borderRadius: '25px',
-                                    border: `2px dotted #00AFD6`,
-                                    py: '5px',
-                                    px: '4px'
-                                  }}
-                                >
-                                  <Typography
+                                  <Box
                                     sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
+                                      borderRadius: '25px',
+                                      border: `2px dotted #00AFD6`,
+                                      py: '5px',
+                                      px: '4px'
                                     }}
                                   >
-                                    {endTimes}
-                                  </Typography>
-                                </Box>
+                                    <Typography
+                                      sx={{
+                                        textAlign: 'center',
+                                        color: '#00AFD6',
+                                        fontWeight: 500,
+                                        fontSize: '16px',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      {endTimes}
+                                    </Typography>
+                                  </Box>
+                                </span>
                               </TableCell>
 
                               <>
@@ -1300,7 +1325,7 @@ const StepPreviewDiet = ({
                                   console.log(formData?.child?.length, 'lll')
 
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1314,10 +1339,10 @@ const StepPreviewDiet = ({
                                               ? '680px'
                                               : formData?.child?.length > 1
                                               ? '500px'
-                                              : '580px',
+                                              : '500px',
                                           float: 'left'
                                         }}
-                                        className='test'
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
@@ -1698,7 +1723,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1715,7 +1740,7 @@ const StepPreviewDiet = ({
                                               : '580px',
                                           float: 'left'
                                         }}
-                                        className='test'
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
@@ -2110,7 +2135,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -2127,7 +2152,7 @@ const StepPreviewDiet = ({
                                               : '580px',
                                           float: 'left'
                                         }}
-                                        className='test'
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
