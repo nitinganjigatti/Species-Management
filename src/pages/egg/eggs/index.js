@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { Box } from '@mui/system'
@@ -23,232 +23,21 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import Router from 'next/router'
 import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
-
-const tableDatas = [
-  {
-    id: 1,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 2,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 3,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 4,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 5,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 6,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 7,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 8,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 9,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 10,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  }
-]
+import { GetEggList } from 'src/lib/api/egg/egg'
 
 const EggList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState(tableDatas || [])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+
+  // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('1')
-  const [isDiscarded, setIsDiscarded] = useState('toBeDiscarded')
+  const [status, setStatus] = useState('eggs_to_nursery')
+  const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
   const [hover, setHover] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
@@ -292,10 +81,10 @@ const EggList = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.species?.species_pic ? (
+            {params.row.default_icon ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.species?.species_pic}
+                src={params.row.default_icon}
                 alt='Profile'
               />
             ) : (
@@ -312,7 +101,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.species?.species_name ? params.row.species?.species_name : '-'}
+              {params.row.complete_name ? params.row.complete_name : '-'}
             </Typography>
             <Tooltip title={params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}>
               <Typography
@@ -327,7 +116,7 @@ const EggList = () => {
                   width: '50%'
                 }}
               >
-                {params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}ghjkl bj bj bj bjbhj
+                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
               </Typography>
             </Tooltip>
           </Box>
@@ -350,14 +139,12 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.egg_number?.egg_no ? params.row.egg_number?.egg_no : '-'}
+            {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
-          <Typography
+          {/* <Typography
             sx={{
               color:
-                params.row.egg_number?.egg_status === 'intact'
-                  ? theme.palette.primary.main
-                  : theme.palette.formContent.tertiary,
+                params.row.egg_condition === 'intact' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
               fontSize: '14px',
               fontWeight: '500',
               lineHeight: '16.94px',
@@ -367,18 +154,37 @@ const EggList = () => {
               borderRadius: '4px'
             }}
           >
-            {params.row.egg_number?.egg_status ? params.row.egg_number?.egg_status : '-'}
-          </Typography>
+            {params.row.egg_condition ? params.row.egg_condition : '-'}
+          </Typography> */}
         </Box>
       )
     },
 
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'site',
+    //   headerName: 'SITE NAME',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.site ? params.row.site : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.35,
       minWidth: 20,
       sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
+      field: 'discard_status',
+      headerName: 'DISCARD STATUS',
       renderCell: params => (
         <Typography
           sx={{
@@ -388,10 +194,30 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.site ? params.row.site : '-'}
+          {params.row.discard_status ? params.row.discard_status : '-'}
         </Typography>
       )
     },
+
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'discard_on',
+    //   headerName: 'DISCARD ON',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.site ? params.row.site : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.24,
       minWidth: 20,
@@ -407,29 +233,30 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.24,
-      minWidth: 20,
-      sortable: false,
-      field: 'batch_no',
-      headerName: 'BATCH NO',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.batch_no ? params.row.batch_no : '-'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.24,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'batch_no',
+    //   headerName: 'BATCH NO',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.batch_no ? params.row.batch_no : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.5,
@@ -439,7 +266,7 @@ const EggList = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          {isDiscarded === 'toBeDiscarded' ? (
+          {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
             <>
               <div>
                 <DiscardStatusCell
@@ -463,10 +290,10 @@ const EggList = () => {
                   overflow: 'hidden'
                 }}
               >
-                {params.row.collected_by?.profile_pic ? (
+                {params.row.user_profile_pic ? (
                   <img
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.collected_by?.profile_pic}
+                    src={params.row.user_profile_pic}
                     alt='Profile'
                   />
                 ) : (
@@ -483,7 +310,7 @@ const EggList = () => {
                     lineHeight: '16.94px'
                   }}
                 >
-                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+                  {params.row.user_full_name ? params.row.user_full_name : '-'}
                 </Typography>
                 <Typography
                   noWrap
@@ -494,7 +321,7 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+                  {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
                 </Typography>
               </Box>
             </Box>
@@ -539,54 +366,56 @@ const EggList = () => {
 
   const handleTabs = (event, newValue) => {
     setTotal(0)
+
     setIsDiscarded(newValue)
   }
 
-  //   const fetchTableData = useCallback(
-  //     async (sort, q, sortColumn, status) => {
-  //       try {
-  //         setLoading(true)
+  const fetchTableData = useCallback(
+    async (sort, q, status, isDiscarded) => {
+      console.log('status :>> ', status)
 
-  //         const params = {
-  //           sort,
-  //           q,
-  //           sortColumn,
-  //           page: paginationModel.page + 1,
-  //           limit: paginationModel.pageSize,
-  //           status
-  //         }
+      try {
+        setLoading(true)
 
-  //         await getIngredientList({ params: params }).then(res => {
-  //           console.log('response', res)
+        const params = {
+          sort,
+          q,
 
-  //           // Generate uid field based on the index
-  //           let listWithId = res.data.result.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows(loadServerRows(paginationModel.page, listWithId))
+          // sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          type: status === 'eggs_to_discard' ? isDiscarded : status
+        }
 
-  //           // setstatusCheckval(res?.data?.result.map(all => all.active))
-  //         })
-  //         setLoading(false)
-  //       } catch (e) {
-  //         console.log(e)
-  //         setLoading(false)
-  //       }
-  //     },
-  //     [paginationModel]
-  //   )
+        await GetEggList({ params: params }).then(res => {
+          console.log('res :>> ', res)
 
-  //   useEffect(() => {
-  //     if (dietModule) {
-  //       fetchTableData(sort, searchValue, sortColumning, status)
-  //     }
-  //   }, [fetchTableData, status])
+          // let listWithId = res.data.result.map((el, i) => {
+          //   return { ...el, uid: i + 1 }
+          // })
+          if (res.data.result.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res.data.result))
+          }
+        })
+        setLoading(false)
+      } catch (error) {
+        console.log(error)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, status, isDiscarded)
+  }, [fetchTableData, status, isDiscarded])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
+    id: row.egg_id,
     sl_no: getSlNo(index)
   }))
 
@@ -690,12 +519,18 @@ const EggList = () => {
         <CardContent>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
-              <Tab value='1' label={<TabBadge label='Recived' totalCount={status === '' ? total : null} />} />
+              <Tab
+                value='eggs_to_nursery'
+                label={<TabBadge label='Recived' totalCount={status === '' ? total : null} />}
+              />
               <Tab value='2' label={<TabBadge label='Incubation' totalCount={status === '1' ? total : null} />} />
               <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} />
-              <Tab value='4' label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />} />
+              <Tab
+                value='eggs_to_discard'
+                label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />}
+              />
             </TabList>
-            <TabPanel value='1'>
+            <TabPanel value='eggs_to_nursery'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}
@@ -710,21 +545,21 @@ const EggList = () => {
               <Divider sx={{ mt: -3 }} />
               {tableData()}
             </TabPanel>
-            <TabPanel value='4'>
+            <TabPanel value='eggs_to_discard'>
               <Divider sx={{ mt: -3, mb: 3 }} />
               <TabContext value={isDiscarded}>
                 <TabList onChange={handleTabs}>
                   <Tab
-                    value='toBeDiscarded'
+                    value='eggs_to_discard'
                     label={<TabBadge label='To Be Discarded' totalCount={status === '' ? total : null} />}
                   />
                   <Tab
-                    value='discarded'
+                    value='eggs_discarded'
                     label={<TabBadge label='Discarded' totalCount={status === '' ? total : null} />}
                   />
                 </TabList>
-                <TabPanel value='toBeDiscarded'>{tableData()}</TabPanel>
-                <TabPanel value='discarded'>{tableData()}</TabPanel>
+                <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
+                <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
               </TabContext>
             </TabPanel>
           </TabContext>

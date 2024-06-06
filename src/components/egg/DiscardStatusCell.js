@@ -2,9 +2,11 @@ import { Icon } from '@iconify/react'
 import { Avatar, Box, Button, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+import moment from 'moment'
 
 const DiscardStatusCell = ({
   params
+
   //  hover, setHover
 }) => {
   const theme = useTheme()
@@ -37,10 +39,10 @@ const DiscardStatusCell = ({
               overflow: 'hidden'
             }}
           >
-            {params.row.collected_by?.profile_pic ? (
+            {params.row.user_profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.collected_by?.profile_pic}
+                src={params.row.user_profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -57,7 +59,7 @@ const DiscardStatusCell = ({
                 lineHeight: '16.94px'
               }}
             >
-              {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+              {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography
               noWrap
@@ -68,7 +70,7 @@ const DiscardStatusCell = ({
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
