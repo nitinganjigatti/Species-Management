@@ -100,11 +100,11 @@ const AddIngredients = props => {
     })
 
     // Use the updated selectedDays state
-    setSelectedDays(currentSelectedDays => {
-      handelCardSelection(event, item, null, null, null, currentSelectedDays)
+    // setSelectedDays(currentSelectedDays => {
+    //   handelCardSelection(event, item, null, null, null, currentSelectedDays)
 
-      return currentSelectedDays
-    })
+    //   return currentSelectedDays
+    // })
   }
 
   const handleChangeTopFeed = async event => {
@@ -172,10 +172,12 @@ const AddIngredients = props => {
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
     const { value } = event.target
+    console.log('event :>> ', event)
 
     // const newUom = event.target.value
     console.log('Selected value:', value)
     console.log('UOM array:', uom)
+    console.log('item :>> ', item)
 
     // Find the selected UOM object based on the value
     const newUom = uom.find(type => Number(type._id) === Number(value))
@@ -265,7 +267,9 @@ const AddIngredients = props => {
   }, [checkid])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
+    console.log('newUom  handelcard:>> ', newUom)
     event.stopPropagation()
+    console.log('call ')
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
@@ -282,10 +286,14 @@ const AddIngredients = props => {
     }
 
     if (feed_type === 'Chopped') {
+      console.log('newUom  inside if:>> ', newUom)
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
+      const sizeValue = newUom ? newUom?._id : size[item.id]?.id || ''
+      console.log('sizeValue :>> ', sizeValue)
+      console.log('cutSizeValue :>> ', cutSizeValue)
       if (!cutSizeValue || !sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
+        console.log('Return ')
 
         return
       }
@@ -305,6 +313,7 @@ const AddIngredients = props => {
       feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
       feed_uom_name: feed_type === 'Chopped' ? (newUom ? newUom.name : size[item.id]?.name || '') : ''
     }
+    console.log('boxValues :>> ', boxValues)
 
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
 
@@ -539,6 +548,7 @@ const AddIngredients = props => {
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
   console.log(selectedCard, 'selectedCard')
+
   return (
     <>
       <Drawer
