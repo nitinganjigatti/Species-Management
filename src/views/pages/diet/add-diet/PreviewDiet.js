@@ -931,7 +931,8 @@ const StepPreviewDiet = ({
                         }
                         sx={{
                           width: '100%',
-                          height: '100%'
+                          height: '100%',
+                          borderRadius: '10px'
                         }}
                       />
                     )}
@@ -1337,6 +1338,8 @@ const StepPreviewDiet = ({
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
                                               ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '500px',
@@ -1378,6 +1381,7 @@ const StepPreviewDiet = ({
                                                     {item?.ingredient_name}
                                                   </Typography>
                                                 )}
+                                                {console.log(item, 'item')}
                                                 {item?.preparation_type &&
                                                   (item?.feed_cut_size ? (
                                                     <Typography
@@ -1735,6 +1739,8 @@ const StepPreviewDiet = ({
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
                                               ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
@@ -2147,6 +2153,8 @@ const StepPreviewDiet = ({
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
                                               ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',

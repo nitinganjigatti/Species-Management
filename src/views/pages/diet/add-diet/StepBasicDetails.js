@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
-import { Divider, CardContent, FormHelperText, Card, CardHeader, Avatar } from '@mui/material'
+import { Divider, CardContent, FormHelperText, Card, CardHeader, Avatar, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
 import { useForm, useFieldArray } from 'react-hook-form'
@@ -78,6 +78,7 @@ const StepBasicDetails = ({
   setSelectedCardRecipe,
   selectedCardRecipe,
   setUomprev,
+  id,
   diettypechildvalues
 }) => {
   // ** States
@@ -599,6 +600,7 @@ const StepBasicDetails = ({
   }
 
   const removeingClick = (ingredientIdToRemove, val) => {
+    console.log(ingredientIdToRemove, 'ingredientIdToRemove')
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
         ingredient => ingredient.ingredient_id !== ingredientIdToRemove
@@ -613,11 +615,11 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.ingredient = field.ingredient.filter(ing => ing.ingredient_id !== ingredientIdToRemove)
-
+        field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
         return field
       })
-
+      console.log(fieldsIngredients, 'fieldsIngredients')
+      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
       // Set the final value using setfinalvalue
       setfinalvalue(updatedFieldsIngredients)
 
@@ -678,7 +680,7 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.recipe = field.recipe?.filter(ing => ing.recipe_id !== recipeIdToRemove)
+        field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
 
         return field
       })
@@ -689,6 +691,52 @@ const StepBasicDetails = ({
       return filteredChildStateValue
     })
   }
+
+  // const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
+  //   alert('hi')
+  //   setIngredientchoiceChildStateValue(prevSelectedCard => {
+  //     console.log(prevSelectedCard, 'prevSelectedCard')
+
+  //     const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
+  //       ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
+  //     )
+
+  //     setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
+  //       // Filter out objects based on conditions
+  //       console.log(prevAllSelectedValues, 'prevAllSelectedValues')
+
+  //       return prevAllSelectedValues.map(ingredient => {
+  //         if (ingredient.mealid === val) {
+  //           ingredient.ingredientList = ingredient.ingredientList.filter(
+  //             ing => ing.ingredient_id !== ingredientIdToRemove
+  //           )
+  //         }
+
+  //         return ingredient
+  //       })
+  //     })
+
+  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
+  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
+  //       field.ingredient = field.ingredient?.map(ing => {
+  //         if (ing.mealid === val) {
+  //           ing.ingredientwithchoice = ing.ingredientwithchoice?.ingredientList?.filter(
+  //             item => item.ingredient_id !== ingredientIdToRemove
+  //           )
+  //         }
+
+  //         return ing
+  //       })
+
+  //       return field
+  //     })
+
+  //     // Set the final value using setfinalvalueingredientchoice
+  //     setfinalvalueingredientchoice(updatedFieldsIngredients)
+
+  //     return filteredChildStateValue
+  //   })
+  // }
 
   const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
@@ -702,32 +750,38 @@ const StepBasicDetails = ({
         // Filter out objects based on conditions
         console.log(prevAllSelectedValues, 'prevAllSelectedValues')
 
-        return prevAllSelectedValues.map(ingredient => {
-          if (ingredient.mealid === val) {
-            ingredient.ingredientList = ingredient.ingredientList.filter(
-              ing => ing.ingredient_id !== ingredientIdToRemove
-            )
-          }
+        const updatedAllSelectedValues = prevAllSelectedValues
+          .map(ingredient => {
+            if (ingredient.mealid === val) {
+              ingredient.ingredientList = ingredient.ingredientList.filter(
+                ing => ing.ingredient_id !== ingredientIdToRemove
+              )
+            }
+            return ingredient
+          })
+          .filter(ingredient => ingredient.ingredientList.length > 0) // Remove items with empty ingredientList
 
-          return ingredient
-        })
+        return updatedAllSelectedValues
       })
 
       // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.ingredient = field.ingredient?.map(ing => {
-          if (ing.mealid === val) {
-            ing.ingredientwithchoice = ing.ingredientwithchoice?.ingredientList?.filter(
-              item => item.ingredient_id !== ingredientIdToRemove
-            )
-          }
-
-          return ing
-        })
+        field.ingredientwithchoice = field.ingredientwithchoice
+          ?.map(ing => {
+            if (ing.mealid === val) {
+              ing.ingredientList = ing?.ingredientList?.filter(
+                item => String(item.ingredient_id) !== ingredientIdToRemove
+              )
+            }
+            return ing
+          })
+          .filter(ing => ing.ingredientList && ing.ingredientList.length > 0)
 
         return field
       })
 
+      console.log(fieldsIngredients, 'fieldsIngredients')
+      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
       // Set the final value using setfinalvalueingredientchoice
       setfinalvalueingredientchoice(updatedFieldsIngredients)
 
@@ -792,6 +846,7 @@ const StepBasicDetails = ({
                         options={uomList || []}
                         getOptionLabel={option => option.diet_type_name}
                         isOptionEqualToValue={(option, value) => option?.id === value}
+                        disabled={id ? true : false}
                         onChange={(e, val) => {
                           console.log(val, 'val')
                           if (val === null) {
@@ -805,6 +860,7 @@ const StepBasicDetails = ({
                             trigger('diet_type_id')
                           }
                         }}
+                        sx={{ background: id ? '#80808021' : '' }}
                         renderInput={params => (
                           <TextField
                             {...params}
@@ -1060,7 +1116,11 @@ const StepBasicDetails = ({
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid sx={{ pl: 7 }}>
-                                  <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
+                                  <Typography className='w_280'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
+                                    </Tooltip>
+                                  </Typography>
                                 </Grid>
                               </Grid>
                               <Icon
@@ -1164,7 +1224,11 @@ const StepBasicDetails = ({
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid sx={{ pl: 7 }}>
-                                  <Typography>{all.remarks ? all.remarks : '-'}</Typography>
+                                  <Typography className='w_280'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
+                                    </Tooltip>
+                                  </Typography>
                                 </Grid>
                               </Grid>
                               <Icon
@@ -1238,16 +1302,15 @@ const StepBasicDetails = ({
                                 </Typography>
                               </Grid>
                               <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
-                                <Typography
-                                  sx={{
-                                    width: '100px',
-                                    overflow: 'hidden',
-                                    whiteSpace: 'nowrap',
-                                    textOverflow: 'ellipsis'
-                                  }}
-                                  title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
-                                >
-                                  {all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                <Typography className='w_155'>
+                                  <Tooltip
+                                    title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                    arrow
+                                    placement='bottom'
+                                    className='text_overflow_moduled'
+                                  >
+                                    <span>{all?.ingredientList.map(all => all.preparation_type).join(', ')}</span>
+                                  </Tooltip>
                                 </Typography>
                               </Grid>
                               <Grid item xs={12} sm={2.7}>
@@ -1268,7 +1331,11 @@ const StepBasicDetails = ({
                               </Grid>
                               <Grid item xs={12} sm={4.5}>
                                 <Grid sx={{ pl: 7 }}>
-                                  <Typography>{all?.remarks ? all.remarks : '-'}</Typography>
+                                  <Typography className='w_280'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
+                                    </Tooltip>
+                                  </Typography>
                                 </Grid>
                               </Grid>
                               <Grid item xs={12} sm={0.3}>

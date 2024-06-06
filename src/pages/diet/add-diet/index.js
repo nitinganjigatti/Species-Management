@@ -498,6 +498,7 @@ const AddDiet = () => {
             setFormData={setFormData}
             setUomprev={setUomprev}
             diettypechildvalues={diettypechildvalues}
+            id={id}
           />
         )
       case 1:
