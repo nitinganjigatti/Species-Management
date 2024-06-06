@@ -125,8 +125,8 @@ const ListOfPurchase = () => {
   }
 
   const renderUserAvatar = row => {
-    if (row.avatarSrc) {
-      return <CustomAvatar src={row.avatarSrc} sx={{ mr: 3, width: 34, height: 34 }} />
+    if (row.user_profile_pic) {
+      return <CustomAvatar src={row?.user_profile_pic} sx={{ mr: 3, width: 34, height: 34 }} />
     } else {
       return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
     }

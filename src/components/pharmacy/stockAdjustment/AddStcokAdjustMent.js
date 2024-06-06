@@ -62,9 +62,10 @@ const AddStockAdjustment = () => {
   const schema = yup.object().shape({
     adjustment_quantity: yup
       .number()
+      .required('Quantity is required')
+
       .typeError('Quantity must be a number')
       .positive('Quantity must be a positive number')
-      .required('Quantity is required')
       .moreThan(0, 'Quantity must be greater than zero')
       .test('is-less-than-available', 'Quantity must be less than available quantity', function (value) {
         return value < this.parent.availableQty
