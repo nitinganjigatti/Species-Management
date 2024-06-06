@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
@@ -8,20 +7,9 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import {
-  Card,
-  CardHeader,
-  Typography,
-  CardContent,
-  Grid,
-  FormHelperText,
-  FormControl,
-  TextField,
-  Button
-} from '@mui/material'
+import { Card, CardHeader, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
@@ -32,7 +20,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 
-const ListOfPurchase = () => {
+const ListOfStockAdjusted = () => {
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -266,60 +254,67 @@ const ListOfPurchase = () => {
       />
     </Grid>
   )
+  console.log('permission', selectedPharmacy.permission)
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
-          <Card>
-            <CardHeader title='Stock Adjustment List' action={headerAction} />
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
+      {selectedPharmacy.permission.key === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1 ||
+      selectedPharmacy.permission.stock_adjustment === '1' ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Card>
+              <CardHeader title='Stock Adjustment List' action={headerAction} />
+              <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl: false
-              }}
-              autoHeight
-              pagination
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-            />
-          </Card>
-        </>
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl: false
+                }}
+                autoHeight
+                pagination
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                total
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+              />
+            </Card>
+          </>
+        )
+      ) : (
+        <Error404 />
       )}
     </>
   )
 }
 
-export default ListOfPurchase
+export default ListOfStockAdjusted
