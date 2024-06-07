@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  Divider,
   Grid,
   Tab,
   Tooltip,
@@ -14,7 +15,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { Box } from '@mui/system'
@@ -240,14 +241,13 @@ const EggList = () => {
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState(tableDatas || [])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+
+  // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('1')
-  const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
-  const [openDrawer, setOpenDrawer] = useState(false)
 
   const columns = [
     {
@@ -295,10 +295,10 @@ const EggList = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.species?.species_pic ? (
+            {params.row.default_icon ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.species?.species_pic}
+                src={params.row.default_icon}
                 alt='Profile'
               />
             ) : (
@@ -315,7 +315,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.species?.species_name ? params.row.species?.species_name : '-'}
+              {params.row.complete_name ? params.row.complete_name : '-'}
             </Typography>
             <Tooltip title={params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}>
               <Typography
@@ -330,7 +330,7 @@ const EggList = () => {
                   width: '50%'
                 }}
               >
-                {params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}ghjkl bj bj bj bjbhj
+                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
               </Typography>
             </Tooltip>
           </Box>
@@ -353,14 +353,12 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.egg_number?.egg_no ? params.row.egg_number?.egg_no : '-'}
+            {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
-          <Typography
+          {/* <Typography
             sx={{
               color:
-                params.row.egg_number?.egg_status === 'intact'
-                  ? theme.palette.primary.main
-                  : theme.palette.formContent.tertiary,
+                params.row.egg_condition === 'intact' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
               fontSize: '14px',
               fontWeight: '500',
               lineHeight: '16.94px',
@@ -370,33 +368,70 @@ const EggList = () => {
               borderRadius: '4px'
             }}
           >
-            {params.row.egg_number?.egg_status ? params.row.egg_number?.egg_status : '-'}
-          </Typography>
+            {params.row.egg_condition ? params.row.egg_condition : '-'}
+          </Typography> */}
         </Box>
       )
     },
 
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'site',
+    //   headerName: 'SITE NAME',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.site ? params.row.site : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.35,
       minWidth: 20,
       sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
+      field: 'discard_status',
+      headerName: 'DISCARD STATUS',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.site ? params.row.site : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.site ? params.row.site : '-'}
+        </Typography>
       )
     },
+
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'discard_on',
+    //   headerName: 'DISCARD ON',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.site ? params.row.site : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.24,
       minWidth: 20,
@@ -404,42 +439,57 @@ const EggList = () => {
       field: 'collected_on',
       headerName: 'COLLECTED ON',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
+        </Typography>
       )
     },
     {
-      flex: 0.4,
+      flex: 0.24,
       minWidth: 20,
       sortable: false,
       field: 'batch_no',
       headerName: 'BATCH NO',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          {' '}
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.batch_no ? params.row.batch_no : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.batch_no ? params.row.batch_no : '-'}
+        </Typography>
       )
     },
+
+    // {
+    //   flex: 0.24,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'batch_no',
+    //   headerName: 'BATCH NO',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.batch_no ? params.row.batch_no : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.5,
@@ -448,65 +498,53 @@ const EggList = () => {
       field: 'collected_by',
       headerName: 'Collected By',
       renderCell: params => (
-        <Box
-          onMouseEnter={() => setHoveredRowIndex(params.row.id)}
-          onMouseLeave={() => setHoveredRowIndex(null)}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          {hoveredRowIndex === params.row.id ? (
-            <Button variant='contained' onClick={event => handleAction(event)}>
-              Allocate
-            </Button>
-          ) : (
-            <>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                sx={{
-                  width: 30,
-                  height: 30,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
-                }}
-              >
-                {params.row.collected_by?.profile_pic ? (
-                  <img
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.collected_by?.profile_pic}
-                    alt='Profile'
-                  />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
-                </Typography>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    lineHeight: '14.52px'
-                  }}
-                >
-                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
-                </Typography>
-              </Box>
-            </>
-          )}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{
+              width: 30,
+              height: 30,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.collected_by?.profile_pic ? (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src={params.row.collected_by?.profile_pic}
+                alt='Profile'
+              />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '16.94px'
+              }}
+            >
+              {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+            </Typography>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '14.52px'
+              }}
+            >
+              {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+            </Typography>
+          </Box>
         </Box>
       )
     }
@@ -535,15 +573,17 @@ const EggList = () => {
   }
 
   const onCellClick = params => {
-    if (hoveredRowIndex === params.row.id) {
-      // Handle cell click only if the row is not being hovered
-      console.log(params, 'params')
-      // Here, you can add the logic to handle the row hover action
-      // For example, you can navigate to a different page when a row is hovered
-      Router.push({
-        pathname: `/egg/eggs/${params.row.id}`
-      })
-    }
+    // console.log(params, 'params')
+    // const clickedColumn = params.field !== 'switch'
+    // if (clickedColumn) {
+    //   const data = params.row
+    Router.push({
+      // pathname: `/egg/eggs/${data?.id}`
+      pathname: `/egg/eggs/6`
+    })
+    // } else {
+    //   return
+    // }
   }
 
   const TabBadge = ({ label, totalCount }) => (
@@ -564,51 +604,58 @@ const EggList = () => {
     setStatus(newValue)
   }
 
-  //   const fetchTableData = useCallback(
-  //     async (sort, q, sortColumn, status) => {
-  //       try {
-  //         setLoading(true)
+  const handleTabs = (event, newValue) => {
+    setTotal(0)
 
-  //         const params = {
-  //           sort,
-  //           q,
-  //           sortColumn,
-  //           page: paginationModel.page + 1,
-  //           limit: paginationModel.pageSize,
-  //           status
-  //         }
+    setIsDiscarded(newValue)
+  }
 
-  //         await getIngredientList({ params: params }).then(res => {
-  //           console.log('response', res)
+  const fetchTableData = useCallback(
+    async (sort, q, status, isDiscarded) => {
+      console.log('status :>> ', status)
 
-  //           // Generate uid field based on the index
-  //           let listWithId = res.data.result.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows(loadServerRows(paginationModel.page, listWithId))
+      try {
+        setLoading(true)
 
-  //           // setstatusCheckval(res?.data?.result.map(all => all.active))
-  //         })
-  //         setLoading(false)
-  //       } catch (e) {
-  //         console.log(e)
-  //         setLoading(false)
-  //       }
-  //     },
-  //     [paginationModel]
-  //   )
+        const params = {
+          sort,
+          q,
 
-  //   useEffect(() => {
-  //     if (dietModule) {
-  //       fetchTableData(sort, searchValue, sortColumning, status)
-  //     }
-  //   }, [fetchTableData, status])
+          // sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          type: status === 'eggs_to_discard' ? isDiscarded : status
+        }
+
+        await GetEggList({ params: params }).then(res => {
+          console.log('res :>> ', res)
+
+          // let listWithId = res.data.result.map((el, i) => {
+          //   return { ...el, uid: i + 1 }
+          // })
+          if (res.data.result.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res.data.result))
+          }
+        })
+        setLoading(false)
+      } catch (error) {
+        console.log(error)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, status, isDiscarded)
+  }, [fetchTableData, status, isDiscarded])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
+    id: row.egg_id,
     sl_no: getSlNo(index)
   }))
 
@@ -616,6 +663,7 @@ const EggList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setsortColumning(newModel[0].field)
+
       //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
@@ -657,51 +705,54 @@ const EggList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
+          <Box>
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-            onCellClick={onCellClick}
-          />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Box>
         )}
         {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} />}
       </>
     )
   }
+
   return (
     <>
       <Card>
@@ -709,15 +760,49 @@ const EggList = () => {
         <CardContent>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
-              <Tab value='1' label={<TabBadge label='Recived' totalCount={status === '' ? total : null} />} />
+              <Tab
+                value='eggs_to_nursery'
+                label={<TabBadge label='Recived' totalCount={status === '' ? total : null} />}
+              />
               <Tab value='2' label={<TabBadge label='Incubation' totalCount={status === '1' ? total : null} />} />
               <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} />
-              <Tab value='4' label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />} />
+              <Tab
+                value='eggs_to_discard'
+                label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />}
+              />
             </TabList>
-            <TabPanel value='1'>{tableData()}</TabPanel>
-            <TabPanel value='2'>{tableData()}</TabPanel>
-            <TabPanel value='3'>{tableData()}</TabPanel>
-            <TabPanel value='4'>{tableData()}</TabPanel>
+            <TabPanel value='eggs_to_nursery'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='2'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='3'>
+              {' '}
+              <Divider sx={{ mt: -3 }} />
+              {tableData()}
+            </TabPanel>
+            <TabPanel value='eggs_to_discard'>
+              <Divider sx={{ mt: -3, mb: 3 }} />
+              <TabContext value={isDiscarded}>
+                <TabList onChange={handleTabs}>
+                  <Tab
+                    value='eggs_to_discard'
+                    label={<TabBadge label='To Be Discarded' totalCount={status === '' ? total : null} />}
+                  />
+                  <Tab
+                    value='eggs_discarded'
+                    label={<TabBadge label='Discarded' totalCount={status === '' ? total : null} />}
+                  />
+                </TabList>
+                <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
+                <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
+              </TabContext>
+            </TabPanel>
           </TabContext>
         </CardContent>
       </Card>
