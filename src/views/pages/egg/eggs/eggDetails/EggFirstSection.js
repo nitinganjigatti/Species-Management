@@ -288,7 +288,7 @@ const EggFirstSection = ({ eggDetails }) => {
                     </Typography>
                   </Box>
                   <Box>
-                    <Icon color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
                   </Box>
                 </Grid>
                 <Grid
@@ -337,7 +337,7 @@ const EggFirstSection = ({ eggDetails }) => {
                     </Box>
                   </Box>
                   <Box>
-                    <Icon color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
                   </Box>
                 </Grid>
                 <Grid
@@ -386,7 +386,7 @@ const EggFirstSection = ({ eggDetails }) => {
                     </Box>
                   </Box>
                   <Box>
-                    <Icon color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
                   </Box>
                 </Grid>
               </Grid>

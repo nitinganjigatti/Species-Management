@@ -23,6 +23,7 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import Router from 'next/router'
 import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
+import { GetEggList } from 'src/lib/api/egg/egg'
 
 const EggList = () => {
   const theme = useTheme()
@@ -38,7 +39,7 @@ const EggList = () => {
   const [status, setStatus] = useState('1')
   const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [isDiscarded, setIsDiscarded] = useState(false)
+  const [isDiscarded, setIsDiscarded] = useState(null)
 
   const columns = [
     {
