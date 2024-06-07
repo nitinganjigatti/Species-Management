@@ -717,7 +717,7 @@ const IncubatorDetails = () => {
         getIncubatorDetail(id).then(res => {
           if (res.data) {
             setIncubatorDetail(res?.data?.data)
-            console.log('res', res)
+            // console.log('res', res)
           }
         })
       } catch (error) {
@@ -798,6 +798,7 @@ const IncubatorDetails = () => {
               <Avatar
                 variant='square'
                 alt='Image'
+                src={incubatorDetail?.user_profile_pic || ''}
                 sx={{
                   width: 30,
                   height: 30,
@@ -806,11 +807,7 @@ const IncubatorDetails = () => {
                   background: '#E8F4F2',
                   overflow: 'hidden'
                 }}
-              >
-                s
-                <Icon icon='mdi:user' />
-                {/* )} */}
-              </Avatar>
+              ></Avatar>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography
                   noWrap
@@ -821,8 +818,7 @@ const IncubatorDetails = () => {
                     lineHeight: '16.94px'
                   }}
                 >
-                  {/* {params.row.added_by?.user_name ? params.row.added_by?.user_name : '-'} */}
-                  Jordan Stevenson
+                  {incubatorDetail?.user_full_name}
                 </Typography>
                 <Typography
                   noWrap
@@ -833,14 +829,11 @@ const IncubatorDetails = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {/* {params.row?.added_by?.created_at
-                    ? 'Created on' + ' ' + moment(params.row?.added_by?.created_at).format('DD/MM/YYYY')
-                    : '-'} */}
-                  Updated on 10/10/2023
+                  Updated on {moment(incubatorDetail?.created_at).format('DD/MM/YYYY')}
                 </Typography>
               </Box>
             </Box>
-            <Box>
+            {/* <Box>
               <FormControlLabel
                 control={
                   <Switch
@@ -864,7 +857,7 @@ const IncubatorDetails = () => {
                 //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
                 // }
               />
-            </Box>
+            </Box> */}
             <Box>
               <Icon
                 icon='bx:pencil'
@@ -876,7 +869,7 @@ const IncubatorDetails = () => {
                 }}
               />
             </Box>
-            <Box>
+            {/* <Box>
               <Icon
                 // onClick={() => {
                 //   handlelOpenDelete()
@@ -884,12 +877,11 @@ const IncubatorDetails = () => {
                 icon='material-symbols:delete-outline'
                 style={{ fontSize: 24, cursor: 'pointer' }}
               />
-            </Box>
+            </Box> */}
           </Box>
         </Box>
 
-        {/* <Card sx={{ backgroundColor: theme.components.MuiDataGrid.styleOverrides.row.backgroundColor }}> */}
-        <Card sx={{ backgroundColor: '#F2FFF8' }}>
+        <Box sx={{ backgroundColor: '#F2FFF8', borderRadius: '8px' }}>
           <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: '12px' }}>
               <Box sx={{ height: '64px', width: '64px', borderRadius: '8px' }}>
@@ -920,7 +912,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  INC 00012 / 24
+                  {incubatorDetail?.incubator_code}
                 </Typography>
               </Box>
             </Box>
@@ -990,7 +982,7 @@ const IncubatorDetails = () => {
                   lineHeight: '19.36px'
                 }}
               >
-                Site Name XYZ
+                {incubatorDetail?.site_name}
               </Typography>
             </Box>
             <Box>
@@ -1013,7 +1005,7 @@ const IncubatorDetails = () => {
                   lineHeight: '19.36px'
                 }}
               >
-                24 D
+                {incubatorDetail?.room_name}
               </Typography>
             </Box>
             <Box>
@@ -1036,11 +1028,11 @@ const IncubatorDetails = () => {
                   lineHeight: '19.36px'
                 }}
               >
-                Nursery Name
+                {incubatorDetail?.nursery_name}
               </Typography>
             </Box>
           </CardContent>
-        </Card>
+        </Box>
         <Card>
           <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} />
           <CardContent>

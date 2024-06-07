@@ -53,7 +53,7 @@ const IncubatorsList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 20 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
 
@@ -73,17 +73,21 @@ const IncubatorsList = () => {
   const fetchTableData = useCallback(
     async q => {
       try {
-        console.log('til_date', cuurent_date)
+        // console.log('til_date', cuurent_date)
         setLoading(true)
 
         const params = {
           q,
           // sortColumn,
+          from_date: '2024-05-29',
           til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          room_id: 1,
+          nursery_id: 2,
+          site_id: 14
         }
-
+        console.log('params', params)
         await getIncubatorList(params).then(res => {
           console.log('response', res)
 
@@ -377,10 +381,10 @@ const IncubatorsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
+    // console.log(params, 'params')
 
     Router.push({
-      pathname: `/egg/incubators/${params.row?.id}`
+      pathname: `/egg/incubators/${params.row?.incubator_id}`
     })
   }
 

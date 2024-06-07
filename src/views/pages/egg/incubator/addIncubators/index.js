@@ -38,11 +38,15 @@ import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import Popper from '@mui/material/Popper'
 import { styled } from '@mui/material/styles'
 import { addIncubator } from 'src/lib/api/egg/incubator'
+import { useRouter } from 'next/router'
 
 const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose }) => {
+  const router = useRouter()
+  const { id } = router.query
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [roomList, setRoomList] = useState([])
+  const [btnDisabled, setBtnDisabled] = useState(false)
 
   const defaultValues = {
     incubator_name: '',
@@ -140,6 +144,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
 
   const onSubmit = val => {
     if (isEdit) {
+      setBtnDisabled(true)
       try {
         updateIncubator(id, {
           nursery_id: val?.nursery,
@@ -148,10 +153,9 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
-            console.log('res', res)
-            actionApi('')
             reset()
-            handleSidebarClose()
+            // handleSidebarClose()
+            router.push('/egg/incubators')
           } else {
           }
         })
@@ -167,10 +171,10 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
-            console.log('res', res)
-            actionApi('')
             reset()
+            actionApi('')
             handleSidebarClose()
+            setBtnDisabled(false)
           } else {
           }
         })

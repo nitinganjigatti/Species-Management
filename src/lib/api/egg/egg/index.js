@@ -6,3 +6,9 @@ export async function GetEggList({ params }) {
 
   return response.data
 }
+
+export async function GetEggDetails(id) {
+  const response = await axiosGet({ url: `${EGG}/${id}`, pharmacy: true })
+
+  return response.data
+}

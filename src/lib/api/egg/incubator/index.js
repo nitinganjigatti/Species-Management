@@ -1,10 +1,10 @@
 import { ADD, EDIT, EGG, INCUBATOR, LIST, NURSERY } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../../utility'
 
-export async function getIncubatorList({ q, page_no, til_date }) {
+export async function getIncubatorList(params) {
   return await axiosGet({
-    // url: `${EGG}/${NURSERY}/${INCUBATOR}/${LIST}?room_id=1&nursery_id=2&q=${q}&page_no=${page_no}&from_date=2024-05-29&til_date=2024-05-31&site_id=14`
-    url: `${EGG}/${NURSERY}/${INCUBATOR}/${LIST}?q=${q}&page_no=${page_no}&from_date=2024-05-29&til_date=${til_date}`
+    url: `${EGG}/${NURSERY}/${INCUBATOR}/${LIST}`,
+    params: params
   })
 }
 
