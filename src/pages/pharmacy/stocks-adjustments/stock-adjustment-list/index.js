@@ -53,7 +53,7 @@ const ListOfStockAdjusted = () => {
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
-          console.log('getPurchaseList', res)
+          console.log('stocksAdjustedList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -254,7 +254,6 @@ const ListOfStockAdjusted = () => {
       />
     </Grid>
   )
-  console.log('permission', selectedPharmacy.permission)
 
   return (
     <>
