@@ -1,10 +1,14 @@
 import { Avatar, Button, Card, CardContent, Grid, Typography } from '@mui/material'
 import { Box, display } from '@mui/system'
-import React from 'react'
+import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import ConditionSlider from 'src/views/pages/egg/eggs/oonditionSlider'
+
 
 const EggDetail = () => {
+  const [openDrawer, setOpenDrawer] = useState(false)
+
   const theme = useTheme()
   return (
     <>
@@ -64,6 +68,12 @@ const EggDetail = () => {
                     </Box>
                     <Box>
                       <Button variant='contained'>ALLOCATE</Button>
+                    </Box>
+
+                    <Box>
+                      <Button variant='contained' onClick={() => setOpenDrawer(true)}>
+                        Condition
+                      </Button>
                     </Box>
                   </Box>
                 </Box>
@@ -182,6 +192,7 @@ const EggDetail = () => {
           </Grid>
         </CardContent>
       </Card>
+      {openDrawer && <ConditionSlider setOpenDrawer={setOpenDrawer} />}
     </>
   )
 }
