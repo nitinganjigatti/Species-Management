@@ -38,6 +38,7 @@ const EggList = () => {
   const [status, setStatus] = useState('1')
   const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
+  const [isDiscarded, setIsDiscarded] = useState(false)
 
   const columns = [
     {
