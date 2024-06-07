@@ -24,218 +24,6 @@ import moment from 'moment'
 import Router from 'next/router'
 import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
 
-const tableDatas = [
-  {
-    id: 1,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 2,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 3,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 4,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 5,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 6,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 7,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 8,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 9,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  },
-  {
-    id: 10,
-    species: {
-      species_pic: '',
-      species_name: 'Rainbow Lorikeet',
-      species_desc: 'Trichoglossus Moluccanus'
-    },
-    egg_number: {
-      egg_no: '0273 / 24',
-      egg_status: 'intact'
-    },
-    site: 'Site Name XYZ',
-    collected_on: '10/10/2023',
-    batch_no: '2024/0001234/3A',
-    eggs: 7,
-    collected_by: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      designantion: '10/10/2023'
-    }
-  }
-]
 const EggList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
@@ -248,6 +36,8 @@ const EggList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('1')
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
 
   const columns = [
     {
@@ -400,16 +190,18 @@ const EggList = () => {
       field: 'discard_status',
       headerName: 'DISCARD STATUS',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site ? params.row.site : '-'}
-        </Typography>
+        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.site ? params.row.site : '-'}
+          </Typography>
+        </Box>
       )
     },
 
@@ -439,35 +231,40 @@ const EggList = () => {
       field: 'collected_on',
       headerName: 'COLLECTED ON',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
-        </Typography>
+        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
-      flex: 0.24,
+      flex: 0.4,
       minWidth: 20,
       sortable: false,
       field: 'batch_no',
       headerName: 'BATCH NO',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.batch_no ? params.row.batch_no : '-'}
-        </Typography>
+        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
+          {' '}
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.batch_no ? params.row.batch_no : '-'}
+          </Typography>
+        </Box>
       )
     },
 
@@ -498,53 +295,65 @@ const EggList = () => {
       field: 'collected_by',
       headerName: 'Collected By',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.collected_by?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.collected_by?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              noWrap
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: '500',
-                lineHeight: '16.94px'
-              }}
-            >
-              {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
-            </Typography>
-            <Typography
-              noWrap
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: '400',
-                lineHeight: '14.52px'
-              }}
-            >
-              {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
-            </Typography>
-          </Box>
+        <Box
+          onMouseEnter={() => setHoveredRowIndex(params.row.id)}
+          onMouseLeave={() => setHoveredRowIndex(null)}
+          sx={{ display: 'flex', alignItems: 'center' }}
+        >
+          {hoveredRowIndex === params.row.id ? (
+            <Button variant='contained' onClick={event => handleAction(event)}>
+              Allocate
+            </Button>
+          ) : (
+            <>
+              <Avatar
+                variant='square'
+                alt='Medicine Image'
+                sx={{
+                  width: 30,
+                  height: 30,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {params.row.collected_by?.profile_pic ? (
+                  <img
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    src={params.row.collected_by?.profile_pic}
+                    alt='Profile'
+                  />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '16.94px'
+                  }}
+                >
+                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+                </Typography>
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: '12px',
+                    fontWeight: '400',
+                    lineHeight: '14.52px'
+                  }}
+                >
+                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+                </Typography>
+              </Box>
+            </>
+          )}
         </Box>
       )
     }
@@ -573,17 +382,15 @@ const EggList = () => {
   }
 
   const onCellClick = params => {
-    // console.log(params, 'params')
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    Router.push({
-      // pathname: `/egg/eggs/${data?.id}`
-      pathname: `/egg/eggs/6`
-    })
-    // } else {
-    //   return
-    // }
+    if (hoveredRowIndex === params.row.id) {
+      // Handle cell click only if the row is not being hovered
+      console.log(params, 'params')
+      // Here, you can add the logic to handle the row hover action
+      // For example, you can navigate to a different page when a row is hovered
+      Router.push({
+        pathname: `/egg/eggs/${params.row.id}`
+      })
+    }
   }
 
   const TabBadge = ({ label, totalCount }) => (
