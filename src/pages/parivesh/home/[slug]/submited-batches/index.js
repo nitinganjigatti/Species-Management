@@ -286,9 +286,10 @@ const SubmittedBatches = ({}) => {
   ]
 
   const onCellClick = params => {
-    Router.push({
-      pathname: `/parivesh/home/batch-list/batch-details`
-    })
+    Router.push(`/parivesh/home/${params?.id}/batch-details`)
+    // Router.push({
+    //   pathname: `/parivesh/home/batch-list/batch-details`
+    // })
     // console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'
     // if (clickedColumn) {

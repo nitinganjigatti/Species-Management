@@ -14,7 +14,6 @@ import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
 import { Avatar, Button, Tooltip, Box, Switch, Divider, CardContent, IconButton } from '@mui/material'
-import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -35,9 +34,8 @@ import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import CustomAccordion from 'src/components/parivesh/CustomAccordion'
+
 import SubmittedBatches from './submited-batches'
-import BatchDetails from './batch-details/ index'
 
 const BatchList = () => {
   const theme = useTheme()
@@ -275,13 +273,12 @@ const BatchList = () => {
   ]
 
   const onCellClick = params => {
-    // Router.push('/parivesh/home/new-entries/add-newentry')
-    // Router.push('/parivesh/home/batch-list/batch-details')
-    Router.push({
-      pathname: '/parivesh/home/batch-list/batch-details'
-    })
+    Router.push(`/parivesh/home/${params?.id}/batch-details`)
+    // Router.push({
+    //   pathname: '/parivesh/home//batch-details'
+    // })
     console.log(params, 'params')
-    debugger
+    // debugger
     // const clickedColumn = params.field !== 'switch'
     // if (clickedColumn) {
     //   const data = params.row
@@ -362,7 +359,7 @@ const BatchList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              onCellClick={() => onCellClick()}
+              onCellClick={onCellClick}
             />
           </Card>
         )}

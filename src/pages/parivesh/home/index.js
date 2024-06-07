@@ -9,7 +9,7 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import Overview from './overview'
 import NewEntry from './new-entries'
-import Batches from './batch-list'
+import Batches from './[slug]'
 
 const Home = () => {
   const [total, setTotal] = useState(0)
@@ -53,7 +53,7 @@ const Home = () => {
             <Overview />
           </TabPanel>
           <TabPanel value='new entries'>
-            <NewEntry />
+            <NewEntry setStatus={setStatus} />
           </TabPanel>
           <TabPanel value='batches'>
             <Batches />

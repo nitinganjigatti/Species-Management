@@ -26,6 +26,7 @@ const AddNewEntry = () => {
   const router = useRouter()
   const [btnLoader, setBtnLoader] = useState(false)
   const [editParams, setEditParams] = useState()
+  const [showAdditionalFields, setShowAdditionalFields] = useState(false)
 
   const schema = yup.object().shape({
     specie: yup
@@ -37,8 +38,20 @@ const AddNewEntry = () => {
     totalCount: yup.string().required('Total Count is Required'),
     gender: yup.string().required('Gender is Required'),
     age: yup.number().typeError('Age must be a number').required('Age is Required'),
+    ro_date: yup.date().required('Date is Required'),
     reason: yup.string().required('Reason is Required'),
-    ro_date: yup.date().required('Date is Required')
+    registrationNumber: yup.string().when('reason', {
+      is: value => value === 'death',
+      then: schema => schema.required('Registration Number is Required for Death Reason')
+    }),
+    reasonForDeath: yup.string().when('reason', {
+      is: value => value === 'death',
+      then: schema => schema.required('Reason for Death is Required')
+    }),
+    whereAndHowDisposed: yup.string().when('reason', {
+      is: value => value === 'death',
+      then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+    })
   })
 
   const defaultValues = {
@@ -150,13 +163,18 @@ const AddNewEntry = () => {
                         <TextField
                           select
                           label='Reason*'
+                          placeholder='Reason'
                           value={value}
-                          onChange={onChange}
+                          onChange={e => {
+                            onChange(e)
+                            setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
+                          }}
                           error={Boolean(errors.reason)}
                         >
-                          <MenuItem value='reason1'>Reason 1</MenuItem>
-                          <MenuItem value='reason2'>Reason 2</MenuItem>
-                          <MenuItem value='reason3'>Reason 3</MenuItem>
+                          <MenuItem value='birth'>Birth</MenuItem>
+                          <MenuItem value='death'>Death</MenuItem>
+                          <MenuItem value='transfer'>Transfer </MenuItem>
+                          <MenuItem value='acquisition'>Acquisition </MenuItem>
                         </TextField>
                       )}
                     />
@@ -165,6 +183,74 @@ const AddNewEntry = () => {
                     )}
                   </FormControl>
                 </Grid>
+              </Grid>
+              <Grid>
+                {showAdditionalFields && (
+                  <>
+                    {/* Additional input fields */}
+                    <FormControl fullWidth sx={{ mb: 6 }}>
+                      <Controller
+                        name='registrationNumber'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            label='Registration Number*'
+                            value={value}
+                            onChange={onChange}
+                            placeholder='Allotted registration certificate number for Animal species'
+                            error={Boolean(errors.registrationNumber)}
+                            name='registrationNumber'
+                          />
+                        )}
+                      />
+                      {errors.registrationNumber && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.registrationNumber?.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mb: 6 }}>
+                      <Controller
+                        name='reasonForDeath'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            label='Reason for Death*'
+                            value={value}
+                            onChange={onChange}
+                            placeholder='Enter Reason for Death'
+                            error={Boolean(errors.reasonForDeath)}
+                            name='reasonForDeath'
+                          />
+                        )}
+                      />
+                      {errors.reasonForDeath && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.reasonForDeath?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mb: 6 }}>
+                      <Controller
+                        name='whereAndHowDisposed'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            label='Where and How Disposed*'
+                            value={value}
+                            onChange={onChange}
+                            placeholder='Enter Where and How Disposed'
+                            error={Boolean(errors.whereAndHowDisposed)}
+                            name='whereAndHowDisposed'
+                          />
+                        )}
+                      />
+                      {errors.whereAndHowDisposed && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.whereAndHowDisposed?.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </>
+                )}
               </Grid>
 
               <Grid container spacing={2} sx={{ mb: 6 }}>

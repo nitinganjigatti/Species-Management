@@ -1,16 +1,10 @@
-import React, { useContext, useState } from 'react'
-
-// ** MUI Imports
-import Card from '@mui/material/Card'
-import TabList from '@mui/lab/TabList'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import { Avatar, Button, Tooltip, Typography } from '@mui/material'
+import { Breadcrumbs, Card, CardContent, Grid, Typography, Avatar, Button, Tooltip } from '@mui/material'
 import { Box } from '@mui/system'
-import IconButton from '@mui/material/IconButton'
+import Router from 'next/router'
+import React, { useContext, useState } from 'react'
+import CustomAccordion from 'src/components/parivesh/CustomAccordion'
+import AddSpeciesNewEntry from 'src/views/pages/parivesh/addSpeciesEntry/addSpeciesEntry'
+import Chip from '@mui/material/Chip'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -21,11 +15,8 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
-import { AddButton } from 'src/components/Buttons'
-import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
-import Router from 'next/router'
 
-const SpeciesList = () => {
+const SpeciesDetails = () => {
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [status, setStatus] = useState('overview')
@@ -189,7 +180,7 @@ const SpeciesList = () => {
   // ;('/parivesh/home/batch-list/batch-details')
 
   const onCellClick = params => {
-    Router.push(`/parivesh/species/${params?.id}/species-details`)
+    // Router.push(`/parivesh/species/${params?.id}/species-details`)
     // console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'
     // if (clickedColumn) {
@@ -246,11 +237,10 @@ const SpeciesList = () => {
   const headerAction = (
     <>
       <div>
-        <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
+        <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()} sx={{ background: '#1F515B' }}>
           <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD new species
+          &nbsp; new Entry
         </Button>
-        {/* <AddButton title='ADD new species' action={() => addEventSidebarOpen()} /> */}
       </div>
     </>
   )
@@ -262,7 +252,7 @@ const SpeciesList = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={'Species List'} action={headerAction} />
+            <CardHeader title={`Entry's`} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -332,23 +322,108 @@ const SpeciesList = () => {
     )
   }
 
+  const data = [
+    { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+    { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+    { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
+    { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+    { value: 156, label: 'TOTAL SPECIES', color: '#E4B819', borderColor: '#E4B819' }
+  ]
+
+  const cards = [
+    {
+      value: 60,
+      content: 'Parent Stock',
+      bgColor: '#37BD69',
+      items: [
+        { value: 6, bgColor: '#00AFD6' },
+        { value: 5, bgColor: '#FFD3D3' },
+        { value: 10, bgColor: '#FFFFFF' }
+      ]
+    },
+    {
+      value: 25,
+      content: 'Acquisition',
+      bgColor: '#37BD69',
+      items: [
+        { value: 11, bgColor: '#00AFD6' },
+        { value: 7, bgColor: '#FFD3D3' },
+        { value: 6, bgColor: '#FFFFFF' }
+      ]
+    },
+    {
+      value: 5,
+      content: 'Births',
+      bgColor: '#37BD69',
+      items: [
+        { value: 21, bgColor: '#00AFD6' },
+        { value: 2, bgColor: '#FFD3D3' },
+        { value: 7, bgColor: '#FFFFFF' }
+      ]
+    },
+    {
+      value: 5,
+      content: 'Deaths',
+      bgColor: '#E93353',
+      items: [
+        { value: 2, bgColor: '#00AFD6' },
+        { value: 6, bgColor: '#FFD3D3' },
+        { value: 6, bgColor: '#FFFFFF' }
+      ]
+    },
+    {
+      value: 5,
+      content: 'Transfers',
+      bgColor: '#FA6140',
+      items: [
+        { value: 6, bgColor: '#00AFD6' },
+        { value: 11, bgColor: '#FFD3D3' },
+        { value: 3, bgColor: '#FFFFFF' }
+      ]
+    }
+  ]
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='overview'
-              label={<TabBadge label='overview' totalCount={status === 'overview' ? total : null} />}
+      <Box sx={{ mb: 6 }}>
+        <Breadcrumbs aria-label='breadcrumb'>
+          <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
+            Species
+          </Typography>
+          <Typography color='text.primary'>Lear’s Macaw</Typography>
+        </Breadcrumbs>
+      </Box>
+      <Box>
+        <Card>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+            <CustomAccordion
+              title='Approved by Parivesh'
+              summaryIcon='ion:checkmark'
+              data={data}
+              backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+              cards={cards}
+              isRKT={true}
+              valueRKT={'RKT'}
             />
-          </TabList>
+            <Box
+              sx={{
+                mt: 3
+              }}
+            >
+              <CustomAccordion
+                title='To be submitted'
+                summaryIcon='ion:checkmark'
+                data={data}
+                backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                cards={cards}
+              />
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
 
-          <TabPanel value='overview'>
-            <Grid>{tableData()}</Grid>
-          </TabPanel>
-        </TabContext>
-      </Grid>
-      <AddSpecies
+      <Grid>{tableData()}</Grid>
+
+      <AddSpeciesNewEntry
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
@@ -361,4 +436,4 @@ const SpeciesList = () => {
   )
 }
 
-export default SpeciesList
+export default SpeciesDetails

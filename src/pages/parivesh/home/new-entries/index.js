@@ -38,7 +38,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
 
-const NewEntry = () => {
+const NewEntry = ({ setStatus }) => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -366,7 +366,10 @@ const NewEntry = () => {
           size='medium'
           variant='contained'
           sx={{ m: 2, backgroundColor: '#1F415B' }}
-          onClick={() => Router.push('/parivesh/home/batch-list')}
+          onClick={() => {
+            setStatus('batches')
+            // Router.push('/parivesh/home/batch-list')
+          }}
         >
           &nbsp; CREATE BATCH
         </Button>
