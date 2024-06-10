@@ -5,8 +5,11 @@ import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion
 import { GetEggDetails } from 'src/lib/api/egg/egg'
 import EggImageGallery from 'src/views/pages/egg/eggs/eggDetails/EggImageGallery'
 import EggComment from 'src/views/pages/egg/eggs/eggDetails/EggComment'
+import { useRouter } from 'next/router'
 
 const EggDetail = () => {
+  const router = useRouter()
+  const { id } = router.query
   const [eggDetails, setEggDetails] = useState({})
 
   const getDetails = id => {
@@ -22,7 +25,7 @@ const EggDetail = () => {
   }
 
   useEffect(() => {
-    getDetails(2)
+    getDetails(id)
   }, [])
 
   return (

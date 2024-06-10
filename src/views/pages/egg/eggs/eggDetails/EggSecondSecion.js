@@ -10,7 +10,8 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
-
+import { styled } from '@mui/material/styles'
+import Styles from '../../../../../pages/egg/incubators/dot.module.css'
 const columns = [
   { id: 'date', label: 'Date' },
   { id: 'ideal', label: 'Ideal' },
@@ -30,6 +31,24 @@ const rows = [
   createData('10 APR 2024', '290-300g', '300g -15%'),
   createData('10 APR 2024', '290-300g', '300g -15%')
 ]
+
+const CustomTableContainer = styled(TableContainer)({
+  '::-webkit-scrollbar': {
+    width: '4px',
+    height: '10px'
+  },
+  '::-webkit-scrollbar-track': {
+    // background: '#f1f1f1'
+    background: 'transparent'
+  },
+  '::-webkit-scrollbar-thumb': {
+    background: '#839D8D',
+    borderRadius: '10px'
+  },
+  '::-webkit-scrollbar-thumb:hover': {
+    background: '#555'
+  }
+})
 
 const EggSecondSecion = ({ eggDetails }) => {
   const historyData = {
@@ -323,7 +342,12 @@ const EggSecondSecion = ({ eggDetails }) => {
         <Card sx={{ height: '100%' }}>
           <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
           <CardContent>
-            <TableContainer style={{ borderRadius: '8px' }} component={Paper} sx={{ maxHeight: 300 }}>
+            <CustomTableContainer
+              className={Styles.main}
+              style={{ borderRadius: '8px' }}
+              component={Paper}
+              sx={{ maxHeight: 300 }}
+            >
               <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                 <TableHead>
                   <TableRow>
@@ -359,7 +383,7 @@ const EggSecondSecion = ({ eggDetails }) => {
                   })}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </CustomTableContainer>
             {/* <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component='div'

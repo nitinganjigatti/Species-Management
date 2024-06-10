@@ -13,6 +13,7 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
 
 import ConditionSlider from 'src/views/pages/egg/eggs/oonditionSlider'
+import moment from 'moment'
 
 const EggFirstSection = ({ eggDetails }) => {
   const theme = useTheme()
@@ -48,112 +49,67 @@ const EggFirstSection = ({ eggDetails }) => {
               xl={3}
             >
               <Box sx={{ borderRadius: '8px', height: '100%' }}>
-                <KeenSliderWrapper>
-                  <>
-                    <Box sx={{ position: 'relative' }} className='navigation-wrapper'>
-                      <Box sx={{ position: 'absolute' }} ref={sliderRef} className='keen-slider'>
-                        <Box className='keen-slider__slide'>
-                          <ImageListItem>
-                            <img
-                              srcSet={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2x`}
-                              src={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format`}
-                              alt={'Breakfast'}
-                              loading='lazy'
-                            />
-                            <ImageListItemBar
-                              sx={{ pb: 5 }}
-                              title={'Rainbow Lorikeet'}
-                              subtitle={'Trichoglossus Moluccanus'}
-                            />
-                          </ImageListItem>
+                {eggDetails?.egg_images?.length ? (
+                  <KeenSliderWrapper>
+                    <>
+                      <Box sx={{ position: 'relative' }} className='navigation-wrapper'>
+                        <Box sx={{ position: 'absolute' }} ref={sliderRef} className='keen-slider'>
+                          {eggDetails?.egg_images?.map(item => (
+                            <Box key={item?.id} className='keen-slider__slide'>
+                              <ImageListItem>
+                                <img
+                                  srcSet={item?.egg_image || eggDetails?.default_icon}
+                                  src={item?.egg_image || eggDetails?.default_icon}
+                                  alt={item?.action}
+                                  loading='lazy'
+                                />
+                                <ImageListItemBar sx={{ pb: 5 }} title={item?.action} subtitle={item?.action} />
+                              </ImageListItem>
+                            </Box>
+                          ))}
                         </Box>
-                        <Box className='keen-slider__slide'>
-                          <ImageListItem>
-                            <img
-                              srcSet={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2x`}
-                              src={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format`}
-                              alt={'Breakfast'}
-                              loading='lazy'
-                            />
-                            <ImageListItemBar
-                              sx={{ pb: 5 }}
-                              title={'Rainbow Lorikeet'}
-                              subtitle={'Trichoglossus Moluccanus'}
-                            />
-                          </ImageListItem>
-                        </Box>
-                        <Box className='keen-slider__slide'>
-                          <ImageListItem>
-                            <img
-                              srcSet={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2x`}
-                              src={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format`}
-                              alt={'Breakfast'}
-                              loading='lazy'
-                            />
-                            <ImageListItemBar
-                              sx={{ pb: 5 }}
-                              title={'Rainbow Lorikeet'}
-                              subtitle={'Trichoglossus Moluccanus'}
-                            />
-                          </ImageListItem>
-                        </Box>
-                        <Box className='keen-slider__slide'>
-                          <ImageListItem>
-                            <img
-                              srcSet={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2x`}
-                              src={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format`}
-                              alt={'Breakfast'}
-                              loading='lazy'
-                            />
-                            <ImageListItemBar
-                              sx={{ pb: 5 }}
-                              title={'Rainbow Lorikeet'}
-                              subtitle={'Trichoglossus Moluccanus'}
-                            />
-                          </ImageListItem>
-                        </Box>
-                        <Box className='keen-slider__slide'>
-                          <ImageListItem>
-                            <img
-                              srcSet={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2x`}
-                              src={`https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format`}
-                              alt={'Breakfast'}
-                              loading='lazy'
-                            />
-                            <ImageListItemBar
-                              sx={{ pb: 5 }}
-                              title={'Rainbow Lorikeet'}
-                              subtitle={'Trichoglossus Moluccanus'}
-                            />
-                          </ImageListItem>
+                        <Box sx={{ width: '100%', position: 'absolute', bottom: 14 }} className='swiper-dots'>
+                          {loaded && instanceRef.current && (
+                            <Box className='swiper-dots'>
+                              {[...Array(instanceRef.current.track.details.slides.length).keys()].map(idx => {
+                                return (
+                                  <Badge
+                                    key={idx}
+                                    variant='dot'
+                                    component='div'
+                                    className={clsx({
+                                      active: currentSlide === idx
+                                    })}
+                                    style={{ backgroundColor: '#fff' }}
+                                    //   sx={{ backgroundColor: '#FFFFFF66' }}
+                                    onClick={() => {
+                                      instanceRef.current?.moveToIdx(idx)
+                                    }}
+                                  ></Badge>
+                                )
+                              })}
+                            </Box>
+                          )}
                         </Box>
                       </Box>
-                      <Box sx={{ width: '100%', position: 'absolute', bottom: 14 }} className='swiper-dots'>
-                        {loaded && instanceRef.current && (
-                          <Box className='swiper-dots'>
-                            {[...Array(instanceRef.current.track.details.slides.length).keys()].map(idx => {
-                              return (
-                                <Badge
-                                  key={idx}
-                                  variant='dot'
-                                  component='div'
-                                  className={clsx({
-                                    active: currentSlide === idx
-                                  })}
-                                  style={{ backgroundColor: '#fff' }}
-                                  //   sx={{ backgroundColor: '#FFFFFF66' }}
-                                  onClick={() => {
-                                    instanceRef.current?.moveToIdx(idx)
-                                  }}
-                                ></Badge>
-                              )
-                            })}
-                          </Box>
-                        )}
-                      </Box>
-                    </Box>
-                  </>
-                </KeenSliderWrapper>
+                    </>
+                  </KeenSliderWrapper>
+                ) : (
+                  <ImageListItem>
+                    <img
+                      srcSet={eggDetails?.default_icon}
+                      src={eggDetails?.default_icon}
+                      alt='default_icon'
+                      loading='lazy'
+                    />
+
+                    <ImageListItemBar
+                      sx={{ pb: 0 }}
+                      title={eggDetails?.default_common_name}
+                      // subtitle={'Trichoglossus Moluccanus'}
+                    />
+                  </ImageListItem>
+                )}
               </Box>
             </Grid>
             <Grid
@@ -180,7 +136,7 @@ const EggFirstSection = ({ eggDetails }) => {
               >
                 <Typography
                   sx={{
-                    textAlign: 'center',
+                    textAlign: { xs: 'center', sm: 'start' },
                     fontWeight: 600,
                     fontSize: '36px',
                     lineHeight: '43.57px',
@@ -225,6 +181,15 @@ const EggFirstSection = ({ eggDetails }) => {
                         Updated on 1 Apr 2024
                       </Typography>
                     </Box>
+                    {/* <Box>
+                      {' '}
+                      <Icon
+                        style={{ cursor: 'pointer' }}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                        icon='bi:pencil'
+                        fontSize={32}
+                      />
+                    </Box> */}
                   </Box>
                   <Box sx={{ display: 'flex', gap: '8px' }}>
                     <Box>
@@ -273,7 +238,7 @@ const EggFirstSection = ({ eggDetails }) => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      1 Apr 2024
+                      {moment(eggDetails?.lay_date).format('DD MMM YYYY')}
                     </Typography>
 
                     <Typography
@@ -284,7 +249,7 @@ const EggFirstSection = ({ eggDetails }) => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Found date
+                      Lay date
                     </Typography>
                   </Box>
                   <Box>
@@ -369,7 +334,7 @@ const EggFirstSection = ({ eggDetails }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Intact
+                        {eggDetails?.egg_condition}
                       </Typography>
                     </Box>
                     <Box>
