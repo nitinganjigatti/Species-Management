@@ -6,12 +6,10 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Router from 'next/router'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
-import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
 import {
   CardContent,
   Avatar,
@@ -165,8 +163,7 @@ const StepPreviewDiet = ({
       const inputString = type
       const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
       const textOnly = inputString.replace(/^\s*\d*\s*/, '')
-      console.log(numberOnly) // Output: "1"
-      console.log(textOnly, 'textOnly')
+
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
 
@@ -230,8 +227,7 @@ const StepPreviewDiet = ({
         weight_uom_label: name
       }
     })
-    console.log(apival, 'apival')
-    console.log(stateforHeader, 'stateforHeader')
+
     document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/`
     document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
@@ -268,8 +264,7 @@ const StepPreviewDiet = ({
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
         const parsedvaldiet = JSON?.parse(dietTypeChildVal)
-        console.log(parsedvaldiet, 'parsedvaldiet') // Use the parsed array as needed
-        console.log(parsedValue, 'parsedValue')
+
         const newarr = parsedvaldiet?.map((item, index) => ({
           unit: {
             value: {
@@ -290,8 +285,7 @@ const StepPreviewDiet = ({
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
         const parsedvaldiet = JSON?.parse(dietTypeChildVal)
-        console.log(parsedvaldiet, 'parsedvaldiet') // Use the parsed array as needed
-        console.log(parsedValue, 'parsedValue')
+
         const newarr = parsedvaldiet?.map((item, index) => ({
           unit: {
             value: {
@@ -347,35 +341,26 @@ const StepPreviewDiet = ({
       setErrorpop('')
       if (dietTypeval === 'ingredient') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData }
 
-        // Find the index of the meal_data object with matching mealid
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
-          // Find the index of the ingredient object with matching valueid and index
           const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredient.findIndex(
             (ingredient, i) => ingredient.mealid === ingredientvalueid && i === mealingredientIndex
           )
 
           if (ingredientIndex !== -1) {
-            // Get the existing meal_type array
             const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
 
-            // Check if formData.diet_type_name is "By Weight"
             if (formData.diet_type_name === 'By Weight') {
-              // Check if there's an existing object with the same meal_value_header
               const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
-                // Check if headertype is "Generic"
                 if (headertype === 'Generic') {
-                  // If headertype is "Generic", directly compare with headertype
                   return meal.meal_value_header === headertype
                 } else {
-                  // If headertype is not "Generic", compare with parseFloat(headertype)
                   return parseFloat(meal.meal_value_header) === parseFloat(headertype)
                 }
               })
-              console.log(existingMealTypeIndex, 'existingMealTypeIndex')
 
               // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
               if (existingMealTypeIndex !== -1) {
@@ -407,7 +392,6 @@ const StepPreviewDiet = ({
                 })
               }
             } else {
-              // If formData.diet_type_name is not "By Weight", update mealTypeArray without including weight_uom_id and weight_uom_label
               const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
@@ -428,19 +412,15 @@ const StepPreviewDiet = ({
               }
             }
 
-            // Update the meal_type array with the updated mealTypeArray
             updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
           }
         }
 
-        // Update the formData in the parent component using a function passed through props
         setlocalformData(updatedFormData)
         setOpen(false)
-        console.log(updatedFormData, 'updatedFormData')
       } else if (dietTypeval === 'recipe') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData } // Create a copy of formData
-        console.log(updatedFormData, 'updatedFormData')
 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -602,7 +582,7 @@ const StepPreviewDiet = ({
     }
 
     window.addEventListener('resize', handleResize)
-    // Clean up the event listener on component unmount
+
     return () => {
       window.removeEventListener('resize', handleResize)
     }
@@ -623,7 +603,7 @@ const StepPreviewDiet = ({
         } else if (formData?.child?.length > 2) {
           mediaElement.style.width = '510px'
         } else {
-          mediaElement.style.width = '566px' // Default width for 1440 if no specific condition is met
+          mediaElement.style.width = '566px'
         }
       } else if (screenSize.width === 1619) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
@@ -635,7 +615,7 @@ const StepPreviewDiet = ({
         } else if (formData?.child?.length > 2) {
           mediaElement.style.width = '510px'
         } else {
-          mediaElement.style.width = '500px' // Default width for 1440 if no specific condition is met
+          mediaElement.style.width = '500px'
         }
       } else if (screenSize.width === 1457) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
@@ -647,7 +627,7 @@ const StepPreviewDiet = ({
         } else if (formData?.child?.length > 2) {
           mediaElement.style.width = '500px'
         } else {
-          mediaElement.style.width = '500px' // Default width for 1440 if no specific condition is met
+          mediaElement.style.width = '500px'
         }
       } else if (screenSize.width === 1943) {
         if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
@@ -657,7 +637,7 @@ const StepPreviewDiet = ({
         } else if (formData?.child?.length > 1) {
           mediaElement.style.width = '665px'
         } else {
-          mediaElement.style.width = '568px' // Default width for 1440 if no specific condition is met
+          mediaElement.style.width = '568px'
         }
       }
     }
@@ -665,7 +645,6 @@ const StepPreviewDiet = ({
 
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
-      // Update the child in formData with diettypechildvalues
       const updatedFormData = { ...formData, child: diettypechildvalues }
       setlocalformData(updatedFormData) // Update local state
       setFormData(updatedFormData)
@@ -680,15 +659,10 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.ingredient) {
         meal.ingredient.forEach(ingredient => {
-          // Check if meal_type exists and it's not empty
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               console.log(mealType, 'mealType')
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -700,14 +674,9 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.recipe) {
         meal.recipe.forEach(recipe => {
-          // Check if meal_type exists and it's not empty
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             recipe.meal_type = recipe.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -719,14 +688,9 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.ingredientwithchoice) {
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
-          // Check if meal_type exists and it's not empty
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -735,14 +699,9 @@ const StepPreviewDiet = ({
         })
       }
     })
-
-    // Update the formData in the parent component using a function passed through props
     setlocalformData(updatedFormData)
     setOpen(false)
-    console.log(updatedFormData, 'updatedFormData')
-
-    // Add dependencies as needed
-  }, [formData.child]) // Add other dependencies if needed
+  }, [formData.child])
 
   const onSubmit = async data => {
     console.log(data, 'data')
@@ -1101,6 +1060,23 @@ const StepPreviewDiet = ({
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
+                            {/* {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: '1px solid #C3CEC7',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })} */}
                             <TableCell
                               sx={{
                                 border: 'none',
@@ -1405,7 +1381,7 @@ const StepPreviewDiet = ({
                                                       }}
                                                     >
                                                       &nbsp;-&nbsp; {item?.preparation_type}
-                                                      {item?.feed_cut_size + item.feed_uom_name}
+                                                      {/* {item?.feed_cut_size + item.feed_uom_name} */}
                                                     </Typography>
                                                   ))}
                                               </Box>

@@ -201,14 +201,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         type: 'manual',
         message: 'same weight not be allowed'
       })
-
-      // } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
-      //   if (item.maxWeight > 0) {
-      //     setError(`diet_types[${index}].weight`, {
-      //       type: 'manual',
-      //       message: 'Min Weight should be lower'
-      //     })
-      //   }
     } else {
       clearErrors(`diet_types[${index}]`, 'weight')
     }

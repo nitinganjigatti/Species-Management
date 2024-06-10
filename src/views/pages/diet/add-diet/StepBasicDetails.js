@@ -151,8 +151,6 @@ const StepBasicDetails = ({
   }
 
   const handleChildStateChange = value => {
-    console.log(value, 'value')
-    console.log(fieldsIngredients, 'fieldsIngredients')
     setChildStateValue(value)
 
     const uniqueValues = value.filter(
@@ -167,8 +165,6 @@ const StepBasicDetails = ({
           )
       )
       const updatedValues = [...filteredPrevState, ...uniqueValues]
-      console.log(fieldsIngredients)
-      console.log(updatedValues)
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
@@ -183,8 +179,6 @@ const StepBasicDetails = ({
   }
 
   const handleRecipeStateChange = value => {
-    console.log(value, 'card')
-    console.log(fieldsIngredients, 'fieldsIngredients')
     setRecipeChildStateValue(value)
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
@@ -199,10 +193,7 @@ const StepBasicDetails = ({
           )
       )
       const updatedValues = [...filteredPrevState, ...uniqueValues]
-      console.log(fieldsIngredients)
-      console.log(updatedValues)
 
-      // Update the fieldsIngredients with the new values
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
         field.recipe = updatedValues.filter(up => up?.mealid === field.mealid)
@@ -213,17 +204,13 @@ const StepBasicDetails = ({
     })
 
     setfinalrecipevalue(fieldsIngredients)
-    console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
   const handleIngredientchoiceStateChange = value => {
-    console.log(value, 'card')
-    console.log(fieldsIngredients, 'fieldsIngredients')
     setIngredientchoiceChildStateValue(value)
 
     setAllIngredientchoiceSelectedValues(value)
 
-    // Update the fieldsIngredients with the new values
     for (let i = 0; i < fieldsIngredients.length; i++) {
       const field = fieldsIngredients[i]
       field.ingredientwithchoice = value.filter(up => up?.mealid === field.mealid)
@@ -236,7 +223,6 @@ const StepBasicDetails = ({
     if (formData) {
       setUploadedImage(formData.diet_image)
 
-      // Flatten the array of arrays into a single array
       const flattenedIngredients = formData.meal_data?.flatMap(all =>
         all.ingredient?.map(ing => ({
           ...ing,
@@ -385,16 +371,12 @@ const StepBasicDetails = ({
     })
   }
 
-  console.log(fieldsIngredients, 'fields')
-
   const handleSidebarClose = () => {
     setOpenIngredient(false)
     setOpenIngredientchoice(false)
   }
 
   const onSubmit = async data => {
-    console.log(data, 'data')
-    console.log(fieldsIngredients, 'raaa')
     window.scrollTo(0, 0)
     try {
       await schema.validate(data, { abortEarly: false })
@@ -457,9 +439,7 @@ const StepBasicDetails = ({
 
         return invalidIndexes
       }, [])
-      console.log(invalidIndexes, 'invalidIndexes')
 
-      // If any invalid indexes found, display a toast error
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
           toast.error(`Meal ${index + 1} must contain at least one of Ingredient, Recipe, or Ingredients with choice.`)
@@ -526,9 +506,6 @@ const StepBasicDetails = ({
   }
 
   const addIngredientsButton = () => {
-    console.log(childStateValue, 'childStateValue')
-    console.log(finalvalue, 'finalvalue')
-
     return (
       <>
         <Grid
@@ -550,8 +527,6 @@ const StepBasicDetails = ({
               meal_from_time: '',
               meal_to_time: '',
               notes: ''
-
-              //ingredient: finalvalue.map(all => all.ingredient)
             })
           }}
         >
@@ -628,8 +603,6 @@ const StepBasicDetails = ({
   }
 
   const removeingClicking = (indexToRemove, val) => {
-    console.log(indexToRemove, 'indexToRemove')
-    console.log(val, 'val')
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       console.log(prevSelectedCard, 'prevSelectedCard')
@@ -638,9 +611,6 @@ const StepBasicDetails = ({
       const filteredChildStateValue = prevSelectedCard.filter((_, index) => index !== indexToRemove)
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-        // Filter out the entire object based on the index
-        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
-
         const updatedAllSelectedValues = prevAllSelectedValues.filter((ingredient, index) => {
           return index !== indexToRemove || ingredient.mealid !== val
         })
@@ -656,9 +626,7 @@ const StepBasicDetails = ({
 
         return field
       })
-      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
 
-      // Set the final value using setfinalvalueingredientchoice
       setfinalvalueingredientchoice(updatedFieldsIngredients)
       console.log(filteredChildStateValue, 'filteredChildStateValue')
 
@@ -759,7 +727,7 @@ const StepBasicDetails = ({
             }
             return ingredient
           })
-          .filter(ingredient => ingredient.ingredientList.length > 0) // Remove items with empty ingredientList
+          .filter(ingredient => ingredient.ingredientList.length > 0)
 
         return updatedAllSelectedValues
       })
@@ -780,9 +748,6 @@ const StepBasicDetails = ({
         return field
       })
 
-      console.log(fieldsIngredients, 'fieldsIngredients')
-      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
-      // Set the final value using setfinalvalueingredientchoice
       setfinalvalueingredientchoice(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -850,12 +815,12 @@ const StepBasicDetails = ({
                         onChange={(e, val) => {
                           console.log(val, 'val')
                           if (val === null) {
-                            setFormValue('diet_type_id', '') // Clear the diet_type_id value
-                            setFormValue('diet_type_name', '') // Clear the diet_type value
+                            setFormValue('diet_type_id', '')
+                            setFormValue('diet_type_name', '')
                             setFormValue('child', '')
                           } else {
-                            setFormValue('diet_type_id', val.id) // Set the diet_type_id value
-                            setFormValue('diet_type_name', val.diet_type_name) // Set the diet_type value
+                            setFormValue('diet_type_id', val.id)
+                            setFormValue('diet_type_name', val.diet_type_name)
                             setFormValue('child', val.child)
                             trigger('diet_type_id')
                           }
@@ -966,7 +931,6 @@ const StepBasicDetails = ({
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          {console.log(value, 'vvv')}
                           <TimePicker
                             label='Select time - from'
                             onChange={onChange}
@@ -1015,7 +979,6 @@ const StepBasicDetails = ({
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          {console.log(toValue?.$d, 'value')}
                           <TimePicker
                             label='Select time - to'
                             onChange={onChange}
@@ -1068,9 +1031,7 @@ const StepBasicDetails = ({
                     {allRecipeSelectedValues?.length > 0 ? (
                       allRecipeSelectedValues.map((all, index) => {
                         const matchingField = all?.mealid === field.mealid
-                        console.log(matchingField, 'matchingField')
-                        console.log(index, 'index')
-                        console.log(all, 'all')
+
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
@@ -1176,9 +1137,7 @@ const StepBasicDetails = ({
                     {allSelectedValues.length > 0 ? (
                       allSelectedValues.map((all, index) => {
                         const matchingField = all?.mealid === field.mealid
-                        console.log(matchingField, 'matchingField')
-                        console.log(all, 'all')
-                        console.log(index, 'index')
+
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
@@ -1285,8 +1244,7 @@ const StepBasicDetails = ({
                     {allIngredientchoiceSelectedValues.length > 0 ? (
                       allIngredientchoiceSelectedValues.map((all, index) => {
                         const matchingField = all?.mealid === field.mealid
-                        console.log(matchingField, 'matchingField')
-                        console.log(index, 'index')
+
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
@@ -1355,7 +1313,6 @@ const StepBasicDetails = ({
                                   mt: 3
                                 }}
                               >
-                                {console.log(selectedCard, 'selectedCard')}
                                 {all?.ingredientList?.map((all, index) => {
                                   console.log(all, 'all')
 
