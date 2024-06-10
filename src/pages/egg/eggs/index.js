@@ -99,19 +99,25 @@ const EggList = () => {
               <Icon icon='mdi:user' />
             )}
           </Avatar>
+
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography
-              noWrap
-              sx={{
-                color: theme.palette.primary.light,
-                fontSize: '16px',
-                fontWeight: '500',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.complete_name ? params.row.complete_name : '-'}
-            </Typography>
-            <Tooltip title={params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}>
+            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+              <Typography
+                sx={{
+                  color: theme.palette.primary.light,
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: '90%'
+                }}
+              >
+                {params.row.complete_name ? params.row.complete_name : '-'}
+              </Typography>
+            </Tooltip>
+            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
