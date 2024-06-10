@@ -420,17 +420,18 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'expiry_date',
-    //   headerName: 'EXPIRY DATE',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDisplayDate(params.row.expiry_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'procured_date',
+      headerName: 'PROCURED DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,

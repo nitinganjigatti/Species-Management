@@ -1,43 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import {
-  Card,
-  CardHeader,
-  Typography,
-  CardContent,
-  Grid,
-  FormHelperText,
-  FormControl,
-  TextField,
-  Button
-} from '@mui/material'
+import { Card, CardHeader, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
+import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { margin } from '@mui/system'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
 
-import { useForm, Controller } from 'react-hook-form'
-import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
-import TableWithFilter from 'src/components/TableWithFilter'
-
-const ListOfPurchase = () => {
+const ListOfStockAdjusted = () => {
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -69,11 +52,11 @@ const ListOfPurchase = () => {
           limit: paginationModel.pageSize
         }
 
-        await getPurchaseList({ params: params }).then(res => {
-          // console.log('getPurchaseList', res)
-          if (res?.success === true && res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
+        await stocksAdjustedList({ params: params }).then(res => {
+          console.log('stocksAdjustedList', res)
+          if (res?.success === true && res?.data?.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
           }
         })
         setLoading(false)
@@ -117,16 +100,24 @@ const ListOfPurchase = () => {
     []
   )
 
-  const handleEdit = id => {
-    Router.push({
-      pathname: '/pharmacy/purchase/add-purchase/',
-      query: { id: id, action: 'edit' }
-    })
-  }
+  // const handleEdit = id => {
+  //   Router.push({
+  //     pathname: '/pharmacy/purchase/add-purchase/',
+  //     query: { id: id, action: 'edit' }
+  //   })
+  // }
 
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
+  }
+
+  const renderUserAvatar = row => {
+    if (row.user_profile_pic) {
+      return <CustomAvatar src={row?.user_profile_pic} sx={{ mr: 3, width: 34, height: 34 }} />
+    } else {
+      return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
+    }
   }
 
   const columns = [
@@ -142,13 +133,55 @@ const ListOfPurchase = () => {
       )
     },
     {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Adjusted by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {renderUserAvatar(params.row)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.adjusted_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+
+    {
       flex: 0.2,
-      minWidth: 20,
-      field: 'po_date',
-      headerName: 'Purchase Date',
+      minWidth: 40,
+      field: 'stock_name',
+      headerName: 'Product Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.po_date)}
+          {params.row.stock_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'batch_no',
+      headerName: 'Batch number ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'Expiry  Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -156,90 +189,83 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'po_no',
-      headerName: 'Invoice NO',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.po_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'SUPPLIER NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'created_at',
-      headerName: 'Entry Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.created_at)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'net_amount',
-      headerName: 'Purchase Amount',
-      type: 'number',
       align: 'right',
+      field: 'adjustment_quantity',
+      headerName: 'Adjustment quantity',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.net_amount}
+          {params.row.adjustment_quantity}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'reason_name',
+      headerName: 'Reason',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.reason_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'comments',
+      headerName: 'Comments',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params?.row?.comments ? params?.row?.comments : 'NA'}
         </Typography>
       )
     }
-  ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'created_by_user_name',
+    //   headerName: 'Adjusted By',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
+
+    //   {
+    //     flex: 0.2,
+    //     minWidth: 20,
+    //     field: 'adjusted_at',
+    //     headerName: 'Date of Adjustment',
+    //     renderCell: params => (
+    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //         {Utility.formatDisplayDate(params.row.adjusted_at)}
+    //       </Typography>
+    //     )
+    //   }
+  ]
 
   const headerAction = (
     <Grid sx={{ display: 'flex', gap: 2 }}>
-      <ExcelExportButton
-        disabled={total === 0 ? true : false}
-        action={() => {
-          Router.push({
-            pathname: '/pharmacy/purchase/import-purchases/'
-
-            // pathname: '/pharmacy/purchase/import-purchases/v2'
-          })
-        }}
-        title='Import Inventory'
+      <AddButton
+        title='Add Stock Adjustment'
+        action={() => Router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
       />
-      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
     </Grid>
   )
 
-  const onRowClick = params => {
-    if (
-      selectedPharmacy.type === 'central' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
-    ) {
-      handleEdit(params.row.id)
-    }
-  }
-
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy.permission.key === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1 ||
+      selectedPharmacy.permission.stock_adjustment === '1' ? (
         loader ? (
           <FallbackSpinner />
         ) : (
           <>
             <Card>
-              <CardHeader title='Inventory List' action={headerAction} />
+              <CardHeader title='Stock Adjustment List' action={headerAction} />
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -279,7 +305,6 @@ const ListOfPurchase = () => {
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-                onRowClick={onRowClick}
               />
             </Card>
           </>
@@ -291,4 +316,4 @@ const ListOfPurchase = () => {
   )
 }
 
-export default ListOfPurchase
+export default ListOfStockAdjusted
