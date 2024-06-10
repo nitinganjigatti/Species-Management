@@ -9,9 +9,9 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import Overview from './overview'
 import NewEntry from './new-entries'
-import Batches from './[slug]'
+import Batches from './[id]'
 
-const Home = () => {
+const Home = ({ params, searchParams }) => {
   const [total, setTotal] = useState(0)
   const [status, setStatus] = useState('overview')
 
