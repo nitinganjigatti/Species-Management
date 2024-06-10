@@ -162,24 +162,29 @@ const ConditionSlider = ({ setOpenDrawer }) => {
                 </Grid>
 
                 {/* Text field with radio button for "Cold" */}
-                <Grid item xs={5.5} sx={{ mb: 3 }}>
-                  <TextField
-                    id='cold-textfield'
-                    label='Cold'
-                    variant='outlined'
-                    sx={{ mt: 5, mr: 4, mb: 4 }}
-                    InputProps={{
-                      endAdornment: (
-                        <FormControlLabel
-                          value='cold'
-                          control={<Radio checked={selectedOption === 'cold'} onChange={handleRadioChange} />}
-                          label=''
-                          sx={{ position: 'relative', left: '30px' }} // Adjust margin to align radio button with text
-                        />
-                      )
-                    }}
-                  />
-                </Grid>
+                <Card fullWidth sx={{ mt: 3 }}>
+                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    {/* Text field with radio button for "Warm" */}
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel id='cold-label'>Cold</InputLabel>
+                        <Select
+                          labelId='cold-label'
+                          value={selectedOption}
+                          onChange={handleRadioChange}
+                          sx={{ mt: 5, mr: 4, mb: 4 }}
+                          endAdornment={
+                            <RadioGroup row name='cold-radio-group' value={selectedOption} onChange={handleRadioChange}>
+                              <FormControlLabel value='cold' control={<Radio />} label='' />
+                            </RadioGroup>
+                          }
+                        >
+                          <MenuItem value=''>Cold</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </Card>
               </Grid>
             </Card>
 

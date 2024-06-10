@@ -15,7 +15,6 @@ import {
 import { Fragment, useContext, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
-import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'

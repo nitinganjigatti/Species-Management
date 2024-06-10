@@ -24,6 +24,7 @@ import moment from 'moment'
 import Router from 'next/router'
 import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
 import { GetEggList } from 'src/lib/api/egg/egg'
+import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
 
 const EggList = () => {
   const theme = useTheme()
@@ -40,6 +41,7 @@ const EggList = () => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isDiscarded, setIsDiscarded] = useState(null)
+  const [openNepoFile, setOpenNepoFile] = useState(false)
 
   const columns = [
     {
@@ -498,6 +500,17 @@ const EggList = () => {
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; Add New
         </Button>
+        <Button
+          size='small'
+          variant='contained'
+          sx={{ m: 1 }}
+          onClick={() => {
+            setOpenNepoFile(true)
+          }}
+        >
+          <Icon icon='mdi:add' fontSize={20} />
+          Necropsy
+        </Button>
       </div>
       {/* )} */}
     </>
@@ -558,6 +571,7 @@ const EggList = () => {
           </Box>
         )}
         {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} />}
+        {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )
   }
