@@ -100,46 +100,48 @@ const AddRecipe = () => {
     }
   }
 
-  // const IngredientTypeListSearch = debounce(async value => {
-  //   try {
-  //     await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }, 500)
+  const IngredientTypeListSearch = debounce(async value => {
+    try {
+      await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
 
   const callIngredientTypeList = async ({ status, page, limit, q }) => {
     try {
       const params = {
         //status,
         q,
-
         //active: 1,
         page,
         limit
       }
+
       await getIngredientList({ params: params }).then(res => {
         setIngredientTypeList(res?.data?.result)
-        setFullIngredientList(res?.data?.result)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...res?.data?.result.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       })
     } catch (e) {
       console.log(e)
     }
   }
-
-  const IngredientTypeListSearch = debounce(value => {
-    console.log(value, 'value')
-    if (value) {
-      const filteredList = fullIngredientList.filter(ingredient =>
-        ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
-      )
-      console.log(filteredList, 'filteredList')
-      setIngredientTypeList(filteredList)
-    } else {
-      // If no search value, show the full list
-      setIngredientTypeList(fullIngredientList)
-    }
-  }, 500)
+  // const IngredientTypeListSearch = debounce(value => {
+  //   console.log(value, 'value')
+  //   if (value) {
+  //     const filteredList = fullIngredientList.filter(ingredient =>
+  //       ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
+  //     )
+  //     console.log(filteredList, 'filteredList')
+  //     setIngredientTypeList(filteredList)
+  //   } else {
+  //     // If no search value, show the full list
+  //     setIngredientTypeList(fullIngredientList)
+  //   }
+  // }, 500)
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
