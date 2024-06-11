@@ -1,6 +1,7 @@
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import {
   Avatar,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
   Chip,
   Divider,
   Grid,
+  Link,
   Tab,
   Tooltip,
   Typography,
@@ -22,9 +24,9 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import Router from 'next/router'
-import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
-import { GetEggList } from 'src/lib/api/egg/egg'
-import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
+import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
+import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
+import DiscardForm from 'src/components/egg/DiscardForm'
 
 const EggList = () => {
   const theme = useTheme()
@@ -37,11 +39,19 @@ const EggList = () => {
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('1')
-  const [hoveredRowIndex, setHoveredRowIndex] = useState(false)
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [isDiscarded, setIsDiscarded] = useState(null)
-  const [openNepoFile, setOpenNepoFile] = useState(false)
+  const [status, setStatus] = useState('eggs_to_nursery')
+  const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
+  const [hover, setHover] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const [eggID, setEggId] = useState('')
+  console.log('isDiscarded :>> ', isDiscarded)
+
+  const handleDiscard = e => {
+    e.stopPropagation()
+    setIsOpen(true)
+    console.log('parent discard fn:>> ')
+  }
 
   const columns = [
     {
@@ -51,18 +61,16 @@ const EggList = () => {
       headerName: 'SL ',
       sortable: false,
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '12px',
-              fontWeight: '400',
-              lineHeight: '14.52px'
-            }}
-          >
-            {params.row.sl_no}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
       )
     },
     {
@@ -72,11 +80,7 @@ const EggList = () => {
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box
-          sx={{ display: 'flex', alignItems: 'center' }}
-          onMouseEnter={() => setHoveredRowIndex(params.row.id)}
-          onMouseLeave={() => setHoveredRowIndex(null)}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
@@ -144,7 +148,7 @@ const EggList = () => {
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
+        <Box sx={{}}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -200,18 +204,16 @@ const EggList = () => {
       field: 'discard_status',
       headerName: 'DISCARD STATUS',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.site ? params.row.site : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
+        </Typography>
       )
     },
 
@@ -241,40 +243,16 @@ const EggList = () => {
       field: 'collected_on',
       headerName: 'COLLECTED ON',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      sortable: false,
-      field: 'batch_no',
-      headerName: 'BATCH NO',
-      renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          {' '}
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.batch_no ? params.row.batch_no : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+        </Typography>
       )
     },
 
@@ -303,19 +281,24 @@ const EggList = () => {
       minWidth: 60,
       sortable: false,
       field: 'collected_by',
-      headerName: 'Collected By',
+      headerName: 'ADDED BY',
       renderCell: params => (
-        <Box
-          onMouseEnter={() => setHoveredRowIndex(params.row.id)}
-          onMouseLeave={() => setHoveredRowIndex(null)}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          {hoveredRowIndex === params.row.id ? (
-            <Button variant='contained' onClick={event => handleAction(event)}>
-              Allocate
-            </Button>
-          ) : (
+        <>
+          {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
             <>
+              <div>
+                <DiscardStatusCell
+                  params={params}
+                  setIsOpen={setIsOpen}
+                  handleDiscard={handleDiscard}
+                  setEggId={setEggId}
+
+                  // hover={hover} setHover={setHover}
+                />
+              </div>
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Avatar
                 variant='square'
                 alt='Medicine Image'
@@ -328,10 +311,10 @@ const EggList = () => {
                   overflow: 'hidden'
                 }}
               >
-                {params.row.collected_by?.profile_pic ? (
+                {params.row.user_profile_pic ? (
                   <img
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.collected_by?.profile_pic}
+                    src={params.row.user_profile_pic}
                     alt='Profile'
                   />
                 ) : (
@@ -348,7 +331,7 @@ const EggList = () => {
                     lineHeight: '16.94px'
                   }}
                 >
-                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+                  {params.row.user_full_name ? params.row.user_full_name : '-'}
                 </Typography>
                 <Typography
                   noWrap
@@ -359,47 +342,28 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+                  {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
                 </Typography>
               </Box>
-            </>
+            </Box>
           )}
-        </Box>
+        </>
       )
     }
-    // {
-    //   flex: 0.24,
-    //   minWidth: 20,
-    //   sortable: false,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Button
-    //       variant='contained'
-    //       onClick={e => {
-    //         handleAction(e)
-    //       }}
-    //     >
-    //       Allocate
-    //     </Button>
-    //   )
-    // }
   ]
 
-  const handleAction = event => {
-    event.stopPropagation()
-    setOpenDrawer(true)
-  }
-
   const onCellClick = params => {
-    if (hoveredRowIndex === params.row.id) {
-      // Handle cell click only if the row is not being hovered
-      console.log(params, 'params')
-      // Here, you can add the logic to handle the row hover action
-      // For example, you can navigate to a different page when a row is hovered
+    // console.log(params, 'params')
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const data = params.row
       Router.push({
-        pathname: `/egg/eggs/${params.row.id}`
+        pathname: `/egg/eggs/${data?.id}`
+
+        // pathname: `/egg/eggs/6`
       })
+    } else {
+      return
     }
   }
 
@@ -439,7 +403,7 @@ const EggList = () => {
           q,
 
           // sortColumn,
-          page: paginationModel.page + 1,
+          page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           type: status === 'eggs_to_discard' ? isDiscarded : status
         }
@@ -479,18 +443,19 @@ const EggList = () => {
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
-      setsortColumning(newModel[0].field)
 
-      //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      // setsortColumning(newModel[0].field)
+
+      // fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, status, isDiscarded) => {
       setSearchValue(q)
       try {
-        // await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, status, isDiscarded)
       } catch (error) {
         console.error(error)
       }
@@ -500,31 +465,18 @@ const EggList = () => {
 
   const headerAction = (
     <>
-      {/* {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && ( */}
-      <div>
-        <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
+      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; Add New
+          &nbsp; ADD New
         </Button>
-        <Button
-          size='small'
-          variant='contained'
-          sx={{ m: 1 }}
-          onClick={() => {
-            setOpenNepoFile(true)
-          }}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          Necropsy
-        </Button>
-      </div>
-      {/* )} */}
+      </Box>
     </>
   )
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, status, isDiscarded)
   }
 
   const tableData = () => {
@@ -576,28 +528,35 @@ const EggList = () => {
             />
           </Box>
         )}
-        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} />}
-        {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )
   }
 
   return (
-    <>
-      <Card>
+    <Box>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography color='inherit'>Egg</Typography>
+        <Link underline='hover' color='text.primary' href='/egg/eggs'>
+          Egg List
+        </Link>
+      </Breadcrumbs>
+      <Card sx={{ px: 5, py: 3 }}>
         <CardHeader title='Egg List' action={headerAction} />
         <CardContent>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               <Tab
                 value='eggs_to_nursery'
-                label={<TabBadge label='Recived' totalCount={status === '' ? total : null} />}
+                label={<TabBadge label='Recived' totalCount={status === 'eggs_to_nursery' ? total : null} />}
               />
-              <Tab value='2' label={<TabBadge label='Incubation' totalCount={status === '1' ? total : null} />} />
-              <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} />
+              <Tab
+                value='eggs_incubation'
+                label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
+              />
+              {/* <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} /> */}
               <Tab
                 value='eggs_to_discard'
-                label={<TabBadge label='Discarded' totalCount={status === '0' ? total : null} />}
+                label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
               />
             </TabList>
             <TabPanel value='eggs_to_nursery'>
@@ -605,27 +564,29 @@ const EggList = () => {
               <Divider sx={{ mt: -3 }} />
               {tableData()}
             </TabPanel>
-            <TabPanel value='2'>
+            <TabPanel value='eggs_incubation'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}
             </TabPanel>
-            <TabPanel value='3'>
+            {/* <TabPanel value='3'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}
-            </TabPanel>
+            </TabPanel> */}
             <TabPanel value='eggs_to_discard'>
               <Divider sx={{ mt: -3, mb: 3 }} />
               <TabContext value={isDiscarded}>
                 <TabList onChange={handleTabs}>
                   <Tab
                     value='eggs_to_discard'
-                    label={<TabBadge label='To Be Discarded' totalCount={status === '' ? total : null} />}
+                    label={
+                      <TabBadge label='To Be Discarded' totalCount={isDiscarded === 'eggs_to_discard' ? total : null} />
+                    }
                   />
                   <Tab
                     value='eggs_discarded'
-                    label={<TabBadge label='Discarded' totalCount={status === '' ? total : null} />}
+                    label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
                   />
                 </TabList>
                 <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
@@ -635,7 +596,9 @@ const EggList = () => {
           </TabContext>
         </CardContent>
       </Card>
-    </>
+
+      <DiscardForm isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
+    </Box>
   )
 }
 

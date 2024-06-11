@@ -225,3 +225,5 @@ export const NURSERY = 'nursery'
 export const INCUBATOR = 'incubator'
 
 export const EDIT = 'edit'
+
+export const DISCARD = 'discard'

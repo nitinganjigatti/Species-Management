@@ -5,15 +5,27 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 
 const DiscardStatusCell = ({
-  params
+  params,
+  setIsOpen,
+  handleDiscard,
+  setEggId
 
   //  hover, setHover
 }) => {
   const theme = useTheme()
-  console.log('params :>> ', params)
 
   const [hover, setHover] = useState(false)
   console.log('hover :>> ', hover)
+
+  // const handleDiscard = e => {
+  //   e.stopPropagation()
+  //   setIsOpen(true)
+  //   console.log('discard :>> ')
+  // }
+  if (params?.row?.egg_id) {
+    console.log('egg_id :>> ', params?.row?.egg_id)
+    setEggId(params?.row?.egg_id)
+  }
 
   return (
     <div
@@ -22,7 +34,7 @@ const DiscardStatusCell = ({
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
     >
       {hover ? (
-        <Button variant='contained' size='small' sx={{ px: 6, py: 2 }}>
+        <Button variant='contained' size='small' sx={{ px: 6, py: 2 }} onClick={handleDiscard}>
           Discard
         </Button>
       ) : (
