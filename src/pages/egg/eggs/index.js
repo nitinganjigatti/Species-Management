@@ -115,7 +115,7 @@ const EggList = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '90%'
+                  width: '100%'
                 }}
               >
                 {params.row.complete_name ? params.row.complete_name : '-'}
@@ -131,7 +131,7 @@ const EggList = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '50%'
+                  width: '100%'
                 }}
               >
                 {params.row?.default_common_name ? params.row?.default_common_name : '-'}
@@ -553,7 +553,10 @@ const EggList = () => {
                 value='eggs_incubation'
                 label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
               />
-              {/* <Tab value='3' label={<TabBadge label='Hatched' totalCount={status === '0' ? total : null} />} /> */}
+              <Tab
+                value='eggs_hatched'
+                label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+              />
               <Tab
                 value='eggs_to_discard'
                 label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
@@ -569,11 +572,11 @@ const EggList = () => {
               <Divider sx={{ mt: -3 }} />
               {tableData()}
             </TabPanel>
-            {/* <TabPanel value='3'>
+            <TabPanel value='eggs_hatched'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}
-            </TabPanel> */}
+            </TabPanel>
             <TabPanel value='eggs_to_discard'>
               <Divider sx={{ mt: -3, mb: 3 }} />
               <TabContext value={isDiscarded}>
