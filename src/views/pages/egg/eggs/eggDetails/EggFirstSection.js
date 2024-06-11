@@ -1,4 +1,14 @@
-import { Avatar, Button, Card, CardContent, Grid, ImageListItem, ImageListItemBar, Typography } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  IconButton,
+  ImageListItem,
+  ImageListItemBar,
+  Typography
+} from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -7,19 +17,22 @@ import Badge from '@mui/material/Badge'
 
 // ** Third Party Components
 import clsx from 'clsx'
+
 // import 'keen-slider/keen-slider.min.css'
 import { useKeenSlider } from 'keen-slider/react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
 
-import ConditionSlider from 'src/views/pages/egg/eggs/oonditionSlider'
+import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 
 const EggFirstSection = ({ eggDetails }) => {
   const theme = useTheme()
+
   const {
     settings: { direction }
   } = useSettings()
+
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -35,6 +48,7 @@ const EggFirstSection = ({ eggDetails }) => {
       setLoaded(true)
     }
   })
+
   return (
     <>
       <Card>
@@ -112,6 +126,7 @@ const EggFirstSection = ({ eggDetails }) => {
                     <ImageListItemBar
                       sx={{ pb: 0 }}
                       title={eggDetails?.default_common_name}
+
                       // subtitle={'Trichoglossus Moluccanus'}
                     />
                   </ImageListItem>
@@ -204,9 +219,7 @@ const EggFirstSection = ({ eggDetails }) => {
                       </Button>
                     </Box>
                     <Box>
-                      <Button variant='contained' onClick={() => setOpenDrawer(true)}>
-                        ALLOCATE
-                      </Button>
+                      <Button variant='contained'>ALLOCATE</Button>
                     </Box>
                   </Box>
                 </Box>
@@ -357,7 +370,9 @@ const EggFirstSection = ({ eggDetails }) => {
                     </Box>
                   </Box>
                   <Box>
-                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    <IconButton onClick={() => setOpenDrawer(true)}>
+                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    </IconButton>
                   </Box>
                 </Grid>
               </Grid>

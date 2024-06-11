@@ -249,4 +249,5 @@ const ConditionSlider = ({ setOpenDrawer }) => {
     </>
   )
 }
+
 export default ConditionSlider

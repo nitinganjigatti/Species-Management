@@ -85,8 +85,8 @@ const EggList = () => {
             variant='rounded'
             alt='Medicine Image'
             sx={{
-              width: 30,
-              height: 30,
+              width: 40,
+              height: 40,
               mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
@@ -94,11 +94,7 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.default_icon}
-                alt='Profile'
-              />
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
             ) : (
               <Icon icon='mdi:user' />
             )}
