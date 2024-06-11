@@ -226,4 +226,6 @@ export const INCUBATOR = 'incubator'
 
 export const EDIT = 'edit'
 
+export const DISCARD = 'discard'
+
 export const COMMENT = 'comment'
