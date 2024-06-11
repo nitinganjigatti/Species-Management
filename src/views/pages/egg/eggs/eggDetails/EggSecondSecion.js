@@ -12,6 +12,7 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import { styled } from '@mui/material/styles'
 import Styles from '../../../../../pages/egg/incubators/dot.module.css'
+import moment from 'moment'
 const columns = [
   { id: 'date', label: 'Date' },
   { id: 'ideal', label: 'Ideal' },
@@ -53,20 +54,20 @@ const CustomTableContainer = styled(TableContainer)({
 const EggSecondSecion = ({ eggDetails }) => {
   const historyData = {
     history1: {
-      Site: 'Yelahanka',
-      Section: 'SEC0012',
-      Enclosure: '24D',
-      Cage: 'C112',
-      'Nest Box': 'N123',
-      Shape: 'Normal'
+      Site: eggDetails?.site_name
+      // Section: 'SEC0012',
+      // Enclosure: '24D',
+      // Cage: 'C112',
+      // 'Nest Box': 'N123',
+      // Shape: 'Normal'
     },
     history2: {
-      'Mother id': '0000123456',
-      'Father id': 'Probable (5)',
-      'Collected on': '1 Apr 2024',
-      'Lay Date': '1 Apr 2024',
-      'Clutch No': 'NA',
-      'Collected By': 'Jordan Steveson'
+      // 'Mother id': '0000123456',
+      // 'Father id': 'Probable (5)',
+      'Collected on': moment(eggDetails?.collection_date).format('DD MMM YYYY'),
+      'Lay Date': moment(eggDetails?.lay_date).format('DD MMM YYYY')
+      // 'Clutch No': 'NA',
+      // 'Collected By': 'Jordan Steveson'
     }
   }
   const theme = useTheme()

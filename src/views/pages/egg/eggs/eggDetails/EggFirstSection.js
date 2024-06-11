@@ -58,7 +58,13 @@ const EggFirstSection = ({ eggDetails }) => {
                             <Box key={item?.id} className='keen-slider__slide'>
                               <ImageListItem>
                                 <img
-                                  srcSet={item?.egg_image || eggDetails?.default_icon}
+                                  // srcSet={item?.egg_image || eggDetails?.default_icon}
+                                  // srcSet={
+                                  //   'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2'
+                                  // }
+                                  // src={
+                                  //   'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2'
+                                  // }
                                   src={item?.egg_image || eggDetails?.default_icon}
                                   alt={item?.action}
                                   loading='lazy'
