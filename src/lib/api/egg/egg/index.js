@@ -1,5 +1,5 @@
 import { axiosGet, axiosPost } from '../../utility'
-import { ADD, COMMENT, DELETE, EGG, LIST, ADD, DISCARD } from 'src/constants/ApiConstant'
+import { ADD, COMMENT, DELETE, EGG, LIST, DISCARD } from 'src/constants/ApiConstant'
 
 export async function GetEggList({ params }) {
   const response = await axiosGet({ url: `${EGG}/detail/${LIST}`, params: params })
