@@ -1,4 +1,14 @@
-import { Avatar, Button, Card, CardContent, Grid, ImageListItem, ImageListItemBar, Typography } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  IconButton,
+  ImageListItem,
+  ImageListItemBar,
+  Typography
+} from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -35,6 +45,27 @@ const EggFirstSection = ({ eggDetails }) => {
       setLoaded(true)
     }
   })
+
+  function formatDate(dateString) {
+    const now = moment()
+    const date = moment(dateString)
+
+    const diffInSeconds = now.diff(date, 'seconds')
+    const diffInMinutes = now.diff(date, 'minutes')
+    const diffInHours = now.diff(date, 'hours')
+    const diffInDays = now.diff(date, 'days')
+
+    if (diffInSeconds < 60) {
+      return { count: diffInSeconds, label: `Sec${diffInSeconds !== 1 ? 's' : ''}` }
+    } else if (diffInMinutes < 60) {
+      return { count: diffInMinutes, label: `Min${diffInMinutes !== 1 ? 's' : ''}` }
+    } else if (diffInHours < 24) {
+      return { count: diffInHours, label: `Hour${diffInHours !== 1 ? 's' : ''}` }
+    } else {
+      return { count: diffInDays, label: `Day${diffInDays !== 1 ? 's' : ''}` }
+    }
+  }
+
   return (
     <>
       <Card>
@@ -233,18 +264,52 @@ const EggFirstSection = ({ eggDetails }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Avatar sx={{ width: '64px', height: '64px', borderRadius: '8px' }} variant='square'></Avatar>
+                  <Box
+                    sx={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      padding: '4px',
+                      backgroundColor: theme.palette.primary.light
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.contrastText,
+                        fontWeight: 600,
+                        fontSize: '28px',
+                        lineHeight: '33.89px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {' '}
+                      {formatDate(eggDetails?.collection_date)?.count}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.contrastText,
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        lineHeight: '19.36px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {' '}
+                      {formatDate(eggDetails?.collection_date)?.label}
+                    </Typography>
+                  </Box>
+
                   <Box sx={{}}>
                     <Typography
                       sx={{
                         fontWeight: 500,
                         mb: '6px',
-                        fontSize: '20px',
+                        fontSize: { xxl: '20px', xl: '20px', lg: '18px', xs: '20px' },
                         lineHeight: '24.2px',
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {moment(eggDetails?.lay_date).format('DD MMM YYYY')}
+                      {moment(eggDetails?.collection_date).format('DD MMM YYYY')}
                     </Typography>
 
                     <Typography
@@ -255,7 +320,7 @@ const EggFirstSection = ({ eggDetails }) => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Lay date
+                      Found date
                     </Typography>
                   </Box>
                   <Box>
@@ -279,8 +344,21 @@ const EggFirstSection = ({ eggDetails }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Avatar sx={{ width: '64px', height: '64px', borderRadius: '8px' }} variant='square'></Avatar>
-
+                  <Box
+                    sx={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      backgroundColor: '#00D6C9'
+                    }}
+                  >
+                    <Avatar
+                      sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                      src={'/icons/weightColor.png'}
+                      variant='square'
+                    ></Avatar>
+                  </Box>
                   <Box>
                     <Box>
                       <Typography
@@ -321,14 +399,44 @@ const EggFirstSection = ({ eggDetails }) => {
                   sx={{
                     display: 'flex',
                     height: '88px',
-                    backgroundColor: '#37BD691A',
+                    backgroundColor:
+                      eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
+                        ? '#37BD691A'
+                        : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
+                        ? '#FFBDA84D'
+                        : eggDetails?.egg_condition === 'Hatched'
+                        ? '#37BD691A'
+                        : '#37BD691A',
+
                     p: '12px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}
                 >
-                  <Avatar sx={{ width: '64px', height: '64px', borderRadius: '8px' }} variant='square'></Avatar>
+                  <Box
+                    sx={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      backgroundColor: theme.palette.primary.contrastText
+                    }}
+                  >
+                    <Avatar
+                      sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                      src={
+                        eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
+                          ? '/icons/Egg Fertile.png'
+                          : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
+                          ? '/icons/Egg Discard.png'
+                          : eggDetails?.egg_condition === 'Hatched'
+                          ? '/icons/Egg Hatched.png'
+                          : '/icons/Egg Fertile.png'
+                      }
+                      variant='square'
+                    ></Avatar>
+                  </Box>
 
                   <Box>
                     <Box>
@@ -349,10 +457,17 @@ const EggFirstSection = ({ eggDetails }) => {
                           fontWeight: 600,
                           fontSize: '14px',
                           lineHeight: '16.94px',
-                          color: theme.palette.primary.main
+                          color:
+                            eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
+                              ? theme.palette.primary.main
+                              : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
+                              ? theme.palette.formContent.tertiary
+                              : eggDetails?.egg_condition === 'Hatched'
+                              ? theme.palette.primary.main
+                              : theme.palette.primary.main
                         }}
                       >
-                        Warm Condition
+                        {eggDetails?.egg_initial_temperature} Condition
                       </Typography>
                     </Box>
                   </Box>

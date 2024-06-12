@@ -47,11 +47,11 @@ const EggComment = ({ eggDetails, eggId }) => {
   const [limit, setLimit] = useState(10)
   const [reachedEnd, setReachedEnd] = useState(false)
   let [commentsPage, setCommentsPage] = useState(1)
-  const [commentsFilterValue, setCommentsFilterValue] = useState('')
-  const commentsFilterValueRef = useRef(commentsFilterValue)
-  useEffect(() => {
-    commentsFilterValueRef.current = commentsFilterValue
-  }, [commentsFilterValue])
+  // const [commentsFilterValue, setCommentsFilterValue] = useState('')
+  // const commentsFilterValueRef = useRef(commentsFilterValue)
+  // useEffect(() => {
+  //   commentsFilterValueRef.current = commentsFilterValue
+  // }, [commentsFilterValue])
   const [commentList, setCommentList] = useState([])
   const [commentLoader, setCommentLoader] = useState(false)
   const [commentText, setCommentText] = useState('')
@@ -70,10 +70,10 @@ const EggComment = ({ eggDetails, eggId }) => {
       // setCommentLoader(true)
       getEggComments(params).then(res => {
         if (res.success) {
-          if (res?.data?.length > 0) {
+          setCommentLoader(false)
+          if (res?.data?.result?.length > 0) {
             // setCommentList(res.data)
-            setCommentList(prevArray => [...prevArray, ...res?.data])
-            setCommentLoader(false)
+            setCommentList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
           }
         } else {
@@ -97,7 +97,7 @@ const EggComment = ({ eggDetails, eggId }) => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && shouldCallList) {
+    if (container.scrollHeight - Math.round(container.scrollTop + 1) === container.clientHeight && shouldCallList) {
       // User has reached the bottom, perform your action here
       setCommentsPage(++commentsPage)
       setReachedEnd(true)
@@ -173,8 +173,8 @@ const EggComment = ({ eggDetails, eggId }) => {
 
         getEggComments({ egg_id: eggId, page_no: 1, limit }).then(res => {
           if (res.success) {
-            if (res?.data?.length > 0) {
-              setCommentList(res?.data)
+            if (res?.data?.result?.length > 0) {
+              setCommentList(res?.data?.result)
               setCommentLoader(false)
               setReachedEnd(false)
             }
@@ -186,7 +186,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         })
         // return toast()
       } else {
-        setCommentLoader(false)(false)
+        setCommentLoader(false)
       }
     } catch (error) {
       console.log('error', error)
@@ -253,8 +253,11 @@ const EggComment = ({ eggDetails, eggId }) => {
                 Previous Comments
               </Typography>
             </Box>
-            <CustomBox onScroll={handleScroll} sx={{ height: '400px', overflowY: 'auto' }}>
-              {commentList.length ? (
+            <CustomBox
+              onScroll={handleScroll}
+              sx={{ height: commentList?.length ? '400px' : '20px', overflowY: 'auto' }}
+            >
+              {commentList?.length ? (
                 commentList?.map((item, index) => (
                   <Box
                     sx={{

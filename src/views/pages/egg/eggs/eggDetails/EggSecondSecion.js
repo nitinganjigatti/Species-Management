@@ -54,9 +54,9 @@ const CustomTableContainer = styled(TableContainer)({
 const EggSecondSecion = ({ eggDetails }) => {
   const historyData = {
     history1: {
-      Site: eggDetails?.site_name
-      // Section: 'SEC0012',
-      // Enclosure: '24D',
+      Site: eggDetails?.site_name,
+      Section: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name,
+      Enclosure: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name
       // Cage: 'C112',
       // 'Nest Box': 'N123',
       // Shape: 'Normal'
