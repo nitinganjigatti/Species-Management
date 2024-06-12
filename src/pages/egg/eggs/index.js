@@ -47,9 +47,8 @@ const EggList = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   const [eggID, setEggId] = useState('')
-  const [eggId, setEggId] = useState(null)
+  const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [isDiscarded, setIsDiscarded] = useState(null)
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
@@ -58,7 +57,6 @@ const EggList = () => {
     setIsOpen(true)
     console.log('parent discard fn:>> ')
   }
-
 
   const columns = [
     {
@@ -155,32 +153,16 @@ const EggList = () => {
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box sx={{}}>
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
-          {/* <Typography
-            sx={{
-              color:
-                params.row.egg_condition === 'intact' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-              fontSize: '14px',
-              fontWeight: '500',
-              lineHeight: '16.94px',
-              backgroundColor: '#E1F9ED',
-              p: '3px',
-              textAlign: 'center',
-              borderRadius: '4px'
-            }}
-          >
-            {params.row.egg_condition ? params.row.egg_condition : '-'}
-          </Typography> */
+        <Typography
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '500',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.egg_code ? params.row.egg_code : '-'}
+        </Typography>
       )
     },
 
@@ -290,6 +272,9 @@ const EggList = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
+          <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
+            Allocate{' '}
+          </Button>
           {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
             <>
               <div>
@@ -308,6 +293,7 @@ const EggList = () => {
               <Avatar
                 variant='square'
                 alt='Medicine Image'
+                className='hideField'
                 sx={{
                   width: 30,
                   height: 30,
@@ -327,7 +313,7 @@ const EggList = () => {
                   <Icon icon='mdi:user' />
                 )}
               </Avatar>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }} className='hideField'>
                 <Typography
                   noWrap
                   sx={{
@@ -359,11 +345,9 @@ const EggList = () => {
   ]
 
   const handleAction = (event, id) => {
-    debugger
-    console.log('Id >>', id)
     event.stopPropagation()
     setOpenDrawer(true)
-    setEggId(id)
+    setAllocateEggId(id)
   }
 
   const onCellClick = params => {
@@ -553,7 +537,7 @@ const EggList = () => {
             />
           </Box>
         )}
-        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} eggId={eggId} />}
+        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )

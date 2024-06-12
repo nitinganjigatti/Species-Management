@@ -30,5 +30,3 @@ export async function GetRoomByNursery(id) {
 
   return response.data
 }
-
-

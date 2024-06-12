@@ -25,7 +25,7 @@ import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 
-const AllocationSlider = ({ setOpenDrawer, eggId }) => {
+const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
   const [nurseryName, setNurseryName] = useState([])
   const [roomName, setRoomName] = useState([])
   const [incubatorName, setIncubatorName] = useState([])
@@ -57,14 +57,10 @@ const AllocationSlider = ({ setOpenDrawer, eggId }) => {
     name: 'measurements'
   })
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoader(true)
-
-        const response1 = await GetMasterList()
-        console.log('response1 >>', response1.data)
 
         const nurseryData = await GetNurseryList({ params: '' })
         if (nurseryData?.data?.result) {
@@ -86,6 +82,7 @@ const AllocationSlider = ({ setOpenDrawer, eggId }) => {
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
+          console.log('assesment >', assesmentTypes?.data.length)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
@@ -101,10 +98,9 @@ const AllocationSlider = ({ setOpenDrawer, eggId }) => {
   }, [])
 
   const onSubmit = async values => {
-   
     try {
       let params = {
-        egg_id: eggId,
+        egg_id: allocateEggId,
         incubator_id: values.incubator,
         egg_initial_assessment: JSON.stringify(values.measurements)
       }
@@ -279,7 +275,7 @@ const AllocationSlider = ({ setOpenDrawer, eggId }) => {
                       </FormControl>
                     </Grid>
                     <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '80%' }}>
+                      <FormControl sx={{ mt: 5, ml: 7, width: '80%' }}>
                         <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
                           {measurement?.unit_name}
                         </InputLabel>
