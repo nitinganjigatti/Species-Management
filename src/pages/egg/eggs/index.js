@@ -25,6 +25,7 @@ import Router from 'next/router'
 import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
+import { useMemo } from 'react'
 
 const EggList = () => {
   const theme = useTheme()
@@ -42,6 +43,7 @@ const EggList = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isDiscarded, setIsDiscarded] = useState(null)
   const [openNepoFile, setOpenNepoFile] = useState(false)
+  const [eggId, setEggId] = useState(null)
 
   const columns = [
     {
@@ -51,18 +53,16 @@ const EggList = () => {
       headerName: 'SL ',
       sortable: false,
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '12px',
-              fontWeight: '400',
-              lineHeight: '14.52px'
-            }}
-          >
-            {params.row.sl_no}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
       )
     },
     {
@@ -75,7 +75,7 @@ const EggList = () => {
         <Box
           sx={{ display: 'flex', alignItems: 'center' }}
           onMouseEnter={() => setHoveredRowIndex(params.row.id)}
-          onMouseLeave={() => setHoveredRowIndex(null)}
+          //onMouseLeave={() => setHoveredRowIndex(null)}
         >
           <Avatar
             variant='rounded'
@@ -138,18 +138,17 @@ const EggList = () => {
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
-          {/* <Typography
+        <Typography
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '500',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.egg_code ? params.row.egg_code : '-'}
+        </Typography>
+        /* <Typography
             sx={{
               color:
                 params.row.egg_condition === 'intact' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
@@ -163,8 +162,7 @@ const EggList = () => {
             }}
           >
             {params.row.egg_condition ? params.row.egg_condition : '-'}
-          </Typography> */}
-        </Box>
+          </Typography> */
       )
     },
 
@@ -194,18 +192,16 @@ const EggList = () => {
       field: 'discard_status',
       headerName: 'DISCARD STATUS',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.site ? params.row.site : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.site ? params.row.site : '-'}
+        </Typography>
       )
     },
 
@@ -235,18 +231,16 @@ const EggList = () => {
       field: 'collected_on',
       headerName: 'COLLECTED ON',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.collected_on ? moment(params.row.collected_on).format('DD/MM/YYYY') : '-'}
+        </Typography>
       )
     },
     {
@@ -256,19 +250,16 @@ const EggList = () => {
       field: 'batch_no',
       headerName: 'BATCH NO',
       renderCell: params => (
-        <Box onMouseEnter={() => setHoveredRowIndex(params.row.id)} onMouseLeave={() => setHoveredRowIndex(null)}>
-          {' '}
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.batch_no ? params.row.batch_no : '-'}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.batch_no ? params.row.batch_no : '-'}
+        </Typography>
       )
     },
 
@@ -299,66 +290,66 @@ const EggList = () => {
       field: 'collected_by',
       headerName: 'Collected By',
       renderCell: params => (
-        <Box
-          onMouseEnter={() => setHoveredRowIndex(params.row.id)}
-          onMouseLeave={() => setHoveredRowIndex(null)}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          {hoveredRowIndex === params.row.id ? (
-            <Button variant='contained' onClick={event => handleAction(event)}>
-              Allocate
-            </Button>
-          ) : (
-            <>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                sx={{
-                  width: 30,
-                  height: 30,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
-                }}
-              >
-                {params.row.collected_by?.profile_pic ? (
-                  <img
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.collected_by?.profile_pic}
-                    alt='Profile'
-                  />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
-                </Typography>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    lineHeight: '14.52px'
-                  }}
-                >
-                  {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
-                </Typography>
-              </Box>
-            </>
-          )}
-        </Box>
+        <>
+          {console.log('params', params)}
+
+          <Button
+            variant='contained'
+            onClick={event => handleAction(event, params.row.id)}
+            className='customButton'
+            // style={{ display: params.row.isHovered ? 'block' : 'none' }} // Show button only when row is hovered
+          >
+            Allocate
+          </Button>
+
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            className='hideField'
+            sx={{
+              width: 30,
+              height: 30,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.collected_by?.profile_pic ? (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src={params.row.collected_by?.profile_pic}
+                alt='Profile'
+              />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+          <Box className='hideField' sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '16.94px'
+              }}
+            >
+              {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
+            </Typography>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '14.52px'
+              }}
+            >
+              {params.row?.collected_by?.designantion ? params.row?.collected_by?.designantion : '-'}
+            </Typography>
+          </Box>
+        </>
       )
     }
     // {
@@ -380,21 +371,22 @@ const EggList = () => {
     // }
   ]
 
-  const handleAction = event => {
+  const handleAction = (event, id) => {
+    debugger
+    console.log('Id >>', id)
     event.stopPropagation()
     setOpenDrawer(true)
+    setEggId(id)
   }
 
   const onCellClick = params => {
-    if (hoveredRowIndex === params.row.id) {
-      // Handle cell click only if the row is not being hovered
-      console.log(params, 'params')
-      // Here, you can add the logic to handle the row hover action
-      // For example, you can navigate to a different page when a row is hovered
-      Router.push({
-        pathname: `/egg/eggs/${params.row.id}`
-      })
-    }
+    // Handle cell click only if the row is not being hovered
+    console.log(params, 'params')
+    // Here, you can add the logic to handle the row hover action
+    // For example, you can navigate to a different page when a row is hovered
+    Router.push({
+      pathname: `/egg/eggs/${params.row.id}`
+    })
   }
 
   const TabBadge = ({ label, totalCount }) => (
@@ -533,9 +525,20 @@ const EggList = () => {
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
+                },
+                '& .MuiDataGrid-row:hover .customButton': {
+                  display: 'block'
+                },
+                '& .MuiDataGrid-row:hover .hideField': {
+                  display: 'none'
+                },
+                '& .MuiDataGrid-row .customButton': {
+                  display: 'none'
+                },
+                '& .MuiDataGrid-row .hideField': {
+                  display: 'block'
                 }
               }}
               columnVisibilityModel={{
@@ -570,7 +573,7 @@ const EggList = () => {
             />
           </Box>
         )}
-        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} />}
+        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} eggId={eggId} />}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )

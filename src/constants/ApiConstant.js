@@ -224,4 +224,6 @@ export const NURSERY = 'nursery'
 
 export const INCUBATOR = 'incubator'
 
+export const ASSESMENT_TYPES = "egg/default_assessment_types"
+
 export const EDIT = 'edit'
