@@ -90,7 +90,7 @@ const UserThemeOptions = () => {
           },
           cell: {
             // Your styles for the DataGrid cells...
-            borderBottom: 'none',
+            // borderBottom: 'none',
             marginBottom: '5px',
             paddingLeft: '1.25rem',
             paddingRight: '1rem',
