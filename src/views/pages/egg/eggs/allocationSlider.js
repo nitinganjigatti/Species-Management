@@ -57,6 +57,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
     name: 'measurements'
   })
 
+  console.log('GetValues >>', getValues())
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,109 +146,103 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', p: theme => theme.spacing(5, 6) }}>
+        <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Typography variant='h6' sx={{ mt: 5 }}>
               Incubator Selection
             </Typography>
 
             <Card fullWidth sx={{ mt: 3 }}>
-              <form autoComplete='off'>
-                <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
-                  <InputLabel error={Boolean(errors?.nursery_name)} id='nursery_name_label'>
-                    Nursery Name
-                  </InputLabel>
-                  <Controller
-                    name='nursery_name'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='nursery_name'
-                        value={value}
-                        label='Nursery Name'
-                        onChange={onChange}
-                        error={Boolean(errors?.nursery_name)}
-                        labelId='nursery_name_label'
-                      >
-                        {nurseryName.map(nursery => (
-                          <MenuItem key={nursery?.nursery_id} value={nursery?.nursery_id}>
-                            {nursery?.nursery_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_name?.message}</FormHelperText>
+              <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
+                <InputLabel error={Boolean(errors?.nursery_name)} id='nursery_name_label'>
+                  Nursery Name*
+                </InputLabel>
+                <Controller
+                  name='nursery_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='nursery_name'
+                      value={value}
+                      label='Nursery Name'
+                      onChange={onChange}
+                      error={Boolean(errors?.nursery_name)}
+                      labelId='nursery_name_label'
+                    >
+                      {nurseryName.map(nursery => (
+                        <MenuItem key={nursery?.nursery_id} value={nursery?.nursery_id}>
+                          {nursery?.nursery_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
                   )}
-                </FormControl>
+                />
+                {errors && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_name?.message}</FormHelperText>
+                )}
+              </FormControl>
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
-                  <InputLabel error={Boolean(errors?.room)} id='room_label'>
-                    Room
-                  </InputLabel>
-                  <Controller
-                    name='room'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='room'
-                        value={value}
-                        label='Room'
-                        onChange={onChange}
-                        error={Boolean(errors?.room)}
-                        labelId='room_label'
-                      >
-                        {roomName.map(room => (
-                          <MenuItem key={room.room_id} value={room.room_id}>
-                            {room.room_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>}
-                </FormControl>
+              <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
+                <InputLabel error={Boolean(errors?.room)} id='room_label'>
+                  Room*
+                </InputLabel>
+                <Controller
+                  name='room'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='room'
+                      value={value}
+                      label='Room'
+                      onChange={onChange}
+                      error={Boolean(errors?.room)}
+                      labelId='room_label'
+                    >
+                      {roomName.map(room => (
+                        <MenuItem key={room.room_id} value={room.room_id}>
+                          {room.room_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>}
+              </FormControl>
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 2, mb: 4 }}>
-                  <InputLabel error={Boolean(errors?.incubator)} id='incubator_label'>
-                    Incubator
-                  </InputLabel>
-                  <Controller
-                    name='incubator'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='incubator'
-                        value={value}
-                        label='Incubator'
-                        onChange={onChange}
-                        error={Boolean(errors?.incubator)}
-                        labelId='incubator_label'
-                      >
-                        {incubatorName.map(incubator => (
-                          <MenuItem key={incubator.incubator_id} value={incubator.incubator_id}>
-                            {incubator.incubator_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
-                </FormControl>
-
-                <Box sx={{ display: 'flex', alignItems: 'center' }}></Box>
-              </form>
+              <FormControl sx={{ width: '95%', ml: 3, mt: 2, mb: 4 }}>
+                <InputLabel error={Boolean(errors?.incubator)} id='incubator_label'>
+                  Incubator*
+                </InputLabel>
+                <Controller
+                  name='incubator'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='incubator'
+                      value={value}
+                      label='Incubator'
+                      onChange={onChange}
+                      error={Boolean(errors?.incubator)}
+                      labelId='incubator_label'
+                    >
+                      {incubatorName.map(incubator => (
+                        <MenuItem key={incubator.incubator_id} value={incubator.incubator_id}>
+                          {incubator.incubator_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
+              </FormControl>
             </Card>
 
-            <Grid>
-              <Typography variant='h6' sx={{ mt: 5 }}>
-                Egg Measurements
-              </Typography>
-            </Grid>
+            <Typography variant='h6' sx={{ mt: 5 }}>
+              Egg Measurements
+            </Typography>
 
             {loader ? (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -255,27 +250,31 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
               </Box>
             ) : (
               fields.map((measurement, index) => (
-                <Card fullWidth sx={{ mt: 3 }} key={index}>
+                <Card fullWidth sx={{ mt: 3, mb: 10 }} key={index}>
                   <Grid container sx={{ mb: 3 }}>
                     <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 5, width: '80%' }}>
+                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
                         <Controller
                           name={`measurements[${index}].assessment_value`}
                           control={control}
-                          render={({ field: { value, onChange } }) => (
+                          render={({ field: { value, onChange }, fieldState: { error } }) => (
                             <TextField
                               label={measurement.assessment_type_string_id}
                               value={value}
                               onChange={onChange}
                               focused={value !== ''}
                               name={`measurements[${index}].assessment_value`}
+                              inputProps={{ type: 'number', pattern: '[0-9]*' }}
+                              error={!!error}
+                              helperText={error ? 'Please enter a valid number' : ''}
                             />
                           )}
+                          rules={{ required: 'Value is required.', pattern: /^[0-9]*$/ }}
                         />
                       </FormControl>
                     </Grid>
                     <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 7, width: '80%' }}>
+                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
                         <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
                           {measurement?.unit_name}
                         </InputLabel>
@@ -283,10 +282,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                           name={`measurements[${index}].measurement_unit_id`}
                           control={control}
                           rules={{ required: true }}
+                          defaultValue={measurement.unit_id}
                           render={({ field: { value, onChange } }) => (
                             <Select
                               name={`measurements[${index}].measurement_unit_id`}
                               value={value}
+                              disabled={measurement.default_measurement_unit_string_id && true}
                               label={measurement?.unit_name}
                               onChange={onChange}
                               error={Boolean(errors?.condition)}
@@ -317,8 +318,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                 </Card>
               ))
             )}
-
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 'auto', mt: 5 }}>
+            <Box>
               <LoadingButton fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
                 Submit
               </LoadingButton>
