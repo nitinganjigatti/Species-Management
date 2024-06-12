@@ -266,15 +266,16 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                               onChange={onChange}
                               focused={value !== ''}
                               name={`measurements[${index}].assessment_value`}
-                              inputProps={{ type: 'number', pattern: '[0-9]*' }}
+                              inputProps={{ type: 'number', step: 'any' }} // Set type to 'number' and step to 'any'
                               error={!!error}
                               helperText={error ? 'Please enter a valid number' : ''}
                             />
                           )}
-                          rules={{ required: 'Value is required.', pattern: /^[0-9]*$/ }}
+                          rules={{ required: 'Value is required.' }} // No need for pattern validation for floating point numbers
                         />
                       </FormControl>
                     </Grid>
+
                     <Grid item xs={6}>
                       <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
                         <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
@@ -332,7 +333,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                 alignItems: 'center'
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
+              <LoadingButton
+                fullWidth
+                variant='contained'
+                type='submit'
+                disabled={loader && true}
+                sx={{ height: '50px' }}
+              >
                 Submit
               </LoadingButton>
             </Box>
