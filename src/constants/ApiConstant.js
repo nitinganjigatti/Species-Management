@@ -227,3 +227,7 @@ export const INCUBATOR = 'incubator'
 export const ASSESMENT_TYPES = "egg/default_assessment_types"
 
 export const EDIT = 'edit'
+
+export const DISCARD = 'discard'
+
+export const COMMENT = 'comment'
