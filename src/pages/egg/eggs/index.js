@@ -85,8 +85,8 @@ const EggList = () => {
             variant='rounded'
             alt='Medicine Image'
             sx={{
-              width: 40,
-              height: 40,
+              width: 35,
+              height: 35,
               mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
@@ -155,21 +155,43 @@ const EggList = () => {
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
-          {/* <Typography
+          <Typography
             sx={{
               color:
-                params.row.egg_condition === 'intact' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+                params.row.egg_condition === 'Intact'
+                  ? theme.palette.primary.main
+                  : params.row.egg_condition === 'Rotten'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Hatched'
+                  ? '#32bfdd'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#fa6140'
+                  : null,
               fontSize: '14px',
               fontWeight: '500',
-              lineHeight: '16.94px',
-              backgroundColor: '#E1F9ED',
-              p: '3px',
+              px: 3,
+
+              backgroundColor:
+                params.row.egg_condition === 'Rotten'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#FFD3D3'
+                  : '#E1F9ED',
+
               textAlign: 'center',
               borderRadius: '4px'
             }}
           >
             {params.row.egg_condition ? params.row.egg_condition : '-'}
-          </Typography> */}
+          </Typography>
         </Box>
       )
     },
