@@ -261,7 +261,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                           control={control}
                           render={({ field: { value, onChange }, fieldState: { error } }) => (
                             <TextField
-                              label={measurement.assessment_type_string_id}
+                              label={`${
+                                measurement.assessment_type_string_id.charAt(0).toUpperCase() +
+                                measurement.assessment_type_string_id.slice(1)
+                              }*`}
                               value={value}
                               onChange={onChange}
                               focused={value !== ''}
@@ -321,28 +324,30 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId }) => {
                 </Card>
               ))
             )}
-            <Box
-              sx={{
-                position: 'fixed',
-                bottom: 0,
-                height: '80px',
-                backgroundColor: '#fff',
-                width: '600px',
-                px: 4,
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              <LoadingButton
-                fullWidth
-                variant='contained'
-                type='submit'
-                disabled={loader && true}
-                sx={{ height: '50px' }}
+            <Card>
+              <Box
+                sx={{
+                  position: 'fixed',
+                  bottom: 0,
+                  height: '80px',
+                  backgroundColor: '#fff',
+                  width: '600px',
+                  px: 4,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
               >
-                Submit
-              </LoadingButton>
-            </Box>
+                <LoadingButton
+                  fullWidth
+                  variant='contained'
+                  type='submit'
+                  disabled={loader && true}
+                  sx={{ height: '50px' }}
+                >
+                  Submit
+                </LoadingButton>
+              </Box>
+            </Card>
           </form>
         </Box>
       </Drawer>
