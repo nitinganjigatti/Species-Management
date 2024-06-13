@@ -231,3 +231,5 @@ export const EDIT = 'edit'
 export const DISCARD = 'discard'
 
 export const COMMENT = 'comment'
+
+export const STATUS = 'status'

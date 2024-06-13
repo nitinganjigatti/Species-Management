@@ -25,7 +25,7 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import { GetEggMaster, addToDiscard } from 'src/lib/api/egg/egg'
+import { GetEggMaster, AddToDiscard } from 'src/lib/api/egg/egg'
 import { width } from '@mui/system'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
@@ -81,11 +81,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
   }
 
   const defaultValues = {
-    // room_name: '',
-    // site_id: '',
-    // nursery_id: '',
-    reason: '',
-    necropsy: '',
+    // reason: '',
+
     image: '',
     status_radioBtn: '',
     comment: '',
@@ -93,14 +90,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
   }
 
   const schema = yup.object().shape({
-    // room_name: yup.string().required('Room Name is required'),
-    // site_id: yup.string().required('Select Site'),
-    // nursery_id: yup.string().required('Nursery is required'),
     // status_radioBtn
-    status_radioBtn: yup.string().required('State Is Required'),
-    comment: yup.string().required('Comments is required'),
-    reason: yup.string().required('Reason is required'),
-    necropsy: yup.string().required('Necropsy decision is required')
+    // status_radioBtn: yup.string().required('State Is Required'),
+    // comment: yup.string().required('Comments is required'),
+    // reason: yup.string().required('Reason is required'),
+    // necropsy: yup.string().required('Necropsy decision is required')
   })
 
   const {
@@ -164,30 +158,33 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
   }
 
   const onSubmit = async values => {
-    console.log('values :>> ', values)
+    // console.log('values :>> ', values)
     try {
       const payload = {
         // room_name: values?.room_name,
         // site_id: values?.site_id,
         // nursery_id: values?.nursery_id,
-        egg_id: eggID,
+        egg_id: [eggID],
         discard_reason_id: reason,
         necropsy_needed: necropsy,
         comment: getValues('comment'),
 
-        egg_attachment: getValues('image')
+        egg_attachment: [getValues('image')]
 
         // egg_attachment: selectedImage
       }
+
       console.log('payload :>> ', payload)
 
-      const res = await addToDiscard(payload)
-      if (res.success) {
-        console.log('res on submit :>> ', res)
-        reset()
-        setIsOpen(false)
-        toast.success('Discarded Successfully')
-      }
+      // const res = await AddToDiscard(payload)
+      // if (res.success) {
+      //   console.log('res on submit :>> ', res)
+      //   setReason('')
+      //   setImgSrc('')
+      //   reset()
+      //   setIsOpen(false)
+      //   toast.success('Discarded Successfully')
+      // }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
@@ -247,7 +244,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: 1,
-                    borderColor: errors.status_radioBtn ? 'red' : '#839D8D',
+                    borderColor: '#839D8D',
                     p: 2,
                     borderRadius: '5px'
 
@@ -269,9 +266,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
                 </Box>
               ))}
             </Card>
-            {errors.status_radioBtn && (
-              <FormHelperText sx={{ color: 'error.main', m: 5 }}>{errors.status_radioBtn?.message}</FormHelperText>
-            )}
+            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is Required</FormHelperText>}
 
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard

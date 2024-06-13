@@ -41,7 +41,7 @@ const EggList = () => {
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('eggs_to_nursery')
+  const [status, setStatus] = useState('eggs_received')
   const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -90,8 +90,8 @@ const EggList = () => {
             variant='rounded'
             alt='Medicine Image'
             sx={{
-              width: 30,
-              height: 30,
+              width: 35,
+              height: 35,
               mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
@@ -99,11 +99,7 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.default_icon}
-                alt='Profile'
-              />
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -153,16 +149,55 @@ const EggList = () => {
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '500',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.egg_code ? params.row.egg_code : '-'}
-        </Typography>
+        <Box sx={{}}>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '500',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>{' '}
+          <Typography
+            sx={{
+              color:
+                params.row.egg_condition === 'Intact'
+                  ? theme.palette.primary.main
+                  : params.row.egg_condition === 'Rotten'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Hatched'
+                  ? '#32bfdd'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#fa6140'
+                  : null,
+              fontSize: '14px',
+              fontWeight: '500',
+              px: 3,
+
+              backgroundColor:
+                params.row.egg_condition === 'Rotten'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#FFD3D3'
+                  : '#E1F9ED',
+
+              textAlign: 'center',
+              borderRadius: '4px'
+            }}
+          >
+            {params.row.egg_condition ? params.row.egg_condition : '-'}
+          </Typography>
+        </Box>
       )
     },
 
@@ -557,8 +592,8 @@ const EggList = () => {
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               <Tab
-                value='eggs_to_nursery'
-                label={<TabBadge label='Recived' totalCount={status === 'eggs_to_nursery' ? total : null} />}
+                value='eggs_received'
+                label={<TabBadge label='Recived' totalCount={status === 'eggs_received' ? total : null} />}
               />
               <Tab
                 value='eggs_incubation'
@@ -573,7 +608,7 @@ const EggList = () => {
                 label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
               />
             </TabList>
-            <TabPanel value='eggs_to_nursery'>
+            <TabPanel value='eggs_received'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}

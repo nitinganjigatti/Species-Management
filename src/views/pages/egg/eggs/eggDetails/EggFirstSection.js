@@ -17,19 +17,22 @@ import Badge from '@mui/material/Badge'
 
 // ** Third Party Components
 import clsx from 'clsx'
+
 // import 'keen-slider/keen-slider.min.css'
 import { useKeenSlider } from 'keen-slider/react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
 
-import ConditionSlider from 'src/views/pages/egg/eggs/oonditionSlider'
+import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 
 const EggFirstSection = ({ eggDetails }) => {
   const theme = useTheme()
+
   const {
     settings: { direction }
   } = useSettings()
+
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -143,6 +146,7 @@ const EggFirstSection = ({ eggDetails }) => {
                     <ImageListItemBar
                       sx={{ pb: 0 }}
                       title={eggDetails?.default_common_name}
+
                       // subtitle={'Trichoglossus Moluccanus'}
                     />
                   </ImageListItem>
@@ -235,9 +239,7 @@ const EggFirstSection = ({ eggDetails }) => {
                       </Button>
                     </Box>
                     <Box>
-                      <Button variant='contained' onClick={() => setOpenDrawer(true)}>
-                        ALLOCATE
-                      </Button>
+                      <Button variant='contained'>ALLOCATE</Button>
                     </Box>
                   </Box>
                 </Box>
@@ -337,7 +339,7 @@ const EggFirstSection = ({ eggDetails }) => {
                   sx={{
                     display: 'flex',
                     height: '88px',
-                    backgroundColor: '#AFEFEB4D                   ',
+                    backgroundColor: '#AFEFEB4D',
                     p: '12px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
@@ -472,7 +474,9 @@ const EggFirstSection = ({ eggDetails }) => {
                     </Box>
                   </Box>
                   <Box>
-                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    <IconButton onClick={() => setOpenDrawer(true)}>
+                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    </IconButton>
                   </Box>
                 </Grid>
               </Grid>
@@ -480,7 +484,9 @@ const EggFirstSection = ({ eggDetails }) => {
           </Grid>
         </CardContent>
       </Card>
-      {openDrawer && <ConditionSlider setOpenDrawer={setOpenDrawer} />}
+      {openDrawer && (
+        <ConditionSlider setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} eggId={eggDetails?.egg_id} />
+      )}
     </>
   )
 }
