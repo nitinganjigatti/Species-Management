@@ -35,7 +35,7 @@ const NurseryList = () => {
           sort,
           search: q,
           column,
-          page_no: paginationModel.page + 1,
+          page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
@@ -235,7 +235,7 @@ const NurseryList = () => {
           columns={columns}
           sortingMode='server'
           paginationMode='server'
-          pageSizeOptions={[7, 10, 15, 25]}
+          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
