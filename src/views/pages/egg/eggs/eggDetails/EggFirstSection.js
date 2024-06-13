@@ -285,7 +285,7 @@ const EggFirstSection = ({ eggDetails }) => {
                   sx={{
                     display: 'flex',
                     height: '88px',
-                    backgroundColor: '#AFEFEB4D                   ',
+                    backgroundColor: '#AFEFEB4D',
                     p: '12px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
@@ -380,7 +380,9 @@ const EggFirstSection = ({ eggDetails }) => {
           </Grid>
         </CardContent>
       </Card>
-      {openDrawer && <ConditionSlider setOpenDrawer={setOpenDrawer} />}
+      {openDrawer && (
+        <ConditionSlider setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} eggId={eggDetails?.egg_id} />
+      )}
     </>
   )
 }

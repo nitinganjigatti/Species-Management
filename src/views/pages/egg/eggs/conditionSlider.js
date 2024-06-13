@@ -14,6 +14,7 @@ import {
   Radio,
   RadioGroup,
   Select,
+  Stack,
   TextField,
   Typography
 } from '@mui/material'
@@ -22,24 +23,78 @@ import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import Image from 'next/image'
-
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { GetEggMaster } from 'src/lib/api/egg/egg'
 
-const ConditionSlider = ({ setOpenDrawer }) => {
+const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
+  const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
+  const [condition, setCondition] = useState('')
+  const fileInputRef = useRef(null)
+  const [imgSrc, setImgSrc] = useState([])
+  console.log('imgSrc :>> ', imgSrc)
+  const [eggStaged, setEggStaged] = useState([])
+  const [eggMaster, setEggMaster] = useState([])
+  const [displayFile, setDisplayFile] = useState('')
+  const [imgArr, setImgArr] = useState([])
+  console.log('imgArr :>> ', imgArr)
+  console.log('eggStaged :>> ', eggStaged)
+
+  const getEggMasterData = async () => {
+    try {
+      await GetEggMaster().then(res => {
+        if (res.success) {
+          console.log('res?.data? master :>> ', res?.data)
+          setEggMaster(res?.data)
+        }
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    try {
+      getEggMasterData()
+    } catch (error) {
+      console.log('error :>> ', error)
+    }
+  }, [])
+
+  const defaultValues = {
+    current_state: '',
+    select_stage: '',
+    condition_Btn: '',
+    comment: '',
+    image: []
+  }
+
+  const schema = yup.object().shape({
+    current_state: yup.string().required('State is required'),
+    select_stage: yup.string().required('Stage is required')
+
+    // condition_Btn: yup.string().required('Condition is required')
+  })
 
   const {
     control,
     handleSubmit,
+    setValue,
+    getValues,
+    clearErrors,
+    watch,
+    reset,
     formState: { errors }
   } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
-
-  const theme = useTheme()
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
@@ -51,196 +106,373 @@ const ConditionSlider = ({ setOpenDrawer }) => {
       const files = acceptedFiles
       if (files && files.length !== 0) {
         reader.onload = () => {
-          setImgSrc(reader?.result)
+          setImgSrc(pre => [...pre, reader?.result])
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
-        setValue('ingredientImg', files[0])
-        clearErrors('ingredientImg')
+        setImgArr(pre => [...pre, files])
+        setValue('image', files)
+
+        clearErrors('image')
       }
     }
   })
 
-  const handleRadioChange = event => {
-    setSelectedOption(event.target.value)
+  const handleAddImageClick = () => {
+    fileInputRef?.current?.click()
+  }
+
+  const handleInputImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    console.log('files :>> ', files)
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setImgSrc(pre => [...pre, reader?.result])
+      }
+      setDisplayFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setImgArr(pre => [...pre, files])
+      setValue('image', files)
+      clearErrors('image')
+    }
+  }
+
+  const removeSelectedImage = index => {
+    setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
+    setValue('image', '')
+  }
+
+  const statusID = watch('current_state')
+
+  useEffect(() => {
+    if (statusID) {
+      console.log('statusID :>> ', statusID)
+      const filteredEggStatus = eggMaster?.egg_state.filter(status => status.egg_status_id === statusID)
+      setEggStaged(filteredEggStatus)
+      console.log('filteredEggStatus :>> ', filteredEggStatus)
+    }
+  }, [statusID, eggMaster])
+
+  const onSubmit = async values => {
+    try {
+      const payload = {
+        egg_id: eggId,
+        egg_status_id: getValues('current_state'),
+        egg_state_id: getValues('select_stage'),
+        egg_condition: condition,
+        comment: getValues('comment'),
+        egg_attachment: imgArr
+      }
+      console.log('payload :>> ', payload)
+
+      // const res = await AddToDiscard(payload)
+      // if (res.success) {
+      //   console.log('res on submit :>> ', res)
+      //   setReason('')
+      //   setImgSrc('')
+      //   reset()
+      //   setIsOpen(false)
+      //   toast.success('Discarded Successfully')
+      // }
+
+      // Perform any additional operations, e.g., API call
+    } catch (error) {
+      console.error('Error while adding room:', error)
+      toast.error('An error occurred while adding room')
+    }
   }
 
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] } }}>
-        <Box
-          className='sidebar-header'
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255)
-          }}
-        >
-          <Box sx={{ mt: 2 }}>
-            <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+      <Drawer
+        anchor='right'
+        open={openDrawer}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}
+      >
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%' }}>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
+
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <Icon
+                style={{ marginLeft: -8 }}
+                icon='material-symbols-light:add-comment-outline-rounded'
+                fontSize={'32px'}
+              />
+              <Typography variant='h6'>Select State For Discard</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            </Box>
           </Box>
-          <Typography variant='h6' sx={{ mr: 50 }}>
-            State & Condition
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
-            </IconButton>
-          </Box>
-        </Box>
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', p: theme => theme.spacing(5, 6) }}>
-          <form autoComplete='off'>
-            <Card fullWidth>
-              <FormControl sx={{ width: '95%', ml: 3, mt: 5 }}>
-                <InputLabel id='current_state'>Select State</InputLabel>
-                <Controller
-                  name='current_state'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='current_state'
-                      value={value}
-                      label='Current State'
-                      onChange={onChange}
-                      labelId='current_state'
-                    >
-                      <MenuItem value='Intract'>Intract</MenuItem>
-                    </Select>
-                  )}
-                />
-              </FormControl>
-
-              <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
-                <InputLabel id='site_id'>Select Stage</InputLabel>
-                <Controller
-                  name='condition'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='condition'
-                      value={value}
-                      label='Condition Egg'
-                      onChange={onChange}
-                      labelId='condition'
-                    >
-                      <MenuItem value='Intract'>Intract</MenuItem>
-                    </Select>
-                  )}
-                />
-              </FormControl>
-            </Card>
-
-            <Typography variant='h6' sx={{ mt: 5 }}>
-              Change Conditions
-            </Typography>
-
-            <Card fullWidth sx={{ mt: 3 }}>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                {/* Text field with radio button for "Warm" */}
-                <Grid item xs={5.5}>
-                  <TextField
-                    id='warm-textfield'
-                    label='Warm'
-                    variant='outlined'
-                    sx={{ mt: 5, ml: 6 }}
-                    InputProps={{
-                      endAdornment: (
-                        <FormControlLabel
-                          value='warm'
-                          control={<Radio checked={selectedOption === 'warm'} onChange={handleRadioChange} />}
-                          label=''
-                          sx={{ position: 'relative', left: '30px' }} // Adjust margin to align radio button with text
-                        />
-                      )
-                    }}
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+              <Card fullWidth>
+                <FormControl sx={{ width: '95%', ml: 3, mt: 5 }}>
+                  <InputLabel id='current_state'>Select State</InputLabel>
+                  <Controller
+                    name='current_state'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        name='current_state'
+                        value={value}
+                        label='Current State'
+                        onChange={onChange}
+                        labelId='current_state'
+                        error={Boolean(errors?.current_state)}
+                      >
+                        {eggMaster?.egg_status?.map(status => (
+                          <MenuItem key={status?.id} value={status?.id}>
+                            {status?.egg_status}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
                   />
-                </Grid>
-
-                {/* Text field with radio button for "Cold" */}
-                <Card fullWidth sx={{ mt: 3 }}>
-                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    {/* Text field with radio button for "Warm" */}
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel id='cold-label'>Cold</InputLabel>
-                        <Select
-                          labelId='cold-label'
-                          value={selectedOption}
-                          onChange={handleRadioChange}
-                          sx={{ mt: 5, mr: 4, mb: 4 }}
-                          endAdornment={
-                            <RadioGroup row name='cold-radio-group' value={selectedOption} onChange={handleRadioChange}>
-                              <FormControlLabel value='cold' control={<Radio />} label='' />
-                            </RadioGroup>
-                          }
-                        >
-                          <MenuItem value=''>Cold</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-            </Card>
-
-            <Card fullWidth sx={{ mt: 6 }}>
-              <FormControl sx={{ m: 2, width: '410px', mb: 4 }}>
-                <Controller
-                  name='notes'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      value={value}
-                      label='Enter Notes'
-                      name='notes'
-                      onChange={onChange}
-                      placeholder=''
-                      multiline
-                      rows={4}
-                      sx={{ width: '100%', mt: 2, mr: 12 }} // Adjusted sx prop
-                    />
+                  {errors?.current_state && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.current_state?.message}</FormHelperText>
                   )}
-                />
-                {errors.safety_advice && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.safety_advice?.message}</FormHelperText>
-                )}
-              </FormControl>
-              <Grid item xs={6} sm={6} md={5.5} sx={{ ml: 2 }}>
-                <input type='file' accept='image/*' style={{ display: 'none' }} name='ingredientImg' />
+                </FormControl>
 
-                <Box
-                  {...getRootProps({ className: 'dropzone' })}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '410px',
-                    gap: 7,
-                    height: 120,
-                    border: `2px solid ${theme.palette.customColors.trackBg}`,
-                    borderRadius: 1,
-                    padding: 3,
-                    mb: 4
-                  }}
-                >
-                  <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+                <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
+                  <InputLabel id='select_stage'>Select Stage</InputLabel>
+                  <Controller
+                    name='select_stage'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        name='select_stage'
+                        label='Select Stage'
+                        value={value}
+                        onChange={onChange}
+                        labelId='select_stage'
+                        error={Boolean(errors?.select_stage)}
+                      >
+                        {eggStaged?.map(stage => (
+                          <MenuItem key={stage?.id} value={stage?.id}>
+                            {stage?.egg_state}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                  {errors?.select_stage && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.select_stage?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Card>
 
-                  <Typography>Drop your image here</Typography>
-                </Box>
-              </Grid>
-            </Card>
+              <Typography variant='h6' sx={{ mt: 3, mb: 3 }}>
+                Change Conditions
+              </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto', mt: 5 }}>
-              <LoadingButton fullWidth variant='outlined' sx={{ height: '50px', width: '45%' }}>
-                Cancel
+              <Card fullWidth sx={{ p: 4, display: 'flex', flexDirection: 'row', gap: 3 }}>
+                <FormControl>
+                  <RadioGroup
+                    aria-labelledby='demo-row-radio-buttons-group-label'
+                    name='condition_Btn'
+                    sx={{ display: 'flex', gap: 4, justifyContent: 'center' }}
+                    value={condition}
+                    onChange={e => setCondition(e.target.value)}
+                  >
+                    <Stack direction='row' spacing={5}>
+                      <Box
+                        error={Boolean(errors?.condition_Btn)}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 2,
+                          border: `2px solid ${theme.palette.customColors.trackBg}`,
+                          p: 2,
+                          borderRadius: '5px',
+
+                          // opacity: 0.6,
+                          width: 220,
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Typography>Warm</Typography>
+                        <FormControlLabel value='warm' control={<Radio />} />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 2,
+                          border: `2px solid ${theme.palette.customColors.trackBg}`,
+                          p: 2,
+                          borderRadius: '5px',
+
+                          // opacity: 0.6,
+                          width: 220,
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Typography>Cold</Typography>
+
+                        <FormControlLabel value='cold' control={<Radio />} />
+                      </Box>
+                    </Stack>
+                  </RadioGroup>
+                  {/* {errors?.condition_Btn && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition_Btn?.message}</FormHelperText>
+                  )} */}
+                </FormControl>
+              </Card>
+
+              <Card fullWidth sx={{ mt: 6, p: 4, mb: 30 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='comment'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        error={Boolean(errors?.comment)}
+                        value={value}
+                        label='Enter Comment'
+                        name='comment'
+                        onChange={onChange}
+                        placeholder=''
+                        multiline
+                        rows={3}
+                        sx={{ width: '100%', mt: 2, mr: 12, mb: 3 }} // Adjusted sx prop
+                      />
+                    )}
+                  />
+                  {errors.comment && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.comment?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <Grid container>
+                  {/* {imgSrc !== '' ? null : ( */}
+                  <Grid item md={12}>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={e => handleInputImageChange(e)}
+                      style={{ display: 'none' }}
+                      name='image'
+                      ref={fileInputRef}
+                    />
+
+                    <Box
+                      {...getRootProps({ className: 'dropzone' })}
+                      onClick={handleAddImageClick}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                        height: 120,
+
+                        border: `2px solid ${theme.palette.customColors.trackBg}`,
+                        borderRadius: 1,
+                        padding: 3
+                      }}
+                    >
+                      <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+
+                      <Typography>Drop your image here</Typography>
+                    </Box>
+                  </Grid>
+                  {/* )} */}
+                  <Grid item md={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      {imgSrc?.length > 0 &&
+                        imgSrc?.map((img, index) => (
+                          <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
+                              <Box
+                                sx={{
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
+                                }}
+                              >
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color='#fff'
+                                  onClick={() => removeSelectedImage(index)}
+                                >
+                                  {' '}
+                                </Icon>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))}
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </Card>
+            </Box>
+
+            <Box
+              sx={{
+                height: '122px',
+                width: '100%',
+                maxWidth: '562px',
+                position: 'fixed',
+                bottom: 0,
+                px: 4,
+                bgcolor: 'white',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5,
+                display: 'flex'
+              }}
+            >
+              <LoadingButton fullWidth variant='outlined' type='submit' size='large'>
+                CANCEL
               </LoadingButton>
-              <LoadingButton fullWidth variant='contained' sx={{ height: '50px', width: '45%' }}>
-                Submit
+              <LoadingButton fullWidth variant='contained' type='submit' size='large' onClick={onSubmit}>
+                SUBMIT
               </LoadingButton>
             </Box>
           </form>

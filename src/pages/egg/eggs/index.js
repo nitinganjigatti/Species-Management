@@ -39,7 +39,7 @@ const EggList = () => {
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('eggs_to_nursery')
+  const [status, setStatus] = useState('eggs_received')
   const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -564,8 +564,8 @@ const EggList = () => {
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               <Tab
-                value='eggs_to_nursery'
-                label={<TabBadge label='Recived' totalCount={status === 'eggs_to_nursery' ? total : null} />}
+                value='eggs_received'
+                label={<TabBadge label='Recived' totalCount={status === 'eggs_received' ? total : null} />}
               />
               <Tab
                 value='eggs_incubation'
@@ -580,7 +580,7 @@ const EggList = () => {
                 label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
               />
             </TabList>
-            <TabPanel value='eggs_to_nursery'>
+            <TabPanel value='eggs_received'>
               {' '}
               <Divider sx={{ mt: -3 }} />
               {tableData()}
