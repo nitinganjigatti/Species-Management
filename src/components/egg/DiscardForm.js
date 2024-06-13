@@ -164,27 +164,27 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
         // room_name: values?.room_name,
         // site_id: values?.site_id,
         // nursery_id: values?.nursery_id,
-        egg_id: eggID,
+        egg_id: [eggID],
         discard_reason_id: reason,
         necropsy_needed: necropsy,
         comment: getValues('comment'),
 
-        egg_attachment: getValues('image')
+        egg_attachment: [getValues('image')]
 
         // egg_attachment: selectedImage
       }
 
       console.log('payload :>> ', payload)
 
-      const res = await AddToDiscard(payload)
-      if (res.success) {
-        console.log('res on submit :>> ', res)
-        setReason('')
-        setImgSrc('')
-        reset()
-        setIsOpen(false)
-        toast.success('Discarded Successfully')
-      }
+      // const res = await AddToDiscard(payload)
+      // if (res.success) {
+      //   console.log('res on submit :>> ', res)
+      //   setReason('')
+      //   setImgSrc('')
+      //   reset()
+      //   setIsOpen(false)
+      //   toast.success('Discarded Successfully')
+      // }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
