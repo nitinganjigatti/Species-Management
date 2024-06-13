@@ -52,6 +52,7 @@ const EggList = () => {
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
+
   const handleDiscard = e => {
     e.stopPropagation()
     setIsOpen(true)
@@ -307,9 +308,11 @@ const EggList = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-            Allocate{' '}
-          </Button>
+          {status === 'eggs_received' && (
+            <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
+              Allocate{' '}
+            </Button>
+          )}
           {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
             <>
               <div>
@@ -328,7 +331,7 @@ const EggList = () => {
               <Avatar
                 variant='square'
                 alt='Medicine Image'
-                className='hideField'
+                className={status === 'eggs_received' ? 'hideField' : ''}
                 sx={{
                   width: 30,
                   height: 30,
@@ -348,7 +351,10 @@ const EggList = () => {
                   <Icon icon='mdi:user' />
                 )}
               </Avatar>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }} className='hideField'>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column' }}
+                className={status === 'eggs_received' ? 'hideField' : ''}
+              >
                 <Typography
                   noWrap
                   sx={{
