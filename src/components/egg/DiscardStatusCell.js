@@ -3,12 +3,15 @@ import { Avatar, Box, Button, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
+import { Stack } from '@mui/system'
 
 const DiscardStatusCell = ({
   params,
   setIsOpen,
   handleDiscard,
-  setEggId
+  setEggId,
+  hideField,
+  customButton
 
   //  hover, setHover
 }) => {
@@ -33,12 +36,13 @@ const DiscardStatusCell = ({
       onMouseLeave={() => setHover(false)}
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
     >
-      {hover ? (
-        <Button variant='contained' size='small' sx={{ px: 6, py: 2 }} onClick={handleDiscard}>
-          Discard
-        </Button>
-      ) : (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      {/* {hover ? ( */}
+      <Button variant='contained' className={customButton} size='small' sx={{ px: 6, py: 2 }} onClick={handleDiscard}>
+        Discard
+      </Button>
+      {/* ) : ( */}
+      <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Stack direction='row'>
           <Avatar
             variant='square'
             alt='Medicine Image'
@@ -85,8 +89,9 @@ const DiscardStatusCell = ({
               {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
-        </Box>
-      )}
+        </Stack>
+      </Box>
+      {/* )} */}
     </div>
   )
 }
