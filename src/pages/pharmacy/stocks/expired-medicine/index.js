@@ -49,6 +49,7 @@ const ExpiredMedicine = () => {
         }
 
         await getExpiredMedicine({ params: params }).then(res => {
+          console.log('responsess', res)
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
             setRows(

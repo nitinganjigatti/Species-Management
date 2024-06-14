@@ -77,7 +77,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .min(3, 'Vehicle Number must be at least 3 characters')
           .required('Vehicle Number is required'),
-
         phone_number: yup
           .number()
           .required('Mobile Number is required')

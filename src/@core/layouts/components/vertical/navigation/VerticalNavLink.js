@@ -21,6 +21,7 @@ import CanViewNavLink from 'src/layouts/components/acl/CanViewNavLink'
 
 // ** Util Import
 import { handleURLQueries } from 'src/@core/layouts/utils'
+import { Avatar } from '@mui/material'
 
 // ** Styled Components
 const MenuNavLink = styled(ListItemButton)(({ theme }) => ({
@@ -127,7 +128,15 @@ const VerticalNavLink = ({
                 }
               }}
             >
-              <UserIcon icon={icon} />
+              {typeof icon === 'object' && Object.keys(icon).length ? (
+                <Avatar
+                  src={isNavLinkActive() ? item.activeIcon?.props?.src : item.icon?.props?.src}
+                  alt={item.title}
+                  style={{ width: '24px', height: '24px' }}
+                />
+              ) : (
+                <UserIcon icon={icon} />
+              )}
             </ListItemIcon>
           )}
 

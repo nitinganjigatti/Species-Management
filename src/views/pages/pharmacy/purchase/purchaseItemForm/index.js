@@ -828,7 +828,7 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label='IGST in %'
+                  label='IGST in %*'
                   onKeyUp={e => {
                     calculateStuff()
                   }}

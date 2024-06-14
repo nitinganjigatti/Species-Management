@@ -42,6 +42,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/purchase/add-purchase/existing-purchases'
   }
 
+  const stocksAdjustment = {
+    title: 'Stocks Adjustment',
+    icon: 'material-symbols:rule-settings',
+    path: '/pharmacy/stocks-adjustments/stock-adjustment-list'
+  }
+
   const report = {
     title: 'Report',
     path: '/pharmacy/purchase/report'
@@ -263,7 +269,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       productsList,
       purchaseList,
       existingPurchase,
+      stocksAdjustment,
       nonExistingProductRequestList,
+
       settingsParent
     )
 
@@ -291,6 +299,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
       nonExistingProductRequestList,
       stockReport,
+      stocksAdjustment,
 
       settingsParent
     )

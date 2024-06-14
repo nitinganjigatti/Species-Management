@@ -38,6 +38,7 @@ then
 fi
 
 
+
 echo $GITHUB_REF_NAME
 echo "Deploying to server"
 echo $DEPLOY_SERVER

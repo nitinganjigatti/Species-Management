@@ -150,6 +150,7 @@ const AddMedicine = () => {
     getValues
   } = useForm({
     defaultValues,
+
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
@@ -630,6 +631,7 @@ const AddMedicine = () => {
     } = {
       ...params
     }
+
     const duplicatedSalts = [...salts]
 
     let filtered_salts = duplicatedSalts.filter(item => item.hasOwnProperty('salt_id') && item.salt_id.trim() !== '')
@@ -985,7 +987,7 @@ const AddMedicine = () => {
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
                     />
-
+                    {console.log(fields, 'fields')}
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>

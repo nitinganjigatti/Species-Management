@@ -137,3 +137,83 @@ export const BATCH_LIST = 'batch-details'
 export const ANIMAL_LIST = 'v1/collection/animal/list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
+
+export const DASHBOARD_REPORT = 'reports'
+
+export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
+
+export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
+
+export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
+
+export const DASHBOARD_PENDING_REQUEST = 'pending-request'
+
+export const DASHBOARD_STORE_WISE_PENDING_REQUEST = 'storewise-pending-request'
+
+export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
+
+export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
+
+export const STOCK_ADJUSTMENT = 'stock-adjustment'
+
+export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
+
+export const FEED_DETAILS = 'details'
+
+export const FEED = 'feed'
+
+export const INGREDIENTS_LIST = 'ingredients-list'
+
+export const LISTING = 'listing'
+
+export const ADD_FEED_TYPE = 'diet/feed/add'
+
+export const UPDATE_FEED_TYPE = 'diet/feed/update'
+
+export const INGREDIENT_LIST = 'ingredient-list'
+
+export const LIST = 'list'
+
+export const INGREDIENTS = 'ingredients'
+
+export const INGREDIENTS_DETAIL = 'details'
+
+export const ADD_INGREDIENT = 'diet/ingredients/add'
+
+export const INGREDIENT_DETAIL = 'diet/ingredients/details'
+
+export const RECIPE_LIST = 'ingredient-recipe-list'
+
+export const DETAILS = 'details'
+
+export const RECIPE = 'recipe'
+
+export const RECIPES = 'recipes'
+
+export const DIET = 'diet'
+
+export const DELETE = 'delete'
+
+export const INGREDIENT = 'ingredient'
+
+export const UPDATE_STATUS = 'update-status'
+
+export const UPDATE_INGREDIENT = 'diet/ingredients/update'
+
+export const PREPARATION_LIST = 'diet/preparations/list'
+
+export const ADD_PREPARATION_TYPE = 'diet/preparations/add'
+
+export const GET_PREPARATION_TYPEBY_ID = 'diet/preparations/show'
+
+export const UPDATE_PREPARATION_TYPE = 'diet/preparations/update'
+
+export const REPARATION_ACTIVITY_LOGS = 'diet/activity/list'
+
+export const PREPARATIONS = 'preparations'
+
+export const ADD = 'add'
+
+export const UPDATE = 'update'
+
+export const TYPE = 'type'

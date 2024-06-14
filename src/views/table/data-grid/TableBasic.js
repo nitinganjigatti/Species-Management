@@ -6,8 +6,9 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
+import { height } from '@mui/system'
 
-const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick }) => {
+const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick, rowHeight }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   return (
@@ -27,6 +28,7 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
             sl_no: false,
             id: false
           }}
+          getRowHeight={() => (rowHeight ? rowHeight : null)}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
           autoHeight

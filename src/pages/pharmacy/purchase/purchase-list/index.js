@@ -2,15 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  CardContent,
+  Grid,
+  FormHelperText,
+  FormControl,
+  TextField,
+  Button
+} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -22,9 +29,17 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import { margin } from '@mui/system'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+import { useForm, Controller } from 'react-hook-form'
+import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
+import TableWithFilter from 'src/components/TableWithFilter'
 
 const ListOfPurchase = () => {
   /***** Server side pagination */
+
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
@@ -157,6 +172,17 @@ const ListOfPurchase = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.supplier_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'created_at',
+      headerName: 'Entry Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.created_at)}
         </Typography>
       )
     },

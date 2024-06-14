@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 // ** MUI Imports
 import List from '@mui/material/List'
 import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { createTheme, responsiveFontSizes, styled, ThemeProvider } from '@mui/material/styles'
 
 // ** Third Party Components
@@ -157,6 +158,11 @@ const Navigation = props => {
         {afterNavMenuContent && afterVerticalNavMenuContentPosition === 'fixed'
           ? afterNavMenuContent(navMenuContentProps)
           : null}
+        <Box>
+          <Typography variant='body' style={{ textAlign: 'center', display: 'inline-block', width: '100%' }}>
+            v2.0.1
+          </Typography>
+        </Box>
       </Drawer>
     </ThemeProvider>
   )
