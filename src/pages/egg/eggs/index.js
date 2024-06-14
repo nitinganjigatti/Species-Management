@@ -405,9 +405,11 @@ const EggList = () => {
     if (clickedColumn) {
       const data = params.row
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`
+        pathname: `/egg/eggs/${data?.id}`,
 
-        // pathname: `/egg/eggs/6`
+        query: {
+          fromPath: status === 'eggs_to_discard' ? isDiscarded : status
+        }
       })
     } else {
       return
