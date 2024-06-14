@@ -372,6 +372,7 @@ const AddReturnRequest = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,

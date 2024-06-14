@@ -132,25 +132,6 @@ const ListOfStockAdjusted = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      Width: 40,
-      field: 'created_by_user_name',
-      headerName: 'Adjusted by ',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderUserAvatar(params.row)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
 
     {
       flex: 0.2,
@@ -171,17 +152,6 @@ const ListOfStockAdjusted = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'Expiry  Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -218,6 +188,36 @@ const ListOfStockAdjusted = () => {
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.comments ? params?.row?.comments : 'NA'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'Expiry  Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Adjusted by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {renderUserAvatar(params.row)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.adjusted_at)}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
 
@@ -295,6 +295,7 @@ const ListOfStockAdjusted = () => {
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
+                disableColumnMenu
                 slotProps={{
                   baseButton: {
                     variant: 'outlined'

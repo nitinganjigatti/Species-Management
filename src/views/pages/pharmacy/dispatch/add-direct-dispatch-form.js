@@ -399,7 +399,10 @@ export const AddItemsForm = ({
                       await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
                     }}
                     renderOption={(props, option) => (
-                      <li {...props}>
+                      <li
+                        {...props}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
                         <Box>
                           <Typography>{option.label}</Typography>
                           <Typography variant='body2'>{option.packageDetails}</Typography>

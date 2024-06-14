@@ -432,6 +432,19 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,
@@ -619,6 +632,30 @@ const ListOfStocks = () => {
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'procured_date',
+      headerName: 'PROCURED DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
         </Typography>
       )
     },
@@ -954,6 +991,7 @@ const ListOfStocks = () => {
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
                       onPaginationModelChange={setBatchPaginationModel}
                       loading={batchLoading}
+                      disableColumnMenu
                       slotProps={{
                         baseButton: {
                           variant: 'outlined'
@@ -979,6 +1017,7 @@ const ListOfStocks = () => {
                       hideFooterSelectedRowCount
                       disableColumnSelector={true}
                       pagination
+                      disableColumnMenu
                       rows={indexedRows === undefined ? [] : indexedRows}
                       rowCount={total}
                       columns={columns}

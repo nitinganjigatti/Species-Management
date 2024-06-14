@@ -297,6 +297,7 @@ const ManufacturerList = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'
