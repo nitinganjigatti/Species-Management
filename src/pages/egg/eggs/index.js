@@ -69,9 +69,13 @@ const EggList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
-            lineHeight: '14.52px'
+
+            // fontSize: '12px',
+            // fontWeight: '400',
+            textAlign: 'center',
+            ml: 3
+
+            // lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}
