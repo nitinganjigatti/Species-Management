@@ -52,7 +52,6 @@ const EggList = () => {
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
-
   const handleDiscard = e => {
     e.stopPropagation()
     setIsOpen(true)
@@ -317,7 +316,7 @@ const EggList = () => {
               Allocate{' '}
             </Button>
           )}
-          {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
+          {status === 'eggs_to_discard' && isDiscarded === 'eggs_to_discard' ? (
             <>
               <div>
                 <DiscardStatusCell
