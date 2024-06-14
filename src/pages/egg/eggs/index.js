@@ -74,7 +74,7 @@ const EggList = () => {
             // fontSize: '12px',
             // fontWeight: '400',
             textAlign: 'center',
-            ml: 3
+            ml: 2
 
             // lineHeight: '14.52px'
           }}
@@ -356,7 +356,7 @@ const EggList = () => {
                     alt='Profile'
                   />
                 ) : (
-                  <Icon icon='mdi:user' />
+                  <Icon icon='mdi:user' fontSize={30} />
                 )}
               </Avatar>
               <Box
