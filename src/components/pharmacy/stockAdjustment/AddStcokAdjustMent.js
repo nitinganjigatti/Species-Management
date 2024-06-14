@@ -39,7 +39,16 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Icon from 'src/@core/components/icon'
 
 import { useForm, Controller, get } from 'react-hook-form'
-import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography } from '@mui/material'
+import {
+  Grid,
+  FormControl,
+  Autocomplete,
+  TextField,
+  FormHelperText,
+  Button,
+  Typography,
+  CircularProgress
+} from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { AddButton } from 'src/components/Buttons'
@@ -77,7 +86,7 @@ const AddStockAdjustment = () => {
   // ** Hook
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
-  // const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(false)
 
   const [stockAdjustmentDialog, setStockAdjustmentDialog] = useState(false)
   const [optionsBatchList, setOptionsBatchList] = useState([])
@@ -122,7 +131,7 @@ const AddStockAdjustment = () => {
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
         console.log('searchResults', searchResults)
-        // setLoader(true)
+        setLoader(true)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             console.log('data of batch', searchResults?.data?.items)
@@ -138,13 +147,13 @@ const AddStockAdjustment = () => {
             }))
             const filtered = data.filter(el => Number(el.availableQty) > 0)
             setOptionsBatchList(filtered)
-            // setLoader(false)
+            setLoader(false)
           }
         } else {
           setOptionsBatchList([])
 
           toast.error(searchResults?.data)
-          // setLoader(false)
+          setLoader(false)
         }
       } catch (e) {
         console.log('error', e)
@@ -312,7 +321,7 @@ const AddStockAdjustment = () => {
                   <TextField
                     type='number'
                     value={value}
-                    label='Quantity*'
+                    label='Revise*'
                     name='adjustment_quantity'
                     error={Boolean(errors.adjustment_quantity)}
                     onChange={onChange}
@@ -433,10 +442,6 @@ const AddStockAdjustment = () => {
                 </Grid>
                 <FormControl fullWidth>
                   <Autocomplete
-                    // sx={{ zIndex: 1 }}
-                    // forcePopupIcon={false}
-                    // inputProps={{ tabIndex: '6' }}
-                    // disablePortal
                     id='autocomplete-controlled'
                     options={optionsMedicineList}
                     renderOption={(props, option) => (
@@ -464,12 +469,21 @@ const AddStockAdjustment = () => {
                       fetchMedicineData('')
                     }}
                     renderInput={params => (
-                      <TextField {...params} placeholder='Search & Select' label='Product Name*' />
+                      <TextField
+                        {...params}
+                        placeholder='Search & Select'
+                        label='Product Name*'
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
+                        }}
+                      />
                     )}
                   />
                 </FormControl>
               </Grid>
             </Grid>
+            {loader ? <CircularProgress size={60} /> : null}
           </Grid>
         </form>
       </CardContent>

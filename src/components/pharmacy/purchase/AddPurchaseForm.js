@@ -622,6 +622,8 @@ const AddPurchaseForm = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
+
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
             stock_type: item.stock_type,

@@ -424,8 +424,8 @@ const AddRequestForm = () => {
             label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
-
-            prescription_required: item.prescription_required === '1' ? true : false
+            status: item?.active === '0' ? 0 : 1,
+            prescription_required: item?.prescription_required === '1' ? true : false
           }))
         )
         setItemErrors({})
@@ -642,7 +642,10 @@ const AddRequestForm = () => {
                 id='autocomplete-controlled'
                 options={optionsMedicineList}
                 renderOption={(props, option) => (
-                  <li {...props}>
+                  <li
+                    {...props}
+                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                  >
                     <Box>
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>

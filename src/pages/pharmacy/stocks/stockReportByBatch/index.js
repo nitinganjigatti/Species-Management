@@ -388,6 +388,7 @@ const ListOfStocksByBatch = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
+                    disableColumnMenu
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'

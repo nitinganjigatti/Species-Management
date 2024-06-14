@@ -242,6 +242,7 @@ function Escrow() {
               onSortModelChange={handleSortModel}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              disableColumnMenu
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
