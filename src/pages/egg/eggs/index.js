@@ -314,6 +314,10 @@ const EggList = () => {
             <>
               <div>
                 <DiscardStatusCell
+                  customButton={
+                    status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? 'customButton' : null
+                  }
+                  hideField='hideField'
                   params={params}
                   setIsOpen={setIsOpen}
                   handleDiscard={handleDiscard}
@@ -593,7 +597,7 @@ const EggList = () => {
             <TabList onChange={handleChange}>
               <Tab
                 value='eggs_received'
-                label={<TabBadge label='Recived' totalCount={status === 'eggs_received' ? total : null} />}
+                label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
               />
               <Tab
                 value='eggs_incubation'
