@@ -1,76 +1,132 @@
 // src/pages/RepotedBatch.js
 
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import moment from 'moment'
 import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, IconButton, Typography } from '@mui/material'
+import { Avatar, IconButton, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
+import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
+import { usePariveshContext } from 'src/context/PariveshContext'
 
 const ReportedBatches = ({ searchParams }) => {
-  const [rows, setRows] = useState([
-    {
-      batchId: '#BA12354',
-      id: '22',
-      registration_id: 'WL/GJ/132549',
-      of_species: '555',
-      of_animals: '2501',
-      created_at: '2024-06-03 16:07:17',
-      approved_date: '2024-06-06 16:07:17',
-      status: 'Yet to Submitted',
-      submitted_by_user: {
-        user_name: 'sr',
-        email: 'sr@mailinator.com',
-        profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
-      }
-    }
-  ])
+  const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
+  const [sort, setSort] = useState('desc')
+  const [sortColumn, setSortColumn] = useState('batch_code')
+  const { selectedParivesh } = usePariveshContext()
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, sortColumn) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, sortColumn)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const handleSearch = value => {
     setSearchValue(value)
-    // Call searchTableData or similar function
+    searchTableData(sort, value, sortColumn)
   }
 
   const onClose = () => {
     setDialog(false)
   }
 
-  const onCellClick = params => {
-    const { id, batchId } = params.row
-    Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
-    // Router.push({
-    //   pathname: '/parivesh/home//batch-details'
-    // })
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
-    // debugger
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    //   Router.push({
-    //     pathname: `/parivesh/home/batch-list/batch-details`
-    //   })
-    // } else {
-    //   return
-    // }
+  const fetchTableData = useCallback(
+    async (sort, q, sortColumn) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          q,
+          status: 'yet_to_submitted',
+          page: paginationModel.page + 1,
+          sort,
+          sortColumn,
+          limit: paginationModel.pageSize,
+          org_id: selectedParivesh.id !== 'all' ? selectedParivesh.id : null
+        }
+
+        await getBatchListSpecies({ params: params }).then(res => {
+          console.log('response', res)
+          // Generate uid field based on the index
+          let listWithId = res.data.data.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const onCellClick = params => {
+    // const { id, batchId } = params.row
+    // Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
+    console.log(params.row)
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const { id, batch_id } = params.row
+      Router.push({
+        pathname: `/parivesh/home/${batch_id}/batch-details`
+      })
+    } else {
+      return
+    }
   }
 
   const columns = [
     {
       flex: 0.2,
       Width: 40,
-      field: 'batchId',
+      field: 'batch_id',
       headerName: 'BATCH ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batchId}
+          {params.row.batch_id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'batch_code',
+      headerName: 'BATCH CODE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_code}
         </Typography>
       )
     },
@@ -92,25 +148,15 @@ const ReportedBatches = ({ searchParams }) => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'of_animals',
-      headerName: '# OF ANIMALS',
+      field: 'no_of_animals',
+      headerName: '# NO OF ANIMALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.of_animals ? params.row.of_animals : '-'}
+          {params.row.no_of_animals ? params.row.no_of_animals : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'approved_date',
-      headerName: 'Approved DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.approved_date ? moment(params.row.approved_date).format('DD/MM/YYYY') : '-'}
-        </Typography>
-      )
-    },
+
     {
       flex: 0.5,
       minWidth: 60,
@@ -146,7 +192,7 @@ const ReportedBatches = ({ searchParams }) => {
               {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -195,7 +241,7 @@ const ReportedBatches = ({ searchParams }) => {
   return (
     <>
       <CustomTable
-        rows={rows}
+        rows={indexedRows === undefined ? [] : indexedRows}
         columns={columns}
         total={total}
         loading={loading}

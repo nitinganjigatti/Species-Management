@@ -17,7 +17,7 @@ import {
   TextField
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { styled } from '@mui/system'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import IconButton from '@mui/material/IconButton'
@@ -31,6 +31,8 @@ import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { Controller, useForm } from 'react-hook-form'
+import { getBatchListSpeciesById } from 'src/lib/api/parivesh/batchListSpecies'
+import { usePariveshContext } from 'src/context/PariveshContext'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -75,7 +77,6 @@ const dropdownOptions = [
 const BatchDetails = ({ params, searchParams }) => {
   const router = useRouter()
   const { id } = router.query
-  console.log(id, router, 'fff')
   const theme = useTheme()
 
   const {
@@ -91,9 +92,14 @@ const BatchDetails = ({ params, searchParams }) => {
   const [check, setCheck] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [rows, setRows] = useState(batchData.rows)
+  const [rows, setRows] = useState([])
   const [selectedStatus, setSelectedStatus] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [batchDetails, setBatchDetails] = useState()
+
+  const { selectedParivesh } = usePariveshContext()
+
+  console.log(selectedParivesh)
 
   const handleStatusChange = event => {
     const value = event.target.value
@@ -105,12 +111,31 @@ const BatchDetails = ({ params, searchParams }) => {
     setDialog(false)
   }
 
+  const getBatchListById = useCallback(async id => {
+    try {
+      const response = await getBatchListSpeciesById(id)
+      // debugger
+      if (response?.success) {
+        setBatchDetails(response?.data?.data)
+        console.log(response, 'response')
+      } else {
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
+
+  useEffect(() => {
+    getBatchListById(id)
+  }, [getBatchListById])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
+
   const columns = [
     {
       flex: 0.2,
@@ -323,17 +348,18 @@ const BatchDetails = ({ params, searchParams }) => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Batch ID: <span style={{ color: '#37BD69' }}>{batchData.batchId}</span>
+                  Batch ID: <span style={{ color: '#37BD69' }}>{batchDetails?.batch_id}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Organization: <span style={{ color: '#37BD69' }}>{batchData.organization}</span>
+                  Organization: <span style={{ color: '#37BD69' }}>{selectedParivesh?.organization_name}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Date of Submitted: <span style={{ color: '#37BD69' }}>{batchData.dateSubmitted}</span>
+                  Date of Submitted:{' '}
+                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.submitted_on).format('DD/MM/YYYY')}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -345,17 +371,18 @@ const BatchDetails = ({ params, searchParams }) => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Batch Created: <span style={{ color: '#37BD69' }}>{batchData.batchCreated}</span>
+                  Batch Created:{' '}
+                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.created_on).format('DD/MM/YYYY')}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Registration ID : <span style={{ color: '#37BD69' }}>{batchData.registrationId}</span>
+                  Registration ID : <span style={{ color: '#37BD69' }}>{batchDetails?.registration_id}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Submitted By: <span style={{ color: '#37BD69' }}>{batchData.submittedBy}</span>
+                  Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>

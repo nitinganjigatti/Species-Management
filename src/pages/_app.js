@@ -53,6 +53,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 import '../../styles/globals.css'
 
 import { PharmacyProvider } from 'src/context/PharmacyContext'
+import { PariveshProvider } from 'src/context/PariveshContext'
 
 const clientSideEmotionCache = createEmotionCache()
 
@@ -100,28 +101,30 @@ const App = props => {
         <meta name='description' content={`${themeConfig.templateName}`} />
         <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
-      <PharmacyProvider>
-        <AuthProvider>
-          <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-            <SettingsConsumer>
-              {({ settings }) => {
-                return (
-                  <ThemeComponent settings={settings}>
-                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                      <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                        {getLayout(<Component {...pageProps} />)}
-                      </AclGuard>
-                    </Guard>
-                    <ReactHotToast>
-                      <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                    </ReactHotToast>
-                  </ThemeComponent>
-                )
-              }}
-            </SettingsConsumer>
-          </SettingsProvider>
-        </AuthProvider>
-      </PharmacyProvider>
+      <PariveshProvider>
+        <PharmacyProvider>
+          <AuthProvider>
+            <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+              <SettingsConsumer>
+                {({ settings }) => {
+                  return (
+                    <ThemeComponent settings={settings}>
+                      <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                        <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                          {getLayout(<Component {...pageProps} />)}
+                        </AclGuard>
+                      </Guard>
+                      <ReactHotToast>
+                        <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
+                      </ReactHotToast>
+                    </ThemeComponent>
+                  )
+                }}
+              </SettingsConsumer>
+            </SettingsProvider>
+          </AuthProvider>
+        </PharmacyProvider>
+      </PariveshProvider>
     </CacheProvider>
   )
 }

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import { Controller, useForm } from 'react-hook-form'
@@ -21,38 +21,52 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Router, { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import { addSpeciesToOrganization, getListAllSpeciesSearch, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import moment from 'moment'
+import Toaster from 'src/components/Toaster'
+
+const schema = yup.object().shape({
+  specie: yup
+    .object()
+    .shape({
+      name: yup.string().required('Specie is Required')
+    })
+    .required('Specie is Required'),
+  totalCount: yup.string().required('Total Count is Required'),
+  gender: yup.string().required('Gender is Required'),
+  age: yup.string().required('Age is Required'),
+  ro_date: yup.date().required('Date is Required'),
+  reason: yup.string().required('Reason is Required'),
+  registrationNumber: yup.string().when('reason', {
+    is: value => value === 'death',
+    then: schema => schema.required('Registration Number is Required for Death Reason')
+  }),
+  reasonForDeath: yup.string().when('reason', {
+    is: value => value === 'death',
+    then: schema => schema.required('Reason for Death is Required')
+  }),
+  whereAndHowDisposed: yup.string().when('reason', {
+    is: value => value === 'death',
+    then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+  }),
+
+  organizationName: yup.mixed().when('selectedParivesh.id', {
+    is: 'all',
+    then: yup.object().shape({
+      organization_name: yup.string().required('Organization Name is Required')
+    })
+  })
+})
 
 const AddNewEntry = () => {
   const router = useRouter()
+  const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
   const [btnLoader, setBtnLoader] = useState(false)
   const [editParams, setEditParams] = useState()
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
-
-  const schema = yup.object().shape({
-    specie: yup
-      .object()
-      .shape({
-        name: yup.string().required('Specie is Required')
-      })
-      .required('Specie is Required'),
-    totalCount: yup.string().required('Total Count is Required'),
-    gender: yup.string().required('Gender is Required'),
-    age: yup.number().typeError('Age must be a number').required('Age is Required'),
-    ro_date: yup.date().required('Date is Required'),
-    reason: yup.string().required('Reason is Required'),
-    registrationNumber: yup.string().when('reason', {
-      is: value => value === 'death',
-      then: schema => schema.required('Registration Number is Required for Death Reason')
-    }),
-    reasonForDeath: yup.string().when('reason', {
-      is: value => value === 'death',
-      then: schema => schema.required('Reason for Death is Required')
-    }),
-    whereAndHowDisposed: yup.string().when('reason', {
-      is: value => value === 'death',
-      then: schema => schema.required('Where and How Disposed is Required for Death Reason')
-    })
-  })
+  const [species, setSpecies] = useState([])
+  const [organizations, setOrganizations] = useState([])
 
   const defaultValues = {
     specie: null,
@@ -71,6 +85,7 @@ const AddNewEntry = () => {
     getValues,
     clearErrors,
     handleSubmit,
+    trigger,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -84,28 +99,125 @@ const AddNewEntry = () => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
 
-  const onSubmit = async params => {
-    console.log(params, 'data')
-    // handle form submission
+  const onSubmit = async data => {
+    // console.log('Form is invalid:', errors)
+    console.log('Form submitted with data:', data)
+
+    // console.log(getValues(), 'getValues')
+
+    // //  Add logic to handle form submission, e.g., API calls
+    // const isValid = await trigger()
+    // console.log('isValid', isValid)
+
+    // console.log(getValues(), 'getValues')
+
+    // if (isValid) {
+    //   handleSubmit(onSubmit)()
+    // }
+
+    const {
+      gender,
+      ro_date,
+      specie,
+      reason,
+      organizationName,
+      age,
+      registrationNumber,
+      reasonForDeath,
+      whereAndHowDisposed,
+      totalCount
+    } = { ...data }
+
+    let payload
+    if (reason === 'death') {
+      payload = {
+        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+        tsn_id: specie?.id,
+        tsn_relation: specie?.tsn_relation,
+        possession_type: reason,
+        gender: gender,
+        animal_count: totalCount,
+        transaction_date: moment(ro_date).format('YYYY-MM-DD'),
+        age: age,
+        alloted_register_no: registrationNumber,
+        reason_for_death: reasonForDeath,
+        where_disposed: whereAndHowDisposed
+      }
+    } else {
+      payload = {
+        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+        tsn_id: specie?.id,
+        tsn_relation: specie?.tsn_relation,
+        possession_type: reason,
+        gender: gender,
+        animal_count: totalCount,
+        transaction_date: moment(ro_date).format('YYYY-MM-DD'),
+        age: age
+      }
+    }
+
+    try {
+      setBtnLoader(true)
+      await addSpeciesToOrganization(payload).then(res => {
+        if (res?.success) {
+          router.back()
+          setBtnLoader(false)
+          Toaster({ type: 'success', message: res?.data })
+        } else {
+          setBtnLoader(false)
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton loading={btnLoader} size='large' type='submit' variant='contained'>
+        <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
           {'Save'}
         </LoadingButton>
-        <Button onClick={() => Router.push('')} size='large' type='reset' color='error' variant='outlined'>
+        <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
           Cancel
         </Button>
       </Box>
     )
   }
 
-  const specieData = [
-    { id: 1, name: 'Sparrow' },
-    { id: 2, name: 'Robin' }
-  ]
+  const fetchSpeciesData = useCallback(async () => {
+    try {
+      const params = {}
+
+      await getListAllSpeciesSearch({ params: params }).then(res => {
+        console.log('response123', res?.data?.result)
+        const transformedSpecies = res?.data?.result.map(species => ({
+          id: species?.tsn,
+          common_name: species?.common_name,
+          name: species?.scientific_name,
+          tsn_relation: species?.tsn_relation,
+          zoo_id: species.zoo_id
+        }))
+        setSpecies(transformedSpecies)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchSpeciesData()
+  }, [fetchSpeciesData])
+
+  useEffect(() => {
+    if (selectedParivesh?.id === 'all') {
+      setOrganizations(organizationList.filter(el => el.id !== 'all'))
+    } else {
+      const selected = organizationList.find(el => el.id === selectedParivesh.id)
+      setOrganizations(selected ? [selected] : [])
+    }
+  }, [selectedParivesh, organizationList])
 
   return (
     <>
@@ -113,6 +225,9 @@ const AddNewEntry = () => {
         <Box>
           <Breadcrumbs aria-label='breadcrumb'>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/home')}>
+              {selectedParivesh?.organization_name}
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
               New Entries
             </Typography>
             <Typography color='text.primary'>New Report</Typography>
@@ -135,11 +250,11 @@ const AddNewEntry = () => {
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
                           sx={{ width: '100%' }}
-                          options={specieData}
+                          options={species}
                           id='autocomplete-clearOnEscape'
                           value={value}
                           getOptionLabel={option => option.name || ''}
-                          isOptionEqualToValue={(option, value) => option.id === value.id}
+                          isOptionEqualToValue={(option, value) => option.id === value?.id} // This line is changed
                           onChange={(event, newValue) => {
                             onChange(newValue)
                           }}
@@ -153,6 +268,36 @@ const AddNewEntry = () => {
                   </FormControl>
                 </Grid>
               </Grid>
+              {selectedParivesh?.id === 'all' && organizations && organizations.length > 0 && (
+                <Grid container spacing={2} sx={{ mb: 6 }}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth error={Boolean(errors.organizationName)}>
+                      <Controller
+                        name='organizationName'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Autocomplete
+                            sx={{ width: '100%' }}
+                            options={organizations}
+                            id='autocomplete-clearOnEscape'
+                            value={value}
+                            getOptionLabel={option => option.organization_name || ''}
+                            isOptionEqualToValue={(option, value) => option.org_id === value?.org_id}
+                            onChange={(event, newValue) => {
+                              onChange(newValue)
+                            }}
+                            renderInput={params => <TextField {...params} label='Select the Organization' />}
+                          />
+                        )}
+                      />
+                      {errors.organizationName && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.organizationName?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              )}
+
               <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
@@ -284,15 +429,12 @@ const AddNewEntry = () => {
                       name='age'
                       control={control}
                       render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Age*'
-                          type='number'
-                          value={value}
-                          onChange={onChange}
-                          error={Boolean(errors.age)}
-                        />
+                        <TextField select label='Age*' value={value} onChange={onChange} error={Boolean(errors.age)}>
+                          <MenuItem value='adult'>Adult</MenuItem>
+                        </TextField>
                       )}
                     />
+
                     {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
                   </FormControl>
                 </Grid>
@@ -308,6 +450,7 @@ const AddNewEntry = () => {
                         <TextField
                           label='Total Count*'
                           value={value}
+                          type='number'
                           onChange={onChange}
                           placeholder='Enter Total Count'
                           error={Boolean(errors.totalCount)}

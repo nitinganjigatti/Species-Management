@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -8,7 +8,7 @@ import Grid from '@mui/material/Grid'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { Avatar, Button, Tooltip, Typography } from '@mui/material'
+import { Avatar, Button, Tooltip, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
@@ -24,42 +24,22 @@ import { useTheme } from '@mui/material/styles'
 import { AddButton } from 'src/components/Buttons'
 import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
 import Router from 'next/router'
+import { addSpecies, getSpeciesList, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import toast from 'react-hot-toast'
 
 const SpeciesList = () => {
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [status, setStatus] = useState('overview')
   const [loader, setLoader] = useState(false)
-  const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([
-    {
-      uid: '01',
-      id: '1',
-      common_name: 'Cheetah',
-      scientific_name: 'Speckled pigeon',
-      rkt: '123',
-      kmt: '1',
-      rktwt: '12',
-      age: 'Juvenile',
-      category: 'Birth',
-      created_at: '2024-06-03 16:07:17',
-      date: '2024-06-06 16:07:17',
-      created_by_user: {
-        user_name: 'sr',
-        email: 'sr@mailinator.com',
-        profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
-      }
-    }
-  ])
+  const [sortBy, setSortBy] = useState('DESC')
+  const [sortColumn, setSortColumn] = useState('scientific_name')
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-
-  const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [selectedIngredient, setSelectedIngredient] = useState()
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -92,155 +72,301 @@ const SpeciesList = () => {
     sl_no: getSlNo(index)
   }))
 
-  const columns = [
-    {
-      flex: 0.2,
-      Width: 40,
-      field: 'uid',
-      headerName: 'S.NO',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
+  // const columns = [
+  //   {
+  //     flex: 0.2,
+  //     Width: 40,
+  //     field: 'sl_no',
+  //     headerName: 'S.NO',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.uid}
+  //       </Typography>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      minWidth: 30,
-      field: 'image_type',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <>
-          <Avatar variant='square' src={params.row.created_by_user?.profile_pic} alt={params.row.id} />
-          <Tooltip title={params.row.image_type} placement='right'>
-            <Typography
-              variant='body2'
-              sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              {' '}
-              {params.row.image_type}
-            </Typography>
-          </Tooltip>
-        </>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'common_name',
-      headerName: 'COMMON NAME',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
+  //   {
+  //     flex: 0.2,
+  //     minWidth: 30,
+  //     field: 'species_image',
+  //     headerName: 'IMAGE',
+  //     renderCell: params => (
+  //       <>
+  //         <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+  //         {/* <Tooltip title={params.row.species_image} placement='right'>
+  //           <Typography
+  //             variant='body2'
+  //             sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+  //           >
+  //             {params.row.species_image}
+  //           </Typography>
+  //         </Tooltip> */}
+  //       </>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.3,
+  //     minWidth: 30,
+  //     field: 'common_name',
+  //     headerName: 'COMMON NAME',
+  //     renderCell: params => (
+  //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+  //         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+  //             {params.row.common_name ? params.row.common_name : '-'}
+  //           </Typography>
+  //         </Box>
+  //       </Box>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'scientific_name',
+  //     headerName: 'SCIENTIFIC NAME',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.scientific_name ? params.row.scientific_name : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'rkt',
+  //     headerName: 'RKT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: '#37BD69' }}>
+  //         {params.row.rkt ? params.row.rkt : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'kmt',
+  //     headerName: 'KMT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.kmt ? params.row.kmt : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'rktwt',
+  //     headerName: 'RKTWT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.rktwt ? params.row.rktwt : '-'}
+  //       </Typography>
+  //     )
+  //   }
+  // ]
+  const getColumns = rows => {
+    // Create base columns
+    const baseColumns = [
+      {
+        flex: 0.2,
+        Width: 40,
+        field: 'sl_no',
+        headerName: 'S.NO',
+        renderCell: params => (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.uid}
+          </Typography>
+        )
+      },
+      {
+        flex: 0.2,
+        minWidth: 30,
+        field: 'species_image',
+        headerName: 'IMAGE',
+        renderCell: params => (
+          <>
+            <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          </>
+        )
+      },
+      {
+        flex: 0.3,
+        minWidth: 30,
+        field: 'common_name',
+        headerName: 'COMMON NAME',
+        renderCell: params => (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                {params.row.common_name ? params.row.common_name : '-'}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'scientific_name',
-      headerName: 'SCIENTIFIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'rkt',
-      headerName: 'RKT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: '#37BD69' }}>
-          {params.row.rkt ? params.row.rkt : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'kmt',
-      headerName: 'KMT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.kmt ? params.row.kmt : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'rktwt',
-      headerName: 'RKTWT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.rktwt ? params.row.rktwt : '-'}
-        </Typography>
-      )
-    }
-  ]
+        )
+      },
+      {
+        flex: 0.4,
+        minWidth: 10,
+        field: 'scientific_name',
+        headerName: 'SCIENTIFIC NAME',
+        renderCell: params => (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        )
+      }
+    ]
 
-  // ;('/parivesh/home/batch-list/batch-details')
+    // Extract unique organization names
+    const organizationNames = [...new Set(rows.flatMap(row => row.organizations.map(org => org.organization_name)))]
+
+    // Create columns for each organization
+    const organizationColumns = organizationNames.map((orgName, index) => ({
+      flex: 0.4,
+      minWidth: 10,
+      field: `org_${index}`,
+      headerName: orgName,
+      renderCell: params => {
+        const org = params.row.organizations.find(org => org.organization_name === orgName)
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {org ? org.animal_count : '-'}
+          </Typography>
+        )
+      }
+    }))
+
+    // Combine base columns with organization columns
+    return [...baseColumns, ...organizationColumns]
+  }
 
   const onCellClick = params => {
-    Router.push(`/parivesh/species/${params?.id}/species-details`)
-    // console.log(params, 'params')
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    //   Router.push({
-    //     pathname: `/diet/ingredient/${data?.id}`
-    //   })
-    // } else {
-    //   return
-    // }
+    // const tns = params?.row?.tsn
+
+    // Router.push(`/parivesh/species/${tns}/species-details`)
+    console.log(params, 'params')
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const data = params?.row?.tsn
+      Router.push({
+        pathname: `/parivesh/species/${data}/species-details`,
+        query: {
+          tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
+          tsn: params?.row?.tsn
+        }
+      })
+    } else {
+      return
+    }
   }
   const addEventSidebarOpen = () => {
-    // setEditParams({ id: null, name: null, active: null })
-    // setResetForm(true)
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
     setOpenDrawer(true)
   }
   const handleSidebarClose = () => {
     setOpenDrawer(false)
   }
 
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sortBy, q, sortColumn, status) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          q,
+          page: paginationModel.page + 1,
+          sortBy,
+          sortColumn,
+
+          limit: paginationModel.pageSize
+        }
+
+        await getSpeciesListByOrg({ params: params }).then(res => {
+          console.log('responsewwww', res)
+          // Generate uid field based on the index
+          let listWithId = res.data.species_data.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          console.log(listWithId, 'id')
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sortBy, searchValue, sortColumn, status)
+  }, [fetchTableData, status])
+
   const handleSubmitData = async payload => {
-    // try {
-    //   setSubmitLoader(true)
-    //   var response
-    //   if (editParams?.id !== null) {
-    //     response = await updateDrug(editParams?.id, payload)
-    //   } else {
-    //     response = await addDrug(payload)
-    //   }
-    //   if (response?.success) {
-    //     // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-    //     toast.success(response?.message)
-    //     setSubmitLoader(false)
-    //     setResetForm(true)
-    //     setOpenDrawer(false)
-    //     await fetchTableData(sort, searchValue, sortColumn)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-    //     if (typeof response?.message === 'object') {
-    //       Utility.errorMessageExtractorFromObject(response.message)
-    //     } else {
-    //       toast.error(response.message)
-    //     }
-    //   }
-    // } catch (e) {
-    //   console.log(e)
-    //   setSubmitLoader(false)
-    //   toast.error(JSON.stringify(e))
-    //   // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
-    // }
+    console.log(payload, 'payload')
+    try {
+      setSubmitLoader(true)
+      // var response
+      // if (editParams?.id !== null) {
+      //   response = await updateSpecies(editParams?.id, payload)
+      // } else {
+      //  let  response = await addSpecies(payload)
+      // }
+      const response = await addSpecies(payload)
+      if (response?.success) {
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        await fetchTableData(sortBy, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      toast.error(JSON.stringify(e))
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+    }
+  }
+
+  const searchTableData = useCallback(
+    debounce(async (sortBy, q, sortColumn, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sortBy, q, sortColumn, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSortBy(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sortBy, value, sortColumn, status)
   }
 
   const headerAction = (
@@ -250,7 +376,6 @@ const SpeciesList = () => {
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD new species
         </Button>
-        {/* <AddButton title='ADD new species' action={() => addEventSidebarOpen()} /> */}
       </div>
     </>
   )
@@ -305,12 +430,12 @@ const SpeciesList = () => {
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
-              columns={columns}
+              columns={getColumns(indexedRows)}
               sortingMode='server'
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              //   onSortModelChange={handleSortModel}
+              onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}

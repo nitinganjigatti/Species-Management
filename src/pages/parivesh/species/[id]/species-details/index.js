@@ -1,10 +1,9 @@
-import { Breadcrumbs, Card, CardContent, Grid, Typography, Avatar, Button, Tooltip } from '@mui/material'
+import { Breadcrumbs, Card, CardContent, Grid, Typography, Avatar, Button, Tooltip, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import Router from 'next/router'
-import React, { useContext, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
 import AddSpeciesNewEntry from 'src/views/pages/parivesh/addSpeciesEntry/addSpeciesEntry'
-import Chip from '@mui/material/Chip'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -15,6 +14,9 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
+import { useRouter } from 'next/router'
+import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import toast from 'react-hot-toast'
 
 const SpeciesDetails = () => {
   const theme = useTheme()
@@ -22,41 +24,26 @@ const SpeciesDetails = () => {
   const [status, setStatus] = useState('overview')
   const [loader, setLoader] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([
-    {
-      uid: '01',
-      id: '1',
-      common_name: 'Cheetah',
-      scientific_name: 'Speckled pigeon',
-      rkt: '123',
-      kmt: '1',
-      rktwt: '12',
-      age: 'Juvenile',
-      category: 'Birth',
-      created_at: '2024-06-03 16:07:17',
-      date: '2024-06-06 16:07:17',
-      created_by_user: {
-        user_name: 'sr',
-        email: 'sr@mailinator.com',
-        profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
-      }
-    }
-  ])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-
+  const [sortColumn, setSortColumn] = useState('scientific_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
-  const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [selectedIngredient, setSelectedIngredient] = useState()
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
   const authData = useContext(AuthContext)
+
+  const router = useRouter()
+  const { id, tsn, tsn_relation } = router.query
+
+  console.log(tsn_relation, id, tsn, router, 'router')
 
   const onClose = () => {
     setDialog(false)
@@ -66,15 +53,6 @@ const SpeciesDetails = () => {
     setTotal(0)
     setStatus(newValue)
   }
-
-  const TabBadge = ({ label, totalCount }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-      {label}
-      {totalCount ? (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
-      ) : null}
-    </div>
-  )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -87,11 +65,11 @@ const SpeciesDetails = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.id}
         </Typography>
       )
     },
@@ -103,8 +81,9 @@ const SpeciesDetails = () => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.created_by_user?.profile_pic} alt={params.row.id} />
-          <Tooltip title={params.row.image_type} placement='right'>
+          {console.log(params, 'asd')}
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
+          {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'
               sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
@@ -112,7 +91,7 @@ const SpeciesDetails = () => {
               {' '}
               {params.row.image_type}
             </Typography>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )
     },
@@ -177,8 +156,6 @@ const SpeciesDetails = () => {
     }
   ]
 
-  // ;('/parivesh/home/batch-list/batch-details')
-
   const onCellClick = params => {
     // Router.push(`/parivesh/species/${params?.id}/species-details`)
     // console.log(params, 'params')
@@ -193,15 +170,56 @@ const SpeciesDetails = () => {
     // }
   }
   const addEventSidebarOpen = () => {
-    // setEditParams({ id: null, name: null, active: null })
-    // setResetForm(true)
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
     setOpenDrawer(true)
   }
   const handleSidebarClose = () => {
     setOpenDrawer(false)
   }
 
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (sort, q, sortColumn, status) => {
+      try {
+        setLoading(true)
+
+        const params = {
+          q,
+          page: paginationModel.page + 1,
+          sortBy: sort,
+          sortColumn,
+          limit: paginationModel.pageSize
+        }
+
+        await getSpeciesListByOrg({ params: params }).then(res => {
+          console.log('response', res)
+          // Generate uid field based on the index
+          let listWithId = res.data.species_data.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          console.log(listWithId, 'id')
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn, status)
+  }, [fetchTableData, status])
+
   const handleSubmitData = async payload => {
+    console.log(payload)
     // try {
     //   setSubmitLoader(true)
     //   var response
@@ -211,7 +229,6 @@ const SpeciesDetails = () => {
     //     response = await addDrug(payload)
     //   }
     //   if (response?.success) {
-    //     // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
     //     toast.success(response?.message)
     //     setSubmitLoader(false)
     //     setResetForm(true)
@@ -219,7 +236,6 @@ const SpeciesDetails = () => {
     //     await fetchTableData(sort, searchValue, sortColumn)
     //   } else {
     //     setSubmitLoader(false)
-    //     // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
     //     if (typeof response?.message === 'object') {
     //       Utility.errorMessageExtractorFromObject(response.message)
     //     } else {
@@ -230,7 +246,6 @@ const SpeciesDetails = () => {
     //   console.log(e)
     //   setSubmitLoader(false)
     //   toast.error(JSON.stringify(e))
-    //   // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     // }
   }
 
@@ -244,6 +259,32 @@ const SpeciesDetails = () => {
       </div>
     </>
   )
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, sortColumn, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, sortColumn, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn, status)
+  }
 
   const tableData = () => {
     return (
@@ -300,7 +341,7 @@ const SpeciesDetails = () => {
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              //   onSortModelChange={handleSortModel}
+              onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}

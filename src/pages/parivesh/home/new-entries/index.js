@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
-
-import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
-import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, CardContent } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider, CardContent, Checkbox } from '@mui/material'
 import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
@@ -22,64 +14,101 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
+import { LoadingButton } from '@mui/lab'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
+
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
-import AddIngredients from 'src/components/diet/AddIngredients'
-import Error404 from 'src/pages/404'
-
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
+import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import { addBatches } from 'src/lib/api/parivesh/addBatch'
 
-const NewEntry = ({ setStatus }) => {
+const NewEntry = ({}) => {
   const theme = useTheme()
+  const router = useRouter()
+
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([
-    {
-      uid: '01',
-      id: '1',
-      common_name: 'Cheetah',
-      scientific_name: 'Speckled pigeon',
-      gender_count: {
-        gender: 'Male',
-        count: 3
-      },
-      age: 'Juvenile',
-      category: 'Birth',
-      created_at: '2024-06-03 16:07:17',
-      date: '2024-06-06 16:07:17',
-      created_by_user: {
-        user_name: 'sr',
-        email: 'sr@mailinator.com',
-        profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
-      }
-    }
-  ])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-
-  const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [selectedIngredient, setSelectedIngredient] = useState()
+  const [sortColumn, setSortColumn] = useState('scientific_name')
 
   const authData = useContext(AuthContext)
-  const dietModule = authData?.userData?.roles?.settings?.diet_module
-  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
-  const [openIngredient, setOpenIngredient] = useState(false)
+  const { selectedParivesh } = usePariveshContext()
+  const [selectAll, setSelectAll] = useState(false)
+  const [selectedRows, setSelectedRows] = useState([])
+  const [btnLoader, setBtnLoader] = useState(false)
+
   function loadServerRows(currentPage, data) {
     return data
+  }
+
+  const handleSelectAll = event => {
+    setSelectAll(event.target.checked)
+    if (event.target.checked) {
+      setSelectedRows(rows.map(row => row.tsn_id))
+    } else {
+      setSelectedRows([])
+    }
+  }
+
+  const handleCreateBatch = async () => {
+    const payload = {
+      org_id: selectedParivesh?.id,
+      id: selectedRows
+    }
+    if (selectedRows.length > 0) {
+      try {
+        setBtnLoader(true)
+        await addBatches(payload).then(res => {
+          if (res?.success) {
+            setBtnLoader(false)
+            Toaster({ type: 'success', message: res?.message })
+            setSelectedRows([])
+            setSelectAll(false)
+          } else {
+            setBtnLoader(false)
+            Toaster({ type: 'error', message: res?.message })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
+    } else {
+      router.push(`?tab=batches`, undefined, { shallow: true })
+    }
+  }
+
+  console.log(selectedRows)
+
+  const handleRowSelection = tsn_id => {
+    const selectedIndex = selectedRows.indexOf(tsn_id)
+    let newSelected = []
+
+    if (selectedIndex === -1) {
+      newSelected = [...selectedRows, tsn_id]
+    } else {
+      newSelected = selectedRows.filter(id => id !== tsn_id)
+    }
+
+    setSelectedRows(newSelected)
+
+    // Update selectAll state
+    setSelectAll(newSelected.length === rows.length)
   }
 
   const handleChange = (event, newValue) => {
@@ -91,44 +120,49 @@ const NewEntry = ({ setStatus }) => {
     setDialog(false)
   }
 
-  //   const fetchTableData = useCallback(
-  //     async (sort, q, sortColumn, status) => {
-  //       try {
-  //         setLoading(true)
+  const fetchTableData = useCallback(
+    async (sort, q, sortColumn) => {
+      try {
+        setLoading(true)
 
-  //         const params = {
-  //           sort,
-  //           q,
-  //           sortColumn,
-  //           page: paginationModel.page + 1,
-  //           limit: paginationModel.pageSize,
-  //           status
-  //         }
+        const params = {
+          sort,
+          q,
+          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
 
-  //         await getIngredientList({ params: params }).then(res => {
-  //           console.log('response', res)
+        await getSpeciesListByOrg({ params: params }).then(res => {
+          console.log('response', res)
 
-  //           // Generate uid field based on the index
-  //           let listWithId = res.data.result.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows(loadServerRows(paginationModel.page, listWithId))
-  //         })
-  //         setLoading(false)
-  //       } catch (e) {
-  //         console.log(e)
-  //         setLoading(false)
-  //       }
-  //     },
-  //     [paginationModel]
-  //   )
+          // Generate uid field based on the index
+          let listWithId = res.data.species_data.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel, selectedParivesh]
+  )
 
-  //   useEffect(() => {
-  //     if (dietModule) {
-  //       fetchTableData(sort, searchValue, sortColumning, status)
-  //     }
-  //   }, [fetchTableData, status])
+  // useEffect(() => {
+  //   if (prevSelectedPariveshRef.current !== selectedParivesh) {
+  //     prevSelectedPariveshRef.current = selectedParivesh
+  //     fetchTableData(sort, searchValue, sortColumn)
+  //   }
+  // }, [fetchTableData, selectedParivesh, sort, searchValue, sortColumn])
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn)
+  }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -137,41 +171,41 @@ const NewEntry = ({ setStatus }) => {
     sl_no: getSlNo(index)
   }))
 
-  //   const handleSortModel = newModel => {
-  //     if (newModel.length) {
-  //       setSort(newModel[0].sort)
-  //       setsortColumning(newModel[0].field)
-  //       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-  //     } else {
-  //     }
-  //   }
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+    } else {
+    }
+  }
 
-  //   const searchTableData = useCallback(
-  //     debounce(async (sort, q, sortColumn, status) => {
-  //       setSearchValue(q)
-  //       try {
-  //         await fetchTableData(sort, q, sortColumn, status)
-  //       } catch (error) {
-  //         console.error(error)
-  //       }
-  //     }, 1000),
-  //     []
-  //   )
+  const searchTableData = useCallback(
+    debounce(async (sort, q, sortColumn, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, sortColumn, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
-  //   const handleSearch = value => {
-  //     setSearchValue(value)
-  //     searchTableData(sort, value, sortColumning, status)
-  //   }
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
   const columns = [
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.id}
         </Typography>
       )
     },
@@ -183,8 +217,8 @@ const NewEntry = ({ setStatus }) => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.created_by_user?.profile_pic} alt={params.row.id} />
-          <Tooltip title={params.row.image_type} placement='right'>
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
+          {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'
               sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
@@ -192,12 +226,12 @@ const NewEntry = ({ setStatus }) => {
               {' '}
               {params.row.image_type}
             </Typography>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
@@ -212,7 +246,7 @@ const NewEntry = ({ setStatus }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
@@ -277,7 +311,7 @@ const NewEntry = ({ setStatus }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
@@ -290,50 +324,28 @@ const NewEntry = ({ setStatus }) => {
             <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => console.log('edit')} aria-label='Edit'>
               <Icon icon='mdi:delete-outline' />
             </IconButton>
+            {/* <Checkbox
+              checked={selectedRows.includes(params.row.tsn_id)}
+              onChange={() => handleRowSelection(params.row.tsn_id)}
+            /> */}
           </Box>
         </>
       )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'checkbox',
+      headerName: (
+        <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+      ),
+      renderCell: params => (
+        <Checkbox
+          checked={selectedRows.includes(params.row.tsn_id)}
+          onChange={() => handleRowSelection(params.row.tsn_id)}
+        />
+      )
     }
-    // {
-    //   flex: 0.6,
-    //   minWidth: 60,
-    //   field: 'user_name',
-    //   headerName: 'CREATED BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='square'
-    //         alt='Medicine Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: '#E8F4F2',
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.created_by_user?.profile_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.created_by_user?.profile_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-    //           {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-    //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-    //           {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-    //         </Typography>
-    //       </Box>
-    //     </Box>
-    //   )
-    // }
   ]
 
   const onCellClick = params => {
@@ -362,17 +374,19 @@ const NewEntry = ({ setStatus }) => {
           &nbsp; ADD ENTRY
         </Button>
 
-        <Button
-          size='medium'
+        <LoadingButton
+          loading={btnLoader}
+          size='large'
           variant='contained'
           sx={{ m: 2, backgroundColor: '#1F415B' }}
-          onClick={() => {
-            setStatus('batches')
-            // Router.push('/parivesh/home/batch-list')
-          }}
+          onClick={handleCreateBatch}
         >
+          {'CREATE BATCH'}
+        </LoadingButton>
+
+        {/* <Button size='medium' variant='contained' sx={{ m: 2, backgroundColor: '#1F415B' }}>
           &nbsp; CREATE BATCH
-        </Button>
+        </Button> */}
       </div>
     </>
   )
@@ -432,7 +446,7 @@ const NewEntry = ({ setStatus }) => {
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              //   onSortModelChange={handleSortModel}
+              onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
@@ -524,6 +538,8 @@ const NewEntry = ({ setStatus }) => {
             data={data}
             backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
             cards={cards}
+            isOrganization={selectedParivesh.id !== 'all' ? true : false}
+            organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
           />
         </CardContent>
       </Card>

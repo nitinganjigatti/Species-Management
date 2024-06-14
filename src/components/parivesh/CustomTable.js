@@ -34,12 +34,6 @@ const CustomTable = ({
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
   //   const headerAction = <>{/* Add any header actions if needed */}</>
 
   return (
@@ -86,7 +80,7 @@ const CustomTable = ({
             disableColumnSelector={true}
             autoHeight
             pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
+            rows={rows}
             rowCount={total}
             columns={columns}
             sortingMode='server'

@@ -14,7 +14,6 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { RadioGroup, FormLabel, FormControlLabel, Radio, Button, Grid } from '@mui/material'
-import InputAdornment from '@mui/material/InputAdornment'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 
@@ -29,7 +28,7 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup
+  scientificName: yup
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Scientific Name is Required'),
@@ -41,7 +40,8 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  name: '',
+  scientificName: '',
+  commonName: '',
   active: '1'
 }
 
@@ -76,11 +76,14 @@ const AddSpecies = props => {
   })
 
   const onSubmit = async params => {
-    const { name, active } = { ...params }
+    console.log(params, 'params')
+    const { scientificName, commonName, speciesImg, coverImg, active } = { ...params }
 
     const payload = {
-      name: name.trim(),
-      active
+      common_name: commonName.trim(),
+      scientific_name: scientificName.trim(),
+      species_image: speciesImg,
+      cover_image: coverImg
     }
     await handleSubmitData(payload)
   }
@@ -210,7 +213,7 @@ const AddSpecies = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <TextField
               label='Search...'
               value={searchQuery}
@@ -224,10 +227,10 @@ const AddSpecies = props => {
                 )
               }}
             />
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='name'
+              name='scientificName'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -236,12 +239,14 @@ const AddSpecies = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='Scientific Name'
-                  error={Boolean(errors.name)}
-                  name='name'
+                  error={Boolean(errors.scientificName)}
+                  name='scientificName'
                 />
               )}
             />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+            {errors.scientificName && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.scientificName.message}</FormHelperText>
+            )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller

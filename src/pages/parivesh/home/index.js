@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import TabList from '@mui/lab/TabList'
@@ -10,15 +10,26 @@ import TabContext from '@mui/lab/TabContext'
 import Overview from './overview'
 import NewEntry from './new-entries'
 import Batches from './[id]'
+import { useRouter } from 'next/router'
 
 const Home = ({ params, searchParams }) => {
+  const router = useRouter()
+  const { tab } = router.query
   const [total, setTotal] = useState(0)
-  const [status, setStatus] = useState('overview')
+  const [status, setStatus] = useState(tab ? tab.replace(/-/g, ' ') : 'overview')
 
   const handleChange = (event, newValue) => {
+    console.log(newValue, 'newValue')
     setTotal(0)
     setStatus(newValue)
+    router.push(`?tab=${newValue.replace(/ /g, '-')}`, undefined, { shallow: true })
   }
+
+  useEffect(() => {
+    if (tab) {
+      setStatus(tab.replace(/-/g, ' '))
+    }
+  }, [tab])
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -53,7 +64,7 @@ const Home = ({ params, searchParams }) => {
             <Overview />
           </TabPanel>
           <TabPanel value='new entries'>
-            <NewEntry setStatus={setStatus} />
+            <NewEntry />
           </TabPanel>
           <TabPanel value='batches'>
             <Batches />

@@ -12,6 +12,7 @@ import UserDropdown from 'src/@core/layouts/components/shared-components/UserDro
 import SelectPharmacy from 'src/components/SelectPharmacy'
 import { usePathname } from 'next/navigation'
 import { AuthContext } from 'src/context/AuthContext'
+import SelectParivesh from 'src/components/SelectParivesh'
 
 const AppBarContent = props => {
   // ** Props
@@ -34,6 +35,7 @@ const AppBarContent = props => {
         ) : null}
         {/* <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
         {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
+        {moduleName === 'parivesh' && <SelectParivesh />}
       </Box>
 
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
