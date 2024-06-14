@@ -126,7 +126,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files])
+        setImgArr(pre => [...pre, files[0]])
         setValue('image', files)
 
         clearErrors('image')
@@ -148,7 +148,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
       }
       setDisplayFile(files[0]?.name)
       reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files])
+      setImgArr(pre => [...pre, files[0]])
       setValue('image', files)
       clearErrors('image')
     }
