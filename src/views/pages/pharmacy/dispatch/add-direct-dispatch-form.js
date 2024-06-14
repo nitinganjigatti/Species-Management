@@ -117,10 +117,6 @@ export const AddItemsForm = ({
     reValidateMode: 'onChange'
   })
 
-  // console.log('nestedMedicine', nestedMedicine)
-  // console.log('productList', productList)
-  // console.log('batchList', batchList)
-
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
