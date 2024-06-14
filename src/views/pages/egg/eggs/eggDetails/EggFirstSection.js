@@ -92,13 +92,6 @@ const EggFirstSection = ({ eggDetails }) => {
                             <Box key={item?.id} className='keen-slider__slide'>
                               <ImageListItem>
                                 <img
-                                  // srcSet={item?.egg_image || eggDetails?.default_icon}
-                                  // srcSet={
-                                  //   'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2'
-                                  // }
-                                  // src={
-                                  //   'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2'
-                                  // }
                                   src={item?.egg_image || eggDetails?.default_icon}
                                   alt={item?.action}
                                   loading='lazy'
@@ -135,12 +128,15 @@ const EggFirstSection = ({ eggDetails }) => {
                     </>
                   </KeenSliderWrapper>
                 ) : (
-                  <ImageListItem>
+                  <ImageListItem
+                    style={{ height: '100%', backgroundColor: theme.palette.background.default, borderRadius: '8px' }}
+                  >
                     <img
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
                       loading='lazy'
+                      height={'100%'}
                     />
 
                     <ImageListItemBar

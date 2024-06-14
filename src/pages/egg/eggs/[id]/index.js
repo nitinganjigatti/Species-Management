@@ -42,8 +42,8 @@ const EggDetail = () => {
       ) : ( */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <EggFirstSection eggDetails={eggDetails} />
-        <EggSecondSecion eggDetails={eggDetails} />
-        <EggImageGallery eggDetails={eggDetails} />
+        <EggSecondSecion eggDetails={eggDetails} egg_id={id} />
+        <EggImageGallery eggDetails={eggDetails} eggId={id} />
         <EggComment eggDetails={eggDetails} eggId={id} />
       </Box>
       {/* )} */}

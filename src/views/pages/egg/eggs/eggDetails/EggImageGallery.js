@@ -1,50 +1,32 @@
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
-const GalleryData = [
-  {
-    title: 'Collection',
-    img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-    user: {
-      profile_pic: '',
-      user_name: 'Jordan Stevenson',
-      created_at: '10/10/2023'
-    }
-  },
-  {
-    title: 'Collection',
-    img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-    user: {
-      profile_pic: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-      user_name: 'Jordan Stevenson',
-      created_at: '10/10/2023'
-    }
-  },
-  {
-    title: 'Collection',
-    img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-    user: {
-      profile_pic: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-      user_name: 'Jordan Stevenson',
-      created_at: '10/10/2023'
-    }
-  },
-  {
-    title: 'Collection',
-    img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-    user: {
-      profile_pic: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=248&fit=crop&auto=format&dpr=2 2',
-      user_name: 'Jordan Stevenson',
-      created_at: '10/10/2023'
+const EggImageGallery = ({ eggId }) => {
+  const theme = useTheme()
+  const [galleryList, setGalleryList] = useState([])
+
+  const GetGalleryImgListFunc = () => {
+    try {
+      getGalleryImgList({ egg_id: eggId }).then(res => {
+        if (res.success) {
+          setGalleryList(res?.data?.actions?.flagged_to_send_to_nursery)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
     }
   }
-]
-const EggImageGallery = () => {
-  const theme = useTheme()
+
+  useEffect(() => {
+    GetGalleryImgListFunc()
+  }, [])
+
   return (
     <Box>
       <Typography
@@ -59,7 +41,7 @@ const EggImageGallery = () => {
         Image Gallery
       </Typography>
       <Grid container sx={{ justifyContent: 'space-between', gap: '24px' }}>
-        {GalleryData?.map((item, index) => (
+        {galleryList?.map((item, index) => (
           <Grid key={index} item xs={12} sm={5.7} md={3.7} xl={3.8} xxl={3.8}>
             <Card>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -71,7 +53,7 @@ const EggImageGallery = () => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  {item?.title}
+                  {item?.type}
                 </Typography>
                 <Avatar alt='image' sx={{ width: '100%', height: '100%' }} variant='rounded' src={item?.img} />
                 {/* //////////////////////////////////////////// */}
@@ -108,7 +90,7 @@ const EggImageGallery = () => {
                         lineHeight: '16.94px'
                       }}
                     >
-                      {item?.user?.user_name ? item?.user?.user_name : '-'}
+                      {item?.user_full_name ? item?.user_full_name : '-'}
                     </Typography>
                     <Typography
                       noWrap
@@ -119,9 +101,7 @@ const EggImageGallery = () => {
                         lineHeight: '14.52px'
                       }}
                     >
-                      {item?.user?.created_at
-                        ? 'Created on' + ' ' + moment(item?.user?.created_at).format('DD MMM YYYY')
-                        : '-'}
+                      {item?.created_at ? 'Created on' + ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'}
                     </Typography>
                   </Box>
                 </Box>

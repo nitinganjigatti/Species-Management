@@ -8,13 +8,25 @@ export async function GetEggList({ params }) {
 }
 
 export async function GetEggDetails(id) {
-  const response = await axiosGet({ url: `${EGG}/${id}`, pharmacy: true })
+  const response = await axiosGet({ url: `${EGG}/${id}` })
 
   return response.data
 }
 
 export async function GetEggMaster() {
   const response = await axiosGet({ url: `${EGG}/master/data/all` })
+
+  return response.data
+}
+
+export async function getGalleryImgList(params) {
+  const response = await axiosGet({ url: `${EGG}/get-media-by-egg-id`, params })
+
+  return response.data
+}
+
+export async function getWeightList(params) {
+  const response = await axiosGet({ url: `${EGG}/assessment/list`, params })
 
   return response.data
 }
@@ -39,7 +51,7 @@ export async function AddToDiscard(payload) {
 }
 
 export async function getEggComments(params) {
-  const response = await axiosGet({ url: `${EGG}/${COMMENT}-${LIST}`, params, pharmacy: true })
+  const response = await axiosGet({ url: `${EGG}/${COMMENT}-${LIST}`, params })
 
   return response.data
 }
@@ -62,7 +74,7 @@ export async function addEggComment(payload) {
 }
 
 export async function deleteEggComments(params) {
-  const response = await axiosGet({ url: `${EGG}/${COMMENT}-${DELETE}`, params, pharmacy: true })
+  const response = await axiosGet({ url: `${EGG}/${COMMENT}-${DELETE}`, params })
 
   return response.data
 }

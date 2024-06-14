@@ -145,7 +145,19 @@ const EggComment = ({ eggDetails, eggId }) => {
           setCommentText('')
           setShouldCallList(true)
           if (commentList?.length < 10) {
-            getEggCommentsFunc()
+            getEggComments({ egg_id: eggId, page_no: 1, limit }).then(res => {
+              if (res.success) {
+                if (res?.data?.result?.length > 0) {
+                  setCommentList(res?.data?.result)
+                  setCommentLoader(false)
+                  setReachedEnd(false)
+                }
+              } else {
+                setShouldCallList(ṭrue)
+                setReachedEnd(false)
+                setCommentLoader(false)
+              }
+            })
           }
         } else {
           setCommentBtnLoader(false)
@@ -175,6 +187,10 @@ const EggComment = ({ eggDetails, eggId }) => {
           if (res.success) {
             if (res?.data?.result?.length > 0) {
               setCommentList(res?.data?.result)
+              setCommentLoader(false)
+              setReachedEnd(false)
+            } else {
+              setCommentList([])
               setCommentLoader(false)
               setReachedEnd(false)
             }
@@ -239,7 +255,7 @@ const EggComment = ({ eggDetails, eggId }) => {
           <CardContent sx={{ height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <FallbackSpinner />
           </CardContent>
-        ) : (
+        ) : commentList?.length ? (
           <>
             <Box>
               <Typography
@@ -255,7 +271,7 @@ const EggComment = ({ eggDetails, eggId }) => {
             </Box>
             <CustomBox
               onScroll={handleScroll}
-              sx={{ height: commentList?.length ? '400px' : '20px', overflowY: 'auto' }}
+              sx={{ maxHeight: commentList?.length ? '400px' : '20px', overflowY: 'auto' }}
             >
               {commentList?.length ? (
                 commentList?.map((item, index) => (
@@ -380,7 +396,7 @@ const EggComment = ({ eggDetails, eggId }) => {
               {reachedEnd ? <LinearProgress /> : null}
             </CustomBox>
           </>
-        )}
+        ) : null}
       </CardContent>
 
       <ConfirmationDialog
