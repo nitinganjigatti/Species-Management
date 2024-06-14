@@ -27,21 +27,21 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { useEffect, useRef, useState } from 'react'
-import { GetEggMaster } from 'src/lib/api/egg/egg'
+import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
+import toast from 'react-hot-toast'
 
 const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
-  const [condition, setCondition] = useState('')
+  const [hatched, setHatched] = useState('normal_hatch')
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
-  console.log('imgSrc :>> ', imgSrc)
+
   const [eggStaged, setEggStaged] = useState([])
   const [eggMaster, setEggMaster] = useState([])
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
-  console.log('imgArr :>> ', imgArr)
-  console.log('eggStaged :>> ', eggStaged)
+  const [statusId, setStatusId] = useState('')
 
   const getEggMasterData = async () => {
     try {
@@ -67,16 +67,20 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
   const defaultValues = {
     current_state: '',
     select_stage: '',
-    condition_Btn: '',
+    hatched_method_Btn: '',
     comment: '',
+    shell_thickness: '',
     image: []
   }
 
   const schema = yup.object().shape({
     current_state: yup.string().required('State is required'),
-    select_stage: yup.string().required('Stage is required')
 
-    // condition_Btn: yup.string().required('Condition is required')
+    select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
+
+    // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
+    shell_thickness:
+      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired()
   })
 
   const {
@@ -96,6 +100,18 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
     reValidateMode: 'onChange'
   })
 
+  const statusID = watch('current_state')
+
+  useEffect(() => {
+    if (statusID) {
+      setStatusId(statusID)
+      console.log('statusID :>> ', statusID)
+      const filteredEggStatus = eggMaster?.egg_state.filter(status => status.egg_status_id === statusID)
+      setEggStaged(filteredEggStatus)
+      console.log('filteredEggStatus :>> ', filteredEggStatus)
+    }
+  }, [statusID, eggMaster])
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
@@ -110,7 +126,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files])
+        setImgArr(pre => [...pre, files[0]])
         setValue('image', files)
 
         clearErrors('image')
@@ -132,7 +148,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
       }
       setDisplayFile(files[0]?.name)
       reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files])
+      setImgArr(pre => [...pre, files[0]])
       setValue('image', files)
       clearErrors('image')
     }
@@ -143,44 +159,40 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
     setValue('image', '')
   }
 
-  const statusID = watch('current_state')
-
-  useEffect(() => {
-    if (statusID) {
-      console.log('statusID :>> ', statusID)
-      const filteredEggStatus = eggMaster?.egg_state.filter(status => status.egg_status_id === statusID)
-      setEggStaged(filteredEggStatus)
-      console.log('filteredEggStatus :>> ', filteredEggStatus)
-    }
-  }, [statusID, eggMaster])
-
   const onSubmit = async values => {
     try {
       const payload = {
         egg_id: eggId,
         egg_status_id: getValues('current_state'),
         egg_state_id: getValues('select_stage'),
-        egg_condition: condition,
+        hatched_method: hatched,
         comment: getValues('comment'),
+        egg_shell_thickness: getValues('shell_thickness'),
         egg_attachment: imgArr
       }
       console.log('payload :>> ', payload)
 
-      // const res = await AddToDiscard(payload)
-      // if (res.success) {
-      //   console.log('res on submit :>> ', res)
-      //   setReason('')
-      //   setImgSrc('')
-      //   reset()
-      //   setIsOpen(false)
-      //   toast.success('Discarded Successfully')
-      // }
+      const res = await AddEggStatusAndCondition(payload)
+      if (res.success) {
+        console.log('res on submit :>> ', res)
+        setImgSrc('')
+        reset()
+
+        // setOpenDrawer(false)
+        toast.success(res.message)
+      }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
       console.error('Error while adding room:', error)
       toast.error('An error occurred while adding room')
     }
+  }
+
+  const handleCancel = () => {
+    setImgSrc('')
+    reset()
+    setOpenDrawer(false)
   }
 
   return (
@@ -197,7 +209,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%' }}>
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -215,7 +227,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                 icon='material-symbols-light:add-comment-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Select State For Discard</Typography>
+              <Typography variant='h6'>State & Condition</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
@@ -227,7 +239,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
               <Card fullWidth>
-                <FormControl sx={{ width: '95%', ml: 3, mt: 5 }}>
+                <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
                   <InputLabel id='current_state'>Select State</InputLabel>
                   <Controller
                     name='current_state'
@@ -255,40 +267,128 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                   )}
                 </FormControl>
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
-                  <InputLabel id='select_stage'>Select Stage</InputLabel>
-                  <Controller
-                    name='select_stage'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        name='select_stage'
-                        label='Select Stage'
-                        value={value}
-                        onChange={onChange}
-                        labelId='select_stage'
-                        error={Boolean(errors?.select_stage)}
-                      >
-                        {eggStaged?.map(stage => (
-                          <MenuItem key={stage?.id} value={stage?.id}>
-                            {stage?.egg_state}
-                          </MenuItem>
-                        ))}
-                      </Select>
+                {eggStaged.length > 0 && (
+                  <FormControl sx={{ width: '95%', ml: 3, mb: 4 }}>
+                    <InputLabel id='select_stage'>Select Stage</InputLabel>
+                    <Controller
+                      name='select_stage'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <Select
+                          name='select_stage'
+                          label='Select Stage'
+                          value={value}
+                          onChange={onChange}
+                          labelId='select_stage'
+                          error={Boolean(errors?.select_stage)}
+                        >
+                          {eggStaged?.map(stage => (
+                            <MenuItem key={stage?.id} value={stage?.id}>
+                              {stage?.egg_state}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors?.select_stage && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.select_stage?.message}</FormHelperText>
                     )}
-                  />
-                  {errors?.select_stage && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.select_stage?.message}</FormHelperText>
-                  )}
-                </FormControl>
+                  </FormControl>
+                )}
+
+                {statusID === '4' && (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                      <>
+                        <FormControl mb={2}>
+                          <RadioGroup
+                            aria-labelledby='demo-row-radio-buttons-group-label'
+                            name='hatched_method_Btn'
+                            sx={{ display: 'flex', gap: 4, justifyContent: 'center' }}
+                            value={hatched}
+                            onChange={e => setHatched(e.target.value)}
+                          >
+                            <Stack direction='row' spacing={6}>
+                              <Box
+                                error={Boolean(errors?.hatched_method_Btn)}
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  gap: 2,
+                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                  p: 2,
+                                  borderRadius: '10px',
+
+                                  // opacity: 0.6,
+                                  width: 230,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography ml={2}>Normal Hatch</Typography>
+                                <FormControlLabel value='normal_hatch' control={<Radio />} />
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  gap: 2,
+                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                  p: 2,
+                                  borderRadius: '10px',
+
+                                  // opacity: 0.6,
+                                  width: 230,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography ml={2}>Assisted Hatch</Typography>
+                                <FormControlLabel value='assisted_hatch' control={<Radio />} />
+                              </Box>
+                            </Stack>
+                          </RadioGroup>
+                          {errors?.hatched_method_Btn && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.hatched_method_Btn?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </>
+                    </Box>
+
+                    <FormControl fullWidth sx={{ px: 3, mb: 3 }}>
+                      <Controller
+                        name='shell_thickness'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            error={Boolean(errors?.shell_thickness)}
+                            value={value}
+                            type='number'
+                            label='Enter Shell Thickness'
+                            name='shell_thickness'
+                            onChange={onChange}
+                            placeholder=''
+                            sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                          />
+                        )}
+                      />
+                      {errors.shell_thickness && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.shell_thickness?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </>
+                )}
               </Card>
 
-              <Typography variant='h6' sx={{ mt: 3, mb: 3 }}>
+              {/* <Typography variant='h6' sx={{ mt: 3, mb: 3 }}>
                 Change Conditions
-              </Typography>
+              </Typography> */}
 
-              <Card fullWidth sx={{ p: 4, display: 'flex', flexDirection: 'row', gap: 3 }}>
+              {/* <Card fullWidth sx={{ p: 4, display: 'flex', flexDirection: 'row', gap: 3 }}>
                 <FormControl>
                   <RadioGroup
                     aria-labelledby='demo-row-radio-buttons-group-label'
@@ -340,9 +440,9 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                   </RadioGroup>
                   {/* {errors?.condition_Btn && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition_Btn?.message}</FormHelperText>
-                  )} */}
+                  
                 </FormControl>
-              </Card>
+              </Card> */}
 
               <Card fullWidth sx={{ mt: 6, p: 4, mb: 30 }}>
                 <FormControl fullWidth>
@@ -370,7 +470,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                 </FormControl>
                 <Grid container>
                   {/* {imgSrc !== '' ? null : ( */}
-                  <Grid item md={12}>
+                  <Grid item md={12} sm={12} xs={12}>
                     <input
                       type='file'
                       accept='image/*'
@@ -387,20 +487,20 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 7,
-                        height: 120,
+                        height: 70,
 
                         border: `2px solid ${theme.palette.customColors.trackBg}`,
                         borderRadius: 1,
                         padding: 3
                       }}
                     >
-                      <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+                      <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
                       <Typography>Drop your image here</Typography>
                     </Box>
                   </Grid>
                   {/* )} */}
-                  <Grid item md={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                     <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                       {imgSrc?.length > 0 &&
                         imgSrc?.map((img, index) => (
@@ -468,10 +568,10 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
                 display: 'flex'
               }}
             >
-              <LoadingButton fullWidth variant='outlined' type='submit' size='large'>
+              <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
                 CANCEL
               </LoadingButton>
-              <LoadingButton fullWidth variant='contained' type='submit' size='large' onClick={onSubmit}>
+              <LoadingButton fullWidth variant='contained' type='submit' size='large'>
                 SUBMIT
               </LoadingButton>
             </Box>

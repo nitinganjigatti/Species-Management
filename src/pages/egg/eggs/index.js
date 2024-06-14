@@ -70,9 +70,13 @@ const EggList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
-            lineHeight: '14.52px'
+
+            // fontSize: '12px',
+            // fontWeight: '400',
+            textAlign: 'center',
+            ml: 3
+
+            // lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}
@@ -317,6 +321,10 @@ const EggList = () => {
             <>
               <div>
                 <DiscardStatusCell
+                  customButton={
+                    status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? 'customButton' : null
+                  }
+                  hideField='hideField'
                   params={params}
                   setIsOpen={setIsOpen}
                   handleDiscard={handleDiscard}
@@ -599,7 +607,7 @@ const EggList = () => {
             <TabList onChange={handleChange}>
               <Tab
                 value='eggs_received'
-                label={<TabBadge label='Recived' totalCount={status === 'eggs_received' ? total : null} />}
+                label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
               />
               <Tab
                 value='eggs_incubation'
