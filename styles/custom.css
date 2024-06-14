@@ -1,0 +1,16 @@
+.tablerowi .cellmodule {
+  padding-left: 0 !important;
+}
+.w_280 {
+  width: 280px;
+}
+.text_overflow_moduled {
+  width: 100%;
+  float: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.w_155 {
+  width: 155px;
+}

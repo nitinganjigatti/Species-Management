@@ -136,9 +136,12 @@ const DietDetail = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <DietDetailCard dietDetails={dietDetails} />
             <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px' }}>
+                Meals Plan - {dietDetails?.diet_type_name}
+              </Typography>
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  {/* <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
                     You have added{' '}
                     <span
                       style={{
@@ -152,13 +155,13 @@ const DietDetail = () => {
                       13 species{' '}
                     </span>{' '}
                     for this diet plan
-                  </Typography> */}
+                  </Typography>
                 </Box>
 
-                {/* <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
+                <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
                   ADD SPECIES
-                </Button> */}
-              </Box>
+                </Button>
+              </Box> */}
               <Box>
                 <TabContext value={value}>
                   <TabList

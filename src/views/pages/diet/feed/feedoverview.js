@@ -18,7 +18,7 @@ import { feedStatusChange } from 'src/lib/api/diet/getFeedDetails'
 import IconButton from '@mui/material/IconButton'
 import Toaster from 'src/components/Toaster'
 
-const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
+const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) => {
   const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
 
@@ -186,7 +186,11 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
                 </Typography> */}
                 <FormControlLabel
                   control={
-                    <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
+                    <Switch
+                      checked={isActive === '1' ? true : false}
+                      onChange={permission ? handleSwitchChange : null}
+                      fontSize={2}
+                    />
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
@@ -238,7 +242,6 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue }) => {
             type='feed'
             active={isActive}
             dietCount={FeedDetailsValue.ingredients}
-            actionType={'confirm'}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
                 {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type?

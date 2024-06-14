@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
@@ -31,6 +31,8 @@ import toast from 'react-hot-toast'
 import RecipeListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
 import Toaster from 'src/components/Toaster'
+
+import { AuthContext } from 'src/context/AuthContext'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -64,6 +66,9 @@ const RecipeDetail = () => {
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -172,22 +177,29 @@ const RecipeDetail = () => {
                         {IngredientsDetailsval.recipe_name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                        <Icon
-                          icon='bx:pencil'
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id } })}
-                        />
-                        <Icon
-                          icon='material-symbols:delete-outline'
-                          style={{ cursor: 'pointer', marginLeft: '15px' }}
-                          onClick={() => {
-                            handleClickOpen()
-                          }}
-                        />
+                        {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                          <Icon
+                            icon='bx:pencil'
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id } })}
+                          />
+                        )}
+                        {dietModuleAccess === 'DELETE' && (
+                          <Icon
+                            icon='material-symbols:delete-outline'
+                            style={{ cursor: 'pointer', marginLeft: '15px' }}
+                            onClick={() => {
+                              handleClickOpen()
+                            }}
+                          />
+                        )}
                       </Box>
                     </Box>
                     <Grid container spacing={6} sx={{ mt: 3 }}>
-                      <RecipeDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
+                      <RecipeDetailCardview
+                        IngredientsDetailsval={IngredientsDetailsval}
+                        permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
+                      />
 
                       <Grid item xs={8}>
                         <TabContext value={value}>
