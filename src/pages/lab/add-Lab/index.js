@@ -51,14 +51,16 @@ const AddLab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-  console.log('labType', labType)
+  // console.log('labType', labType)
   // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [prevTests, setPrevTests] = useState([])
 
   const [dataToUpdate, setDataToUpdate] = useState([])
+  console.log('dataToUpdate', dataToUpdate)
 
   const [showLabTests, setShowLabTests] = useState()
+  console.log('showLabTests', showLabTests)
 
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
@@ -77,7 +79,8 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
-  console.log('isDefault', isDefault)
+  console.log('isDefault :>> ', isDefault)
+  // console.log('isDefault', isDefault)
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -271,7 +274,7 @@ const AddLab = () => {
   const handleSubmitData = async () => {
     try {
       const errors = await trigger()
-      const isLabTestsEmpty = dataToUpdate.every(sample => sample.tests.length === 0)
+      const isLabTestsEmpty = showLabTests.every(sample => sample.tests.length === 0)
 
       if (errors || isLabTestsEmpty) {
         handleSubmit(onSubmit)
@@ -307,7 +310,8 @@ const AddLab = () => {
       lab_contact_number,
       latitudes: latitude,
       longitudes: longitude,
-      lab: JSON.stringify(dataToUpdate),
+      // lab: JSON.stringify(dataToUpdate),
+      lab: JSON.stringify(showLabTests),
       is_default: isDefault
       // user_id: '58'
     }
@@ -363,7 +367,7 @@ const AddLab = () => {
   // Add Test
 
   const handleCheckBox = (sample, parent, child, isChecked) => {
-    console.log('sample', sample)
+    // console.log('sample', sample)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -807,7 +811,7 @@ const AddLab = () => {
                                 // control={<Switch checked={value} onChange={onChange} />}
                                 control={
                                   <Switch
-                                    checked={isDefault}
+                                    checked={Number(isDefault)}
                                     onChange={e => {
                                       onChange(e.target.checked ? 1 : 0)
                                       handleSwitchChange(e.target.checked)
