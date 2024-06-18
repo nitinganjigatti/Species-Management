@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import { Grid, Box, Typography, Chip, Divider, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import ActivityLogs from 'src/components/diet/activityLogs'
 import moment from 'moment'
 
 const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
 
   const toggleExpanded = () => {
     setExpanded(!expanded)
+  }
+
+  const handleSidebarClose = () => {
+    setActivitySidebarOpen(false)
   }
 
   const convertToTitleCase = str => {
@@ -79,8 +86,19 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
           </Typography>
 
           <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
-            <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+            <Typography onClick={() => setActivitySidebarOpen(true)} sx={{ color: '#000000', my: 3, fontSize: 14 }}>
+              Activity Log
+            </Typography>
             <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
+
+            <ActivityLogs
+              activitySidebarOpen={activitySidebarOpen}
+              activity_type='recipe'
+              detailsValue={IngredientsDetailsval}
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
+              handleSidebarClose={handleSidebarClose}
+            />
           </Box>
         </Box>
       </div>

@@ -6,12 +6,10 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Router from 'next/router'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
-import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
 import {
   CardContent,
   Avatar,
@@ -66,6 +64,11 @@ const StepPreviewDiet = ({
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [uomId, setuomId] = useState('')
   const [uomLabel, setuomLabel] = useState('')
+  const [errorpop, setErrorpop] = useState('')
+  const [screenSize, setScreenSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  })
 
   const [initialValues, setInitialValues] = useState({
     quantity: '',
@@ -160,8 +163,7 @@ const StepPreviewDiet = ({
       const inputString = type
       const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
       const textOnly = inputString.replace(/^\s*\d*\s*/, '')
-      console.log(numberOnly) // Output: "1"
-      console.log(textOnly, 'textOnly')
+
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
 
@@ -181,6 +183,7 @@ const StepPreviewDiet = ({
     clearErrors,
     trigger,
     getValues,
+    watch,
     setValue: setFormValue
   } = useForm({
     defaultValues,
@@ -256,43 +259,51 @@ const StepPreviewDiet = ({
   useEffect(() => {
     if (id) {
       //const child = formData.child
-      const dietTypesData = formData.child
+      const dietTypeChildValues = getCookie('dietTypeChildValues')
+      const dietTypeChildVal = getCookie('dietTypeChildVal')
+      if (dietTypeChildValues !== null) {
+        const parsedValue = JSON?.parse(dietTypeChildValues)
+        const parsedvaldiet = JSON?.parse(dietTypeChildVal)
 
-      // const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
-      const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
-      console.log(convertedData, 'convertedData')
+        const newarr = parsedvaldiet?.map((item, index) => ({
+          unit: {
+            value: {
+              _id: item.weight_uom_id,
+              name: item.weight_uom_label,
+              description: item.weight_uom_label
+            }
+          },
+          weight: parseInt(item.meal_value_header)
+        }))
 
-      const newarr = convertedData?.map(item => {
-        // Splitting the string into minWeight, maxWeight, and unit name
-        const [weight, unitName] = item.split('_')
-        const matchedUom = uomprev.find(item => item.name === unitName)
-
-        return {
-          meal_value_header: parseFloat(weight), // Convert to number
-          weight_uom_id: parseFloat(matchedUom?._id),
-          weight_uom_label: unitName
-        }
-      })
-      console.log(newarr, 'newarr')
-
-      document.cookie = `dietTypeChildValues=${JSON.stringify(formData.child)}; path=/`
-      document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
-      setdiettypechildvalues(formData.child)
-      setDietTypes(newarr)
+        setdiettypechildvalues(parsedValue)
+        setDietTypes(newarr)
+      }
     } else {
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
         const parsedvaldiet = JSON?.parse(dietTypeChildVal)
-        console.log(parsedValue) // Use the parsed array as needed
+
+        const newarr = parsedvaldiet?.map((item, index) => ({
+          unit: {
+            value: {
+              _id: item.weight_uom_id,
+              name: item.weight_uom_label,
+              description: item.weight_uom_label
+            }
+          },
+          weight: parseInt(item.meal_value_header)
+        }))
+
         setdiettypechildvalues(parsedValue)
-        setDietTypes(parsedvaldiet)
+        setDietTypes(newarr)
       } else {
         console.error('Cookie "dietTypeChildValues" not found')
       }
     }
-  }, [])
+  }, [activitySidebarOpen, id])
 
   const CustomScrollbar = styled('div')({
     overflowX: 'auto', // or 'scroll'
@@ -325,253 +336,315 @@ const StepPreviewDiet = ({
 
   const SelectQuantityclick = (index, item, val) => {
     console.log(val, 'val')
-    if (dietTypeval === 'ingredient') {
-      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-      const updatedFormData = { ...formData } // Create a copy of formData
+    const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
+    if (quantity && feed_uom_name) {
+      setErrorpop('')
+      if (dietTypeval === 'ingredient') {
+        const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
+        const updatedFormData = { ...formData }
 
-      // Find the index of the meal_data object with matching mealid
-      const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
-      if (addMealIndex !== -1) {
-        // Find the index of the ingredient object with matching valueid and index
-        const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredient.findIndex(
-          (ingredient, i) => ingredient.mealid === ingredientvalueid && i === mealingredientIndex
-        )
+        if (addMealIndex !== -1) {
+          const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredient.findIndex(
+            (ingredient, i) => ingredient.mealid === ingredientvalueid && i === mealingredientIndex
+          )
 
-        if (ingredientIndex !== -1) {
-          // Get the existing meal_type array
-          const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
+          if (ingredientIndex !== -1) {
+            const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
 
-          // Check if formData.diet_type_name is "By Weight"
-          if (formData.diet_type_name === 'By Weight') {
-            // Check if there's an existing object with the same meal_value_header
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
-              // Check if headertype is "Generic"
-              if (headertype === 'Generic') {
-                // If headertype is "Generic", directly compare with headertype
-                return meal.meal_value_header === headertype
+            if (formData.diet_type_name === 'By Weight') {
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+                if (headertype === 'Generic') {
+                  return meal.meal_value_header === headertype
+                } else {
+                  return parseFloat(meal.meal_value_header) === parseFloat(headertype)
+                }
+              })
+
+              // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    // Conditionally include weight_uom_id and weight_uom_label
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
+                }
               } else {
-                // If headertype is not "Generic", compare with parseFloat(headertype)
-                return parseFloat(meal.meal_value_header) === parseFloat(headertype)
-              }
-            })
-            console.log(existingMealTypeIndex, 'existingMealTypeIndex')
-
-            // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  // Conditionally include weight_uom_id and weight_uom_label
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
+                // If an existing object with the same meal_value_header is not found, add a new object
+                mealTypeArray.push({
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    // Conditionally include weight_uom_id and weight_uom_label
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
                 })
               }
             } else {
-              // If an existing object with the same meal_value_header is not found, add a new object
-              mealTypeArray.push({
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  // Conditionally include weight_uom_id and weight_uom_label
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
-                })
-              })
-            }
-          } else {
-            // If formData.diet_type_name is not "By Weight", update mealTypeArray without including weight_uom_id and weight_uom_label
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              }
-            } else {
-              mealTypeArray.push({
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              })
-            }
-          }
-
-          // Update the meal_type array with the updated mealTypeArray
-          updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
-        }
-      }
-
-      // Update the formData in the parent component using a function passed through props
-      setlocalformData(updatedFormData)
-      setOpen(false)
-      console.log(updatedFormData, 'updatedFormData')
-    } else if (dietTypeval === 'recipe') {
-      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-      const updatedFormData = { ...formData } // Create a copy of formData
-      console.log(updatedFormData, 'updatedFormData')
-
-      const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
-
-      if (addMealIndex !== -1) {
-        const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
-          (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
-        )
-
-        if (ingredientIndex !== -1) {
-          const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
-
-          if (formData.diet_type_name === 'By Weight') {
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
-              if (headertype === 'Generic') {
-                return meal.meal_value_header === headertype
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
+                }
               } else {
-                return meal.meal_value_header === parseFloat(headertype)
-              }
-            })
-            console.log(existingMealTypeIndex, 'existingMealTypeIndex')
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
+                mealTypeArray.push({
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
                 })
               }
-            } else {
-              mealTypeArray.push({
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
-                })
-              })
             }
-          } else {
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              }
-            } else {
-              mealTypeArray.push({
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              })
-            }
+
+            updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type = mealTypeArray
           }
-          updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
         }
+
+        setlocalformData(updatedFormData)
+        setOpen(false)
+      } else if (dietTypeval === 'recipe') {
+        const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
+        const updatedFormData = { ...formData } // Create a copy of formData
+
+        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+
+        if (addMealIndex !== -1) {
+          const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
+            (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
+          )
+
+          if (ingredientIndex !== -1) {
+            const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
+
+            if (formData.diet_type_name === 'By Weight') {
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+                if (headertype === 'Generic') {
+                  return meal.meal_value_header === headertype
+                } else {
+                  return meal.meal_value_header === parseFloat(headertype)
+                }
+              })
+              console.log(existingMealTypeIndex, 'existingMealTypeIndex')
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
+                }
+              } else {
+                mealTypeArray.push({
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
+                })
+              }
+            } else {
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
+                }
+              } else {
+                mealTypeArray.push({
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
+                })
+              }
+            }
+            updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type = mealTypeArray
+          }
+        }
+        setlocalformData(updatedFormData)
+        setOpen(false)
+        console.log(updatedFormData, 'updatedFormData')
+      } else {
+        const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
+        const updatedFormData = { ...formData } // Create a copy of formData
+        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+
+        if (addMealIndex !== -1) {
+          const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredientwithchoice.findIndex(
+            (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
+          )
+
+          if (ingredientIndex !== -1) {
+            const mealTypeArray =
+              updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type || []
+
+            if (formData.diet_type_name === 'By Weight') {
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+                if (headertype === 'Generic') {
+                  return meal.meal_value_header === headertype
+                } else {
+                  return meal.meal_value_header === parseFloat(headertype)
+                }
+              })
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
+                }
+              } else {
+                mealTypeArray.push({
+                  meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes,
+                  ...(headertype !== 'Generic' && {
+                    weight_uom_id: uomId,
+                    weight_uom_label: uomLabel
+                  })
+                })
+              }
+            } else {
+              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              if (existingMealTypeIndex !== -1) {
+                mealTypeArray[existingMealTypeIndex] = {
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
+                }
+              } else {
+                mealTypeArray.push({
+                  meal_value_header: headertype,
+                  quantity: quantity,
+                  meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
+                  feed_uom_name: feed_uom_name?.label || feed_uom_name,
+                  notes: notes
+                })
+              }
+            }
+
+            updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type = mealTypeArray
+          }
+        }
+
+        setlocalformData(updatedFormData)
+        setOpen(false)
       }
-      setlocalformData(updatedFormData)
-      setOpen(false)
-      console.log(updatedFormData, 'updatedFormData')
     } else {
-      const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-      const updatedFormData = { ...formData } // Create a copy of formData
-      const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
-
-      if (addMealIndex !== -1) {
-        const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredientwithchoice.findIndex(
-          (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
-        )
-
-        if (ingredientIndex !== -1) {
-          const mealTypeArray =
-            updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type || []
-
-          if (formData.diet_type_name === 'By Weight') {
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
-              if (headertype === 'Generic') {
-                return meal.meal_value_header === headertype
-              } else {
-                return meal.meal_value_header === parseFloat(headertype)
-              }
-            })
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
-                })
-              }
-            } else {
-              mealTypeArray.push({
-                meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes,
-                ...(headertype !== 'Generic' && {
-                  weight_uom_id: uomId,
-                  weight_uom_label: uomLabel
-                })
-              })
-            }
-          } else {
-            const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
-            if (existingMealTypeIndex !== -1) {
-              mealTypeArray[existingMealTypeIndex] = {
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              }
-            } else {
-              mealTypeArray.push({
-                meal_value_header: headertype,
-                quantity: quantity,
-                meal_value_uom_id: feed_uom_name?.value || meal_value_uom_id,
-                feed_uom_name: feed_uom_name?.label || feed_uom_name,
-                notes: notes
-              })
-            }
-          }
-
-          updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type = mealTypeArray
-        }
-      }
-
-      setlocalformData(updatedFormData)
-      setOpen(false)
+      setOpen(true)
+      setErrorpop('Please fill Quantity and Unit')
     }
   }
 
   useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  console.log(screenSize.width, 'pppp')
+
+  useEffect(() => {
+    const mediaElements = document.getElementsByClassName('cellmodule')
+    for (const mediaElement of mediaElements) {
+      if (screenSize.width === 1821) {
+        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+          mediaElement.style.width = '580px'
+        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+          mediaElement.style.width = '850px'
+        } else if (formData?.child?.length === 2) {
+          mediaElement.style.width = '660px'
+        } else if (formData?.child?.length > 2) {
+          mediaElement.style.width = '510px'
+        } else {
+          mediaElement.style.width = '566px'
+        }
+      } else if (screenSize.width === 1619) {
+        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+          mediaElement.style.width = '580px'
+        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+          mediaElement.style.width = '790px'
+        } else if (formData?.child?.length === 2) {
+          mediaElement.style.width = '605px'
+        } else if (formData?.child?.length > 2) {
+          mediaElement.style.width = '510px'
+        } else {
+          mediaElement.style.width = '500px'
+        }
+      } else if (screenSize.width === 1457) {
+        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+          mediaElement.style.width = '580px'
+        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+          mediaElement.style.width = '680px'
+        } else if (formData?.child?.length == 2) {
+          mediaElement.style.width = '518px'
+        } else if (formData?.child?.length > 2) {
+          mediaElement.style.width = '500px'
+        } else {
+          mediaElement.style.width = '500px'
+        }
+      } else if (screenSize.width === 1943) {
+        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+          mediaElement.style.width = '580px'
+        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+          mediaElement.style.width = '860px'
+        } else if (formData?.child?.length > 1) {
+          mediaElement.style.width = '665px'
+        } else {
+          mediaElement.style.width = '568px'
+        }
+      }
+    }
+  }, [screenSize.width])
+
+  useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
-      // Update the child in formData with diettypechildvalues
       const updatedFormData = { ...formData, child: diettypechildvalues }
       setlocalformData(updatedFormData) // Update local state
       setFormData(updatedFormData)
@@ -586,15 +659,10 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.ingredient) {
         meal.ingredient.forEach(ingredient => {
-          // Check if meal_type exists and it's not empty
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               console.log(mealType, 'mealType')
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -606,14 +674,9 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.recipe) {
         meal.recipe.forEach(recipe => {
-          // Check if meal_type exists and it's not empty
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             recipe.meal_type = recipe.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -625,14 +688,9 @@ const StepPreviewDiet = ({
       // Check if the meal_data has an ingredient array
       if (meal.ingredientwithchoice) {
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
-          // Check if meal_type exists and it's not empty
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
-            // Filter out meal_type objects based on child
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
-              // Keep the 'Generic' header intact
               if (mealType.meal_value_header === 'Generic') return true
-
-              // Check if the meal_type header exists in child
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -641,14 +699,9 @@ const StepPreviewDiet = ({
         })
       }
     })
-
-    // Update the formData in the parent component using a function passed through props
     setlocalformData(updatedFormData)
     setOpen(false)
-    console.log(updatedFormData, 'updatedFormData')
-
-    // Add dependencies as needed
-  }, [formData.child]) // Add other dependencies if needed
+  }, [formData.child])
 
   const onSubmit = async data => {
     console.log(data, 'data')
@@ -677,6 +730,7 @@ const StepPreviewDiet = ({
   }
 
   const getModal = (index, item) => {
+    console.log(getValues())
     return (
       <Dialog
         open={open}
@@ -688,7 +742,7 @@ const StepPreviewDiet = ({
             width: 500
           },
           '& .MuiBackdrop-root': {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)' // Custom background color with opacity
+            backgroundColor: id ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.3)'
           }
         }}
       >
@@ -727,7 +781,6 @@ const StepPreviewDiet = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                 {console.log(uomList, 'uomList')}
                 <Controller
                   name='feed_uom_name'
@@ -740,7 +793,7 @@ const StepPreviewDiet = ({
                       }}
                       defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
                       options={transformedArray} // List of options with value and label
-                      getOptionLabel={option => option.label} // Function to get the label of the option
+                      getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                       renderInput={params => (
                         <TextField {...params} label='Select Unit' placeholder='Search & Select' />
@@ -775,6 +828,9 @@ const StepPreviewDiet = ({
                 ADD Quantity
               </Button>{' '}
             </Grid>
+            <Typography sx={{ textAlign: 'center', color: '#ff0000', fontSize: '12px', width: '100%' }}>
+              {errorpop}
+            </Typography>
           </Grid>
         </DialogContent>
       </Dialog>
@@ -834,7 +890,8 @@ const StepPreviewDiet = ({
                         }
                         sx={{
                           width: '100%',
-                          height: '100%'
+                          height: '100%',
+                          borderRadius: '10px'
                         }}
                       />
                     )}
@@ -890,24 +947,35 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#C1D3D04D',
+                            backgroundColor: '#fff',
                             pl: '16px',
                             py: 0,
                             width: '180px',
                             position: 'sticky',
-                            left: 0
+                            left: 0,
+                            paddingRight: '0px'
                           }}
                           className={classes.sticky}
                         >
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: '12px',
-                              lineHeight: '16px',
-                              fontWeight: 600
+                              display: 'flex',
+                              alignItems: 'center',
+                              height: '100%',
+                              backgroundColor: '#C1D3D04D',
+                              paddingLeft: '20px'
                             }}
                           >
-                            TIME
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '12px',
+                                lineHeight: '16px',
+                                fontWeight: 600
+                              }}
+                            >
+                              TIME
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell
                           sx={{
@@ -947,7 +1015,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
@@ -958,7 +1027,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>FEMALE </Typography>
@@ -969,7 +1039,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>MALE</Typography>
@@ -983,18 +1054,37 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
+                            {/* {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: '1px solid #C3CEC7',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })} */}
                             <TableCell
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Juvenile </Typography>
@@ -1005,7 +1095,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Young</Typography>
@@ -1016,7 +1107,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Adult</Typography>
@@ -1027,7 +1119,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '157px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Undetermined</Typography>
@@ -1038,7 +1131,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>Old</Typography>
@@ -1052,7 +1146,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography>GENERIC</Typography>
@@ -1066,7 +1161,8 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7'
+                                borderRight: '1px solid #C3CEC7',
+                                textAlign: 'center'
                               }}
                             >
                               <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
@@ -1080,7 +1176,8 @@ const StepPreviewDiet = ({
                                     backgroundColor: '#C1D3D099',
                                     height: '40px',
                                     width: '137px',
-                                    borderRight: '1px solid #C3CEC7'
+                                    borderRight: '1px solid #C3CEC7',
+                                    textAlign: 'center'
                                   }}
                                 >
                                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{all}</Typography>
@@ -1094,9 +1191,7 @@ const StepPreviewDiet = ({
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {console.log(formData, 'rag')}
                       {formData.meal_data?.map((itemd, index) => {
-                        console.log(itemd.meal_from_time, 'raghhhh')
                         const fromdate = new Date(itemd.meal_from_time)
 
                         const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
@@ -1122,6 +1217,7 @@ const StepPreviewDiet = ({
                                 borderBottom: '1px solid #C3CEC7'
                               }}
                               key={index}
+                              className=''
                             >
                               <TableCell
                                 sx={{
@@ -1130,56 +1226,75 @@ const StepPreviewDiet = ({
                                   width: '180px',
                                   border: 'none',
                                   pl: 0,
-                                  pr: '36px'
+                                  pr: '36px',
+                                  background: '#fff',
+                                  height: '100px',
+                                  //display: 'flex',
+                                  //flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  overflow: 'hidden',
+                                  position: 'sticky'
                                 }}
                                 component='th'
                                 scope='row'
                               >
-                                {/* <Typography>Meal Name :</Typography> */}
-                                <Box
-                                  sx={{
-                                    borderRadius: '25px',
-                                    border: `2px dotted #00AFD6`,
-                                    py: '5px',
-                                    px: '4px'
+                                <span
+                                  style={{
+                                    position: 'absolute', // Change this to absolute
+                                    top: '70px', // Center vertically
+                                    transform: 'translateY(-50%)', // Adjust to center properly
+                                    //display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    width: '70%'
                                   }}
                                 >
-                                  <Typography
+                                  <Box
                                     sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
+                                      borderRadius: '25px',
+                                      border: `2px dotted #00AFD6`,
+                                      py: '5px',
+                                      px: '4px'
                                     }}
                                   >
-                                    {startTimes}
-                                  </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                  <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
-                                </Box>
+                                    <Typography
+                                      sx={{
+                                        textAlign: 'center',
+                                        color: '#00AFD6',
+                                        fontWeight: 500,
+                                        fontSize: '16px',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      {startTimes}
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
+                                  </Box>
 
-                                <Box
-                                  sx={{
-                                    borderRadius: '25px',
-                                    border: `2px dotted #00AFD6`,
-                                    py: '5px',
-                                    px: '4px'
-                                  }}
-                                >
-                                  <Typography
+                                  <Box
                                     sx={{
-                                      textAlign: 'center',
-                                      color: '#00AFD6',
-                                      fontWeight: 500,
-                                      fontSize: '16px',
-                                      lineHeight: '19.36px'
+                                      borderRadius: '25px',
+                                      border: `2px dotted #00AFD6`,
+                                      py: '5px',
+                                      px: '4px'
                                     }}
                                   >
-                                    {endTimes}
-                                  </Typography>
-                                </Box>
+                                    <Typography
+                                      sx={{
+                                        textAlign: 'center',
+                                        color: '#00AFD6',
+                                        fontWeight: 500,
+                                        fontSize: '16px',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      {endTimes}
+                                    </Typography>
+                                  </Box>
+                                </span>
                               </TableCell>
 
                               <>
@@ -1187,7 +1302,7 @@ const StepPreviewDiet = ({
                                   console.log(formData?.child?.length, 'lll')
 
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1198,12 +1313,15 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
-                                              : '580px',
+                                              : '500px',
                                           float: 'left'
                                         }}
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
@@ -1239,18 +1357,33 @@ const StepPreviewDiet = ({
                                                     {item?.ingredient_name}
                                                   </Typography>
                                                 )}
-                                                {item?.preparation_type && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#7A8684',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    &nbsp;-&nbsp; {item?.preparation_type}
-                                                  </Typography>
-                                                )}
+                                                {console.log(item, 'item')}
+                                                {item?.preparation_type &&
+                                                  (item?.feed_cut_size ? (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#7A8684',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                      {item?.feed_cut_size + item.feed_uom_name}
+                                                    </Typography>
+                                                  ) : (
+                                                    <Typography
+                                                      sx={{
+                                                        color: '#7A8684',
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {item?.preparation_type}
+                                                      {/* {item?.feed_cut_size + item.feed_uom_name} */}
+                                                    </Typography>
+                                                  ))}
                                               </Box>
 
                                               {item?.ingredient?.length > 0 && (
@@ -1425,12 +1558,30 @@ const StepPreviewDiet = ({
                                               }}
                                             >
                                               {console.log(index, 'index')}
-                                              {item.meal_type
+                                              {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
+                                                : 'Add'} */}
+                                              {item.meal_type
+                                                ? item.meal_type
+                                                    .map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
+                                                    .filter(Boolean).length === 0
+                                                  ? 'Add'
+                                                  : item.meal_type.map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
                                                 : 'Add'}
                                             </Typography>
                                           </Box>
@@ -1475,10 +1626,13 @@ const StepPreviewDiet = ({
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -1486,9 +1640,51 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
+                                                      : 'Add'} */}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
                                                       : 'Add'}
                                                   </Typography>
                                                 </Box>
@@ -1507,7 +1703,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1518,12 +1714,15 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
                                           float: 'left'
                                         }}
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
@@ -1559,16 +1758,45 @@ const StepPreviewDiet = ({
                                                     {item?.recipe_name}
                                                   </Typography>
                                                 )}
-                                                {item?.preparation_type && (
+                                              </Box>
+                                              {console.log(item, 'kkkk')}
+                                              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                                                {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
                                                       color: '#7A8684',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap'
                                                     }}
                                                   >
-                                                    &nbsp;-&nbsp; {item?.preparation_type}
+                                                    {item?.ingredient_name.map((name, index) => (
+                                                      <Box
+                                                        key={index}
+                                                        sx={{
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          marginRight: '10px'
+                                                        }}
+                                                      >
+                                                        {name}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            marginLeft: '2px',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem'
+                                                          }}
+                                                        >
+                                                          {parseFloat(item?.quantity[index])}
+                                                          {''}
+                                                          {item?.quantity_type[index] === 'percentage' ? '%' : ''}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
                                                   </Typography>
                                                 )}
                                               </Box>
@@ -1745,12 +1973,30 @@ const StepPreviewDiet = ({
                                               }}
                                             >
                                               {console.log(index, 'index')}
-                                              {item.meal_type
+                                              {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
+                                                : 'Add'} */}
+                                              {item.meal_type
+                                                ? item.meal_type
+                                                    .map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
+                                                    .filter(Boolean).length === 0
+                                                  ? 'Add'
+                                                  : item.meal_type.map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
                                                 : 'Add'}
                                             </Typography>
                                           </Box>
@@ -1795,10 +2041,13 @@ const StepPreviewDiet = ({
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -1806,9 +2055,51 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
+                                                      : 'Add'} */}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
                                                       : 'Add'}
                                                   </Typography>
                                                 </Box>
@@ -1826,7 +2117,7 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
                                           position: 'sticky',
@@ -1837,12 +2128,15 @@ const StepPreviewDiet = ({
                                             formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
                                               ? '580px'
                                               : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '660px'
+                                              ? '680px'
+                                              : formData?.child?.length === 2
+                                              ? '518px'
                                               : formData?.child?.length > 1
                                               ? '500px'
                                               : '580px',
                                           float: 'left'
                                         }}
+                                        className='cellmodule'
                                       >
                                         <Box
                                           key={index}
@@ -1910,26 +2204,30 @@ const StepPreviewDiet = ({
                                                       >
                                                         {item?.ingredient_name}
                                                       </Typography>
-                                                      <Typography
-                                                        sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '14px',
-                                                          lineHeight: '18px',
-                                                          color: '#1F415B'
-                                                        }}
-                                                      >
-                                                        &nbsp;-&nbsp;{item?.preparation_type}
-                                                      </Typography>
-                                                      <Typography
-                                                        sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '14px',
-                                                          lineHeight: '18px',
-                                                          color: '#1F415B'
-                                                        }}
-                                                      >
-                                                        &nbsp;-&nbsp;{item?.feed_uom_name}
-                                                      </Typography>
+                                                      {item?.feed_cut_size ? (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: '#1F415B'
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                          {item?.feed_cut_size + item.feed_uom_name}
+                                                        </Typography>
+                                                      ) : (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: '#1F415B'
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}
+                                                        </Typography>
+                                                      )}
                                                     </Box>
                                                   </>
                                                 ))}
@@ -2041,12 +2339,30 @@ const StepPreviewDiet = ({
                                               }}
                                             >
                                               {console.log(index, 'index')}
-                                              {item.meal_type
+                                              {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity + ' ' + meal.feed_uom_name
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                       : ''
                                                   })
+                                                : 'Add'} */}
+                                              {item.meal_type
+                                                ? item.meal_type
+                                                    .map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
+                                                    .filter(Boolean).length === 0
+                                                  ? 'Add'
+                                                  : item.meal_type.map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
                                                 : 'Add'}
                                             </Typography>
                                           </Box>
@@ -2091,10 +2407,13 @@ const StepPreviewDiet = ({
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           if (all.includes(meal.meal_value_header)) {
-                                                            return meal.quantity + ' ' + meal.feed_uom_name
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
                                                           } else {
                                                             return ''
                                                           }
@@ -2102,9 +2421,51 @@ const StepPreviewDiet = ({
                                                       : item.meal_type
                                                       ? item.meal_type.map((meal, i) => {
                                                           return meal.meal_value_header === all
-                                                            ? meal.quantity + ' ' + meal.feed_uom_name
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : ''
                                                         })
+                                                      : 'Add'} */}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+                                                            // Return null for elements that do not match the condition
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
                                                       : 'Add'}
                                                   </Typography>
                                                 </Box>

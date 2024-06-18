@@ -95,13 +95,13 @@ const DietDetail = () => {
 
   const tabs = [
     { value: 'full', label: 'Full Week' },
-    { value: '0', label: 'Monday' },
-    { value: '1', label: 'Tuesday' },
-    { value: '2', label: 'Wednesday' },
-    { value: '3', label: 'Thursday' },
-    { value: '4', label: 'Friday' },
-    { value: '5', label: 'Saturday' },
-    { value: '6', label: 'Sunday' }
+    { value: '1', label: 'Monday' },
+    { value: '2', label: 'Tuesday' },
+    { value: '3', label: 'Wednesday' },
+    { value: '4', label: 'Thursday' },
+    { value: '5', label: 'Friday' },
+    { value: '6', label: 'Saturday' },
+    { value: '7', label: 'Sunday' }
   ]
 
   const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
@@ -136,9 +136,12 @@ const DietDetail = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <DietDetailCard dietDetails={dietDetails} />
             <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px' }}>
+                Meals Plan - {dietDetails?.diet_type_name}
+              </Typography>
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  {/* <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
                     You have added{' '}
                     <span
                       style={{
@@ -152,13 +155,13 @@ const DietDetail = () => {
                       13 species{' '}
                     </span>{' '}
                     for this diet plan
-                  </Typography> */}
+                  </Typography>
                 </Box>
 
                 <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
                   ADD SPECIES
                 </Button>
-              </Box>
+              </Box> */}
               <Box>
                 <TabContext value={value}>
                   <TabList
@@ -345,7 +348,7 @@ const DietDetail = () => {
 
                                         return (
                                           <>
-                                            {itemData?.length &&
+                                            {itemData?.length ? (
                                               itemData?.map((item, index) => {
                                                 let first = startArry.indexOf(itemd.meal_from_time) === -1
                                                 startArry = [...startArry, itemd.meal_from_time]
@@ -502,26 +505,33 @@ const DietDetail = () => {
                                                                         >
                                                                           {item?.ingredient_name}
                                                                         </Typography>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            fontWeight: 400,
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '18px',
-                                                                            color: '#1F415B'
-                                                                          }}
-                                                                        >
-                                                                          &nbsp;-&nbsp;{item?.preparation_type_label}
-                                                                        </Typography>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            fontWeight: 400,
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '18px',
-                                                                            color: '#1F415B'
-                                                                          }}
-                                                                        >
-                                                                          &nbsp;-&nbsp;{item?.feed_uom_name}
-                                                                        </Typography>
+                                                                        {item?.preparation_type_label ||
+                                                                          (item?.preparation_type && (
+                                                                            <Typography
+                                                                              sx={{
+                                                                                fontWeight: 400,
+                                                                                fontSize: '14px',
+                                                                                lineHeight: '18px',
+                                                                                color: '#1F415B'
+                                                                              }}
+                                                                            >
+                                                                              &nbsp;-&nbsp;
+                                                                              {item?.preparation_type_label ||
+                                                                                item?.preparation_type}
+                                                                            </Typography>
+                                                                          ))}
+                                                                        {item?.feed_uom_name && (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '18px',
+                                                                              color: '#1F415B'
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp;{item?.feed_uom_name}
+                                                                          </Typography>
+                                                                        )}
                                                                       </Box>
                                                                     </>
                                                                   ))}
@@ -795,37 +805,6 @@ const DietDetail = () => {
                                                             </Box>
                                                           </Box>
                                                         )}
-                                                        {/* {index === itemData?.length - 1 ? (
-                                                          <Box
-                                                            sx={{
-                                                              display: 'flex',
-                                                              flexDirection: 'column',
-                                                              gap: '4px',
-                                                              my: '10px'
-                                                            }}
-                                                          >
-                                                            <Typography
-                                                              sx={{
-                                                                lineHeight: '29.05px',
-                                                                fontSize: '20px',
-                                                                fontWeight: 500,
-                                                                color: '#44544A'
-                                                              }}
-                                                            >
-                                                              Note:-
-                                                            </Typography>
-                                                            <Typography
-                                                              sx={{
-                                                                lineHeight: '19.36px',
-                                                                fontSize: '16px',
-                                                                fontWeight: 400,
-                                                                color: '#44544A'
-                                                              }}
-                                                            >
-                                                              {itemd.notes}{' '}
-                                                            </Typography>
-                                                          </Box>
-                                                        ) : null} */}
                                                       </TableCell>
 
                                                       {item?.meal_type?.map((item, index) => (
@@ -921,7 +900,10 @@ const DietDetail = () => {
                                                     ) : null}
                                                   </>
                                                 )
-                                              })}
+                                              })
+                                            ) : (
+                                              <Typography sx={{ mt: 2, fontWeight: 700 }}>No Data</Typography>
+                                            )}
                                           </>
                                         )
                                       })}

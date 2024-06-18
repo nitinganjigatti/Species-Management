@@ -122,7 +122,7 @@ const ListOfStocksByBatch = () => {
   const getStoresLists = async () => {
     try {
       setLoader(true)
-      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
+      const response = await getStoreList({ params: { type: 'local' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
         setStores(response?.data?.list_items)
@@ -388,6 +388,7 @@ const ListOfStocksByBatch = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
+                    disableColumnMenu
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'

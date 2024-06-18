@@ -333,10 +333,10 @@ const IndividualRequest = () => {
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box sx={{ width: '100%' }}>
           <div>
             <Tooltip title={params?.row?.stock_name} placement='top'>
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
                 {params?.row?.stock_name}
               </Typography>
             </Tooltip>
@@ -344,36 +344,20 @@ const IndividualRequest = () => {
           {!isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
           ) : null}
-        </div>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip
-          title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          placement='top'
-        >
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacturer',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacturer} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacturer}
-          </Typography>
-        </Tooltip>
+          <Tooltip
+            title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacturer} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacturer}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
 
@@ -534,36 +518,22 @@ const IndividualRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.medicin_name}</div>
-          </Typography>
+          <Tooltip title={params.row.medicin_name} placement='top'>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params.row.medicin_name}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.package} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.package}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacture} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacture}
+            </Typography>
+          </Tooltip>
         </div>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 100,
-      field: 'Package',
-      headerName: 'Package',
-      renderCell: params => (
-        <Tooltip title={params?.row?.package} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.package}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 150,
-      field: 'manufacture',
-      headerName: 'Manufacturer',
-      renderCell: params => (
-        <Tooltip title={params?.row?.manufacture} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.manufacture}
-          </Typography>
-        </Tooltip>
       )
     },
 
@@ -1044,7 +1014,7 @@ const IndividualRequest = () => {
                   {/* Medicine Listing */}
                 </CardContent>
                 {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
               </Card>
               {/* Dispatch list */}
@@ -1079,7 +1049,7 @@ const IndividualRequest = () => {
                     </Grid>
                   </Grid>
                 </CardContent> */}
-                    <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
                   </Card>
                 </>
               ) : null}

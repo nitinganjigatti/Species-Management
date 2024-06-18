@@ -75,7 +75,9 @@ const editParamsInitialState = {
   discount_percentage: 0,
   net_amount: 0,
 
-  tax_amount: 0
+  tax_amount: 0,
+  purchase_order_no: '',
+  requested_by: ''
 }
 
 const initialNestedRowMedicine = {
@@ -224,6 +226,11 @@ const AddExistingPurchase = () => {
     0
   )
 
+  const calculate_igst_tax_amount = editParams.purchase_details?.reduce(
+    (acc, row) => acc + parseFloat(row.purchase_igst_amount ? row.purchase_igst_amount : 0),
+    0
+  )
+
   const addItemsToTable = payload => {
     const updatedNestedRows = [...editParams.purchase_details, payload]
     setEditParams({
@@ -343,10 +350,14 @@ const AddExistingPurchase = () => {
     postData.po_date = data.po_date
     postData.supplier_id = data.supplier_id
     postData.po_no = data.po_no
+    postData.purchase_order_no = data.purchase_order_no
+    postData.requested_by = data.requested_by
 
     postData.cgst = calculate_cgst_tax_amount
     postData.sgst = calculate_sgst_tax_amount
-    postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    // postData.igst = calculate_cgst_tax_amount + calculate_sgst_tax_amount
+    postData.igst = calculate_igst_tax_amount
+
     postData.total_amount = totalLineItemsAmount
     postData.net_amount = totalLineItemsPurchase
     // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
@@ -449,6 +460,7 @@ const AddExistingPurchase = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
             stock_type: item.stock_type,
@@ -806,6 +818,7 @@ const AddExistingPurchase = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
+                      maxDate={value ? parseFormattedDate(value) : null}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
@@ -848,7 +861,7 @@ const AddExistingPurchase = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto', mb: 5 }}>
+            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto' }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -874,6 +887,46 @@ const AddExistingPurchase = () => {
                     This field is required
                   </FormHelperText>
                 )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='purchase_order_no'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='purchase_order_no'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.purchase_order_no)}
+                      label='Purchase order number'
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='requested_by'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type='text'
+                      name='requested_by'
+                      disabled={id ? true : false}
+                      error={Boolean(errors.po_no)}
+                      label='Requested by'
+                    />
+                  )}
+                />
               </FormControl>
             </Grid>
           </Grid>
@@ -975,75 +1028,79 @@ const AddExistingPurchase = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        {/* <Grid item xs={6}>
-          <Grid container>
-            <Grid
-              item
-              xs={12}
-              sm={4}
-              lg={4}
-              sx={{
-                mb: { sm: 0, xs: 4 },
-                mt: { xs: 4 },
-                order: { sm: 2, xs: 1 },
-                marginLeft: 'auto',
-                mr: { sm: 12, xs: 0 }
-              }}
-            >
-              <Card>
-                <CardContent sx={{ pt: 8 }}>
-                  <CalcWrapper>
-                    <Typography variant='body2'>Total Amount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsAmount ? totalLineItemsAmount : 0}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>Discount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsDiscount}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>CGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_cgst_tax_amount}
-                    </Typography>
-                  </CalcWrapper>
-                  <CalcWrapper>
-                    <Typography variant='body2'>SGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_sgst_tax_amount}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
+        {/* <Grid container>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            lg={4}
+            sx={{
+              mb: { sm: 0, xs: 4 },
+              mt: { xs: 4 },
+              order: { sm: 2, xs: 1 },
+              marginLeft: 'auto',
+              mr: { sm: 12, xs: 0 }
+            }}
+          >
+            <Card>
+              <CardContent sx={{ pt: 8 }}>
+                <CalcWrapper>
+                  <Typography variant='body2'>Total Amount :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>Discount :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsDiscount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
+                <CalcWrapper>
+                  <Typography variant='body2'>CGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_cgst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <CalcWrapper>
+                  <Typography variant='body2'>SGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_sgst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <CalcWrapper>
+                  <Typography variant='body2'>IGST :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {calculate_igst_tax_amount?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+                <Divider
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`
+                  }}
+                />
 
-                  <CalcWrapper>
-                    <Typography variant='body2'>Grand Total :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase}
-                    </Typography>
-                  </CalcWrapper>
-                </CardContent>
-              </Card>
-            </Grid>
+                <CalcWrapper>
+                  <Typography variant='body2'>Grand Total :</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
+                    {totalLineItemsPurchase?.toFixed(2)}
+                  </Typography>
+                </CalcWrapper>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid> */}
         <Grid item xs={12}>

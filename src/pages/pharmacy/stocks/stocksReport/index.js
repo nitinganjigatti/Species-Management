@@ -42,6 +42,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ExpiredMedicine from '../expired-medicine'
 import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
+import { ExcelExportButton } from 'src/components/Buttons'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -61,6 +62,7 @@ const ListOfStocks = () => {
   const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const [stockId, setStockId] = useState(selectedPharmacy?.id)
 
@@ -297,6 +299,35 @@ const ListOfStocks = () => {
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
   // }, [])
+  const getBatchWiseDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+
+      const result = await getStocksByBatch(stockId, { params: '' })
+      if (result?.success === true && result?.data?.length > 0) {
+        const data = result?.data?.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_items_name,
+            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
+              el?.product_form_label
+            }`,
+            ['Manufacture Name']: el?.manufacturer_name,
+            ['Expiry Date']: el?.expiry_date,
+            ['Batch Number']: el?.batch_no,
+            ['Quantity']: el?.stock_qty
+          }
+        })
+
+        Utility.exportToCSV(data, 'Batch wise Products')
+      }
+      setExcelLoader(false)
+    } catch (error) {
+      setExcelLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -389,17 +420,31 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'expiry_date',
-    //   headerName: 'EXPIRY DATE',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDisplayDate(params.row.expiry_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'procured_date',
+      headerName: 'PROCURED DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
+        </Typography>
+      )
+    },
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -586,6 +631,30 @@ const ListOfStocks = () => {
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'procured_date',
+      headerName: 'PROCURED DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
         </Typography>
       )
     },
@@ -878,15 +947,29 @@ const ListOfStocks = () => {
 
                     // action={headerAction}
                   />
-                  <Box sx={{ ml: 3 }}>
-                    {selectedPharmacy.type === 'central' && createForm()}
+                  <Grid sx={{ ml: 3, display: 'flex' }}>
+                    <Grid>
+                      {selectedPharmacy.type === 'central' && createForm()}
+                      <FormControlLabel
+                        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
+                        labelPlacement='start'
+                        label='Batch Wise'
+                      />
+                    </Grid>
 
-                    <FormControlLabel
-                      control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
-                      labelPlacement='start'
-                      label='Batch Wise'
-                    />
-                  </Box>
+                    {changeSwitch ? (
+                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
+                        <ExcelExportButton
+                          disabled={total === 0 ? true : false}
+                          action={() => {
+                            getBatchWiseDataToExport()
+                          }}
+                          loader={excelLoader}
+                          title='Download'
+                        />
+                      </Box>
+                    ) : null}
+                  </Grid>
 
                   {changeSwitch ? (
                     <DataGrid
@@ -907,6 +990,7 @@ const ListOfStocks = () => {
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
                       onPaginationModelChange={setBatchPaginationModel}
                       loading={batchLoading}
+                      disableColumnMenu
                       slotProps={{
                         baseButton: {
                           variant: 'outlined'
@@ -932,6 +1016,7 @@ const ListOfStocks = () => {
                       hideFooterSelectedRowCount
                       disableColumnSelector={true}
                       pagination
+                      disableColumnMenu
                       rows={indexedRows === undefined ? [] : indexedRows}
                       rowCount={total}
                       columns={columns}

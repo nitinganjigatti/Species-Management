@@ -428,36 +428,6 @@ const IndividualRequest = () => {
       )
     },
 
-    // {
-    //   flex: 0.1,
-    //   minWidth: 100,
-    //   field: 'Package',
-    //   headerName: 'Package',
-    //   renderCell: params => (
-    //     <Tooltip
-    //       title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-    //       placement='top'
-    //     >
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
-    // {
-    //   flex: 0.1,
-    //   minWidth: 150,
-    //   field: 'manufacturer',
-    //   headerName: 'Manufacturer',
-    //   renderCell: params => (
-    //     <Tooltip title={params?.row?.manufacturer} placement='top'>
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {params?.row?.manufacturer}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -1202,7 +1172,7 @@ const IndividualRequest = () => {
                   {/* Medicine Listing */}
                 </CardContent>
                 {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
               </Card>
               {/* Dispatch list */}
@@ -1229,7 +1199,7 @@ const IndividualRequest = () => {
                         ) : null
                       }
                     ></CardHeader>
-                    <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
                   </Card>
                   <ConfirmDialogBox
                     open={deleteDialog}

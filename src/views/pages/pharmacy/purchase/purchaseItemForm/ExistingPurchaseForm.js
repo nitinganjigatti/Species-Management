@@ -239,9 +239,7 @@ const ExistingPurchaseForm = props => {
 
     const purchase_sgst = checkNumber(updatedValues.purchase_sgst)
 
-    const purchase_igst = purchase_cgst + purchase_sgst
-
-    // const purchase_igst = checkNumber(updatedValues.purchase_igst)
+    const purchase_igst = checkNumber(updatedValues.purchase_igst)
 
     const totalPurchasedQty = purchase_qty - purchase_free_quantity
 
@@ -254,12 +252,19 @@ const ExistingPurchaseForm = props => {
     const purchase_cgst_amount = parseFloat(totalAmountAfterDiscount * (purchase_cgst / 100))
 
     const purchase_sgst_amount = parseFloat(totalAmountAfterDiscount * (purchase_sgst / 100))
+    const purchase_gst = purchase_sgst + purchase_cgst
+    const purchase_gst_amount = parseFloat(totalAmountAfterDiscount * (purchase_gst / 100))
 
     const discountAmount = calculateDiscountAmount(grossAmount, purchase_discount)
 
     const taxableAmount = calculateAmountAfterDiscount(grossAmount, purchase_discount)
 
-    const netAmount = taxableAmount + purchase_igst_amount
+    let netAmount
+    if (purchase_igst_amount === 0 || purchase_igst_amount === '0') {
+      netAmount = taxableAmount + purchase_gst_amount
+    } else {
+      netAmount = taxableAmount + purchase_igst_amount
+    }
 
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
@@ -280,15 +285,25 @@ const ExistingPurchaseForm = props => {
       //   ? parseFloat(purchase_sgst_amount).toFixed(2)
       //   : parseFloat(purchase_sgst_amount).toFixed(5)
     )
-    setValue(
-      'purchase_igst',
-      checkFloatValue(purchase_igst)
 
-      // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
-    )
+    // setValue(
+    //   'purchase_igst',
+    //   checkFloatValue(purchase_igst)
+
+    //   // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
+    // )
     setValue(
       'purchase_igst_amount',
       checkFloatValue(purchase_igst_amount)
+
+      // purchase_igst_amount >= 0.01
+      //   ? parseFloat(purchase_igst_amount).toFixed(2)
+      //   : parseFloat(purchase_igst_amount).toFixed(5)
+    )
+
+    setValue(
+      'purchase_gst',
+      checkFloatValue(purchase_gst_amount)
 
       // purchase_igst_amount >= 0.01
       //   ? parseFloat(purchase_igst_amount).toFixed(2)
@@ -371,7 +386,10 @@ const ExistingPurchaseForm = props => {
                   value={value}
                   getOptionLabel={option => option.label}
                   renderOption={(props, option) => (
-                    <li {...props}>
+                    <li
+                      {...props}
+                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    >
                       <Box>
                         <Typography>{option.label}</Typography>
                         <Typography variant='body2'>{option.package_details}</Typography>

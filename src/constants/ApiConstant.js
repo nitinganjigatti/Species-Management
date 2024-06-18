@@ -154,6 +154,10 @@ export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
 
 export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
 
+export const STOCK_ADJUSTMENT = 'stock-adjustment'
+
+export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'

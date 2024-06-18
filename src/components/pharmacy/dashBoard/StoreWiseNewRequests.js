@@ -141,6 +141,7 @@ const StoreWiseNewRequests = () => {
             autoWidth
             rows={requestList === undefined ? [] : requestList}
             columns={columns}
+            disableColumnMenu
             paginationModel={false}
             pagination={false}
           />

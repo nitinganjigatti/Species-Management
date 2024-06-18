@@ -15,15 +15,12 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  Divider,
   TableRow,
-  FormLabel,
-  Box
+  FormLabel
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { LoaderIcon } from 'react-hot-toast'
 import IconButton from '@mui/material/IconButton'
-import { styled, useTheme } from '@mui/material/styles'
 
 import Icon from 'src/@core/components/icon'
 
@@ -40,30 +37,35 @@ import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
 
-const CalcWrapper = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  '&:not(:last-of-type)': {
-    marginBottom: theme.spacing(2)
-  }
-}))
-
 const ImportPurchase = () => {
   const defaultValues = {
     upload_file: '',
     is_confirm: 0
   }
 
+  // const schema = yup.object().shape({
+  //   upload_file: yup
+  //     .mixed()
+  //     .required('A file is required')
+
+  //     .test('fileType', 'Invalid file type, only CSV files are allowed', value => {
+  //       if (!value) return true
+
+  //       return value && value[0]?.type === 'text/csv'
+  //     })
+  // })
   const schema = yup.object().shape({
     upload_file: yup
       .mixed()
       .required('A file is required')
-
       .test('fileType', 'Invalid file type, only CSV files are allowed', value => {
-        if (!value) return true
+        if (!value || value.length === 0) {
+          console.log('value', value.length)
 
-        return value && value[0]?.type === 'text/csv'
+          return true
+        }
+
+        return value[0].type === 'text/csv'
       })
   })
 
@@ -75,7 +77,8 @@ const ImportPurchase = () => {
     setValue,
     watch,
     getValues,
-    register
+    register,
+    setError
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -99,7 +102,8 @@ const ImportPurchase = () => {
     // const formData = new FormData()
     const formData = new FormData(formRef.current)
 
-    // formData.append('upload_file', getValues('upload_file')[0])
+    // console.log('upload file', getValues('upload_file'))
+
     formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
     try {
@@ -177,9 +181,9 @@ const ImportPurchase = () => {
     if (file && file.type === 'text/csv') {
       reset({}, { errors: true })
       setLoader(true)
-
+      const confirmLabel = 0
       const formData = new FormData(formRef.current)
-      formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
+      formData.append('is_confirm', confirmLabel)
 
       const result = await uploadPurchaseFile(formData)
       setSubmitLoader(true)
@@ -210,7 +214,7 @@ const ImportPurchase = () => {
         }
       }
 
-      if (result?.message === 'Please upload the proper csv file.' && result?.success === false) {
+      if (result?.message !== '' && result?.success === false) {
         toast.error(result.message)
         setSubmitLoader(false)
         setLoader(false)
@@ -232,6 +236,11 @@ const ImportPurchase = () => {
 
         setUploadedFileData(newData)
       }
+    } else {
+      setError('upload_file', {
+        type: 'manual',
+        message: 'Invalid file type, only CSV files are allowed'
+      })
     }
   }
 
@@ -268,7 +277,9 @@ const ImportPurchase = () => {
                         disabled={loader}
                         error={Boolean(errors.upload_file)}
                         helperText={errors.upload_file?.message}
-                        onChange={handleFileChange}
+                        onChange={e => {
+                          handleFileChange(e)
+                        }}
                         InputProps={{
                           endAdornment: (
                             <InputAdornment position='end'>
@@ -342,7 +353,7 @@ const ImportPurchase = () => {
                                             }}
                                           >
                                             <Typography variant='subtitle2' color='error.main'>
-                                              In {el.key} Row {el.value}
+                                              Row {el.key}, {el.value}
                                             </Typography>
                                           </TableCell>
                                         )}

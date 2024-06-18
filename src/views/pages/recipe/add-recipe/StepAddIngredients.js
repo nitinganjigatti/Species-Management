@@ -18,6 +18,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
+import Toaster from 'src/components/Toaster'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -48,32 +49,31 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  by_percentage: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  ),
-
-  by_quantity: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      uom_id: yup.string().required('Uom is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  )
+  // by_percentage: yup.array().of(
+  //   yup.object().shape({
+  //     ingredient_id: yup.string().required('Ingredient is required'),
+  //     quantity: yup
+  //       .string()
+  //       .required('Quantity is required')
+  //       .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+  //         return parseFloat(value) <= 100
+  //       }),
+  //     preparation_type_id: yup.string().required('Preparation type is required')
+  //   })
+  // ),
+  // by_quantity: yup.array().of(
+  //   yup.object().shape({
+  //     ingredient_id: yup.string().required('Ingredient is required'),
+  //     uom_id: yup.string().required('Uom is required'),
+  //     quantity: yup
+  //       .string()
+  //       .required('Quantity is required')
+  //       .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+  //         return parseFloat(value) <= 100
+  //       }),
+  //     preparation_type_id: yup.string().required('Preparation type is required')
+  //   })
+  // )
 })
 
 const StepAddIngredients = ({
@@ -81,7 +81,7 @@ const StepAddIngredients = ({
   handleNext,
   handlePrev,
   uomList,
-  IngredientTypeList,
+  fullIngredientList,
   IngredientTypeListSearch,
   onCancelIconClick,
   handleIngredientChange
@@ -259,8 +259,66 @@ const StepAddIngredients = ({
   }, [formData, reset])
 
   const onSubmit = async data => {
+    // Filter out incomplete entries
+    data.by_percentage = data.by_percentage.filter(
+      item => item.ingredient_id || item.quantity || item.preparation_type_id
+    )
+    data.by_quantity = data.by_quantity.filter(
+      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
+    )
+
+    // Function to find the first incomplete index
+    const findFirstIncompleteIndex = (array, keys) => {
+      return array.findIndex(item => keys.some(key => !item[key]))
+    }
+
+    // Check if all entries in by_percentage have all required fields
+    const isByPercentageValid = data.by_percentage.every(
+      item => item.ingredient_id && item.quantity && item.preparation_type_id
+    )
+
+    // Check if all entries in by_quantity have all required fields
+    const isByQuantityValid = data.by_quantity.every(
+      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
+    )
+
+    // If both arrays are empty or have incomplete entries, show an error
+    if (data.by_percentage.length === 0 && data.by_quantity.length === 0) {
+      window.scrollTo(0, 0)
+      return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      // return Toaster({
+      //   type: 'error',
+      //   message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+      // })
+    }
+
+    if (!isByPercentageValid && !isByQuantityValid) {
+      window.scrollTo(0, 0)
+      return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+    }
+
+    if (data.by_percentage.length > 0 && !isByPercentageValid) {
+      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
+        'ingredient_id',
+        'quantity',
+        'preparation_type_id'
+      ])
+      window.scrollTo(0, 0)
+      return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
+    }
+
+    if (data.by_quantity.length > 0 && !isByQuantityValid) {
+      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
+        'ingredient_id',
+        'quantity',
+        'uom_id',
+        'preparation_type_id'
+      ])
+      window.scrollTo(0, 0)
+      return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
+    }
     console.log(data, 'data')
-    if (calculateTotalQuantity() > 100) {
+    if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
 
       return toast(
@@ -275,6 +333,39 @@ const StepAddIngredients = ({
                 <Divider sx={{ my: 2 }} />
                 <Typography variant='body2' sx={{ color: '#44544A' }}>
                   Please review and adjust percentages before adding new ingredients
+                </Typography>
+              </div>
+            </Box>
+            <IconButton
+              onClick={() => toast.dismiss(t.id)}
+              style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+            >
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+        ),
+        {
+          style: {
+            minWidth: '450px',
+            minHeight: '130px'
+          }
+        }
+      )
+    } else if (calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
+      window.scrollTo(0, 0)
+
+      return toast(
+        t => (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Icon icon='jam:alert-f' style={{ marginRight: '20px', fontSize: 50, color: 'rgb(255 0 0 / 80%)' }} />
+              <div>
+                <Typography sx={{ fontWeight: 500 }} variant='h5'>
+                  Alert!
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  Percentage added should be qual to 100%
                 </Typography>
               </div>
             </Box>
@@ -317,8 +408,8 @@ const StepAddIngredients = ({
     try {
       const response = await getPreparationTypeList(ingredientId)
       if (response.success === true) {
-        console.log(IngredientTypeList, 'IngredientTypeList')
-        const ingredient = IngredientTypeList.find(item => item.id === ingredientId)
+        console.log(fullIngredientList, 'fullIngredientList')
+        const ingredient = fullIngredientList.find(item => item.id === ingredientId)
         if (ingredient) {
           // Update the preparationTypeList array based on the section
           if (section === 'by_percentage') {
@@ -358,6 +449,16 @@ const StepAddIngredients = ({
       }
     })
   }, [formData])
+
+  useEffect(() => {
+    // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
+    if (fieldsByQuantity.length === 0) {
+      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
+    }
+    if (fieldsIngredients.length === 0) {
+      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '' })
+    }
+  }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
   const ScrollToFieldError = ({ errors, index }) => {
     // if (!errors) return
@@ -441,7 +542,7 @@ const StepAddIngredients = ({
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
                   <Grid item xs={12} sm={3.6}>
-                    {console.log(IngredientTypeList, 'IngredientTypeList')}
+                    {console.log(fullIngredientList, 'fullIngredientList')}
                     <FormControl fullWidth>
                       <Controller
                         name={`by_percentage[${index}].ingredient_id`}
@@ -449,11 +550,11 @@ const StepAddIngredients = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
-                            value={IngredientTypeList.find(option => option.id === value) || null}
+                            value={fullIngredientList.find(option => option.id === value) || null}
                             disablePortal
                             id={`by_percentage[${index}].ingredient_id`}
                             placeholder='Search & Select'
-                            options={IngredientTypeList || []}
+                            options={fullIngredientList || []}
                             getOptionLabel={option => option?.ingredient_name}
                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                             onChange={(e, val) => {
@@ -562,6 +663,8 @@ const StepAddIngredients = ({
                           >
                             {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
                               ? "you've hit 100% limit"
+                              : fieldsIngredients.length > 1 && calculateTotalQuantity() < 100
+                              ? 'Limit should be equal to 100%'
                               : ''}
                           </span>
                         </Grid>
@@ -639,6 +742,7 @@ const StepAddIngredients = ({
               ))}
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
+              {console.log(fieldsByQuantity, 'fieldsByQuantity')}
               {fieldsByQuantity.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
@@ -650,11 +754,11 @@ const StepAddIngredients = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
-                            value={IngredientTypeList.find(option => option.id === value) || null}
+                            value={fullIngredientList.find(option => option.id === value) || null}
                             disablePortal
                             id={`by_quantity[${index}].ingredient_id`}
                             placeholder='Search & Select'
-                            options={IngredientTypeList || []}
+                            options={fullIngredientList || []}
                             getOptionLabel={option => option?.ingredient_name}
                             isOptionEqualToValue={(option, value) => option?.id === value?.id}
                             onChange={(e, val) => {

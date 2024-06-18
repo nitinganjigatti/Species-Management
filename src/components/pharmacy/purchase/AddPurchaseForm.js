@@ -622,6 +622,8 @@ const AddPurchaseForm = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
+
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
             stock_type: item.stock_type,
@@ -1023,6 +1025,7 @@ const AddPurchaseForm = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
+                      maxDate={value ? parseFormattedDate(value) : null}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
@@ -1094,6 +1097,37 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
+            {/* <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors.supplier_id)}>Byy*</InputLabel>
+                <Controller
+                  name='supplier_id'
+                  control={control}
+                  rules={{ required: true }}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      // name='supplier_id'
+                      // value={value}
+                      // onChange={(e, val) => {
+                      //   onChange(e.target.value)
+                      // }}
+                      label='Supplier*'
+                      // disabled={!!id}
+                      error={Boolean(errors.supplier_id)}
+                    >
+                      {suppliers?.map(item => (
+                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
+                          {item.company_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
+              </FormControl>
+            </Grid> */}
             <Grid item xs={12} sm={6} lg={6}>
               <FormControl fullWidth>
                 <Controller
@@ -1127,7 +1161,7 @@ const AddPurchaseForm = () => {
                       type='text'
                       name='requested_by'
                       disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
+                      error={Boolean(errors.requested_by)}
                       label='Requested by'
                     />
                   )}
