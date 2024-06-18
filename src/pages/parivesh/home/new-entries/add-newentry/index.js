@@ -14,7 +14,8 @@ import {
   Grid,
   MenuItem,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -67,6 +68,7 @@ const AddNewEntry = () => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
   const [species, setSpecies] = useState([])
   const [organizations, setOrganizations] = useState([])
+  const [searchValue, setSearchValue] = useState('')
 
   const defaultValues = {
     specie: null,
@@ -186,9 +188,26 @@ const AddNewEntry = () => {
     )
   }
 
-  const fetchSpeciesData = useCallback(async () => {
+  const searchTableData = useCallback(
+    debounce(async q => {
+      setSearchValue(q)
+      try {
+        await fetchSpeciesData(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(value)
+  }
+
+  const fetchSpeciesData = useCallback(async q => {
     try {
-      const params = {}
+      const params = { q }
 
       await getListAllSpeciesSearch({ params: params }).then(res => {
         console.log('response123', res?.data?.result)
@@ -208,7 +227,7 @@ const AddNewEntry = () => {
 
   useEffect(() => {
     fetchSpeciesData()
-  }, [fetchSpeciesData])
+  }, [fetchSpeciesData, searchValue])
 
   useEffect(() => {
     if (selectedParivesh?.id === 'all') {
@@ -257,6 +276,9 @@ const AddNewEntry = () => {
                           isOptionEqualToValue={(option, value) => option.id === value?.id} // This line is changed
                           onChange={(event, newValue) => {
                             onChange(newValue)
+                          }}
+                          onInputChange={(event, newInputValue) => {
+                            handleSearch(newInputValue) // Fetch species based on user input
                           }}
                           renderInput={params => <TextField {...params} label='Select the Specie' />}
                         />

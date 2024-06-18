@@ -17,6 +17,7 @@ import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
+// import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
   const theme = useTheme()
@@ -61,100 +62,176 @@ const SpeciesDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  const columns = [
-    {
-      flex: 0.2,
-      Width: 40,
-      field: 'id',
-      headerName: 'S.NO',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+  // const columns = [
+  //   {
+  //     flex: 0.2,
+  //     Width: 40,
+  //     field: 'id',
+  //     headerName: 'S.NO',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.id}
+  //       </Typography>
+  //     )
+  //   },
 
-    {
-      flex: 0.2,
-      minWidth: 30,
-      field: 'image_type',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <>
-          {console.log(params, 'asd')}
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
-          {/* <Tooltip title={params.row.image_type} placement='right'>
-            <Typography
-              variant='body2'
-              sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              {' '}
-              {params.row.image_type}
-            </Typography>
-          </Tooltip> */}
-        </>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'common_name',
-      headerName: 'COMMON NAME',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
+  //   {
+  //     flex: 0.2,
+  //     minWidth: 30,
+  //     field: 'image_type',
+  //     headerName: 'IMAGE',
+  //     renderCell: params => (
+  //       <>
+  //         {console.log(params, 'asd')}
+  //         <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
+  //         {/* <Tooltip title={params.row.image_type} placement='right'>
+  //           <Typography
+  //             variant='body2'
+  //             sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+  //           >
+  //             {' '}
+  //             {params.row.image_type}
+  //           </Typography>
+  //         </Tooltip> */}
+  //       </>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.3,
+  //     minWidth: 30,
+  //     field: 'common_name',
+  //     headerName: 'COMMON NAME',
+  //     renderCell: params => (
+  //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+  //         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+  //             {params.row.common_name ? params.row.common_name : '-'}
+  //           </Typography>
+  //         </Box>
+  //       </Box>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'scientific_name',
+  //     headerName: 'SCIENTIFIC NAME',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.scientific_name ? params.row.scientific_name : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'rkt',
+  //     headerName: 'RKT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: '#37BD69' }}>
+  //         {params.row.rkt ? params.row.rkt : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'kmt',
+  //     headerName: 'KMT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.kmt ? params.row.kmt : '-'}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'rktwt',
+  //     headerName: 'RKTWT',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.rktwt ? params.row.rktwt : '-'}
+  //       </Typography>
+  //     )
+  //   }
+  // ]
+
+  const getColumns = rows => {
+    // Create base columns
+    const baseColumns = [
+      {
+        flex: 0.2,
+        Width: 40,
+        field: 'sl_no',
+        headerName: 'S.NO',
+        renderCell: params => (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.uid}
+          </Typography>
+        )
+      },
+      {
+        flex: 0.2,
+        minWidth: 30,
+        field: 'species_image',
+        headerName: 'IMAGE',
+        renderCell: params => (
+          <>
+            <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          </>
+        )
+      },
+      {
+        flex: 0.3,
+        minWidth: 30,
+        field: 'common_name',
+        headerName: 'COMMON NAME',
+        renderCell: params => (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                {params.row.common_name ? params.row.common_name : '-'}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      )
-    },
-    {
+        )
+      },
+      {
+        flex: 0.4,
+        minWidth: 10,
+        field: 'scientific_name',
+        headerName: 'SCIENTIFIC NAME',
+        renderCell: params => (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        )
+      }
+    ]
+
+    // Extract unique organization names
+    const organizationNames = [...new Set(rows.flatMap(row => row.organizations.map(org => org.organization_name)))]
+
+    // Create columns for each organization
+    const organizationColumns = organizationNames.map((orgName, index) => ({
       flex: 0.4,
       minWidth: 10,
-      field: 'scientific_name',
-      headerName: 'SCIENTIFIC NAME',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'rkt',
-      headerName: 'RKT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: '#37BD69' }}>
-          {params.row.rkt ? params.row.rkt : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'kmt',
-      headerName: 'KMT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.kmt ? params.row.kmt : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'rktwt',
-      headerName: 'RKTWT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.rktwt ? params.row.rktwt : '-'}
-        </Typography>
-      )
-    }
-  ]
+      field: `org_${index}`,
+      headerName: orgName,
+      renderCell: params => {
+        const org = params.row.organizations.find(org => org.organization_name === orgName)
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {org ? org.animal_count : '-'}
+          </Typography>
+        )
+      }
+    }))
+
+    // Combine base columns with organization columns
+    return [...baseColumns, ...organizationColumns]
+  }
 
   const onCellClick = params => {
     // Router.push(`/parivesh/species/${params?.id}/species-details`)
@@ -335,8 +412,8 @@ const SpeciesDetails = () => {
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
+              columns={getColumns(indexedRows)}
               rowCount={total}
-              columns={columns}
               sortingMode='server'
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}

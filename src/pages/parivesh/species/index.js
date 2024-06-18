@@ -24,8 +24,9 @@ import { useTheme } from '@mui/material/styles'
 import { AddButton } from 'src/components/Buttons'
 import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
 import Router from 'next/router'
-import { addSpecies, getSpeciesList, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
+// import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesList = () => {
   const theme = useTheme()

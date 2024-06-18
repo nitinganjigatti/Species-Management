@@ -22,7 +22,8 @@ const getStyledAccordion = backgroundImage =>
     },
     '& .MuiAccordionDetails-root': {
       backgroundColor: '#00000099' // To ensure text visibility
-    }
+    },
+    borderRadius: '8px'
   }))
 
 const CustomAccordion = ({

@@ -27,10 +27,11 @@ import { useTheme } from '@mui/material/styles'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
-import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { addBatches } from 'src/lib/api/parivesh/addBatch'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
+import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+// import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
 const NewEntry = ({}) => {
   const theme = useTheme()
@@ -53,6 +54,7 @@ const NewEntry = ({}) => {
   const [selectAll, setSelectAll] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
+  const [organizationCountList, setOrganizationCountList] = useState([])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -154,13 +156,6 @@ const NewEntry = ({}) => {
     },
     [paginationModel, selectedParivesh]
   )
-
-  // useEffect(() => {
-  //   if (prevSelectedPariveshRef.current !== selectedParivesh) {
-  //     prevSelectedPariveshRef.current = selectedParivesh
-  //     fetchTableData(sort, searchValue, sortColumn)
-  //   }
-  // }, [fetchTableData, selectedParivesh, sort, searchValue, sortColumn])
 
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
@@ -526,21 +521,286 @@ const NewEntry = ({}) => {
       ]
     }
   ]
+
+  const fetchOrgCountData = useCallback(
+    async (q, id) => {
+      try {
+        const params = {
+          q,
+          id
+        }
+
+        await getOrgCountList({ params: params }).then(res => {
+          console.log('respons123', res.data)
+          const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+          const transformedData = filteredData.map(org => ({
+            organization_name: org.organization_name,
+            org_id: org.org_id,
+            approvedAccordionData: {
+              title: 'Approved by Parivesh',
+              data: [
+                {
+                  value: org.submitted_count_data.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                { value: org.submitted_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+                {
+                  value: org.submitted_count_data.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.submitted_count_data.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            },
+            yetToSubmitAccordionData: {
+              title: 'To be submitted',
+              data: [
+                {
+                  value: org.yet_to_submitted_count.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.yet_to_submitted_count.male_count,
+                  label: 'MALE',
+                  color: '#00AFD6',
+                  borderColor: '#00AFD6'
+                },
+                {
+                  value: org.yet_to_submitted_count.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.yet_to_submitted_count.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.yet_to_submitted_count.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            },
+            submittedAccordionData: {
+              title: 'Submitted Data',
+              data: [
+                {
+                  value: org.submitted_count_data.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.male_count,
+                  label: 'MALE',
+                  color: '#00AFD6',
+                  borderColor: '#00AFD6'
+                },
+                {
+                  value: org.submitted_count_data.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.submitted_count_data.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            }
+          }))
+          setOrganizationCountList(transformedData)
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    [selectedParivesh?.id]
+  )
+  console.log(organizationCountList, 'list')
+
+  useEffect(() => {
+    fetchOrgCountData(selectedParivesh?.id)
+  }, [fetchOrgCountData])
+
   return (
     <>
+      {/* {selectedParivesh?.id !== 'all' && ( */}
       <Card>
         <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-          <CustomAccordion
-            title='To be submitted'
-            summaryIcon='ion:checkmark'
-            data={data}
-            backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-            cards={cards}
-            isOrganization={selectedParivesh.id !== 'all' ? true : false}
-            organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
-          />
+          {organizationCountList.map((org, inx) => {
+            console.log(org, 'l;llll')
+
+            return (
+              <CustomAccordion
+                title='To be submitted'
+                summaryIcon='ion:checkmark'
+                data={org?.yetToSubmitAccordionData?.data}
+                cards={org?.yetToSubmitAccordionData?.cards}
+                backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                isOrganization={selectedParivesh.id !== 'all' ? true : false}
+                organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
+              />
+            )
+          })}
         </CardContent>
       </Card>
+      {/* )} */}
+
       <Grid>{tableData()}</Grid>
     </>
   )
