@@ -8,7 +8,7 @@ import Router, { useRouter } from 'next/router'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
 
-const SubmittedBatches = ({ searchParams }) => {
+const SubmittedBatches = ({ searchParams, type }) => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -73,7 +73,7 @@ const SubmittedBatches = ({ searchParams }) => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, selectedParivesh]
   )
 
   useEffect(() => {
@@ -142,9 +142,16 @@ const SubmittedBatches = ({ searchParams }) => {
       field: 'submitted_on',
       headerName: 'SUBMITTED DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+
+            {console.log(params.row.submitted_on)}
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#00AFD6' }}>
+            {params.row.submitted_on ? moment(params.row.submitted_on).format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -195,7 +202,14 @@ const SubmittedBatches = ({ searchParams }) => {
       headerName: 'Status',
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography noWrap variant='body2' sx={{ color: '#E93353', fontSize: 14 }}>
+          <Typography
+            noWrap
+            variant='body2'
+            sx={{
+              color: params.row.status === 'submitted' ? '#37BD69' : '#E93353',
+              fontSize: 14
+            }}
+          >
             {params.row.status ? params.row.status : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
@@ -211,20 +225,22 @@ const SubmittedBatches = ({ searchParams }) => {
 
   const onCellClick = params => {
     const { id, batchId } = params.row
-    Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
+    // console.log(params, 'params')
+    // Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
     // Router.push({
     //   pathname: `/parivesh/home/batch-list/batch-details`
     // })
     // console.log(params, 'params')
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    //   Router.push({
-    //     pathname: `/diet/ingredient/${data?.id}`
-    //   })
-    // } else {
-    //   return
-    // }
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const { id, batch_id } = params.row
+      Router.push({
+        pathname: `/parivesh/home/${batch_id}/batch-details`,
+        query: { type }
+      })
+    } else {
+      return
+    }
   }
 
   const headerAction = (

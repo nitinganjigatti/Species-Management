@@ -11,7 +11,7 @@ import Router from 'next/router'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
 import { usePariveshContext } from 'src/context/PariveshContext'
 
-const ReportedBatches = ({ searchParams }) => {
+const ReportedBatches = ({ searchParams, type }) => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -78,7 +78,7 @@ const ReportedBatches = ({ searchParams }) => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, selectedParivesh]
   )
 
   useEffect(() => {
@@ -100,7 +100,8 @@ const ReportedBatches = ({ searchParams }) => {
     if (clickedColumn) {
       const { id, batch_id } = params.row
       Router.push({
-        pathname: `/parivesh/home/${batch_id}/batch-details`
+        pathname: `/parivesh/home/${batch_id}/batch-details`,
+        query: { type }
       })
     } else {
       return

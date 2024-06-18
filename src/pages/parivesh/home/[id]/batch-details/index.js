@@ -33,6 +33,9 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { Controller, useForm } from 'react-hook-form'
 import { getBatchListSpeciesById } from 'src/lib/api/parivesh/batchListSpecies'
 import { usePariveshContext } from 'src/context/PariveshContext'
+import { updateBatchStatus } from 'src/lib/api/parivesh/updateBatchStatus'
+import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -69,20 +72,18 @@ const batchData = {
   ]
 }
 
-const dropdownOptions = [
-  { value: 1, label: 'Yet to Submitted' },
-  { value: 2, label: 'Submitted' }
-]
-
 const BatchDetails = ({ params, searchParams }) => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, type } = router.query
   const theme = useTheme()
+
+  console.log(type, 'type')
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors }
   } = useForm()
   const [searchValue, setSearchValue] = useState('')
@@ -96,38 +97,161 @@ const BatchDetails = ({ params, searchParams }) => {
   const [selectedStatus, setSelectedStatus] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [batchDetails, setBatchDetails] = useState()
+  const [dropdownOptions, setDropdownOptions] = useState([])
+  const [btnLoader, setBtnLoader] = useState(false)
 
   const { selectedParivesh } = usePariveshContext()
 
-  console.log(selectedParivesh)
+  console.log(router, 'router')
 
-  const handleStatusChange = event => {
-    const value = event.target.value
-    setSelectedStatus(value)
-    setIsModalOpen(prevState => (value === 2 ? !prevState : false))
-  }
+  // const handleStatusChange = async event => {
+  //   const value = event.target.value
+  //   setSelectedStatus(value)
+  //   if (value === 'submitted' && type === 'reportedBatch') {
+  //     setIsModalOpen(prevState => !prevState)
+  //   } else {
+  //     setIsModalOpen(false) // Close modal for other selections
+  //   }
+  //   if (type === 'submittedBatch') {
+  //     const payload = {
+  //       batch_id: batchDetails?.batch_id,
+  //       status: value,
+  //       registration_id: data.registrationId
+  //     }
+  //     try {
+  //       setBtnLoader(true)
+  //       await updateBatchStatus(payload).then(res => {
+  //         if (res?.success) {
+  //           router.back()
+  //           setIsModalOpen(false)
+  //           reset()
+  //           setBtnLoader(false)
+  //           Toaster({ type: 'success', message: res?.data })
+  //         } else {
+  //           setBtnLoader(false)
+  //           Toaster({ type: 'error', message: res?.message })
+  //         }
+  //       })
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setBtnLoader(false)
+  //     }
+  //   }
+  // }
+
+  // const onSubmit = async data => {
+  //   const payload = {
+  //     batch_id: batchDetails?.batch_id,
+  //     status: selectedStatus,
+  //     registration_id: data.registrationId
+  //   }
+  //   try {
+  //     setBtnLoader(true)
+  //     await updateBatchStatus(payload).then(res => {
+  //       if (res?.success) {
+  //         router.back()
+  //         setIsModalOpen(false)
+  //         reset()
+  //         setBtnLoader(false)
+  //         Toaster({ type: 'success', message: res?.data })
+  //       } else {
+  //         setBtnLoader(false)
+  //         Toaster({ type: 'error', message: res?.message })
+  //       }
+  //     })
+  //   } catch (error) {
+  //     console.log('error', error)
+  //     setBtnLoader(false)
+  //   }
+  // }
 
   const onClose = () => {
     setDialog(false)
   }
 
-  const getBatchListById = useCallback(async id => {
-    try {
-      const response = await getBatchListSpeciesById(id)
-      // debugger
-      if (response?.success) {
-        setBatchDetails(response?.data?.data)
-        console.log(response, 'response')
-      } else {
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const getBatchListById = useCallback(
+    async id => {
+      try {
+        const response = await getBatchListSpeciesById(id)
+        // debugger
+        if (response?.success) {
+          setBatchDetails(response?.data?.data)
+          setSelectedStatus(response?.data?.data?.status)
+
+          console.log(response.data.data.entries_data, 'response')
+
+          let listWithId = response.data.data.entries_data.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
+          setTotal(parseInt(response?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        } else {
+        }
+      } catch (e) {
+        console.log(e)
       }
-    } catch (e) {
-      console.log(e)
-    }
-  }, [])
+    },
+    [paginationModel]
+  )
 
   useEffect(() => {
-    getBatchListById(id)
+    if (id !== 'all') {
+      getBatchListById(id)
+    }
   }, [getBatchListById])
+
+  const updateStatus = async payload => {
+    try {
+      setBtnLoader(true)
+      const res = await updateBatchStatus(payload)
+      if (res?.success) {
+        router.back()
+        setIsModalOpen(false)
+        reset()
+        setBtnLoader(false)
+
+        const msg = res?.data.length > 0 ? res?.data : res?.message
+        Toaster({ type: 'success', message: msg })
+      } else {
+        setBtnLoader(false)
+        Toaster({ type: 'error', message: res?.message })
+      }
+    } catch (error) {
+      console.log('error', error)
+      setBtnLoader(false)
+    }
+  }
+
+  const handleStatusChange = async event => {
+    const value = event.target.value
+    setSelectedStatus(value)
+    if (value === 'submitted' && type === 'reportedBatch') {
+      setIsModalOpen(prevState => !prevState)
+    } else {
+      setIsModalOpen(false) // Close modal for other selections
+    }
+    if (type === 'submittedBatch') {
+      const payload = {
+        batch_id: batchDetails?.batch_id,
+        status: value,
+        registration_id: batchDetails?.registration_id
+      }
+      await updateStatus(payload)
+    }
+  }
+
+  const onSubmit = async data => {
+    const payload = {
+      batch_id: batchDetails?.batch_id,
+      status: selectedStatus,
+      registration_id: data.registrationId
+    }
+    await updateStatus(payload)
+  }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -135,6 +259,24 @@ const BatchDetails = ({ params, searchParams }) => {
     ...row,
     sl_no: getSlNo(index)
   }))
+
+  console.log(rows, 'indexedRows')
+
+  useEffect(() => {
+    if (type === 'reportedBatch') {
+      setDropdownOptions([
+        { value: 'yet_to_submitted', label: 'Yet to Submitted' },
+        { value: 'submitted', label: 'Submitted' }
+      ])
+    } else {
+      setDropdownOptions([
+        { value: 'submitted', label: 'Submitted' },
+        { value: 'approved', label: 'Approved' },
+        { value: 'withdrawn', label: 'Withdrawn' },
+        { value: 'rejected', label: 'Rejected' }
+      ])
+    }
+  }, [type])
 
   const columns = [
     {
@@ -156,16 +298,16 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.created_by_user?.profile_pic} alt={params.row.id} />
-          <Tooltip title={params.row.image_type} placement='right'>
-            <Typography
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          {/* <Tooltip title={params.row.image_type} placement='right'> */}
+          {/* <Typography
               variant='body2'
               sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               {' '}
               {params.row.image_type}
             </Typography>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )
     },
@@ -202,9 +344,7 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'GENDER / COUNT',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.gender_count?.gender
-            ? params.row.gender_count?.gender + ' : ' + params.row.gender_count?.count
-            : '-'}
+          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
         </Typography>
       )
     },
@@ -226,13 +366,13 @@ const BatchDetails = ({ params, searchParams }) => {
     {
       flex: 0.3,
       minWidth: 30,
-      field: 'category',
+      field: 'possession_type',
       headerName: 'Category',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.category ? params.row.category : '-'}
+              {params.row.possession_type ? params.row.possession_type : '-'}
             </Typography>
           </Box>
         </Box>
@@ -245,7 +385,7 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.date ? moment(params.row.date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
         </Typography>
       )
     }
@@ -326,6 +466,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const onCellClick = params => {
     // Handle cell click logic here
   }
+
   return (
     <>
       <Card>
@@ -334,14 +475,15 @@ const BatchDetails = ({ params, searchParams }) => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push({
-                  pathname: '/parivesh/home'
-                })
+                router.back()
+                // Router.push({
+                //   pathname: '/parivesh/home'
+                // })
               }}
               icon='ep:back'
             />
           }
-          title={`Request - ${batchData.requestId}`}
+          title={`Request - ${batchDetails?.batch_id}`}
         />
         <Box sx={{ background: '#C3CEC7', borderRadius: '10px', m: 6, p: 6 }}>
           <Box>
@@ -410,9 +552,6 @@ const BatchDetails = ({ params, searchParams }) => {
                   value={selectedStatus}
                   onChange={handleStatusChange}
                 >
-                  <MenuItem value='' disabled>
-                    Select Status
-                  </MenuItem>
                   {dropdownOptions.map(option => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}
@@ -451,32 +590,40 @@ const BatchDetails = ({ params, searchParams }) => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 6 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='registrationId'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Registration ID'
-                    value={value}
-                    onChange={onChange}
-                    placeholder='Enter Registration ID'
-                    error={Boolean(errors.registrationId)}
-                    name='registrationId'
-                  />
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <FormControl fullWidth>
+                <Controller
+                  name='registrationId'
+                  control={control}
+                  rules={{ required: 'Registration ID is required' }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Registration ID'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Enter Registration ID'
+                      error={Boolean(errors.registrationId)}
+                      name='registrationId'
+                    />
+                  )}
+                />
+                {errors.registrationId && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId.message}</FormHelperText>
                 )}
-              />
-              {errors.registrationId && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId?.message}</FormHelperText>
-              )}
-            </FormControl>
+              </FormControl>
+            </form>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button sx={{ width: '100%' }} variant='contained' color='primary'>
+          <LoadingButton
+            loading={btnLoader}
+            size='large'
+            sx={{ width: '100%' }}
+            variant='contained'
+            onClick={handleSubmit(onSubmit)}
+          >
             Add ID
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </>

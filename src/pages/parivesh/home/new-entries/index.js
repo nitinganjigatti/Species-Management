@@ -30,6 +30,7 @@ import CustomAccordion from 'src/components/parivesh/CustomAccordion'
 import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { addBatches } from 'src/lib/api/parivesh/addBatch'
+import { getEntryList } from 'src/lib/api/parivesh/entryList'
 
 const NewEntry = ({}) => {
   const theme = useTheme()
@@ -60,7 +61,7 @@ const NewEntry = ({}) => {
   const handleSelectAll = event => {
     setSelectAll(event.target.checked)
     if (event.target.checked) {
-      setSelectedRows(rows.map(row => row.tsn_id))
+      setSelectedRows(rows.map(row => row.id))
     } else {
       setSelectedRows([])
     }
@@ -80,6 +81,7 @@ const NewEntry = ({}) => {
             Toaster({ type: 'success', message: res?.message })
             setSelectedRows([])
             setSelectAll(false)
+            router.push(`?tab=batches`, undefined, { shallow: true })
           } else {
             setBtnLoader(false)
             Toaster({ type: 'error', message: res?.message })
@@ -95,14 +97,14 @@ const NewEntry = ({}) => {
 
   console.log(selectedRows)
 
-  const handleRowSelection = tsn_id => {
-    const selectedIndex = selectedRows.indexOf(tsn_id)
+  const handleRowSelection = id => {
+    const selectedIndex = selectedRows.indexOf(id)
     let newSelected = []
 
     if (selectedIndex === -1) {
-      newSelected = [...selectedRows, tsn_id]
+      newSelected = [...selectedRows, id]
     } else {
-      newSelected = selectedRows.filter(id => id !== tsn_id)
+      newSelected = selectedRows.filter(id => id !== id)
     }
 
     setSelectedRows(newSelected)
@@ -134,12 +136,12 @@ const NewEntry = ({}) => {
           limit: paginationModel.pageSize
         }
 
-        await getSpeciesListByOrg({ params: params }).then(res => {
-          console.log('response', res)
+        await getEntryList({ params: params }).then(res => {
+          console.log('response', res?.data)
 
           // Generate uid field based on the index
-          let listWithId = res.data.species_data.map((el, i) => {
-            return { ...el, id: i + 1 }
+          let listWithId = res?.data?.data.map((el, i) => {
+            return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
@@ -201,11 +203,11 @@ const NewEntry = ({}) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.uid}
         </Typography>
       )
     },
@@ -213,11 +215,11 @@ const NewEntry = ({}) => {
     {
       flex: 0.2,
       minWidth: 30,
-      field: 'image_type',
+      field: 'species_image',
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'
@@ -259,13 +261,11 @@ const NewEntry = ({}) => {
     {
       flex: 0.4,
       minWidth: 10,
-      field: 'gender_count',
+      field: 'gender',
       headerName: 'GENDER / COUNT',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.gender_count?.gender
-            ? params.row.gender_count?.gender + ' : ' + params.row.gender_count?.count
-            : '-'}
+          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
         </Typography>
       )
     },
@@ -287,13 +287,13 @@ const NewEntry = ({}) => {
     {
       flex: 0.3,
       minWidth: 30,
-      field: 'category',
+      field: 'possession_type',
       headerName: 'Category',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.category ? params.row.category : '-'}
+              {params.row.possession_type ? params.row.possession_type : '-'}
             </Typography>
           </Box>
         </Box>
@@ -302,11 +302,11 @@ const NewEntry = ({}) => {
     {
       flex: 0.4,
       minWidth: 20,
-      field: 'date',
+      field: 'transaction_date',
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.date ? moment(params.row.date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
         </Typography>
       )
     },
@@ -325,8 +325,8 @@ const NewEntry = ({}) => {
               <Icon icon='mdi:delete-outline' />
             </IconButton>
             {/* <Checkbox
-              checked={selectedRows.includes(params.row.tsn_id)}
-              onChange={() => handleRowSelection(params.row.tsn_id)}
+              checked={selectedRows.includes(params.row.id)}
+              onChange={() => handleRowSelection(params.row.id)}
             /> */}
           </Box>
         </>
@@ -340,15 +340,13 @@ const NewEntry = ({}) => {
         <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       ),
       renderCell: params => (
-        <Checkbox
-          checked={selectedRows.includes(params.row.tsn_id)}
-          onChange={() => handleRowSelection(params.row.tsn_id)}
-        />
+        <Checkbox checked={selectedRows.includes(params.row.id)} onChange={() => handleRowSelection(params.row.id)} />
       )
     }
   ]
 
   const onCellClick = params => {
+    console.log(params, 'params')
     // Router.push('/parivesh/home/new-entries/add-newentry')
     // console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'

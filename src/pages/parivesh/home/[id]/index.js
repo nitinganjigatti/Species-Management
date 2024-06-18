@@ -7,10 +7,10 @@ const BatchList = ({ params, searchParams }) => {
   return (
     <>
       <Box>
-        <ReportedBatches searchParams={searchParams} />
+        <ReportedBatches searchParams={searchParams} type='reportedBatch' />
       </Box>
       <Box>
-        <SubmittedBatches searchParams={searchParams} />
+        <SubmittedBatches searchParams={searchParams} type='submittedBatch' />
       </Box>
     </>
   )
