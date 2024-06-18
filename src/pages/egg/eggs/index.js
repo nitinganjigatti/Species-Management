@@ -462,9 +462,11 @@ const EggList = () => {
           // let listWithId = res.data.result.map((el, i) => {
           //   return { ...el, uid: i + 1 }
           // })
-          if (res.data.result.length > 0) {
+          if (res.success) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res.data.result))
+          } else {
+            setRows([])
           }
         })
         setLoading(false)
