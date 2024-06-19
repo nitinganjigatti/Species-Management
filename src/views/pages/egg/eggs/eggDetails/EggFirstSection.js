@@ -459,7 +459,7 @@ const EggFirstSection = ({ eggDetails, fromPath }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {eggDetails?.egg_condition}
+                        {eggDetails?.egg_status}
                       </Typography>
                     </Box>
                     <Box>
@@ -478,7 +478,7 @@ const EggFirstSection = ({ eggDetails, fromPath }) => {
                               : theme.palette.primary.main
                         }}
                       >
-                        {eggDetails?.egg_initial_temperature} Condition
+                        {eggDetails?.egg_state} Condition
                       </Typography>
                     </Box>
                   </Box>
