@@ -4,14 +4,19 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import moment from 'moment'
 import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, IconButton, Typography, debounce } from '@mui/material'
+import { Avatar, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
 import { usePariveshContext } from 'src/context/PariveshContext'
+import { useTheme } from '@emotion/react'
+import { LoadingButton } from '@mui/lab'
+import { deleteBatchToOrg } from 'src/lib/api/parivesh/addBatch'
+import Toaster from 'src/components/Toaster'
 
 const ReportedBatches = ({ searchParams, type }) => {
+  const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -22,6 +27,9 @@ const ReportedBatches = ({ searchParams, type }) => {
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('batch_code')
   const { selectedParivesh } = usePariveshContext()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [btnLoader, setBtnLoader] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
 
   const searchTableData = useCallback(
     debounce(async (sort, q, sortColumn) => {
@@ -106,6 +114,28 @@ const ReportedBatches = ({ searchParams, type }) => {
     } else {
       return
     }
+  }
+
+  const handleDelete = async id => {
+    setSelectedId(id)
+    setIsModalOpen(true)
+  }
+
+  const confirmDeleteAction = async () => {
+    const payload = {
+      org_id: selectedParivesh.id !== 'all' ? selectedParivesh.id : null
+    }
+    try {
+      setIsModalOpen(false)
+      const response = await deleteBatchToOrg(payload, selectedId)
+      if (response.success === true) {
+        Toaster({ type: 'success', message: `Batch ${selectedId} has been successfully deleted` })
+        // Reload the table data
+        fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        Toaster({ type: 'error', message: 'something went wrong' })
+      }
+    } catch (error) {}
   }
 
   const columns = [
@@ -217,8 +247,31 @@ const ReportedBatches = ({ searchParams, type }) => {
       headerName: 'ACTIONS',
       renderCell: params => (
         <Box>
-          <IconButton>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={event => {
+              event.stopPropagation()
+
+              console.log('Edit clicked', params)
+              // Your edit logic here
+            }}
+            aria-label='Edit'
+          >
             <Icon icon='mdi:edit' />
+          </IconButton>
+          <IconButton
+            size='small'
+            sx={{ mr: 0.5 }}
+            onClick={event => {
+              event.stopPropagation()
+              handleDelete(params.row.batch_id)
+              console.log('delete clicked', params)
+              // Your edit logic here
+            }}
+            aria-label='delete'
+          >
+            <Icon icon='mdi:delete-outline' />
           </IconButton>
         </Box>
       )
@@ -259,6 +312,66 @@ const ReportedBatches = ({ searchParams, type }) => {
         title={'Reported Batches'}
         searchParams={searchParams}
       />
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpen(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px',
+
+              // padding: '40px',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                Are you sure you want to delete this Batch?
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+              <Button
+                loading={btnLoader}
+                onClick={() => setIsModalOpen(false)}
+                variant='outlined'
+                sx={{
+                  color: 'gray',
+                  width: '45%'
+                }}
+              >
+                Cancel
+              </Button>
+
+              <LoadingButton
+                loading={btnLoader}
+                size='large'
+                variant='contained'
+                sx={{ width: '45%' }}
+                onClick={() => confirmDeleteAction()}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent />
+      </Dialog>
     </>
   )
 }

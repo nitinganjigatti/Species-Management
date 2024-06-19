@@ -230,6 +230,10 @@ export const DELETE_SPECIES_TO_ORG = 'v1/parivesh/species/org/deleteentry'
 
 export const ADD_BATCH = 'v1/parivesh/species/site/createbatch'
 
+export const UPDATE_BATCH = ''
+
+export const DELETE_BATCH = 'v1/parivesh/species/org/deletebatch'
+
 export const BATCH_LIST_SPECIES = 'v1/parivesh/species/site/batchlist'
 
 export const BATCH_LIST_SPECIES_BY_ID = 'v1/parivesh/species/site/batchentrieslist'
