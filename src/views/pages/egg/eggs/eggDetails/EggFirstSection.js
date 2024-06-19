@@ -69,6 +69,33 @@ const EggFirstSection = ({ eggDetails }) => {
     }
   }
 
+  const calculatePercentageChange = (value1, value2) => {
+    const numValue1 = parseFloat(value1)
+    const numValue2 = parseFloat(value2)
+
+    const difference = numValue2 - numValue1
+    const percentageChange = (difference / numValue1) * 100
+
+    return percentageChange.toFixed()
+  }
+
+  let displayText
+  let displayTextColor
+
+  if (eggDetails?.assessments_data?.length == 0 || eggDetails?.assessments_data?.length == 1) {
+    displayText = ``
+  } else if (eggDetails?.assessments_data?.length > 1) {
+    const firstValue = eggDetails?.assessments_data[0]?.assessment_value
+    const secondValue = eggDetails?.assessments_data[1]?.assessment_value
+
+    const percentageChange = calculatePercentageChange(secondValue, firstValue)
+    displayText = percentageChange > 0 ? `+${percentageChange}% increased` : `${percentageChange}% reduced`
+    displayTextColor = percentageChange > 0 ? theme.palette.primary.main : theme.palette.formContent.tertiary
+  } else {
+    displayText = 'No data'
+    displayTextColor = theme.palette.customColors.OnSurfaceVariant
+  }
+
   return (
     <>
       <Card>
@@ -362,12 +389,14 @@ const EggFirstSection = ({ eggDetails }) => {
                       <Typography
                         sx={{
                           fontWeight: 500,
-                          fontSize: '20px',
+                          fontSize: '18px',
                           lineHeight: '24.2px',
-                          color: theme.palette.customColors.neutralSecondary
+                          // color: theme.palette.customColors.neutralSecondary
+                          color: displayTextColor
                         }}
                       >
-                        Not Added
+                        {/* {`${eggDetails?.assessments_data[0]?.assessment_value} ${eggDetails?.assessments_data[0]?.uom_abbr}`} */}
+                        {displayText}
                       </Typography>
                     </Box>
                     <Box>
@@ -441,7 +470,7 @@ const EggFirstSection = ({ eggDetails }) => {
                       <Typography
                         sx={{
                           fontWeight: 500,
-                          fontSize: '20px',
+                          fontSize: '18px',
                           lineHeight: '24.2px',
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}

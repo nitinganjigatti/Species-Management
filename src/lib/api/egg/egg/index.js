@@ -97,3 +97,29 @@ export async function AddEggStatusAndCondition(payload) {
     return error
   }
 }
+
+export async function getDefaultEggAssesment() {
+  const response = await axiosGet({ url: `${EGG}/default_assessment_types` })
+
+  return response.data
+}
+
+export async function AddAssesment(params) {
+  try {
+    const response = await axiosPost({
+      url: `${EGG}/add-assessment`,
+      body: params
+    })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
