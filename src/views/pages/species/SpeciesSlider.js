@@ -28,7 +28,6 @@ import {
 import toast from 'react-hot-toast'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { bn } from 'date-fns/locale'
 
 const AddSpeciesSlideBar = ({
   handleSidebarClose,
@@ -37,14 +36,18 @@ const AddSpeciesSlideBar = ({
   taxonomy,
   editVernacularNames,
   editName,
+  fetchTableData,
   tsnId,
   commonName,
   editCommonId,
+  rows,
   speciesImage,
   BannerImages,
   setBannerImages
 }) => {
   console.log('editValues >>', editVernacularNames, editCommonId)
+
+  console.log('Rows >>', rows)
 
   console.log('Banner Images >>>', BannerImages)
 
@@ -60,17 +63,12 @@ const AddSpeciesSlideBar = ({
 
   console.log('EditName>>', editName)
 
+  console.log('Species >>', speciesImage)
+
   console.log('Vernacular Names >>', editVernacularNames)
 
   const schema = yup.object().shape({
-    tsn_id: yup.string().required('Taxonomy is Required'),
-    scientificName: yup.string().required('Scientific Name is Required')
-    // vernacular_id: yup.array().required('Common Name is Required')
-    // vernacular_name: yup.string().when('vernacular_id', {
-    //   is: vernacularId => !vernacularId,
-    //   then: yup.string().required('Vernacular Name is required when Vernacular ID is not provided'),
-    //   otherwise: yup.string()
-    // })
+    tsn_id: yup.string().required('Please choose Taxonomy')
   })
 
   const defaultValues = {
@@ -86,7 +84,6 @@ const AddSpeciesSlideBar = ({
     control,
     handleSubmit,
     setValue,
-    trigger,
     getValues,
     formState: { errors }
   } = useForm({
@@ -118,7 +115,6 @@ const AddSpeciesSlideBar = ({
   }
 
   const handleFileChange = e => {
-    debugger
     const files = e.target.files
     const imagesArray = []
     const filesArray = []
@@ -132,6 +128,8 @@ const AddSpeciesSlideBar = ({
       reader.onload = event => {
         imagesArray.push(reader.result)
         filesArray.push(file)
+
+        console.log('Files >', filesArray)
 
         filesRead++
 
@@ -176,14 +174,16 @@ const AddSpeciesSlideBar = ({
     }
   }
 
-  const handleAddRemoveImage = indexToRemove => {
+  console.log('selected images >>', selectedImages)
+
+  const handleAddRemove1Image = indexToRemove => {
+    debugger
     const updatedImages = selectedImages.filter((image, index) => index !== indexToRemove)
     setValue('banner_images', updatedImages)
     setSelectedImages(updatedImages)
   }
 
   const handleInputImageChange = file => {
-    debugger
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
@@ -200,7 +200,6 @@ const AddSpeciesSlideBar = ({
   }
 
   const onSubmit = async val => {
-    debugger
     val.vernacular_id = val.vernacular_id !== undefined && val.vernacular_id !== '' ? val.vernacular_id : null
 
     val.vernacular_name = val.vernacular_name ? val.vernacular_name : ''
@@ -224,22 +223,27 @@ const AddSpeciesSlideBar = ({
             ? editCommonId
             : val?.vernacular_id,
         scientificName: editName,
-        species_image: val?.species_image,
-        banner_images: val.banner_images ? val.banner_images : [],
+        species_image: displayProfile
+          ? val?.species_image
+          : {
+              name: speciesImage.split('uploads/')[1],
+              type: 'image/*',
+              uri: speciesImage
+            },
         zoo_id: 11
       }
+
       if (val?.vernacular_name) {
         payload['vernacular_name'] = val?.vernacular_name
       }
       console.log('Payload >>', payload)
 
-      // Only upload banner images if the array is not empty
       if (val.banner_images && val.banner_images.length > 0) {
         const Bannerparams = {
           tsn_id: tsnId,
           banner_images: val.banner_images
         }
-        // Upload banner images
+
         const bannerUploadResponse = await UploadBannerImages(Bannerparams)
         if (!bannerUploadResponse.success) {
           toast.error('Unable to upload banner images')
@@ -251,6 +255,7 @@ const AddSpeciesSlideBar = ({
       if (response.success) {
         toast.success('Species Updated Successfully ')
         setOpenDrawer(false)
+        fetchTableData()
       } else {
         toast.error('Unable to Update the Species')
       }
@@ -260,8 +265,10 @@ const AddSpeciesSlideBar = ({
       if (response?.success) {
         toast.success('Species Added Successfully')
         setOpenDrawer(false)
+        fetchTableData()
       } else {
         toast.error('Taxonomy already added')
+        setOpenDrawer(false)
       }
     }
   }
@@ -270,14 +277,44 @@ const AddSpeciesSlideBar = ({
     if (editName) {
       setValue('tsn_id', tsnId)
       setValue('scientificName', editName)
+      setValue('species_image', speciesImage)
+      const filteredVernacularNames = editVernacularNames.filter(item => item.id === editCommonId)
+      const selectedId = filteredVernacularNames.length > 0 && filteredVernacularNames[0].id
+      console.log('Filter >>', filteredVernacularNames, selectedId)
+      setValue('vernacular_id', filteredVernacularNames[0]?.id)
     }
-  }, [])
+  }, [editName, editVernacularNames])
 
   console.log('selected Values >>', selectedValues)
 
   console.log('Edit Vernacular Values >', commonName)
 
   console.log('aiMAGE ?', displayProfile, speciesImage)
+
+  console.log('Images >>', selectedImages, BannerImages)
+
+  const handleImageAction = async (image, action) => {
+    debugger
+    try {
+      if (action === 'remove') {
+        const response = await DeleteBannerById(image.id)
+        if (response?.success) {
+          console.log('Image deleted successfully:', image.id)
+          const updatedBannerImages = BannerImages.filter(img => img.id !== image.id)
+          setBannerImages(updatedBannerImages)
+          console.log('Updated bannerImages:', updatedBannerImages)
+        } else {
+          console.log('Error in Deleting:', response?.error)
+        }
+      } else if (action === 'addRemove') {
+        const updatedImages = selectedImages.filter(img => img !== image)
+        setValue('banner_images', updatedImages)
+        setSelectedImages(updatedImages)
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }
 
   return (
     <>
@@ -298,8 +335,8 @@ const AddSpeciesSlideBar = ({
         >
           {editName ? <Typography> Edit Species </Typography> : <Typography> Add New Species </Typography>}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={handleSidebarClose} />
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleSidebarClose}>
+              <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
         </Box>
@@ -329,7 +366,7 @@ const AddSpeciesSlideBar = ({
                           fetchSpeciesVernacularData(val)
                         }
                         field.onChange(val ? val.taxonomy_id : tsnId)
-                        setValue('scientificName', val ? val.scientific_name : editName)
+                        setValue('scientificName', val ? val?.scientific_name : editName)
                       }}
                       onKeyUp={e => {
                         if (e.target.value.length >= 3) {
@@ -403,17 +440,19 @@ const AddSpeciesSlideBar = ({
                 <Controller
                   name='scientificName'
                   control={control}
-                  rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
-                    <TextField
-                      sx={{ mt: 2 }}
-                      value={editName ? editName : value}
-                      disabled={editName && true}
-                      onChange={onChange}
-                      placeholder='Scientific Name'
-                      error={Boolean(errors.scientificName)}
-                      name='scientificName'
-                    />
+                    <>
+                      {console.log('valu>>', value)}
+                      <TextField
+                        sx={{ mt: 2 }}
+                        value={editName ? editName : value}
+                        disabled={editName && true}
+                        onChange={onChange}
+                        placeholder='Scientific Name'
+                        error={Boolean(errors.scientificName)}
+                        name='scientificName'
+                      />
+                    </>
                   )}
                 />
                 {errors.scientificName && (
@@ -435,39 +474,36 @@ const AddSpeciesSlideBar = ({
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => {
-                            console.log('Selected IDs:', value)
+                            // Filter editVernacularNames based on rows state
+                            const filteredVernacularNames = editVernacularNames.filter(item =>
+                              rows.some(row => row.default_common_name_id === item.id)
+                            )
+
+                            // Determine selectedId based on filtered results or first item in editVernacularNames
                             const selectedId =
-                              value ||
-                              (editVernacularNames.length > 0
-                                ? editVernacularNames[0].vern_id
-                                  ? editVernacularNames[0].vern_id
-                                  : editVernacularNames[0].id
-                                : null)
-                            console.log('Prefill ID:', selectedId)
+                              value || (filteredVernacularNames.length > 0 && filteredVernacularNames[0].id)
 
                             return (
                               <>
                                 <Select
                                   sx={{ mt: 2 }}
                                   fullWidth
-                                  value={selectedId} // Set the value of the Select component to selectedId
+                                  value={selectedId !== null ? selectedId : ''}
                                   error={Boolean(errors.vernacular_id)}
-                                  onChange={e => {
-                                    const selectedId = e.target.value
-                                    onChange(selectedId)
-                                  }}
+                                  onChange={e => onChange(e.target.value)}
                                   renderValue={selected => {
                                     if (!selected) {
                                       return <em>Select Vernacular</em>
                                     }
+                                    // Find the selected vernacular name based on selected value
                                     const selectedVernacular = editVernacularNames.find(item =>
-                                      item.vern_id ? item.vern_id === selected : item.id === selected
+                                      item.id ? item.id === selected : item.id === selected
                                     )
                                     return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                   }}
                                 >
-                                  {editVernacularNames.map((item, index) => (
-                                    <MenuItem key={index} value={item.vern_id ? item.vern_id : item.id}>
+                                  {editVernacularNames?.map((item, index) => (
+                                    <MenuItem key={index} value={item.id}>
                                       {item.vernacular_name}
                                     </MenuItem>
                                   ))}
@@ -478,6 +514,7 @@ const AddSpeciesSlideBar = ({
                             )
                           }}
                         />
+
                         {errors.vernacular_id && (
                           <FormHelperText sx={{ color: 'error.main' }}>{errors.vernacular_id.message}</FormHelperText>
                         )}
@@ -562,61 +599,32 @@ const AddSpeciesSlideBar = ({
                 Add Gallery Images
               </Button>
               <Box sx={{ mt: 4, display: 'flex', flexDirection: 'row' }}>
-                {BannerImages.length > 0 // Conditionally rendering based on bannerImages
-                  ? [...BannerImages, ...selectedImages].map((image, index) => (
-                      <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
-                        <img
-                          src={image.image_url ? image.image_url : image}
-                          alt={`Image ${index}`}
-                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
-                        />
-                        <IconButton
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            width: 30,
-                            height: 30,
-                            mb: 5,
-                            color: 'white',
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                          }}
-                          onClick={() => handleRemoveImage(image)}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      </Box>
-                    ))
-                  : selectedImages.map(
-                      (
-                        image,
-                        index // Render selected images if bannerImages is empty
-                      ) => (
-                        <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
-                          <img
-                            src={image}
-                            alt={`Image ${index}`}
-                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
-                          />
-                          <IconButton
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              right: 0,
-                              width: 30,
-                              height: 30,
-                              mb: 5,
-                              color: 'white',
-                              backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                            }}
-                            onClick={() => handleAddRemoveImage(index)}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        </Box>
-                      )
-                    )}
+                {[...BannerImages, ...selectedImages].map((image, index) => (
+                  <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                    <img
+                      src={image.image_url ? image.image_url : image}
+                      alt={`Image ${index}`}
+                      style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                    />
+                    <IconButton
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: 30,
+                        height: 30,
+                        mb: 5,
+                        color: 'white',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                      }}
+                      onClick={() => handleImageAction(image, selectedImages.includes(image) ? 'addRemove' : 'remove')}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                ))}
               </Box>
+              ;
             </Box>
 
             <Typography variant='body' sx={{ fontSize: '13px' }}>

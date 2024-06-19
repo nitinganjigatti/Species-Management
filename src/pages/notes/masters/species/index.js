@@ -52,6 +52,7 @@ const AddSpecies = () => {
     setEditVernacularNames([])
     setSpeciesImage('')
     setBannerImages([])
+    setTaxonomy([])
   }
 
   const handleSidebarClose = () => {
@@ -112,14 +113,14 @@ const AddSpecies = () => {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async (sort, q, sortColumn) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
-          column,
+          sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           zoo_id: 11
@@ -141,10 +142,10 @@ const AddSpecies = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column }) => {
+    debounce(async (sort, q, sortColumn) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData(sort, q, sortColumn)
       } catch (error) {
         console.error(error)
       }
@@ -163,24 +164,21 @@ const AddSpecies = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
     }
   }
 
-  const handleSearch = async value => {
+  const handleSearch = value => {
     setSearchValue(value)
-
-    try {
-      await fetchTableData({ sort, searchValue: value, column: sortColumn })
-    } catch (error) {
-      console.error(error)
-    }
+    searchTableData(sort, value, sortColumn)
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -192,7 +190,6 @@ const AddSpecies = () => {
   }))
 
   const handleRowClick = async params => {
-    debugger
     console.log('params >>', params)
     setOpenDrawer(true)
     const tsnId = params.row.id
@@ -205,7 +202,8 @@ const AddSpecies = () => {
     try {
       const vernacularResponse = await getVernacularSpeciesById(tsnId)
       if (vernacularResponse?.success) {
-        setEditVernacularNames(vernacularResponse?.data)
+        console.log('Vernacular Names:', vernacularResponse.data)
+        setEditVernacularNames(vernacularResponse.data)
       } else {
         toast.error('Unable to fetch Vernacular Names')
       }
@@ -214,8 +212,20 @@ const AddSpecies = () => {
 
       if (addBannerResponse?.success) {
         console.log('Banner images added successfully:', addBannerResponse.data)
-        console.log('Get Values ??', addBannerResponse.data)
-        setBannerImages(addBannerResponse.data)
+
+        // Use a Set to filter out duplicate image URLs
+        const seenUrls = new Set()
+        const uniqueBannerImages = addBannerResponse.data.filter(item => {
+          if (!seenUrls.has(item.image_url)) {
+            seenUrls.add(item.image_url)
+            return true
+          }
+          return false
+        })
+
+        console.log('Unique Banner images:', uniqueBannerImages)
+
+        setBannerImages(uniqueBannerImages)
       } else {
         // Handle error response
         console.log('Failed to add banner images:', addBannerResponse?.error)
@@ -246,26 +256,18 @@ const AddSpecies = () => {
               rowCount={total}
               columns={columns}
               sortingMode='server'
-              pageSizeOptions={[10, 25, 50]}
+              pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
-              onRowClick={handleRowClick}
+              onCellClick={handleRowClick}
               loading={loading}
               slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
+                  onChange: event => handleSearch(event.target.value)
                 }
               }}
             />
@@ -277,6 +279,7 @@ const AddSpecies = () => {
               setOpenDrawer={setOpenDrawer}
               handleSidebarClose={handleSidebarClose}
               editVernacularNames={editVernacularNames}
+              fetchTableData={fetchTableData}
               fetchTaxonomy={fetchTaxonomy}
               taxonomy={taxonomy}
               editName={editName}
@@ -284,6 +287,7 @@ const AddSpecies = () => {
               commonName={commonName}
               editCommonId={editCommonId}
               speciesImage={speciesImage}
+              rows={rows}
               BannerImages={bannerImages}
               setBannerImages={setBannerImages}
             />
