@@ -178,7 +178,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
         setImgSrc('')
         reset()
 
-        // setOpenDrawer(false)
+        setOpenDrawer(false)
         toast.success(res.message)
       }
 

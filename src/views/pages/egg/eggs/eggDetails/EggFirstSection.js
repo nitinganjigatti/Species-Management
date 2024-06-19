@@ -25,9 +25,12 @@ import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
 
 import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
+import AllocationSlider from '../allocationSlider'
+import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails }) => {
+const EggFirstSection = ({ eggDetails, fromPath }) => {
   const theme = useTheme()
+  console.log('fromPath :>> ', fromPath)
 
   const {
     settings: { direction }
@@ -37,6 +40,8 @@ const EggFirstSection = ({ eggDetails }) => {
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [openDrawer, setOpenDrawer] = useState(false)
+  const [openAllocate, setOpenAllocate] = useState(false)
+  const [openDiscard, setOpenDiscard] = useState(false)
 
   // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -255,16 +260,20 @@ const EggFirstSection = ({ eggDetails }) => {
                       />
                     </Box> */}
                   </Box>
-                  <Box sx={{ display: 'flex', gap: '8px' }}>
-                    <Box>
-                      <Button variant='outlined' sx={{ height: '100%' }}>
-                        DISCARD
-                      </Button>
+                  {fromPath === 'eggs_received' && (
+                    <Box sx={{ display: 'flex', gap: '8px' }}>
+                      <Box>
+                        <Button variant='outlined' sx={{ height: '100%' }} onClick={() => setOpenDiscard(true)}>
+                          DISCARD
+                        </Button>
+                      </Box>
+                      <Box>
+                        <Button variant='contained' onClick={() => setOpenAllocate(true)}>
+                          ALLOCATE
+                        </Button>
+                      </Box>
                     </Box>
-                    <Box>
-                      <Button variant='contained'>ALLOCATE</Button>
-                    </Box>
-                  </Box>
+                  )}
                 </Box>
               </Box>
               <Grid
@@ -512,6 +521,9 @@ const EggFirstSection = ({ eggDetails }) => {
       {openDrawer && (
         <ConditionSlider setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} eggId={eggDetails?.egg_id} />
       )}
+
+      {openAllocate && <AllocationSlider setOpenDrawer={setOpenAllocate} allocateEggId={eggDetails?.egg_id} />}
+      <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
     </>
   )
 }

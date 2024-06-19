@@ -11,7 +11,8 @@ import FallbackSpinner from 'src/@core/components/spinner'
 
 const EggDetail = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, fromPath } = router.query
+
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
   const [loader, setLoader] = useState(true)
@@ -57,7 +58,7 @@ const EggDetail = () => {
         <FallbackSpinner />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <EggFirstSection eggDetails={eggDetails} />
+          <EggFirstSection eggDetails={eggDetails} fromPath={fromPath} />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}
