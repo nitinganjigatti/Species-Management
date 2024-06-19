@@ -61,7 +61,7 @@ const EggList = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.02,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -84,8 +84,8 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 60,
+      flex: 0.3,
+      minWidth: 40,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -148,19 +148,20 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 10,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box sx={{ ml: 2 }}>
+        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px'
+              fontWeight: '500'
+
+              // lineHeight: '19.36px'
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
@@ -207,8 +208,8 @@ const EggList = () => {
     },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      flex: 0.2,
+      minWidth: 10,
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
@@ -267,8 +268,8 @@ const EggList = () => {
     //   )
     // },
     {
-      flex: 0.24,
-      minWidth: 20,
+      flex: 0.2,
+      minWidth: 10,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
@@ -308,8 +309,8 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.5,
-      minWidth: 60,
+      flex: 0.2,
+      minWidth: 20,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
@@ -662,9 +663,16 @@ const EggList = () => {
                     value='eggs_discarded'
                     label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
                   />
+                  <Tab
+                    value='eggs_necropsy_needed'
+                    label={
+                      <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
+                    }
+                  />
                 </TabList>
                 <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
                 <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
+                <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel>
               </TabContext>
             </TabPanel>
           </TabContext>
