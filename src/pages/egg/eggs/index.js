@@ -52,7 +52,6 @@ const EggList = () => {
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
-
   const handleDiscard = e => {
     e.stopPropagation()
     setIsOpen(true)
@@ -317,7 +316,7 @@ const EggList = () => {
               Allocate{' '}
             </Button>
           )}
-          {status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? (
+          {status === 'eggs_to_discard' && isDiscarded === 'eggs_to_discard' ? (
             <>
               <div>
                 <DiscardStatusCell
@@ -405,9 +404,11 @@ const EggList = () => {
     if (clickedColumn) {
       const data = params.row
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`
+        pathname: `/egg/eggs/${data?.id}`,
 
-        // pathname: `/egg/eggs/6`
+        query: {
+          fromPath: status === 'eggs_to_discard' ? isDiscarded : status
+        }
       })
     } else {
       return
@@ -461,9 +462,11 @@ const EggList = () => {
           // let listWithId = res.data.result.map((el, i) => {
           //   return { ...el, uid: i + 1 }
           // })
-          if (res.data.result.length > 0) {
+          if (res.success) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res.data.result))
+          } else {
+            setRows([])
           }
         })
         setLoading(false)

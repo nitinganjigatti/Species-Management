@@ -10,7 +10,8 @@ import { CircularProgress } from '@mui/material'
 
 const EggDetail = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, fromPath } = router.query
+
   const [eggDetails, setEggDetails] = useState({})
   const [loader, setLoader] = useState(false)
 
@@ -41,7 +42,7 @@ const EggDetail = () => {
         <CircularProgress />
       ) : ( */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <EggFirstSection eggDetails={eggDetails} />
+        <EggFirstSection eggDetails={eggDetails} fromPath={fromPath} />
         <EggSecondSecion eggDetails={eggDetails} egg_id={id} />
         <EggImageGallery eggDetails={eggDetails} eggId={id} />
         <EggComment eggDetails={eggDetails} eggId={id} />
