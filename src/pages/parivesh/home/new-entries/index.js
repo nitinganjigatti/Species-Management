@@ -813,27 +813,29 @@ const NewEntry = ({}) => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
+  console.log(organizationCountList, 'organizationCountList')
+
   return (
     <>
-      {/* {selectedParivesh?.id !== 'all' && ( */}
-      <Card>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-          {organizationCountList.map((org, inx) => {
-            return (
-              <CustomAccordion
-                title='To be submitted'
-                summaryIcon='ion:checkmark'
-                data={org?.yetToSubmitAccordionData?.data}
-                cards={org?.yetToSubmitAccordionData?.cards}
-                backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                isOrganization={selectedParivesh.id !== 'all' ? true : false}
-                organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
-              />
-            )
-          })}
-        </CardContent>
-      </Card>
-      {/* )} */}
+      {selectedParivesh?.id !== 'all' && organizationCountList.length > 0 && (
+        <Card>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+            {organizationCountList.map((org, inx) => {
+              return (
+                <CustomAccordion
+                  title='To be submitted'
+                  summaryIcon='ion:checkmark'
+                  data={org?.yetToSubmitAccordionData?.data}
+                  cards={org?.yetToSubmitAccordionData?.cards}
+                  backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                  isOrganization={selectedParivesh.id !== 'all' ? true : false}
+                  organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
+                />
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       <Grid>{tableData()}</Grid>
 
