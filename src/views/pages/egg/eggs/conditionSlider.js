@@ -30,7 +30,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
 import toast from 'react-hot-toast'
 
-const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
+const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
@@ -179,11 +179,15 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId }) => {
         reset()
 
         setOpenDrawer(false)
+
         toast.success(res.message)
+
+        getDetails(eggId)
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
+      getDetails(eggId)
       console.error('Error while adding room:', error)
       toast.error('An error occurred while adding room')
     }

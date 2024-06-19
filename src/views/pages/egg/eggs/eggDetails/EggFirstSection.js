@@ -28,7 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, fromPath }) => {
+const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
   const theme = useTheme()
   console.log('fromPath :>> ', fromPath)
 
@@ -494,7 +494,12 @@ const EggFirstSection = ({ eggDetails, fromPath }) => {
         </CardContent>
       </Card>
       {openDrawer && (
-        <ConditionSlider setOpenDrawer={setOpenDrawer} openDrawer={openDrawer} eggId={eggDetails?.egg_id} />
+        <ConditionSlider
+          getDetails={getDetails}
+          setOpenDrawer={setOpenDrawer}
+          openDrawer={openDrawer}
+          eggId={eggDetails?.egg_id}
+        />
       )}
 
       {openAllocate && <AllocationSlider setOpenDrawer={setOpenAllocate} allocateEggId={eggDetails?.egg_id} />}

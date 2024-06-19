@@ -28,7 +28,7 @@ import toast from 'react-hot-toast'
 import { GetEggMaster, AddToDiscard } from 'src/lib/api/egg/egg'
 import { width } from '@mui/system'
 
-const DiscardForm = ({ isOpen, setIsOpen, eggID }) => {
+const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
