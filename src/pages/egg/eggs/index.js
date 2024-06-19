@@ -612,8 +612,8 @@ const EggList = () => {
           Egg List
         </Link>
       </Breadcrumbs>
-      <Card sx={{ px: 5, py: 3 }}>
-        <CardHeader title='Egg List' action={headerAction} />
+      <Card sx={{ py: 3 }}>
+        <CardHeader sx={{ mx: 4 }} title='Egg List' action={headerAction} />
         <CardContent>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
