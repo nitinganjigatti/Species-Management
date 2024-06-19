@@ -29,6 +29,7 @@ import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
 import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import { useMemo } from 'react'
+import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
 
 const EggList = () => {
   const theme = useTheme()
@@ -73,7 +74,7 @@ const EggList = () => {
             // fontSize: '12px',
             // fontWeight: '400',
             textAlign: 'center',
-            ml: 2
+            ml: 3
 
             // lineHeight: '14.52px'
           }}
@@ -153,7 +154,7 @@ const EggList = () => {
       sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box sx={{}}>
+        <Box sx={{ ml: 2 }}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -205,12 +206,33 @@ const EggList = () => {
       )
     },
 
+    {
+      flex: 0.35,
+      minWidth: 20,
+      sortable: false,
+      field: 'site',
+      headerName: 'SITE NAME',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+
     // {
     //   flex: 0.35,
     //   minWidth: 20,
     //   sortable: false,
-    //   field: 'site',
-    //   headerName: 'SITE NAME',
+    //   field: 'discard_status',
+    //   headerName: 'DISCARD STATUS',
     //   renderCell: params => (
     //     <Typography
     //       sx={{
@@ -220,29 +242,10 @@ const EggList = () => {
     //         lineHeight: '19.36px'
     //       }}
     //     >
-    //       {params.row.site ? params.row.site : '-'}
+    //       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.35,
-      minWidth: 20,
-      sortable: false,
-      field: 'discard_status',
-      headerName: 'DISCARD STATUS',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
-        </Typography>
-      )
-    },
 
     // {
     //   flex: 0.35,
@@ -275,7 +278,8 @@ const EggList = () => {
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '400',
-            lineHeight: '19.36px'
+            lineHeight: '19.36px',
+            ml: 2
           }}
         >
           {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
@@ -441,6 +445,7 @@ const EggList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, status, isDiscarded) => {
+      // debugger
       console.log('status :>> ', status)
 
       try {
@@ -453,7 +458,7 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          type: status === 'eggs_to_discard' ? isDiscarded : status
+          type: status === undefined ? 'eggs_received' : status === 'eggs_to_discard' ? isDiscarded : status
         }
 
         await GetEggList({ params: params }).then(res => {
@@ -479,6 +484,7 @@ const EggList = () => {
   )
 
   useEffect(() => {
+    // debugger
     fetchTableData(sort, searchValue, status, isDiscarded)
   }, [fetchTableData, status, isDiscarded])
 
@@ -589,7 +595,9 @@ const EggList = () => {
             />
           </Box>
         )}
-        {openDrawer && <AllocationSlider setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />}
+        {openDrawer && (
+          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />
+        )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )
@@ -663,7 +671,7 @@ const EggList = () => {
         </CardContent>
       </Card>
 
-      <DiscardForm isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
+      <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
     </Box>
   )
 }
