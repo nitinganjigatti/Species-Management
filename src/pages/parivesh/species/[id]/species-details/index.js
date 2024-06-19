@@ -273,12 +273,11 @@ const SpeciesDetails = () => {
         }
 
         await getSpeciesListByOrg({ params: params }).then(res => {
-          console.log('response', res)
+          // console.log('response', res)
           // Generate uid field based on the index
           let listWithId = res.data.species_data.map((el, i) => {
             return { ...el, id: i + 1 }
           })
-          console.log(listWithId, 'id')
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
         })
@@ -375,7 +374,7 @@ const SpeciesDetails = () => {
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
-              title={'Are you sure you want to delete this ingredient?'}
+              title={'Are you sure you want to delete this species?'}
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox

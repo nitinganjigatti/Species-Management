@@ -5,7 +5,21 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, CardContent, Checkbox } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Tooltip,
+  Box,
+  Switch,
+  Divider,
+  CardContent,
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
+} from '@mui/material'
 import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
@@ -20,7 +34,7 @@ import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
@@ -31,6 +45,8 @@ import { usePariveshContext } from 'src/context/PariveshContext'
 import { addBatches } from 'src/lib/api/parivesh/addBatch'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
+
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
 const NewEntry = ({}) => {
@@ -55,6 +71,9 @@ const NewEntry = ({}) => {
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [organizationCountList, setOrganizationCountList] = useState([])
+  const [editParams, setEditParams] = useState({})
+  const [selectedId, setSelectedId] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -97,8 +116,6 @@ const NewEntry = ({}) => {
     }
   }
 
-  console.log(selectedRows)
-
   const handleRowSelection = id => {
     const selectedIndex = selectedRows.indexOf(id)
     let newSelected = []
@@ -139,8 +156,6 @@ const NewEntry = ({}) => {
         }
 
         await getEntryList({ params: params }).then(res => {
-          console.log('response', res?.data)
-
           // Generate uid field based on the index
           let listWithId = res?.data?.data.map((el, i) => {
             return { ...el, uid: i + 1 }
@@ -192,6 +207,33 @@ const NewEntry = ({}) => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
+  }
+
+  const handleEdit = async params => {
+    setEditParams(params)
+    Router.push({
+      pathname: '/parivesh/home/new-entries/add-newentry',
+      query: params
+    })
+  }
+
+  const handleDelete = async id => {
+    setSelectedId(id)
+    setIsModalOpen(true)
+  }
+
+  const confirmDeleteAction = async () => {
+    try {
+      setIsModalOpen(false)
+      const response = await deleteSpeciesToOrganization(selectedId)
+      if (response.success === true) {
+        Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
+        // Reload the table data
+        fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        Toaster({ type: 'error', message: 'something went wrong' })
+      }
+    } catch (error) {}
   }
 
   const columns = [
@@ -313,16 +355,12 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => console.log('edit')} aria-label='Edit'>
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => console.log('edit')} aria-label='Edit'>
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleDelete(params.row.id)} aria-label='Edit'>
               <Icon icon='mdi:delete-outline' />
             </IconButton>
-            {/* <Checkbox
-              checked={selectedRows.includes(params.row.id)}
-              onChange={() => handleRowSelection(params.row.id)}
-            /> */}
           </Box>
         </>
       )
@@ -396,7 +434,7 @@ const NewEntry = ({}) => {
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
-              title={'Are you sure you want to delete this ingredient?'}
+              title={'Are you sure you want to delete this species?'}
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox
@@ -531,7 +569,6 @@ const NewEntry = ({}) => {
         }
 
         await getOrgCountList({ params: params }).then(res => {
-          console.log('respons123', res.data)
           const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
@@ -771,7 +808,6 @@ const NewEntry = ({}) => {
     },
     [selectedParivesh?.id]
   )
-  console.log(organizationCountList, 'list')
 
   useEffect(() => {
     fetchOrgCountData(selectedParivesh?.id)
@@ -783,8 +819,6 @@ const NewEntry = ({}) => {
       <Card>
         <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
           {organizationCountList.map((org, inx) => {
-            console.log(org, 'l;llll')
-
             return (
               <CustomAccordion
                 title='To be submitted'
@@ -802,6 +836,67 @@ const NewEntry = ({}) => {
       {/* )} */}
 
       <Grid>{tableData()}</Grid>
+
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpen(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px',
+
+              // padding: '40px',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                Are you sure you want to delete this species?
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+              <Button
+                disabled={btnLoader}
+                onClick={() => setIsModalOpen(false)}
+                variant='outlined'
+                sx={{
+                  color: 'gray',
+                  width: '45%'
+                }}
+              >
+                Cancel
+              </Button>
+
+              <LoadingButton
+                loading={btnLoader}
+                size='large'
+                variant='contained'
+                sx={{ width: '45%' }}
+                onClick={() => confirmDeleteAction()}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent />
+      </Dialog>
     </>
   )
 }

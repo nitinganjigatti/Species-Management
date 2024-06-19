@@ -23,7 +23,12 @@ import Router, { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { usePariveshContext } from 'src/context/PariveshContext'
-import { addSpeciesToOrganization, getListAllSpeciesSearch, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import {
+  addSpeciesToOrganization,
+  getListAllSpeciesSearch,
+  getSpeciesListByOrg,
+  updateSpeciesToOrganization
+} from 'src/lib/api/parivesh/addSpecies'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 
@@ -34,20 +39,20 @@ const schema = yup.object().shape({
       name: yup.string().required('Specie is Required')
     })
     .required('Specie is Required'),
-  totalCount: yup.string().required('Total Count is Required'),
+  animal_count: yup.string().required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
   age: yup.string().required('Age is Required'),
-  ro_date: yup.date().required('Date is Required'),
-  reason: yup.string().required('Reason is Required'),
-  registrationNumber: yup.string().when('reason', {
+  transaction_date: yup.date().required('Date is Required'),
+  possession_type: yup.string().required('Reason is Required'),
+  alloted_register_no: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Registration Number is Required for Death Reason')
   }),
-  reasonForDeath: yup.string().when('reason', {
+  reason_for_death: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Reason for Death is Required')
   }),
-  whereAndHowDisposed: yup.string().when('reason', {
+  where_disposed: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Where and How Disposed is Required for Death Reason')
   }),
@@ -64,7 +69,8 @@ const AddNewEntry = () => {
   const router = useRouter()
   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
   const [btnLoader, setBtnLoader] = useState(false)
-  const [editParams, setEditParams] = useState()
+  const [editParams, setEditParams] = useState(null)
+  const [isEditMode, setIsEditMode] = useState(false)
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
   const [species, setSpecies] = useState([])
   const [organizations, setOrganizations] = useState([])
@@ -75,8 +81,8 @@ const AddNewEntry = () => {
     gender: '',
     age: '',
     totalCount: '',
-    reason: '',
-    ro_date: null
+    possession_type: '',
+    transaction_date: null
   }
 
   const {
@@ -119,59 +125,78 @@ const AddNewEntry = () => {
 
     const {
       gender,
-      ro_date,
+      transaction_date,
       specie,
-      reason,
+      possession_type,
       organizationName,
       age,
-      registrationNumber,
-      reasonForDeath,
-      whereAndHowDisposed,
-      totalCount
+      alloted_register_no,
+      reason_for_death,
+      where_disposed,
+      animal_count
     } = { ...data }
 
     let payload
-    if (reason === 'death') {
+    if (possession_type === 'death') {
       payload = {
         org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
         tsn_id: specie?.id,
         tsn_relation: specie?.tsn_relation,
-        possession_type: reason,
+        possession_type: possession_type,
         gender: gender,
-        animal_count: totalCount,
-        transaction_date: moment(ro_date).format('YYYY-MM-DD'),
+        animal_count: animal_count,
+        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
         age: age,
-        alloted_register_no: registrationNumber,
-        reason_for_death: reasonForDeath,
-        where_disposed: whereAndHowDisposed
+        alloted_register_no: alloted_register_no,
+        reason_for_death: reason_for_death,
+        where_disposed: where_disposed
       }
     } else {
       payload = {
         org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
         tsn_id: specie?.id,
         tsn_relation: specie?.tsn_relation,
-        possession_type: reason,
+        possession_type: possession_type,
         gender: gender,
-        animal_count: totalCount,
-        transaction_date: moment(ro_date).format('YYYY-MM-DD'),
+        animal_count: animal_count,
+        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
         age: age
       }
     }
 
-    try {
-      setBtnLoader(true)
-      await addSpeciesToOrganization(payload).then(res => {
-        if (res?.success) {
-          router.back()
-          setBtnLoader(false)
-          Toaster({ type: 'success', message: res?.data })
-        } else {
-          setBtnLoader(false)
-          Toaster({ type: 'error', message: res?.message })
-        }
-      })
-    } catch (error) {
-      console.log('error', error)
+    if (isEditMode) {
+      try {
+        setBtnLoader(true)
+        await updateSpeciesToOrganization(payload, editParams?.id).then(res => {
+          if (res?.success) {
+            router.back()
+            setBtnLoader(false)
+            Toaster({ type: 'success', message: res?.data })
+          } else {
+            setBtnLoader(false)
+            Toaster({ type: 'error', message: res?.message })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
+    } else {
+      // Call your API for adding a new entry
+      try {
+        setBtnLoader(true)
+        await addSpeciesToOrganization(payload).then(res => {
+          if (res?.success) {
+            router.back()
+            setBtnLoader(false)
+            Toaster({ type: 'success', message: res?.data })
+          } else {
+            setBtnLoader(false)
+            Toaster({ type: 'error', message: res?.message })
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     }
   }
 
@@ -205,12 +230,45 @@ const AddNewEntry = () => {
     searchTableData(value)
   }
 
+  useEffect(() => {
+    if (router.query) {
+      setEditParams(router.query)
+      setIsEditMode(Object.keys(router.query).length > 0)
+
+      const fetchData = async () => {
+        for (const key of Object.keys(router.query)) {
+          if (key === 'transaction_date') {
+            const formattedDate = new Date(router.query[key])
+            setValue(key, formattedDate)
+          } else if (key === 'scientific_name') {
+            // Wait for searchTableData to complete
+            await searchTableData(router.query[key])
+          } else {
+            setValue(key, router.query[key])
+          }
+        }
+      }
+
+      fetchData()
+    }
+  }, [router.query, setValue, editParams])
+
+  useEffect(() => {
+    const specieObject = species.find(specie => specie.id === editParams?.tsn_id)
+
+    if (specieObject) {
+      setValue('specie', specieObject)
+    }
+  }, [editParams, species])
+
+  // console.log(editParams, 'editParams')
+
   const fetchSpeciesData = useCallback(async q => {
     try {
       const params = { q }
 
       await getListAllSpeciesSearch({ params: params }).then(res => {
-        console.log('response123', res?.data?.result)
+        // console.log('response123', res?.data?.result)
         const transformedSpecies = res?.data?.result.map(species => ({
           id: species?.tsn,
           common_name: species?.common_name,
@@ -247,16 +305,16 @@ const AddNewEntry = () => {
               {selectedParivesh?.organization_name}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              New Entries
+              {isEditMode ? 'Edit Entry' : 'New Entries'}
             </Typography>
-            <Typography color='text.primary'>New Report</Typography>
+            <Typography color='text.primary'>{isEditMode ? 'Edit Report' : 'New Report'}</Typography>
           </Breadcrumbs>
         </Box>
 
         <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
           <CardContent>
             <Typography sx={{ mb: '20px' }} variant='h6'>
-              New Report
+              {isEditMode ? 'Edit Report' : 'New Report'}
             </Typography>
 
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -324,7 +382,7 @@ const AddNewEntry = () => {
                 <Grid item xs={12}>
                   <FormControl fullWidth>
                     <Controller
-                      name='reason'
+                      name='possession_type'
                       control={control}
                       render={({ field: { value, onChange } }) => (
                         <TextField
@@ -336,7 +394,7 @@ const AddNewEntry = () => {
                             onChange(e)
                             setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
                           }}
-                          error={Boolean(errors.reason)}
+                          error={Boolean(errors.possession_type)}
                         >
                           <MenuItem value='birth'>Birth</MenuItem>
                           <MenuItem value='death'>Death</MenuItem>
@@ -345,8 +403,8 @@ const AddNewEntry = () => {
                         </TextField>
                       )}
                     />
-                    {errors.reason && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.reason?.message}</FormHelperText>
+                    {errors.possession_type && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
@@ -357,7 +415,7 @@ const AddNewEntry = () => {
                     {/* Additional input fields */}
                     <FormControl fullWidth sx={{ mb: 6 }}>
                       <Controller
-                        name='registrationNumber'
+                        name='alloted_register_no'
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <TextField
@@ -365,20 +423,20 @@ const AddNewEntry = () => {
                             value={value}
                             onChange={onChange}
                             placeholder='Allotted registration certificate number for Animal species'
-                            error={Boolean(errors.registrationNumber)}
-                            name='registrationNumber'
+                            error={Boolean(errors.alloted_register_no)}
+                            name='alloted_register_no'
                           />
                         )}
                       />
-                      {errors.registrationNumber && (
+                      {errors.alloted_register_no && (
                         <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.registrationNumber?.message}
+                          {errors.alloted_register_no?.message}
                         </FormHelperText>
                       )}
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 6 }}>
                       <Controller
-                        name='reasonForDeath'
+                        name='reason_for_death'
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <TextField
@@ -386,18 +444,18 @@ const AddNewEntry = () => {
                             value={value}
                             onChange={onChange}
                             placeholder='Enter Reason for Death'
-                            error={Boolean(errors.reasonForDeath)}
-                            name='reasonForDeath'
+                            error={Boolean(errors.reason_for_death)}
+                            name='reason_for_death'
                           />
                         )}
                       />
-                      {errors.reasonForDeath && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.reasonForDeath?.message}</FormHelperText>
+                      {errors.reason_for_death && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
                       )}
                     </FormControl>
                     <FormControl fullWidth sx={{ mb: 6 }}>
                       <Controller
-                        name='whereAndHowDisposed'
+                        name='where_disposed'
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <TextField
@@ -405,15 +463,13 @@ const AddNewEntry = () => {
                             value={value}
                             onChange={onChange}
                             placeholder='Enter Where and How Disposed'
-                            error={Boolean(errors.whereAndHowDisposed)}
-                            name='whereAndHowDisposed'
+                            error={Boolean(errors.where_disposed)}
+                            name='where_disposed'
                           />
                         )}
                       />
-                      {errors.whereAndHowDisposed && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.whereAndHowDisposed?.message}
-                        </FormHelperText>
+                      {errors.where_disposed && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.where_disposed?.message}</FormHelperText>
                       )}
                     </FormControl>
                   </>
@@ -465,7 +521,7 @@ const AddNewEntry = () => {
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
-                      name='totalCount'
+                      name='animal_count'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
@@ -475,20 +531,20 @@ const AddNewEntry = () => {
                           type='number'
                           onChange={onChange}
                           placeholder='Enter Total Count'
-                          error={Boolean(errors.totalCount)}
-                          name='totalCount'
+                          error={Boolean(errors.animal_count)}
+                          name='animal_count'
                         />
                       )}
                     />
-                    {errors.totalCount && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.totalCount?.message}</FormHelperText>
+                    {errors.animal_count && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
-                      name='ro_date'
+                      name='transaction_date'
                       control={control}
                       render={({ field: { value, onChange } }) => (
                         <SingleDatePicker
@@ -496,13 +552,13 @@ const AddNewEntry = () => {
                           date={value}
                           width={'100%'}
                           onChangeHandler={onChange}
-                          customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                          customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                         />
                       )}
                     />
-                    {errors.ro_date && (
+                    {errors.transaction_date && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        {errors.ro_date?.message}
+                        {errors.transaction_date?.message}
                       </FormHelperText>
                     )}
                   </FormControl>

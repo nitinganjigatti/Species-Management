@@ -220,10 +220,15 @@ export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'
 
 export const ORGANIZATION_LIST = 'masters/organization'
 
-export const SPECIES_LIST_BY_ORG = '/v1/parivesh/species/listsitewise'
-export const ADD_SPECIES_TO_ORG = '/v1/parivesh/species/org/add'
+export const SPECIES_LIST_BY_ORG = 'v1/parivesh/species/listsitewise'
 
-export const ADD_BATCH = '/v1/parivesh/species/site/createbatch'
+export const ADD_SPECIES_TO_ORG = 'v1/parivesh/species/org/add'
+
+export const UPDATE_SPECIES_TO_ORG = 'v1/parivesh/species/org/editentry'
+
+export const DELETE_SPECIES_TO_ORG = 'v1/parivesh/species/org/deleteentry'
+
+export const ADD_BATCH = 'v1/parivesh/species/site/createbatch'
 
 export const BATCH_LIST_SPECIES = 'v1/parivesh/species/site/batchlist'
 

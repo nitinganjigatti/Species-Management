@@ -1,10 +1,12 @@
 import {
   ADD_SPECIES,
   ADD_SPECIES_TO_ORG,
+  DELETE_SPECIES_TO_ORG,
   LIST_ALL_SPECIES_SEARCH,
   ORGANIZATION_LIST,
   SPECIES_LIST,
-  SPECIES_LIST_BY_ORG
+  SPECIES_LIST_BY_ORG,
+  UPDATE_SPECIES_TO_ORG
 } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -64,4 +66,34 @@ export async function addSpeciesToOrganization(payload) {
   }
 }
 
-// i/v1/parivesh/species/org/add
+export async function updateSpeciesToOrganization(payload, id) {
+  try {
+    const url = `${UPDATE_SPECIES_TO_ORG}/${id}`
+    var data = payload
+    const response = await axiosFormPost({ url, body: data })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+export async function deleteSpeciesToOrganization(id) {
+  try {
+    const response = await axiosPost({ url: `${DELETE_SPECIES_TO_ORG}/${id}` })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
