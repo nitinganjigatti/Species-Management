@@ -39,7 +39,7 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import SubTypeDetails from 'src/views/pages/notes/SubTypeDetails'
 
-const NotesListing = () => {
+const Notes = () => {
   const editInitialValues = { id: null, type_name: '' }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [noteValue, setNoteValue] = useState([])
@@ -49,7 +49,6 @@ const NotesListing = () => {
   const [typeName, setTypeName] = useState('')
   const [subArr, setSubArr] = useState([])
 
-  const [selectedCheckbox, setSelectedCheckbox] = useState([])
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
@@ -417,4 +416,4 @@ const NotesListing = () => {
   )
 }
 
-export default NotesListing
+export default Notes

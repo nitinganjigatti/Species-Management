@@ -145,29 +145,23 @@ const AddSpeciesSlideBar = ({
 
   console.log('GetValues >>', getValues())
 
-  const handleRemoveImage = async imageId => {
-    debugger
+  const handleRemoveImage = async image => {
+    
     try {
-      const response = await DeleteBannerById(imageId)
-      if (response?.success) {
-        console.log('Image deleted successfully:', imageId)
-        console.log('Previous bannerImages:', BannerImages)
-
-        const indexToRemove = BannerImages.findIndex(image => image.id === imageId.id)
-
-        if (indexToRemove !== -1) {
-          const updatedBannerImages = [...BannerImages]
-
-          updatedBannerImages.splice(indexToRemove, 1)
-
+      if (image?.id) {
+        // Delete image using API because it has an id
+        const response = await DeleteBannerById(image)
+        if (response?.success) {
+          const updatedBannerImages = BannerImages.filter(img => img.id !== image.id)
           setBannerImages(updatedBannerImages)
-
-          console.log('Updated bannerImages:', BannerImages)
         } else {
-          console.log('Image not found in bannerImages array')
+          console.log('Error in Deleting:', response?.error)
         }
       } else {
-        console.log('Error in Deleting:', response?.error)
+        // Remove image from selectedImages (assumed base64 images not yet uploaded)
+        const updatedImages = selectedImages.filter(img => img !== image)
+        setValue('banner_images', updatedImages) // Assuming this updates your form state
+        setSelectedImages(updatedImages)
       }
     } catch (error) {
       console.log('Error:', error)
@@ -284,37 +278,6 @@ const AddSpeciesSlideBar = ({
       setValue('vernacular_id', filteredVernacularNames[0]?.id)
     }
   }, [editName, editVernacularNames])
-
-  console.log('selected Values >>', selectedValues)
-
-  console.log('Edit Vernacular Values >', commonName)
-
-  console.log('aiMAGE ?', displayProfile, speciesImage)
-
-  console.log('Images >>', selectedImages, BannerImages)
-
-  const handleImageAction = async (image, action) => {
-    debugger
-    try {
-      if (action === 'remove') {
-        const response = await DeleteBannerById(image.id)
-        if (response?.success) {
-          console.log('Image deleted successfully:', image.id)
-          const updatedBannerImages = BannerImages.filter(img => img.id !== image.id)
-          setBannerImages(updatedBannerImages)
-          console.log('Updated bannerImages:', updatedBannerImages)
-        } else {
-          console.log('Error in Deleting:', response?.error)
-        }
-      } else if (action === 'addRemove') {
-        const updatedImages = selectedImages.filter(img => img !== image)
-        setValue('banner_images', updatedImages)
-        setSelectedImages(updatedImages)
-      }
-    } catch (error) {
-      console.log('Error:', error)
-    }
-  }
 
   return (
     <>
@@ -599,32 +562,61 @@ const AddSpeciesSlideBar = ({
                 Add Gallery Images
               </Button>
               <Box sx={{ mt: 4, display: 'flex', flexDirection: 'row' }}>
-                {[...BannerImages, ...selectedImages].map((image, index) => (
-                  <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
-                    <img
-                      src={image.image_url ? image.image_url : image}
-                      alt={`Image ${index}`}
-                      style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
-                    />
-                    <IconButton
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        width: 30,
-                        height: 30,
-                        mb: 5,
-                        color: 'white',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                      }}
-                      onClick={() => handleImageAction(image, selectedImages.includes(image) ? 'addRemove' : 'remove')}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-                ))}
+                {BannerImages.length > 0
+                  ? [...BannerImages, ...selectedImages].map((image, index) => (
+                      <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                        <img
+                          src={image.image_url ? image.image_url : image}
+                          alt={`Image ${index}`}
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                        />
+                        <IconButton
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: 30,
+                            height: 30,
+                            mb: 5,
+                            color: 'white',
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }}
+                          onClick={() => handleRemoveImage(image)}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    ))
+                  : selectedImages.map(
+                      (
+                        image,
+                        index // Render selected images if bannerImages is empty
+                      ) => (
+                        <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                          <img
+                            src={image}
+                            alt={`Image ${index}`}
+                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                          />
+                          <IconButton
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              width: 30,
+                              height: 30,
+                              mb: 5,
+                              color: 'white',
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                            }}
+                            onClick={() => handleRemoveImage(image)}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      )
+                    )}
               </Box>
-              ;
             </Box>
 
             <Typography variant='body' sx={{ fontSize: '13px' }}>

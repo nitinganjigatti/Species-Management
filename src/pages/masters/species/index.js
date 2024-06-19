@@ -1,7 +1,8 @@
 import { Avatar, Badge, Button, Card, CardHeader, Typography, debounce } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
+import { AuthContext } from 'src/context/AuthContext'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import {
@@ -16,6 +17,7 @@ import { Try } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 
 const AddSpecies = () => {
+  const authData = useContext(AuthContext)
   const [loader, setLoader] = useState(false)
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
@@ -155,11 +157,13 @@ const AddSpecies = () => {
 
   const headerAction = (
     <>
-      <div>
-        <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
-          Add Species
-        </Button>
-      </div>
+      {authData?.userData?.permission?.user_settings?.add_taxonomy && (
+        <div>
+          <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
+            Add Species
+          </Button>
+        </div>
+      )}
     </>
   )
 
@@ -248,7 +252,7 @@ const AddSpecies = () => {
       ) : (
         <>
           <Card>
-            <CardHeader title='Species' action={headerAction} />
+            <CardHeader title='Species Master' action={headerAction} />
             <DataGrid
               autoHeight
               pagination
