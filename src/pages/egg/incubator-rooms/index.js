@@ -140,9 +140,10 @@ const RoomsList = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      flex: 0.3,
+      minWidth: 10,
       field: 'Incubator',
+      align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -151,7 +152,7 @@ const RoomsList = () => {
       )
     },
     {
-      flex: 0.6,
+      flex: 0.4,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',
