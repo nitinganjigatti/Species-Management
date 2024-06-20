@@ -65,7 +65,7 @@ const Organization = () => {
 
         const params = {
           q,
-          status: 'all',
+          status: 'accepted',
           page: paginationModel.page + 1,
           sort,
           sortColumn,

@@ -271,7 +271,7 @@ const BatchDetails = ({ params, searchParams }) => {
     } else {
       setDropdownOptions([
         { value: 'submitted', label: 'Submitted' },
-        { value: 'approved', label: 'Approved' },
+        { value: 'accepted', label: 'Approved' },
         { value: 'withdrawn', label: 'Withdrawn' },
         { value: 'rejected', label: 'Rejected' }
       ])

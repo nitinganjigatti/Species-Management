@@ -48,7 +48,7 @@ const SpeciesDetails = () => {
   const authData = useContext(AuthContext)
 
   const router = useRouter()
-  const { id, tsn, tsn_relation } = router.query
+  const { id, tsn_id, tsn_relation } = router.query
 
   // console.log(tsn_relation, id, tsn, router, 'router')
 
@@ -199,6 +199,8 @@ const SpeciesDetails = () => {
 
         const params = {
           q,
+          tsn_id: tsn_id,
+          tsn_relation: tsn_relation,
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,

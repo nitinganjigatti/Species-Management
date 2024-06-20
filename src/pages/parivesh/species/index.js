@@ -250,7 +250,7 @@ const SpeciesList = () => {
         pathname: `/parivesh/species/${data}/species-details`,
         query: {
           tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
-          tsn: params?.row?.tsn_id
+          tsn_id: params?.row?.tsn_id
         }
       })
     } else {
