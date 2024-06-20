@@ -10,6 +10,7 @@ import {
   FormHelperText,
   Grid,
   IconButton,
+  LinearProgress,
   TablePagination,
   TextField,
   Typography
@@ -40,7 +41,7 @@ import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
-import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
+import { AddAssesment, getActivityLogs, getWeightList } from 'src/lib/api/egg/egg'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -129,6 +130,10 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+  const [activtyLogData, setActivtyLogData] = useState([])
+  const [activtyLogCount, setActivtyLogCount] = useState(0)
+  let [page_no, setPage_no] = useState(1)
+  const [reachedEnd, setReachedEnd] = useState(false)
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -357,36 +362,64 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     fetchTableData()
   }, [fetchTableData])
 
-  function transformData(activity_log) {
-    const groupedActivities = {}
-
-    activity_log.forEach(activity => {
-      const date = moment(activity.created_at).format('DD MMM YYYY')
-      const time = moment(activity.created_at).format('h:mm A')
-
-      if (!groupedActivities[date]) {
-        groupedActivities[date] = []
-      }
-
-      groupedActivities[date].push({
-        activity_time: time,
-        user_name: activity.action_by,
-        profile_pic: activity?.user_profile_pic,
-        status: activity.status,
-        action: activity.action,
-        title: activity.comments,
-        custom_field: activity.custom_data
+  const getActivityLogsFunc = () => {
+    const params = { page_no }
+    try {
+      getActivityLogs(egg_id, params).then(res => {
+        if (res.success) {
+          setActivtyLogData(res?.data?.result)
+          setActivtyLogCount(res?.data?.total_count)
+        } else {
+        }
       })
-    })
-
-    return Object.keys(groupedActivities).map(date => ({
-      date: date,
-      date_activity: groupedActivities[date]
-    }))
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
-  const transformedData = transformData(eggDetails.activity_log)
-  console.log('transformedData', transformedData)
+  const handleScroll = async e => {
+    const container = e.target
+    // Check if the user has reached the bottom
+    if (
+      container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight &&
+      activtyLogData.length < activtyLogCount
+    ) {
+      // User has reached the bottom, perform your action here
+      setPage_no(++page_no)
+      setReachedEnd(true)
+      const params = { page_no }
+      // alert('')
+
+      try {
+        getActivityLogs(egg_id, params).then(res => {
+          if (res?.success) {
+            if (res?.data?.result?.length > 0) {
+              setActivtyLogData(prev => [...prev, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          } else {
+            setReachedEnd(false)
+          }
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
+    }
+  }
+
+  useEffect(() => {
+    getActivityLogsFunc()
+  }, [])
+
+  function formatText(text) {
+    return text
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
   return (
     <Grid
       // gap={{ md: '10px', lg: '1px', xl: '2px' }}
@@ -721,7 +754,15 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                 </Box> */}
                 </Box>
                 <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
-                  <Grid item xs={5.8} sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={5.8}
+                    md={5.7}
+                    xl={5.8}
+                    xxl={5.8}
+                    sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  >
                     <Typography
                       sx={{
                         fontWeight: 600,
@@ -747,7 +788,15 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Comming Soon
                     </Typography>
                   </Grid>
-                  <Grid item xs={5.8} sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={5.8}
+                    md={5.7}
+                    xl={5.8}
+                    xxl={5.8}
+                    sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  >
                     <Typography
                       sx={{
                         fontWeight: 600,
@@ -787,7 +836,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                 className={Styles.main}
                 style={{ borderRadius: '8px' }}
                 component={Paper}
-                sx={{ maxHeight: 250 }}
+                sx={{ height: 174 }}
               >
                 <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                   <TableHead>
@@ -1029,223 +1078,195 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
             }
           }}
         >
-          <CardContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Box sx={{ pb: 4, pt: 4, position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 100 }}>
-                <Box
-                  className='sidebar-header'
-                  sx={{
-                    display: 'flex',
-                    width: '100%',
-                    gap: '12px',
-                    justifyContent: 'space-between',
-                    alignItems: 'start'
-                  }}
-                >
-                  <Box
-                    sx={{
-                      padding: '4px',
-                      borderRadius: '4px',
-                      height: '32px',
-                      width: '32px',
-                      backgroundColor: theme.palette.customColors.mdAntzNeutral
-                    }}
-                  >
-                    <Icon icon={'ion:time-outline'} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
-                    {/* <Typography sx={{ fontWeight: 400, fontSize: '14px' }}>
-                      including updates, activations, and deactivations
-                    </Typography> */}
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
-                      <Icon icon='mdi:close' fontSize={24} />
-                    </IconButton>
-                  </Box>
-                </Box>
-                {/* <Box sx={{ mt: '24px' }}>
-                  <TextField
-                    value={''}
-                    fullWidth
-                    label='Search activity'
-                    InputProps={{
-                      startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-                    }}
-                    onChange={e => {}}
-                  />
-                </Box> */}
+          <Box
+            sx={{
+              pb: 4,
+              pt: 4,
+              px: 4,
+              position: 'sticky',
+              top: 0,
+              backgroundColor: '#fff',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              zIndex: 100
+            }}
+          >
+            <Box
+              className='sidebar-header'
+              sx={{
+                display: 'flex',
+                width: '100%',
+                gap: '12px',
+                justifyContent: 'space-between',
+                alignItems: 'start'
+              }}
+            >
+              <Box
+                sx={{
+                  padding: '4px',
+                  borderRadius: '4px',
+                  height: '32px',
+                  width: '32px',
+                  backgroundColor: theme.palette.customColors.mdAntzNeutral
+                }}
+              >
+                <Icon icon={'ion:time-outline'} />
               </Box>
-              {transformedData?.length > 0 ? (
-                <Box>
-                  {transformedData?.map((item, index) => (
-                    <Box key={index}>
-                      <Grid container spacing={3}>
-                        <Grid item xs='auto'>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              p: '8px',
-                              borderRadius: '8px',
-                              border: `1px solid ${theme.palette.primary.dark}`
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontSize: 14,
-                                fontWeight: 500,
-                                lineHeight: 'normal',
-                                color: theme.palette.primary.dark
-                              }}
-                            >
-                              {item.date}
-                            </Typography>
-                          </Box>
-                        </Grid>
-
-                        <Grid
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                          item
-                          xs
-                        >
-                          <Box
-                            sx={{
-                              flex: 1,
-                              height: '1px',
-                              background: 'linear-gradient(to right, #999 50%, transparent 50%)',
-                              backgroundSize: '8px 1px'
-                            }}
-                          ></Box>
-                        </Grid>
-                      </Grid>
-                      <Timeline>
-                        {item?.date_activity?.map((item, index) => (
-                          <TimelineItem key={index}>
-                            <TimelineSeparator
-                              sx={{
-                                '& span': {
-                                  backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null
-                                }
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  border: '1px solid ',
-                                  borderColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
-                                  backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
-                                  boxSizing: 'border-box',
-                                  width: '22px',
-                                  height: '22px',
-                                  borderRadius: '4px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                              >
-                                <Icon
-                                  height={'16px'}
-                                  width={'16px'}
-                                  icon={
-                                    item.status === 'Fresh'
-                                      ? 'mdi:clipboard-outline'
-                                      : item.status === 'Fresh'
-                                      ? 'mdi:clipboard-off-outline'
-                                      : item.status === 'Swapped'
-                                      ? 'material-symbols:repeat'
-                                      : item.status === 'edited'
-                                      ? 'material-symbols:edit'
-                                      : item.status === 'deleted'
-                                      ? 'ic:baseline-delete'
-                                      : null
-                                  }
-                                  color={item.status === 'Fresh' ? '#fff' : null}
-                                />
-                              </Box>
-                              <TimelineConnector />
-                            </TimelineSeparator>
-                            <TimelineContent sx={{ py: 0, mb: '20px' }}>
-                              <Typography
-                                variant='body2'
-                                sx={{
-                                  mr: 2,
-                                  fontSize: 16,
-                                  fontWeight: 500,
-                                  lineHeight: 'normal',
-                                  mb: '12px',
-                                  color:
-                                    item.status === 'Fresh'
-                                      ? theme.palette.primary.main
-                                      : theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                {item.title}
-                              </Typography>
-
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '12px',
-                                  justifyContent: 'space-between',
-                                  mb: '20px'
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <Avatar src={item?.profile_pic} sx={{ width: '2rem', height: '2rem', mr: 2 }} />
-                                  <Box>
-                                    <Typography
-                                      variant='subtitle2'
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                        lineHeight: 'normal'
-                                      }}
-                                    >
-                                      {item.user_name}
-                                    </Typography>
-                                    <Typography
-                                      variant='body2'
-                                      sx={{
-                                        fontSize: 14,
-                                        fontWeight: 400,
-                                        lineHeight: 'normal',
-                                        color: theme.palette.customColors.neutralSecondary
-                                      }}
-                                    >
-                                      {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                                <Box sx={{ alignSelf: 'self-start' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: 14,
-                                      fontWeight: 500,
-                                      lineHeight: 'normal'
-                                    }}
-                                    variant='caption'
-                                  >
-                                    {item.activity_time}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </TimelineContent>
-                          </TimelineItem>
-                        ))}
-                      </Timeline>
-                    </Box>
-                  ))}
-                </Box>
-              ) : null}
+              <Box>
+                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
+                  <Icon icon='mdi:close' fontSize={24} />
+                </IconButton>
+              </Box>
             </Box>
-          </CardContent>
+          </Box>
+          <Box onScroll={handleScroll} sx={{ px: 4, pt: 8, overflowY: 'auto' }}>
+            {activtyLogData?.length > 0 ? (
+              <Timeline>
+                {activtyLogData?.map((item, index) => (
+                  <TimelineItem key={index}>
+                    <TimelineSeparator
+                      sx={{
+                        '& span': {
+                          backgroundColor:
+                            item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
+                              ? theme.palette.formContent.tertiary
+                              : theme.palette.primary.main
+                        }
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          border: '2px solid ',
+                          borderColor:
+                            item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
+                              ? theme.palette.formContent.tertiary
+                              : theme.palette.primary.main,
+                          // backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
+                          boxSizing: 'border-box',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon
+                          height={'16px'}
+                          width={'16px'}
+                          style={{
+                            color:
+                              item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
+                                ? theme.palette.formContent.tertiary
+                                : theme.palette.primary.main
+                          }}
+                          icon={
+                            item.status === 'Fresh'
+                              ? // ? 'ic:outline-check'
+                                'ic:sharp-check-circle'
+                              : // : item.status === 'Swapped'
+                                // ? 'ic:sharp-check-circle'
+                                // : item.status === 'edited'
+                                // ? 'ic:sharp-check-circle'
+                                // : item.status === 'deleted'
+                                // ? 'ic:sharp-check-circle'
+                                'ic:sharp-check-circle'
+                          }
+                          // color={item.status === 'Fresh' ? '#fff' : '#fff'}
+                        />
+                      </Box>
+                      {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
+                    </TimelineSeparator>
+                    <TimelineContent
+                      sx={{
+                        pt: 3,
+                        pb: 0,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        backgroundColor:
+                          item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
+                            ? '#FFBDA84D'
+                            : '#37BD691A',
+                        ml: 4,
+                        borderRadius: '8px',
+                        mb: '20px',
+                        position: 'relative',
+                        top: -28
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            mr: 2,
+                            fontSize: 16,
+                            fontWeight: 500,
+                            lineHeight: 'normal',
+                            mb: '4px',
+                            color:
+                              item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
+                                ? theme.palette.formContent.tertiary
+                                : theme.palette.primary.main
+                          }}
+                        >
+                          {item.status}
+                        </Typography>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 400,
+                            lineHeight: 'normal',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {item.action ? formatText(item.action) : '-'}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          justifyContent: 'space-between',
+                          mb: '20px'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: 14,
+                              mb: '4px',
+                              fontWeight: 500,
+                              lineHeight: 'normal'
+                            }}
+                            variant='caption'
+                          >
+                            {moment(item?.created_at).format('DD MMM YYYY')}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.neutralSecondary,
+                              fontSize: 14,
+                              fontWeight: 500,
+                              lineHeight: 'normal'
+                            }}
+                            variant='caption'
+                          >
+                            {moment(item?.created_at).format('h:mm A')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TimelineContent>
+                  </TimelineItem>
+                ))}
+              </Timeline>
+            ) : null}
+          </Box>
+          {reachedEnd ? <LinearProgress /> : null}
         </Drawer>{' '}
       </Box>
     </Grid>

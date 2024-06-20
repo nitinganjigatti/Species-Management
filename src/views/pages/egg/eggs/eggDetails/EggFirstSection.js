@@ -30,7 +30,7 @@ import DiscardForm from 'src/components/egg/DiscardForm'
 
 const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
   const theme = useTheme()
-  console.log('fromPath :>> ', fromPath)
+  // console.log('fromPath :>> ', fromPath)
 
   const {
     settings: { direction }
@@ -260,7 +260,23 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       />
                     </Box> */}
                   </Box>
-                  {fromPath === 'eggs_received' && (
+
+                  <Box sx={{ display: 'flex', gap: '8px' }}>
+                    {Number(eggDetails?.action_to_be_taken) === 6 ||
+                    Number(eggDetails?.action_to_be_taken) === 7 ? null : (
+                      <Box>
+                        <Button variant='outlined' sx={{ height: '100%' }}>
+                          DISCARD
+                        </Button>
+                      </Box>
+                    )}
+                    {Number(eggDetails?.action_to_be_taken) === 4 ? (
+                      <Box>
+                        <Button variant='contained'>ALLOCATE</Button>
+                      </Box>
+                    ) : null}
+                  </Box>
+                  {/* {fromPath === 'eggs_received' && (
                     <Box sx={{ display: 'flex', gap: '8px' }}>
                       <Box>
                         <Button variant='outlined' sx={{ height: '100%' }} onClick={() => setOpenDiscard(true)}>
@@ -273,7 +289,7 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                         </Button>
                       </Box>
                     </Box>
-                  )}
+                  )} */}
                 </Box>
               </Box>
               <Grid
@@ -400,24 +416,32 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                           fontWeight: 500,
                           fontSize: '18px',
                           lineHeight: '24.2px',
-                          // color: theme.palette.customColors.neutralSecondary
-                          color: displayTextColor
+                          color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        {/* {`${eggDetails?.assessments_data[0]?.assessment_value} ${eggDetails?.assessments_data[0]?.uom_abbr}`} */}
-                        {displayText}
+                        {eggDetails?.assessments_data?.length == 0
+                          ? 'Not Added'
+                          : eggDetails?.assessments_data[0]?.assessment_value +
+                            ' ' +
+                            eggDetails?.assessments_data[0]?.uom_abbr}
                       </Typography>
                     </Box>
+
                     <Box>
                       <Typography
                         sx={{
                           fontWeight: 600,
                           fontSize: '14px',
                           lineHeight: '16.94px',
-                          color: theme.palette.primary.main
+                          color:
+                            eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                              ? theme.palette.primary.main
+                              : displayTextColor
                         }}
                       >
-                        Current weight
+                        {eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                          ? 'Current weight'
+                          : displayText}
                       </Typography>
                     </Box>
                   </Box>
@@ -436,12 +460,10 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                     display: 'flex',
                     height: '88px',
                     backgroundColor:
-                      eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
+                      eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
                         ? '#37BD691A'
-                        : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
+                        : eggDetails?.status === 'Discard'
                         ? '#FFBDA84D'
-                        : eggDetails?.egg_condition === 'Hatched'
-                        ? '#37BD691A'
                         : '#37BD691A',
 
                     p: '12px',
@@ -450,32 +472,34 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      backgroundColor: theme.palette.primary.contrastText
-                    }}
-                  >
-                    <Avatar
-                      sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
-                      src={
-                        eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
-                          ? '/icons/Egg Fertile.png'
-                          : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
-                          ? '/icons/Egg Discard.png'
-                          : eggDetails?.egg_condition === 'Hatched'
-                          ? '/icons/Egg Hatched.png'
-                          : '/icons/Egg Fertile.png'
-                      }
-                      variant='square'
-                    ></Avatar>
-                  </Box>
+                  <Grid container justifyContent='space-between' alignItems='center'>
+                    <Grid
+                      item
+                      xs={3}
+                      sx={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        backgroundColor: theme.palette.primary.contrastText
+                      }}
+                    >
+                      <Avatar
+                        sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                        src={
+                          eggDetails?.status === 'Fresh' || 'Fertile'
+                            ? '/icons/Egg Fertile.png'
+                            : eggDetails?.status === 'Discard'
+                            ? '/icons/Egg Discard.png'
+                            : eggDetails?.status === 'Hatched'
+                            ? '/icons/Egg Hatched.png'
+                            : '/icons/Egg Fertile.png'
+                        }
+                        variant='square'
+                      ></Avatar>
+                    </Grid>
 
-                  <Box>
-                    <Box>
+                    <Grid item xs={6.5}>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -486,32 +510,37 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       >
                         {eggDetails?.egg_status}
                       </Typography>
-                    </Box>
-                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 600,
                           fontSize: '14px',
                           lineHeight: '16.94px',
                           color:
-                            eggDetails?.egg_condition === 'Intact' || 'Thin-Shelled' || 'Fresh'
+                            eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
                               ? theme.palette.primary.main
-                              : eggDetails?.egg_condition === 'Cracked' || 'Rotten' || 'Broken'
+                              : eggDetails?.status === 'Discard'
                               ? theme.palette.formContent.tertiary
-                              : eggDetails?.egg_condition === 'Hatched'
-                              ? theme.palette.primary.main
                               : theme.palette.primary.main
                         }}
                       >
                         {eggDetails?.egg_state} Condition
                       </Typography>
-                    </Box>
-                  </Box>
-                  <Box>
-                    <IconButton onClick={() => setOpenDrawer(true)}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </IconButton>
-                  </Box>
+                    </Grid>
+
+                    <Grid item xs={1.8}>
+                      <IconButton
+                        disabled={Number(eggDetails?.action_to_be_taken) != 5}
+                        onClick={() => setOpenDrawer(true)}
+                      >
+                        <Icon
+                          style={{ cursor: 'pointer' }}
+                          color={Number(eggDetails?.action_to_be_taken) != 5 ? '#7A8684' : '#00AFD6'}
+                          icon='fontisto:angle-right'
+                          fontSize={16}
+                        />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>

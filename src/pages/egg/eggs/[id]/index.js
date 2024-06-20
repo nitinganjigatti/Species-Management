@@ -5,13 +5,14 @@ import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion
 import { GetEggDetails, getDefaultEggAssesment } from 'src/lib/api/egg/egg'
 import EggImageGallery from 'src/views/pages/egg/eggs/eggDetails/EggImageGallery'
 import EggComment from 'src/views/pages/egg/eggs/eggDetails/EggComment'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { assessment_type_string_id } from 'src/constants/Constants'
 import FallbackSpinner from 'src/@core/components/spinner'
+import { Breadcrumbs, Typography } from '@mui/material'
 
 const EggDetail = () => {
   const router = useRouter()
-  const { id, fromPath } = router.query
+  const { id } = router.query
 
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
@@ -58,7 +59,13 @@ const EggDetail = () => {
         <FallbackSpinner />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <EggFirstSection eggDetails={eggDetails} fromPath={fromPath} />
+          <Breadcrumbs aria-label='breadcrumb'>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
+              Egg
+            </Typography>
+            <Typography color='text.primary'>Egg Details</Typography>
+          </Breadcrumbs>
+          <EggFirstSection eggDetails={eggDetails} />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}

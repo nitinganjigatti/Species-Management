@@ -198,6 +198,7 @@ const IncubatorDetails = () => {
       flex: 0.05,
       Width: 40,
       sortable: false,
+      align: 'center',
       field: 'uid',
       headerName: 'SL ',
       renderCell: params => (

@@ -175,6 +175,7 @@ const IncubatorsList = () => {
       Width: 40,
       field: 'id',
       headerName: 'SL ',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -303,9 +304,10 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 20,
       sortable: false,
+      align: 'right',
       field: 'no_of_eggs',
       headerName: 'EGGS',
       renderCell: params => (

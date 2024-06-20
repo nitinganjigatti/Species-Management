@@ -31,6 +31,12 @@ export async function getWeightList(params) {
   return response.data
 }
 
+export async function getActivityLogs(id, params) {
+  const response = await axiosGet({ url: `${EGG}/history/${id}`, params })
+
+  return response.data
+}
+
 export async function AddToDiscard(payload) {
   try {
     const url = `${EGG}/${DISCARD}/${ADD}`
