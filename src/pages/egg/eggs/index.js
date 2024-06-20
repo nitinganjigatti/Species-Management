@@ -612,9 +612,10 @@ const EggList = () => {
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Egg</Typography>
-        <Link underline='hover' color='text.primary' href='/egg/eggs'>
+
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
           Egg List
-        </Link>
+        </Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader title='Egg List' action={headerAction} />
@@ -656,7 +657,7 @@ const EggList = () => {
           <TabPanel value='eggs_to_discard' sx={{ p: 0 }}>
             <Divider sx={{ mb: 3 }} />
             <TabContext value={isDiscarded}>
-              <TabList onChange={handleTabs}>
+              <TabList onChange={handleTabs} sx={{ px: 4 }}>
                 <Tab
                   value='eggs_to_discard'
                   label={

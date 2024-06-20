@@ -42,7 +42,7 @@ const EggDetail = () => {
         <CircularProgress />
       ) : ( */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <EggFirstSection eggDetails={eggDetails} fromPath={fromPath} getDetails={getDetails} />
+        <EggFirstSection eggDetails={eggDetails} getDetails={getDetails} />
         <EggSecondSecion eggDetails={eggDetails} />
         <EggImageGallery eggDetails={eggDetails} />
         <EggComment eggDetails={eggDetails} eggId={id} />

@@ -14,7 +14,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, Autocomplete, TextField } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider, Autocomplete, TextField, Breadcrumbs } from '@mui/material'
 import toast from 'react-hot-toast'
 import CustomChip from 'src/@core/components/mui/chip'
 
@@ -412,10 +412,18 @@ const IncubatorsList = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <Card>
-          <CardHeader title='Incubator List' action={headerAction} />
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography color='inherit'>Egg</Typography>
 
-          {/* <Grid sx={{ pl: 2, mb: 2 }} container>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Incubator List
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Incubator List' action={headerAction} />
+
+            {/* <Grid sx={{ pl: 2, mb: 2 }} container>
             <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
               <Autocomplete
                 value={defaultUom}
@@ -562,49 +570,50 @@ const IncubatorsList = () => {
               />
             </Grid>
           </Grid> */}
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            // sortModel={}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-            onCellClick={onCellClick}
-          />
-          <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
-        </Card>
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              // sortModel={}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+            <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+          </Card>
+        </>
       )}
     </>
   )

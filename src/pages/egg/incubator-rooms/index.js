@@ -303,10 +303,13 @@ const RoomsList = () => {
       ) : (
         <Box>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Egg</Typography>
-            <Link underline='hover' color='text.primary' href='/egg/incubator-rooms/'>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
+
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
               Incubator Room
-            </Link>
+            </Typography>
           </Breadcrumbs>
           <Grid container spacing={6}>
             <Grid item xs={12}>
