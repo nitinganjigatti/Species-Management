@@ -242,18 +242,15 @@ const SpeciesList = () => {
   }
 
   const onCellClick = params => {
-    // const tns = params?.row?.tsn
-
-    // Router.push(`/parivesh/species/${tns}/species-details`)
     console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
     if (clickedColumn) {
-      const data = params?.row?.tsn
+      const data = params?.row?.tsn_id
       Router.push({
         pathname: `/parivesh/species/${data}/species-details`,
         query: {
           tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
-          tsn: params?.row?.tsn
+          tsn: params?.row?.tsn_id
         }
       })
     } else {

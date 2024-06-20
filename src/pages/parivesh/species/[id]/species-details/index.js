@@ -17,6 +17,9 @@ import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
+import { getEntryList } from 'src/lib/api/parivesh/entryList'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -38,13 +41,16 @@ const SpeciesDetails = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [organizationCountList, setOrganizationCountList] = useState([])
+
+  const { selectedParivesh } = usePariveshContext()
 
   const authData = useContext(AuthContext)
 
   const router = useRouter()
   const { id, tsn, tsn_relation } = router.query
 
-  console.log(tsn_relation, id, tsn, router, 'router')
+  // console.log(tsn_relation, id, tsn, router, 'router')
 
   const onClose = () => {
     setDialog(false)
@@ -82,7 +88,6 @@ const SpeciesDetails = () => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          {console.log(params, 'asd')}
           <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -125,113 +130,41 @@ const SpeciesDetails = () => {
     {
       flex: 0.4,
       minWidth: 10,
-      field: 'rkt',
-      headerName: 'RKT',
+      field: 'gender',
+      headerName: 'GENDER / COUNT',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: '#37BD69' }}>
-          {params.row.rkt ? params.row.rkt : '-'}
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'kmt',
-      headerName: 'KMT',
+      flex: 0.3,
+      minWidth: 30,
+      field: 'age',
+      headerName: 'Age',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.kmt ? params.row.kmt : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.age ? params.row.age : '-'}
+            </Typography>
+          </Box>
+        </Box>
       )
     },
     {
       flex: 0.4,
-      minWidth: 10,
-      field: 'rktwt',
-      headerName: 'RKTWT',
+      minWidth: 20,
+      field: 'transaction_date',
+      headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.rktwt ? params.row.rktwt : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
         </Typography>
       )
     }
   ]
-
-  // const getColumns = rows => {
-  //   // Create base columns
-  //   const baseColumns = [
-  //     {
-  //       flex: 0.2,
-  //       Width: 40,
-  //       field: 'sl_no',
-  //       headerName: 'S.NO',
-  //       renderCell: params => (
-  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-  //           {params.row.uid}
-  //         </Typography>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.2,
-  //       minWidth: 30,
-  //       field: 'species_image',
-  //       headerName: 'IMAGE',
-  //       renderCell: params => (
-  //         <>
-  //           <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
-  //         </>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.3,
-  //       minWidth: 30,
-  //       field: 'common_name',
-  //       headerName: 'COMMON NAME',
-  //       renderCell: params => (
-  //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-  //           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-  //             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-  //               {params.row.common_name ? params.row.common_name : '-'}
-  //             </Typography>
-  //           </Box>
-  //         </Box>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.4,
-  //       minWidth: 10,
-  //       field: 'scientific_name',
-  //       headerName: 'SCIENTIFIC NAME',
-  //       renderCell: params => (
-  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-  //           {params.row.scientific_name ? params.row.scientific_name : '-'}
-  //         </Typography>
-  //       )
-  //     }
-  //   ]
-
-  //   // Extract unique organization names
-  //   const organizationNames = [...new Set(rows.flatMap(row => row.organizations.map(org => org.organization_name)))]
-
-  //   // Create columns for each organization
-  //   const organizationColumns = organizationNames.map((orgName, index) => ({
-  //     flex: 0.4,
-  //     minWidth: 10,
-  //     field: `org_${index}`,
-  //     headerName: orgName,
-  //     renderCell: params => {
-  //       const org = params.row.organizations.find(org => org.organization_name === orgName)
-  //       return (
-  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-  //           {org ? org.animal_count : '-'}
-  //         </Typography>
-  //       )
-  //     }
-  //   }))
-
-  //   // Combine base columns with organization columns
-  //   return [...baseColumns, ...organizationColumns]
-  // }
 
   const onCellClick = params => {
     // Router.push(`/parivesh/species/${params?.id}/species-details`)
@@ -269,13 +202,14 @@ const SpeciesDetails = () => {
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,
+          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
           limit: paginationModel.pageSize
         }
 
-        await getSpeciesListByOrg({ params: params }).then(res => {
-          // console.log('response', res)
+        await getEntryList({ params: params }).then(res => {
+          console.log('list response', res)
           // Generate uid field based on the index
-          let listWithId = res.data.species_data.map((el, i) => {
+          let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -293,6 +227,260 @@ const SpeciesDetails = () => {
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
   }, [fetchTableData, status])
+
+  const fetchOrgCountData = useCallback(
+    async (q, id) => {
+      try {
+        const params = {
+          q,
+          id
+        }
+
+        await getOrgCountList({ params: params }).then(res => {
+          const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+
+          const transformedData = filteredData.map(org => ({
+            organization_name: org.organization_name,
+            org_id: org.org_id,
+            approvedAccordionData: {
+              title: 'Approved by Parivesh',
+              data: [
+                {
+                  value: org.submitted_count_data.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                { value: org.submitted_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+                {
+                  value: org.submitted_count_data.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.submitted_count_data.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            },
+            yetToSubmitAccordionData: {
+              title: 'To be submitted',
+              data: [
+                {
+                  value: org.yet_to_submitted_count.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.yet_to_submitted_count.male_count,
+                  label: 'MALE',
+                  color: '#00AFD6',
+                  borderColor: '#00AFD6'
+                },
+                {
+                  value: org.yet_to_submitted_count.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.yet_to_submitted_count.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.yet_to_submitted_count.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            },
+            submittedAccordionData: {
+              title: 'Submitted Data',
+              data: [
+                {
+                  value: org.submitted_count_data.total_animal,
+                  label: 'TOTAL ANIMALS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.male_count,
+                  label: 'MALE',
+                  color: '#00AFD6',
+                  borderColor: '#00AFD6'
+                },
+                {
+                  value: org.submitted_count_data.female_count,
+                  label: 'FEMALE',
+                  color: '#FFD3D3',
+                  borderColor: '#FFD3D3'
+                },
+                {
+                  value: org.submitted_count_data.other_count,
+                  label: 'OTHERS',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.submitted_count_data.species_count,
+                  label: 'TOTAL SPECIES',
+                  color: '#E4B819',
+                  borderColor: '#E4B819'
+                }
+              ],
+              cards: [
+                {
+                  value: org.possession_counts.births.total,
+                  content: 'Births',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.deaths.total,
+                  content: 'Deaths',
+                  bgColor: '#E93353',
+                  items: [
+                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.acquisitions.total,
+                  content: 'Acquisition',
+                  bgColor: '#37BD69',
+                  items: [
+                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                  ]
+                },
+                {
+                  value: org.possession_counts.transfers.total,
+                  content: 'Transfers',
+                  bgColor: '#FA6140',
+                  items: [
+                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
+                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                  ]
+                }
+              ]
+            }
+          }))
+          setOrganizationCountList(transformedData)
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    [selectedParivesh?.id]
+  )
+
+  useEffect(() => {
+    fetchOrgCountData(selectedParivesh?.id)
+  }, [fetchOrgCountData])
 
   const handleSubmitData = async payload => {
     console.log(payload)
@@ -439,66 +627,6 @@ const SpeciesDetails = () => {
     )
   }
 
-  const data = [
-    { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
-    { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
-    { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 156, label: 'TOTAL SPECIES', color: '#E4B819', borderColor: '#E4B819' }
-  ]
-
-  const cards = [
-    {
-      value: 60,
-      content: 'Parent Stock',
-      bgColor: '#37BD69',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 5, bgColor: '#FFD3D3' },
-        { value: 10, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 25,
-      content: 'Acquisition',
-      bgColor: '#37BD69',
-      items: [
-        { value: 11, bgColor: '#00AFD6' },
-        { value: 7, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Births',
-      bgColor: '#37BD69',
-      items: [
-        { value: 21, bgColor: '#00AFD6' },
-        { value: 2, bgColor: '#FFD3D3' },
-        { value: 7, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Deaths',
-      bgColor: '#E93353',
-      items: [
-        { value: 2, bgColor: '#00AFD6' },
-        { value: 6, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Transfers',
-      bgColor: '#FA6140',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 11, bgColor: '#FFD3D3' },
-        { value: 3, bgColor: '#FFFFFF' }
-      ]
-    }
-  ]
   return (
     <>
       <Box sx={{ mb: 6 }}>
@@ -511,30 +639,33 @@ const SpeciesDetails = () => {
       </Box>
       <Box>
         <Card>
-          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            <CustomAccordion
-              title='Approved by Parivesh'
-              summaryIcon='ion:checkmark'
-              data={data}
-              backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-              cards={cards}
-              isRKT={true}
-              valueRKT={'RKT'}
-            />
-            <Box
-              sx={{
-                mt: 3
-              }}
-            >
-              <CustomAccordion
-                title='To be submitted'
-                summaryIcon='ion:checkmark'
-                data={data}
-                backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                cards={cards}
-              />
-            </Box>
-          </CardContent>
+          {organizationCountList.length > 0 &&
+            organizationCountList.map((org, inx) => {
+              return (
+                <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <CustomAccordion
+                    title='Approved by Parivesh'
+                    summaryIcon='ion:checkmark'
+                    data={org?.approvedAccordionData?.data}
+                    cards={org?.approvedAccordionData?.cards}
+                    backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                  />
+                  <Box
+                    sx={{
+                      mt: 3
+                    }}
+                  >
+                    <CustomAccordion
+                      title='To be submitted'
+                      summaryIcon='ion:checkmark'
+                      data={org?.yetToSubmitAccordionData?.data}
+                      cards={org?.yetToSubmitAccordionData?.cards}
+                      backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    />
+                  </Box>
+                </CardContent>
+              )
+            })}
         </Card>
       </Box>
 

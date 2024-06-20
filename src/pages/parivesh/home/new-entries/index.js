@@ -813,7 +813,7 @@ const NewEntry = ({}) => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
-  console.log(organizationCountList, 'organizationCountList')
+  // console.log(organizationCountList, 'organizationCountList')
 
   return (
     <>
