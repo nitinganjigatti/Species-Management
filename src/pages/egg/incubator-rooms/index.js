@@ -310,7 +310,7 @@ const RoomsList = () => {
           </Breadcrumbs>
           <Grid container spacing={6}>
             <Grid item xs={12}>
-              <Card sx={{ px: 5, py: 3 }}>
+              <Card sx={{ py: 3 }}>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
 
                 {/* <Box sx={{ py: 4, px: 4 }}>
@@ -349,7 +349,7 @@ const RoomsList = () => {
                   </Stack>
                 </Box> */}
 
-                <Box sx={{ px: 3 }}>
+                <Box>
                   <DataGrid
                     sx={{
                       '.MuiDataGrid-cell:focus': {

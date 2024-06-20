@@ -546,7 +546,7 @@ const EggList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Box>
+          <>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -598,7 +598,7 @@ const EggList = () => {
               }}
               onCellClick={onCellClick}
             />
-          </Box>
+          </>
         )}
         {openDrawer && (
           <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />
@@ -616,71 +616,71 @@ const EggList = () => {
           Egg List
         </Link>
       </Breadcrumbs>
-      <Card sx={{ py: 3 }}>
-        <CardHeader sx={{ mx: 4 }} title='Egg List' action={headerAction} />
-        <CardContent>
-          <TabContext value={status}>
-            <TabList onChange={handleChange}>
-              <Tab
-                value='eggs_received'
-                label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
-              />
-              <Tab
-                value='eggs_incubation'
-                label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
-              />
-              <Tab
-                value='eggs_hatched'
-                label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
-              />
-              <Tab
-                value='eggs_to_discard'
-                label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
-              />
-            </TabList>
-            <TabPanel value='eggs_received'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_incubation'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_hatched'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_to_discard'>
-              <Divider sx={{ mt: -3, mb: 3 }} />
-              <TabContext value={isDiscarded}>
-                <TabList onChange={handleTabs}>
-                  <Tab
-                    value='eggs_to_discard'
-                    label={
-                      <TabBadge label='To Be Discarded' totalCount={isDiscarded === 'eggs_to_discard' ? total : null} />
-                    }
-                  />
-                  <Tab
-                    value='eggs_discarded'
-                    label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
-                  />
-                  <Tab
-                    value='eggs_necropsy_needed'
-                    label={
-                      <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
-                    }
-                  />
-                </TabList>
-                <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
-                <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
-                <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel>
-              </TabContext>
-            </TabPanel>
-          </TabContext>
-        </CardContent>
+      <Card>
+        <CardHeader title='Egg List' action={headerAction} />
+        {/* <CardContent> */}
+        <TabContext value={status}>
+          <TabList onChange={handleChange} sx={{ px: 2 }}>
+            <Tab
+              value='eggs_received'
+              label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
+            />
+            <Tab
+              value='eggs_incubation'
+              label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
+            />
+            <Tab
+              value='eggs_hatched'
+              label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+            />
+            <Tab
+              value='eggs_to_discard'
+              label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
+            />
+          </TabList>
+          <TabPanel value='eggs_received' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_incubation' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_hatched' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_to_discard' sx={{ p: 0 }}>
+            <Divider sx={{ mb: 3 }} />
+            <TabContext value={isDiscarded}>
+              <TabList onChange={handleTabs}>
+                <Tab
+                  value='eggs_to_discard'
+                  label={
+                    <TabBadge label='To Be Discarded' totalCount={isDiscarded === 'eggs_to_discard' ? total : null} />
+                  }
+                />
+                {/* <Tab
+                  value='eggs_discarded'
+                  label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
+                />
+                <Tab
+                  value='eggs_necropsy_needed'
+                  label={
+                    <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
+                  }
+                /> */}
+              </TabList>
+              <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
+              {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
+              <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
+            </TabContext>
+          </TabPanel>
+        </TabContext>
+        {/* </CardContent> */}
       </Card>
 
       <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
