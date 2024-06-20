@@ -554,7 +554,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                 </Card>
 
                 {isAnimal && (
-                  <Box>
+                  <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Card fullWidth sx={{ p: 5 }}>
                       <FormControl fullWidth sx={{ mb: 4 }}>

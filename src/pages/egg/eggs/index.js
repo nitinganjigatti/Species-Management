@@ -65,6 +65,7 @@ const EggList = () => {
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -73,8 +74,7 @@ const EggList = () => {
 
             // fontSize: '12px',
             // fontWeight: '400',
-            textAlign: 'center',
-            ml: 3
+            textAlign: 'center'
 
             // lineHeight: '14.52px'
           }}
@@ -84,11 +84,12 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 40,
+      flex: 0.25,
+      minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
+
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -148,11 +149,12 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.15,
       minWidth: 10,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
+      align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -213,6 +215,7 @@ const EggList = () => {
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -273,6 +276,7 @@ const EggList = () => {
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -522,12 +526,12 @@ const EggList = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      {/* <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD New
         </Button>
-      </Box>
+      </Box> */}
     </>
   )
 
