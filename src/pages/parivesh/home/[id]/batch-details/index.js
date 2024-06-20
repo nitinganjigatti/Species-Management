@@ -104,6 +104,8 @@ const BatchDetails = ({ params, searchParams }) => {
 
   console.log(router, 'router')
 
+  console.log('Batch Details')
+
   // const handleStatusChange = async event => {
   //   const value = event.target.value
   //   setSelectedStatus(value)
@@ -527,38 +529,44 @@ const BatchDetails = ({ params, searchParams }) => {
                   Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Select
-                  displayEmpty
-                  sx={{
-                    minWidth: 200,
-                    background: '#00AFD6',
-                    color: '#FFFFFF',
-                    borderColor: '#00AFD6',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00AFD6'
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00AFD6'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00AFD6'
-                    },
-                    '& .MuiSelect-icon': {
-                      color: '#FFFFFF'
-                    }
-                  }}
-                  IconComponent={CustomDropdownIcon}
-                  value={selectedStatus}
-                  onChange={handleStatusChange}
-                >
-                  {dropdownOptions.map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+              {selectedStatus !== 'accepted' ? (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Select
+                    displayEmpty
+                    sx={{
+                      minWidth: 200,
+                      background: '#00AFD6',
+                      color: '#FFFFFF',
+                      borderColor: '#00AFD6',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#FFFFFF'
+                      }
+                    }}
+                    IconComponent={CustomDropdownIcon}
+                    value={selectedStatus}
+                    onChange={handleStatusChange}
+                  >
+                    {dropdownOptions.map(option => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+              ) : (
+                <Typography variant='h6' sx={{ color: '#37BD69', mt: 2 }}>
+                  Approved
+                </Typography>
+              )}
             </Grid>
           </Box>
         </Box>

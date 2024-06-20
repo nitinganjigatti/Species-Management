@@ -100,7 +100,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       Width: 40,
       field: 'batch_code',
       headerName: 'BATCH CODE',
@@ -206,7 +206,12 @@ const SubmittedBatches = ({ searchParams, type }) => {
             noWrap
             variant='body2'
             sx={{
-              color: params.row.status === 'submitted' ? '#37BD69' : '#E93353',
+              color:
+                params.row.status === 'submitted'
+                  ? '#37BD69'
+                  : params.row.status === 'accepted'
+                  ? '#00AFD6'
+                  : '#E93353',
               fontSize: 14
             }}
           >

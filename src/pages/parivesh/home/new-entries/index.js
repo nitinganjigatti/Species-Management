@@ -210,11 +210,16 @@ const NewEntry = ({}) => {
   }
 
   const handleEdit = async params => {
+    console.log('params >>', params)
     setEditParams(params)
-    Router.push({
-      pathname: '/parivesh/home/new-entries/add-newentry',
-      query: params
-    })
+
+    // Ensure params.id exists and is a string or number
+    if (params?.id) {
+      Router.push({
+        pathname: '/parivesh/home/new-entries/add-newentry',
+        query: { id: params.id } // Pass id in the query object
+      })
+    }
   }
 
   const handleDelete = async id => {

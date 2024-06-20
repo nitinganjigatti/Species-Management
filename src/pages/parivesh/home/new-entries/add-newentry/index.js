@@ -31,6 +31,7 @@ import {
 } from 'src/lib/api/parivesh/addSpecies'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
+import { getEntryListById } from 'src/lib/api/parivesh/entryList'
 
 const schema = yup.object().shape({
   specie: yup
@@ -231,27 +232,65 @@ const AddNewEntry = () => {
   }
 
   useEffect(() => {
-    if (router.query) {
-      setEditParams(router.query)
-      setIsEditMode(Object.keys(router.query).length > 0)
+    const { id } = router.query
 
-      const fetchData = async () => {
-        for (const key of Object.keys(router.query)) {
+    const selectedOrgId = selectedParivesh.id
+
+    const params = {
+      id: id,
+      org_id: selectedOrgId
+    }
+
+    console.log('Id >', id, selectedOrgId)
+
+    const fetchDataById = async () => {
+      const response = await getEntryListById(params)
+
+      if (response?.success) {
+        console.log(response, 'response >>')
+        setEditParams(response.data)
+        setIsEditMode(Object.keys(response.data).length > 0)
+
+        for (const key of Object.keys(response.data)) {
           if (key === 'transaction_date') {
-            const formattedDate = new Date(router.query[key])
+            const formattedDate = new Date(response.data[key])
             setValue(key, formattedDate)
           } else if (key === 'scientific_name') {
             // Wait for searchTableData to complete
-            await searchTableData(router.query[key])
+            await searchTableData(response.data[key])
           } else {
-            setValue(key, router.query[key])
+            setValue(key, response.data[key])
           }
         }
+      } else {
+        console.log('response errror >>', response?.error)
       }
-
-      fetchData()
     }
-  }, [router.query, setValue, editParams])
+    fetchDataById()
+  }, [setValue])
+
+  // useEffect(() => {
+  //   if (router.query) {
+  //     setEditParams(router.query)
+  //     setIsEditMode(Object.keys(router.query).length > 0)
+
+  //     const fetchData = async () => {
+  //       for (const key of Object.keys(router.query)) {
+  //         if (key === 'transaction_date') {
+  //           const formattedDate = new Date(router.query[key])
+  //           setValue(key, formattedDate)
+  //         } else if (key === 'scientific_name') {
+  //           // Wait for searchTableData to complete
+  //           await searchTableData(router.query[key])
+  //         } else {
+  //           setValue(key, router.query[key])
+  //         }
+  //       }
+  //     }
+
+  //     fetchData()
+  //   }
+  // }, [router.query, setValue, editParams])
 
   useEffect(() => {
     const specieObject = species.find(specie => specie.id === editParams?.tsn_id)
@@ -536,6 +575,7 @@ const AddNewEntry = () => {
                         />
                       )}
                     />
+
                     {errors.animal_count && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
                     )}

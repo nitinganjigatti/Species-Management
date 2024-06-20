@@ -6,3 +6,9 @@ export async function getEntryList({ params }) {
 
   return response.data
 }
+
+export async function getEntryListById(params) {
+  const response = await axiosGet({ url: `${ENTRY_LIST_SPECIES}`, params })
+
+  return response.data
+}
