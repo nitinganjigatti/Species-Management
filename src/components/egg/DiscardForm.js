@@ -161,30 +161,24 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     // console.log('values :>> ', values)
     try {
       const payload = {
-        // room_name: values?.room_name,
-        // site_id: values?.site_id,
-        // nursery_id: values?.nursery_id,
-        egg_id: [eggID],
+        egg_id: JSON.stringify([785]),
         discard_reason_id: reason,
         necropsy_needed: necropsy,
         comment: getValues('comment'),
-
         egg_attachment: [getValues('image')]
-
-        // egg_attachment: selectedImage
       }
 
       console.log('payload :>> ', payload)
 
-      // const res = await AddToDiscard(payload)
-      // if (res.success) {
-      //   console.log('res on submit :>> ', res)
-      //   setReason('')
-      //   setImgSrc('')
-      //   reset()
-      //   setIsOpen(false)
-      //   toast.success('Discarded Successfully')
-      // }
+      const res = await AddToDiscard(payload)
+      if (res.success) {
+        console.log('res on submit :>> ', res)
+        setReason('')
+        setImgSrc('')
+        reset()
+        setIsOpen(false)
+        toast.success('Discarded Successfully')
+      }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
@@ -244,7 +238,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: 1,
-                    borderColor: '#839D8D',
+                    borderColor: '#c5c6cd',
                     p: 2,
                     borderRadius: '5px'
 
@@ -294,7 +288,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 )}
               </FormControl>
 
-              <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+              <Grid container sx={{ justifyContent: 'space-between' }}>
                 {imgSrc !== '' ? null : (
                   <Grid item md={12}>
                     <input
@@ -313,14 +307,15 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 7,
-                        height: 120,
+                        height: 70,
 
                         border: `2px solid ${theme.palette.customColors.trackBg}`,
                         borderRadius: 1,
+
                         padding: 3
                       }}
                     >
-                      <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+                      <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
                       <Typography>Drop your image here</Typography>
                     </Box>
@@ -391,7 +386,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         alignItems: 'center',
                         gap: 2,
                         border: 1,
-                        borderColor: '#839D8D',
+                        borderColor: '#c5c6cd',
                         p: 2,
                         borderRadius: '5px',
 
@@ -441,7 +436,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 display: 'flex'
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large' onClick={onSubmit}>
+              <LoadingButton fullWidth variant='contained' type='submit' size='large'>
                 Discard
               </LoadingButton>
             </Box>

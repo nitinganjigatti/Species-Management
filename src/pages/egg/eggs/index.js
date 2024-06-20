@@ -43,7 +43,7 @@ const EggList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('eggs_received')
-  const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
+  const [isDiscarded, setIsDiscarded] = useState('eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -416,7 +416,7 @@ const EggList = () => {
         pathname: `/egg/eggs/${data?.id}`,
 
         query: {
-          fromPath: status === 'eggs_to_discard' ? isDiscarded : status
+          fromPath: status === 'eggs_ready_to_be_discarded_at_nursery' ? isDiscarded : status
         }
       })
     } else {
@@ -463,7 +463,12 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          type: status === undefined ? 'eggs_received' : status === 'eggs_to_discard' ? isDiscarded : status
+          type:
+            status === undefined
+              ? 'eggs_received'
+              : status === 'eggs_ready_to_be_discarded_at_nursery'
+              ? isDiscarded
+              : status
         }
 
         await GetEggList({ params: params }).then(res => {
@@ -635,8 +640,13 @@ const EggList = () => {
               label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
             />
             <Tab
-              value='eggs_to_discard'
-              label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
+              value='eggs_ready_to_be_discarded_at_nursery'
+              label={
+                <TabBadge
+                  label='Discarded'
+                  totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                />
+              }
             />
           </TabList>
           <TabPanel value='eggs_received' sx={{ p: 0 }}>
@@ -654,14 +664,17 @@ const EggList = () => {
             <Divider />
             {tableData()}
           </TabPanel>
-          <TabPanel value='eggs_to_discard' sx={{ p: 0 }}>
+          <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
             <Divider sx={{ mb: 3 }} />
             <TabContext value={isDiscarded}>
               <TabList onChange={handleTabs} sx={{ px: 4 }}>
                 <Tab
-                  value='eggs_to_discard'
+                  value='eggs_ready_to_be_discarded_at_nursery'
                   label={
-                    <TabBadge label='To Be Discarded' totalCount={isDiscarded === 'eggs_to_discard' ? total : null} />
+                    <TabBadge
+                      label='To Be Discarded'
+                      totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                    />
                   }
                 />
                 {/* <Tab
@@ -675,7 +688,7 @@ const EggList = () => {
                   }
                 /> */}
               </TabList>
-              <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
+              <TabPanel value='eggs_ready_to_be_discarded_at_nursery'>{tableData()}</TabPanel>
               {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
               <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>
