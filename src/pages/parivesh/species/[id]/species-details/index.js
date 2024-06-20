@@ -15,7 +15,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
-import { getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
+import {
+  addSpeciesToOrganization,
+  getSpeciesListByOrg,
+  updateSpeciesToOrganization
+} from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { usePariveshContext } from 'src/context/PariveshContext'
@@ -42,6 +46,7 @@ const SpeciesDetails = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [organizationCountList, setOrganizationCountList] = useState([])
+  const [speciesDetails, setSpeciesDetails] = useState({})
 
   const { selectedParivesh } = usePariveshContext()
 
@@ -210,6 +215,7 @@ const SpeciesDetails = () => {
 
         await getEntryList({ params: params }).then(res => {
           console.log('list response', res)
+          setSpeciesDetails({ scientific_name: res.data.scientific_name, common_name: res.data.common_name })
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -484,35 +490,42 @@ const SpeciesDetails = () => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
-  const handleSubmitData = async payload => {
-    console.log(payload)
-    // try {
-    //   setSubmitLoader(true)
-    //   var response
-    //   if (editParams?.id !== null) {
-    //     response = await updateDrug(editParams?.id, payload)
-    //   } else {
-    //     response = await addDrug(payload)
-    //   }
-    //   if (response?.success) {
-    //     toast.success(response?.message)
-    //     setSubmitLoader(false)
-    //     setResetForm(true)
-    //     setOpenDrawer(false)
-    //     await fetchTableData(sort, searchValue, sortColumn)
-    //   } else {
-    //     setSubmitLoader(false)
-    //     if (typeof response?.message === 'object') {
-    //       Utility.errorMessageExtractorFromObject(response.message)
-    //     } else {
-    //       toast.error(response.message)
-    //     }
-    //   }
-    // } catch (e) {
-    //   console.log(e)
-    //   setSubmitLoader(false)
-    //   toast.error(JSON.stringify(e))
-    // }
+  const handleSubmitData = async data => {
+    const payload = {
+      ...data,
+      tsn_id: tsn_id,
+      tsn_relation: tsn_relation
+    }
+
+    console.log(payload, 'qqqq')
+
+    try {
+      setSubmitLoader(true)
+      let response
+      if (editParams?.id !== null) {
+        response = await updateSpeciesToOrganization(editParams?.id, payload)
+      } else {
+        response = await addSpeciesToOrganization(payload)
+      }
+      if (response?.success) {
+        toast.success(response?.message)
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        await fetchTableData(sort, searchValue, sortColumn)
+      } else {
+        setSubmitLoader(false)
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+        } else {
+          toast.error(response.message)
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      toast.error(JSON.stringify(e))
+    }
   }
 
   const headerAction = (
@@ -636,7 +649,7 @@ const SpeciesDetails = () => {
           <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
             Species
           </Typography>
-          <Typography color='text.primary'>Lear’s Macaw</Typography>
+          <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
         </Breadcrumbs>
       </Box>
       <Box>
@@ -681,6 +694,7 @@ const SpeciesDetails = () => {
         resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}
+        speciesDetails={speciesDetails}
       />
     </>
   )

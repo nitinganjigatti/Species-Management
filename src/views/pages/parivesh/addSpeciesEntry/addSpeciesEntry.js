@@ -24,55 +24,69 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
 import SingleDatePicker from 'src/components/SingleDatePicker'
+import { useRouter } from 'next/router'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import moment from 'moment'
 
 // ** Styled Components
 
 const schema = yup.object().shape({
-  name: yup
+  scientific_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Scientific Name is Required'),
   active: yup.string().required('Status is Required'),
-  commonName: yup
+  common_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  totalCount: yup.string().required('Total Count is Required'),
+  animal_count: yup.string().required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
-  age: yup.number().typeError('Age must be a number').required('Age is Required'),
-  ro_date: yup.date().required('Date is Required'),
-  reason: yup.string().required('Reason is Required'),
+  age: yup.string().required('Age is Required'),
+  transaction_date: yup.date().required('Date is Required'),
+  possession_type: yup.string().required('Reason is Required'),
 
-  registrationNumber: yup.string().when('reason', {
+  alloted_register_no: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Registration Number is Required for Death Reason')
   }),
-  reasonForDeath: yup.string().when('reason', {
+  reason_for_death: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Reason for Death is Required')
   }),
-  whereAndHowDisposed: yup.string().when('reason', {
+  where_disposed: yup.string().when('reason', {
     is: value => value === 'death',
     then: schema => schema.required('Where and How Disposed is Required for Death Reason')
   })
 })
 
 const defaultValues = {
-  name: '',
+  scientific_name: '',
+  common_name: '',
   active: '1',
   registrationNumber: '',
-  reasonForDeath: '',
-  whereAndHowDisposed: ''
+  reason_for_death: '',
+  where_disposed: '',
+  possession_type: ''
 }
 
 const AddSpeciesNewEntry = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    speciesDetails
+  } = props
 
   // ** States
   const theme = useTheme()
   const [values, setValues] = useState(defaultValues)
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
+  const { selectedParivesh } = usePariveshContext()
 
   const {
     reset,
@@ -90,36 +104,79 @@ const AddSpeciesNewEntry = props => {
   })
 
   const onSubmit = async params => {
-    console.log(params, '////')
-    const { name, active } = { ...params }
+    const {
+      gender,
+      transaction_date,
+      specie,
+      possession_type,
+      organizationName,
+      age,
+      alloted_register_no,
+      reason_for_death,
+      where_disposed,
+      animal_count
+    } = { ...params }
 
-    const payload = {
-      name: name.trim(),
-      active
+    let payload
+    if (possession_type === 'death') {
+      payload = {
+        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+        // tsn_id: specie?.id,
+        // tsn_relation: specie?.tsn_relation,
+        possession_type: possession_type,
+        gender: gender,
+        animal_count: animal_count,
+        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+        age: age,
+        alloted_register_no: alloted_register_no,
+        reason_for_death: reason_for_death,
+        where_disposed: where_disposed
+      }
+    } else {
+      payload = {
+        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+        // tsn_id: specie?.id,
+        // tsn_relation: specie?.tsn_relation,
+        possession_type: possession_type,
+        gender: gender,
+        animal_count: animal_count,
+        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+        age: age
+      }
     }
+
     await handleSubmitData(payload)
   }
 
-  const getDrugClass = useCallback(
-    async id => {
-      const response = await getDrugById(id)
-      if (response?.success) {
-        reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-      } else {
-      }
-    },
-    [reset]
-  )
+  // const getDrugClass = useCallback(
+  //   async id => {
+  //     const response = await getDrugById(id)
+  //     if (response?.success) {
+  //       reset({ name: response.data.label, active: response.data.active, id: response.data.id })
+  //     } else {
+  //     }
+  //   },
+  //   [reset]
+  // )
+
+  // useEffect(() => {
+  //   if (resetForm) {
+  //     reset(defaultValues)
+  //   }
+
+  //   // if (editParams?.id !== null) {
+  //   //   getDrugClass(editParams?.id)
+  //   // }
+  // }, [resetForm, editParams, reset])
 
   useEffect(() => {
-    if (resetForm) {
-      reset(defaultValues)
+    console.log(speciesDetails, 'scientificName')
+    // debugger
+    if (speciesDetails) {
+      setValue('scientific_name', speciesDetails.scientific_name)
+      setValue('common_name', speciesDetails.common_name)
     }
-
-    if (editParams?.id !== null) {
-      getDrugClass(editParams?.id)
-    }
-  }, [resetForm, editParams, reset, getDrugClass])
+  }, [speciesDetails, setValue])
 
   const RenderSidebarFooter = () => {
     return (
@@ -164,7 +221,7 @@ const AddSpeciesNewEntry = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='name'
+              name='scientific_name'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -173,16 +230,19 @@ const AddSpeciesNewEntry = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='Scientific Name'
-                  error={Boolean(errors.name)}
-                  name='name'
+                  error={Boolean(errors.scientific_name)}
+                  name='scientific_name'
+                  disabled
                 />
               )}
             />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+            {errors.scientific_name && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.scientific_name.message}</FormHelperText>
+            )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='commonName'
+              name='common_name'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -191,18 +251,19 @@ const AddSpeciesNewEntry = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='Common Name'
-                  error={Boolean(errors.commonName)}
-                  name='commonName'
+                  error={Boolean(errors.common_name)}
+                  name='common_name'
+                  disabled
                 />
               )}
             />
-            {errors.commonName && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.commonName.message}</FormHelperText>
+            {errors.common_name && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.common_name.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='reason'
+              name='possession_type'
               control={control}
               render={({ field: { value, onChange } }) => (
                 <TextField
@@ -223,7 +284,9 @@ const AddSpeciesNewEntry = props => {
                 </TextField>
               )}
             />
-            {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors.reason?.message}</FormHelperText>}
+            {errors.possession_type && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
+            )}
           </FormControl>
 
           {showAdditionalFields && (
@@ -231,7 +294,7 @@ const AddSpeciesNewEntry = props => {
               {/* Additional input fields */}
               <FormControl fullWidth sx={{ mb: 6 }}>
                 <Controller
-                  name='registrationNumber'
+                  name='alloted_register_no'
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <TextField
@@ -239,18 +302,18 @@ const AddSpeciesNewEntry = props => {
                       value={value}
                       onChange={onChange}
                       placeholder='Allotted registration certificate number for Animal species'
-                      error={Boolean(errors.registrationNumber)}
-                      name='registrationNumber'
+                      error={Boolean(errors.alloted_register_no)}
+                      name='alloted_register_no'
                     />
                   )}
                 />
-                {errors.registrationNumber && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationNumber?.message}</FormHelperText>
+                {errors.alloted_register_no && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.alloted_register_no?.message}</FormHelperText>
                 )}
               </FormControl>
               <FormControl fullWidth sx={{ mb: 6 }}>
                 <Controller
-                  name='reasonForDeath'
+                  name='reason_for_death'
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <TextField
@@ -258,18 +321,18 @@ const AddSpeciesNewEntry = props => {
                       value={value}
                       onChange={onChange}
                       placeholder='Enter Reason for Death'
-                      error={Boolean(errors.reasonForDeath)}
-                      name='reasonForDeath'
+                      error={Boolean(errors.reason_for_death)}
+                      name='reason_for_death'
                     />
                   )}
                 />
-                {errors.reasonForDeath && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.reasonForDeath?.message}</FormHelperText>
+                {errors.reason_for_death && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
                 )}
               </FormControl>
               <FormControl fullWidth sx={{ mb: 6 }}>
                 <Controller
-                  name='whereAndHowDisposed'
+                  name='where_disposed'
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <TextField
@@ -277,13 +340,13 @@ const AddSpeciesNewEntry = props => {
                       value={value}
                       onChange={onChange}
                       placeholder='Enter Where and How Disposed'
-                      error={Boolean(errors.whereAndHowDisposed)}
-                      name='whereAndHowDisposed'
+                      error={Boolean(errors.where_disposed)}
+                      name='where_disposed'
                     />
                   )}
                 />
-                {errors.whereAndHowDisposed && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.whereAndHowDisposed?.message}</FormHelperText>
+                {errors.where_disposed && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.where_disposed?.message}</FormHelperText>
                 )}
               </FormControl>
             </>
@@ -303,7 +366,7 @@ const AddSpeciesNewEntry = props => {
             />
             {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='age'
               control={control}
@@ -312,10 +375,23 @@ const AddSpeciesNewEntry = props => {
               )}
             />
             {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
+          </FormControl> */}
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='age'
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <TextField select label='Age*' value={value} onChange={onChange} error={Boolean(errors.age)}>
+                  <MenuItem value='adult'>Adult</MenuItem>
+                </TextField>
+              )}
+            />
+
+            {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='totalCount'
+              name='animal_count'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -324,18 +400,18 @@ const AddSpeciesNewEntry = props => {
                   value={value}
                   onChange={onChange}
                   placeholder='Enter Total Count'
-                  error={Boolean(errors.totalCount)}
-                  name='totalCount'
+                  error={Boolean(errors.animal_count)}
+                  name='animal_count'
                 />
               )}
             />
-            {errors.totalCount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.totalCount?.message}</FormHelperText>
+            {errors.animal_count && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='ro_date'
+              name='transaction_date'
               control={control}
               render={({ field: { value, onChange } }) => (
                 <SingleDatePicker
@@ -343,13 +419,13 @@ const AddSpeciesNewEntry = props => {
                   date={value}
                   width={'100%'}
                   onChangeHandler={onChange}
-                  customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                  customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />
               )}
             />
-            {errors.ro_date && (
+            {errors.transaction_date && (
               <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                {errors.ro_date?.message}
+                {errors.transaction_date?.message}
               </FormHelperText>
             )}
           </FormControl>
