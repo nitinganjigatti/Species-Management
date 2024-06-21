@@ -117,32 +117,20 @@ const AddSpeciesNewEntry = props => {
       animal_count
     } = { ...params }
 
-    let payload
-    if (possession_type === 'death') {
-      payload = {
-        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
-        // tsn_id: specie?.id,
-        // tsn_relation: specie?.tsn_relation,
-        possession_type: possession_type,
-        gender: gender,
-        animal_count: animal_count,
-        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-        age: age,
+    const payload = {
+      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      tsn_id: specie?.id,
+      tsn_relation: specie?.tsn_relation,
+      possession_type: possession_type,
+      gender: gender,
+      animal_count: animal_count,
+      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+      age: age,
+      ...(possession_type === 'death' && {
         alloted_register_no: alloted_register_no,
         reason_for_death: reason_for_death,
         where_disposed: where_disposed
-      }
-    } else {
-      payload = {
-        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
-        // tsn_id: specie?.id,
-        // tsn_relation: specie?.tsn_relation,
-        possession_type: possession_type,
-        gender: gender,
-        animal_count: animal_count,
-        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-        age: age
-      }
+      })
     }
 
     await handleSubmitData(payload)

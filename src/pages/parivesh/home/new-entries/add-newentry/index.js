@@ -81,7 +81,7 @@ const AddNewEntry = () => {
     specie: null,
     gender: '',
     age: '',
-    totalCount: '',
+    animal_count: '',
     possession_type: '',
     transaction_date: null
   }
@@ -137,67 +137,38 @@ const AddNewEntry = () => {
       animal_count
     } = { ...data }
 
-    let payload
-    if (possession_type === 'death') {
-      payload = {
-        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
-        tsn_id: specie?.id,
-        tsn_relation: specie?.tsn_relation,
-        possession_type: possession_type,
-        gender: gender,
-        animal_count: animal_count,
-        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-        age: age,
+    const payload = {
+      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      tsn_id: specie?.id,
+      tsn_relation: specie?.tsn_relation,
+      possession_type: possession_type,
+      gender: gender,
+      animal_count: animal_count,
+      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+      age: age,
+      ...(possession_type === 'death' && {
         alloted_register_no: alloted_register_no,
         reason_for_death: reason_for_death,
         where_disposed: where_disposed
-      }
-    } else {
-      payload = {
-        org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
-        tsn_id: specie?.id,
-        tsn_relation: specie?.tsn_relation,
-        possession_type: possession_type,
-        gender: gender,
-        animal_count: animal_count,
-        transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-        age: age
-      }
+      })
     }
 
-    if (isEditMode) {
-      try {
-        setBtnLoader(true)
-        await updateSpeciesToOrganization(payload, editParams?.id).then(res => {
-          if (res?.success) {
-            router.back()
-            setBtnLoader(false)
-            Toaster({ type: 'success', message: res?.data })
-          } else {
-            setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.message })
-          }
-        })
-      } catch (error) {
-        console.log('error', error)
+    try {
+      setBtnLoader(true)
+      const response = isEditMode
+        ? await updateSpeciesToOrganization(payload, editParams?.id)
+        : await addSpeciesToOrganization(payload)
+
+      if (response?.success) {
+        router.back()
+        Toaster({ type: 'success', message: response?.data })
+      } else {
+        Toaster({ type: 'error', message: response?.message })
       }
-    } else {
-      // Call your API for adding a new entry
-      try {
-        setBtnLoader(true)
-        await addSpeciesToOrganization(payload).then(res => {
-          if (res?.success) {
-            router.back()
-            setBtnLoader(false)
-            Toaster({ type: 'success', message: res?.data })
-          } else {
-            setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.message })
-          }
-        })
-      } catch (error) {
-        console.log('error', error)
-      }
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setBtnLoader(false)
     }
   }
 
@@ -234,39 +205,47 @@ const AddNewEntry = () => {
   useEffect(() => {
     const { id } = router.query
 
-    const selectedOrgId = selectedParivesh.id
+    if (id !== undefined) {
+      const selectedOrgId = selectedParivesh.id
 
-    const params = {
-      id: id,
-      org_id: selectedOrgId
-    }
-
-    console.log('Id >', id, selectedOrgId)
-
-    const fetchDataById = async () => {
-      const response = await getEntryListById(params)
-
-      if (response?.success) {
-        console.log(response, 'response >>')
-        setEditParams(response.data)
-        setIsEditMode(Object.keys(response.data).length > 0)
-
-        for (const key of Object.keys(response.data)) {
-          if (key === 'transaction_date') {
-            const formattedDate = new Date(response.data[key])
-            setValue(key, formattedDate)
-          } else if (key === 'scientific_name') {
-            // Wait for searchTableData to complete
-            await searchTableData(response.data[key])
-          } else {
-            setValue(key, response.data[key])
-          }
-        }
-      } else {
-        console.log('response errror >>', response?.error)
+      const params = {
+        id: id,
+        org_id: selectedOrgId
       }
+
+      console.log('Id >', id, selectedOrgId)
+
+      const fetchDataById = async () => {
+        const response = await getEntryListById(params)
+
+        if (response?.success) {
+          console.log(response.data, 'response >>')
+          setEditParams(response.data)
+          setIsEditMode(Object.keys(response.data).length > 0)
+
+          for (const key of Object.keys(response.data)) {
+            console.log(response.data[key], 'key')
+            if (key === 'transaction_date') {
+              const formattedDate = new Date(response.data[key])
+              setValue(key, formattedDate)
+            } else if (key === 'scientific_name') {
+              // Wait for searchTableData to complete
+              await searchTableData(response.data[key])
+            } else if (key === 'animal_count') {
+              setValue(key, Number(response.data[key]))
+            } else if (key === 'possession_type' && response.data[key] === 'death') {
+              setShowAdditionalFields(true)
+              setValue(key, response.data[key])
+            } else {
+              setValue(key, response.data[key])
+            }
+          }
+        } else {
+          console.log('response errror >>', response?.error)
+        }
+      }
+      fetchDataById()
     }
-    fetchDataById()
   }, [setValue])
 
   // useEffect(() => {
