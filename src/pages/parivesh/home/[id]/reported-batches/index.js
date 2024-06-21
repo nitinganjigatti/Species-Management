@@ -247,7 +247,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       headerName: 'ACTIONS',
       renderCell: params => (
         <Box>
-          <IconButton
+          {/* <IconButton
             size='small'
             sx={{ mr: 0.5 }}
             onClick={event => {
@@ -259,7 +259,7 @@ const ReportedBatches = ({ searchParams, type }) => {
             aria-label='Edit'
           >
             <Icon icon='mdi:edit' />
-          </IconButton>
+          </IconButton> */}
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}

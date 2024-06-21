@@ -27,8 +27,10 @@ export const PariveshProvider = ({ children }) => {
   const fetchOrgData = useCallback(async () => {
     try {
       const res = await getOrganizationList({})
-      const optionsWithAll = [{ id: 'all', organization_name: 'All' }, ...res]
-      setOrganizationList(optionsWithAll)
+      if (res.length > 0) {
+        const optionsWithAll = [{ id: 'all', organization_name: 'All' }, ...res]
+        setOrganizationList(optionsWithAll)
+      }
     } catch (e) {
       console.error(e)
     }

@@ -412,7 +412,7 @@ const NewEntry = ({}) => {
 
         <LoadingButton
           loading={btnLoader}
-          size='large'
+          size='medium'
           variant='contained'
           sx={{ m: 2, backgroundColor: '#1F415B' }}
           onClick={handleCreateBatch}

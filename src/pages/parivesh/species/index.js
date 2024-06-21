@@ -26,6 +26,7 @@ import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
 import Router from 'next/router'
 import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
+import { usePariveshContext } from 'src/context/PariveshContext'
 // import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesList = () => {
@@ -47,6 +48,7 @@ const SpeciesList = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
+  const { selectedParivesh } = usePariveshContext()
 
   const onClose = () => {
     setDialog(false)
@@ -300,7 +302,7 @@ const SpeciesList = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, selectedParivesh]
   )
 
   useEffect(() => {

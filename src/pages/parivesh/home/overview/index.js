@@ -370,12 +370,12 @@ const Overview = () => {
                     title={orgData.approvedAccordionData.title}
                     data={orgData.approvedAccordionData.data}
                     cards={orgData.approvedAccordionData.cards}
-                    backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
-                    // backgroundImage={
-                    //   orgData?.species_image !== ''
-                    //     ? orgData?.species_image
-                    //     : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                    // }
+                    // backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                    backgroundImage={
+                      orgData?.species_image !== ''
+                        ? orgData?.species_image
+                        : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    }
                     isOrganization
                     organizationName={orgData.organization_name}
                     showDetails
