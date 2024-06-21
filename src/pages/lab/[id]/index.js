@@ -620,6 +620,7 @@ const RequestDetails = () => {
             message={snackbarMessage}
             severity={severity}
             handleClose={handleCloseSnackBar}
+            indexedRows
           />
 
           <Card sx={{ mt: 5 }}>
@@ -631,7 +632,7 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              getRowId={row => row?.test_id}
+              // getRowId={row => row?.test_id}
               slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
