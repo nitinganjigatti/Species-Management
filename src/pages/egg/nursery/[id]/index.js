@@ -1,5 +1,16 @@
 import { Icon } from '@iconify/react'
-import { Card, CardContent, CardHeader, Box, Typography, debounce, Avatar, IconButton, Button } from '@mui/material'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Box,
+  Typography,
+  debounce,
+  Avatar,
+  IconButton,
+  Button,
+  Breadcrumbs
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -8,6 +19,7 @@ import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
+import Router from 'next/router'
 
 const NurseryDetails = () => {
   const [nurseryData, setNurseryData] = useState({})
@@ -234,59 +246,73 @@ const NurseryDetails = () => {
   )
 
   return (
-    <Card>
-      <CardHeader title={'Rooms Details'} action={headerAction} />
-      <DetailCard
-        title='Nursery Details'
-        ButtonName={'ADD ROOM'}
-        DetailsListData={nurseryData}
-        setOpenDrawer={setOpenDrawer}
-      />{' '}
-      {rows?.length > 0 ? (
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          hideFooterPagination={true}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[5, 7, 10, 15]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-        />
-      ) : (
-        <Typography variant='h6' sx={{ padding: '10px', textAlign: 'center' }}>
-          No Record Found
+    <>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+          Egg
         </Typography>
-      )}
-      {openDrawer && (
-        <NurserySlider
+
+        <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
+          Nursery List
+        </Typography>
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          Nursery Details
+        </Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardHeader title={'Rooms Details'} action={headerAction} />
+        <DetailCard
+          title='Nursery Details'
+          ButtonName={'ADD ROOM'}
+          DetailsListData={nurseryData}
           setOpenDrawer={setOpenDrawer}
-          editName={editName}
-          fetchTableData={fetchTableData}
-          editSite={editSite}
-          editNurseryId={editNurseryId}
-        />
-      )}
-      <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
-    </Card>
+        />{' '}
+        {rows?.length > 0 ? (
+          <DataGrid
+            sx={{
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
+
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              }
+            }}
+            columnVisibilityModel={{
+              sl_no: false
+            }}
+            hideFooterSelectedRowCount
+            disableColumnSelector={true}
+            autoHeight
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            hideFooterPagination={true}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[5, 7, 10, 15]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            onPaginationModelChange={setPaginationModel}
+            loading={loading}
+          />
+        ) : (
+          <Typography variant='h6' sx={{ padding: '10px', textAlign: 'center' }}>
+            No Record Found
+          </Typography>
+        )}
+        {openDrawer && (
+          <NurserySlider
+            setOpenDrawer={setOpenDrawer}
+            editName={editName}
+            fetchTableData={fetchTableData}
+            editSite={editSite}
+            editNurseryId={editNurseryId}
+          />
+        )}
+        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+      </Card>
+    </>
   )
 }
 

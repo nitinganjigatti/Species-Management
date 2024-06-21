@@ -93,17 +93,18 @@ const RoomsList = () => {
   }
 
   const columns = [
-    // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'uid',
-    //   headerName: 'SL ',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.id}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      align: 'center',
+      headerName: 'SL ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
     {
       flex: 0.5,
       minWidth: 30,
@@ -140,9 +141,10 @@ const RoomsList = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      flex: 0.3,
+      minWidth: 10,
       field: 'Incubator',
+      align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -151,7 +153,7 @@ const RoomsList = () => {
       )
     },
     {
-      flex: 0.6,
+      flex: 0.4,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',
@@ -302,14 +304,17 @@ const RoomsList = () => {
       ) : (
         <Box>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Egg</Typography>
-            <Link underline='hover' color='text.primary' href='/egg/incubator-rooms/'>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
+
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
               Incubator Room
-            </Link>
+            </Typography>
           </Breadcrumbs>
           <Grid container spacing={6}>
             <Grid item xs={12}>
-              <Card sx={{ px: 5, py: 3 }}>
+              <Card sx={{ py: 3 }}>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
 
                 {/* <Box sx={{ py: 4, px: 4 }}>
@@ -348,7 +353,7 @@ const RoomsList = () => {
                   </Stack>
                 </Box> */}
 
-                <Box sx={{ px: 3 }}>
+                <Box>
                   <DataGrid
                     sx={{
                       '.MuiDataGrid-cell:focus': {

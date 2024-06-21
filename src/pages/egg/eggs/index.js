@@ -43,28 +43,32 @@ const EggList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('eggs_received')
-  const [isDiscarded, setIsDiscarded] = useState('eggs_to_discard')
+  const [isDiscarded, setIsDiscarded] = useState('eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
   const [eggID, setEggId] = useState('')
-  const [allocateEggId, setAllocateEggId] = useState(null)
+  console.log('eggID  list:>> ', eggID)
+
+  // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
-  const handleDiscard = e => {
+  const handleDiscard = (e, eggId) => {
     e.stopPropagation()
     setIsOpen(true)
+    setEggId(eggId)
     console.log('parent discard fn:>> ')
   }
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.02,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -73,8 +77,7 @@ const EggList = () => {
 
             // fontSize: '12px',
             // fontWeight: '400',
-            textAlign: 'center',
-            ml: 3
+            textAlign: 'center'
 
             // lineHeight: '14.52px'
           }}
@@ -84,11 +87,12 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.25,
       minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
+
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -148,19 +152,21 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.15,
       minWidth: 10,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
+      align: 'center',
       renderCell: params => (
-        <Box sx={{ ml: 2 }}>
+        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px'
+              fontWeight: '500'
+
+              // lineHeight: '19.36px'
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
@@ -207,11 +213,12 @@ const EggList = () => {
     },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      flex: 0.15,
+      minWidth: 10,
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -223,6 +230,29 @@ const EggList = () => {
           }}
         >
           {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 20,
+      sortable: false,
+      field: 'lay_date',
+      headerName: 'Lay Date',
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.lay_date
+            ? //  moment(params.row.lay_date).format('DD/MM/YYYY')
+              params.row.lay_date
+            : '-'}
         </Typography>
       )
     },
@@ -247,31 +277,13 @@ const EggList = () => {
     //   )
     // },
 
-    // {
-    //   flex: 0.35,
-    //   minWidth: 20,
-    //   sortable: false,
-    //   field: 'discard_on',
-    //   headerName: 'DISCARD ON',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.site ? params.row.site : '-'}
-    //     </Typography>
-    //   )
-    // },
     {
-      flex: 0.24,
-      minWidth: 20,
+      flex: 0.2,
+      minWidth: 10,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -308,30 +320,29 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.5,
-      minWidth: 60,
+      flex: 0.25,
+      minWidth: 20,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          {status === 'eggs_received' && (
+          {/* {status === 'eggs_received' && (
             <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
               Allocate{' '}
             </Button>
-          )}
-          {status === 'eggs_to_discard' && isDiscarded === 'eggs_to_discard' ? (
+          )} */}
+          {status === 'eggs_received' ? (
             <>
               <div>
                 <DiscardStatusCell
-                  customButton={
-                    status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? 'customButton' : null
-                  }
+                  customButton={status === 'eggs_received' ? 'customButton' : null}
                   hideField='hideField'
                   params={params}
                   setIsOpen={setIsOpen}
                   handleDiscard={handleDiscard}
                   setEggId={setEggId}
+                  handleAction={handleAction}
 
                   // hover={hover} setHover={setHover}
                 />
@@ -399,7 +410,7 @@ const EggList = () => {
   const handleAction = (event, id) => {
     event.stopPropagation()
     setOpenDrawer(true)
-    setAllocateEggId(id)
+    setEggId(id)
   }
 
   const onCellClick = params => {
@@ -408,11 +419,7 @@ const EggList = () => {
     if (clickedColumn) {
       const data = params.row
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`,
-
-        query: {
-          fromPath: status === 'eggs_to_discard' ? isDiscarded : status
-        }
+        pathname: `/egg/eggs/${data?.id}`
       })
     } else {
       return
@@ -458,7 +465,13 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          type: status === undefined ? 'eggs_received' : status === 'eggs_to_discard' ? isDiscarded : status
+          nursery_id: 1,
+          type:
+            status === undefined
+              ? 'eggs_received'
+              : status === 'eggs_ready_to_be_discarded_at_nursery'
+              ? isDiscarded
+              : status
         }
 
         await GetEggList({ params: params }).then(res => {
@@ -521,12 +534,12 @@ const EggList = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      {/* <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD New
         </Button>
-      </Box>
+      </Box> */}
     </>
   )
 
@@ -541,7 +554,7 @@ const EggList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Box>
+          <>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -593,10 +606,10 @@ const EggList = () => {
               }}
               onCellClick={onCellClick}
             />
-          </Box>
+          </>
         )}
         {openDrawer && (
-          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />
+          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={eggID} />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
@@ -607,68 +620,84 @@ const EggList = () => {
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Egg</Typography>
-        <Link underline='hover' color='text.primary' href='/egg/eggs'>
+
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
           Egg List
-        </Link>
+        </Typography>
       </Breadcrumbs>
-      <Card sx={{ px: 5, py: 3 }}>
+      <Card>
         <CardHeader title='Egg List' action={headerAction} />
-        <CardContent>
-          <TabContext value={status}>
-            <TabList onChange={handleChange}>
-              <Tab
-                value='eggs_received'
-                label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
-              />
-              <Tab
-                value='eggs_incubation'
-                label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
-              />
-              <Tab
-                value='eggs_hatched'
-                label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
-              />
-              <Tab
-                value='eggs_to_discard'
-                label={<TabBadge label='Discarded' totalCount={status === 'eggs_to_discard' ? total : null} />}
-              />
-            </TabList>
-            <TabPanel value='eggs_received'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_incubation'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_hatched'>
-              {' '}
-              <Divider sx={{ mt: -3 }} />
-              {tableData()}
-            </TabPanel>
-            <TabPanel value='eggs_to_discard'>
-              <Divider sx={{ mt: -3, mb: 3 }} />
-              <TabContext value={isDiscarded}>
-                <TabList onChange={handleTabs}>
-                  <Tab
-                    value='eggs_to_discard'
-                    label={
-                      <TabBadge label='To Be Discarded' totalCount={isDiscarded === 'eggs_to_discard' ? total : null} />
-                    }
-                  />
-                  <Tab
-                    value='eggs_discarded'
-                    label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
-                  />
-                </TabList>
-                <TabPanel value='eggs_to_discard'>{tableData()}</TabPanel>
-                <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
-              </TabContext>
-            </TabPanel>
-          </TabContext>
-        </CardContent>
+        {/* <CardContent> */}
+        <TabContext value={status}>
+          <TabList onChange={handleChange} sx={{ px: 2 }}>
+            <Tab
+              value='eggs_received'
+              label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
+            />
+            <Tab
+              value='eggs_incubation'
+              label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
+            />
+            <Tab
+              value='eggs_hatched'
+              label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+            />
+            <Tab
+              value='eggs_ready_to_be_discarded_at_nursery'
+              label={
+                <TabBadge
+                  label='Discarded'
+                  totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                />
+              }
+            />
+          </TabList>
+          <TabPanel value='eggs_received' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_incubation' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_hatched' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
+          </TabPanel>
+          <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+            <Divider sx={{ mb: 3 }} />
+            <TabContext value={isDiscarded}>
+              <TabList onChange={handleTabs} sx={{ px: 4 }}>
+                <Tab
+                  value='eggs_ready_to_be_discarded_at_nursery'
+                  label={
+                    <TabBadge
+                      label='To Be Discarded'
+                      totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                    />
+                  }
+                />
+                {/* <Tab
+                  value='eggs_discarded'
+                  label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
+                />
+                <Tab
+                  value='eggs_necropsy_needed'
+                  label={
+                    <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
+                  }
+                /> */}
+              </TabList>
+              <TabPanel value='eggs_ready_to_be_discarded_at_nursery'>{tableData()}</TabPanel>
+              {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
+              <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
+            </TabContext>
+          </TabPanel>
+        </TabContext>
+        {/* </CardContent> */}
       </Card>
 
       <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />

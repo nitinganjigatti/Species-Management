@@ -26,6 +26,7 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
+  console.log('allocateEggId :>> ', allocateEggId)
   const [nurseryName, setNurseryName] = useState([])
   const [roomName, setRoomName] = useState([])
   const [incubatorName, setIncubatorName] = useState([])

@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Card, CardHeader, Tooltip, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
@@ -8,6 +8,7 @@ import moment from 'moment'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
 import { styled } from '@mui/system'
+import Router from 'next/router'
 
 const NurseryList = () => {
   const router = useRouter()
@@ -95,10 +96,11 @@ const NurseryList = () => {
 
   const columns = [
     {
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 30,
       field: 'id',
       headerName: 'No',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
@@ -122,6 +124,7 @@ const NurseryList = () => {
       minWidth: 30,
       field: 'ROOMS',
       headerName: 'ROOMS',
+      align: 'center',
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_rooms}</Box>
     },
 
@@ -130,6 +133,7 @@ const NurseryList = () => {
       minWidth: 30,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
+      align: 'center',
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
       )
@@ -210,6 +214,15 @@ const NurseryList = () => {
 
   return (
     <>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+          Egg
+        </Typography>
+
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          Nursery List
+        </Typography>
+      </Breadcrumbs>
       <Card>
         <CardHeader title='Nursery' action={headerAction} />
 

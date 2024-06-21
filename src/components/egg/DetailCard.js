@@ -27,8 +27,11 @@ const DetailCard = ({ title, DetailsListData, detailsData, ButtonName, setOpenDr
             px: 3,
             py: 3,
             display: 'flex',
-            gap: { md: 20, sx: 3, sm: 6 },
+
+            gap: { md: 15, sx: 3, sm: 6 },
+            justifyContent: 'space-between',
             alignItems: 'center',
+
             flexWrap: 'wrap',
             bgcolor: '#f2fff8',
             m: 4

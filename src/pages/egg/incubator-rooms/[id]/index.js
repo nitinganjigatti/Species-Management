@@ -435,11 +435,20 @@ const RoomDetails = () => {
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography color='inherit'>Egg</Typography>
-              <Link underline='hover' color='inherit' href='/egg/incubator-rooms/'>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                Egg
+              </Typography>
+
+              <Typography
+                sx={{ cursor: 'pointer' }}
+                color='inherit '
+                onClick={() => Router.push('/egg/incubator-rooms/')}
+              >
                 Incubator Room
-              </Link>
-              <Typography color='text.primary'>Room Details</Typography>
+              </Typography>
+              <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                Room Details
+              </Typography>
             </Breadcrumbs>
 
             <Card>

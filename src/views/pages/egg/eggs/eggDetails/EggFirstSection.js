@@ -145,7 +145,6 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                                       active: currentSlide === idx
                                     })}
                                     style={{ backgroundColor: '#fff' }}
-                                    //   sx={{ backgroundColor: '#FFFFFF66' }}
                                     onClick={() => {
                                       instanceRef.current?.moveToIdx(idx)
                                     }}
@@ -188,7 +187,6 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
               }}
               xs={12}
               md={6}
-              // lg={9}
               lg={9.3}
               xl={9}
               item
