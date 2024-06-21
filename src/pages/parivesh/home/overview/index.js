@@ -112,6 +112,7 @@ const Overview = () => {
           const transformedData = res.data.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
+            species_image: org?.species_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -369,7 +370,11 @@ const Overview = () => {
                     title={orgData.approvedAccordionData.title}
                     data={orgData.approvedAccordionData.data}
                     cards={orgData.approvedAccordionData.cards}
-                    backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    backgroundImage={
+                      orgData?.species_image !== ''
+                        ? orgData?.species_image
+                        : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    }
                     isOrganization
                     organizationName={orgData.organization_name}
                     showDetails
@@ -380,7 +385,7 @@ const Overview = () => {
                       title={orgData.yetToSubmitAccordionData.title}
                       data={orgData.yetToSubmitAccordionData.data}
                       cards={orgData.yetToSubmitAccordionData.cards}
-                      backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                      backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
                     />
                   </Box>
                   {selectedParivesh?.id !== 'all' && (
@@ -389,7 +394,7 @@ const Overview = () => {
                         title={orgData.submittedAccordionData.title}
                         data={orgData.submittedAccordionData.data}
                         cards={orgData.submittedAccordionData.cards}
-                        backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                        backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
                       />
                     </Box>
                   )}
@@ -405,19 +410,14 @@ const Overview = () => {
                     title='Approved by Parivesh'
                     data={data}
                     cards={cards}
-                    backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    backgroundImage=''
                     isOrganization
                     organizationName={organization.organization_name}
                     showDetails
                     handleBoxClick={() => handleBoxClick(organization)}
                   />
                   <Box sx={{ mt: 3 }}>
-                    <CustomAccordion
-                      title='To be submitted'
-                      data={data}
-                      cards={cards}
-                      backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                    />
+                    <CustomAccordion title='To be submitted' data={data} cards={cards} backgroundImage='' />
                   </Box>
                 </CardContent>
               </Card>

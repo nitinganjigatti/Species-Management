@@ -578,6 +578,7 @@ const NewEntry = ({}) => {
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
+            species_image: org?.species_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -832,7 +833,7 @@ const NewEntry = ({}) => {
                   summaryIcon='ion:checkmark'
                   data={org?.yetToSubmitAccordionData?.data}
                   cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                  backgroundImage={org?.species_image !== '' && orgData?.species_image}
                   isOrganization={selectedParivesh.id !== 'all' ? true : false}
                   organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
                 />

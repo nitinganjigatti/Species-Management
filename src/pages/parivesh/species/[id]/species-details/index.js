@@ -250,6 +250,7 @@ const SpeciesDetails = () => {
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
+            species_image: org?.species_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -663,7 +664,7 @@ const SpeciesDetails = () => {
                     summaryIcon='ion:checkmark'
                     data={org?.approvedAccordionData?.data}
                     cards={org?.approvedAccordionData?.cards}
-                    backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    backgroundImage={org?.species_image !== '' && orgData?.species_image}
                   />
                   <Box
                     sx={{
@@ -675,7 +676,7 @@ const SpeciesDetails = () => {
                       summaryIcon='ion:checkmark'
                       data={org?.yetToSubmitAccordionData?.data}
                       cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage='https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
                     />
                   </Box>
                 </CardContent>
