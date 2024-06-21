@@ -217,3 +217,31 @@ export const ADD = 'add'
 export const UPDATE = 'update'
 
 export const TYPE = 'type'
+
+export const ADD_SPECIES = 'v1/parivesh/species/add'
+
+export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'
+
+export const ORGANIZATION_LIST = 'masters/organization'
+
+export const SPECIES_LIST_BY_ORG = 'v1/parivesh/species/listsitewise'
+
+export const ADD_SPECIES_TO_ORG = 'v1/parivesh/species/org/add'
+
+export const UPDATE_SPECIES_TO_ORG = 'v1/parivesh/species/org/editentry'
+
+export const DELETE_SPECIES_TO_ORG = 'v1/parivesh/species/org/deleteentry'
+
+export const ADD_BATCH = 'v1/parivesh/species/site/createbatch'
+
+export const UPDATE_BATCH = ''
+
+export const DELETE_BATCH = 'v1/parivesh/species/org/deletebatch'
+
+export const BATCH_LIST_SPECIES = 'v1/parivesh/species/site/batchlist'
+
+export const BATCH_LIST_SPECIES_BY_ID = 'v1/parivesh/species/site/batchentrieslist'
+
+export const ENTRY_LIST_SPECIES = 'v1/parivesh/species/site/entrieslist'
+
+export const ORG_COUNT_LIST = 'v1/parivesh/species/site/stats'
