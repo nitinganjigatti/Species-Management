@@ -201,14 +201,15 @@ const ListOfStockAdjusted = () => {
         </Typography>
       )
     },
+
     {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Adjusted by ',
+      headerName: 'Requested by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderUserAvatar(params.row)}
+          {Utility.renderUserAvatar(params.row.user_profile_pic)}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
