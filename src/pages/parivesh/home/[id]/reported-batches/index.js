@@ -180,7 +180,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# NO OF ANIMALS',
+      headerName: '# OF ANIMALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}

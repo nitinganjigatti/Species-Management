@@ -104,6 +104,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       Width: 40,
       field: 'batch_code',
       headerName: 'BATCH CODE',
+      alignItems: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_code}
@@ -115,6 +116,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       minWidth: 30,
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
+      alignItems: 'left',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -129,7 +131,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: 'No OF ANIMALS',
+      headerName: '# OF ANIMALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
