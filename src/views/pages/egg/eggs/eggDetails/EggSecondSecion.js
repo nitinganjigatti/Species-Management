@@ -97,7 +97,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     <>
       <Button
         onClick={() => setaddWeightSidebar(true)}
-        sx={{ color: '#00000066', fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
+        sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
         startIcon={<Icon icon='mdi:add' fontSize={20} />}
       >
         ADD NEW
@@ -337,7 +337,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
               pb: 0,
               pl: 6
             }}
-            title='Egg History - EDIT'
+            title='Egg History'
             action={headerAction}
           />
           <CardContent>
@@ -785,7 +785,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
               </CustomTableContainer>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0 }}>
-                <Button onClick={() => setSidebarOpen(true)}>View All</Button>
+                {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
               </Box>
             </CardContent>
           </Card>
