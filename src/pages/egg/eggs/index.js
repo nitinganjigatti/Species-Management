@@ -213,7 +213,7 @@ const EggList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.15,
       minWidth: 10,
       sortable: false,
       field: 'site',
@@ -230,6 +230,29 @@ const EggList = () => {
           }}
         >
           {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 20,
+      sortable: false,
+      field: 'lay_date',
+      headerName: 'Lay Date',
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.lay_date
+            ? //  moment(params.row.lay_date).format('DD/MM/YYYY')
+              params.row.lay_date
+            : '-'}
         </Typography>
       )
     },
@@ -254,25 +277,6 @@ const EggList = () => {
     //   )
     // },
 
-    // {
-    //   flex: 0.35,
-    //   minWidth: 20,
-    //   sortable: false,
-    //   field: 'discard_on',
-    //   headerName: 'DISCARD ON',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.site ? params.row.site : '-'}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.2,
       minWidth: 10,
