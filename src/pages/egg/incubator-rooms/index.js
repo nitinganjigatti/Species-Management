@@ -93,17 +93,18 @@ const RoomsList = () => {
   }
 
   const columns = [
-    // {
-    //   flex: 0.05,
-    //   Width: 40,
-    //   field: 'uid',
-    //   headerName: 'SL ',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.id}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      align: 'center',
+      headerName: 'SL ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.id}
+        </Typography>
+      )
+    },
     {
       flex: 0.5,
       minWidth: 30,

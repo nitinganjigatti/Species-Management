@@ -1,9 +1,8 @@
 import { Icon } from '@iconify/react'
-import { Avatar, Box, Button, Typography } from '@mui/material'
+import { Avatar, Box, Button, Typography, Stack } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
-import { Stack } from '@mui/system'
 
 const DiscardStatusCell = ({
   params,
@@ -11,7 +10,8 @@ const DiscardStatusCell = ({
   handleDiscard,
   setEggId,
   hideField,
-  customButton
+  customButton,
+  handleAction
 
   //  hover, setHover
 }) => {
@@ -25,10 +25,10 @@ const DiscardStatusCell = ({
   //   setIsOpen(true)
   //   console.log('discard :>> ')
   // }
-  if (params?.row?.egg_id) {
-    console.log('egg_id :>> ', params?.row?.egg_id)
-    setEggId(params?.row?.egg_id)
-  }
+  // if (params?.row?.egg_id) {
+  //   console.log('egg_id :>> ', params?.row?.egg_id)
+  //   setEggId(params?.row?.egg_id)
+  // }
 
   return (
     <div
@@ -37,9 +37,19 @@ const DiscardStatusCell = ({
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
     >
       {/* {hover ? ( */}
-      <Button variant='contained' className={customButton} size='small' sx={{ px: 6, py: 2 }} onClick={handleDiscard}>
-        Discard
-      </Button>
+      <Stack direction='row' className={customButton} spacing={2} sx={{}}>
+        <Button
+          variant='outlined'
+          size='small'
+          sx={{ px: 6, py: 2 }}
+          onClick={e => handleDiscard(e, params?.row?.egg_id)}
+        >
+          Discard
+        </Button>
+        <Button variant='contained' onClick={e => handleAction(e, params?.row?.egg_id)}>
+          Allocate{' '}
+        </Button>
+      </Stack>
       {/* ) : ( */}
       <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
         <Stack direction='row'>

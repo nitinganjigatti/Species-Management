@@ -28,9 +28,8 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
+const EggFirstSection = ({ eggDetails, getDetails }) => {
   const theme = useTheme()
-  console.log('fromPath :>> ', fromPath)
 
   const {
     settings: { direction }
@@ -237,20 +236,19 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       />
                     </Box> */}
                   </Box>
-                  {fromPath === 'eggs_received' && (
-                    <Box sx={{ display: 'flex', gap: '8px' }}>
-                      <Box>
-                        <Button variant='outlined' sx={{ height: '100%' }} onClick={() => setOpenDiscard(true)}>
-                          DISCARD
-                        </Button>
-                      </Box>
-                      <Box>
-                        <Button variant='contained' onClick={() => setOpenAllocate(true)}>
-                          ALLOCATE
-                        </Button>
-                      </Box>
+
+                  <Box sx={{ display: 'flex', gap: '8px' }}>
+                    <Box>
+                      <Button variant='outlined' sx={{ height: '100%' }} onClick={() => setOpenDiscard(true)}>
+                        DISCARD
+                      </Button>
                     </Box>
-                  )}
+                    <Box>
+                      <Button variant='contained' onClick={() => setOpenAllocate(true)}>
+                        ALLOCATE
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
               <Grid

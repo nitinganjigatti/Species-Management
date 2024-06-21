@@ -48,14 +48,17 @@ const EggList = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   const [eggID, setEggId] = useState('')
-  const [allocateEggId, setAllocateEggId] = useState(null)
+  console.log('eggID  list:>> ', eggID)
+
+  // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openNepoFile, setOpenNepoFile] = useState(false)
   console.log('isDiscarded :>> ', isDiscarded)
 
-  const handleDiscard = e => {
+  const handleDiscard = (e, eggId) => {
     e.stopPropagation()
     setIsOpen(true)
+    setEggId(eggId)
     console.log('parent discard fn:>> ')
   }
 
@@ -313,30 +316,29 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          {status === 'eggs_received' && (
+          {/* {status === 'eggs_received' && (
             <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
               Allocate{' '}
             </Button>
-          )}
-          {status === 'eggs_to_discard' && isDiscarded === 'eggs_to_discard' ? (
+          )} */}
+          {status === 'eggs_received' ? (
             <>
               <div>
                 <DiscardStatusCell
-                  customButton={
-                    status === 'eggs_to_discard' || isDiscarded === 'eggs_discarded' ? 'customButton' : null
-                  }
+                  customButton={status === 'eggs_received' ? 'customButton' : null}
                   hideField='hideField'
                   params={params}
                   setIsOpen={setIsOpen}
                   handleDiscard={handleDiscard}
                   setEggId={setEggId}
+                  handleAction={handleAction}
 
                   // hover={hover} setHover={setHover}
                 />
@@ -404,7 +406,7 @@ const EggList = () => {
   const handleAction = (event, id) => {
     event.stopPropagation()
     setOpenDrawer(true)
-    setAllocateEggId(id)
+    setEggId(id)
   }
 
   const onCellClick = params => {
@@ -413,11 +415,7 @@ const EggList = () => {
     if (clickedColumn) {
       const data = params.row
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`,
-
-        query: {
-          fromPath: status === 'eggs_ready_to_be_discarded_at_nursery' ? isDiscarded : status
-        }
+        pathname: `/egg/eggs/${data?.id}`
       })
     } else {
       return
@@ -463,6 +461,7 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
+          nursery_id: 1,
           type:
             status === undefined
               ? 'eggs_received'
@@ -606,7 +605,7 @@ const EggList = () => {
           </>
         )}
         {openDrawer && (
-          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={allocateEggId} />
+          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={eggID} />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>

@@ -29,6 +29,7 @@ import { GetEggMaster, AddToDiscard } from 'src/lib/api/egg/egg'
 import { width } from '@mui/system'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
+  console.log('eggID :>> ', eggID)
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
@@ -161,7 +162,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     // console.log('values :>> ', values)
     try {
       const payload = {
-        egg_id: JSON.stringify([785]),
+        egg_id: JSON.stringify([eggID]),
         discard_reason_id: reason,
         necropsy_needed: necropsy,
         comment: getValues('comment'),
@@ -177,7 +178,15 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         setImgSrc('')
         reset()
         setIsOpen(false)
-        toast.success('Discarded Successfully')
+        toast.success(res?.message)
+        callApi('')
+      } else {
+        setReason('')
+        setImgSrc('')
+        reset()
+        setIsOpen(false)
+        toast.success(res?.message)
+        callApi('')
       }
 
       // Perform any additional operations, e.g., API call
@@ -405,7 +414,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         alignItems: 'center',
                         gap: 2,
                         border: 1,
-                        borderColor: '#839D8D',
+                        borderColor: '#c5c6cd',
                         p: 2,
                         borderRadius: '5px',
 
