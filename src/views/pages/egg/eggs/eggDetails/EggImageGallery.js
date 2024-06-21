@@ -47,7 +47,7 @@ const EggImageGallery = ({ eggId }) => {
               <Grid key={index} item xs={12} sm={6} md={4} xl={4} xxl={4}>
                 <Card>
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <Typography
+                    {/* <Typography
                       sx={{
                         fontWeight: 500,
                         fontSize: '20px',
@@ -56,7 +56,7 @@ const EggImageGallery = ({ eggId }) => {
                       }}
                     >
                       {item?.type}
-                    </Typography>
+                    </Typography> */}
                     <Avatar
                       alt='image'
                       sx={{ width: '100%', height: '100%', aspectRatio: '16/9' }}
