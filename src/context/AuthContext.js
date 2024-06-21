@@ -162,6 +162,8 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    localStorage.removeItem('selectedParivesh')
+
     debugger
     setUser(null)
     setUserData(null)
@@ -278,6 +280,7 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    localStorage.removeItem('selectedParivesh')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     router.push('/login')
   }

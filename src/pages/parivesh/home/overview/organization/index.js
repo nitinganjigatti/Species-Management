@@ -231,8 +231,8 @@ const Organization = () => {
   ]
 
   const onCellClick = params => {
-    const { id, batchId } = params.row
-    Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
+    const { id, batch_id } = params.row
+    Router.push(`/parivesh/home/${id}/batch-details?batchId=${batch_id}`)
     console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'
     // if (clickedColumn) {

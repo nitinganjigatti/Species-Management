@@ -83,7 +83,7 @@ const AddNewEntry = () => {
     age: '',
     animal_count: '',
     possession_type: '',
-    transaction_date: null
+    transaction_date: new Date()
   }
 
   const {
@@ -571,6 +571,7 @@ const AddNewEntry = () => {
                           date={value}
                           width={'100%'}
                           onChangeHandler={onChange}
+                          maxDate={new Date()}
                           customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                         />
                       )}

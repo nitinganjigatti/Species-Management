@@ -145,10 +145,8 @@ const SubmittedBatches = ({ searchParams, type }) => {
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
-
-            {console.log(params.row.submitted_on)}
           </Typography>
-          <Typography variant='body2' sx={{ color: '#00AFD6' }}>
+          <Typography variant='body2' sx={{ color: '#00AFD6', fontSize: '12px' }}>
             {params.row.submitted_on ? moment(params.row.submitted_on).format('hh:mm A') : '-'}
           </Typography>
         </Box>
@@ -215,7 +213,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               fontSize: 14
             }}
           >
-            {params.row.status ? params.row.status : '-'}
+            {params.row.status ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1) : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
             {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
