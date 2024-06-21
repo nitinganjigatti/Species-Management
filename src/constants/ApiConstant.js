@@ -218,6 +218,26 @@ export const UPDATE = 'update'
 
 export const TYPE = 'type'
 
+export const ADD_NURSERY = 'egg/nursery'
+
+export const ROOM_LIST = 'room/list'
+
+export const EGG = 'egg'
+
+export const NURSERY = 'nursery'
+
+export const INCUBATOR = 'incubator'
+
+export const ASSESMENT_TYPES = 'egg/default_assessment_types'
+
+export const EDIT = 'edit'
+
+export const DISCARD = 'discard'
+
+export const COMMENT = 'comment'
+
+export const STATUS = 'status'
+
 export const ADD_SPECIES = 'v1/parivesh/species/add'
 
 export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'
