@@ -4,18 +4,15 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider,
   Drawer,
   FormControl,
   FormHelperText,
   Grid,
   IconButton,
-  LinearProgress,
-  TablePagination,
   TextField,
   Typography
 } from '@mui/material'
-import { Box, color } from '@mui/system'
+import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -34,14 +31,10 @@ import * as yup from 'yup'
 
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { LoadingButton } from '@mui/lab'
-import TimelineItem from '@mui/lab/TimelineItem'
-import TimelineContent from '@mui/lab/TimelineContent'
-import TimelineSeparator from '@mui/lab/TimelineSeparator'
-import TimelineConnector from '@mui/lab/TimelineConnector'
-import MuiTimeline from '@mui/lab/Timeline'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
-import { AddAssesment, getActivityLogs, getWeightList } from 'src/lib/api/egg/egg'
+import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
+import EggActivityLogs from './EggActivityLogs'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -58,18 +51,6 @@ const CustomTableContainer = styled(TableContainer)({
   },
   '::-webkit-scrollbar-thumb:hover': {
     background: '#555'
-  }
-})
-
-// Styled Timeline component
-const Timeline = styled(MuiTimeline)({
-  paddingLeft: 0,
-  paddingRight: 0,
-  '& .MuiTimelineItem-root': {
-    width: '100%',
-    '&:before': {
-      display: 'none'
-    }
   }
 })
 
@@ -125,15 +106,9 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   )
 
   // ** States
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
-  const [activtyLogData, setActivtyLogData] = useState([])
-  const [activtyLogCount, setActivtyLogCount] = useState(0)
-  let [page_no, setPage_no] = useState(1)
-  const [reachedEnd, setReachedEnd] = useState(false)
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -303,15 +278,6 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     }
   ]
 
-  // const handleChangePage = (event, newPage) => {
-  //   setPage(newPage)
-  // }
-
-  // const handleChangeRowsPerPage = event => {
-  //   setRowsPerPage(+event.target.value)
-  //   setPage(0)
-  // }
-
   const handleSidebarClose = () => {
     setSidebarOpen(false)
   }
@@ -362,73 +328,8 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     fetchTableData()
   }, [fetchTableData])
 
-  const getActivityLogsFunc = () => {
-    const params = { page_no }
-    try {
-      getActivityLogs(egg_id, params).then(res => {
-        if (res.success) {
-          setActivtyLogData(res?.data?.result)
-          setActivtyLogCount(res?.data?.total_count)
-        } else {
-        }
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-  const handleScroll = async e => {
-    const container = e.target
-    // Check if the user has reached the bottom
-    if (
-      container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight &&
-      activtyLogData.length < activtyLogCount
-    ) {
-      // User has reached the bottom, perform your action here
-      setPage_no(++page_no)
-      setReachedEnd(true)
-      const params = { page_no }
-      // alert('')
-
-      try {
-        getActivityLogs(egg_id, params).then(res => {
-          if (res?.success) {
-            if (res?.data?.result?.length > 0) {
-              setActivtyLogData(prev => [...prev, ...res?.data?.result])
-              setReachedEnd(false)
-            } else {
-              setReachedEnd(false)
-            }
-          } else {
-            setReachedEnd(false)
-          }
-        })
-      } catch (error) {
-        console.log('error', error)
-      }
-    }
-  }
-
-  useEffect(() => {
-    getActivityLogsFunc()
-  }, [])
-
-  function formatText(text) {
-    return text
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }
-
   return (
-    <Grid
-      // gap={{ md: '10px', lg: '1px', xl: '2px' }}
-      justifyContent='space-between'
-      container
-      alignItems='stretch'
-      rowGap={6}
-    >
-      {/* <Grid item xs={12} md={7.2} lg={7.87} xl={7.89}> */}
+    <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
       <Grid item xs={12}>
         <Card>
           <CardHeader
@@ -440,12 +341,8 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
             action={headerAction}
           />
           <CardContent>
-            <Grid
-              container
-              justifyContent={'space-between'}
-              gap={{ xl: '24px', lg: '2px', md: '10px', sm: '24px', xs: '24px' }}
-            >
-              <Grid item xs={12} sm={5.7} md={5.68} lg={5.7} xl={5.8}>
+            <Grid container spacing={6} justifyContent={'space-between'}>
+              <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
                 <Box
                   sx={{
                     backgroundColor: theme.palette.customColors.mdAntzNeutral,
@@ -486,7 +383,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                   ))}
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={5.7} md={5.68} lg={5.7} xl={5.8}>
+              <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
                 <Box
                   sx={{
                     backgroundColor: theme.palette.customColors.mdAntzNeutral,
@@ -678,8 +575,8 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
           </CardContent>
         </Card>
       </Grid>
-      <Grid container sx={{ justifyContent: 'space-between' }}>
-        <Grid item xs={12} md={5.9}>
+      <Grid container spacing={6} sx={{ justifyContent: 'space-between' }}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -828,7 +725,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={5.9}>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
             <CardContent style={{ paddingBottom: 0 }}>
@@ -973,7 +870,6 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       <Drawer
         anchor='right'
         open={addWeightSidebar}
-        // sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] }, height: '100vh' }}
         sx={{ '& .MuiDrawer-paper': { width: ['100%', 500], height: '100vh' } }}
       >
         <Box sx={{ height: '100%', backgroundColor: 'background.default' }}>
@@ -1065,210 +961,12 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
           </Box>
         </Box>
       </Drawer>
-      <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
-        <Drawer
-          anchor='right'
-          open={activtyLogSideBar}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            '& .MuiDrawer-paper': { width: ['100%', 520] },
-            height: '100vh',
-            '& .css-e1dg5m-MuiCardContent-root': {
-              pt: 0
-            }
-          }}
-        >
-          <Box
-            sx={{
-              pb: 4,
-              pt: 4,
-              px: 4,
-              position: 'sticky',
-              top: 0,
-              backgroundColor: '#fff',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              zIndex: 100
-            }}
-          >
-            <Box
-              className='sidebar-header'
-              sx={{
-                display: 'flex',
-                width: '100%',
-                gap: '12px',
-                justifyContent: 'space-between',
-                alignItems: 'start'
-              }}
-            >
-              <Box
-                sx={{
-                  padding: '4px',
-                  borderRadius: '4px',
-                  height: '32px',
-                  width: '32px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral
-                }}
-              >
-                <Icon icon={'ion:time-outline'} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
-                  <Icon icon='mdi:close' fontSize={24} />
-                </IconButton>
-              </Box>
-            </Box>
-          </Box>
-          <Box onScroll={handleScroll} sx={{ px: 4, pt: 8, overflowY: 'auto' }}>
-            {activtyLogData?.length > 0 ? (
-              <Timeline>
-                {activtyLogData?.map((item, index) => (
-                  <TimelineItem key={index}>
-                    <TimelineSeparator
-                      sx={{
-                        '& span': {
-                          backgroundColor:
-                            item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
-                              ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.main
-                        }
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          border: '2px solid ',
-                          borderColor:
-                            item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
-                              ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.main,
-                          // backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
-                          boxSizing: 'border-box',
-                          width: '22px',
-                          height: '22px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Icon
-                          height={'16px'}
-                          width={'16px'}
-                          style={{
-                            color:
-                              item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
-                                ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.main
-                          }}
-                          icon={
-                            item.status === 'Fresh'
-                              ? // ? 'ic:outline-check'
-                                'ic:sharp-check-circle'
-                              : // : item.status === 'Swapped'
-                                // ? 'ic:sharp-check-circle'
-                                // : item.status === 'edited'
-                                // ? 'ic:sharp-check-circle'
-                                // : item.status === 'deleted'
-                                // ? 'ic:sharp-check-circle'
-                                'ic:sharp-check-circle'
-                          }
-                          // color={item.status === 'Fresh' ? '#fff' : '#fff'}
-                        />
-                      </Box>
-                      {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
-                    </TimelineSeparator>
-                    <TimelineContent
-                      sx={{
-                        pt: 3,
-                        pb: 0,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        backgroundColor:
-                          item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
-                            ? '#FFBDA84D'
-                            : '#37BD691A',
-                        ml: 4,
-                        borderRadius: '8px',
-                        mb: '20px',
-                        position: 'relative',
-                        top: -28
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            mr: 2,
-                            fontSize: 16,
-                            fontWeight: 500,
-                            lineHeight: 'normal',
-                            mb: '4px',
-                            color:
-                              item.status === 'Necropsy' || item.status === 'Discarded' || item.status === 'Rotten'
-                                ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.main
-                          }}
-                        >
-                          {item.status}
-                        </Typography>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            fontSize: 14,
-                            fontWeight: 400,
-                            lineHeight: 'normal',
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          {item.action ? formatText(item.action) : '-'}
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          justifyContent: 'space-between',
-                          mb: '20px'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
-                          <Typography
-                            sx={{
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: 14,
-                              mb: '4px',
-                              fontWeight: 500,
-                              lineHeight: 'normal'
-                            }}
-                            variant='caption'
-                          >
-                            {moment(item?.created_at).format('DD MMM YYYY')}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              color: theme.palette.customColors.neutralSecondary,
-                              fontSize: 14,
-                              fontWeight: 500,
-                              lineHeight: 'normal'
-                            }}
-                            variant='caption'
-                          >
-                            {moment(item?.created_at).format('h:mm A')}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </TimelineContent>
-                  </TimelineItem>
-                ))}
-              </Timeline>
-            ) : null}
-          </Box>
-          {reachedEnd ? <LinearProgress /> : null}
-        </Drawer>{' '}
-      </Box>
+
+      <EggActivityLogs
+        activtyLogSideBar={activtyLogSideBar}
+        setActivtyLogSideBar={setActivtyLogSideBar}
+        egg_id={egg_id}
+      />
     </Grid>
   )
 }

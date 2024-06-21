@@ -14,7 +14,7 @@ const EggImageGallery = ({ eggId }) => {
     try {
       getGalleryImgList({ egg_id: eggId }).then(res => {
         if (res.success) {
-          setGalleryList(res?.data?.actions?.flagged_to_send_to_nursery)
+          setGalleryList(res?.data?.result)
         } else {
         }
       })
@@ -41,9 +41,9 @@ const EggImageGallery = ({ eggId }) => {
         >
           Image Gallery
         </Typography>
-        <Grid container sx={{ justifyContent: 'space-between', gap: '24px' }}>
+        <Grid container spacing={6} sx={{ justifyContent: 'space-between' }}>
           {galleryList?.map((item, index) => (
-            <Grid key={index} item xs={12} sm={5.7} md={3.7} xl={3.8} xxl={3.8}>
+            <Grid key={index} item xs={12} sm={6} md={4} xl={4} xxl={4}>
               <Card>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <Typography
@@ -56,7 +56,12 @@ const EggImageGallery = ({ eggId }) => {
                   >
                     {item?.type}
                   </Typography>
-                  <Avatar alt='image' sx={{ width: '100%', height: '100%' }} variant='rounded' src={item?.img} />
+                  <Avatar
+                    alt='image'
+                    sx={{ width: '100%', height: '100%', aspectRatio: '16/9' }}
+                    variant='rounded'
+                    src={item?.file_name}
+                  />
                   {/* //////////////////////////////////////////// */}
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar
@@ -71,10 +76,10 @@ const EggImageGallery = ({ eggId }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {item?.user?.profile_pic ? (
+                      {item?.user_profile_pic ? (
                         <img
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          src={item?.user?.profile_pic}
+                          src={item?.user_profile_pic}
                           alt='Profile'
                         />
                       ) : (

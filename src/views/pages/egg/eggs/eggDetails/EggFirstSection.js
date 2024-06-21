@@ -28,9 +28,8 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
+const EggFirstSection = ({ eggDetails, getDetails }) => {
   const theme = useTheme()
-  // console.log('fromPath :>> ', fromPath)
 
   const {
     settings: { direction }
@@ -276,20 +275,6 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       </Box>
                     ) : null}
                   </Box>
-                  {/* {fromPath === 'eggs_received' && (
-                    <Box sx={{ display: 'flex', gap: '8px' }}>
-                      <Box>
-                        <Button variant='outlined' sx={{ height: '100%' }} onClick={() => setOpenDiscard(true)}>
-                          DISCARD
-                        </Button>
-                      </Box>
-                      <Box>
-                        <Button variant='contained' onClick={() => setOpenAllocate(true)}>
-                          ALLOCATE
-                        </Button>
-                      </Box>
-                    </Box>
-                  )} */}
                 </Box>
               </Box>
               <Grid
@@ -314,68 +299,72 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '8px',
-                      padding: '4px',
-                      backgroundColor: theme.palette.primary.light
-                    }}
-                  >
-                    <Typography
+                  <Grid container justifyContent='space-between' alignItems='center'>
+                    <Grid
+                      item
+                      xs={3}
                       sx={{
-                        color: theme.palette.primary.contrastText,
-                        fontWeight: 600,
-                        fontSize: '28px',
-                        lineHeight: '33.89px',
-                        textAlign: 'center'
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        backgroundColor: theme.palette.primary.light
                       }}
                     >
-                      {' '}
-                      {formatDate(eggDetails?.collection_date)?.count}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.primary.contrastText,
-                        fontWeight: 600,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {' '}
-                      {formatDate(eggDetails?.collection_date)?.label}
-                    </Typography>
-                  </Box>
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.contrastText,
+                          fontWeight: 600,
+                          fontSize: '28px',
+                          lineHeight: '33.89px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {' '}
+                        {formatDate(eggDetails?.collection_date)?.count}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.contrastText,
+                          fontWeight: 600,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {' '}
+                        {formatDate(eggDetails?.collection_date)?.label}
+                      </Typography>
+                    </Grid>
 
-                  <Box sx={{}}>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                        mb: '6px',
-                        fontSize: { xxl: '20px', xl: '20px', lg: '18px', xs: '20px' },
-                        lineHeight: '24.2px',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      {moment(eggDetails?.collection_date).format('DD MMM YYYY')}
-                    </Typography>
+                    <Grid item xs={7}>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          mb: '6px',
+                          fontSize: { xxl: '20px', xl: '20px', lg: '18px', xs: '20px' },
+                          lineHeight: '24.2px',
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {moment(eggDetails?.collection_date).format('DD MMM YYYY')}
+                      </Typography>
 
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      Found date
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                  </Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        Found date
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={1.2}>
+                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid
                   item
@@ -394,23 +383,25 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      backgroundColor: '#00D6C9'
-                    }}
-                  >
-                    <Avatar
-                      sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
-                      src={'/icons/weightColor.png'}
-                      variant='square'
-                    ></Avatar>
-                  </Box>
-                  <Box>
-                    <Box>
+                  <Grid container justifyContent='space-between' alignItems='center'>
+                    <Grid
+                      item
+                      xs={3}
+                      sx={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        backgroundColor: '#00D6C9'
+                      }}
+                    >
+                      <Avatar
+                        sx={{ width: '100%', height: '100%', borderRadius: '8px', aspectRatio: 2 / 2 }}
+                        src={'/icons/weightColor.png'}
+                        variant='square'
+                      ></Avatar>
+                    </Grid>
+                    <Grid item xs={7}>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -425,9 +416,7 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                             ' ' +
                             eggDetails?.assessments_data[0]?.uom_abbr}
                       </Typography>
-                    </Box>
 
-                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 600,
@@ -443,11 +432,11 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                           ? 'Current weight'
                           : displayText}
                       </Typography>
-                    </Box>
-                  </Box>
-                  <Box>
-                    <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                  </Box>
+                    </Grid>
+                    <Grid item xs={1.2}>
+                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid
                   item
@@ -499,7 +488,7 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       ></Avatar>
                     </Grid>
 
-                    <Grid item xs={6.5}>
+                    <Grid item xs={7}>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -527,7 +516,7 @@ const EggFirstSection = ({ eggDetails, fromPath, getDetails }) => {
                       </Typography>
                     </Grid>
 
-                    <Grid item xs={1.8}>
+                    <Grid item xs={1.2}>
                       <IconButton
                         disabled={Number(eggDetails?.action_to_be_taken) != 5}
                         onClick={() => setOpenDrawer(true)}
