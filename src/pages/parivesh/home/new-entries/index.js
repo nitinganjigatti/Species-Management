@@ -74,6 +74,8 @@ const NewEntry = ({}) => {
   const [editParams, setEditParams] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [detailData, setDetailData] = useState()
+  const [isEditModal, setIsEditModal] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -87,6 +89,12 @@ const NewEntry = ({}) => {
       setSelectedRows([])
     }
   }
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setIsEditModal(false) // Close the edit modal when the delete modal opens
+    }
+  }, [isModalOpen])
 
   const handleCreateBatch = async () => {
     const payload = {
@@ -384,7 +392,9 @@ const NewEntry = ({}) => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
+    console.log(params, 'params  12345>>>')
+    setIsEditModal(true)
+    setDetailData(params?.row)
     // Router.push('/parivesh/home/new-entries/add-newentry')
     // console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'
@@ -844,6 +854,117 @@ const NewEntry = ({}) => {
       )}
 
       <Grid>{tableData()}</Grid>
+
+      <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsEditModal(false)}
+            sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Grid sx={{ display: 'flex', mt: 3 }}>
+            <Grid>
+              <Avatar variant='square' />
+            </Grid>
+            <Grid>
+              <Typography sx={{ ml: 2, mt: 2 }}>Created By: ABCD</Typography>
+            </Grid>
+          </Grid>
+          <Box
+            sx={{
+              display: 'flex',
+              height: '80px',
+              mr: 10,
+              mt: 2
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              {/* <Icon width='60px' height='40px' color={'#ff3838'} icon={'mdi:delete'} /> */}
+              <Avatar src={detailData?.species_image} width='80px' height='70px' variant='sqauare' />
+            </Box>
+            <Box>
+              <Typography variant='h6' sx={{ ml: 4, mt: 2, color: '#00afd6' }}>
+                {detailData?.scientific_name}
+              </Typography>
+              <Typography variant='h6' sx={{ ml: 4 }}>
+                ({detailData?.common_name})
+              </Typography>
+            </Box>
+            {/* <div style='border-bottom: 1px solid black;'></div> */}
+          </Box>
+          <Box sx={{ borderBottom: '1px solid black', mt: 5 }}></Box>
+          <Grid sx={{ display: 'flex', mt: 2 }}>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6'>Gender</Typography>
+            </Grid>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6' sx={{ ml: 58 }}>
+                {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid sx={{ display: 'flex' }}>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6'>Age</Typography>
+            </Grid>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6' sx={{ ml: 66 }}>
+                {detailData?.age.charAt(0).toUpperCase() + detailData?.age.slice(1)}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid sx={{ display: 'flex' }}>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6'>Reason for Entry</Typography>
+            </Grid>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6' sx={{ ml: 36 }}>
+                {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid sx={{ display: 'flex', mt: 2 }}>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6'>Total Count</Typography>
+            </Grid>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6' sx={{ ml: 50 }}>
+                {detailData?.animal_count}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid sx={{ display: 'flex', mt: 2 }}>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6'>Entry Date</Typography>
+            </Grid>
+            <Grid sx={{ mt: 2 }}>
+              {' '}
+              <Typography variant='h6' sx={{ ml: 50 }}>
+                {detailData?.transaction_date
+                  ? moment(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
+                  : ''}
+              </Typography>
+            </Grid>
+          </Grid>
+        </DialogTitle>
+      </Dialog>
 
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
