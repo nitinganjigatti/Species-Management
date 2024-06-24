@@ -29,7 +29,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
-  const [nurseryList, setNurseryList] = useState([]) 
+  const [nurseryList, setNurseryList] = useState([])
   console.log('nurseryList :>> ', nurseryList)
   const id = editParams?.room_id
 
@@ -102,6 +102,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
           callApi('')
         } else {
           setLoader(false)
+          reset()
           toast.error('Unable to add Room')
         }
       } else {
@@ -130,6 +131,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
     setValue('room_name', editParams?.room_name)
     setValue('site_id', editParams?.site_id)
     setValue('nursery_id', editParams?.nursery_id)
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+    reset()
   }
 
   return (
@@ -168,7 +174,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
               <Typography variant='h6'>Add Room</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={() => setIsOpen(false)} sx={{ color: 'text.primary' }}>
+              <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
             </Box>
