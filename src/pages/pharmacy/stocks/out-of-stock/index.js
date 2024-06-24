@@ -18,6 +18,7 @@ import { FormControlLabel, Switch } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
+import { Tooltip } from '@mui/material'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -131,9 +132,11 @@ const StockOut = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_item_name}
-        </Typography>
+        <Tooltip title={params.row.stock_item_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_item_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
