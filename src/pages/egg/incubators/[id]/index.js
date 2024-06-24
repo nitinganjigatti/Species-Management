@@ -749,7 +749,7 @@ const IncubatorDetails = () => {
   const headerAction = (
     <>
       {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
-      <div>
+      {/* <div>
         <Button
           size='small'
           variant='contained'
@@ -759,7 +759,7 @@ const IncubatorDetails = () => {
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; Add New
         </Button>
-      </div>
+      </div> */}
       {/* )} */}
     </>
   )
@@ -1048,66 +1048,73 @@ const IncubatorDetails = () => {
               </Box>
             </CardContent>
           </Box>
-          <Card>
-            <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} />
-            <CardContent>
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  },
-                  '.css-cqiw3d': {
-                    pr: 0
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-              />
-              <AddIncubators
-                isEdit={isEdit}
-                incubatorDetail={incubatorDetail}
-                drawerWidth={400}
-                sidebarOpen={dialog}
-                handleSidebarClose={handleSidebarClose}
-              />
-              <ActivityLogs
-                activity_type={'sa'}
-                activitySidebarOpen={activitySidebarOpen}
-                handleSidebarClose={handleActivitySidebarClose}
-              />
-            </CardContent>
-          </Card>
+          <Box>
+            {/* <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} /> */}
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontWeight: 500,
+                fontSize: '20px',
+                lineHeight: '24.2px',
+                mb: 4
+              }}
+            >
+              Egg - 10
+            </Typography>
+            {/* <CardContent > */}
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              // slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                }
+                // toolbar: {
+                //   value: searchValue,
+                //   clearSearch: () => handleSearch(''),
+                //   onChange: event => handleSearch(event.target.value)
+                // }
+              }}
+              onCellClick={onCellClick}
+            />
+            <AddIncubators
+              isEdit={isEdit}
+              incubatorDetail={incubatorDetail}
+              drawerWidth={400}
+              sidebarOpen={dialog}
+              handleSidebarClose={handleSidebarClose}
+            />
+            <ActivityLogs
+              activity_type={'sa'}
+              activitySidebarOpen={activitySidebarOpen}
+              handleSidebarClose={handleActivitySidebarClose}
+            />
+            {/* </CardContent> */}
+          </Box>
         </CardContent>
       </Card>
     </>

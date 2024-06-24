@@ -262,14 +262,16 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                     {Number(eggDetails?.action_to_be_taken) === 6 ||
                     Number(eggDetails?.action_to_be_taken) === 7 ? null : (
                       <Box>
-                        <Button variant='outlined' sx={{ height: '100%' }}>
+                        <Button onClick={() => setOpenDiscard(true)} variant='outlined' sx={{ height: '100%' }}>
                           DISCARD
                         </Button>
                       </Box>
                     )}
                     {Number(eggDetails?.action_to_be_taken) === 4 ? (
                       <Box>
-                        <Button variant='contained'>ALLOCATE</Button>
+                        <Button onClick={() => setOpenAllocate(true)} variant='contained'>
+                          ALLOCATE
+                        </Button>
                       </Box>
                     ) : null}
                   </Box>
