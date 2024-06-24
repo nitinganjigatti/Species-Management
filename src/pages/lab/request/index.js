@@ -246,6 +246,7 @@ const ListOfRequest = () => {
 
   useEffect(() => {
     const options = authData?.userData?.modules?.lab_data?.lab
+    console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
     setLab(options)
   }, [])
 
@@ -262,6 +263,7 @@ const ListOfRequest = () => {
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
+    console.log('Data :>> ', Data)
 
     setLabSelected(Data)
     if (Data) {
@@ -292,7 +294,7 @@ const ListOfRequest = () => {
         limit: paginationModel.pageSize,
         lab_id: data
       }
-      const params2 = { lab_id: Data }
+      const params2 = { lab_id: data }
       GetLabRequestStatus(params2)
       fetchData(params)
       setSelectLoader(false)
