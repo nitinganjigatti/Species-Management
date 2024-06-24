@@ -97,21 +97,23 @@ const NurseryList = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 30,
+      minWidth: 40,
       field: 'id',
-      headerName: 'No',
+      headerName: 'SL',
       align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {console.log('Sr nO >>>', params.row)}
+          {params.row.sl_no}
         </Typography>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 30,
       field: 'Nursery Name',
       headerName: 'Nursery Name',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.nursery_name}
@@ -120,16 +122,15 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 30,
       field: 'ROOMS',
       headerName: 'ROOMS',
-      align: 'center',
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_rooms}</Box>
     },
 
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 30,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
@@ -140,10 +141,12 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 30,
       field: 'SITE NAME',
+      align:"center",
       headerName: 'SITE NAME',
+
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
     },
     {
