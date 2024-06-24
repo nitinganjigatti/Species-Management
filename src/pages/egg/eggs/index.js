@@ -233,29 +233,30 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.15,
-      minWidth: 20,
-      sortable: false,
-      field: 'lay_date',
-      headerName: 'Lay Date',
-      align: 'center',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.lay_date
-            ? //  moment(params.row.lay_date).format('DD/MM/YYYY')
-              params.row.lay_date
-            : '-'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.15,
+    //   minWidth: 20,
+    //   sortable: false,
+    //   field: 'lay_date',
+    //   headerName: 'Lay Date',
+    //   align: 'center',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.lay_date
+    //         ? //  moment(params.row.lay_date).format('DD/MM/YYYY')
+    //           params.row.lay_date
+    //         : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.35,
