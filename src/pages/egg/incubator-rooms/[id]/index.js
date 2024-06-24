@@ -456,7 +456,7 @@ const RoomDetails = () => {
 
               <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
 
-              <Box sx={{ px: 8 }}>
+              <Box sx={{}}>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -484,19 +484,20 @@ const RoomDetails = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
+
+                  // slotProps={{
+                  //   baseButton: {
+                  //     variant: 'outlined'
+                  //   },
+                  //   toolbar: {
+                  //     value: searchValue,
+                  //     clearSearch: () => handleSearch(''),
+                  //     onChange: event => handleSearch(event.target.value)
+                  //   }
+                  // }}
 
                   // onCellClick={onCellClick}
                 />

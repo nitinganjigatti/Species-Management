@@ -96,12 +96,20 @@ const RoomsList = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
-      align: 'center',
+      field: 'id',
       headerName: 'SL ',
+      sortable: false,
+      align: 'center',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
         </Typography>
       )
     },

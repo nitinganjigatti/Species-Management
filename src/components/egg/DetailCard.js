@@ -20,7 +20,7 @@ const DetailCard = ({ title, DetailsListData, detailsData, ButtonName, setOpenDr
 
   return (
     <>
-      <Box sx={{ px: 5, py: 3 }}>
+      <Box sx={{ py: 3 }}>
         <Stack
           direction='row'
           sx={{
