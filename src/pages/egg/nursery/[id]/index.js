@@ -260,7 +260,7 @@ const NurseryDetails = () => {
         </Typography>
       </Breadcrumbs>
       <Card>
-        <CardHeader title={'Rooms Details'} action={headerAction} />
+        <CardHeader title={'Nursery Details'} action={headerAction} />
         <DetailCard
           title='Nursery Details'
           ButtonName={'ADD ROOM'}
