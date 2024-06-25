@@ -1,9 +1,9 @@
-import { ENTRY_LIST_SPECIES } from '../../../constants/ApiConstant'
+import { UPDATE_BATCH_STATUS } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function updateBatchStatus(payload) {
   try {
-    const url = `/v1/parivesh/species/site/batchstatusupdate`
+    const url = `${UPDATE_BATCH_STATUS}`
     const response = await axiosFormPost({ url, body: payload })
 
     return response?.data

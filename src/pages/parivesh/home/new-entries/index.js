@@ -82,6 +82,7 @@ const NewEntry = ({}) => {
   }
 
   const handleSelectAll = event => {
+    event.stopPropagation()
     setSelectAll(event.target.checked)
     if (event.target.checked) {
       setSelectedRows(rows.map(row => row.id))
@@ -131,11 +132,10 @@ const NewEntry = ({}) => {
     if (selectedIndex === -1) {
       newSelected = [...selectedRows, id]
     } else {
-      newSelected = selectedRows.filter(id => id !== id)
+      newSelected = selectedRows.filter(rowId => rowId !== id)
     }
-
+    // Update selectedRows state
     setSelectedRows(newSelected)
-
     // Update selectAll state
     setSelectAll(newSelected.length === rows.length)
   }
@@ -387,7 +387,11 @@ const NewEntry = ({}) => {
         <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       ),
       renderCell: params => (
-        <Checkbox checked={selectedRows.includes(params.row.id)} onChange={() => handleRowSelection(params.row.id)} />
+        <Checkbox
+          checked={selectedRows.includes(params.row.id)}
+          onClick={e => e.stopPropagation()}
+          onChange={() => handleRowSelection(params.row.id)}
+        />
       )
     }
   ]

@@ -88,14 +88,26 @@ const SubmittedBatches = ({ searchParams, type }) => {
   }))
 
   const columns = [
+    // {
+    //   flex: 0.2,
+    //   Width: 40,
+    //   field: 'batchId',
+    //   headerName: 'BATCH ID',
+    //   alignItems: 'left',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.batch_id}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       Width: 40,
-      field: 'batchId',
-      headerName: 'BATCH ID',
+      field: 'id',
+      headerName: 'S.No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_id}
+          {params.row.id}
         </Typography>
       )
     },
@@ -132,6 +144,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       minWidth: 10,
       field: 'no_of_animals',
       headerName: '# OF ANIMALS',
+      alignItems: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
@@ -143,6 +156,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       minWidth: 20,
       field: 'submitted_on',
       headerName: 'SUBMITTED DATE',
+      alignItems: 'left',
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -159,7 +173,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       minWidth: 60,
       field: 'created_by_user',
       headerName: 'CREATED BY',
-
+      alignItems: 'left',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -200,6 +214,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
+      alignItems: 'left',
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
@@ -215,7 +230,12 @@ const SubmittedBatches = ({ searchParams, type }) => {
               fontSize: 14
             }}
           >
-            {params.row.status ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1) : '-'}
+            {/* {params.row.status ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1) : '-'} */}
+            {params.row.status
+              ? params.row.status === 'accepted'
+                ? 'Approved'
+                : params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1)
+              : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
             {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
