@@ -415,9 +415,9 @@ const EggList = () => {
   }
 
   const onCellClick = params => {
-    // console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
-    if (clickedColumn) {
+    // console.log('params.field', params.field)
+    // const clickedColumn = params.field !== 'switch'
+    if (params) {
       const data = params.row
       Router.push({
         pathname: `/egg/eggs/${data?.id}`
@@ -621,7 +621,9 @@ const EggList = () => {
   return (
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Egg</Typography>
+        <Typography color='inherit' sx={{ cursor: 'pointer' }}>
+          Egg
+        </Typography>
 
         <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
           Egg List
