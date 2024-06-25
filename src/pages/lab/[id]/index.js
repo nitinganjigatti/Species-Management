@@ -211,6 +211,7 @@ const RequestDetails = () => {
       setOpenTransfer(true)
       setSelectedLab(params.row)
     }
+    handleClosePopover()
   }
 
   useEffect(() => {
@@ -249,6 +250,7 @@ const RequestDetails = () => {
 
   const handleOpenUploader = () => {
     setOpenUploader(true)
+    handleClosePopover()
   }
 
   const handleOpenShowFile = (e, params) => {
