@@ -52,11 +52,19 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
+    console.log('id click req :>> ', id)
     write('selectedLAB', labSelected)
-    router.push({
-      pathname: `/lab/${id}`,
-      query: { lab_id: labSelected }
-    })
+    if (labSelected) {
+      router.push({
+        pathname: `/lab/${id}`,
+        query: { lab_id: labSelected }
+      })
+    } else {
+      router.push({
+        pathname: `/lab/${id}`,
+        query: { lab_id: authData?.userData?.modules?.lab_data?.lab[0]?.lab_id }
+      })
+    }
   }
 
   const columns = [
@@ -246,6 +254,7 @@ const ListOfRequest = () => {
 
   useEffect(() => {
     const options = authData?.userData?.modules?.lab_data?.lab
+    console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
     setLab(options)
   }, [])
 
@@ -262,6 +271,7 @@ const ListOfRequest = () => {
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
+    console.log('Data :>> ', Data)
 
     setLabSelected(Data)
     if (Data) {
@@ -292,7 +302,7 @@ const ListOfRequest = () => {
         limit: paginationModel.pageSize,
         lab_id: data
       }
-      const params2 = { lab_id: Data }
+      const params2 = { lab_id: data }
       GetLabRequestStatus(params2)
       fetchData(params)
       setSelectLoader(false)
