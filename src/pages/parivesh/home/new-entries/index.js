@@ -217,7 +217,8 @@ const NewEntry = ({}) => {
     searchTableData(sort, value, sortColumn)
   }
 
-  const handleEdit = async params => {
+  const handleEdit = async (event, params) => {
+    event.stopPropagation()
     console.log('params >>', params)
     setEditParams(params)
 
@@ -368,7 +369,7 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
             <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleDelete(params.row.id)} aria-label='Edit'>
@@ -879,7 +880,7 @@ const NewEntry = ({}) => {
               <Avatar variant='square' />
             </Grid>
             <Grid>
-              <Typography sx={{ ml: 2, mt: 2 }}>Created By: ABCD</Typography>
+              <Typography sx={{ ml: 2, mt: 2 }}>Created By: {''}</Typography>
             </Grid>
           </Grid>
           <Box
