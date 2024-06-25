@@ -168,13 +168,14 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  const fetchRequestDetails = async () => {
+  const fetchRequestDetails = async (sort, q) => {
     try {
       // Make your API call here
       setLoading(true)
 
       const params = {
-        lab_id: Selectedlab_id
+        lab_id: Selectedlab_id,
+        q
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
@@ -213,7 +214,7 @@ const RequestDetails = () => {
   }
 
   useEffect(() => {
-    fetchRequestDetails()
+    fetchRequestDetails(sort, searchValue)
   }, [id, paginationModel])
 
   function loadServerRows(currentPage, data) {
@@ -224,7 +225,7 @@ const RequestDetails = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchRequestDetails({ sort, q, column })
+        await fetchRequestDetails(sort, q, column)
       } catch (error) {
         console.error(error)
       }
@@ -633,6 +634,7 @@ const RequestDetails = () => {
               rowCount={total}
               columns={columns}
               // getRowId={row => row?.test_id}
+              onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
