@@ -46,6 +46,8 @@ import { addBatches } from 'src/lib/api/parivesh/addBatch'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
+import Image from 'next/image'
+import { display } from '@mui/system'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -270,7 +272,12 @@ const NewEntry = ({}) => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          {/* <Box className='relative h-20'>
+            <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
+          </Box> */}
+
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'
@@ -899,11 +906,14 @@ const NewEntry = ({}) => {
               sx={{
                 padding: '16px',
                 borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
+                backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                display: 'flex',
+                alignItems: 'center'
               }}
             >
               {/* <Icon width='60px' height='40px' color={'#ff3838'} icon={'mdi:delete'} /> */}
-              <Avatar src={detailData?.species_image} width='80px' height='70px' variant='sqauare' />
+
+              <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
             </Box>
             <Box>
               <Typography variant='h6' sx={{ ml: 4, mt: 2, color: '#00afd6' }}>

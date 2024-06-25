@@ -93,7 +93,7 @@ const SpeciesDetails = () => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} />
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} sx={{ height: 'auto' }} />
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'

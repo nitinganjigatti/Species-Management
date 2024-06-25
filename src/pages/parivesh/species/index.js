@@ -188,7 +188,7 @@ const SpeciesList = () => {
         headerName: 'IMAGE',
         renderCell: params => (
           <>
-            <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+            <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
           </>
         )
       },
