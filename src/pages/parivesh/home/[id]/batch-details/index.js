@@ -514,7 +514,7 @@ const BatchDetails = ({ params, searchParams }) => {
                   Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
                 </Typography>
               </Grid>
-              {selectedStatus !== 'accepted' ? (
+              {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
                 <Grid item xs={12} sm={6} md={3}>
                   <Select
                     displayEmpty
@@ -549,7 +549,11 @@ const BatchDetails = ({ params, searchParams }) => {
                 </Grid>
               ) : (
                 <Typography variant='h6' sx={{ color: '#37BD69', mt: 2 }}>
-                  Approved
+                  {batchDetails.status === 'accepted'
+                    ? 'Approved'
+                    : batchDetails.status === 'rejected'
+                    ? 'Rejected'
+                    : null}
                 </Typography>
               )}
             </Grid>
