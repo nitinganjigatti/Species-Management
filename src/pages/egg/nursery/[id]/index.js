@@ -233,8 +233,8 @@ const NurseryDetails = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+      <Box sx={{ display: 'flex', height: '50px', justifyContent: 'space-between' }}>
+        <IconButton size='large' sx={{ mr: 1.5}} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
           <Icon icon='mdi:pencil-outline' />
         </IconButton>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
