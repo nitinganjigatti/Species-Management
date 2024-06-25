@@ -12,6 +12,7 @@ import UserDropdown from 'src/@core/layouts/components/shared-components/UserDro
 import SelectPharmacy from 'src/components/SelectPharmacy'
 import { usePathname } from 'next/navigation'
 import { AuthContext } from 'src/context/AuthContext'
+import SelectParivesh from 'src/components/SelectParivesh'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -37,6 +38,7 @@ const AppBarContent = props => {
         ) : null}
         {/* <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
         {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
+        {moduleName === 'parivesh' && <SelectParivesh />}
       </Box>
       <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>
         {selectedPharmacy?.name}
