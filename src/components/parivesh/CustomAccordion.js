@@ -8,6 +8,29 @@ import Box from '@mui/material/Box'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Card, CardContent, Grid } from '@mui/material'
+import { useState } from 'react'
+
+// const getStyledAccordion = backgroundImage =>
+//   styled(Accordion)(({ theme }) => ({
+//     backgroundImage: `url(${backgroundImage})`,
+//     backgroundSize: 'cover',
+//     backgroundPosition: 'center',
+//     backgroundRepeat: 'no-repeat',
+//     color: '#fff',
+//     borderRadius: '8px',
+//     overflow: 'hidden', // This ensures the border radius is applied properly
+//     '& .MuiAccordionSummary-root': {
+//       color: '#FFFFFF',
+//       backgroundColor: '#00000099', // To ensure text visibility
+//       borderTopLeftRadius: '8px',
+//       borderTopRightRadius: '8px'
+//     },
+//     '& .MuiAccordionDetails-root': {
+//       backgroundColor: '#00000099', // To ensure text visibility
+//       borderBottomLeftRadius: '8px',
+//       borderBottomRightRadius: '8px'
+//     }
+//   }))
 
 const getStyledAccordion = backgroundImage =>
   styled(Accordion)(({ theme }) => ({
@@ -16,14 +39,26 @@ const getStyledAccordion = backgroundImage =>
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     color: '#fff',
+    borderRadius: '8px',
+    overflow: 'hidden', // Ensures border radius is applied properly
     '& .MuiAccordionSummary-root': {
       color: '#FFFFFF',
-      backgroundColor: '#00000099' // To ensure text visibility
+      backgroundColor: '#00000099', // To ensure text visibility
+      borderTopLeftRadius: '8px',
+      borderTopRightRadius: '8px',
+      position: 'relative' // Relative positioning for the summary
+    },
+    '& .MuiAccordionSummary-expandIconWrapper': {
+      position: 'absolute',
+      top: 12,
+      right: 18,
+      transition: 'transform 0.3s' // Smooth transition for rotation
     },
     '& .MuiAccordionDetails-root': {
-      backgroundColor: '#00000099' // To ensure text visibility
-    },
-    borderRadius: '8px'
+      backgroundColor: '#00000099', // To ensure text visibility
+      borderBottomLeftRadius: '8px',
+      borderBottomRightRadius: '8px'
+    }
   }))
 
 const CustomAccordion = ({
@@ -38,6 +73,11 @@ const CustomAccordion = ({
   handleBoxClick
 }) => {
   const StyledAccordion = getStyledAccordion(backgroundImage)
+  const [expanded, setExpanded] = useState(false)
+
+  const handleChange = () => {
+    setExpanded(!expanded)
+  }
 
   return (
     <>
@@ -63,7 +103,7 @@ const CustomAccordion = ({
         </Box>
       )}
 
-      <StyledAccordion>
+      <StyledAccordion expanded={expanded} onChange={handleChange}>
         <AccordionSummary
           id='panel-header-1'
           aria-controls='panel-content-1'
