@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
@@ -30,6 +30,9 @@ import { deleteRecipe } from 'src/lib/api/diet/recipe'
 import toast from 'react-hot-toast'
 import RecipeListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
+import Toaster from 'src/components/Toaster'
+
+import { AuthContext } from 'src/context/AuthContext'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -63,6 +66,9 @@ const RecipeDetail = () => {
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -107,38 +113,39 @@ const RecipeDetail = () => {
       if (response.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe {'REP' + id} has been successfully deleted
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        // return toast(
+        //   t => (
+        //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //         <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+        //         <div>
+        //           <Typography sx={{ fontWeight: 500 }} variant='h5'>
+        //             Success!
+        //           </Typography>
+        //           <Divider sx={{ my: 2 }} />
+        //           <Typography variant='body2' sx={{ color: '#44544A' }}>
+        //             Recipe {'REP' + id} has been successfully deleted
+        //           </Typography>
+        //         </div>
+        //       </Box>
+        //       <IconButton
+        //         onClick={() => toast.dismiss(t.id)}
+        //         style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
+        //       >
+        //         <Icon icon='mdi:close' fontSize={24} />
+        //       </IconButton>
+        //     </Box>
+        //   ),
+        //   {
+        //     style: {
+        //       minWidth: '450px',
+        //       minHeight: '130px'
+        //     }
+        //   }
+        // )
+        return Toaster({ type: 'success', message: response?.message })
       } else {
-        alert('something went wrong')
+        return Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {}
   }
@@ -170,22 +177,29 @@ const RecipeDetail = () => {
                         {IngredientsDetailsval.recipe_name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                        <Icon
-                          icon='bx:pencil'
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id } })}
-                        />
-                        <Icon
-                          icon='material-symbols:delete-outline'
-                          style={{ cursor: 'pointer', marginLeft: '15px' }}
-                          onClick={() => {
-                            handleClickOpen()
-                          }}
-                        />
+                        {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                          <Icon
+                            icon='bx:pencil'
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id } })}
+                          />
+                        )}
+                        {dietModuleAccess === 'DELETE' && (
+                          <Icon
+                            icon='material-symbols:delete-outline'
+                            style={{ cursor: 'pointer', marginLeft: '15px' }}
+                            onClick={() => {
+                              handleClickOpen()
+                            }}
+                          />
+                        )}
                       </Box>
                     </Box>
                     <Grid container spacing={6} sx={{ mt: 3 }}>
-                      <RecipeDetailCardview IngredientsDetailsval={IngredientsDetailsval} />
+                      <RecipeDetailCardview
+                        IngredientsDetailsval={IngredientsDetailsval}
+                        permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
+                      />
 
                       <Grid item xs={8}>
                         <TabContext value={value}>
@@ -235,6 +249,8 @@ const RecipeDetail = () => {
             action={confirmDeleteAction}
             open={deleteDialogBox}
             type='recipe'
+            dietCount={IngredientsDetailsval.diet_count}
+            ingredientCount={IngredientsDetailsval.total_ingredients}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }

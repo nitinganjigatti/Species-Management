@@ -61,6 +61,7 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
           }}
           autoHeight
           hideFooterSelectedRowCount
+          disableColumnMenu
           disableColumnSelector={true}
           columns={columns}
           pageSizeOptions={[7, 10, 25, 50]}

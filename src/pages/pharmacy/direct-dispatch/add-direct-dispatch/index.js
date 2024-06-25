@@ -343,7 +343,7 @@ const AddReturnRequest = () => {
   const getStoresLists = async () => {
     // setLoader(true)
     try {
-      const response = await getStoreList({ params: { q: 'local', column: 'type' } })
+      const response = await getStoreList({ params: { type: 'local' } })
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
@@ -372,8 +372,11 @@ const AddReturnRequest = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
             control_substance: item.controlled_substance === '1' ? true : false,
-            stock_type: item.stock_type
+            stock_type: item.stock_type,
+            packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            manufacture: item?.manufacturer_name
           }))
         )
       }
@@ -404,7 +407,9 @@ const AddReturnRequest = () => {
                 value: item?.batch_no,
                 label: item?.batch_no,
                 expiry_date: item?.expiry_date,
-                available_item_qty: item?.qty
+                available_item_qty: item?.qty,
+                packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                manufacture: item?.manufacturer_name
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -476,7 +481,9 @@ const AddReturnRequest = () => {
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
             dispatch_item_id: el.dispatch_item_id,
-            stock_type: el?.stock_type
+            stock_type: el?.stock_type,
+            packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+            manufacture: el?.manufacturer
           }
         })
 
@@ -540,7 +547,9 @@ const AddReturnRequest = () => {
       control_substance: getItems[0].control_substance,
       uuid: getItems[0].uuid,
       available_item_qty: getItems[0]?.available_item_qty,
-      stock_type: getItems[0]?.stock_type
+      stock_type: getItems[0]?.stock_type,
+      packageDetails: getItems[0]?.packageDetails,
+      manufacture: getItems[0]?.manufacture
     })
     // }
   }
@@ -741,7 +750,7 @@ const AddReturnRequest = () => {
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                       <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Returned to :
+                        Dispatch to :
                       </Typography>
                     </Grid>
                     <FormControl fullWidth>
@@ -890,12 +899,15 @@ const AddReturnRequest = () => {
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
                             ) : null}
+                            <Typography variant='body2'>{el.packageDetails}</Typography>
+                            <Typography variant='body2'>{el.manufacture}</Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.request_item_batch_no}
                             </Typography>
                           </TableCell>
+
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}

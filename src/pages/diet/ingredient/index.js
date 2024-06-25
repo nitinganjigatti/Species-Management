@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
@@ -15,11 +15,9 @@ import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
 import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
-import toast from 'react-hot-toast'
 import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -30,10 +28,14 @@ import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ConfirmationDialog from 'src/@core/components/dialogs/confirmation-dialog'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import AddIngredients from 'src/components/diet/AddIngredients'
+import Error404 from 'src/pages/404'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const roleColors = {
   active: 'success',
@@ -56,6 +58,10 @@ const IngredientsList = () => {
   const [check, setCheck] = useState(false)
   const [selectedIngredient, setSelectedIngredient] = useState()
   console.log('selectedIngredient', selectedIngredient)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [openIngredient, setOpenIngredient] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -107,7 +113,9 @@ const IngredientsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumning, status)
+    if (dietModule) {
+      fetchTableData(sort, searchValue, sortColumning, status)
+    }
   }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -147,20 +155,24 @@ const IngredientsList = () => {
   }
 
   const headerAction = (
-    <div>
-      <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-      <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+        <div>
+          <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+          {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Pop
-      </Button>
+      </Button> */}
 
-      <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
+          {/* <Button size='small' variant='contained' sx={{ m: 2 }} onClick={handleAddIngerdient}>
         &nbsp; Test Button
-      </Button>
-    </div>
+      </Button> */}
+        </div>
+      )}
+    </>
   )
 
   const handleSwitchChange = async (event, rowData) => {
@@ -172,40 +184,14 @@ const IngredientsList = () => {
       console.log(response, 'response')
       if (response.success === true) {
         fetchTableData(sort, searchValue, sortColumning, status)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({
+          type: 'success',
+          message: `Ingredient ${'ING' + rowData.id} has been successfully ${
+            newIsActive === 1 ? 'actiavted' : 'deactivated'
+          }`
+        })
       } else {
-        alert('something went wrong')
+        Toaster({ type: 'error', message: 'something went wrong' })
       }
     } catch (error) {
       console.error('Error updating ingredient status:', error)
@@ -241,7 +227,7 @@ const IngredientsList = () => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.image ? params.row.image : null}
+            src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
@@ -487,24 +473,32 @@ const IngredientsList = () => {
 
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange}>
-            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-          </TabList>
-          <TabPanel value=''>{tableData()}</TabPanel>
-          <TabPanel value='1'>{tableData()}</TabPanel>
-          <TabPanel value='0'>{tableData()}</TabPanel>
-        </TabContext>
-      </Grid>
+      {dietModule ? (
+        <>
+          <Grid>
+            <TabContext value={status}>
+              <TabList onChange={handleChange}>
+                <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+                <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+                <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+              </TabList>
+              <TabPanel value=''>{tableData()}</TabPanel>
+              <TabPanel value='1'>{tableData()}</TabPanel>
+              <TabPanel value='0'>{tableData()}</TabPanel>
+            </TabContext>
+          </Grid>
 
-      <AddIngredients
-        open={openIngredient}
-        handleSidebarClose={handleSidebarClose}
-        setSelectedIngredient={setSelectedIngredient}
-      />
+          <AddIngredients
+            open={openIngredient}
+            handleSidebarClose={handleSidebarClose}
+            setSelectedIngredient={setSelectedIngredient}
+          />
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { LISTING, DIET, UPDATE_STATUS, DETAILS, DELETE, TYPE } from 'src/constants/ApiConstant'
+import { LISTING, DIET, UPDATE_STATUS, DETAILS, DELETE, TYPE, ADD, UPDATE } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
 export async function getDietList({ params }) {
@@ -49,6 +49,34 @@ export async function deleteDiet(id) {
       console.error(error.response.data)
       console.error(error.response.status)
       console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function addNewDiet(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${ADD}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function updateDiet(id, payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${UPDATE}/${id}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
     }
 
     return error

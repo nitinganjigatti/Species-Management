@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import Chip from '@mui/material/Chip'
 
 import Table from '@mui/material/Table'
 import TableRow from '@mui/material/TableRow'
@@ -54,7 +55,9 @@ const defaultValues = {
   stock_type: '',
 
   available_item_qty: '',
-  expiry_date: ''
+  expiry_date: '',
+  packageDetails: '',
+  manufacture: ''
 }
 
 const schema = yup.object().shape({
@@ -114,10 +117,6 @@ export const AddItemsForm = ({
     reValidateMode: 'onChange'
   })
 
-  // console.log('nestedMedicine', nestedMedicine)
-  // console.log('productList', productList)
-  // console.log('batchList', batchList)
-
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -150,7 +149,16 @@ export const AddItemsForm = ({
   const onSubmit = async params => {
     setBatchError(false)
 
-    const { request_item_batch_no, request_item_qty, available_item_qty, expiry_date, request_item, stock_type } = {
+    const {
+      request_item_batch_no,
+      request_item_qty,
+      available_item_qty,
+      expiry_date,
+      request_item,
+      stock_type,
+      packageDetails,
+      manufacture
+    } = {
       ...params
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
@@ -237,7 +245,9 @@ export const AddItemsForm = ({
         product_name: request_item.label,
         priority_item: 'Normal',
         uuid: nestedMedicine?.uuid,
-        stock_type
+        stock_type,
+        packageDetails,
+        manufacture
 
         // to_store_id: '14'
       },
@@ -318,7 +328,9 @@ export const AddItemsForm = ({
         request_item_qty: nestedMedicine?.request_item_qty,
         expiry_date: nestedMedicine?.expiry_date,
         available_item_qty: nestedMedicine?.available_item_qty,
-        stock_type: nestedMedicine?.stock_type
+        stock_type: nestedMedicine?.stock_type,
+        packageDetails: nestedMedicine?.packageDetails,
+        manufacture: nestedMedicine?.manufacture
       })
       console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
@@ -367,17 +379,33 @@ export const AddItemsForm = ({
                       setValue('expiry_date', '')
                       setValue('available_item_qty', '')
                       setValue('stock_type', '')
+                      setValue('packageDetails', '')
+                      setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
                         setQuantityError(false)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
+                        setValue('packageDetails', value.packageDetails)
+                        setValue('manufacture', value.manufacture)
                       }
                       checkTotalCount()
                     }} // Set selected value
                     onBlur={async () => {
                       await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
                     }}
+                    renderOption={(props, option) => (
+                      <li
+                        {...props}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.label}</Typography>
+                          <Typography variant='body2'>{option.packageDetails}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -393,6 +421,24 @@ export const AddItemsForm = ({
               />
               {errors?.request_item && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+              )}
+              {watch('packageDetails') && (
+                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                  <Chip
+                    label={watch('packageDetails')}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  />
+                  <Chip
+                    label={watch('manufacture')}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ fontSize: 11, height: '22px' }}
+                  />
+                </Box>
               )}
             </FormControl>
             <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>

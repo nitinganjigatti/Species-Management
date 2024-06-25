@@ -68,11 +68,23 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         await getRecipeListonIngredientDtl(id, params).then(res => {
           console.log('response', res)
           setTotal(parseInt(res?.data?.data?.count))
-          setRows(loadServerRows(paginationModel.page, res.data.data.result))
+
+          const result = res?.data?.data?.result
+
+          if (Array.isArray(result)) {
+            // If result is an array, update rows directly
+            setRows(loadServerRows(paginationModel.page, result))
+          } else if (typeof result === 'object') {
+            // If result is an object, convert it to an array of one object
+            setRows([result])
+          } else {
+            // Handle other cases
+            console.error('Unexpected result type:', result)
+          }
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
+        console.error(e)
         setLoading(false)
       }
     },
@@ -135,7 +147,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             variant='square'
             alt='Recipe Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : null}
+            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
@@ -191,7 +203,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
               {/* {showSwapBtn.length > 0 ? ( */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <div></div>
-                <Button
+                {/* <Button
                   size='small'
                   variant='contained'
                   onClick={() => setActivitySidebarOpen(true)}
@@ -199,7 +211,8 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 >
                   <Icon icon='mdi:add' fontSize={20} />
                   &nbsp; SWAP {IngredientName}
-                </Button>
+                </Button> */}
+                <Box sx={{ px: 4, py: 4, cursor: 'pointer', position: 'relative', top: 8 }}></Box>
                 {/* /////////////// */}
                 <Drawer
                   anchor='right'

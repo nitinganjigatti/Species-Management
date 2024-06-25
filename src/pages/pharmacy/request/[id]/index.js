@@ -49,6 +49,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
+import { height, minHeight } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -147,7 +148,9 @@ const IndividualRequest = () => {
           from_store_name: el.from_store_name,
           to_store_name: el.to_store_name,
           total_requested_qty: el.total_requested_qty,
-          total_dispatch_qty: el.total_dispatch_qty
+          total_dispatch_qty: el.total_dispatch_qty,
+          package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+          manufacture: el?.manufacturer
         }
 
         return items
@@ -155,7 +158,7 @@ const IndividualRequest = () => {
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      // debugger
+      // console.log('items', responseData.dispatch_items)
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -183,7 +186,6 @@ const IndividualRequest = () => {
         setLoader(false)
       }
     } catch (e) {
-      console.log('error', e)
       setLoader(false)
     }
   }
@@ -204,8 +206,6 @@ const IndividualRequest = () => {
           setDeleteFullFillId(null)
           toast.error(result.data)
         }
-
-        console.log('delet result', result)
       } catch (error) {
         toast.error(error.data)
         console.log('delet error result', error)
@@ -386,12 +386,12 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box sx={{ width: '100%' }}>
           <Typography
             variant='body2'
             sx={{
@@ -400,7 +400,7 @@ const IndividualRequest = () => {
             }}
           >
             <Tooltip title={params.row.stock_name} placement='top'>
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
                 {params.row.stock_name}
               </Typography>
             </Tooltip>
@@ -411,21 +411,22 @@ const IndividualRequest = () => {
           {!isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) == 1 ? (
             <CustomChip sx={{ mx: 2 }} label='PR' skin='light' color='success' size='small' />
           ) : null}
-        </div>
+          <Tooltip
+            title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacturer} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacturer}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
-
-    // {
-    //   flex: 0.1,
-    //   minWidth: 20,
-    //   field: 'priority',
-    //   headerName: 'Priority',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.priority}
-    //     </Typography>
-    //   )
-    // },
 
     {
       flex: 0.2,
@@ -663,20 +664,27 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
-          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.medicin_name}</div>
-          </Typography> */}
+          <Tooltip title={params?.row?.package} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.package}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacture} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacture}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -692,6 +700,7 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -741,7 +750,8 @@ const IndividualRequest = () => {
               onClick={() => {
                 setDeleteDialog(true)
                 setDeleteFullFillId(params.row.dispatch_item_id)
-                console.log('full filled ', params.row.dispatch_item_id)
+
+                // console.log('full filled ', params.row.dispatch_item_id)
               }}
               icon='mdi:delete-outline'
             />
@@ -795,7 +805,7 @@ const IndividualRequest = () => {
       headerName: 'Vehicle No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -848,7 +858,7 @@ const IndividualRequest = () => {
             {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
-              params?.row?.shipment_status === 'Shipped' && (
+              (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
@@ -1162,7 +1172,7 @@ const IndividualRequest = () => {
                   {/* Medicine Listing */}
                 </CardContent>
                 {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
               </Card>
               {/* Dispatch list */}
@@ -1189,7 +1199,7 @@ const IndividualRequest = () => {
                         ) : null
                       }
                     ></CardHeader>
-                    <TableBasic columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
                   </Card>
                   <ConfirmDialogBox
                     open={deleteDialog}

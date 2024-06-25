@@ -10,7 +10,16 @@ import Icon from 'src/@core/components/icon'
 import { auto } from '@popperjs/core'
 import { Card, Typography, FormControlLabel, Checkbox, Grid } from '@mui/material'
 
-const ModuleDeleteDialogConfirmation = ({ active, handleClosenew, open, message, action, type }) => {
+const ModuleDeleteDialogConfirmation = ({
+  active,
+  handleClosenew,
+  open,
+  message,
+  action,
+  type,
+  dietCount,
+  ingredientCount
+}) => {
   const [checked, setChecked] = useState(false)
 
   const handleChange = event => {
@@ -65,10 +74,20 @@ const ModuleDeleteDialogConfirmation = ({ active, handleClosenew, open, message,
         </span>
         <DialogTitle id='alert-dialog-title'>
           {message}
-          <Typography sx={{ mt: 2 }}>
-            This {type === 'ingredient' ? 'ingredient' : 'recipe'} has been used in{' '}
-            {type === 'ingredient' ? '15 recipes and 10 diets' : '10 diets'}, <br /> so deletion isn't allowed.
-          </Typography>
+          {type === 'feed' ? (
+            <Typography sx={{ mt: 2 }}>
+              this feed type is not used in any recipe, <br />
+              so deletion isn't allowed.
+            </Typography>
+          ) : (
+            <Typography sx={{ mt: 2 }}>
+              This {type === 'ingredient' ? 'ingredient' : 'recipe'} has been used in{' '}
+              {type === 'ingredient'
+                ? '15 recipes and 10 diets'
+                : `${dietCount} diets and ${ingredientCount} ingredients`}
+              , <br /> so deletion isn't allowed.
+            </Typography>
+          )}
         </DialogTitle>
 
         <Card

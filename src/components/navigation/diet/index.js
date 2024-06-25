@@ -12,19 +12,22 @@ const composeDietNavigation = () => {
   const ingredientsList = {
     title: 'Ingredient',
     path: '/diet/ingredient',
-    icon: 'arcticons:recipe-keeper'
+    icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />
   }
 
   const dietList = {
     title: 'Diet',
     path: '/diet/diet',
-    icon: 'arcticons:recipe-keeper'
+    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
   }
 
   const recipeList = {
     title: 'Recipe',
     path: '/diet/recipe',
-    icon: <img src='/icons/recipe.svg' alt='Grocery Icon' />
+    icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
   }
 
   const settingsParent = {

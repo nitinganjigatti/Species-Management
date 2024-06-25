@@ -1,0 +1,472 @@
+// ** React Imports
+import { useState, useEffect, useCallback, Fragment, useRef } from 'react'
+import Image from 'next/image'
+
+// ** MUI Imports
+import Box from '@mui/material/Box'
+import Drawer from '@mui/material/Drawer'
+import TextField from '@mui/material/TextField'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+import FormControl from '@mui/material/FormControl'
+import FormHelperText from '@mui/material/FormHelperText'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { LoadingButton } from '@mui/lab'
+import { RadioGroup, FormLabel, FormControlLabel, Radio, Button, Grid } from '@mui/material'
+import { useDropzone } from 'react-dropzone'
+import { useTheme } from '@mui/material/styles'
+
+// ** Third Party Imports
+import { useForm, Controller } from 'react-hook-form'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
+
+// ** Styled Components
+
+const schema = yup.object().shape({
+  scientificName: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Scientific Name is Required'),
+  active: yup.string().required('Status is Required'),
+  commonName: yup
+    .string()
+    .transform(value => (value ? value.trim() : value))
+    .required('Common Name is Required')
+})
+
+const defaultValues = {
+  scientificName: '',
+  commonName: '',
+  active: '1'
+}
+
+const AddSpecies = props => {
+  // ** Props
+  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+
+  // ** States
+  const theme = useTheme()
+  const fileInputRef = useRef(null)
+  const coverFileInputRef = useRef(null)
+  const [values, setValues] = useState(defaultValues)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [imgSrc, setImgSrc] = useState('')
+  const [coverImgSrc, setCoverImgSrc] = useState('')
+  const [displayFile, setDisplayFile] = useState('')
+  const [displayCoverFile, setDisplayCoverFile] = useState('')
+
+  const {
+    reset,
+    control,
+    setValue,
+    clearErrors,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const onSubmit = async params => {
+    console.log(params, 'params')
+    const { scientificName, commonName, speciesImg, coverImg, active } = { ...params }
+
+    const payload = {
+      common_name: commonName.trim(),
+      scientific_name: scientificName.trim(),
+      species_image: speciesImg,
+      cover_image: coverImg
+    }
+    await handleSubmitData(payload)
+  }
+
+  const getDrugClass = useCallback(
+    async id => {
+      const response = await getDrugById(id)
+      if (response?.success) {
+        reset({ name: response.data.label, active: response.data.active, id: response.data.id })
+      } else {
+      }
+    },
+    [reset]
+  )
+
+  useEffect(() => {
+    if (resetForm) {
+      reset(defaultValues)
+    }
+
+    if (editParams?.id !== null) {
+      getDrugClass(editParams?.id)
+    }
+  }, [resetForm, editParams, reset, getDrugClass])
+
+  const RenderSidebarFooter = () => {
+    return (
+      <Fragment>
+        <Button size='large' variant='outlined' sx={{ m: 2, width: '100%' }} onClick={handleSidebarClose}>
+          &nbsp; Cancel
+        </Button>
+        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader} sx={{ width: '100%' }}>
+          Submit
+        </LoadingButton>
+      </Fragment>
+    )
+  }
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: false,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    onDrop: acceptedFiles => {
+      const reader = new FileReader()
+      const files = acceptedFiles
+      if (files && files.length !== 0) {
+        reader.onload = () => {
+          setImgSrc(reader?.result)
+        }
+        setDisplayFile(files[0]?.name)
+        reader?.readAsDataURL(files[0])
+        setValue('speciesImg', files[0])
+        clearErrors('speciesImg')
+      }
+    }
+  })
+
+  const handleAddImageClick = () => {
+    fileInputRef?.current?.click()
+  }
+
+  const removeSelectedImage = () => {
+    setImgSrc('')
+    setValue('speciesImg', '')
+  }
+
+  const handleInputImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setImgSrc(reader?.result)
+      }
+      setDisplayFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setValue('speciesImg', files[0])
+      clearErrors('speciesImg')
+    }
+  }
+
+  const handleAddCoverImageClick = () => {
+    coverFileInputRef?.current?.click()
+  }
+
+  const removeSelectedCoverImage = () => {
+    setCoverImgSrc('')
+    setValue('coverImg', '')
+  }
+
+  const handleInputCoverImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setCoverImgSrc(reader?.result)
+      }
+      setDisplayCoverFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setValue('coverImg', files[0])
+      clearErrors('coverImg')
+    }
+  }
+
+  return (
+    <Drawer
+      anchor='right'
+      open={addEventSidebarOpen}
+      ModalProps={{ keepMounted: true }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+    >
+      <Box
+        className='sidebar-header'
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          backgroundColor: 'background.default',
+          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+        }}
+      >
+        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} New Species</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Box>
+      </Box>
+      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+          {/* <FormControl fullWidth sx={{ mb: 6 }}>
+            <TextField
+              label='Search...'
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder='Search Name'
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <Icon icon='mdi:magnify' fontSize={20} />
+                  </InputAdornment>
+                )
+              }}
+            />
+          </FormControl> */}
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='scientificName'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Scientific Name*'
+                  value={value}
+                  onChange={onChange}
+                  placeholder='Scientific Name'
+                  error={Boolean(errors.scientificName)}
+                  name='scientificName'
+                />
+              )}
+            />
+            {errors.scientificName && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.scientificName.message}</FormHelperText>
+            )}
+          </FormControl>
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='commonName'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Common Name*'
+                  value={value}
+                  onChange={onChange}
+                  placeholder='Common Name'
+                  error={Boolean(errors.commonName)}
+                  name='commonName'
+                />
+              )}
+            />
+            {errors.commonName && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.commonName.message}</FormHelperText>
+            )}
+          </FormControl>
+
+          <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
+            {imgSrc !== '' ? null : (
+              <Grid item xs={12} sm={6} md={5.9}>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={handleInputImageChange}
+                  style={{ display: 'none' }}
+                  name='speciesImg'
+                  ref={fileInputRef}
+                />
+
+                <Box
+                  {...getRootProps({ className: 'dropzone' })}
+                  onClick={handleAddImageClick}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    height: { xs: 80, sm: 100, md: 120 },
+                    border: `2px solid ${theme.palette.customColors.trackBg}`,
+                    borderRadius: 1,
+                    padding: 2,
+                    width: { xs: '100%', sm: 300, md: 350 },
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+
+                  <Typography sx={{ ml: 3 }}>Add Specie image</Typography>
+                </Box>
+              </Grid>
+            )}
+            <Grid item xs={12} sm={6} md={5.9}>
+              {imgSrc !== '' && (
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      backgroundColor: theme.palette.customColors.tableHeaderBg,
+                      borderRadius: '10px',
+                      height: { xs: 100, sm: 110, md: 121 },
+                      padding: '10.5px',
+                      boxSizing: 'border-box',
+                      width: { xs: '100%', sm: 'auto' }
+                    }}
+                  >
+                    <img
+                      style={{
+                        aspectRatio: '1 / 1',
+                        height: '100%',
+                        borderRadius: '5%',
+                        objectFit: 'cover',
+                        width: '100%'
+                      }}
+                      alt='Uploaded image'
+                      src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                    />
+                    <Box
+                      sx={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        zIndex: 10,
+                        height: '24px',
+                        borderRadius: 0.4,
+                        backgroundColor: theme.palette.customColors.secondaryBg
+                      }}
+                    >
+                      <Icon icon='material-symbols-light:close' color='#fff' onClick={removeSelectedImage}>
+                        {' '}
+                      </Icon>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
+            {coverImgSrc !== '' ? null : (
+              <Grid item xs={12} sm={6} md={5.9}>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={handleInputCoverImageChange}
+                  style={{ display: 'none' }}
+                  name='coverImg'
+                  ref={coverFileInputRef}
+                />
+
+                <Box
+                  {...getRootProps({ className: 'dropzone' })}
+                  onClick={handleAddCoverImageClick}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    height: { xs: 80, sm: 100, md: 120 },
+                    border: `2px solid ${theme.palette.customColors.trackBg}`,
+                    borderRadius: 1,
+                    padding: 2,
+                    width: { xs: '100%', sm: 300, md: 350 },
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+
+                  <Typography sx={{ ml: 3 }}>Add Cover image</Typography>
+                </Box>
+              </Grid>
+            )}
+            <Grid item xs={12} sm={6} md={5.9}>
+              {coverImgSrc !== '' && (
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      backgroundColor: theme.palette.customColors.tableHeaderBg,
+                      borderRadius: '10px',
+                      height: { xs: 100, sm: 110, md: 121 },
+                      padding: '10.5px',
+                      boxSizing: 'border-box',
+                      width: { xs: '100%', sm: 'auto' }
+                    }}
+                  >
+                    <img
+                      style={{
+                        aspectRatio: '1 / 1',
+                        height: '100%',
+                        borderRadius: '5%',
+                        objectFit: 'cover',
+                        width: '100%'
+                      }}
+                      alt='Uploaded cover image'
+                      src={typeof coverImgSrc === 'string' ? coverImgSrc : coverImgSrc}
+                    />
+                    <Box
+                      sx={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        zIndex: 10,
+                        height: '24px',
+                        borderRadius: 0.4,
+                        backgroundColor: theme.palette.customColors.secondaryBg
+                      }}
+                    >
+                      <Icon icon='material-symbols-light:close' color='#fff' onClick={removeSelectedCoverImage}>
+                        {' '}
+                      </Icon>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+            </Grid>
+          </Grid>
+
+          {editParams?.id !== null ? (
+            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+              <FormLabel>Status</FormLabel>
+              <Controller
+                name='active'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <RadioGroup row {...field} name='validation-basic-radio'>
+                    <FormControlLabel
+                      value='1'
+                      label='Active'
+                      sx={errors.status ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                    />
+                    <FormControlLabel
+                      value='0'
+                      label='Inactive'
+                      sx={errors.status ? { color: 'error.main' } : null}
+                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
+                    />
+                  </RadioGroup>
+                )}
+              />
+              {errors.radio && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
+                  This field is required
+                </FormHelperText>
+              )}
+            </FormControl>
+          ) : null}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <RenderSidebarFooter />
+          </Box>
+        </form>
+      </Box>
+    </Drawer>
+  )
+}
+
+export default AddSpecies

@@ -5,6 +5,8 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import eggNavigation from 'src/components/navigation/egg'
+import pariveshNavigation from 'src/components/navigation/parivesh/index'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -12,6 +14,9 @@ const ComposeNavigation = () => {
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
+
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -30,8 +35,15 @@ const ComposeNavigation = () => {
     navigationArray.push(...labNav)
   }
 
-  const dietNav = dietNavigation()
-  navigationArray.push(...dietNav)
+  if (dietModule) {
+    const dietNav = dietNavigation()
+    navigationArray.push(...dietNav)
+  }
+  const eggNav = eggNavigation()
+  navigationArray.push(...eggNav)
+
+  const pariveshNav = pariveshNavigation()
+  navigationArray.push(...pariveshNav)
 
   return navigationArray
 }

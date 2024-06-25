@@ -2,15 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  CardContent,
+  Grid,
+  FormHelperText,
+  FormControl,
+  TextField,
+  Button
+} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -20,11 +27,19 @@ import Router from 'next/router'
 import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
+import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import { margin } from '@mui/system'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+import { useForm, Controller } from 'react-hook-form'
+import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
+import TableWithFilter from 'src/components/TableWithFilter'
 
 const ListOfPurchase = () => {
   /***** Server side pagination */
+
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
@@ -163,6 +178,17 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'created_at',
+      headerName: 'Entry Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.created_at)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'net_amount',
       headerName: 'Purchase Amount',
       type: 'number',
@@ -180,9 +206,20 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <div>
+    <Grid sx={{ display: 'flex', gap: 2 }}>
+      <ExcelExportButton
+        disabled={total === 0 ? true : false}
+        action={() => {
+          Router.push({
+            pathname: '/pharmacy/purchase/import-purchases/'
+
+            // pathname: '/pharmacy/purchase/import-purchases/v2'
+          })
+        }}
+        title='Import Inventory'
+      />
       <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
-    </div>
+    </Grid>
   )
 
   const onRowClick = params => {
@@ -232,6 +269,7 @@ const ListOfPurchase = () => {
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
+                disableColumnMenu
                 slotProps={{
                   baseButton: {
                     variant: 'outlined'

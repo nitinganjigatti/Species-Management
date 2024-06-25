@@ -95,7 +95,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             variant='square'
             alt='Medicine Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.ingredient_image ? params.row.ingredient_image : null}
+            src={params.row.ingredient_image ? params.row.ingredient_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
