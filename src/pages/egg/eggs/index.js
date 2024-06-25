@@ -693,7 +693,9 @@ const EggList = () => {
                   }
                 /> */}
               </TabList>
-              <TabPanel value='eggs_ready_to_be_discarded_at_nursery'>{tableData()}</TabPanel>
+              <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                {tableData()}
+              </TabPanel>
               {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
               <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>
