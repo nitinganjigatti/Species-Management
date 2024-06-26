@@ -97,139 +97,6 @@ const NurseryList = () => {
     borderBottom: '1px solid #ccc'
   })
 
-  // const columns = [
-  //   {
-  //     flex: 0.05,
-  //     Width: 20,
-  //     field: 'id',
-  //     headerName: 'SL ',
-  //     align: 'center',
-  //     sortable: false,
-  //     renderCell: params => (
-  //       <Typography
-  //         sx={{
-  //           color: theme.palette.customColors.OnSurfaceVariant,
-  //           fontSize: '12px',
-  //           fontWeight: '400',
-  //           lineHeight: '14.52px'
-  //         }}
-  //       >
-  //         {params.row.sl_no}
-  //       </Typography>
-  //     )
-  //   },
-
-  //   {
-  //     flex: 0.2,
-  //     minWidth: 20,
-  //     sortable: false,
-  //     field: 'Nursery Name',
-  //     headerName: 'Nursery Name',
-  //     align: 'center',
-  //     renderCell: params => (
-  //       <Typography
-  //         variant='body2'
-  //         sx={{
-  //           color: theme.palette.primary.dark,
-  //           fontSize: '14px',
-  //           fontWeight: '500',
-  //           lineHeight: '16.94px'
-  //         }}
-  //       >
-  //         {params.row.nursery_name}
-  //       </Typography>
-  //     )
-  //   },
-
-  //   {
-  //     flex: 0.1,
-  //     minWidth: 20,
-  //     sortable: false,
-  //     field: 'ROOMS',
-  //     headerName: 'ROOMS',
-  //     renderCell: params => (
-  //       <Typography
-  //         sx={{
-  //           color: theme.palette.customColors.OnSurfaceVariant,
-  //           fontSize: '16px',
-  //           fontWeight: '400',
-  //           lineHeight: '19.36px'
-  //         }}
-  //       >
-  //         {params.row.no_of_rooms}
-  //       </Typography>
-  //     )
-  //   },
-
-  //   {
-  //     flex: 0.1,
-  //     minWidth: 30,
-  //     field: 'INCUBATORS',
-  //     headerName: 'INCUBATORS',
-  //     align: 'center',
-  //     renderCell: params => (
-  //       <Typography
-  //         sx={{
-  //           color: theme.palette.customColors.OnSurfaceVariant,
-  //           fontSize: '16px',
-  //           fontWeight: '400',
-  //           lineHeight: '19.36px'
-  //         }}
-  //       >
-  //         {params.row.no_of_incubators}
-  //       </Typography>
-  //     )
-  //   },
-
-  //   {
-  //     flex: 0.2,
-  //     minWidth: 30,
-  //     field: 'SITE NAME',
-  //     headerName: 'SITE NAME',
-
-  //     renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
-  //   },
-  //   {
-  //     flex: 0.4,
-  //     minWidth: 60,
-  //     field: 'ADDED BY',
-  //     headerName: 'ADDED BY',
-  //     renderCell: params => (
-  //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-  //         {/* {renderClient(params)} */}
-  //         <Avatar
-  //           variant='rounded'
-  //           sx={{
-  //             width: 30,
-  //             height: 30,
-  //             mr: 4,
-  //             borderRadius: '50%',
-  //             background: '#E8F4F2',
-  //             overflow: 'hidden'
-  //           }}
-  //         >
-  //           {params.row.user_profile_pic ? (
-  //             <img
-  //               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-  //               src={params.row.user_profile_pic}
-  //               alt='Profile'
-  //             />
-  //           ) : (
-  //             <Icon icon='mdi:user' />
-  //           )}
-  //         </Avatar>
-  //         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-  //             {params.row.user_full_name ? params.row.user_full_name : '-'}
-  //           </Typography>
-  //           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-  //             {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-  //           </Typography>
-  //         </Box>
-  //       </Box>
-  //     )
-  //   }
-  // ]
 
   const columns = [
     {
@@ -477,6 +344,7 @@ const NurseryList = () => {
       </Card>
       {openDrawer && (
         <NurseryAddComponent
+        openDrawer={openDrawer}
           setOpenDrawer={setOpenDrawer}
           loading={loading}
           // onSubmit={onSubmit}
