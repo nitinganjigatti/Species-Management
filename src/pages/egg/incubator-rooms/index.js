@@ -41,12 +41,10 @@ const RoomsList = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD New
-        </Button>
-      </Box>
+      <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; ADD New
+      </Button>
     </>
   )
 

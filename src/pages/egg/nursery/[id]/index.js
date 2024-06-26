@@ -235,11 +235,11 @@ const NurseryDetails = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <IconButton size='small' sx={{ px: 3, py: 6, mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
           <Icon icon='mdi:pencil-outline' fontSize={28} color={theme.palette.customColors.OnSurfaceVariant} />
         </IconButton>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
+        <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
           <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD ROOM
         </Button>

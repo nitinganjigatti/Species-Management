@@ -385,9 +385,9 @@ const RoomDetails = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <IconButton
-          sx={{ px: 3, py: 6, mr: 4 }}
+          sx={{ mr: 4 }}
           onClick={event =>
             handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
           }
@@ -399,7 +399,7 @@ const RoomDetails = () => {
           />
         </IconButton>
 
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setDialog(true)}>
+        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
           <Icon icon='mdi:add' fontSize={30} />
           &nbsp; ADD INCUBATOR
         </Button>

@@ -195,7 +195,7 @@ const NurseryList = () => {
 
   const headerAction = (
     <div>
-      <Button sx={{ m: 2 }} size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
+      <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add New
       </Button>
