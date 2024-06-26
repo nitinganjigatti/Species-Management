@@ -233,7 +233,7 @@ const NurseryList = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.075,
       Width: 20,
       field: 'id',
       headerName: 'SL ',
@@ -243,8 +243,7 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
+
             lineHeight: '14.52px'
           }}
         >
@@ -280,7 +279,7 @@ const NurseryList = () => {
       sortable: false,
       field: 'ROOMS',
       headerName: 'ROOMS',
-      align:"center",
+      align: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -300,7 +299,7 @@ const NurseryList = () => {
       minWidth: 20,
       sortable: false,
       field: 'INCUBATORS',
-      align:"center" ,
+      align: 'center',
       headerName: 'INCUBATORS',
       renderCell: params => (
         <Typography

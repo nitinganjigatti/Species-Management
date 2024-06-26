@@ -75,11 +75,7 @@ const EggList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
 
-            // fontSize: '12px',
-            // fontWeight: '400',
-            textAlign: 'center'
-
-            // lineHeight: '14.52px'
+            lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}

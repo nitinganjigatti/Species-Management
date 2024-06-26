@@ -102,8 +102,7 @@ const RoomsList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
+
             lineHeight: '14.52px'
           }}
         >
