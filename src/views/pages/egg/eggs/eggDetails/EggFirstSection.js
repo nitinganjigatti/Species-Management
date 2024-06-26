@@ -93,8 +93,18 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
     const secondValue = eggDetails?.assessments_data[1]?.assessment_value
 
     const percentageChange = calculatePercentageChange(secondValue, firstValue)
-    displayText = percentageChange > 0 ? `+${percentageChange}% increased` : `${percentageChange}% reduced`
-    displayTextColor = percentageChange > 0 ? theme.palette.primary.main : theme.palette.formContent.tertiary
+    displayText =
+      percentageChange == 0
+        ? 'No Change'
+        : percentageChange > 0
+        ? `+${percentageChange}% Increased`
+        : `${percentageChange}% Reduced`
+    displayTextColor =
+      percentageChange == 0
+        ? theme.palette.customColors.neutralSecondary
+        : percentageChange > 0
+        ? theme.palette.primary.main
+        : theme.palette.formContent.tertiary
   } else {
     displayText = 'No data'
     displayTextColor = theme.palette.customColors.OnSurfaceVariant
@@ -410,11 +420,12 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        {eggDetails?.assessments_data?.length == 0
-                          ? 'Not Added'
-                          : eggDetails?.assessments_data[0]?.assessment_value +
-                            ' ' +
-                            eggDetails?.assessments_data[0]?.uom_abbr}
+                        {eggDetails?.assessments_data &&
+                          (eggDetails?.assessments_data?.length === 0
+                            ? 'Not Added'
+                            : eggDetails?.assessments_data[0]?.assessment_value +
+                              ' ' +
+                              eggDetails?.assessments_data[0]?.uom_abbr)}
                       </Typography>
 
                       <Typography
