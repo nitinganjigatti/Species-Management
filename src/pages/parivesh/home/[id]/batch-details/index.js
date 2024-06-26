@@ -41,37 +41,6 @@ const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
 })
 
-const batchData = {
-  requestId: '1',
-  batchId: '123',
-  organization: 'RKT',
-  dateSubmitted: '22/04/2024',
-  batchCreated: '22/04/2024',
-  registrationId: '1223',
-  submittedBy: 'sr',
-  rows: [
-    {
-      uid: '01',
-      id: '1',
-      common_name: 'Cheetah',
-      scientific_name: 'Speckled pigeon',
-      gender_count: {
-        gender: 'Male',
-        count: 3
-      },
-      age: 'Juvenile',
-      category: 'Birth',
-      created_at: '2024-06-03 16:07:17',
-      date: '2024-06-06 16:07:17',
-      created_by_user: {
-        user_name: 'sr',
-        email: 'sr@mailinator.com',
-        profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
-      }
-    }
-  ]
-}
-
 const BatchDetails = ({ params, searchParams }) => {
   const router = useRouter()
   const { id, type } = router.query
@@ -103,8 +72,6 @@ const BatchDetails = ({ params, searchParams }) => {
   const { selectedParivesh } = usePariveshContext()
 
   console.log(router, 'router')
-
-  console.log('Batch Details')
 
   // const handleStatusChange = async event => {
   //   const value = event.target.value
@@ -184,7 +151,7 @@ const BatchDetails = ({ params, searchParams }) => {
           setBatchDetails(response?.data?.data)
           setSelectedStatus(response?.data?.data?.status)
 
-          console.log(response.data.data.entries_data, 'response')
+          // console.log(response.data.data.entries_data, 'response')
 
           let listWithId = response.data.data.entries_data.map((el, i) => {
             return { ...el, uid: i + 1 }
@@ -236,11 +203,31 @@ const BatchDetails = ({ params, searchParams }) => {
     } else {
       setIsModalOpen(false) // Close modal for other selections
     }
+    // if (type === 'submittedBatch') {
+    //   const payload = {
+    //     batch_id: batchDetails?.batch_id,
+    //     status: value,
+    //     registration_id: batchDetails?.registration_id
+    //   }
+    //   await updateStatus(payload)
+    // }
+  }
+
+  console.log(batchDetails, 'batchDetails')
+
+  const handleSaveBatch = async () => {
     if (type === 'submittedBatch') {
-      const payload = {
+      const ids = batchDetails?.entries_data.map(item => item.id)
+      let payload = {
         batch_id: batchDetails?.batch_id,
-        status: value,
-        registration_id: batchDetails?.registration_id
+        status: selectedStatus
+      }
+      if (batchDetails.status === 'withdrawn') {
+        payload = {
+          ...payload,
+          registration_id: batchDetails?.registration_id,
+          id: ids
+        }
       }
       await updateStatus(payload)
     }
@@ -261,8 +248,6 @@ const BatchDetails = ({ params, searchParams }) => {
     ...row,
     sl_no: getSlNo(index)
   }))
-
-  console.log(rows, 'indexedRows')
 
   useEffect(() => {
     if (type === 'reportedBatch') {
@@ -529,7 +514,7 @@ const BatchDetails = ({ params, searchParams }) => {
                   Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
                 </Typography>
               </Grid>
-              {selectedStatus !== 'accepted' ? (
+              {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
                 <Grid item xs={12} sm={6} md={3}>
                   <Select
                     displayEmpty
@@ -564,7 +549,11 @@ const BatchDetails = ({ params, searchParams }) => {
                 </Grid>
               ) : (
                 <Typography variant='h6' sx={{ color: '#37BD69', mt: 2 }}>
-                  Approved
+                  {batchDetails.status === 'accepted'
+                    ? 'Approved'
+                    : batchDetails.status === 'rejected'
+                    ? 'Rejected'
+                    : null}
                 </Typography>
               )}
             </Grid>
@@ -574,17 +563,76 @@ const BatchDetails = ({ params, searchParams }) => {
           <Grid>{tableData()}</Grid>
         </Box>
       </Card>
+
       <Card sx={{ mt: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
-          <Button variant='contained' sx={{ background: '#1F415B' }}>
-            <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Print
-          </Button>
-          <Button variant='contained' color='primary'>
-            SAVE
-          </Button>
+          <Box>
+            <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+              <Icon icon='mdi:printer-outline' fontSize={20} />
+              &nbsp; Print
+            </Button>
+            {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment-plus' fontSize={20} />
+                &nbsp; Attachment (1)
+              </Button>
+            )}
+            {batchDetails?.status === 'accepted' && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:pdf-box' fontSize={20} />
+                &nbsp; Reports (1)
+              </Button>
+            )}
+          </Box>
+          {batchDetails?.status !== 'accepted' && (
+            <Button variant='contained' color='primary' onClick={handleSaveBatch}>
+              {type !== 'submittedBatch' ? 'Save' : 'Save Batch'}
+            </Button>
+          )}
         </Box>
       </Card>
+
+      {/* <Card sx={{ mt: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
+          {selectedStatus !== 'accepted' ? (
+            <Box>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:printer' fontSize={20} />
+                &nbsp; Print
+              </Button>
+              {selectedStatus === 'submitted' ? (
+                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                  <Icon icon='mdi:attachment' fontSize={20} />
+                  &nbsp; Attachment (1)
+                </Button>
+              ) : null}
+            </Box>
+          ) : (
+            <Box>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:printer' fontSize={20} />
+                &nbsp; Print
+              </Button>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment' fontSize={20} />
+                &nbsp; Attachment (1)
+              </Button>
+
+              {selectedStatus === 'accepted' ? (
+                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                  <Icon icon='mdi:add' fontSize={20} />
+                  &nbsp;reports (1)
+                </Button>
+              ) : null}
+            </Box>
+          )}
+          {selectedStatus !== 'accepted' ? (
+            <Button variant='contained' color='primary' onClick={handleSaveBatch}>
+              {type !== 'submittedBatch' ? 'save' : ' save batch'}
+            </Button>
+          ) : null}
+        </Box>
+      </Card> */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
           Registration ID*

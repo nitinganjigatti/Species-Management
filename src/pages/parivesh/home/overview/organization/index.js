@@ -231,18 +231,18 @@ const Organization = () => {
   ]
 
   const onCellClick = params => {
-    const { id, batch_id } = params.row
-    Router.push(`/parivesh/home/${id}/batch-details?batchId=${batch_id}`)
-    console.log(params, 'params')
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    //   Router.push({
-    //     pathname: `/diet/ingredient/${data?.id}`
-    //   })
-    // } else {
-    //   return
-    // }
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const { id, batch_id } = params.row
+      Router.push({
+        pathname: `/parivesh/home/${batch_id}/batch-details`
+      })
+    } else {
+      return
+    }
+    // const { id, batch_id } = params.row
+    // Router.push(`/parivesh/home/${batch_id}/batch-details`)
+    // console.log(params, 'params')
   }
   const tableData = () => {
     return (
