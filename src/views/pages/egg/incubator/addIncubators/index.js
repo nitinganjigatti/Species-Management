@@ -249,7 +249,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 84, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 50, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Card>
               <CardContent>
