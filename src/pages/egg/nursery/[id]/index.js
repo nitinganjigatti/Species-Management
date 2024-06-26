@@ -20,8 +20,10 @@ import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
+import { useTheme } from '@mui/material/styles'
 
 const NurseryDetails = () => {
+  const theme = useTheme()
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
@@ -234,8 +236,8 @@ const NurseryDetails = () => {
   const headerAction = (
     <>
       <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <IconButton size='small' sx={{ mr: 0.5 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-          <Icon icon='mdi:pencil-outline' />
+        <IconButton size='small' sx={{ px: 3, py: 6, mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+          <Icon icon='mdi:pencil-outline' fontSize={28} color={theme.palette.customColors.OnSurfaceVariant} />
         </IconButton>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
           <Icon icon='mdi:add' fontSize={20} />
