@@ -159,7 +159,7 @@ const Navigation = props => {
           ? afterNavMenuContent(navMenuContentProps)
           : null}
         <Box>
-          <Typography variant='body' style={{ textAlign: 'center', display: 'inline-block' }}>
+          <Typography variant='body' style={{ textAlign: 'center', display: 'inline-block', width: '100%' }}>
             v2.0.1
           </Typography>
         </Box>

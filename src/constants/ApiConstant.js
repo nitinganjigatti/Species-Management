@@ -138,6 +138,22 @@ export const ANIMAL_LIST = 'v1/collection/animal/list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
 
+export const DASHBOARD_REPORT = 'reports'
+
+export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
+
+export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
+
+export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
+
+export const DASHBOARD_PENDING_REQUEST = 'pending-request'
+
+export const DASHBOARD_STORE_WISE_PENDING_REQUEST = 'storewise-pending-request'
+
+export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
+
+export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -197,3 +213,23 @@ export const ADD = 'add'
 export const UPDATE = 'update'
 
 export const TYPE = 'type'
+
+export const ADD_NURSERY = 'egg/nursery'
+
+export const ROOM_LIST = 'room/list'
+
+export const EGG = 'egg'
+
+export const NURSERY = 'nursery'
+
+export const INCUBATOR = 'incubator'
+
+export const ASSESMENT_TYPES = "egg/default_assessment_types"
+
+export const EDIT = 'edit'
+
+export const DISCARD = 'discard'
+
+export const COMMENT = 'comment'
+
+export const STATUS = 'status'

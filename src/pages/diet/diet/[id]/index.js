@@ -34,6 +34,7 @@ const DietDetail = () => {
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
   const [value, setValue] = useState('full')
+  const schedule = []
 
   let startArry = []
 

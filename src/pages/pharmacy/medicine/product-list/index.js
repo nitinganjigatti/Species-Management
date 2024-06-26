@@ -252,6 +252,9 @@ const ListOfMedicine = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
           }
         })
         setLoading(false)

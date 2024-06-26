@@ -57,6 +57,9 @@ then
 elif [ $ENV_TO_LOAD == 'production' ]
 then
   cp -r env.production .env
+elif [ $ENV_TO_LOAD == 'farm' ]
+then
+  cp -r env.farm .env
 fi
 
 

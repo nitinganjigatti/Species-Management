@@ -42,6 +42,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ExpiredMedicine from '../expired-medicine'
 import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
+import { ExcelExportButton } from 'src/components/Buttons'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -61,6 +62,7 @@ const ListOfStocks = () => {
   const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
   const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const [stockId, setStockId] = useState(selectedPharmacy?.id)
 
@@ -297,6 +299,35 @@ const ListOfStocks = () => {
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
   // }, [])
+  const getBatchWiseDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+
+      const result = await getStocksByBatch(stockId, { params: '' })
+      if (result?.success === true && result?.data?.length > 0) {
+        const data = result?.data?.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_items_name,
+            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
+              el?.product_form_label
+            }`,
+            ['Manufacture Name']: el?.manufacturer_name,
+            ['Expiry Date']: el?.expiry_date,
+            ['Batch Number']: el?.batch_no,
+            ['Quantity']: el?.stock_qty
+          }
+        })
+
+        Utility.exportToCSV(data, 'Batch wise Products')
+      }
+      setExcelLoader(false)
+    } catch (error) {
+      setExcelLoader(false)
+
+      console.log('error', error)
+    }
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -590,28 +621,29 @@ const ListOfStocks = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'batch_no',
-    //   headerName: 'BATCH NUMBER',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.batch_no}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'expiry_date',
-    //   headerName: 'EXPIRY DATE',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'batch_no',
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,
@@ -794,6 +826,7 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+      console.log('configuremed id', params?.row?.stock_item_id)
       showDialog()
     }
   }
@@ -876,15 +909,29 @@ const ListOfStocks = () => {
 
                     // action={headerAction}
                   />
-                  <Box sx={{ ml: 3 }}>
-                    {selectedPharmacy.type === 'central' && createForm()}
+                  <Grid sx={{ ml: 3, display: 'flex' }}>
+                    <Grid>
+                      {selectedPharmacy.type === 'central' && createForm()}
+                      <FormControlLabel
+                        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
+                        labelPlacement='start'
+                        label='Batch Wise'
+                      />
+                    </Grid>
 
-                    <FormControlLabel
-                      control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
-                      labelPlacement='start'
-                      label='Batch Wise'
-                    />
-                  </Box>
+                    {changeSwitch ? (
+                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
+                        <ExcelExportButton
+                          disabled={total === 0 ? true : false}
+                          action={() => {
+                            getBatchWiseDataToExport()
+                          }}
+                          loader={excelLoader}
+                          title='Download'
+                        />
+                      </Box>
+                    ) : null}
+                  </Grid>
 
                   {changeSwitch ? (
                     <DataGrid

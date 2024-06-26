@@ -49,13 +49,16 @@ const ExpiredMedicine = () => {
         }
 
         await getExpiredMedicine({ params: params }).then(res => {
-          setTotal(parseInt(res?.total_count))
-          setRows(
-            loadServerRows(
-              paginationModel.page,
-              res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
+          console.log('responsess', res)
+          if (res?.list_items?.length > 0) {
+            setTotal(parseInt(res?.total_count))
+            setRows(
+              loadServerRows(
+                paginationModel.page,
+                res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
+              )
             )
-          )
+          }
         })
         setLoading(false)
       } catch (error) {
@@ -227,6 +230,7 @@ const ExpiredMedicine = () => {
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
+                    disabled={total === 0 ? true : false}
                     action={() => {
                       getDataToExport()
                     }}

@@ -84,7 +84,7 @@ export default function AddProduct() {
   const { selectedPharmacy } = usePharmacyContext()
 
   useEffect(() => {
-    getStoreList({ params: { q: 'central', column: 'type' } })
+    getStoreList({ params: { type: 'central' } })
       .then(res => {
         setStoreList(res?.data?.list_items)
         if (res?.data?.list_items.length > 0) {

@@ -66,11 +66,17 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
   const schema = deliveryType.Ship
     ? yup.object().shape({
-        person_shipping: yup.string().required('Person Shipping Info is required'),
+        person_shipping: yup
+          .string()
+          .min(3, 'Person Shipping Info must be at least 3 characters')
+          .required('Person Shipping Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
 
         // delivery_mode: yup.string().required('Delivery Mode is required'),
-        vehicle_no: yup.string().required('Vehicle Number is required'),
+        vehicle_no: yup
+          .string()
+          .min(3, 'Vehicle Number must be at least 3 characters')
+          .required('Vehicle Number is required'),
         phone_number: yup
           .number()
           .required('Mobile Number is required')
@@ -79,7 +85,10 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           })
       })
     : yup.object().shape({
-        receiver_name: yup.string().required('Person Receiving  Info is required'),
+        receiver_name: yup
+          .string()
+          .min(3, 'Person Receiving Info must be at least 3 characters')
+          .required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
         phone_number: yup
           .number()

@@ -76,6 +76,8 @@ const AddLab = () => {
   // id for edit
   const router = useRouter()
   const { id, action } = router.query
+  const [isDefault, setIsDefault] = useState(0)
+  console.log('isDefault', isDefault)
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -140,7 +142,8 @@ const AddLab = () => {
         setValue('address', res?.data[0]?.address)
         setValue('lab_contact_number', res?.data[0]?.lab_contact_number)
 
-        setValue('is_default', res?.data[0]?.is_default === '0' ? false : true)
+        // setValue('is_default', res?.data[0]?.is_default === '0' ? 0 : 1)
+        setIsDefault(res?.data[0]?.is_default)
         setValue('latitude', res?.data[0]?.latitudes)
         setValue('longitude', res?.data[0]?.longitudes)
         setPrevTests(res?.data[0]?.lab_details)
@@ -214,6 +217,10 @@ const AddLab = () => {
     setFiles(imageData)
   }
 
+  const handleSwitchChange = isChecked => {
+    setIsDefault(isChecked ? 1 : 0) // Update state based on switch status
+  }
+
   // Form Part
 
   const defaultValues = {
@@ -225,7 +232,7 @@ const AddLab = () => {
     latitude: latitude,
     longitude: longitude,
     image: '',
-    is_default: false
+    is_default: 0
   }
 
   const schema = yup.object().shape({
@@ -301,7 +308,7 @@ const AddLab = () => {
       latitudes: latitude,
       longitudes: longitude,
       lab: JSON.stringify(dataToUpdate),
-      is_default
+      is_default: isDefault
       // user_id: '58'
     }
 
@@ -605,22 +612,42 @@ const AddLab = () => {
 
   // deleing the data from ui
   const handleCloseTest = (sampleId, parentId) => {
-    setDataToUpdate(prevData => {
-      const newData = [...prevData]
-      const sampleTests = newData[sampleId]?.tests
+    if (id) {
+      setShowLabTests(prevData => {
+        const newData = [...prevData]
+        const sampleTests = newData[sampleId]?.tests
 
-      if (sampleTests && sampleTests[parentId]) {
-        // Remove the parent.test object
-        sampleTests.splice(parentId, 1)
+        if (sampleTests && sampleTests[parentId]) {
+          // Remove the parent.test object
+          sampleTests.splice(parentId, 1)
 
-        // Check if tests array is empty, delete the current sample object
-        if (sampleTests.length === 0) {
-          newData.splice(sampleId, 1)
+          // Check if tests array is empty, delete the current sample object
+          if (sampleTests.length === 0) {
+            newData.splice(sampleId, 1)
+          }
         }
-      }
 
-      return newData
-    })
+        return newData
+      })
+      setDataToUpdate(showLabTests)
+    } else {
+      setDataToUpdate(prevData => {
+        const newData = [...prevData]
+        const sampleTests = newData[sampleId]?.tests
+
+        if (sampleTests && sampleTests[parentId]) {
+          // Remove the parent.test object
+          sampleTests.splice(parentId, 1)
+
+          // Check if tests array is empty, delete the current sample object
+          if (sampleTests.length === 0) {
+            newData.splice(sampleId, 1)
+          }
+        }
+
+        return newData
+      })
+    }
   }
 
   // showing test on click add lab button
@@ -777,7 +804,16 @@ const AddLab = () => {
                             >
                               <Typography>Mark as default Lab</Typography>
                               <FormControlLabel
-                                control={<Switch checked={value} onChange={onChange} />}
+                                // control={<Switch checked={value} onChange={onChange} />}
+                                control={
+                                  <Switch
+                                    checked={isDefault}
+                                    onChange={e => {
+                                      onChange(e.target.checked ? 1 : 0)
+                                      handleSwitchChange(e.target.checked)
+                                    }}
+                                  />
+                                }
                                 disabled={labType === 'external'}
                               />
                             </Stack>

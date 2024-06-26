@@ -3,6 +3,7 @@
 // ** To use core palette, uncomment the below import
 // import corePalette from 'src/@core/theme/palette'
 // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
+import { borderBottom, borderBottomColor } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 const UserThemeOptions = () => {
@@ -90,17 +91,20 @@ const UserThemeOptions = () => {
           },
           cell: {
             // Your styles for the DataGrid cells...
-            borderBottom: 'none',
-            marginBottom: '5px',
-            paddingLeft: '1.25rem',
-            paddingRight: '1rem',
+            // borderBottom: 'none',
+            // marginBottom: '5px',
+            // paddingLeft: '1.25rem',
+            // paddingRight: '1rem',
+            borderBottom: '0.5px solid #839D8D',
+
             '&:focus': {
               outline: 'none'
             }
           },
           row: {
             '&:hover': {
-              backgroundColor: '#F2FFF8'
+              backgroundColor: '#F2FFF8',
+              boxShadow: '0px 1px 8px 0px #0000001A'
             }
           },
           columnHeaders: {

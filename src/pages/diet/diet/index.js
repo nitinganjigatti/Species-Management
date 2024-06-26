@@ -41,6 +41,7 @@ const roleColors = {
 
 const Diet = () => {
   const theme = useTheme()
+  const Data = []
 
   /***** Server side pagination */
 

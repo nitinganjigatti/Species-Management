@@ -49,6 +49,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
+import { height, minHeight } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -147,7 +148,9 @@ const IndividualRequest = () => {
           from_store_name: el.from_store_name,
           to_store_name: el.to_store_name,
           total_requested_qty: el.total_requested_qty,
-          total_dispatch_qty: el.total_dispatch_qty
+          total_dispatch_qty: el.total_dispatch_qty,
+          package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+          manufacture: el?.manufacturer
         }
 
         return items
@@ -155,7 +158,7 @@ const IndividualRequest = () => {
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      // debugger
+      // console.log('items', responseData.dispatch_items)
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -183,7 +186,6 @@ const IndividualRequest = () => {
         setLoader(false)
       }
     } catch (e) {
-      console.log('error', e)
       setLoader(false)
     }
   }
@@ -204,8 +206,6 @@ const IndividualRequest = () => {
           setDeleteFullFillId(null)
           toast.error(result.data)
         }
-
-        console.log('delet result', result)
       } catch (error) {
         toast.error(error.data)
         console.log('delet error result', error)
@@ -334,6 +334,39 @@ const IndividualRequest = () => {
     init(id)
   }
 
+  const renderAttachmentIcons = status => {
+    const hasControlSubstance = status.control_substance === '1'
+    const hasPrescriptionRequired = status.prescription_required === '1'
+
+    return (
+      <>
+        {hasControlSubstance && (
+          <IconButton
+            size='small'
+            onClick={() => {
+              window.open(status.control_substance_file, '_blank')
+            }}
+            aria-label='Control Substance Attachment'
+          >
+            <Icon icon='mdi:link' />
+          </IconButton>
+        )}
+        {hasPrescriptionRequired && (
+          <IconButton
+            size='small'
+            onClick={() => {
+              window.open(status.prescription_required_file, '_blank')
+            }}
+            aria-label='Prescription Attachment'
+          >
+            <Icon icon='mdi:link' />
+          </IconButton>
+        )}
+        {!(hasControlSubstance || hasPrescriptionRequired) && 'NA'}
+      </>
+    )
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -353,12 +386,12 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <div>
+        <Box sx={{ width: '100%' }}>
           <Typography
             variant='body2'
             sx={{
@@ -367,29 +400,33 @@ const IndividualRequest = () => {
             }}
           >
             <Tooltip title={params.row.stock_name} placement='top'>
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
                 {params.row.stock_name}
               </Typography>
             </Tooltip>
           </Typography>
-          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+          {!isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
           ) : null}
-        </div>
+          {!isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) == 1 ? (
+            <CustomChip sx={{ mx: 2 }} label='PR' skin='light' color='success' size='small' />
+          ) : null}
+          <Tooltip
+            title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            placement='top'
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacturer} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacturer}
+            </Typography>
+          </Tooltip>
+        </Box>
       )
     },
-
-    // {
-    //   flex: 0.1,
-    //   minWidth: 20,
-    //   field: 'priority',
-    //   headerName: 'Priority',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.priority}
-    //     </Typography>
-    //   )
-    // },
 
     {
       flex: 0.2,
@@ -502,23 +539,37 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
-      renderCell: params =>
-        !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
-          <>
-            <IconButton
-              size='small'
-              onClick={() => {
-                window.open(params?.row?.control_substance_file, '_blank')
-              }}
-              aria-label='Attachment'
-            >
-              <Icon icon='mdi:link' />
-            </IconButton>
-          </>
-        ) : (
-          'NA'
-        )
+      renderCell: params => <>{renderAttachmentIcons(params.row)}</>
+
+      // !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
+      //   <>
+      //     <IconButton
+      //       size='small'
+      //       onClick={() => {
+      //         window.open(params?.row?.control_substance_file, '_blank')
+      //       }}
+      //       aria-label='Attachment'
+      //     >
+      //       <Icon icon='mdi:link' />
+      //     </IconButton>
+      //   </>
+      // ) : !isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) === 1 ? (
+      //   <>
+      //     <IconButton
+      //       size='small'
+      //       onClick={() => {
+      //         window.open(params?.row?.prescription_required_file, '_blank')
+      //       }}
+      //       aria-label='Attachment'
+      //     >
+      //       <Icon icon='mdi:link' />
+      //     </IconButton>
+      //   </>
+      // ) : (
+      //   'NA'
+      // )
     },
+
     {
       flex: 0.3,
       minWidth: 20,
@@ -613,20 +664,27 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.5,
       Width: 40,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
-          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.medicin_name}</div>
-          </Typography> */}
+          <Tooltip title={params?.row?.package} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.package}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.manufacture} placement='top'>
+            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {params?.row?.manufacture}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
@@ -642,6 +700,7 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -691,7 +750,8 @@ const IndividualRequest = () => {
               onClick={() => {
                 setDeleteDialog(true)
                 setDeleteFullFillId(params.row.dispatch_item_id)
-                console.log('full filled ', params.row.dispatch_item_id)
+
+                // console.log('full filled ', params.row.dispatch_item_id)
               }}
               icon='mdi:delete-outline'
             />
@@ -745,7 +805,7 @@ const IndividualRequest = () => {
       headerName: 'Vehicle No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -757,6 +817,17 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'phone_number',
+      headerName: 'Driver Number',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.phone_number ? params.row.phone_number : 'NA'}
         </Typography>
       )
     },
@@ -787,7 +858,7 @@ const IndividualRequest = () => {
             {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
-              params?.row?.shipment_status === 'Shipped' && (
+              (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
