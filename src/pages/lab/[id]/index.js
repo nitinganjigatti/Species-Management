@@ -508,14 +508,19 @@ const RequestDetails = () => {
       if (response?.success) {
         handleCloseTransfer()
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        reset()
 
         fetchRequestDetails()
       } else {
         handleCloseTransfer()
+        reset()
+
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } else {
       handleCloseTransfer()
+      reset()
+
       setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
     }
 
