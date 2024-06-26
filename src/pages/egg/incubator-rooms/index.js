@@ -41,12 +41,10 @@ const RoomsList = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setIsOpen(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ROOM
-        </Button>
-      </Box>
+      <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; ADD New
+      </Button>
     </>
   )
 
@@ -96,12 +94,20 @@ const RoomsList = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'uid',
-      align: 'center',
+      field: 'id',
       headerName: 'SL ',
+      sortable: false,
+      align: 'center',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
         </Typography>
       )
     },
@@ -314,7 +320,7 @@ const RoomsList = () => {
           </Breadcrumbs>
           <Grid container spacing={6}>
             <Grid item xs={12}>
-              <Card sx={{ py: 3 }}>
+              <Card>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
 
                 {/* <Box sx={{ py: 4, px: 4 }}>
