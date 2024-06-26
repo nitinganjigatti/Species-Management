@@ -34,7 +34,7 @@ const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
   const router = useRouter()
   const { id } = router.query
-  console.log('id :>> ', id)
+
   const theme = useTheme()
   const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
@@ -53,12 +53,10 @@ const RoomDetails = () => {
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
 
-  console.log('detailsData :>> ', detailsData)
-
   const fetchTableData = useCallback(
     async q => {
       try {
-        console.log('til_date', cuurent_date)
+        // console.log('til_date', cuurent_date)
         setLoading(true)
 
         const params = {
@@ -71,8 +69,6 @@ const RoomDetails = () => {
         }
 
         await getIncubatorList(params).then(res => {
-          console.log('response', res)
-
           // Generate uid field based on the index
           let listWithId = res?.data?.data?.result?.map((el, i) => {
             return { ...el, id: i + 1 }

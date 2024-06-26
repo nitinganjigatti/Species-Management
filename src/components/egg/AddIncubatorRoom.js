@@ -122,11 +122,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
           setIsOpen(false)
           reset()
 
-          toast.success('Room added Successfully')
+          toast.success(response.message)
           callApi('')
         } else {
-          setLoader(true)
-          toast.error('Unable to add Room')
+          setLoader(false)
+          toast.error(response.message)
         }
       }
     } catch (error) {

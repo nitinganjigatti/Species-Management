@@ -50,8 +50,6 @@ const RoomsList = () => {
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  console.log('Get no', getSlNo)
-
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     id: row.room_id,
@@ -264,8 +262,6 @@ const RoomsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params cell click')
-
     const data = params.row
 
     Router.push({
