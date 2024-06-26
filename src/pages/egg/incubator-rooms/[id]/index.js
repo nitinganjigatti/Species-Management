@@ -51,6 +51,7 @@ const RoomDetails = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
+  const [isPreFilled, setIsPreFilled] = useState({})
 
   console.log('detailsData :>> ', detailsData)
 
@@ -350,36 +351,34 @@ const RoomDetails = () => {
     return data
   }
 
-  const fetchDetailsData = useCallback(
-    async (sort, q, column) => {
-      try {
-        setLoader(true)
+  const fetchDetailsData = useCallback(async (sort, q, column) => {
+    try {
+      setLoader(true)
 
-        await GetRoomDetails(id).then(res => {
-          setDetailsData(res?.data)
-          setDetailsListData({
-            list: {
-              Room: res?.data?.room_name,
-              NurseryName: res?.data?.nursery_name,
-              Site: res?.data?.site_name,
-              Incubator: res?.data?.no_of_incubators,
-              Eggs: res?.data?.no_of_eggs
-            },
-            Avatar: {
-              profile_Pic: res?.data?.user_profile_pic,
-              user_Name: res?.data?.user_full_name,
-              create_at: res?.data?.created_at,
-              site_id: res?.data?.site_id
-            }
-          })
+      await GetRoomDetails(id).then(res => {
+        setDetailsData(res?.data)
+        setDetailsListData({
+          list: {
+            Room: res?.data?.room_name,
+            NurseryName: res?.data?.nursery_name,
+            Site: res?.data?.site_name,
+            Incubator: res?.data?.no_of_incubators,
+            Eggs: res?.data?.no_of_eggs
+          },
+          Avatar: {
+            profile_Pic: res?.data?.user_profile_pic,
+            user_Name: res?.data?.user_full_name,
+            create_at: res?.data?.created_at,
+            site_id: res?.data?.site_id
+          }
         })
-        setLoader(false)
-      } catch (e) {
-        setLoader(false)
-      }
-    },
-    [paginationModel]
-  )
+        setIsPreFilled(res?.data)
+      })
+      setLoader(false)
+    } catch (e) {
+      setLoader(false)
+    }
+  }, [])
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
     event.stopPropagation()
@@ -425,6 +424,14 @@ const RoomDetails = () => {
 
   const handleSidebarClose = () => {
     setDialog(false)
+  }
+
+  const onCellClick = params => {
+    // console.log(params, 'params')
+
+    Router.push({
+      pathname: `/egg/incubators/${params.row?.incubator_id}`
+    })
   }
 
   return (
@@ -501,8 +508,7 @@ const RoomDetails = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-
-                  // onCellClick={onCellClick}
+                  onCellClick={onCellClick}
                 />
               </Box>
             </Card>
@@ -512,7 +518,12 @@ const RoomDetails = () => {
 
       <>
         <AddIncubatorRoom callApi={fetchDetailsData} isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
-        <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+        <AddIncubators
+          actionApi={fetchTableData}
+          sidebarOpen={dialog}
+          handleSidebarClose={handleSidebarClose}
+          isPreFilled={isPreFilled}
+        />
       </>
     </>
   )

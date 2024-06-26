@@ -24,7 +24,7 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 
-const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
+const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled }) => {
   const theme = useTheme()
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
@@ -77,6 +77,14 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
   useEffect(() => {
     NurseryList()
   }, [])
+
+  useEffect(() => {
+    if (isPreFilled) {
+      console.log('isPreFilled :>> ', isPreFilled)
+      setValue('site_id', isPreFilled?.site_id)
+      setValue('nursery_id', isPreFilled?.nursery_id)
+    }
+  }, [isOpen])
 
   const onSubmit = async values => {
     setLoader(true)
@@ -145,7 +153,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
         open={isOpen}
         ModalProps={{ keepMounted: true }}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          '& .MuiDrawer-paper': { width: ['100%', '502px'] },
+
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
@@ -182,28 +191,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='room_name'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Room Name'
-                      value={value}
-                      onChange={onChange}
-                      focused={value !== ''}
-                      placeholder='Room Name'
-                      error={Boolean(errors.room_name)}
-                      name='room_name'
-                    />
-                  )}
-                />
-                {errors.room_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
-                )}
-              </FormControl>
-
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
@@ -269,20 +256,42 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
                 )}
               </FormControl>
+              <FormControl fullWidth>
+                <Controller
+                  name='room_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Room Name'
+                      value={value}
+                      onChange={onChange}
+                      focused={value !== ''}
+                      placeholder='Room Name'
+                      error={Boolean(errors.room_name)}
+                      name='room_name'
+                    />
+                  )}
+                />
+                {errors.room_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
+                )}
+              </FormControl>
             </Card>
 
             <Box
               sx={{
                 height: '122px',
                 width: '100%',
-                maxWidth: '562px',
+                maxWidth: '502px',
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
-                display: 'flex'
+                display: 'flex',
+                zIndex: 123
               }}
             >
               <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>

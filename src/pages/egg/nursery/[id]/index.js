@@ -39,6 +39,7 @@ const NurseryDetails = () => {
   const [loading, setLoading] = useState(false)
   const [openRoomSideBar, setOpenRoomSidebar] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [isPreFilled, setIsPreFilled] = useState({})
 
   const router = useRouter()
   const { id } = router.query
@@ -63,6 +64,7 @@ const NurseryDetails = () => {
           site_id: res?.data?.site_id
         }
       })
+      setIsPreFilled(res?.data)
       setEditNurseryId(id)
       setEditName(res.data?.nursery_name)
       setEditSite(res?.data?.site_id)
@@ -312,7 +314,7 @@ const NurseryDetails = () => {
             editNurseryId={editNurseryId}
           />
         )}
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} isPreFilled={isPreFilled} />
       </Card>
     </>
   )

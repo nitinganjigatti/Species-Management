@@ -264,18 +264,13 @@ const RoomsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
+    console.log(params, 'params cell click')
 
-    if (clickedColumn) {
-      const data = params.row
+    const data = params.row
 
-      Router.push({
-        pathname: `/egg/incubator-rooms/${data?.id}`
-      })
-    } else {
-      return
-    }
+    Router.push({
+      pathname: `/egg/incubator-rooms/${data?.id}`
+    })
   }
 
   function loadServerRows(currentPage, data) {
