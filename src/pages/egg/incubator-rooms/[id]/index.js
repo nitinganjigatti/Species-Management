@@ -385,9 +385,9 @@ const RoomDetails = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <IconButton
-          sx={{ px: 3, py: 6, mr: 4 }}
+          sx={{ mr: 4 }}
           onClick={event =>
             handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
           }
@@ -399,8 +399,8 @@ const RoomDetails = () => {
           />
         </IconButton>
 
-        <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setDialog(true)}>
-          <Icon icon='mdi:add' fontSize={30} />
+        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD INCUBATOR
         </Button>
       </Box>
@@ -456,7 +456,7 @@ const RoomDetails = () => {
 
               <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
 
-              <Box sx={{ px: 8 }}>
+              <Box sx={{}}>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -484,19 +484,20 @@ const RoomDetails = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
+
+                  // slotProps={{
+                  //   baseButton: {
+                  //     variant: 'outlined'
+                  //   },
+                  //   toolbar: {
+                  //     value: searchValue,
+                  //     clearSearch: () => handleSearch(''),
+                  //     onChange: event => handleSearch(event.target.value)
+                  //   }
+                  // }}
 
                   // onCellClick={onCellClick}
                 />

@@ -83,9 +83,12 @@ const IncubatorsList = () => {
           til_date: cuurent_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          room_id: 1,
-          nursery_id: 2,
-          site_id: 14
+          // room_id: 1,
+          room_id: '',
+          // nursery_id: 2,
+          nursery_id: '',
+          // site_id: 14
+          site_id: ''
         }
         console.log('params', params)
         await getIncubatorList(params).then(res => {
@@ -154,12 +157,10 @@ const IncubatorsList = () => {
   const headerAction = (
     <>
       {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
-      <div>
-        <Button size='small' variant='contained' onClick={() => setDialog(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; Add New
-        </Button>
-      </div>
+      <Button sx={{ height: '40px', width: '126px' }} size='small' variant='contained' onClick={() => setDialog(true)}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; Add New
+      </Button>
       {/* )} */}
     </>
   )

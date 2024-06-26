@@ -12,7 +12,7 @@ const EggImageGallery = ({ eggId }) => {
 
   const GetGalleryImgListFunc = () => {
     try {
-      getGalleryImgList({ egg_id: eggId }).then(res => {
+      getGalleryImgList({ ref_id: eggId, ref_type: 'egg' }).then(res => {
         if (res.success) {
           setGalleryList(res?.data?.result)
         } else {
