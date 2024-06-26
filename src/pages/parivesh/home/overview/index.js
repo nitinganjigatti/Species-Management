@@ -391,6 +391,7 @@ const Overview = () => {
                     isOrganization
                     organizationName={orgData.organization_name}
                     showDetails
+                    summaryIcon='ion:checkmark'
                     handleBoxClick={() => handleBoxClick(organization)}
                   />
                   <Box sx={{ mt: 3 }}>
@@ -399,6 +400,7 @@ const Overview = () => {
                       data={orgData.yetToSubmitAccordionData.data}
                       cards={orgData.yetToSubmitAccordionData.cards}
                       backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                      summaryIcon='mdi:arrow-top-right'
                     />
                   </Box>
                   {selectedParivesh?.id !== 'all' && (
@@ -408,6 +410,7 @@ const Overview = () => {
                         data={orgData.submittedAccordionData.data}
                         cards={orgData.submittedAccordionData.cards}
                         backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                        summaryIcon='mdi:checkbox-marked'
                       />
                     </Box>
                   )}
@@ -428,9 +431,16 @@ const Overview = () => {
                     organizationName={organization.organization_name}
                     showDetails
                     handleBoxClick={() => handleBoxClick(organization)}
+                    summaryIcon='ion:checkmark'
                   />
                   <Box sx={{ mt: 3 }}>
-                    <CustomAccordion title='To be submitted' data={data} cards={cards} backgroundImage='' />
+                    <CustomAccordion
+                      title='To be submitted'
+                      data={data}
+                      cards={cards}
+                      backgroundImage=''
+                      summaryIcon='mdi:arrow-top-right'
+                    />
                   </Box>
                 </CardContent>
               </Card>

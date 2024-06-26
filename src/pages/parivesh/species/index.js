@@ -173,11 +173,11 @@ const SpeciesList = () => {
       {
         flex: 0.2,
         Width: 40,
-        field: 'sl_no',
+        field: 'id',
         headerName: 'S.NO',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.uid}
+            {params.row.id}
           </Typography>
         )
       },
@@ -193,7 +193,7 @@ const SpeciesList = () => {
         )
       },
       {
-        flex: 0.3,
+        flex: 0.5,
         minWidth: 30,
         field: 'common_name',
         headerName: 'COMMON NAME',
@@ -208,8 +208,8 @@ const SpeciesList = () => {
         )
       },
       {
-        flex: 0.4,
-        minWidth: 10,
+        flex: 0.5,
+        minWidth: 30,
         field: 'scientific_name',
         headerName: 'SCIENTIFIC NAME',
         renderCell: params => (
@@ -226,7 +226,7 @@ const SpeciesList = () => {
     // Create columns for each organization
     const organizationColumns = organizationNames.map((orgName, index) => ({
       flex: 0.4,
-      minWidth: 10,
+      minWidth: 30,
       field: `org_${index}`,
       headerName: orgName,
       renderCell: params => {
@@ -287,7 +287,7 @@ const SpeciesList = () => {
         }
 
         await getSpeciesListByOrg({ params: params }).then(res => {
-          console.log('responsewwww', res)
+          // console.log('responsewwww', res)
           // Generate uid field based on the index
           let listWithId = res.data.species_data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -310,7 +310,7 @@ const SpeciesList = () => {
   }, [fetchTableData, status])
 
   const handleSubmitData = async payload => {
-    console.log(payload, 'payload')
+    // console.log(payload, 'payload')
     try {
       setSubmitLoader(true)
       // var response

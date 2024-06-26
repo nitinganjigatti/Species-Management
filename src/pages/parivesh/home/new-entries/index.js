@@ -862,7 +862,7 @@ const NewEntry = ({}) => {
               return (
                 <CustomAccordion
                   title='To be submitted'
-                  summaryIcon='ion:checkmark'
+                  summaryIcon='mdi:arrow-top-right'
                   data={org?.yetToSubmitAccordionData?.data}
                   cards={org?.yetToSubmitAccordionData?.cards}
                   backgroundImage={org?.species_image !== '' && orgData?.species_image}

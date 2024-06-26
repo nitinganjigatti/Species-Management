@@ -94,6 +94,7 @@ const SpeciesDetails = () => {
       renderCell: params => (
         <>
           <Avatar variant='square' src={params.row.species_image} alt={params.row.id} sx={{ height: 'auto' }} />
+
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
               variant='body2'
@@ -214,7 +215,7 @@ const SpeciesDetails = () => {
         }
 
         await getEntryList({ params: params }).then(res => {
-          console.log('list response', res)
+          // console.log('list response', res)
           setSpeciesDetails({ scientific_name: res.data.scientific_name, common_name: res.data.common_name })
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
@@ -488,7 +489,6 @@ const SpeciesDetails = () => {
             }
           }))
 
-          console.log(transformedData, 'transformedData')
           setOrganizationCountList(transformedData)
         })
       } catch (e) {
@@ -508,8 +508,6 @@ const SpeciesDetails = () => {
       tsn_id: tsn_id,
       tsn_relation: tsn_relation
     }
-
-    console.log(payload, 'qqqq')
 
     try {
       setSubmitLoader(true)
@@ -668,6 +666,7 @@ const SpeciesDetails = () => {
         <Card>
           {organizationCountList.length > 0 &&
             organizationCountList.map((org, inx) => {
+              console.log(org, 'org')
               return (
                 <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                   <CustomAccordion
@@ -676,6 +675,8 @@ const SpeciesDetails = () => {
                     data={org?.approvedAccordionData?.data}
                     cards={org?.approvedAccordionData?.cards}
                     backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                    isOrganization
+                    organizationName={org.organization_name}
                   />
                   <Box
                     sx={{
@@ -684,7 +685,7 @@ const SpeciesDetails = () => {
                   >
                     <CustomAccordion
                       title='To be submitted'
-                      summaryIcon='ion:checkmark'
+                      summaryIcon='mdi:arrow-top-right'
                       data={org?.yetToSubmitAccordionData?.data}
                       cards={org?.yetToSubmitAccordionData?.cards}
                       backgroundImage={org?.species_image !== '' && orgData?.species_image}
@@ -697,7 +698,7 @@ const SpeciesDetails = () => {
                   >
                     <CustomAccordion
                       title='Submitted'
-                      summaryIcon='ion:checkmark'
+                      summaryIcon='mdi:checkbox-marked'
                       data={org?.submittedAccordionData?.data}
                       cards={org?.submittedAccordionData?.cards}
                       backgroundImage={org?.species_image !== '' && orgData?.species_image}

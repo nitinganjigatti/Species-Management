@@ -6,13 +6,14 @@ const composeLabNavigation = () => {
   const parivesh = {
     title: 'Home',
     path: '/parivesh/home',
-    icon: 'lets-icons:home-duotone'
+    icon: <img src='/icons/home_white.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/home_white.png' alt='Grocery Icon' />
   }
 
   const species = {
     title: 'Species',
     path: '/parivesh/species',
-    icon: 'icon-park-outline:traditional-chinese-medicine'
+    icon: 'mdi:rabbit-variant-outline'
   }
 
   const pariveshNavigationArray = []

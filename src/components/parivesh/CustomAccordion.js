@@ -89,15 +89,28 @@ const CustomAccordion = ({
             display: 'flex',
             alignItems: 'center',
             background: '#00ABAB1A',
-            padding: '1rem',
+            padding: '0.8rem',
             borderRadius: '0.5rem',
             alignContent: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            color: '#00AFD6'
           }}
           onClick={() => handleBoxClick()}
         >
-          <Icon icon='fluent:warning-20-filled' />
-          <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem' }} variant='subtitle2'>
+          {/* #AFEFEB */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#AFEFEB ',
+              padding: '8px',
+              borderRadius: '6px'
+            }}
+          >
+            <Icon icon='material-symbols:corporate-fare' />
+          </Box>
+
+          <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem', fontWeight: 'bold' }} variant='subtitle2'>
             {organizationName}
           </Typography>
         </Box>

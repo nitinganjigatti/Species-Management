@@ -568,18 +568,18 @@ const BatchDetails = ({ params, searchParams }) => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
           <Box>
             <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
-              <Icon icon='mdi:printer' fontSize={20} />
+              <Icon icon='mdi:printer-outline' fontSize={20} />
               &nbsp; Print
             </Button>
             {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
-                <Icon icon='mdi:attachment' fontSize={20} />
+                <Icon icon='mdi:attachment-plus' fontSize={20} />
                 &nbsp; Attachment (1)
               </Button>
             )}
             {batchDetails?.status === 'accepted' && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
-                <Icon icon='mdi:add' fontSize={20} />
+                <Icon icon='mdi:pdf-box' fontSize={20} />
                 &nbsp; Reports (1)
               </Button>
             )}
