@@ -116,6 +116,8 @@ const RoomsList = () => {
       minWidth: 30,
       field: 'nursery_name',
       headerName: 'nursery name',
+      sortable: false,
+
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -129,6 +131,8 @@ const RoomsList = () => {
       minWidth: 10,
       field: 'site',
       headerName: 'site',
+      sortable: false,
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.site_name}
@@ -140,6 +144,8 @@ const RoomsList = () => {
       minWidth: 10,
       field: 'room',
       headerName: 'room',
+      sortable: false,
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.room_name}
@@ -150,6 +156,8 @@ const RoomsList = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'Incubator',
+      sortable: false,
+
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
@@ -162,6 +170,8 @@ const RoomsList = () => {
       flex: 0.4,
       minWidth: 60,
       field: 'user_name',
+      sortable: false,
+
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
