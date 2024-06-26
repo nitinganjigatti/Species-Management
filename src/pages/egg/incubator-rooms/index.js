@@ -320,7 +320,7 @@ const RoomsList = () => {
           </Breadcrumbs>
           <Grid container spacing={6}>
             <Grid item xs={12}>
-              <Card sx={{ py: 3 }}>
+              <Card>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
 
                 {/* <Box sx={{ py: 4, px: 4 }}>
