@@ -90,6 +90,7 @@ const NurseryDetails = () => {
     async (sort, q, column) => {
       try {
         setLoading(true)
+
         const params = {
           sort,
           search: q,
@@ -166,7 +167,9 @@ const NurseryDetails = () => {
       Width: 20,
       field: 'id',
       headerName: 'SL',
+      headerAlign: 'center',
       align: 'center',
+
       sortable: false,
       renderCell: params => (
         <Typography
@@ -330,7 +333,6 @@ const NurseryDetails = () => {
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          // disableColumnSelector={true}
           onSortModelChange={handleSortModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}

@@ -462,8 +462,7 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-
-          // nursery_id: 1,
+          nursery_id: '',
           type:
             status === undefined
               ? 'eggs_received'
