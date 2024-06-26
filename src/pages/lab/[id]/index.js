@@ -64,6 +64,8 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
+  const [transferStatus, setTransferStatus] = useState('')
+  console.log('transferStatus :>> ', transferStatus)
 
   const { id } = Router.query
   const searchParams = useSearchParams()
@@ -239,6 +241,7 @@ const RequestDetails = () => {
   const handleOpenPopOver = (event, params) => {
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
+    setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
 
@@ -387,7 +390,7 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            <MenuItem onClick={handleOpenTransfer}>Transfer</MenuItem>
+            <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
             <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
           </Popover>
         </Box>
@@ -500,15 +503,20 @@ const RequestDetails = () => {
     }
     console.log('payload', payload)
 
-    const response = await transferLab(id, payload)
-    if (response?.success) {
-      handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+    if (transferStatus !== 'completed') {
+      const response = await transferLab(id, payload)
+      if (response?.success) {
+        handleCloseTransfer()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
-      fetchRequestDetails()
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
     } else {
       handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
     }
 
     // // setSubmitLoader(false)
