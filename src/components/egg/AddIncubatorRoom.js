@@ -23,6 +23,7 @@ import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
+import Toaster from 'src/components/Toaster'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled }) => {
   const theme = useTheme()
@@ -105,13 +106,13 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
 
           setIsOpen(false)
           reset()
+          Toaster({ type: 'success', message: response.message })
 
-          toast.success('Room updated Successfully')
           callApi('')
         } else {
           setLoader(false)
           reset()
-          toast.error('Unable to add Room')
+          Toaster({ type: 'error', message: response.message })
         }
       } else {
         const response = await AddRoom(payload)
@@ -121,17 +122,17 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
 
           setIsOpen(false)
           reset()
+          Toaster({ type: 'success', message: response.message })
 
-          toast.success(response.message)
           callApi('')
         } else {
           setLoader(false)
-          toast.error(response.message)
+          Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
       console.error('Error while adding room:', error)
-      toast.error('An error occurred while adding room')
+      Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
   }
 
