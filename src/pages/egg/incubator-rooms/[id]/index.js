@@ -400,7 +400,7 @@ const RoomDetails = () => {
         </IconButton>
 
         <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-          <Icon icon='mdi:add' fontSize={30} />
+          <Icon icon='mdi:add' fontSize={20} />
           &nbsp; ADD INCUBATOR
         </Button>
       </Box>
