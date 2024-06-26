@@ -8,9 +8,10 @@ import {
   FormControlLabel,
   Switch,
   Tooltip,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import { Box, display } from '@mui/system'
+import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -24,6 +25,25 @@ import { useRouter } from 'next/router'
 import Router from 'next/router'
 import { GetEggList } from 'src/lib/api/egg/egg'
 
+import { styled } from '@mui/material/styles'
+
+const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
+  '.MuiDataGrid-columnHeaderTitleContainer': {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  '.MuiDataGrid-columnHeader .MuiSvgIcon-root': {
+    display: 'none'
+  },
+  '.MuiDataGrid-columnHeaderFilterIcon': {
+    display: 'none'
+  },
+  '.MuiDataGrid-menuIcon': {
+    display: 'none'
+  }
+}))
+
 const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -35,7 +55,7 @@ const IncubatorDetails = () => {
   const [searchValue, setSearchValue] = useState('')
   const [status, setStatus] = useState('eggs_received')
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
+  let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -143,20 +163,19 @@ const IncubatorDetails = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.14,
       minWidth: 60,
       sortable: false,
       field: 'egg_number',
+      align: 'center',
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: '500'
-
-              // lineHeight: '19.36px'
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
@@ -207,15 +226,13 @@ const IncubatorDetails = () => {
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
-
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
+            lineHeight: '19.36px'
           }}
         >
           {params.row.site_name ? params.row.site_name : '-'}
@@ -256,9 +273,9 @@ const IncubatorDetails = () => {
               Allocate{' '}
             </Button>
           )} */}
-          {status === 'eggs_received' ? (
+          {/* {status === 'eggs_received' ? (
             <>
-              {/* <div>
+              <div>
                 <DiscardStatusCell
                   customButton={status === 'eggs_received' ? 'customButton' : null}
                   hideField='hideField'
@@ -270,62 +287,62 @@ const IncubatorDetails = () => {
 
                   // hover={hover} setHover={setHover}
                 />
-              </div> */}
+              </div>
             </>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                className={status === 'eggs_received' ? 'hideField' : ''}
+          ) : ( */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Avatar
+              variant='square'
+              alt='Medicine Image'
+              className={status === 'eggs_received' ? 'hideField' : ''}
+              sx={{
+                width: 30,
+                height: 30,
+                mr: 4,
+                borderRadius: '50%',
+                background: '#E8F4F2',
+                overflow: 'hidden'
+              }}
+            >
+              {params.row.user_profile_pic ? (
+                <img
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  src={params.row.user_profile_pic}
+                  alt='Profile'
+                />
+              ) : (
+                <Icon icon='mdi:user' fontSize={30} />
+              )}
+            </Avatar>
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column' }}
+              className={status === 'eggs_received' ? 'hideField' : ''}
+            >
+              <Typography
+                noWrap
                 sx={{
-                  width: 30,
-                  height: 30,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  lineHeight: '16.94px'
                 }}
               >
-                {params.row.user_profile_pic ? (
-                  <img
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.user_profile_pic}
-                    alt='Profile'
-                  />
-                ) : (
-                  <Icon icon='mdi:user' fontSize={30} />
-                )}
-              </Avatar>
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column' }}
-                className={status === 'eggs_received' ? 'hideField' : ''}
+                {params.row.user_full_name ? params.row.user_full_name : '-'}
+              </Typography>
+              <Typography
+                noWrap
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: '400',
+                  lineHeight: '14.52px'
+                }}
               >
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  {params.row.user_full_name ? params.row.user_full_name : '-'}
-                </Typography>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    lineHeight: '14.52px'
-                  }}
-                >
-                  {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-                </Typography>
-              </Box>
+                {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              </Typography>
             </Box>
-          )}
+          </Box>
+          {/* )} */}
         </>
       )
     }
@@ -734,11 +751,8 @@ const IncubatorDetails = () => {
         const params = {
           sort,
           q,
-
-          // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-
           // nursery_id: 1,
           type:
             status === undefined
@@ -750,16 +764,17 @@ const IncubatorDetails = () => {
         }
 
         await GetEggList({ params: params }).then(res => {
-          console.log('response', res)
-
-          // Generate uid field based on the index
-          let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
+          if (res?.data?.result) {
+            // Generate uid field based on the index
+            let listWithId = res.data.result.map((el, i) => {
+              return { ...el, uid: i + 1 }
+            })
+            setTotal(parseInt(res?.data?.total_count))
+            setRows(loadServerRows(paginationModel.page, listWithId))
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+          }
         })
         setLoading(false)
       } catch (e) {
@@ -809,6 +824,17 @@ const IncubatorDetails = () => {
     // }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, status, isDiscarded) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(sort, q, status, isDiscarded)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
   const headerAction = (
     <>
       {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
@@ -828,22 +854,21 @@ const IncubatorDetails = () => {
   )
 
   const handleSearch = value => {
-    // setSearchValue(value)
-    // searchTableData(sort, value, sortColumning, status)
+    setSearchValue(value)
+    searchTableData(sort, value, status)
   }
 
   const onCellClick = params => {
     // console.log(params, 'params')
-    // const clickedColumn = params.field !== 'switch'
-    // if (clickedColumn) {
-    //   const data = params.row
-    Router.push({
-      pathname: `/egg/incubators/6`
-    })
-
-    // } else {
-    //   return
-    // }
+    const clickedColumn = params.field !== 'switch'
+    if (clickedColumn) {
+      const data = params.row
+      Router.push({
+        pathname: `/egg/eggs/${data?.id}`
+      })
+    } else {
+      return
+    }
   }
 
   return (
@@ -1132,7 +1157,7 @@ const IncubatorDetails = () => {
               Egg - 10
             </Typography>
             {/* <CardContent > */}
-            <DataGrid
+            <CustomDataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -1153,21 +1178,21 @@ const IncubatorDetails = () => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[5, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
                 }
-                // toolbar: {
-                //   value: searchValue,
-                //   clearSearch: () => handleSearch(''),
-                //   onChange: event => handleSearch(event.target.value)
-                // }
               }}
               onCellClick={onCellClick}
             />
