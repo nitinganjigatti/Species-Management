@@ -360,7 +360,7 @@ const RoomDetails = () => {
         setDetailsListData({
           list: {
             Room: res?.data?.room_name,
-            NurseryName: res?.data?.nursery_name,
+            'Nursery Name': res?.data?.nursery_name,
             Site: res?.data?.site_name,
             Incubator: res?.data?.no_of_incubators,
             Eggs: res?.data?.no_of_eggs

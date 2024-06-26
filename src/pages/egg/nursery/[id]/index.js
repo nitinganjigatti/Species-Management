@@ -51,7 +51,7 @@ const NurseryDetails = () => {
       const res = await GetNurseryDetailsById(id)
       setNurseryData({
         list: {
-          NurseryName: res?.data?.nursery_name,
+          'Nursery Name': res?.data?.nursery_name,
           Room: res?.data?.no_of_rooms,
           Site: res?.data?.site_name,
           Incubator: res?.data?.no_of_incubators,
