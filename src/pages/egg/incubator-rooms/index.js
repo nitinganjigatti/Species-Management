@@ -102,8 +102,7 @@ const RoomsList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
+
             lineHeight: '14.52px'
           }}
         >
@@ -265,18 +264,13 @@ const RoomsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
+    console.log(params, 'params cell click')
 
-    if (clickedColumn) {
-      const data = params.row
+    const data = params.row
 
-      Router.push({
-        pathname: `/egg/incubator-rooms/${data?.id}`
-      })
-    } else {
-      return
-    }
+    Router.push({
+      pathname: `/egg/incubator-rooms/${data?.id}`
+    })
   }
 
   function loadServerRows(currentPage, data) {
