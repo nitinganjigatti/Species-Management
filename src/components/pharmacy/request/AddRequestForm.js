@@ -409,77 +409,85 @@ const AddRequestForm = () => {
   }
 
   //  ****** debounce
-  const fetchMedicineData = async (searchText, productType) => {
-    if (productType === 'productName') {
-      try {
-        var params = {
-          sort: 'asc',
-          q: searchText,
-          limit: 20
-        }
-
-        const searchResults = await getMedicineList({ params: params })
-        if (searchResults?.data?.list_items.length > 0) {
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              name: item.name,
-              package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-              label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
-              manufacture: item.manufacturer_name,
-              control_substance: item.controlled_substance === '1' ? true : false,
-              status: item?.active === '0' ? 0 : 1,
-              prescription_required: item?.prescription_required === '1' ? true : false,
-              unit_price: item?.unit_price ? item?.unit_price : 0,
-              genericName: item?.generic_name
-            }))
-          )
-          setItemErrors({})
-        }
-      } catch (e) {
-        console.log('error', e)
+  const fetchMedicineData = async searchText => {
+    try {
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
       }
-    } else {
-      try {
-        var params = {
-          sort: 'asc',
-          q: '',
-          limit: 20,
-          generic: searchText
-        }
 
-        const searchResults = await getGenericMedicineList({ params: params })
-        debugger
-        console.log('searchResults', searchResults)
-        if (searchResults?.data?.list_items.length > 0) {
-          console.log('genrics', searchResults)
-
-          setOptionsMedicineList(
-            searchResults?.data?.list_items?.map(item => ({
-              value: item.id,
-              genericName: item?.generic_name,
-              name: item?.name,
-              package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-              label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
-              manufacture: item.manufacturer_name,
-              control_substance: item.controlled_substance === '1' ? true : false,
-              status: item?.active === '0' ? 0 : 1,
-              prescription_required: item?.prescription_required === '1' ? true : false,
-              unit_price: item?.unit_price ? item?.unit_price : 0
-            }))
-          )
-          setItemErrors({})
-        }
-      } catch (e) {
-        console.log('error', e)
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        let optionMedListFromApi = searchResults?.data?.list_items?.map(item => ({
+          value: item.id,
+          name: item.name,
+          package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+          label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+          manufacture: item.manufacturer_name,
+          control_substance: item.controlled_substance === '1' ? true : false,
+          status: item?.active === '0' ? 0 : 1,
+          prescription_required: item?.prescription_required === '1' ? true : false,
+          unit_price: item?.unit_price ? item?.unit_price : 0,
+          genericName: item?.generic_name
+        }))
+        setOptionsMedicineList(optionMedListFromApi)
+        setItemErrors({})
       }
+    } catch (e) {
+      console.log('error', e)
     }
   }
 
   const searchMedicineData = useCallback(
-    debounce(async (searchText, productType) => {
+    debounce(async searchText => {
       try {
-        await fetchMedicineData(searchText, productType)
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
+  const fetchGenericMedicineData = async searchText => {
+    try {
+      const params = {
+        sort: 'asc',
+        q: '',
+        limit: 20,
+        generic: searchText
+      }
+
+      const searchResults = await getGenericMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        console.log('genrics', searchResults.data?.list_items)
+
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            genericName: item?.generic_name,
+            name: item?.name,
+            package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+            manufacture: item.manufacturer_name,
+            control_substance: item.controlled_substance === '1' ? true : false,
+            status: item?.active === '0' ? 0 : 1,
+            prescription_required: item?.prescription_required === '1' ? true : false,
+            unit_price: item?.unit_price ? item?.unit_price : 0
+          }))
+        )
+        setItemErrors({})
+      }
+    } catch (e) {
+      console.log('error', e)
+    }
+  }
+
+  const searchGenericMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchGenericMedicineData(searchText)
       } catch (error) {
         console.error(error)
       }
@@ -494,7 +502,7 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    console.log('result', result)
+    // console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -677,9 +685,8 @@ const AddRequestForm = () => {
     return (
       // <CardContent>
       <form style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
+        <Grid container item spacing={5} xs={12}>
           <Grid item xs={12} sm={11 / 2}>
-            {console.log('options list', optionsMedicineList)}
             <FormControl fullWidth>
               <Autocomplete
                 // sx={{ zIndex: 1 }}
@@ -717,7 +724,7 @@ const AddRequestForm = () => {
                   setItemErrors({})
                 }}
                 onKeyUp={e => {
-                  searchMedicineData(e.target.value, 'productName')
+                  searchMedicineData(e.target.value)
                   setItemErrors({})
                 }}
                 onBlur={() => {
@@ -731,6 +738,15 @@ const AddRequestForm = () => {
                     error={Boolean(itemErrors.medicine_name)}
                   />
                 )}
+                // isOptionEqualToValue={(option, value) => {
+                //   console.log('option', option)
+                //   console.log('value', value)
+
+                //   return option?.name === value
+                // }}
+                // getOptionLabel={option => {
+                //   return option?.medicine_name || nestedRowMedicine?.medicine_name || ''
+                // }}
                 // getOptionLabel={option => option?.label}
                 // renderOption={option => (
                 //   <Box sx={{ my: 3, mx: 2 }}>
@@ -772,12 +788,11 @@ const AddRequestForm = () => {
           <Grid item xs={12} sm={1}>
             <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
           </Grid>
-
           <Grid item xs={12} sm={11 / 2}>
             <FormControl fullWidth>
               <Autocomplete
                 // sx={{ zIndex: 1 }}
-                // forcePopupIcon={false}
+                // forcePopupIcon={true}
                 // inputProps={{ tabIndex: '6' }}
                 // disablePortal
                 id='autocomplete-controlled'
@@ -813,12 +828,11 @@ const AddRequestForm = () => {
                   setItemErrors({})
                 }}
                 onKeyUp={e => {
-                  searchMedicineData(e.target.value, 'genericName')
+                  searchGenericMedicineData(e.target.value)
+
                   setItemErrors({})
                 }}
-                onBlur={() => {
-                  fetchMedicineData('')
-                }}
+                onBlur={() => {}}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -827,6 +841,12 @@ const AddRequestForm = () => {
                     error={Boolean(itemErrors.medicine_name)}
                   />
                 )}
+                isOptionEqualToValue={(option, value) => {
+                  return option?.genericName === value
+                }}
+                getOptionLabel={option => {
+                  return option?.genericName || nestedRowMedicine?.genericName || ''
+                }}
                 // getOptionLabel={option => option?.label}
                 // renderOption={option => (
                 //   <Box sx={{ my: 3, mx: 2 }}>
@@ -1173,6 +1193,7 @@ const AddRequestForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
@@ -1210,8 +1231,8 @@ const AddRequestForm = () => {
         <form>
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
                   </Typography>
@@ -1253,7 +1274,7 @@ const AddRequestForm = () => {
               </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
@@ -1321,6 +1342,7 @@ const AddRequestForm = () => {
       </CardContent>
       <Grid
         container
+        item
         spacing={6}
         sm={12}
         xs={12}
