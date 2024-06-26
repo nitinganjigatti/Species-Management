@@ -674,7 +674,7 @@ const EggList = () => {
           <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
             <Divider sx={{ mb: 3 }} />
             <TabContext value={isDiscarded}>
-              <TabList onChange={handleTabs} sx={{ px: 4 }}>
+              <TabList onChange={handleTabs} sx={{ px: 2 }}>
                 <Tab
                   value='eggs_ready_to_be_discarded_at_nursery'
                   label={

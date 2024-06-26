@@ -136,6 +136,8 @@ const RoomDetails = () => {
       Width: 40,
       field: 'id',
       headerName: 'SL ',
+      align: 'center',
+
       sortable: false,
       renderCell: params => (
         <Typography
@@ -270,6 +272,8 @@ const RoomDetails = () => {
       sortable: false,
       field: 'no_of_eggs',
       headerName: 'EGGS',
+      align: 'center',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -471,7 +475,7 @@ const RoomDetails = () => {
                     sl_no: false
                   }}
                   // sortModel={}
-                  hideFooterPagination
+                  // hideFooterPagination
                   // hideFooterSelectedRowCount
                   disableColumnSelector={true}
                   autoHeight
@@ -484,20 +488,19 @@ const RoomDetails = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
-
-                  // slotProps={{
-                  //   baseButton: {
-                  //     variant: 'outlined'
-                  //   },
-                  //   toolbar: {
-                  //     value: searchValue,
-                  //     clearSearch: () => handleSearch(''),
-                  //     onChange: event => handleSearch(event.target.value)
-                  //   }
-                  // }}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
 
                   // onCellClick={onCellClick}
                 />
