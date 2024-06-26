@@ -6,7 +6,8 @@ import {
   transferLab,
   getNoOfLab,
   UpdateStatus,
-  DeleteLAbRequestAttachment
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -117,6 +118,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+  const [transferTestId, setTransferTestId] = useState('')
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -200,18 +202,20 @@ const RequestDetails = () => {
     }
   }
 
-  useEffect(() => {
-    getNoOfLab().then(res => {
-      setLab(res?.data?.result)
-
-      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-    })
-  }, [])
-
   const handleOpenTransfer = params => {
     if (permissions?.transfer_tests === true) {
       setOpenTransfer(true)
-      setSelectedLab(params.row)
+
+      // setSelectedLab(params.row)
+
+      const params = {
+        test_id: transferTestId
+      }
+      GetLabListByTestId({ params: params }).then(res => {
+        setLab(res?.data?.result)
+
+        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      })
     }
     handleClosePopover()
   }
@@ -239,8 +243,10 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
+    console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
     setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
