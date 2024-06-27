@@ -151,6 +151,7 @@ const RequestDetails = () => {
       setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
       fetchRequestDetails()
     } else {
+      fetchRequestDetails()
       setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
     }
   }
