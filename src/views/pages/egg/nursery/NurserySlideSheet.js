@@ -61,7 +61,7 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
       <Box
         sx={{
           position:"relative",
-          right:1,
+          right:0,
           height: '122px',
           width: '100%',
           maxWidth: '562px',

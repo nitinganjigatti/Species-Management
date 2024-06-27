@@ -186,8 +186,8 @@ const NurseryDetails = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 30,
+      flex: 0.1,
+      minWidth: 20,
       field: 'ROOMS',
       headerName: 'ROOMS',
       sortable: false,
@@ -195,9 +195,11 @@ const NurseryDetails = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.1,
       minWidth: 30,
       field: 'INCUBATORS',
+      align: 'center',
+      headerAlign: 'center',
       headerName: 'INCUBATORS',
       sortable: false,
       renderCell: params => (
@@ -206,15 +208,17 @@ const NurseryDetails = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 30,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
+      align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 60,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
@@ -244,10 +248,18 @@ const NurseryDetails = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary', fontSize: 14, fontFamily: 'Inter', fontWeight: 500, lineHeight: '16.94px' }}
+            >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: '#44544a9c', fontSize: 12, fontFamily: 'Inter', lineHeight: '14.52px', fontWeight: 400 }}
+            >
               {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
