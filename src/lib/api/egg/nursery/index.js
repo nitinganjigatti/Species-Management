@@ -26,6 +26,7 @@ export async function UpdateNursery(id, payload) {
 }
 
 export async function GetRoomByNursery(id, params) {
+  
   const response = await axiosGet({ url: `${ADD_NURSERY}/room/list?nursery_id=${id}`, params: params, pharmacy: true })
 
   return response.data

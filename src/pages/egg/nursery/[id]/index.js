@@ -32,8 +32,8 @@ const NurseryDetails = () => {
   const [editSite, setEditSite] = useState('')
   const [editNurseryId, setEditNurseryId] = useState(null)
   const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('asc')
-  const [sortColumn, setSortColumn] = useState('room_name')
+  const [sort, setSort] = useState('desc')
+  const [sortColumn, setSortColumn] = useState('created_at')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -275,7 +275,12 @@ const NurseryDetails = () => {
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-          <Icon icon='mdi:pencil-outline' fontSize={28} color={theme.palette.customColors.OnSurfaceVariant} />
+          <Icon
+            icon='mdi:pencil-outline'
+            fontSize={28}
+            color={theme.palette.customColors.OnSurfaceVariant}
+            onClick={() => setOpenDrawer(true)}
+          />
         </IconButton>
         <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
           <Icon icon='mdi:add' fontSize={20} />
@@ -350,6 +355,7 @@ const NurseryDetails = () => {
         />
         {openDrawer && (
           <NurserySlider
+            openDrawer={openDrawer}
             setOpenDrawer={setOpenDrawer}
             editName={editName}
             fetchTableData={fetchTableData}

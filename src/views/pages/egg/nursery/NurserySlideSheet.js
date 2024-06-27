@@ -24,7 +24,12 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 
 const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required'),
+  nursery_name: yup.string().required('Nursery Name is required')
+  .trim()
+  .strict(true)
+  .min(1, 'Add Nursery Name'),
+  
+
   site_id: yup.string().required('Select Site')
 })
 

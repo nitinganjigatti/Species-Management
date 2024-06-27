@@ -107,7 +107,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
           reset()
 
           toast.success('Room updated Successfully')
-          callApi('')
+          callApi()
         } else {
           setLoader(false)
           reset()
@@ -123,7 +123,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
           reset()
 
           toast.success(response.message)
-          callApi('')
+          callApi()
         } else {
           setLoader(false)
           toast.error(response.message)

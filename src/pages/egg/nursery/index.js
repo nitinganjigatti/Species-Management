@@ -18,7 +18,7 @@ const NurseryList = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('nursery_name')
+  const [sortColumn, setSortColumn] = useState('created_at')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
@@ -97,14 +97,14 @@ const NurseryList = () => {
     borderBottom: '1px solid #ccc'
   })
 
-
   const columns = [
     {
-      flex: 0.075,
+      flex: 0.1,
       Width: 20,
       field: 'id',
       headerName: 'SL ',
       align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -120,17 +120,19 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       sortable: false,
       field: 'Nursery Name',
       headerName: 'Nursery Name',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           noWrap
           sx={{
-            color: theme.palette.primary.dark,
-            fontSize: '16px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
             fontWeight: '400',
             lineHeight: '19.36px'
           }}
@@ -141,12 +143,13 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.15,
+      flex: 0.2,
       minWidth: 30,
       sortable: false,
       field: 'ROOMS',
       headerName: 'ROOMS',
       align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -162,16 +165,17 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.27,
       minWidth: 20,
       sortable: false,
       field: 'INCUBATORS',
       align: 'center',
+      headerAlign: 'center',
       headerName: 'INCUBATORS',
       renderCell: params => (
         <Typography
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            color: theme.palette.primary.dark,
             fontSize: '16px',
             fontWeight: '400',
             lineHeight: '19.36px'
@@ -183,17 +187,19 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 20,
       sortable: false,
       field: 'SITE NAME',
+      align: 'center',
+      headerAlign: 'center',
       headerName: 'SITE NAME',
 
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
+            fontSize: '14px',
             fontWeight: '400',
             lineHeight: '19.36px'
           }}
@@ -209,6 +215,8 @@ const NurseryList = () => {
       sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -343,7 +351,7 @@ const NurseryList = () => {
       </Card>
       {openDrawer && (
         <NurseryAddComponent
-        openDrawer={openDrawer}
+          openDrawer={openDrawer}
           setOpenDrawer={setOpenDrawer}
           loading={loading}
           // onSubmit={onSubmit}
