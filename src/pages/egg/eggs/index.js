@@ -415,9 +415,9 @@ const EggList = () => {
   }
 
   const onCellClick = params => {
-    // console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
-    if (clickedColumn) {
+    // console.log('params.field', params.field)
+    // const clickedColumn = params.field !== 'switch'
+    if (params) {
       const data = params.row
       Router.push({
         pathname: `/egg/eggs/${data?.id}`
@@ -621,7 +621,9 @@ const EggList = () => {
   return (
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Egg</Typography>
+        <Typography color='inherit' sx={{ cursor: 'pointer' }}>
+          Egg
+        </Typography>
 
         <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
           Egg List
@@ -672,7 +674,7 @@ const EggList = () => {
           <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
             <Divider sx={{ mb: 3 }} />
             <TabContext value={isDiscarded}>
-              <TabList onChange={handleTabs} sx={{ px: 4 }}>
+              <TabList onChange={handleTabs} sx={{ px: 2 }}>
                 <Tab
                   value='eggs_ready_to_be_discarded_at_nursery'
                   label={
@@ -693,7 +695,9 @@ const EggList = () => {
                   }
                 /> */}
               </TabList>
-              <TabPanel value='eggs_ready_to_be_discarded_at_nursery'>{tableData()}</TabPanel>
+              <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                {tableData()}
+              </TabPanel>
               {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
               <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>

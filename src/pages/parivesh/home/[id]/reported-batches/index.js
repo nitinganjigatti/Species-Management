@@ -139,14 +139,25 @@ const ReportedBatches = ({ searchParams, type }) => {
   }
 
   const columns = [
+    // {
+    //   flex: 0.2,
+    //   Width: 40,
+    //   field: 'batch_id',
+    //   headerName: 'BATCH ID',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.batch_id}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       Width: 40,
-      field: 'batch_id',
-      headerName: 'BATCH ID',
+      field: 'id',
+      headerName: 'S.No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_id}
+          {params.row.id}
         </Typography>
       )
     },
@@ -180,7 +191,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# NO OF ANIMALS',
+      headerName: '# OF ANIMALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}

@@ -108,7 +108,10 @@ const Overview = () => {
         }
 
         await getOrgCountList({ params: params }).then(res => {
-          console.log('respons', res.data)
+          console.log(
+            'respons',
+            res.data.map(org => console.log(org, 'org123'))
+          )
           const transformedData = res.data.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
@@ -117,26 +120,26 @@ const Overview = () => {
               title: 'Approved by Parivesh',
               data: [
                 {
-                  value: org.submitted_count_data.total_animal,
+                  value: org.approved_count_data.total_animal,
                   label: 'TOTAL ANIMALS',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
-                { value: org.submitted_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+                { value: org.approved_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
                 {
-                  value: org.submitted_count_data.female_count,
+                  value: org.approved_count_data.female_count,
                   label: 'FEMALE',
                   color: '#FFD3D3',
                   borderColor: '#FFD3D3'
                 },
                 {
-                  value: org.submitted_count_data.other_count,
+                  value: org.approved_count_data.other_count,
                   label: 'OTHERS',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.submitted_count_data.species_count,
+                  value: org.approved_count_data.species_count,
                   label: 'TOTAL SPECIES',
                   color: '#E4B819',
                   borderColor: '#E4B819'
@@ -144,43 +147,46 @@ const Overview = () => {
               ],
               cards: [
                 {
-                  value: org.possession_counts.births.total,
+                  value: org.approved_count_data.possession_counts.births.total,
                   content: 'Births',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.approved_count_data.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.approved_count_data.possession_counts.births.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.deaths.total,
+                  value: org.approved_count_data.possession_counts.deaths.total,
                   content: 'Deaths',
                   bgColor: '#E93353',
                   items: [
-                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.approved_count_data.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.approved_count_data.possession_counts.deaths.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.acquisitions.total,
+                  value: org.approved_count_data.possession_counts.acquisitions.total,
                   content: 'Acquisition',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.approved_count_data.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.approved_count_data.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.transfers.total,
+                  value: org.approved_count_data.possession_counts.transfers.total,
                   content: 'Transfers',
                   bgColor: '#FA6140',
                   items: [
-                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    {
+                      value: org.approved_count_data.possession_counts.transfers.female,
+                      bgColor: '#FFD3D3'
+                    },
+                    { value: org.approved_count_data.possession_counts.transfers.other, bgColor: '#FFFFFF' }
                   ]
                 }
               ]
@@ -221,43 +227,46 @@ const Overview = () => {
               ],
               cards: [
                 {
-                  value: org.possession_counts.births.total,
+                  value: org.yet_to_submitted_count.possession_counts.births.total,
                   content: 'Births',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                    { value: org.yet_to_submitted_count.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.yet_to_submitted_count.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.yet_to_submitted_count.possession_counts.births.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.deaths.total,
+                  value: org.yet_to_submitted_count.possession_counts.deaths.total,
                   content: 'Deaths',
                   bgColor: '#E93353',
                   items: [
-                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                    { value: org.yet_to_submitted_count.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.yet_to_submitted_count.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.yet_to_submitted_count.possession_counts.deaths.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.acquisitions.total,
+                  value: org.yet_to_submitted_count.possession_counts.acquisitions.total,
                   content: 'Acquisition',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                    { value: org.yet_to_submitted_count.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.yet_to_submitted_count.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.yet_to_submitted_count.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.transfers.total,
+                  value: org.yet_to_submitted_count.possession_counts.transfers.total,
                   content: 'Transfers',
                   bgColor: '#FA6140',
                   items: [
-                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                    { value: org.yet_to_submitted_count.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    {
+                      value: org.yet_to_submitted_count.possession_counts.transfers.female,
+                      bgColor: '#FFD3D3'
+                    },
+                    { value: org.yet_to_submitted_count.possession_counts.transfers.other, bgColor: '#FFFFFF' }
                   ]
                 }
               ]
@@ -298,43 +307,46 @@ const Overview = () => {
               ],
               cards: [
                 {
-                  value: org.possession_counts.births.total,
+                  value: org.submitted_count_data.possession_counts.births.total,
                   content: 'Births',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.births.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.births.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.births.other, bgColor: '#FFFFFF' }
+                    { value: org.submitted_count_data.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.submitted_count_data.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.submitted_count_data.possession_counts.births.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.deaths.total,
+                  value: org.submitted_count_data.possession_counts.deaths.total,
                   content: 'Deaths',
                   bgColor: '#E93353',
                   items: [
-                    { value: org.possession_counts.deaths.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.deaths.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.deaths.other, bgColor: '#FFFFFF' }
+                    { value: org.submitted_count_data.possession_counts.deaths.male, bgColor: '#00AFD6' },
+                    { value: org.submitted_count_data.possession_counts.deaths.female, bgColor: '#FFD3D3' },
+                    { value: org.submitted_count_data.possession_counts.deaths.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.acquisitions.total,
+                  value: org.submitted_count_data.possession_counts.acquisitions.total,
                   content: 'Acquisition',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
+                    { value: org.submitted_count_data.possession_counts.acquisitions.male, bgColor: '#00AFD6' },
+                    { value: org.submitted_count_data.possession_counts.acquisitions.female, bgColor: '#FFD3D3' },
+                    { value: org.submitted_count_data.possession_counts.acquisitions.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.possession_counts.transfers.total,
+                  value: org.submitted_count_data.possession_counts.transfers.total,
                   content: 'Transfers',
                   bgColor: '#FA6140',
                   items: [
-                    { value: org.possession_counts.transfers.male, bgColor: '#00AFD6' },
-                    { value: org.possession_counts.transfers.female, bgColor: '#FFD3D3' },
-                    { value: org.possession_counts.transfers.other, bgColor: '#FFFFFF' }
+                    { value: org.submitted_count_data.possession_counts.transfers.male, bgColor: '#00AFD6' },
+                    {
+                      value: org.submitted_count_data.possession_counts.transfers.female,
+                      bgColor: '#FFD3D3'
+                    },
+                    { value: org.submitted_count_data.possession_counts.transfers.other, bgColor: '#FFFFFF' }
                   ]
                 }
               ]
@@ -370,15 +382,16 @@ const Overview = () => {
                     title={orgData.approvedAccordionData.title}
                     data={orgData.approvedAccordionData.data}
                     cards={orgData.approvedAccordionData.cards}
-                    // backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
-                    backgroundImage={
-                      orgData?.species_image !== ''
-                        ? orgData?.species_image
-                        : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                    }
+                    backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                    // backgroundImage={
+                    //   orgData?.species_image !== ''
+                    //     ? orgData?.species_image
+                    //     : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                    // }
                     isOrganization
                     organizationName={orgData.organization_name}
                     showDetails
+                    summaryIcon='ion:checkmark'
                     handleBoxClick={() => handleBoxClick(organization)}
                   />
                   <Box sx={{ mt: 3 }}>
@@ -387,6 +400,7 @@ const Overview = () => {
                       data={orgData.yetToSubmitAccordionData.data}
                       cards={orgData.yetToSubmitAccordionData.cards}
                       backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                      summaryIcon='mdi:arrow-top-right'
                     />
                   </Box>
                   {selectedParivesh?.id !== 'all' && (
@@ -396,6 +410,7 @@ const Overview = () => {
                         data={orgData.submittedAccordionData.data}
                         cards={orgData.submittedAccordionData.cards}
                         backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                        summaryIcon='mdi:checkbox-marked'
                       />
                     </Box>
                   )}
@@ -416,9 +431,16 @@ const Overview = () => {
                     organizationName={organization.organization_name}
                     showDetails
                     handleBoxClick={() => handleBoxClick(organization)}
+                    summaryIcon='ion:checkmark'
                   />
                   <Box sx={{ mt: 3 }}>
-                    <CustomAccordion title='To be submitted' data={data} cards={cards} backgroundImage='' />
+                    <CustomAccordion
+                      title='To be submitted'
+                      data={data}
+                      cards={cards}
+                      backgroundImage=''
+                      summaryIcon='mdi:arrow-top-right'
+                    />
                   </Box>
                 </CardContent>
               </Card>

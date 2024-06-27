@@ -265,3 +265,5 @@ export const BATCH_LIST_SPECIES_BY_ID = 'v1/parivesh/species/site/batchentriesli
 export const ENTRY_LIST_SPECIES = 'v1/parivesh/species/site/entrieslist'
 
 export const ORG_COUNT_LIST = 'v1/parivesh/species/site/stats'
+
+export const UPDATE_BATCH_STATUS = '/v1/parivesh/species/site/batchstatusupdate'
