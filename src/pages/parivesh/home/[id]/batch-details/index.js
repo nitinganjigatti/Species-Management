@@ -617,18 +617,24 @@ const BatchDetails = ({ params, searchParams }) => {
               <Icon icon='mdi:printer-outline' fontSize={20} />
               &nbsp; Print
             </Button>
-            {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
+            {type === 'submittedBatch' && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment-plus' fontSize={20} />
+                &nbsp; Attachment
+              </Button>
+            )}
+            {/* {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                 <Icon icon='mdi:attachment-plus' fontSize={20} />
                 &nbsp; Attachment (1)
               </Button>
-            )}
-            {batchDetails?.status === 'accepted' && (
+            )} */}
+            {/* {batchDetails?.status === 'accepted' && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                 <Icon icon='mdi:pdf-box' fontSize={20} />
                 &nbsp; Reports (1)
               </Button>
-            )}
+            )} */}
           </Box>
 
           {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
