@@ -37,8 +37,9 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import Popper from '@mui/material/Popper'
 import { styled } from '@mui/material/styles'
-import { addIncubator } from 'src/lib/api/egg/incubator'
+import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
+import Toaster from 'src/components/Toaster'
 
 const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose, isPreFilled }) => {
   const router = useRouter()
@@ -82,15 +83,15 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
         setValue('incubator_name', incubatorDetail?.incubator_name)
         setValue('nursery', incubatorDetail?.nursery_id)
         setValue('room', incubatorDetail?.room_id)
-        setValue('maxNumberOfEggs', incubatorDetail?.no_of_eggs)
-
-        console.log('incubatorDetail?', incubatorDetail)
+        setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
+        RoomList(incubatorDetail?.nursery_id)
+        // console.log('incubatorDetail?', incubatorDetail)
       } catch (error) {
         console.log('error', error)
       }
     }
     if (isPreFilled) {
-      console.log('isPreFilled :>> ', isPreFilled)
+      // console.log('isPreFilled :>> ', isPreFilled)
 
       setValue('nursery', isPreFilled?.nursery_id)
       setValue('room', isPreFilled?.room_id)
@@ -111,11 +112,12 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
     }
   }
 
-  const RoomList = async () => {
+  const RoomList = async id => {
     try {
       const params = {
         page: 1,
-        limit: 50
+        limit: 50,
+        nursery_id: id
       }
       await GetRoomList({ params: params }).then(res => {
         setRoomList(res?.data?.result)
@@ -127,7 +129,6 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
 
   useEffect(() => {
     NurseryList()
-    RoomList()
   }, [])
 
   const {
@@ -155,15 +156,16 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
         updateIncubator(id, {
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs,
+          max_eggs: Number(val?.maxNumberOfEggs),
           incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
-
-            // handleSidebarClose()
-            router.push('/egg/incubators')
+            handleSidebarClose()
+            Toaster({ type: 'success', message: res.message })
+            actionApi(id)
           } else {
+            Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
@@ -182,7 +184,9 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
             actionApi('')
             handleSidebarClose()
             setBtnDisabled(false)
+            Toaster({ type: 'success', message: res.message })
           } else {
+            Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
@@ -296,7 +300,12 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                           name='nursery'
                           value={value}
                           label='Nursery'
-                          onChange={onChange}
+                          onChange={e => {
+                            // onChange()
+                            setValue('nursery', e.target.value)
+                            setValue('room', '')
+                            RoomList(e.target.value)
+                          }}
                           error={Boolean(errors?.nursery)}
                           labelId='nursery'
                         >

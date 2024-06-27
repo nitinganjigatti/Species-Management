@@ -1198,6 +1198,7 @@ const IncubatorDetails = () => {
             />
             <AddIncubators
               isEdit={isEdit}
+              actionApi={getIncubatorDetail}
               incubatorDetail={incubatorDetail}
               drawerWidth={400}
               sidebarOpen={dialog}
