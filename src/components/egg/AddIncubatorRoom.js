@@ -25,7 +25,7 @@ import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
-const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled }) => {
+const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
   const theme = useTheme()
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
@@ -33,6 +33,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
   const [nurseryList, setNurseryList] = useState([])
   console.log('nurseryList :>> ', nurseryList)
   const id = editParams?.room_id
+  const [siteDetails, setSiteDetails] = useState({ site_id: '', site_name: '' })
+  console.log('siteDetails :>> ', siteDetails)
 
   const defaultValues = {
     room_name: '',
@@ -41,7 +43,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
   }
 
   const schema = yup.object().shape({
-    room_name: yup.string().required('Room Name is required'),
+    room_name: yup.string().trim().required('Room Name is required'),
     site_id: yup.string().required('Select Site'),
     nursery_id: yup.string().required('Nursery is required')
   })
@@ -51,6 +53,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
     reset,
     control,
     handleSubmit,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -79,11 +82,27 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
     NurseryList()
   }, [])
 
+  const nurseryId = watch('nursery_id')
+
+  useEffect(() => {
+    if (nurseryId) {
+      const selectedNursery = nurseryList.find(nursery => nursery.nursery_id === nurseryId)
+
+      // setSiteDetails({ site_id: selectedNursery.site_id, site_name: selectedNursery.site_name })
+      setValue('site_id', selectedNursery?.site_id)
+    }
+  }, [nurseryId])
+
   useEffect(() => {
     if (isPreFilled) {
       console.log('isPreFilled :>> ', isPreFilled)
       setValue('site_id', isPreFilled?.site_id)
       setValue('nursery_id', isPreFilled?.nursery_id)
+    }
+    if (editParams?.nursery_id && editParams?.room_name) {
+      setValue('room_name', editParams?.room_name)
+      setValue('site_id', editParams?.site_id)
+      setValue('nursery_id', editParams?.nursery_id)
     }
   }, [isOpen])
 
@@ -106,9 +125,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
 
           setIsOpen(false)
           reset()
+          callApi()
+          callTableApi()
           Toaster({ type: 'success', message: response.message })
-
-          callApi('')
         } else {
           setLoader(false)
           reset()
@@ -124,7 +143,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
           reset()
           Toaster({ type: 'success', message: response.message })
 
-          callApi('')
+          callTableApi()
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response.message })
@@ -134,12 +153,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
       console.error('Error while adding room:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
-  }
-
-  if (editParams?.nursery_id && editParams?.room_name) {
-    setValue('room_name', editParams?.room_name)
-    setValue('site_id', editParams?.site_id)
-    setValue('nursery_id', editParams?.nursery_id)
   }
 
   const handleClose = () => {
@@ -192,10 +205,42 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <FormControl fullWidth>
+                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
+                  Nursery*
+                </InputLabel>
+                <Controller
+                  name='nursery_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='nursery_id'
+                      value={value}
+                      label='Nursery*'
+                      onChange={onChange}
+                      error={Boolean(errors?.nursery_id)}
+                      labelId='nursery_id'
+                      disabled={isPreFilled?.nursery_id}
+                    >
+                      {nurseryList?.map((item, index) => {
+                        return (
+                          <MenuItem key={index} value={item?.nursery_id}>
+                            {item?.nursery_name}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
+                  )}
+                />
+                {errors?.nursery_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
+                )}
+              </FormControl>
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-                    Site
+                    Site*
                   </InputLabel>
                   <Controller
                     name='site_id'
@@ -205,10 +250,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
                       <Select
                         name='site_id'
                         value={value}
-                        label='Site'
+                        label='Site*'
                         onChange={onChange}
                         error={Boolean(errors?.site_id)}
                         labelId='site_id'
+                        disabled
                       >
                         {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                           return (
@@ -225,38 +271,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
                   )}
                 </FormControl>
               )}
-
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
-                  Nursery
-                </InputLabel>
-                <Controller
-                  name='nursery_id'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='nursery_id'
-                      value={value}
-                      label='Nursery'
-                      onChange={onChange}
-                      error={Boolean(errors?.nursery_id)}
-                      labelId='nursery_id'
-                    >
-                      {nurseryList?.map((item, index) => {
-                        return (
-                          <MenuItem key={index} value={item?.nursery_id}>
-                            {item?.nursery_name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                  )}
-                />
-                {errors?.nursery_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
-                )}
-              </FormControl>
               <FormControl fullWidth>
                 <Controller
                   name='room_name'
@@ -264,7 +278,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled 
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Room Name'
+                      label='Room Name*'
                       value={value}
                       onChange={onChange}
                       focused={value !== ''}

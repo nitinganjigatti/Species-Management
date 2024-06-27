@@ -66,10 +66,10 @@ const RoomsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData()
       } catch (error) {
         console.error(error)
       }
@@ -109,6 +109,22 @@ const RoomsList = () => {
       )
     },
     {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'room',
+      headerName: 'room',
+      sortable: false,
+
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: '400', lineHeight: '19.36px' }}
+        >
+          {params.row.room_name}
+        </Typography>
+      )
+    },
+    {
       flex: 0.5,
       minWidth: 30,
       field: 'nursery_name',
@@ -117,7 +133,15 @@ const RoomsList = () => {
 
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
             {params.row.nursery_name}
           </Typography>
         </Box>
@@ -131,24 +155,20 @@ const RoomsList = () => {
       sortable: false,
 
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.site_name}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'room',
-      headerName: 'room',
-      sortable: false,
 
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.room_name}
-        </Typography>
-      )
-    },
     {
       flex: 0.3,
       minWidth: 10,
@@ -158,7 +178,15 @@ const RoomsList = () => {
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.no_of_incubators}
         </Typography>
       )
@@ -195,7 +223,16 @@ const RoomsList = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
+              }}
+            >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
@@ -273,34 +310,31 @@ const RoomsList = () => {
     return data
   }
 
-  const fetchTableData = useCallback(
-    async (sort, q, column) => {
-      try {
-        setLoading(true)
+  const fetchTableData = useCallback(async () => {
+    try {
+      setLoading(true)
 
-        const params = {
-          sort,
-          search: q,
+      const params = {
+        sort,
+        search: searchValue,
 
-          // column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await GetRoomList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
+        // column,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
       }
-    },
-    [paginationModel]
-  )
+
+      await GetRoomList({ params: params }).then(res => {
+        setTotal(parseInt(res?.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      })
+      setLoading(false)
+    } catch (e) {
+      setLoading(false)
+    }
+  }, [paginationModel])
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData()
   }, [fetchTableData])
 
   return (
@@ -408,7 +442,7 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddIncubatorRoom callTableApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
       </>
     </>
   )

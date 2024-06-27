@@ -458,6 +458,7 @@ const EggList = () => {
         const params = {
           sort,
           q,
+          sorting_by_date: 'latest_date',
 
           // sortColumn,
           page_no: paginationModel.page + 1,
