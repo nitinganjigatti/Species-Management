@@ -110,9 +110,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}
@@ -133,9 +133,9 @@ const NurseryList = () => {
           noWrap
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
           }}
         >
           {params.row.nursery_name}
@@ -155,9 +155,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
           }}
         >
           {params.row.no_of_rooms}
@@ -179,7 +179,7 @@ const NurseryList = () => {
             color: theme.palette.primary.dark,
             fontSize: '14px',
             fontWeight: '500',
-            lineHeight: '16.94px'
+            lineHeight: '14.52px'
           }}
         >
           {params.row.no_of_incubators}
@@ -200,9 +200,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
           }}
         >
           {params.row.site_name}
@@ -247,9 +247,9 @@ const NurseryList = () => {
               noWrap
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: '400',
-                lineHeight: '19.36px'
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '16.94px'
               }}
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}

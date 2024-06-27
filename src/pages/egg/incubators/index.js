@@ -78,7 +78,7 @@ const IncubatorsList = () => {
 
         const params = {
           q,
-          // sortColumn,
+          sort,
           from_date: '2024-05-29',
           til_date: cuurent_date,
           page: paginationModel.page + 1,
@@ -183,7 +183,8 @@ const IncubatorsList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '400',
-            lineHeight: '14.52px'
+            lineHeight: '14.52px',
+            fontSize: '12px'
           }}
         >
           {params.row.sl_no}
@@ -192,7 +193,7 @@ const IncubatorsList = () => {
     },
 
     {
-      flex: 0.35,
+      flex: 0.27,
       minWidth: 30,
       sortable: false,
       field: 'incubator_code',
@@ -209,6 +210,30 @@ const IncubatorsList = () => {
         >
           {params.row.incubator_code ? params.row.incubator_code : '-'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.35,
+      minWidth: 30,
+      sortable: false,
+      field: 'incubator_name',
+      headerName: 'INCUBATOR NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.incubator_name ? params.row.incubator_name : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.incubator_name ? params.row.incubator_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     // {
@@ -247,7 +272,7 @@ const IncubatorsList = () => {
     //   )
     // },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 10,
       sortable: false,
       field: 'availability',
@@ -266,45 +291,53 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'site_name',
       headerName: 'SITE',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.24,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'room_name',
       headerName: 'ROOM NO',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name ? params.row.room_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.1,
+      flex: 0.12,
       minWidth: 20,
       sortable: false,
       align: 'right',

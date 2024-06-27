@@ -1157,7 +1157,7 @@ const IncubatorDetails = () => {
                 mb: 4
               }}
             >
-              Egg - 10
+              Egg - {indexedRows?.length}
             </Typography>
             {/* <CardContent > */}
             <CustomDataGrid

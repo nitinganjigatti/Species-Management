@@ -57,26 +57,12 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
   }
 
   const schema = yup.object().shape({
-    incubator_name: yup.string().required('incubator Name is Required'),
+    incubator_name: yup.string().trim().required('incubator Name is Required'),
     nursery: yup.string().required('Nursery is Required'),
     room: yup.string().required('Room is Required'),
     maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
   })
 
-  // useEffect(() => {
-  //   if (isEdit) {
-  //     try {
-  //       setValue('incubator_name', incubatorDetail?.incubator_name)
-  //       setValue('nursery', incubatorDetail?.nursery_id)
-  //       setValue('room', incubatorDetail?.room_id)
-  //       setValue('maxNumberOfEggs', incubatorDetail?.no_of_eggs)
-
-  //       console.log('incubatorDetail?', incubatorDetail)
-  //     } catch (error) {
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }, [incubatorDetail])
   useEffect(() => {
     if (isEdit && sidebarOpen) {
       try {
@@ -92,17 +78,18 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
     }
     if (isPreFilled) {
       // console.log('isPreFilled :>> ', isPreFilled)
-
+      RoomList(isPreFilled?.nursery_id)
       setValue('nursery', isPreFilled?.nursery_id)
       setValue('room', isPreFilled?.room_id)
     }
   }, [sidebarOpen])
 
-  const NurseryList = async () => {
+  const NurseryList = async id => {
     try {
       const params = {
         page: 1,
-        limit: 50
+        limit: 50,
+        nursery_id: id
       }
       await GetNurseryList({ params: params }).then(res => {
         setNurseryList(res?.data?.result)
@@ -150,8 +137,8 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
   })
 
   const onSubmit = val => {
+    setBtnDisabled(true)
     if (isEdit) {
-      setBtnDisabled(true)
       try {
         updateIncubator(id, {
           nursery_id: val?.nursery,
@@ -162,13 +149,16 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           if (res.success) {
             reset()
             handleSidebarClose()
+            setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
             actionApi(id)
           } else {
+            setBtnDisabled(false)
             Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
+        setBtnDisabled(false)
         console.log(error)
       }
     } else {
@@ -186,10 +176,12 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
           } else {
+            setBtnDisabled(false)
             Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
+        setBtnDisabled(false)
         console.log(error)
       }
     }
@@ -201,7 +193,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
 
   const RenderSidebarFooter = () => {
     return (
-      <LoadingButton fullWidth size='large' type='submit' variant='contained'>
+      <LoadingButton disabled={btnDisabled} fullWidth size='large' type='submit' variant='contained'>
         {isEdit ? 'EDIT' : 'ADD'} INCUBATOR
       </LoadingButton>
     )
@@ -260,7 +252,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <FormControl fullWidth>
                     <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
-                      Nursery
+                      Nursery *
                     </InputLabel>
 
                     <Controller
@@ -299,13 +291,14 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                         <Select
                           name='nursery'
                           value={value}
-                          label='Nursery'
+                          label='Nursery *'
                           onChange={e => {
                             // onChange()
                             setValue('nursery', e.target.value)
                             setValue('room', '')
                             RoomList(e.target.value)
                           }}
+                          disabled={isEdit || isPreFilled}
                           error={Boolean(errors?.nursery)}
                           labelId='nursery'
                         >
@@ -325,7 +318,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                   </FormControl>
                   <FormControl fullWidth>
                     <InputLabel error={Boolean(errors?.room)} id='room'>
-                      Room
+                      Room *
                     </InputLabel>
                     <Controller
                       name='room'
@@ -339,6 +332,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                           onChange={onChange}
                           error={Boolean(errors?.nursery)}
                           labelId='room'
+                          disabled={isEdit || isPreFilled}
                         >
                           {roomList?.map((item, index) => {
                             return (
@@ -361,7 +355,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
-                          label='Incubator Name'
+                          label='Incubator Name *'
                           value={value}
                           onChange={onChange}
                           placeholder='Incubator Name'
@@ -381,7 +375,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
-                          label='Max Number Of Eggs'
+                          label='Max Number Of Eggs *'
                           value={value}
                           type='number'
                           inputProps={{ min: 1 }}
