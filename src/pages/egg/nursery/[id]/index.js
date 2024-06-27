@@ -164,7 +164,7 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.09,
       Width: 20,
       field: 'id',
       headerName: 'SL',
@@ -197,10 +197,8 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 30,
+      minWidth: 20,
       field: 'INCUBATORS',
-      align: 'center',
-      headerAlign: 'center',
       headerName: 'INCUBATORS',
       sortable: false,
       renderCell: params => (
@@ -209,18 +207,28 @@ const NurseryDetails = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.1,
+      minWidth: 20,
+      field: 'Eggs',
+      headerName: 'Eggs',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_eggs}</Box>
+      )
+    },
+
+    {
+      flex: 0.1,
       minWidth: 30,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
-      align: 'center',
-      headerAlign: 'center',
+      
       sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
     },
     {
-      flex: 0.3,
-      minWidth: 60,
+      flex: 0.2,
+      minWidth: 50,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
       sortable: false,
@@ -372,6 +380,7 @@ const NurseryDetails = () => {
             setOpenDrawer={setOpenDrawer}
             editName={editName}
             fetchTableData={fetchTableData}
+            callApi={fetchNurseryById}
             editSite={editSite}
             editNurseryId={editNurseryId}
           />

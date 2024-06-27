@@ -33,7 +33,7 @@ const schema = yup.object().shape({
   site_id: yup.string().required('Select Site')
 })
 
-const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, editName, editSite, fetchTableData }) => {
+const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, editName, editSite, callApi, fetchTableData }) => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
@@ -99,6 +99,7 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           toast.success('Nursery updated Successfully')
           setOpenDrawer(false)
           fetchTableData()
+          callApi()
         } else {
           toast.error('Unable to update Nursery')
         }
@@ -114,6 +115,7 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           toast.success('Nursery added Successfully')
           setOpenDrawer(false)
           fetchTableData()
+          callApi()
         } else {
           toast.error('Unable to add Nursery')
         }

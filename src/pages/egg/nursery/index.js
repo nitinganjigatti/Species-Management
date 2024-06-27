@@ -18,7 +18,7 @@ const NurseryList = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('created_at')
+  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
@@ -31,14 +31,15 @@ const NurseryList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async q => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          search: q,
-          column,
+          search: q || '',
+
+          // column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -56,14 +57,14 @@ const NurseryList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(searchValue)
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData( searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -72,7 +73,7 @@ const NurseryList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData( q, column)
       } catch (error) {
         console.error(error)
       }
@@ -121,13 +122,13 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      flex: 0.3,
+      minWidth: 30,
       sortable: false,
       field: 'Nursery Name',
       headerName: 'Nursery Name',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+     
       renderCell: params => (
         <Typography
           noWrap
@@ -145,12 +146,12 @@ const NurseryList = () => {
 
     {
       flex: 0.2,
-      minWidth: 30,
+      minWidth: 20,
       sortable: false,
       field: 'ROOMS',
       headerName: 'ROOMS',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography
           sx={{
@@ -166,12 +167,12 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.27,
+      flex: 0.24,
       minWidth: 20,
       sortable: false,
       field: 'INCUBATORS',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'INCUBATORS',
       renderCell: params => (
         <Typography
@@ -188,12 +189,12 @@ const NurseryList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.23,
       minWidth: 20,
       sortable: false,
       field: 'SITE NAME',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'SITE NAME',
 
       renderCell: params => (
@@ -216,8 +217,8 @@ const NurseryList = () => {
       sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
