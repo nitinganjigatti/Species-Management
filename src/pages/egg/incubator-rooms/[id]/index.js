@@ -549,6 +549,7 @@ const RoomDetails = () => {
         />
         <AddIncubators
           actionApi={fetchTableData}
+          detailsApi={fetchDetailsData}
           sidebarOpen={dialog}
           handleSidebarClose={handleSidebarClose}
           isPreFilled={isPreFilled}
