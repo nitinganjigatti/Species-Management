@@ -32,7 +32,7 @@ const NurseryDetails = () => {
   const [editSite, setEditSite] = useState('')
   const [editNurseryId, setEditNurseryId] = useState(null)
   const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('room_name')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -88,13 +88,13 @@ const NurseryDetails = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (q, column) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          search: q,
+          search: q || '',
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -117,14 +117,14 @@ const NurseryDetails = () => {
   console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(searchValue, sortColumn)
   }, [fetchTableData])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(q, column)
       } catch (error) {
         console.error(error)
       }

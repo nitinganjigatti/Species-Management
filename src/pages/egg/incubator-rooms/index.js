@@ -33,6 +33,8 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+  console.log('searchValue :>> ', searchValue)
+
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -69,7 +71,7 @@ const RoomsList = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData()
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }
@@ -79,7 +81,7 @@ const RoomsList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, status)
+    searchTableData(value, sortColumn, status)
   }
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
@@ -315,31 +317,34 @@ const RoomsList = () => {
     return data
   }
 
-  const fetchTableData = useCallback(async () => {
-    try {
-      setLoading(true)
+  const fetchTableData = useCallback(
+    async q => {
+      try {
+        setLoading(true)
 
-      const params = {
-        sort,
-        search: searchValue,
+        const params = {
+          sort,
+          search: q || '',
 
-        // column,
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize
+          // column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await GetRoomList({ params: params }).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+        })
+        setLoading(false)
+      } catch (e) {
+        setLoading(false)
       }
-
-      await GetRoomList({ params: params }).then(res => {
-        setTotal(parseInt(res?.data?.total_count))
-        setRows(loadServerRows(paginationModel.page, res?.data?.result))
-      })
-      setLoading(false)
-    } catch (e) {
-      setLoading(false)
-    }
-  }, [paginationModel])
+    },
+    [paginationModel]
+  )
 
   useEffect(() => {
-    fetchTableData()
+    fetchTableData(searchValue)
   }, [fetchTableData])
 
   return (
@@ -447,7 +452,12 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom callTableApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddIncubatorRoom
+          callTableApi={fetchTableData}
+          callApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
       </>
     </>
   )

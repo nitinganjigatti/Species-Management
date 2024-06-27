@@ -41,7 +41,15 @@ import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 
-const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose, isPreFilled }) => {
+const AddIncubators = ({
+  incubatorDetail,
+  actionApi,
+  isEdit,
+  sidebarOpen,
+  handleSidebarClose,
+  isPreFilled,
+  detailsApi
+}) => {
   const router = useRouter()
   const { id } = router.query
   const [defaultNursery, setDefaultNursery] = useState(null)
@@ -85,7 +93,6 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
         setValue('room', incubatorDetail?.room_id)
         setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
         RoomList(incubatorDetail?.nursery_id)
-        // console.log('incubatorDetail?', incubatorDetail)
       } catch (error) {
         console.log('error', error)
       }
