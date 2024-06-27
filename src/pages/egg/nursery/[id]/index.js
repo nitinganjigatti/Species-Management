@@ -50,29 +50,30 @@ const NurseryDetails = () => {
   console.log('rows >>', rows)
   console.log('Paginate>', paginationModel)
 
+  const fetchNurseryById = async () => {
+    const res = await GetNurseryDetailsById(id)
+    setNurseryData({
+      list: {
+        'Nursery Name': res?.data?.nursery_name,
+        Room: res?.data?.no_of_rooms,
+        Site: res?.data?.site_name,
+        Incubator: res?.data?.no_of_incubators,
+        Eggs: res?.data?.no_of_eggs
+      },
+      Avatar: {
+        profile_Pic: res?.data?.user_profile_pic,
+        user_Name: res?.data?.user_full_name,
+        create_at: res?.data?.created_at,
+        site_id: res?.data?.site_id
+      }
+    })
+    setIsPreFilled(res?.data)
+    setEditNurseryId(id)
+    setEditName(res.data?.nursery_name)
+    setEditSite(res?.data?.site_id)
+  }
+
   useEffect(() => {
-    const fetchNurseryById = async () => {
-      const res = await GetNurseryDetailsById(id)
-      setNurseryData({
-        list: {
-          'Nursery Name': res?.data?.nursery_name,
-          Room: res?.data?.no_of_rooms,
-          Site: res?.data?.site_name,
-          Incubator: res?.data?.no_of_incubators,
-          Eggs: res?.data?.no_of_eggs
-        },
-        Avatar: {
-          profile_Pic: res?.data?.user_profile_pic,
-          user_Name: res?.data?.user_full_name,
-          create_at: res?.data?.created_at,
-          site_id: res?.data?.site_id
-        }
-      })
-      setIsPreFilled(res?.data)
-      setEditNurseryId(id)
-      setEditName(res.data?.nursery_name)
-      setEditSite(res?.data?.site_id)
-    }
     fetchNurseryById()
   }, [])
 
@@ -357,7 +358,13 @@ const NurseryDetails = () => {
             editNurseryId={editNurseryId}
           />
         )}
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} isPreFilled={isPreFilled} />
+        <AddIncubatorRoom
+          callTableApi={fetchTableData}
+          callApi={fetchNurseryById}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          isPreFilled={isPreFilled}
+        />
       </Card>
     </>
   )

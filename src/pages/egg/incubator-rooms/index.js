@@ -100,7 +100,7 @@ const RoomsList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
+            fontSize: '12px',
             lineHeight: '14.52px'
           }}
         >
@@ -118,7 +118,12 @@ const RoomsList = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: '400', lineHeight: '19.36px' }}
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
         >
           {params.row.room_name}
         </Typography>

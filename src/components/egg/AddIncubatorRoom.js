@@ -144,6 +144,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           Toaster({ type: 'success', message: response.message })
 
           callTableApi()
+          callApi()
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response.message })

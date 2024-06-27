@@ -137,7 +137,7 @@ const RoomDetails = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
+            fontSize: '12px',
             lineHeight: '14.52px'
           }}
         >
@@ -155,7 +155,6 @@ const RoomDetails = () => {
         <Typography
           noWrap
           sx={{
-            color: theme.palette.primary.dark,
             fontSize: '16px',
             fontWeight: '400',
             lineHeight: '19.36px'
