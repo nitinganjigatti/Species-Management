@@ -6,7 +6,8 @@ import {
   transferLab,
   getNoOfLab,
   UpdateStatus,
-  DeleteLAbRequestAttachment
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -64,6 +65,8 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
+  const [transferStatus, setTransferStatus] = useState('')
+  console.log('transferStatus :>> ', transferStatus)
 
   const { id } = Router.query
   const searchParams = useSearchParams()
@@ -115,6 +118,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+  const [transferTestId, setTransferTestId] = useState('')
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -198,18 +202,20 @@ const RequestDetails = () => {
     }
   }
 
-  useEffect(() => {
-    getNoOfLab().then(res => {
-      setLab(res?.data?.result)
-
-      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-    })
-  }, [])
-
   const handleOpenTransfer = params => {
     if (permissions?.transfer_tests === true) {
       setOpenTransfer(true)
-      setSelectedLab(params.row)
+
+      // setSelectedLab(params.row)
+
+      const params = {
+        test_id: transferTestId
+      }
+      GetLabListByTestId({ params: params }).then(res => {
+        setLab(res?.data?.result)
+
+        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      })
     }
     handleClosePopover()
   }
@@ -237,8 +243,11 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
+    console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
+    setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
 
@@ -387,7 +396,7 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            <MenuItem onClick={handleOpenTransfer}>Transfer</MenuItem>
+            <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
             <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
           </Popover>
         </Box>
@@ -500,15 +509,25 @@ const RequestDetails = () => {
     }
     console.log('payload', payload)
 
-    const response = await transferLab(id, payload)
-    if (response?.success) {
-      handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+    if (transferStatus !== 'completed') {
+      const response = await transferLab(id, payload)
+      if (response?.success) {
+        handleCloseTransfer()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        reset()
 
-      fetchRequestDetails()
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        reset()
+
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
     } else {
       handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      reset()
+
+      setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
     }
 
     // // setSubmitLoader(false)
