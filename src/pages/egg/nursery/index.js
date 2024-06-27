@@ -102,7 +102,7 @@ const NurseryList = () => {
       flex: 0.1,
       Width: 20,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       headerAlign: 'center',
       sortable: false,
@@ -110,8 +110,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
-            lineHeight: '14.52px'
+            fontSize: '14px',
+            fontWeight: '500',
+            lineHeight: '16.94px'
           }}
         >
           {params.row.sl_no}
@@ -133,8 +134,8 @@ const NurseryList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            fontWeight: '500',
+            lineHeight: '16.94px'
           }}
         >
           {params.row.nursery_name}
@@ -154,9 +155,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            fontSize: '14px',
+            fontWeight: '500',
+            lineHeight: '16.94px'
           }}
         >
           {params.row.no_of_rooms}
@@ -176,9 +177,9 @@ const NurseryList = () => {
         <Typography
           sx={{
             color: theme.palette.primary.dark,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            fontSize: '14px',
+            fontWeight: '500',
+            lineHeight: '16.94px'
           }}
         >
           {params.row.no_of_incubators}
@@ -200,8 +201,8 @@ const NurseryList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            fontWeight: '500',
+            lineHeight: '16.94px'
           }}
         >
           {params.row.site_name}
@@ -246,9 +247,9 @@ const NurseryList = () => {
               noWrap
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: '500',
-                lineHeight: '16.94px'
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
               }}
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
@@ -323,6 +324,7 @@ const NurseryList = () => {
           }}
           hideFooterSelectedRowCount
           disableColumnSelector={true}
+          disableColumnMenu
           autoHeight
           pagination
           rows={indexedRows === undefined ? [] : indexedRows}
