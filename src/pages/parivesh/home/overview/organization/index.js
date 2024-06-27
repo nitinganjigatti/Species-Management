@@ -251,7 +251,7 @@ const Organization = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={'Reported Batches'} action={headerAction} />
+            <CardHeader title={'Approved Batches'} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}

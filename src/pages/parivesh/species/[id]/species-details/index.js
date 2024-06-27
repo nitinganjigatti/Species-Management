@@ -134,31 +134,44 @@ const SpeciesDetails = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'gender',
-      headerName: 'GENDER / COUNT',
+      flex: 0.4,
+      minWidth: 10,
+      field: 'gender_count',
+      headerName: 'Gender / Count',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+          {params.row.gender
+            ? params.row.gender.charAt(0).toUpperCase() + params.row.gender.slice(1) + ' : ' + params.row.animal_count
+            : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'age',
-      headerName: 'Age',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.age ? params.row.age : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'gender',
+    //   headerName: 'GENDER / COUNT',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'age',
+    //   headerName: 'Age',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.age ? params.row.age : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 30,
@@ -257,7 +270,7 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.approved_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'REPORTED  ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -332,7 +345,7 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.yet_to_submitted_count.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'REPORTED  ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -412,7 +425,7 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.submitted_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'REPORTED  ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -541,9 +554,21 @@ const SpeciesDetails = () => {
   const headerAction = (
     <>
       <div>
-        <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()} sx={{ background: '#1F515B' }}>
+        <Button
+          size='medium'
+          variant='contained'
+          onClick={() => addEventSidebarOpen()}
+          sx={{
+            background: '#1F515B',
+            color: '#FFFFFF',
+            '&:hover': {
+              // CSS pseudo-class for hover effect
+              backgroundColor: '#0D2B3E' // Darker shade for hover background color
+            }
+          }}
+        >
           <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; new Entry
+          &nbsp; New Entries
         </Button>
       </div>
     </>
@@ -582,7 +607,7 @@ const SpeciesDetails = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={`Entry's`} action={headerAction} />
+            <CardHeader title={`Entries`} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -666,7 +691,6 @@ const SpeciesDetails = () => {
         <Card>
           {organizationCountList.length > 0 &&
             organizationCountList.map((org, inx) => {
-              console.log(org, 'org')
               return (
                 <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                   <CustomAccordion
