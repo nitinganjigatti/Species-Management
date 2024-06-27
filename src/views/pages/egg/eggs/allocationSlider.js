@@ -25,7 +25,7 @@ import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 
-const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
+const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
   console.log('allocateEggId :>> ', allocateEggId)
   const [nurseryName, setNurseryName] = useState([])
   const [roomName, setRoomName] = useState([])
@@ -45,6 +45,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     register,
     handleSubmit,
     getValues,
+    setValue,
     watch,
     formState: { errors }
   } = useForm({
@@ -70,12 +71,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
           setNurseryName(nurseryData?.data?.result)
         }
 
-        const incubatorName = await getIncubatorList({ params: '' })
-        console.log('incubator', incubatorName.data)
-        if (incubatorName?.data?.data?.result) {
-          setIncubatorName(incubatorName?.data?.data?.result)
-        }
-
         const assesmentTypes = await GetAssesmentTypes()
 
         // Append items to the fields array using the API data
@@ -96,7 +91,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
   }, [])
 
   const nurseryId = watch('nursery_name')
-  console.log('roomId :>> ', nurseryId)
+  const roomId = watch('room')
+  console.log('roomId :>> ', roomId)
 
   useEffect(() => {
     if (nurseryId) {
@@ -112,6 +108,28 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
       fetchData()
     }
   }, [nurseryId])
+
+  useEffect(() => {
+    if (roomId) {
+      const fetchIncubatorData = async () => {
+        const params = {
+          room_id: roomId
+        }
+        const incubatorName = await getIncubatorList({ params: params })
+        console.log('incubator', incubatorName.data)
+        if (incubatorName?.data?.data?.result) {
+          setIncubatorName(incubatorName?.data?.data?.result)
+        }
+      }
+      fetchIncubatorData()
+    }
+  }, [roomId])
+
+  useEffect(() => {
+    if (allocationValues?.nursery_id) {
+      setValue('nursery_name', allocationValues?.nursery_id)
+    }
+  }, [allocationValues])
 
   const onSubmit = async values => {
     try {
@@ -194,6 +212,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                         onChange={onChange}
                         error={Boolean(errors?.nursery_name)}
                         labelId='nursery_name_label'
+                        disabled={allocationValues?.nursery_id}
                       >
                         {nurseryName.map(nursery => (
                           <MenuItem key={nursery?.nursery_id} value={nursery?.nursery_id}>

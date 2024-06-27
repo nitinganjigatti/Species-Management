@@ -46,6 +46,7 @@ const EggList = () => {
   const [isDiscarded, setIsDiscarded] = useState('eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [allocationValues, setAllocationValues] = useState({})
 
   const [eggID, setEggId] = useState('')
   console.log('eggID  list:>> ', eggID)
@@ -341,6 +342,7 @@ const EggList = () => {
                   handleDiscard={handleDiscard}
                   setEggId={setEggId}
                   handleAction={handleAction}
+                  setAllocationValues={setAllocationValues}
 
                   // hover={hover} setHover={setHover}
                 />
@@ -405,10 +407,11 @@ const EggList = () => {
     }
   ]
 
-  const handleAction = (event, id) => {
+  const handleAction = (event, params) => {
     event.stopPropagation()
     setOpenDrawer(true)
-    setEggId(id)
+    setAllocationValues(params?.row)
+    setEggId(params?.row?.egg_id)
   }
 
   const onCellClick = params => {
@@ -608,7 +611,12 @@ const EggList = () => {
           </>
         )}
         {openDrawer && (
-          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={eggID} />
+          <AllocationSlider
+            callApi={fetchTableData}
+            allocationValues={allocationValues}
+            setOpenDrawer={setOpenDrawer}
+            allocateEggId={eggID}
+          />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>

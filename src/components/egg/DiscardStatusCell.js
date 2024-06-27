@@ -46,7 +46,7 @@ const DiscardStatusCell = ({
         >
           Discard
         </Button>
-        <Button variant='contained' onClick={e => handleAction(e, params?.row?.egg_id)}>
+        <Button variant='contained' onClick={e => handleAction(e, params)}>
           Allocate{' '}
         </Button>
       </Stack>
