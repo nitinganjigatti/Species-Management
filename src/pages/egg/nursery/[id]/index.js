@@ -20,7 +20,10 @@ import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+
 import { useTheme } from '@mui/material/styles'
+import { min } from 'date-fns'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -30,7 +33,7 @@ const NurseryDetails = () => {
   const [editNurseryId, setEditNurseryId] = useState(null)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('asc')
-  const [sortColumn, setSortColumn] = useState('nursery_name')
+  const [sortColumn, setSortColumn] = useState('room_name')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -45,6 +48,7 @@ const NurseryDetails = () => {
   const { id } = router.query
 
   console.log('rows >>', rows)
+  console.log('Paginate>', paginationModel)
 
   useEffect(() => {
     const fetchNurseryById = async () => {
@@ -87,7 +91,15 @@ const NurseryDetails = () => {
       try {
         setLoading(true)
 
-        await GetRoomByNursery(id).then(res => {
+        const params = {
+          sort,
+          search: q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+
+        await GetRoomByNursery(id, params).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.result))
         })
@@ -96,8 +108,10 @@ const NurseryDetails = () => {
         setLoading(false)
       }
     },
-    [nurseryData]
+    [paginationModel]
   )
+
+  console.log('Rows >>', rows)
 
   console.log('Nursery Details >>', nurseryData)
 
@@ -149,22 +163,34 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'Nursery Name',
-      headerName: 'Nursery Name',
+      flex: 0.1,
+      Width: 20,
+      field: 'id',
+      headerName: 'SL',
+      headerAlign: 'center',
+      align: 'center',
+
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.nursery_name}
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {console.log('Params >>12', params.row)}
+          {params.row.sl_no}
         </Typography>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 30,
       field: 'ROOMS',
       headerName: 'ROOMS',
+      sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.room_name}</Box>
     },
 
@@ -173,6 +199,7 @@ const NurseryDetails = () => {
       minWidth: 30,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
       )
@@ -183,6 +210,7 @@ const NurseryDetails = () => {
       minWidth: 30,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
+      sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
     },
     {
@@ -190,6 +218,7 @@ const NurseryDetails = () => {
       minWidth: 60,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -231,9 +260,16 @@ const NurseryDetails = () => {
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: row.nursery_id,
+    id: row.room_id,
     sl_no: getSlNo(index)
   }))
+
+  console.log(indexedRows, 'indexedRows')
+
+  const onCellClick = params => {
+    console.log('params  2323>>', params)
+    router.push(`/egg/incubator-rooms/${params.row.id}`)
+  }
 
   const headerAction = (
     <>
@@ -271,40 +307,47 @@ const NurseryDetails = () => {
           DetailsListData={nurseryData}
           setOpenDrawer={setOpenDrawer}
         />{' '}
-        {rows?.length > 0 ? (
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
 
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            hideFooterPagination={true}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[5, 7, 10, 15]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-          />
-        ) : (
-          <Typography variant='h6' sx={{ padding: '10px', textAlign: 'center' }}>
-            No Record Found
-          </Typography>
-        )}
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          disableColumnMenu
+          autoHeight
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          disableMultipleColumnsSorting={true}
+          columns={columns}
+          sortingMode='server'
+          slots={{ toolbar: ServerSideToolbarWithFilter }}
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+          onCellClick={onCellClick}
+        />
         {openDrawer && (
           <NurserySlider
             setOpenDrawer={setOpenDrawer}

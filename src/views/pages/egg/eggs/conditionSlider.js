@@ -37,7 +37,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 
-const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
+const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
@@ -118,7 +118,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
     if (statusID) {
       setStatusId(statusID)
       console.log('statusID :>> ', statusID)
-      const filteredEggStatus = eggMaster?.egg_state.filter(status => status.egg_status_id === statusID)
+      const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
       console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
@@ -217,6 +217,10 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
     setIsAnimal(event.target.checked)
   }
 
+  useEffect(() => {
+    setValue('current_state', eggDetails?.egg_status_id)
+    setValue('select_stage', eggDetails?.egg_state_id)
+  }, [eggDetails])
   return (
     <>
       <Drawer
@@ -290,7 +294,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                     )}
                   </FormControl>
 
-                  {eggStaged.length > 0 && (
+                  {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '95%', ml: 3, mb: 4 }}>
                       <InputLabel id='select_stage'>Select Stage</InputLabel>
                       <Controller
@@ -540,7 +544,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                     </Grid>
                   </Grid>
 
-                  <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {/* <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
 
                     <FormControlLabel
@@ -550,7 +554,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
 
                       // label={isAnimal ? 'On' : 'Off'}
                     />
-                  </Box>
+                  </Box> */}
                 </Card>
 
                 {isAnimal && (

@@ -549,6 +549,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
       </Card>
       {openDrawer && (
         <ConditionSlider
+          eggDetails={eggDetails}
           getDetails={getDetails}
           setOpenDrawer={setOpenDrawer}
           openDrawer={openDrawer}
