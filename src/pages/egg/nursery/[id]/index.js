@@ -33,7 +33,7 @@ const NurseryDetails = () => {
   const [editNurseryId, setEditNurseryId] = useState(null)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('created_at')
+  const [sortColumn, setSortColumn] = useState('room_name')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -50,29 +50,30 @@ const NurseryDetails = () => {
   console.log('rows >>', rows)
   console.log('Paginate>', paginationModel)
 
+  const fetchNurseryById = async () => {
+    const res = await GetNurseryDetailsById(id)
+    setNurseryData({
+      list: {
+        'Nursery Name': res?.data?.nursery_name,
+        Room: res?.data?.no_of_rooms,
+        Site: res?.data?.site_name,
+        Incubator: res?.data?.no_of_incubators,
+        Eggs: res?.data?.no_of_eggs
+      },
+      Avatar: {
+        profile_Pic: res?.data?.user_profile_pic,
+        user_Name: res?.data?.user_full_name,
+        create_at: res?.data?.created_at,
+        site_id: res?.data?.site_id
+      }
+    })
+    setIsPreFilled(res?.data)
+    setEditNurseryId(id)
+    setEditName(res.data?.nursery_name)
+    setEditSite(res?.data?.site_id)
+  }
+
   useEffect(() => {
-    const fetchNurseryById = async () => {
-      const res = await GetNurseryDetailsById(id)
-      setNurseryData({
-        list: {
-          'Nursery Name': res?.data?.nursery_name,
-          Room: res?.data?.no_of_rooms,
-          Site: res?.data?.site_name,
-          Incubator: res?.data?.no_of_incubators,
-          Eggs: res?.data?.no_of_eggs
-        },
-        Avatar: {
-          profile_Pic: res?.data?.user_profile_pic,
-          user_Name: res?.data?.user_full_name,
-          create_at: res?.data?.created_at,
-          site_id: res?.data?.site_id
-        }
-      })
-      setIsPreFilled(res?.data)
-      setEditNurseryId(id)
-      setEditName(res.data?.nursery_name)
-      setEditSite(res?.data?.site_id)
-    }
     fetchNurseryById()
   }, [])
 
@@ -87,13 +88,13 @@ const NurseryDetails = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (q, column) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          search: q,
+          search: q || '',
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -116,14 +117,14 @@ const NurseryDetails = () => {
   console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(searchValue, sortColumn)
   }, [fetchTableData])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(q, column)
       } catch (error) {
         console.error(error)
       }
@@ -375,7 +376,13 @@ const NurseryDetails = () => {
             editNurseryId={editNurseryId}
           />
         )}
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} isPreFilled={isPreFilled} />
+        <AddIncubatorRoom
+          callTableApi={fetchTableData}
+          callApi={fetchNurseryById}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          isPreFilled={isPreFilled}
+        />
       </Card>
     </>
   )

@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
-
 import {
   Grid,
   Card,
@@ -19,7 +18,8 @@ import {
   CardHeader,
   Button,
   Stack,
-  Avatar
+  Avatar,
+  Tooltip
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -53,43 +53,41 @@ const RoomDetails = () => {
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
 
-  const fetchTableData = useCallback(
-    async q => {
-      try {
-        // console.log('til_date', cuurent_date)
-        setLoading(true)
+  const fetchTableData = useCallback(async () => {
+    try {
+      // console.log('til_date', cuurent_date)
+      setLoading(true)
 
-        const params = {
-          q,
-          room_id: id,
+      const params = {
+        sort,
+        q: searchValue,
+        room_id: id,
 
-          til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await getIncubatorList(params).then(res => {
-          // Generate uid field based on the index
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
+        til_date: cuurent_date,
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize
       }
-    },
-    [paginationModel]
-  )
+
+      await getIncubatorList(params).then(res => {
+        // Generate uid field based on the index
+        let listWithId = res?.data?.data?.result?.map((el, i) => {
+          return { ...el, id: i + 1 }
+        })
+        setTotal(parseInt(res?.data?.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, listWithId))
+
+        // setstatusCheckval(res?.data?.result.map(all => all.active))
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [paginationModel])
 
   useEffect(() => {
     // if (eggModule) {
-    fetchTableData(searchValue)
+    fetchTableData()
 
     // }
   }, [fetchTableData])
@@ -114,7 +112,7 @@ const RoomDetails = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await fetchTableData()
       } catch (error) {
         console.error(error)
       }
@@ -134,14 +132,14 @@ const RoomDetails = () => {
       field: 'id',
       headerName: 'SL ',
       align: 'center',
-
       sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
-            lineHeight: '14.52px'
+            fontWeight: '400',
+            lineHeight: '14.52px',
+            fontSize: '12px'
           }}
         >
           {params.row.sl_no}
@@ -150,7 +148,7 @@ const RoomDetails = () => {
     },
 
     {
-      flex: 0.35,
+      flex: 0.27,
       minWidth: 30,
       sortable: false,
       field: 'incubator_code',
@@ -167,6 +165,30 @@ const RoomDetails = () => {
         >
           {params.row.incubator_code ? params.row.incubator_code : '-'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.35,
+      minWidth: 30,
+      sortable: false,
+      field: 'incubator_name',
+      headerName: 'INCUBATOR NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.incubator_name ? params.row.incubator_name : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.incubator_name ? params.row.incubator_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -206,7 +228,7 @@ const RoomDetails = () => {
     //   )
     // },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 10,
       sortable: false,
       field: 'availability',
@@ -225,51 +247,58 @@ const RoomDetails = () => {
       )
     },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'site_name',
       headerName: 'SITE',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.24,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'room_name',
       headerName: 'ROOM NO',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name ? params.row.room_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.12,
       minWidth: 20,
       sortable: false,
+      align: 'center',
       field: 'no_of_eggs',
       headerName: 'EGGS',
-      align: 'center',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -341,12 +370,11 @@ const RoomDetails = () => {
       )
     }
   ]
-
   function loadServerRows(currentPage, data) {
     return data
   }
 
-  const fetchDetailsData = useCallback(async (sort, q, column) => {
+  const fetchDetailsData = useCallback(async () => {
     try {
       setLoader(true)
 
@@ -406,7 +434,7 @@ const RoomDetails = () => {
   )
 
   useEffect(() => {
-    fetchDetailsData(sort, searchValue, sortColumn)
+    fetchDetailsData()
   }, [fetchDetailsData])
 
   // const onCellClick = params => {
@@ -476,9 +504,6 @@ const RoomDetails = () => {
                   columnVisibilityModel={{
                     sl_no: false
                   }}
-                  // sortModel={}
-                  // hideFooterPagination
-                  // hideFooterSelectedRowCount
                   disableColumnSelector={true}
                   autoHeight
                   pagination
@@ -512,7 +537,13 @@ const RoomDetails = () => {
       )}
 
       <>
-        <AddIncubatorRoom callApi={fetchDetailsData} isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
+        <AddIncubatorRoom
+          callApi={fetchDetailsData}
+          callTableApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          editParams={editParams}
+        />
         <AddIncubators
           actionApi={fetchTableData}
           sidebarOpen={dialog}

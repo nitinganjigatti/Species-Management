@@ -33,6 +33,8 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+  console.log('searchValue :>> ', searchValue)
+
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -66,10 +68,10 @@ const RoomsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }
@@ -79,7 +81,7 @@ const RoomsList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, status)
+    searchTableData(value, sortColumn, status)
   }
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
@@ -100,11 +102,32 @@ const RoomsList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
+            fontSize: '12px',
             lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'room',
+      headerName: 'room',
+      sortable: false,
+
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.room_name}
         </Typography>
       )
     },
@@ -117,7 +140,15 @@ const RoomsList = () => {
 
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
             {params.row.nursery_name}
           </Typography>
         </Box>
@@ -131,24 +162,20 @@ const RoomsList = () => {
       sortable: false,
 
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.site_name}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'room',
-      headerName: 'room',
-      sortable: false,
 
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.room_name}
-        </Typography>
-      )
-    },
     {
       flex: 0.3,
       minWidth: 10,
@@ -158,7 +185,15 @@ const RoomsList = () => {
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.no_of_incubators}
         </Typography>
       )
@@ -195,7 +230,16 @@ const RoomsList = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
+              }}
+            >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
@@ -274,14 +318,14 @@ const RoomsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async q => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          search: q,
-          column,
+          search: q || '',
+
           // column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -300,7 +344,7 @@ const RoomsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(searchValue)
   }, [fetchTableData])
 
   return (
@@ -408,7 +452,12 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddIncubatorRoom
+          callTableApi={fetchTableData}
+          callApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
       </>
     </>
   )
