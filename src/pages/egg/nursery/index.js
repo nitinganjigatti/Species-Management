@@ -156,7 +156,7 @@ const NurseryList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: '600',
+            fontWeight: '400',
             lineHeight: '19.36px'
           }}
         >
