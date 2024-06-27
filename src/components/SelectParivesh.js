@@ -10,6 +10,7 @@ import ClickAwayListener from '@mui/material/ClickAwayListener'
 import Icon from 'src/@core/components/icon'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { write } from 'src/lib/windows/utils' // Assuming write function is defined for localStorage operations
+import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies' // Importing API function
 
 function SelectParivesh() {
   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
@@ -17,15 +18,29 @@ function SelectParivesh() {
   const [options, setOptions] = useState(organizationList)
 
   useEffect(() => {
-    setOptions(organizationList)
-  }, [organizationList])
+    // Fetch organization list if it's empty
+    if (organizationList.length === 0) {
+      fetchOrgData()
+    }
+  }, [])
 
   const anchorRef = useRef(null)
+
+  const fetchOrgData = async () => {
+    try {
+      const res = await getOrganizationList({})
+      setOptions(res)
+      setSelectedParivesh(res[0])
+    } catch (error) {
+      console.error('Error fetching organization list:', error)
+    }
+  }
 
   const handleMenuItemClick = id => {
     const selected = options.find(el => el.id === id)
     setSelectedParivesh(selected)
-    write('storeParivesh', selected) // Update localStorage with selected organization
+
+    write('selectedParivesh', selected) // Update localStorage with selected organization
     setOpen(false)
   }
 
@@ -60,9 +75,9 @@ function SelectParivesh() {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll', overflowX: 'hidden' }}>
-                  {options?.map((option, index) => (
+                  {options?.map(option => (
                     <MenuItem
-                      key={index}
+                      key={option.id}
                       selected={selectedParivesh?.id === option.id}
                       onClick={() => handleMenuItemClick(option.id)}
                     >
@@ -81,6 +96,91 @@ function SelectParivesh() {
 
 export default SelectParivesh
 
+///////
+
+// import React, { useRef, useState, Fragment, useEffect } from 'react'
+// import MenuItem from '@mui/material/MenuItem'
+// import Grow from '@mui/material/Grow'
+// import Paper from '@mui/material/Paper'
+// import Button from '@mui/material/Button'
+// import Popper from '@mui/material/Popper'
+// import MenuList from '@mui/material/MenuList'
+// import ButtonGroup from '@mui/material/ButtonGroup'
+// import ClickAwayListener from '@mui/material/ClickAwayListener'
+// import Icon from 'src/@core/components/icon'
+// import { usePariveshContext } from 'src/context/PariveshContext'
+// import { write } from 'src/lib/windows/utils' // Assuming write function is defined for localStorage operations
+
+// function SelectParivesh() {
+//   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
+//   const [open, setOpen] = useState(false)
+//   const [options, setOptions] = useState(organizationList)
+
+//   useEffect(() => {
+//     setOptions(organizationList)
+//   }, [organizationList])
+
+//   const anchorRef = useRef(null)
+
+//   const handleMenuItemClick = id => {
+//     const selected = options.find(el => el.id === id)
+//     setSelectedParivesh(selected)
+//     write('selectedParivesh', selected) // Update localStorage with selected organization
+//     setOpen(false)
+//   }
+
+//   const handleToggle = () => {
+//     setOpen(prevOpen => !prevOpen)
+//   }
+
+//   const handleClose = () => {
+//     setOpen(false)
+//   }
+
+//   return (
+//     <Fragment>
+//       <ButtonGroup variant='outlined' ref={anchorRef} aria-label='split button'>
+//         <Button>{selectedParivesh?.organization_name}</Button>
+//         <Button
+//           sx={{ px: '0' }}
+//           aria-haspopup='menu'
+//           onClick={handleToggle}
+//           aria-expanded={open ? 'true' : undefined}
+//           aria-controls={open ? 'split-button-menu' : undefined}
+//         >
+//           <Icon icon='mdi:menu-down' />
+//         </Button>
+//       </ButtonGroup>
+//       <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal sx={{ width: '100%' }}>
+//         {({ TransitionProps, placement }) => (
+//           <Grow
+//             {...TransitionProps}
+//             style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
+//           >
+//             <Paper>
+//               <ClickAwayListener onClickAway={handleClose}>
+//                 <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll', overflowX: 'hidden' }}>
+//                   {options?.map((option, index) => (
+//                     <MenuItem
+//                       key={index}
+//                       selected={selectedParivesh?.id === option.id}
+//                       onClick={() => handleMenuItemClick(option.id)}
+//                     >
+//                       {option?.organization_name}
+//                     </MenuItem>
+//                   ))}
+//                 </MenuList>
+//               </ClickAwayListener>
+//             </Paper>
+//           </Grow>
+//         )}
+//       </Popper>
+//     </Fragment>
+//   )
+// }
+
+// export default SelectParivesh
+//////////
 // import React, { useEffect, useRef, useContext, useState, Fragment } from 'react'
 // import { useRouter } from 'next/router'
 // import MenuItem from '@mui/material/MenuItem'
