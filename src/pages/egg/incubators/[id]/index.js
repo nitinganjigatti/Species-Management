@@ -54,7 +54,7 @@ const IncubatorDetails = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [status, setStatus] = useState('eggs_received')
-  // const [sortColumning, setsortColumning] = useState('ingredient_name')
+
   let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
@@ -346,6 +346,7 @@ const IncubatorDetails = () => {
         </>
       )
     }
+
     // {
     //   flex: 0.5,
     //   minWidth: 60,
@@ -753,7 +754,8 @@ const IncubatorDetails = () => {
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          // nursery_id: 1,
+
+          nursery_id: '',
           type:
             status === undefined
               ? 'eggs_received'
@@ -788,6 +790,7 @@ const IncubatorDetails = () => {
   useEffect(() => {
     // if (eggModule) {
     fetchTableData(sort, searchValue, status)
+
     // }
   }, [fetchTableData, status])
 
@@ -835,6 +838,7 @@ const IncubatorDetails = () => {
     }, 1000),
     []
   )
+
   const headerAction = (
     <>
       {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
@@ -972,7 +976,6 @@ const IncubatorDetails = () => {
                 <Icon
                   icon='bx:pencil'
                   style={{ fontSize: 24, cursor: 'pointer' }}
-                  // onClick={() => Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id } })}
                   onClick={() => {
                     setIsEdit(true)
                     setDialog(true)
