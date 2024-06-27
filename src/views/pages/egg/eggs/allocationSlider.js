@@ -45,6 +45,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     register,
     handleSubmit,
     getValues,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -67,11 +68,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
         const nurseryData = await GetNurseryList({ params: '' })
         if (nurseryData?.data?.result) {
           setNurseryName(nurseryData?.data?.result)
-        }
-
-        const roomData = await GetRoomList({ params: '' })
-        if (roomData?.data?.result) {
-          setRoomName(roomData?.data?.result)
         }
 
         const incubatorName = await getIncubatorList({ params: '' })
@@ -99,6 +95,24 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     fetchData()
   }, [])
 
+  const nurseryId = watch('nursery_name')
+  console.log('roomId :>> ', nurseryId)
+
+  useEffect(() => {
+    if (nurseryId) {
+      const fetchData = async () => {
+        const params = {
+          nursery_id: nurseryId
+        }
+        const roomData = await GetRoomList({ params: params })
+        if (roomData?.data?.result) {
+          setRoomName(roomData?.data?.result)
+        }
+      }
+      fetchData()
+    }
+  }, [nurseryId])
+
   const onSubmit = async values => {
     try {
       let params = {
@@ -123,7 +137,15 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 600], height: '100vh' } }}>
+      <Drawer
+        anchor='right'
+        open={open}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
+
+          // backgroundColor: 'background.default'
+        }}
+      >
         <Box
           className='sidebar-header'
           sx={{
@@ -134,13 +156,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+            <Typography variant='h6'>Send For Incubation</Typography>
           </Box>
-          <Typography variant='h6' sx={{ mr: 70 }}>
-            Send For Incubation
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
             </IconButton>
@@ -149,12 +170,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
         {/* drower */}
 
-        <Box className='sidebar-body'>
+        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default' }}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
-              <Typography variant='h6' sx={{ mt: 5 }}>
+              {/* <Typography variant='h6' sx={{ mt: 5 }}>
                 Incubator Selection
-              </Typography>
+              </Typography> */}
 
               <Card fullWidth sx={{ mt: 3 }}>
                 <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
@@ -332,9 +353,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                 sx={{
                   position: 'fixed',
                   bottom: 0,
-                  height: '80px',
+                  height: '122px',
+
                   backgroundColor: '#fff',
-                  width: '600px',
+                  width: '562px',
                   px: 4,
                   display: 'flex',
                   alignItems: 'center'
