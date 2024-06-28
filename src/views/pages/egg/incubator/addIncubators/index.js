@@ -193,6 +193,7 @@ const AddIncubators = ({
           if (res.success) {
             reset()
             actionApi('')
+            detailsApi()
             handleSidebarClose()
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })

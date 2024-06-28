@@ -296,7 +296,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.2,
+      flex: 0.16,
       minWidth: 10,
       sortable: false,
       field: 'collected_on',
