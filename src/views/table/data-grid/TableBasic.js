@@ -30,6 +30,7 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
           }}
           getRowHeight={() => (rowHeight ? rowHeight : null)}
           hideFooterSelectedRowCount
+          disableColumnMenu
           disableColumnSelector={true}
           autoHeight
           columns={columns}

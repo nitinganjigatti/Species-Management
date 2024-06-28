@@ -5,6 +5,8 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import eggNavigation from 'src/components/navigation/egg'
+import pariveshNavigation from 'src/components/navigation/parivesh/index'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -38,6 +40,11 @@ const ComposeNavigation = () => {
     const dietNav = dietNavigation()
     navigationArray.push(...dietNav)
   }
+  const eggNav = eggNavigation()
+  navigationArray.push(...eggNav)
+
+  const pariveshNav = pariveshNavigation()
+  navigationArray.push(...pariveshNav)
 
   return navigationArray
 }

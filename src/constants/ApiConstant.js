@@ -20,6 +20,8 @@ export const GetTestsStatusById = 'lab-report-stats'
 
 export const GetRequestPopUpById = 'antz/request/lab-tests'
 
+export const GETLABLISTBYTESTID = 'antz/tests/list-available'
+
 export const RequestDetails = 'antz/request/tests'
 
 export const AddLAB = 'antz/labs/create-lab'
@@ -217,3 +219,53 @@ export const ADD = 'add'
 export const UPDATE = 'update'
 
 export const TYPE = 'type'
+
+export const ADD_NURSERY = 'egg/nursery'
+
+export const ROOM_LIST = 'room/list'
+
+export const EGG = 'egg'
+
+export const NURSERY = 'nursery'
+
+export const INCUBATOR = 'incubator'
+
+export const ASSESMENT_TYPES = 'egg/default_assessment_types'
+
+export const EDIT = 'edit'
+
+export const DISCARD = 'discard'
+
+export const COMMENT = 'comment'
+
+export const STATUS = 'status'
+
+export const ADD_SPECIES = 'v1/parivesh/species/add'
+
+export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'
+
+export const ORGANIZATION_LIST = 'masters/organization'
+
+export const SPECIES_LIST_BY_ORG = 'v1/parivesh/species/listsitewise'
+
+export const ADD_SPECIES_TO_ORG = 'v1/parivesh/species/org/add'
+
+export const UPDATE_SPECIES_TO_ORG = 'v1/parivesh/species/org/editentry'
+
+export const DELETE_SPECIES_TO_ORG = 'v1/parivesh/species/org/deleteentry'
+
+export const ADD_BATCH = 'v1/parivesh/species/site/createbatch'
+
+export const UPDATE_BATCH = ''
+
+export const DELETE_BATCH = 'v1/parivesh/species/org/deletebatch'
+
+export const BATCH_LIST_SPECIES = 'v1/parivesh/species/site/batchlist'
+
+export const BATCH_LIST_SPECIES_BY_ID = 'v1/parivesh/species/site/batchentrieslist'
+
+export const ENTRY_LIST_SPECIES = 'v1/parivesh/species/site/entrieslist'
+
+export const ORG_COUNT_LIST = 'v1/parivesh/species/site/stats'
+
+export const UPDATE_BATCH_STATUS = '/v1/parivesh/species/site/batchstatusupdate'

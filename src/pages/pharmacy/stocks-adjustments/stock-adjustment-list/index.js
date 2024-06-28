@@ -19,6 +19,13 @@ import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import TabList from '@mui/lab/TabList'
+import Chip from '@mui/material/Chip'
 
 const ListOfStockAdjusted = () => {
   /***** Server side pagination */
@@ -32,7 +39,14 @@ const ListOfStockAdjusted = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('Missing stock')
 
+  const handleChange = (event, newValue) => {
+    setTotal(0)
+    setSearchValue('')
+
+    setStatus(newValue)
+  }
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -40,7 +54,7 @@ const ListOfStockAdjusted = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, status) => {
       try {
         setLoading(true)
 
@@ -49,7 +63,8 @@ const ListOfStockAdjusted = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          reason: status
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
@@ -68,9 +83,9 @@ const ListOfStockAdjusted = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+  }, [fetchTableData, selectedPharmacy.id, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -89,10 +104,10 @@ const ListOfStockAdjusted = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -109,7 +124,7 @@ const ListOfStockAdjusted = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const renderUserAvatar = row => {
@@ -132,25 +147,6 @@ const ListOfStockAdjusted = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      Width: 40,
-      field: 'created_by_user_name',
-      headerName: 'Adjusted by ',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderUserAvatar(params.row)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
 
     {
       flex: 0.2,
@@ -171,17 +167,6 @@ const ListOfStockAdjusted = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'expiry_date',
-      headerName: 'Expiry  Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -219,6 +204,37 @@ const ListOfStockAdjusted = () => {
           {params?.row?.comments ? params?.row?.comments : 'NA'}
         </Typography>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'expiry_date',
+      headerName: 'Expiry  Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Requested by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.adjusted_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
     }
 
     // {
@@ -255,64 +271,104 @@ const ListOfStockAdjusted = () => {
     </Grid>
   )
 
-  return (
-    <>
-      {selectedPharmacy.permission.key === 'allow_full_access' ||
-      selectedPharmacy.permission.stock_adjustment === 1 ||
-      selectedPharmacy.permission.stock_adjustment === '1' ? (
-        loader ? (
-          <FallbackSpinner />
-        ) : (
-          <>
-            <Card>
-              <CardHeader title='Stock Adjustment List' action={headerAction} />
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-              />
-            </Card>
-          </>
-        )
-      ) : (
-        <Error404 />
-      )}
-    </>
+  const tableData = () => {
+    return (
+      <>
+        {selectedPharmacy.permission.key === 'allow_full_access' ||
+        selectedPharmacy.permission.stock_adjustment === 1 ||
+        selectedPharmacy.permission.stock_adjustment === '1' ? (
+          loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card>
+                <CardHeader title='Stock Adjustment List' action={headerAction} />
+                <DataGrid
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl: false
+                  }}
+                  autoHeight
+                  pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  total
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  disableColumnMenu
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                />
+              </Card>
+            </>
+          )
+        ) : (
+          <Error404 />
+        )}
+      </>
+    )
+  }
+
+  return (
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          <Tab
+            value='Missing stock'
+            label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
+          />
+          {/* <Tab
+              value='completed'
+              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            /> */}
+          <Tab value='Expiry' label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />} />
+
+          <Tab
+            value='Broken at pharmacy'
+            label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
+          />
+        </TabList>
+        <TabPanel value='Missing stock'>{tableData()}</TabPanel>
+        {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
+        <TabPanel value='Expiry'>{tableData()}</TabPanel>
+
+        <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
+      </TabContext>
+    </Grid>
   )
 }
 

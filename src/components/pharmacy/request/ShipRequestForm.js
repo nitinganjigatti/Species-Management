@@ -11,7 +11,8 @@ import {
   FormControl,
   FormHelperText,
   FormControlLabel,
-  Tooltip
+  Tooltip,
+  Box
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -46,7 +47,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  // console.log('dispatchedItems', dispatchedItems)
+  console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)

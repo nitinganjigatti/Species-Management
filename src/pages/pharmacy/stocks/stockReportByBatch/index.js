@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
-import { Box, Card, CardHeader, LinearProgress, debounce } from '@mui/material'
+import { Box, Card, CardHeader, LinearProgress, debounce, Tooltip } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 
@@ -168,9 +168,11 @@ const ListOfStocksByBatch = () => {
       field: 'stock_items_name',
       headerName: 'MEDICINE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_items_name}
-        </Typography>
+        <Tooltip title={params.row.stock_items_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_items_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -388,6 +390,7 @@ const ListOfStocksByBatch = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
+                    disableColumnMenu
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'

@@ -6,7 +6,8 @@ import {
   transferLab,
   getNoOfLab,
   UpdateStatus,
-  DeleteLAbRequestAttachment
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -64,6 +65,8 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
+  const [transferStatus, setTransferStatus] = useState('')
+  console.log('transferStatus :>> ', transferStatus)
 
   const { id } = Router.query
   const searchParams = useSearchParams()
@@ -115,6 +118,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+  const [transferTestId, setTransferTestId] = useState('')
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -147,6 +151,8 @@ const RequestDetails = () => {
       setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
       fetchRequestDetails()
     } else {
+      fetchRequestDetails()
+      setStatus(params?.row?.status)
       setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
     }
   }
@@ -168,13 +174,14 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  const fetchRequestDetails = async () => {
+  const fetchRequestDetails = async (sort, q) => {
     try {
       // Make your API call here
       setLoading(true)
 
       const params = {
-        lab_id: Selectedlab_id
+        lab_id: Selectedlab_id,
+        q
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
@@ -197,23 +204,26 @@ const RequestDetails = () => {
     }
   }
 
-  useEffect(() => {
-    getNoOfLab().then(res => {
-      setLab(res?.data?.result)
-
-      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-    })
-  }, [])
-
   const handleOpenTransfer = params => {
     if (permissions?.transfer_tests === true) {
       setOpenTransfer(true)
-      setSelectedLab(params.row)
+
+      // setSelectedLab(params.row)
+
+      const params = {
+        test_id: transferTestId
+      }
+      GetLabListByTestId({ params: params }).then(res => {
+        setLab(res?.data?.result)
+
+        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      })
     }
+    handleClosePopover()
   }
 
   useEffect(() => {
-    fetchRequestDetails()
+    fetchRequestDetails(sort, searchValue)
   }, [id, paginationModel])
 
   function loadServerRows(currentPage, data) {
@@ -224,7 +234,7 @@ const RequestDetails = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchRequestDetails({ sort, q, column })
+        await fetchRequestDetails(sort, q, column)
       } catch (error) {
         console.error(error)
       }
@@ -235,8 +245,11 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
+    console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
+    setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
 
@@ -248,6 +261,7 @@ const RequestDetails = () => {
 
   const handleOpenUploader = () => {
     setOpenUploader(true)
+    handleClosePopover()
   }
 
   const handleOpenShowFile = (e, params) => {
@@ -310,7 +324,7 @@ const RequestDetails = () => {
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
                   defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
-                  value={status} // Assuming params.row.status contains the current status value
+                  value={params.row.status} // Assuming params.row.status contains the current status value
                   label='Status'
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
@@ -384,7 +398,7 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            <MenuItem onClick={handleOpenTransfer}>Transfer</MenuItem>
+            <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
             <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
           </Popover>
         </Box>
@@ -497,15 +511,25 @@ const RequestDetails = () => {
     }
     console.log('payload', payload)
 
-    const response = await transferLab(id, payload)
-    if (response?.success) {
-      handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+    if (transferStatus !== 'completed') {
+      const response = await transferLab(id, payload)
+      if (response?.success) {
+        handleCloseTransfer()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        reset()
 
-      fetchRequestDetails()
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        reset()
+
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
     } else {
       handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      reset()
+
+      setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
     }
 
     // // setSubmitLoader(false)
@@ -620,6 +644,7 @@ const RequestDetails = () => {
             message={snackbarMessage}
             severity={severity}
             handleClose={handleCloseSnackBar}
+            indexedRows
           />
 
           <Card sx={{ mt: 5 }}>
@@ -631,22 +656,24 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              getRowId={row => row?.test_id}
-              slots={{ toolbar: ServerSideToolbar }}
+              // getRowId={row => row?.test_id}
+              onSortModelChange={handleSortModel}
+              // slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
                 }
+
+                // toolbar: {
+                //   value: searchValue,
+                //   clearSearch: () => handleSearch(''),
+                //   onChange: event => {
+                //     setSearchValue(event.target.value)
+
+                //     return handleSearch(event.target.value)
+                //   }
+                // }
               }}
             />
             {/* image or Doc View */}

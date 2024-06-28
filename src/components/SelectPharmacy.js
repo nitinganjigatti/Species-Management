@@ -43,8 +43,6 @@ function SelectPharmacy() {
     const pharmacy = authData?.userData?.modules?.pharmacy_data?.pharmacy[0]
     const options = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
-    // console.log('options', options)
-
     // const pharmacy = data?.modules?.pharmacy_data?.pharmacy[0]
     // const options = data?.modules?.pharmacy_data?.pharmacy
     // console.log('stores', pharmacy)

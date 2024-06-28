@@ -39,10 +39,22 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Icon from 'src/@core/components/icon'
 
 import { useForm, Controller, get } from 'react-hook-form'
-import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography } from '@mui/material'
+import {
+  Grid,
+  FormControl,
+  Autocomplete,
+  TextField,
+  FormHelperText,
+  Button,
+  Typography,
+  CircularProgress
+} from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { AddButton } from 'src/components/Buttons'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -68,7 +80,7 @@ const AddStockAdjustment = () => {
       .positive('Quantity must be a positive number')
       .moreThan(0, 'Quantity must be greater than zero')
       .test('is-less-than-available', 'Quantity must be less than available quantity', function (value) {
-        return value < this.parent.availableQty
+        return value <= this.parent.availableQty
       }),
 
     reason: yup.string().required('Reason is required')
@@ -77,12 +89,14 @@ const AddStockAdjustment = () => {
   // ** Hook
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
-  // const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(false)
 
   const [stockAdjustmentDialog, setStockAdjustmentDialog] = useState(false)
   const [optionsBatchList, setOptionsBatchList] = useState([])
   const [reasons, setReasons] = useState([])
-
+  const [selectedStockId, setSelectedStockId] = useState('')
+  const [ConfirmDialog, setConfirmDialog] = useState(false)
+  const [tempItems, setTempItems] = useState(null)
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -94,6 +108,14 @@ const AddStockAdjustment = () => {
   const closeStockDialog = () => {
     setStockAdjustmentDialog(false)
     reset(defaultValues)
+  }
+
+  const openConfirmDialog = () => {
+    setConfirmDialog(true)
+  }
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog(false)
   }
 
   const {
@@ -122,7 +144,7 @@ const AddStockAdjustment = () => {
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
         console.log('searchResults', searchResults)
-        // setLoader(true)
+        setLoader(true)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             console.log('data of batch', searchResults?.data?.items)
@@ -138,13 +160,13 @@ const AddStockAdjustment = () => {
             }))
             const filtered = data.filter(el => Number(el.availableQty) > 0)
             setOptionsBatchList(filtered)
-            // setLoader(false)
+            setLoader(false)
           }
         } else {
           setOptionsBatchList([])
 
           toast.error(searchResults?.data)
-          // setLoader(false)
+          setLoader(false)
         }
       } catch (e) {
         console.log('error', e)
@@ -164,6 +186,10 @@ const AddStockAdjustment = () => {
     }, 500),
     []
   )
+  useEffect(() => {
+    searchBatchData(selectedStockId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id])
 
   const fetchMedicineData = async searchText => {
     try {
@@ -218,20 +244,42 @@ const AddStockAdjustment = () => {
   useEffect(() => {
     fetchMedicineData('')
     getReasonsLists()
-  }, [])
+  }, [selectedPharmacy.id])
 
   //  ****** debounce
   const onSubmit = async params => {
-    debugger
-
     console.log('onSubmit', params)
 
     const { batch_no, stock_id, adjustment_quantity, reason, comments, expiry_date } = {
       ...params
     }
+    setTempItems(params)
+    openConfirmDialog()
+
+    // try {
+    //   setSubmitLoader(true)
+    //   const results = await addStocksAdjust(params)
+    //   console.log('results reason', results)
+    //   if (results?.success === true) {
+    //     console.log('results', results)
+    //     toast.success(results?.msg)
+    //     reset(defaultValues)
+    //     setSubmitLoader(false)
+    //     closeStockDialog()
+    //     searchBatchData(stock_id)
+    //   } else {
+    //     toast.error(results?.msg)
+    //     setSubmitLoader(false)
+    //   }
+    // } catch (error) {
+    //   console.log('error', error)
+    // }
+  }
+
+  const confirmSubmit = async () => {
     try {
       setSubmitLoader(true)
-      const results = await addStocksAdjust(params)
+      const results = await addStocksAdjust(tempItems)
       console.log('results reason', results)
       if (results?.success === true) {
         console.log('results', results)
@@ -239,7 +287,9 @@ const AddStockAdjustment = () => {
         reset(defaultValues)
         setSubmitLoader(false)
         closeStockDialog()
-        searchBatchData(stock_id)
+        searchBatchData(tempItems?.stock_id)
+        setTempItems(null)
+        setConfirmDialog(false)
       } else {
         toast.error(results?.msg)
         setSubmitLoader(false)
@@ -312,7 +362,7 @@ const AddStockAdjustment = () => {
                   <TextField
                     type='number'
                     value={value}
-                    label='Quantity*'
+                    label='Reduce by*'
                     name='adjustment_quantity'
                     error={Boolean(errors.adjustment_quantity)}
                     onChange={onChange}
@@ -391,6 +441,48 @@ const AddStockAdjustment = () => {
             </Box>
           </Grid>
         </Grid>
+        <ConfirmDialogBox
+          open={ConfirmDialog}
+          closeDialog={() => {
+            closeConfirmDialog()
+          }}
+          action={() => {
+            closeConfirmDialog()
+          }}
+          content={
+            <Box sx={{ m: 0 }}>
+              <>
+                <DialogContent>
+                  <DialogContentText sx={{ mb: 3 }}>Are you sure..?</DialogContentText>
+                </DialogContent>
+                <DialogActions className='dialog-actions-dense'>
+                  <LoadingButton
+                    variant='contained'
+                    color='error'
+                    size='small'
+                    onClick={() => {
+                      closeConfirmDialog()
+                    }}
+                  >
+                    Cancel
+                  </LoadingButton>
+
+                  <LoadingButton
+                    onClick={() => {
+                      confirmSubmit()
+                    }}
+                    loading={submitLoader}
+                    sx={{ mr: 2 }}
+                    size='small'
+                    variant='contained'
+                  >
+                    Save
+                  </LoadingButton>
+                </DialogActions>
+              </>
+            </Box>
+          }
+        />
       </form>
     )
   }
@@ -433,10 +525,6 @@ const AddStockAdjustment = () => {
                 </Grid>
                 <FormControl fullWidth>
                   <Autocomplete
-                    // sx={{ zIndex: 1 }}
-                    // forcePopupIcon={false}
-                    // inputProps={{ tabIndex: '6' }}
-                    // disablePortal
                     id='autocomplete-controlled'
                     options={optionsMedicineList}
                     renderOption={(props, option) => (
@@ -452,6 +540,7 @@ const AddStockAdjustment = () => {
                     onChange={(event, newValue) => {
                       if (newValue?.value && newValue?.stockType) {
                         searchBatchData(newValue?.value, newValue?.stockType)
+                        setSelectedStockId(newValue?.value)
                       }
                       if (newValue === '' || newValue === null) {
                         setOptionsBatchList([])
@@ -464,12 +553,21 @@ const AddStockAdjustment = () => {
                       fetchMedicineData('')
                     }}
                     renderInput={params => (
-                      <TextField {...params} placeholder='Search & Select' label='Product Name*' />
+                      <TextField
+                        {...params}
+                        placeholder='Search & Select'
+                        label='Product Name*'
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
+                        }}
+                      />
                     )}
                   />
                 </FormControl>
               </Grid>
             </Grid>
+            {loader ? <CircularProgress size={60} /> : null}
           </Grid>
         </form>
       </CardContent>
@@ -478,6 +576,7 @@ const AddStockAdjustment = () => {
           <Table>
             <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
               <TableRow>
+                <TableCell>Sl.NO</TableCell>
                 <TableCell>Product Name</TableCell>
                 <TableCell>Batch Number</TableCell>
                 <TableCell>Expiry Date</TableCell>
@@ -491,11 +590,12 @@ const AddStockAdjustment = () => {
                 ? optionsBatchList?.map((el, index) => {
                     return (
                       <TableRow key={index}>
+                        <TableCell>{index + 1}</TableCell>
+
                         <TableCell>
                           <Typography variant='body2' sx={{ color: 'text.primary' }}>
                             {el.productName}
                           </Typography>
-
                           <Typography variant='body2'>{el.packageDetails}</Typography>
                         </TableCell>
 
@@ -512,7 +612,8 @@ const AddStockAdjustment = () => {
                                 batch_no: el?.batchNumber,
                                 stock_id: el?.stockItemId,
                                 availableQty: el?.availableQty,
-                                expiry_date: el?.expiryDate
+                                expiry_date: el?.expiryDate,
+                                adjustment_quantity: el?.availableQty
                               })
                               openStockDialog()
                             }}

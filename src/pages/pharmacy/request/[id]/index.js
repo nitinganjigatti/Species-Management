@@ -121,6 +121,7 @@ const IndividualRequest = () => {
     const response = await getDispatchItemsByBatchId(id)
     if (response.success) {
       var responseData = response?.data
+      console.log('dispatchedss', response)
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
@@ -866,6 +867,25 @@ const IndividualRequest = () => {
           </div>
         </Typography>
       )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Shipped by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.adjusted_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
     }
 
     // {
@@ -1133,8 +1153,8 @@ const IndividualRequest = () => {
                   title={`Request - ${requestItems?.request_number}`}
                   action={
                     selectedPharmacy.type === 'local' &&
-                    requestItems.status === 'request' &&
-                    requestItems.status !== 'Cancelled' ? (
+                    (requestItems.status === 'request' ||
+                      (requestItems.status !== 'Cancelled' && requestItems?.status !== 'Partial Dispatched')) ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1149,24 +1169,46 @@ const IndividualRequest = () => {
                     )
                   }
                 />
+                {console.log(
+                  'requestItems',
+                  requestItems,
+
+                  selectedPharmacy.type,
+                  requestItems.status
+                )}
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} alignItems={'center'}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested By</h5>
                       <p>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3} alignItems={'center'}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
                       <p>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3} alignItems={'center'}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
                       <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
                       <p>{requestItems?.request_number}</p>
+                    </Grid>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5>
+
+                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                          </Typography>
+                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                            {Utility.formatDisplayDate(requestItems?.adjusted_at)}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </Grid>
                   </Grid>
                   {/* Medicine Listing */}

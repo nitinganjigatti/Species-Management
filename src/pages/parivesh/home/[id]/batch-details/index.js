@@ -1,0 +1,1143 @@
+import {
+  Avatar,
+  Button,
+  Card,
+  CardHeader,
+  FormControl,
+  Grid,
+  MenuItem,
+  Select,
+  Tooltip,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormHelperText,
+  TextField
+} from '@mui/material'
+import { Box } from '@mui/system'
+import React, { useCallback, useEffect, useState } from 'react'
+import { styled } from '@mui/system'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import IconButton from '@mui/material/IconButton'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import { useTheme } from '@mui/material/styles'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import { DataGrid } from '@mui/x-data-grid'
+import moment from 'moment'
+import Icon from 'src/@core/components/icon'
+import Router, { useRouter } from 'next/router'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { Controller, useForm } from 'react-hook-form'
+import { getBatchListSpeciesById } from 'src/lib/api/parivesh/batchListSpecies'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import { updateBatchStatus } from 'src/lib/api/parivesh/updateBatchStatus'
+import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
+
+const CustomDropdownIcon = styled(ArrowDropDownIcon)({
+  color: '#FFFFFF' // Change this to your desired color
+})
+
+const BatchDetails = ({ params, searchParams }) => {
+  const router = useRouter()
+  const { id, type } = router.query
+  const theme = useTheme()
+
+  console.log(type, 'type')
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors }
+  } = useForm()
+  const [searchValue, setSearchValue] = useState('')
+  const [total, setTotal] = useState(0)
+  const [loader, setLoader] = useState(false)
+  const [dialog, setDialog] = useState(false)
+  const [check, setCheck] = useState(false)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [rows, setRows] = useState([])
+  const [selectedStatus, setSelectedStatus] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [batchDetails, setBatchDetails] = useState()
+  const [dropdownOptions, setDropdownOptions] = useState([])
+  const [btnLoader, setBtnLoader] = useState(false)
+
+  const { selectedParivesh } = usePariveshContext()
+
+  console.log(router, 'router')
+
+  // const handleStatusChange = async event => {
+  //   const value = event.target.value
+  //   setSelectedStatus(value)
+  //   if (value === 'submitted' && type === 'reportedBatch') {
+  //     setIsModalOpen(prevState => !prevState)
+  //   } else {
+  //     setIsModalOpen(false) // Close modal for other selections
+  //   }
+  //   if (type === 'submittedBatch') {
+  //     const payload = {
+  //       batch_id: batchDetails?.batch_id,
+  //       status: value,
+  //       registration_id: data.registrationId
+  //     }
+  //     try {
+  //       setBtnLoader(true)
+  //       await updateBatchStatus(payload).then(res => {
+  //         if (res?.success) {
+  //           router.back()
+  //           setIsModalOpen(false)
+  //           reset()
+  //           setBtnLoader(false)
+  //           Toaster({ type: 'success', message: res?.data })
+  //         } else {
+  //           setBtnLoader(false)
+  //           Toaster({ type: 'error', message: res?.message })
+  //         }
+  //       })
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setBtnLoader(false)
+  //     }
+  //   }
+  // }
+
+  // const onSubmit = async data => {
+  //   const payload = {
+  //     batch_id: batchDetails?.batch_id,
+  //     status: selectedStatus,
+  //     registration_id: data.registrationId
+  //   }
+  //   try {
+  //     setBtnLoader(true)
+  //     await updateBatchStatus(payload).then(res => {
+  //       if (res?.success) {
+  //         router.back()
+  //         setIsModalOpen(false)
+  //         reset()
+  //         setBtnLoader(false)
+  //         Toaster({ type: 'success', message: res?.data })
+  //       } else {
+  //         setBtnLoader(false)
+  //         Toaster({ type: 'error', message: res?.message })
+  //       }
+  //     })
+  //   } catch (error) {
+  //     console.log('error', error)
+  //     setBtnLoader(false)
+  //   }
+  // }
+
+  const onClose = () => {
+    setDialog(false)
+  }
+
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const getBatchListById = useCallback(
+    async id => {
+      try {
+        const response = await getBatchListSpeciesById(id)
+        // debugger
+        if (response?.success) {
+          setBatchDetails(response?.data?.data)
+          setSelectedStatus(response?.data?.data?.status)
+
+          // console.log(response.data.data.entries_data, 'response')
+
+          let listWithId = response.data.data.entries_data.map((el, i) => {
+            return { ...el, uid: i + 1 }
+          })
+          setTotal(parseInt(response?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+        } else {
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    if (id !== 'all') {
+      getBatchListById(id)
+    }
+  }, [getBatchListById])
+
+  const updateStatus = async payload => {
+    try {
+      setBtnLoader(true)
+      const res = await updateBatchStatus(payload)
+      if (res?.success) {
+        router.back()
+        setIsModalOpen(false)
+        reset()
+        setBtnLoader(false)
+
+        const msg = res?.data.length > 0 ? res?.data : res?.message
+        Toaster({ type: 'success', message: msg })
+      } else {
+        setBtnLoader(false)
+        Toaster({ type: 'error', message: res?.message })
+      }
+    } catch (error) {
+      console.log('error', error)
+      setBtnLoader(false)
+    }
+  }
+
+  const handleStatusChange = async event => {
+    const value = event.target.value
+    setSelectedStatus(value)
+    if (value === 'submitted' && type === 'reportedBatch') {
+      setIsModalOpen(prevState => !prevState)
+    } else {
+      setIsModalOpen(false) // Close modal for other selections
+    }
+    // if (type === 'submittedBatch') {
+    //   const payload = {
+    //     batch_id: batchDetails?.batch_id,
+    //     status: value,
+    //     registration_id: batchDetails?.registration_id
+    //   }
+    //   await updateStatus(payload)
+    // }
+  }
+
+  console.log(batchDetails, 'batchDetails')
+
+  const handleSaveBatch = async () => {
+    if (type === 'submittedBatch') {
+      const ids = batchDetails?.entries_data.map(item => item.id)
+      let payload = {
+        batch_id: batchDetails?.batch_id,
+        status: selectedStatus
+      }
+      if (batchDetails.status === 'withdrawn') {
+        payload = {
+          ...payload,
+          registration_id: batchDetails?.registration_id,
+          id: ids
+        }
+      }
+      await updateStatus(payload)
+    }
+  }
+
+  const onSubmit = async data => {
+    const payload = {
+      batch_id: batchDetails?.batch_id,
+      status: selectedStatus,
+      registration_id: data.registrationId
+    }
+    await updateStatus(payload)
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  useEffect(() => {
+    if (type === 'reportedBatch') {
+      setDropdownOptions([
+        { value: 'yet_to_submitted', label: 'Yet to Submitted' },
+        { value: 'submitted', label: 'Submitted' }
+      ])
+    } else {
+      setDropdownOptions([
+        { value: 'submitted', label: 'Submitted' },
+        { value: 'accepted', label: 'Approved' },
+        { value: 'withdrawn', label: 'Withdrawn' },
+        { value: 'rejected', label: 'Rejected' }
+      ])
+    }
+  }, [type])
+
+  const columns = [
+    {
+      flex: 0.2,
+      Width: 40,
+      field: 'uid',
+      headerName: 'S.NO',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.uid}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 30,
+      field: 'image_type',
+      headerName: 'IMAGE',
+      renderCell: params => (
+        <>
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          {/* <Tooltip title={params.row.image_type} placement='right'> */}
+          {/* <Typography
+              variant='body2'
+              sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {' '}
+              {params.row.image_type}
+            </Typography>
+          </Tooltip> */}
+        </>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'common_name',
+      headerName: 'COMMON NAME',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.common_name ? params.row.common_name : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'scientific_name',
+      headerName: 'SCIENTIFIC NAME',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.scientific_name ? params.row.scientific_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 10,
+      field: 'gender_count',
+      headerName: 'GENDER / COUNT',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'age',
+      headerName: 'Age',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.age ? params.row.age : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 30,
+      field: 'possession_type',
+      headerName: 'Category',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.possession_type ? params.row.possession_type : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'date',
+      headerName: 'DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
+        </Typography>
+      )
+    }
+  ]
+
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <ConfirmationDialog
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+  const onCellClick = params => {
+    // Handle cell click logic here
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader
+          avatar={
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                router.back()
+                // Router.push({
+                //   pathname: '/parivesh/home'
+                // })
+              }}
+              icon='ep:back'
+            />
+          }
+          title={`Request - ${batchDetails?.batch_id}`}
+        />
+        <Box sx={{ background: '#C3CEC7', borderRadius: '10px', m: 6, p: 6 }}>
+          <Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Batch ID: <span style={{ color: '#37BD69' }}>{batchDetails?.batch_id}</span>
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Organization: <span style={{ color: '#37BD69' }}>{selectedParivesh?.organization_name}</span>
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Date of Submitted:{' '}
+                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.submitted_on).format('DD/MM/YYYY')}</span>
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1'>Status</Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          <Box sx={{ mt: 6 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Batch Created:{' '}
+                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.created_on).format('DD/MM/YYYY')}</span>
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Registration ID : <span style={{ color: '#37BD69' }}>{batchDetails?.registration_id}</span>
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
+                </Typography>
+              </Grid>
+              {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Select
+                    displayEmpty
+                    sx={{
+                      minWidth: 200,
+                      background: '#00AFD6',
+                      color: '#FFFFFF',
+                      borderColor: '#00AFD6',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00AFD6'
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#FFFFFF'
+                      }
+                    }}
+                    IconComponent={CustomDropdownIcon}
+                    value={selectedStatus}
+                    onChange={handleStatusChange}
+                  >
+                    {dropdownOptions.map(option => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
+              ) : (
+                <Typography variant='h6' sx={{ color: '#37BD69', mt: 2 }}>
+                  {batchDetails.status === 'accepted'
+                    ? 'Approved'
+                    : batchDetails.status === 'rejected'
+                    ? 'Rejected'
+                    : null}
+                </Typography>
+              )}
+            </Grid>
+          </Box>
+        </Box>
+        <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
+          <Grid>{tableData()}</Grid>
+        </Box>
+      </Card>
+
+      <Card sx={{ mt: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
+          <Box>
+            <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+              <Icon icon='mdi:printer-outline' fontSize={20} />
+              &nbsp; Print
+            </Button>
+            {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment-plus' fontSize={20} />
+                &nbsp; Attachment (1)
+              </Button>
+            )}
+            {batchDetails?.status === 'accepted' && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:pdf-box' fontSize={20} />
+                &nbsp; Reports (1)
+              </Button>
+            )}
+          </Box>
+          {batchDetails?.status !== 'accepted' && (
+            <Button variant='contained' color='primary' onClick={handleSaveBatch}>
+              {type !== 'submittedBatch' ? 'Save' : 'Save Batch'}
+            </Button>
+          )}
+        </Box>
+      </Card>
+
+      {/* <Card sx={{ mt: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
+          {selectedStatus !== 'accepted' ? (
+            <Box>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:printer' fontSize={20} />
+                &nbsp; Print
+              </Button>
+              {selectedStatus === 'submitted' ? (
+                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                  <Icon icon='mdi:attachment' fontSize={20} />
+                  &nbsp; Attachment (1)
+                </Button>
+              ) : null}
+            </Box>
+          ) : (
+            <Box>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:printer' fontSize={20} />
+                &nbsp; Print
+              </Button>
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment' fontSize={20} />
+                &nbsp; Attachment (1)
+              </Button>
+
+              {selectedStatus === 'accepted' ? (
+                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                  <Icon icon='mdi:add' fontSize={20} />
+                  &nbsp;reports (1)
+                </Button>
+              ) : null}
+            </Box>
+          )}
+          {selectedStatus !== 'accepted' ? (
+            <Button variant='contained' color='primary' onClick={handleSaveBatch}>
+              {type !== 'submittedBatch' ? 'save' : ' save batch'}
+            </Button>
+          ) : null}
+        </Box>
+      </Card> */}
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <DialogTitle>
+          Registration ID*
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpen(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 6 }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <FormControl fullWidth>
+                <Controller
+                  name='registrationId'
+                  control={control}
+                  rules={{ required: 'Registration ID is required' }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Registration ID'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Enter Registration ID'
+                      error={Boolean(errors.registrationId)}
+                      name='registrationId'
+                    />
+                  )}
+                />
+                {errors.registrationId && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId.message}</FormHelperText>
+                )}
+              </FormControl>
+            </form>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <LoadingButton
+            loading={btnLoader}
+            size='large'
+            sx={{ width: '100%' }}
+            variant='contained'
+            onClick={handleSubmit(onSubmit)}
+          >
+            Add ID
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+    </>
+  )
+}
+
+export default BatchDetails
+
+// import {
+//   Avatar,
+//   Button,
+//   Card,
+//   CardHeader,
+//   FormControl,
+//   Grid,
+//   InputLabel,
+//   MenuItem,
+//   Select,
+//   Tooltip,
+//   Typography,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogActions,
+//   DialogContentText,
+//   Input,
+//   TextField,
+//   FormHelperText
+// } from '@mui/material'
+// import { Box } from '@mui/system'
+// import React, { useState } from 'react'
+// import { styled } from '@mui/system'
+// import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+// import IconButton from '@mui/material/IconButton'
+// import ConfirmationDialog from 'src/components/confirmation-dialog'
+// import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+// import { useTheme } from '@mui/material/styles'
+// import FallbackSpinner from 'src/@core/components/spinner/index'
+// import { DataGrid } from '@mui/x-data-grid'
+// import moment from 'moment'
+// import Icon from 'src/@core/components/icon'
+// import Router from 'next/router'
+// import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+// import { Controller, useForm } from 'react-hook-form'
+
+// const CustomDropdownIcon = styled(ArrowDropDownIcon)({
+//   color: '#FFFFFF' // Change this to your desired color
+// })
+
+// const BatchDetails = () => {
+//   const theme = useTheme()
+//   const {
+//     register,
+//     handleSubmit,
+//     control,
+//     formState: { errors }
+//   } = useForm()
+//   const [searchValue, setSearchValue] = useState('')
+//   const [total, setTotal] = useState(0)
+//   const [loader, setLoader] = useState(false)
+//   const [dialog, setDialog] = useState(false)
+//   const [check, setCheck] = useState(false)
+//   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+//   const [loading, setLoading] = useState(false)
+//   const [rows, setRows] = useState([
+//     {
+//       uid: '01',
+//       id: '1',
+//       common_name: 'Cheetah',
+//       scientific_name: 'Speckled pigeon',
+//       gender_count: {
+//         gender: 'Male',
+//         count: 3
+//       },
+//       age: 'Juvenile',
+//       category: 'Birth',
+//       created_at: '2024-06-03 16:07:17',
+//       date: '2024-06-06 16:07:17',
+//       created_by_user: {
+//         user_name: 'sr',
+//         email: 'sr@mailinator.com',
+//         profile_pic: 'https://api.dev.antzsystems.com/uploads/11/diet/ingredients/665d9cdd975011717411037.jpg'
+//       }
+//     }
+//   ])
+//   const [selectedStatus, setSelectedStatus] = useState('')
+//   const [isModalOpen, setIsModalOpen] = useState(false)
+
+//   const handleStatusChange = event => {
+//     const value = event.target.value
+//     setSelectedStatus(value)
+//     setIsModalOpen(prevState => (value === 2 ? !prevState : false))
+//   }
+
+//   const onClose = () => {
+//     setDialog(false)
+//   }
+
+//   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+//   const indexedRows = rows?.map((row, index) => ({
+//     ...row,
+//     sl_no: getSlNo(index)
+//   }))
+//   const columns = [
+//     {
+//       flex: 0.2,
+//       Width: 40,
+//       field: 'uid',
+//       headerName: 'S.NO',
+//       renderCell: params => (
+//         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//           {params.row.uid}
+//         </Typography>
+//       )
+//     },
+
+//     {
+//       flex: 0.2,
+//       minWidth: 30,
+//       field: 'image_type',
+//       headerName: 'IMAGE',
+//       renderCell: params => (
+//         <>
+//           <Avatar variant='square' src={params.row.created_by_user?.profile_pic} alt={params.row.id} />
+//           <Tooltip title={params.row.image_type} placement='right'>
+//             <Typography
+//               variant='body2'
+//               sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+//             >
+//               {' '}
+//               {params.row.image_type}
+//             </Typography>
+//           </Tooltip>
+//         </>
+//       )
+//     },
+//     {
+//       flex: 0.3,
+//       minWidth: 30,
+//       field: 'common_name',
+//       headerName: 'COMMON NAME',
+//       renderCell: params => (
+//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+//             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+//               {params.row.common_name ? params.row.common_name : '-'}
+//             </Typography>
+//           </Box>
+//         </Box>
+//       )
+//     },
+//     {
+//       flex: 0.3,
+//       minWidth: 10,
+//       field: 'scientific_name',
+//       headerName: 'SCIENTIFIC NAME',
+//       renderCell: params => (
+//         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//           {params.row.scientific_name ? params.row.scientific_name : '-'}
+//         </Typography>
+//       )
+//     },
+//     {
+//       flex: 0.4,
+//       minWidth: 10,
+//       field: 'gender_count',
+//       headerName: 'GENDER / COUNT',
+//       renderCell: params => (
+//         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//           {params.row.gender_count?.gender
+//             ? params.row.gender_count?.gender + ' : ' + params.row.gender_count?.count
+//             : '-'}
+//         </Typography>
+//       )
+//     },
+//     {
+//       flex: 0.3,
+//       minWidth: 30,
+//       field: 'age',
+//       headerName: 'Age',
+//       renderCell: params => (
+//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+//             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+//               {params.row.age ? params.row.age : '-'}
+//             </Typography>
+//           </Box>
+//         </Box>
+//       )
+//     },
+//     {
+//       flex: 0.3,
+//       minWidth: 30,
+//       field: 'category',
+//       headerName: 'Category',
+//       renderCell: params => (
+//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+//             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+//               {params.row.category ? params.row.category : '-'}
+//             </Typography>
+//           </Box>
+//         </Box>
+//       )
+//     },
+//     {
+//       flex: 0.4,
+//       minWidth: 20,
+//       field: 'date',
+//       headerName: 'DATE',
+//       renderCell: params => (
+//         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+//           {params.row.date ? moment(params.row.date).format('DD/MM/YYYY') : '-'}
+//         </Typography>
+//       )
+//     }
+//   ]
+
+//   const tableData = () => {
+//     return (
+//       <>
+//         {loader ? (
+//           <FallbackSpinner />
+//         ) : (
+//           <Card sx={{ mt: 4 }}>
+//             {/* <CardHeader title={'New entries'} action={headerAction} /> */}
+//             <ConfirmationDialog
+//               // icon={'mdi:delete'}
+//               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+//               iconColor={'#ff3838'}
+//               title={'Are you sure you want to delete this ingredient?'}
+//               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+//               formComponent={
+//                 <ConfirmationCheckBox
+//                   title={'This ingredient is part of 15 recipes and 10 diets.'}
+//                   label={'Deactivate this ingredient in all records'}
+//                   description={
+//                     'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+//                   }
+//                   color={theme.palette.formContent?.tertiary}
+//                   value={check}
+//                   setValue={setCheck}
+//                 />
+//               }
+//               dialogBoxStatus={dialog}
+//               onClose={onClose}
+//               ConfirmationText={'Delete'}
+//               confirmAction={onClose}
+//             />
+//             <DataGrid
+//               sx={{
+//                 '.MuiDataGrid-cell:focus': {
+//                   outline: 'none'
+//                 },
+
+//                 '& .MuiDataGrid-row:hover': {
+//                   cursor: 'pointer'
+//                 }
+//               }}
+//               columnVisibilityModel={{
+//                 sl_no: false
+//               }}
+//               hideFooterSelectedRowCount
+//               disableColumnSelector={true}
+//               autoHeight
+//               pagination
+//               rows={indexedRows === undefined ? [] : indexedRows}
+//               rowCount={total}
+//               columns={columns}
+//               sortingMode='server'
+//               paginationMode='server'
+//               pageSizeOptions={[7, 10, 25, 50]}
+//               paginationModel={paginationModel}
+//               //   onSortModelChange={handleSortModel}
+//               slots={{ toolbar: ServerSideToolbarWithFilter }}
+//               onPaginationModelChange={setPaginationModel}
+//               loading={loading}
+//               slotProps={{
+//                 baseButton: {
+//                   variant: 'outlined'
+//                 },
+//                 toolbar: {
+//                   value: searchValue,
+//                   clearSearch: () => handleSearch(''),
+//                   onChange: event => handleSearch(event.target.value)
+//                 }
+//               }}
+//               onCellClick={onCellClick}
+//             />
+//           </Card>
+//         )}
+//       </>
+//     )
+//   }
+//   const onCellClick = params => {
+//     // Router.push('/parivesh/home/new-entries/add-newentry')
+//     // console.log(params, 'params')
+//     // const clickedColumn = params.field !== 'switch'
+//     // if (clickedColumn) {
+//     //   const data = params.row
+//     //   Router.push({
+//     //     pathname: `/diet/ingredient/${data?.id}`
+//     //   })
+//     // } else {
+//     //   return
+//     // }
+//   }
+//   return (
+//     <>
+//       <Card>
+//         <CardHeader
+//           avatar={
+//             <Icon
+//               style={{ cursor: 'pointer' }}
+//               onClick={() => {
+//                 Router.push({
+//                   pathname: '/parivesh/home'
+//                 })
+//               }}
+//               icon='ep:back'
+//             />
+//           }
+//           title={`Request - ${1}`}
+//         />
+//         <Box sx={{ background: '#C3CEC7', borderRadius: '10px', m: 6, p: 6 }}>
+//           <Box>
+//             <Grid container spacing={2}>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Batch ID: <span style={{ color: '#37BD69' }}>123</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Organization: <span style={{ color: '#37BD69' }}>RKT</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Date of Submitted: <span style={{ color: '#37BD69' }}>22/04/2024</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1'>Status</Typography>
+//               </Grid>
+//             </Grid>
+//           </Box>
+//           <Box sx={{ mt: 6 }}>
+//             <Grid container spacing={2}>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Batch Created: <span style={{ color: '#37BD69' }}>22/04/2024</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Registration ID : <span style={{ color: '#37BD69' }}>1223</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+//                   Submitted By: <span style={{ color: '#37BD69' }}>sr</span>
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={12} sm={6} md={3}>
+//                 <Select
+//                   displayEmpty
+//                   sx={{
+//                     minWidth: 200,
+//                     background: '#00AFD6',
+//                     color: '#FFFFFF',
+//                     borderColor: '#00AFD6',
+//                     '& .MuiOutlinedInput-notchedOutline': {
+//                       borderColor: '#00AFD6'
+//                     },
+//                     '&:hover .MuiOutlinedInput-notchedOutline': {
+//                       borderColor: '#00AFD6'
+//                     },
+//                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+//                       borderColor: '#00AFD6'
+//                     },
+//                     '& .MuiSelect-icon': {
+//                       color: '#FFFFFF'
+//                     }
+//                   }}
+//                   IconComponent={CustomDropdownIcon}
+//                   value={selectedStatus}
+//                   onChange={handleStatusChange}
+//                 >
+//                   <MenuItem value='' disabled>
+//                     Select Status
+//                   </MenuItem>
+//                   <MenuItem value={1}>Yet to Submitted</MenuItem>
+//                   <MenuItem value={2}>Submitted</MenuItem>
+//                 </Select>
+//               </Grid>
+//             </Grid>
+//           </Box>
+//         </Box>
+//         <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
+//           <Grid>{tableData()}</Grid>
+//         </Box>
+//       </Card>
+//       <Card sx={{ mt: 6 }}>
+//         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
+//           <Button variant='contained' sx={{ background: '#1F415B' }}>
+//             <Icon icon='mdi:add' fontSize={20} />
+//             &nbsp; Print
+//           </Button>
+//           <Button variant='contained' color='primary'>
+//             SAVE
+//           </Button>
+//         </Box>
+//       </Card>
+//       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+//         <DialogTitle>
+//           Registration ID*
+//           <IconButton
+//             aria-label='close'
+//             onClick={() => setIsModalOpen(false)}
+//             sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+//           >
+//             <Icon icon='mdi:close' />
+//           </IconButton>
+//         </DialogTitle>
+//         <DialogContent>
+//           <Box sx={{ mt: 6 }}>
+//             <FormControl fullWidth>
+//               <Controller
+//                 name='registrationId'
+//                 control={control}
+//                 rules={{ required: true }}
+//                 render={({ field: { value, onChange } }) => (
+//                   <TextField
+//                     label='Registration ID'
+//                     value={value}
+//                     onChange={onChange}
+//                     placeholder='Enter Registration ID'
+//                     error={Boolean(errors.registrationId)}
+//                     name='registrationId'
+//                   />
+//                 )}
+//               />
+//               {errors.registrationId && (
+//                 <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId?.message}</FormHelperText>
+//               )}
+//             </FormControl>
+//           </Box>
+//         </DialogContent>
+//         <DialogActions>
+//           <Button sx={{ width: '100%' }} variant='contained' color='primary'>
+//             Add ID
+//           </Button>
+//         </DialogActions>
+//       </Dialog>
+//     </>
+//   )
+// }
+
+// export default BatchDetails

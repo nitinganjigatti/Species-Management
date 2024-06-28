@@ -20,7 +20,18 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Card, CardHeader, Grid, debounce, Button, MenuItem, Switch, FormControlLabel } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardHeader,
+  Grid,
+  debounce,
+  Button,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+  Tooltip
+} from '@mui/material'
 
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -342,7 +353,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.12,
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -363,15 +374,18 @@ const ListOfStocks = () => {
         </Badge>
       )
     },
+
     {
       flex: 0.2,
       minWidth: 20,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_items_name}
-        </Typography>
+        <Tooltip title={params.row.stock_items_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_items_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -429,6 +443,19 @@ const ListOfStocks = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
         </Typography>
       )
     },
@@ -578,7 +605,8 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.15,
+
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -605,11 +633,14 @@ const ListOfStocks = () => {
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_items_name}
-        </Typography>
+        <Tooltip title={params.row.stock_items_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_items_name}
+          </Typography>
+        </Tooltip>
       )
     },
+
     {
       flex: 0.4,
       minWidth: 20,
@@ -619,6 +650,30 @@ const ListOfStocks = () => {
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'procured_date',
+      headerName: 'PROCURED DATE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.procured_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'purchase_price',
+      headerName: 'Purchase Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.purchase_price}
         </Typography>
       )
     },
@@ -954,6 +1009,7 @@ const ListOfStocks = () => {
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
                       onPaginationModelChange={setBatchPaginationModel}
                       loading={batchLoading}
+                      disableColumnMenu
                       slotProps={{
                         baseButton: {
                           variant: 'outlined'
@@ -979,6 +1035,7 @@ const ListOfStocks = () => {
                       hideFooterSelectedRowCount
                       disableColumnSelector={true}
                       pagination
+                      disableColumnMenu
                       rows={indexedRows === undefined ? [] : indexedRows}
                       rowCount={total}
                       columns={columns}
