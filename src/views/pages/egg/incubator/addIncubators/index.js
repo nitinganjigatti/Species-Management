@@ -11,6 +11,7 @@ import * as yup from 'yup'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import {
+  Autocomplete,
   Card,
   CardContent,
   CardHeader,
@@ -89,28 +90,26 @@ const AddIncubators = ({
       setValue('nursery', isPreFilled?.nursery_id)
       setValue('room', isPreFilled?.room_id)
     }
+  }, [sidebarOpen])
+
+  useEffect(() => {
     if (incubatorDetail) {
+      RoomList(incubatorDetail?.nursery_id)
       setValue('nursery', incubatorDetail?.nursery_id)
+      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
       setValue('room', incubatorDetail?.room_id)
       setValue('incubator_name', incubatorDetail?.incubator_name)
       setValue('maxNumberOfEggs', Number(incubatorDetail?.max_eggs))
     }
-  }, [sidebarOpen])
+  }, [incubatorDetail])
 
-  // useEffect(() => {
-  //   if (incubatorDetail) {
-  //     console.log('incubatorDetail', incubatorDetail?.max_eggs)
-  //     setValue('room', incubatorDetail?.room_id)
-  //     setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
-  //   }
-  // }, [incubatorDetail])
-
-  const NurseryList = async id => {
+  const NurseryList = async (q, id) => {
     try {
       const params = {
         page: 1,
         limit: 50,
-        nursery_id: id
+        nursery_id: id,
+        search: q
       }
       await GetNurseryList({ params: params }).then(res => {
         setNurseryList(res?.data?.result)
@@ -119,6 +118,17 @@ const AddIncubators = ({
       console.log(e)
     }
   }
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const RoomList = async id => {
     try {
@@ -269,152 +279,161 @@ const AddIncubators = ({
 
         <Box sx={{ marginBottom: 50, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
+            {/* <Card sx={{ height: '600px' }}> */}
+            <CardContent sx={{ mt: 2, borderRadius: '8px', backgroundColor: '#fff' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <FormControl fullWidth>
+                  {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
-                    </InputLabel>
+                    </InputLabel> */}
 
-                    <Controller
-                      name='nursery'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        // <Autocomplete
-                        //   value={defaultNursery}
-                        //   disablePortal
-                        //   id='nursery'
-                        //   options={nurseryList?.length > 0 ? nurseryList : []}
-                        //   getOptionLabel={option => option.nursery_name}
-                        //   isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                        //   onChange={(e, val) => {
-                        //     if (val === null) {
-                        //       setDefaultNursery(null)
+                  <Controller
+                    name='nursery'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='nursery'
+                        value={defaultNursery}
+                        // value={value}
+                        disablePortal
+                        disabled={isEdit || isPreFilled}
+                        id='nursery'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
 
-                        //       return onChange('')
-                        //     } else {
-                        //       setDefaultNursery(val)
-
-                        //       return onChange(val.nursery_id)
-                        //     }
-                        //   }}
-                        //   renderInput={params => (
-                        //     <TextField
-                        //       {...params}
-                        //       label='Select Nursery'
-                        //       placeholder='Search & Select'
-                        //       error={Boolean(errors.nursery)}
-                        //     />
-                        //   )}
-                        // />
-
-                        <Select
-                          name='nursery'
-                          value={value}
-                          label='Nursery *'
-                          onChange={e => {
-                            // onChange()
-                            setValue('nursery', e.target.value)
+                            return onChange('')
+                          } else {
+                            setDefaultNursery(val)
+                            console.log('val', val)
+                            // setValue('nursery', e.target.value)
                             setValue('room', '')
-                            RoomList(e.target.value)
-                          }}
-                          disabled={isEdit || isPreFilled}
-                          error={Boolean(errors?.nursery)}
-                          labelId='nursery'
-                        >
-                          {nurseryList?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.nursery_id}>
-                                {item?.nursery_name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors?.nursery && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                            RoomList(val.nursery_id)
+                            return onChange(val.nursery_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Select Nursery *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery)}
+                          />
+                        )}
+                      />
+
+                      // <Select
+                      //   name='nursery'
+                      //   value={value}
+                      //   label='Nursery *'
+                      //   onChange={e => {
+                      //     // onChange()
+                      //     setValue('nursery', e.target.value)
+                      //     setValue('room', '')
+                      //     RoomList(e.target.value)
+                      //   }}
+                      //   disabled={isEdit || isPreFilled}
+                      //   error={Boolean(errors?.nursery)}
+                      //   labelId='nursery'
+                      // >
+                      //   {nurseryList?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.nursery_id}>
+                      //         {item?.nursery_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
                     )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.room)} id='room'>
-                      Room *
-                    </InputLabel>
-                    <Controller
-                      name='room'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='room'
-                          value={value}
-                          label='Room'
-                          onChange={onChange}
-                          error={Boolean(errors?.nursery)}
-                          labelId='room'
-                          disabled={isEdit || isPreFilled}
-                        >
-                          {roomList?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.room_id}>
-                                {item?.room_name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors?.room && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  />
+                  {errors?.nursery && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors?.room)} id='room'>
+                    Room *
+                  </InputLabel>
+                  <Controller
+                    name='room'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Select
+                        name='room'
+                        value={value}
+                        label='Room'
+                        onChange={onChange}
+                        error={Boolean(errors?.nursery)}
+                        labelId='room'
+                        disabled={isEdit || isPreFilled}
+                      >
+                        {roomList?.map((item, index) => {
+                          return (
+                            <MenuItem key={index} value={item?.room_id}>
+                              {item?.room_name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
                     )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='incubator_name'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Incubator Name *'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Incubator Name'
-                          error={Boolean(errors.incubator_name)}
-                          name='incubator_name'
-                        />
-                      )}
-                    />
-                    {errors.incubator_name && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <Controller
+                    name='incubator_name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        label='Incubator Name *'
+                        value={value}
+                        onChange={onChange}
+                        placeholder='Incubator Name'
+                        error={Boolean(errors.incubator_name)}
+                        name='incubator_name'
+                      />
                     )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='maxNumberOfEggs'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Max Number Of Eggs *'
-                          value={value}
-                          type='number'
-                          inputProps={{ min: 1 }}
-                          onChange={onChange}
-                          placeholder='Max Number Of Eggs'
-                          error={Boolean(errors.maxNumberOfEggs)}
-                          name='maxNumberOfEggs'
-                        />
-                      )}
-                    />
-                    {errors.maxNumberOfEggs && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.maxNumberOfEggs?.message}</FormHelperText>
+                  />
+                  {errors.incubator_name && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <Controller
+                    name='maxNumberOfEggs'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        label='Max Number Of Eggs *'
+                        value={value}
+                        type='number'
+                        inputProps={{ min: 1 }}
+                        onChange={onChange}
+                        placeholder='Max Number Of Eggs'
+                        error={Boolean(errors.maxNumberOfEggs)}
+                        name='maxNumberOfEggs'
+                      />
                     )}
-                  </FormControl>
-                </Box>
-              </CardContent>
-            </Card>
+                  />
+                  {errors.maxNumberOfEggs && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.maxNumberOfEggs?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Box>
+            </CardContent>
+            {/* </Card> */}
           </Box>
         </Box>
 
