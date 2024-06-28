@@ -1,4 +1,4 @@
-import { DIRECT_DISPATCH, REQUEST_ITEMS } from '../../../constants/ApiConstant'
+import { DIRECT_DISPATCH, REQUEST_ITEMS, LOCAL_TO_LOCAL_DISPATCH } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 const pharmacy = true
@@ -72,4 +72,10 @@ export async function updateDirectDispatchItems(id, payload) {
 
     return error
   }
+}
+
+export async function getLocalDispatchItemsList({ params }) {
+  const response = await axiosGet({ url: LOCAL_TO_LOCAL_DISPATCH, params, pharmacy })
+
+  return response.data
 }
