@@ -165,7 +165,7 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex:0.05,
+      flex: 0.05,
       minWidth: 40,
       field: 'id',
       headerName: 'SL',
@@ -192,14 +192,14 @@ const NurseryDetails = () => {
       minWidth: 10,
       field: 'ROOMS',
       headerName: 'ROOMS',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
+
             fontWeight: '400',
             lineHeight: '14.52px'
           }}
@@ -211,12 +211,12 @@ const NurseryDetails = () => {
     },
 
     {
-      flex:0.1,
+      flex: 0.1,
       minWidth: 10,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
@@ -224,25 +224,29 @@ const NurseryDetails = () => {
     },
 
     {
-      flex:0.1,
+      flex: 0.1,
       minWidth: 10,
       field: 'Eggs',
       headerName: 'Eggs',
-      sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_eggs}</Box>
-      )
-    },
-
-    {
-      flex:0.1,
-      minWidth: 10,
-      field: 'SITE NAME',
-      headerName: 'SITE NAME',
       headerAlign:"left",
       align:"left",
       sortable: false,
-      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
+      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_eggs}</Box>
+    },
+
+    {
+      flex: 0.1,
+      minWidth: 10,
+      field: 'SITE NAME',
+      headerName: 'SITE NAME',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', fontWeight: '400', lineHeight: '14.52px' }}>
+          {params.row.site_name}
+        </Box>
+      )
     },
     {
       flex: 0.2,
