@@ -89,7 +89,21 @@ const AddIncubators = ({
       setValue('nursery', isPreFilled?.nursery_id)
       setValue('room', isPreFilled?.room_id)
     }
+    if (incubatorDetail) {
+      setValue('nursery', incubatorDetail?.nursery_id)
+      setValue('room', incubatorDetail?.room_id)
+      setValue('incubator_name', incubatorDetail?.incubator_name)
+      setValue('maxNumberOfEggs', Number(incubatorDetail?.max_eggs))
+    }
   }, [sidebarOpen])
+
+  // useEffect(() => {
+  //   if (incubatorDetail) {
+  //     console.log('incubatorDetail', incubatorDetail?.max_eggs)
+  //     setValue('room', incubatorDetail?.room_id)
+  //     setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
+  //   }
+  // }, [incubatorDetail])
 
   const NurseryList = async id => {
     try {
@@ -158,7 +172,7 @@ const AddIncubators = ({
             handleSidebarClose()
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
-            actionApi(id)
+            actionApi()
           } else {
             setBtnDisabled(false)
             Toaster({ type: 'error', message: res.message })

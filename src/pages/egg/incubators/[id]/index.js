@@ -794,7 +794,7 @@ const IncubatorDetails = () => {
     // }
   }, [fetchTableData, status])
 
-  useEffect(() => {
+  const getIncubatorDetailFunc = () => {
     if (id) {
       try {
         getIncubatorDetail(id).then(res => {
@@ -808,6 +808,10 @@ const IncubatorDetails = () => {
         console.log('error', error)
       }
     }
+  }
+
+  useEffect(() => {
+    getIncubatorDetailFunc()
   }, [id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -1201,7 +1205,7 @@ const IncubatorDetails = () => {
             />
             <AddIncubators
               isEdit={isEdit}
-              actionApi={getIncubatorDetail}
+              actionApi={getIncubatorDetailFunc}
               incubatorDetail={incubatorDetail}
               drawerWidth={400}
               sidebarOpen={dialog}

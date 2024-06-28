@@ -68,7 +68,7 @@ const RoomDetails = () => {
         limit: paginationModel.pageSize
       }
 
-      await getIncubatorList(params).then(res => {
+      await getIncubatorList({ params }).then(res => {
         // Generate uid field based on the index
         let listWithId = res?.data?.data?.result?.map((el, i) => {
           return { ...el, id: i + 1 }
