@@ -24,6 +24,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 
 import { useTheme } from '@mui/material/styles'
 import { min } from 'date-fns'
+import { minWidth } from '@mui/system'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -164,8 +165,8 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex: 0.09,
-      Width: 20,
+      flex:0.05,
+      minWidth: 40,
       field: 'id',
       headerName: 'SL',
       headerAlign: 'center',
@@ -188,18 +189,34 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.1,
-      minWidth: 20,
+      minWidth: 10,
       field: 'ROOMS',
       headerName: 'ROOMS',
+      headerAlign:"left",
+      align:"left",
       sortable: false,
-      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.room_name}</Box>
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {console.log('Params >>12', params.row)}
+          {params.row.room_name}
+        </Typography>
+      )
     },
 
     {
-      flex: 0.1,
-      minWidth: 20,
+      flex:0.1,
+      minWidth: 10,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
+      headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
@@ -207,8 +224,8 @@ const NurseryDetails = () => {
     },
 
     {
-      flex: 0.1,
-      minWidth: 20,
+      flex:0.1,
+      minWidth: 10,
       field: 'Eggs',
       headerName: 'Eggs',
       sortable: false,
@@ -218,17 +235,18 @@ const NurseryDetails = () => {
     },
 
     {
-      flex: 0.1,
-      minWidth: 30,
+      flex:0.1,
+      minWidth: 10,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
-      
+      headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.site_name}</Box>
     },
     {
       flex: 0.2,
-      minWidth: 50,
+      minWidth: 10,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
       sortable: false,
