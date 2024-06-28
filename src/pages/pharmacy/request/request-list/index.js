@@ -429,6 +429,17 @@ const RequestList = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'request_date',
+      headerName: 'Request Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.request_date)}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,
@@ -557,7 +568,8 @@ const RequestList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {Utility.formatDisplayDate(params.row.request_date)}
             </Typography>
           </Box>
         </Box>
