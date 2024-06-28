@@ -91,7 +91,7 @@ const IncubatorsList = () => {
           site_id: ''
         }
         // console.log('params', params)
-        await getIncubatorList(params).then(res => {
+        await getIncubatorList({ params }).then(res => {
           // console.log('response', res)
 
           // Generate uid field based on the index
