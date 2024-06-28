@@ -38,10 +38,11 @@ const ListOfRequest = () => {
   const [labSelected, setLabSelected] = useState()
   console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
-  const [selectedLab, setSelectedLab] = useState()
+  const authData = useContext(AuthContext)
+  const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
 
   const [storedData, setStoredData] = useState()
-  const authData = useContext(AuthContext)
+
   const [stats, setStats] = useState()
 
   useEffect(() => {

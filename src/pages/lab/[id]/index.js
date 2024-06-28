@@ -151,6 +151,8 @@ const RequestDetails = () => {
       setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
       fetchRequestDetails()
     } else {
+      fetchRequestDetails()
+      setStatus(params?.row?.status)
       setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
     }
   }
@@ -322,7 +324,7 @@ const RequestDetails = () => {
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
                   defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
-                  value={status} // Assuming params.row.status contains the current status value
+                  value={params.row.status} // Assuming params.row.status contains the current status value
                   label='Status'
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
