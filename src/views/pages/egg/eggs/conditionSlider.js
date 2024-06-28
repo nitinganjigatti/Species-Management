@@ -200,16 +200,21 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
         setOpenDrawer(false)
         Toaster({ type: 'success', message: res.message })
-
-        getDetails(eggId)
+        if (getDetails) {
+          getDetails(eggId)
+        }
       } else {
         setLoader(false)
+        reset()
         Toaster({ type: 'error', message: res.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
-      getDetails(eggId)
+      if (getDetails) {
+        getDetails(eggId)
+      }
+      reset()
       console.error('Error while adding room:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }

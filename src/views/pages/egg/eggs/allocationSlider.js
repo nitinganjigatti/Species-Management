@@ -20,6 +20,7 @@ import React, { useEffect, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
@@ -47,6 +48,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     getValues,
     setValue,
     watch,
+    reset,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -143,18 +145,21 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       }
       const response = await AddAllocation(params)
       if (response.success) {
-        toast.success('Allocation Successfully Done')
+        Toaster({ type: 'success', message: response.message })
 
         setOpenDrawer(false)
       } else {
-        toast.error('Something went wrong')
+        reset()
+        Toaster({ type: 'error', message: response.message })
+
         if (callApi) {
           callApi()
         }
       }
     } catch (error) {
+      reset()
       console.error('Error while adding', error)
-      toast.error('An error occurred while adding')
+      Toaster({ type: 'error', message: 'An error occurred while adding' })
     }
   }
 

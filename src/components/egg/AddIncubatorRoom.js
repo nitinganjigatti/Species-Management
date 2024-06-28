@@ -127,8 +127,13 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
           setIsOpen(false)
           reset()
-          callApi()
-          callTableApi()
+          if (callApi) {
+            callApi()
+          }
+          if (callTableApi) {
+            callTableApi()
+          }
+
           Toaster({ type: 'success', message: response.message })
         } else {
           setLoader(false)
@@ -144,16 +149,21 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           setIsOpen(false)
           reset()
           Toaster({ type: 'success', message: response.message })
-
-          callTableApi()
-          callApi()
+          if (callApi) {
+            callApi()
+          }
+          if (callTableApi) {
+            callTableApi()
+          }
         } else {
           setLoader(false)
+          reset()
           Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
       console.error('Error while adding room:', error)
+      reset()
       Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
   }

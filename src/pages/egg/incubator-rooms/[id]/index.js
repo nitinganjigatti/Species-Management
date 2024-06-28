@@ -293,6 +293,26 @@ const RoomDetails = () => {
       )
     },
     {
+      flex: 0.1,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
+      field: 'max_no_eggs',
+      headerName: 'Max EGG',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.max_eggs ? params.row.max_eggs : '-'}
+        </Typography>
+      )
+    },
+    {
       flex: 0.12,
       minWidth: 20,
       sortable: false,
