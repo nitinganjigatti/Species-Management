@@ -144,11 +144,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       const response = await AddAllocation(params)
       if (response.success) {
         toast.success('Allocation Successfully Done')
-        callApi()
+
         setOpenDrawer(false)
       } else {
         toast.error('Something went wrong')
-        callApi()
+        if (callApi) {
+          callApi()
+        }
       }
     } catch (error) {
       console.error('Error while adding', error)

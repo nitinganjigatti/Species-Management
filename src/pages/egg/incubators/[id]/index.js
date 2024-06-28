@@ -756,12 +756,14 @@ const IncubatorDetails = () => {
           limit: paginationModel.pageSize,
 
           nursery_id: '',
-          type:
-            status === undefined
-              ? 'eggs_received'
-              : status === 'eggs_ready_to_be_discarded_at_nursery'
-              ? isDiscarded
-              : status,
+          type: 'eggs_incubation',
+
+          // type:
+          //   status === undefined
+          //     ? 'eggs_received'
+          //     : status === 'eggs_ready_to_be_discarded_at_nursery'
+          //     ? isDiscarded
+          //     : status,
           incubator_id: id
         }
 

@@ -24,16 +24,21 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 
 const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required')
-  .trim()
-  .strict(true)
-  .min(1, 'Add Nursery Name'),
-  
+  nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
 
   site_id: yup.string().required('Select Site')
 })
 
-const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, editName, editSite, callApi, fetchTableData }) => {
+const NurserySlider = ({
+  openDrawer,
+  setOpenDrawer,
+  loading,
+  editNurseryId,
+  editName,
+  editSite,
+  callApi,
+  fetchTableData
+}) => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
@@ -60,8 +65,8 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
     return (
       <Box
         sx={{
-          position:"relative",
-          right:0,
+          position: 'relative',
+          right: 0,
           height: '122px',
           width: '100%',
           maxWidth: '562px',
@@ -99,7 +104,9 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           toast.success('Nursery updated Successfully')
           setOpenDrawer(false)
           fetchTableData()
-          callApi()
+          if (callApi) {
+            callApi()
+          }
         } else {
           toast.error('Unable to update Nursery')
         }
@@ -115,7 +122,9 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           toast.success('Nursery added Successfully')
           setOpenDrawer(false)
           fetchTableData()
-          callApi()
+          if (callApi) {
+            callApi()
+          }
         } else {
           toast.error('Unable to add Nursery')
         }
@@ -141,8 +150,7 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           gap: '24px'
         }}
       >
-         <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
-     
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -171,71 +179,69 @@ const NurserySlider = ({ openDrawer, setOpenDrawer, loading, editNurseryId, edit
           </Box>
 
           {/* drower */}
-        
-            <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-              <Card sx={{ m: 5, px: 3, py: 3, display: 'flex', flexDirection: 'column', gap: 4 }}>
+
+          <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+            <Card sx={{ m: 5, px: 3, py: 3, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <FormControl fullWidth sx={{ mt: 4 }}>
+                <Controller
+                  name='nursery_name'
+                  control={control}
+                  rules={{ required: !editNurseryId }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Nursery Name*'
+                      value={value}
+                      onChange={onChange}
+                      focused={value !== ''}
+                      placeholder='Nursery Name'
+                      error={Boolean(errors.nursery_name)}
+                      name='nursery_name'
+                    />
+                  )}
+                />
+                {errors?.nursery_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
+                )}
+              </FormControl>
+
+              {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth sx={{ mt: 4 }}>
+                  <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                    Site
+                  </InputLabel>
                   <Controller
-                    name='nursery_name'
+                    name='site_id'
                     control={control}
-                    rules={{ required: !editNurseryId }}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
-                      <TextField
-                        label='Nursery Name*'
+                      <Select
+                        name='site_id'
                         value={value}
+                        label='Site *'
                         onChange={onChange}
-                        focused={value !== ''}
-                        placeholder='Nursery Name'
-                        error={Boolean(errors.nursery_name)}
-                        name='nursery_name'
-                      />
+                        error={Boolean(errors?.site_id)}
+                        labelId='site_id'
+                      >
+                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                          return (
+                            <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
+                              {item?.site_name}
+                            </MenuItem>
+                          )
+                        })}
+                      </Select>
                     )}
                   />
-                  {errors?.nursery_name && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
-                  )}
+                  {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
                 </FormControl>
+              )}
 
-                {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                  <FormControl fullWidth sx={{ mt: 4 }}>
-                    <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-                      Site
-                    </InputLabel>
-                    <Controller
-                      name='site_id'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='site_id'
-                          value={value}
-                          label='Site *'
-                          onChange={onChange}
-                          error={Boolean(errors?.site_id)}
-                          labelId='site_id'
-                        >
-                          {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
-                                {item?.site_name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
-                  </FormControl>
-                )}
-              
-
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <RenderSidebarFooter />
-                </Box>
-              </Card>
-            </form>
-         </Box>
-       
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <RenderSidebarFooter />
+              </Box>
+            </Card>
+          </form>
+        </Box>
       </Drawer>
     </>
   )

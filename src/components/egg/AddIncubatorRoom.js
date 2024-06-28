@@ -26,6 +26,7 @@ import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
+  console.log('isPreFilled :>> ', isPreFilled)
   const theme = useTheme()
   console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
@@ -83,6 +84,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   }, [])
 
   const nurseryId = watch('nursery_id')
+  console.log('nurseryId :>> ', nurseryId)
 
   useEffect(() => {
     if (nurseryId) {
