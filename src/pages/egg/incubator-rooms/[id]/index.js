@@ -36,8 +36,9 @@ const RoomDetails = () => {
   const { id } = router.query
 
   const theme = useTheme()
-  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null }
+  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -48,6 +49,8 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+  console.log('detailsData :>> ', detailsData)
+
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
@@ -423,9 +426,15 @@ const RoomDetails = () => {
     }
   }, [])
 
-  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+  const handleEdit = async (event, site_id, room_name, nursery_id, room_id, nursery_name) => {
     event.stopPropagation()
-    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+    setEditParams({
+      site_id: site_id,
+      room_name: room_name,
+      nursery_id: nursery_id,
+      room_id: room_id,
+      nursery_name: nursery_name
+    })
     setIsOpen(true)
   }
 
@@ -435,7 +444,14 @@ const RoomDetails = () => {
         <IconButton
           sx={{ mr: 4 }}
           onClick={event =>
-            handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
+            handleEdit(
+              event,
+              detailsData.site_id,
+              detailsData.room_name,
+              detailsData.nursery_id,
+              detailsData.room_id,
+              detailsData.nursery_name
+            )
           }
         >
           <Icon

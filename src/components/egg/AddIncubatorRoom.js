@@ -1,6 +1,8 @@
 import {
+  Autocomplete,
   Box,
   Card,
+  CardContent,
   Drawer,
   FormControl,
   FormHelperText,
@@ -9,9 +11,10 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -35,6 +38,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   console.log('nurseryList :>> ', nurseryList)
   const id = editParams?.room_id
   const [siteDetails, setSiteDetails] = useState({ site_id: '', site_name: '' })
+  const [defaultNursery, setDefaultNursery] = useState(null)
+
   console.log('siteDetails :>> ', siteDetails)
 
   const defaultValues = {
@@ -64,10 +69,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     reValidateMode: 'onChange'
   })
 
-  const NurseryList = async () => {
+  const NurseryList = async q => {
     try {
       const params = {
         // type: ['length', 'weight'],
+        q,
         page: 1,
         limit: 50
       }
@@ -98,13 +104,15 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   useEffect(() => {
     if (isPreFilled) {
       console.log('isPreFilled :>> ', isPreFilled)
+      setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+
       setValue('site_id', isPreFilled?.site_id)
       setValue('nursery_id', isPreFilled?.nursery_id)
     }
     if (editParams?.nursery_id && editParams?.room_name) {
       setValue('room_name', editParams?.room_name)
       setValue('site_id', editParams?.site_id)
-      setValue('nursery_id', editParams?.nursery_id)
+      setDefaultNursery({ nursery_id: editParams?.nursery_id, nursery_name: editParams?.nursery_name })
     }
   }, [isOpen])
 
@@ -173,6 +181,17 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     reset()
   }
 
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   return (
     <>
       <Drawer
@@ -217,8 +236,70 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           </Box>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <CardContent
+              sx={{
+                m: 5,
+                px: 4,
+                py: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                bgcolor: '#fff',
+                borderRadius: '8px'
+              }}
+            >
               <FormControl fullWidth>
+                <Controller
+                  name='nursery'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Autocomplete
+                      name='nursery'
+                      value={defaultNursery}
+                      // value={value}
+                      disablePortal
+                      disabled={isPreFilled?.nursery_id}
+                      id='nursery'
+                      options={nurseryList?.length > 0 ? nurseryList : []}
+                      getOptionLabel={option => option.nursery_name}
+                      isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultNursery(null)
+
+                          return onChange('')
+                        } else {
+                          setDefaultNursery(val)
+                          console.log('val', val)
+
+                          // setValue('nursery', e.target.value)
+                          setValue('room', '')
+                          RoomList(val.nursery_id)
+
+                          return onChange(val.nursery_id)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Select Nursery *'
+                          placeholder='Search & Select'
+                          error={Boolean(errors.nursery)}
+                        />
+                      )}
+                    />
+                  )}
+                />
+                {errors?.nursery && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                )}
+              </FormControl>
+
+              {/* <FormControl fullWidth>
                 <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
                   Nursery*
                 </InputLabel>
@@ -249,7 +330,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 {errors?.nursery_id && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
                 )}
-              </FormControl>
+              </FormControl> */}
+
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
@@ -305,7 +387,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
                 )}
               </FormControl>
-            </Card>
+            </CardContent>
 
             <Box
               sx={{
