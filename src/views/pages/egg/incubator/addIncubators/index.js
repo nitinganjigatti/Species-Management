@@ -54,6 +54,7 @@ const AddIncubators = ({
   const router = useRouter()
   const { id } = router.query
   const [defaultNursery, setDefaultNursery] = useState(null)
+  const [defaultRoom, setDefaultRoom] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [roomList, setRoomList] = useState([])
   const [btnDisabled, setBtnDisabled] = useState(false)
@@ -98,6 +99,7 @@ const AddIncubators = ({
       setValue('nursery', incubatorDetail?.nursery_id)
       setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
       setValue('room', incubatorDetail?.room_id)
+      setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
       setValue('incubator_name', incubatorDetail?.incubator_name)
       setValue('maxNumberOfEggs', Number(incubatorDetail?.max_eggs))
     }
@@ -130,12 +132,13 @@ const AddIncubators = ({
     []
   )
 
-  const RoomList = async id => {
+  const RoomList = async (id, q) => {
     try {
       const params = {
         page: 1,
         limit: 50,
-        nursery_id: id
+        nursery_id: id,
+        search: q
       }
       await GetRoomList({ params: params }).then(res => {
         setRoomList(res?.data?.result)
@@ -144,6 +147,17 @@ const AddIncubators = ({
       console.log(e)
     }
   }
+
+  const searchRoom = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await RoomList(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   useEffect(() => {
     NurseryList()
@@ -309,8 +323,7 @@ const AddIncubators = ({
                             return onChange('')
                           } else {
                             setDefaultNursery(val)
-                            console.log('val', val)
-                            // setValue('nursery', e.target.value)
+                            // console.log('val', val)
                             setValue('room', '')
                             RoomList(val.nursery_id)
                             return onChange(val.nursery_id)
@@ -358,31 +371,63 @@ const AddIncubators = ({
                   )}
                 </FormControl>
                 <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors?.room)} id='room'>
-                    Room *
-                  </InputLabel>
                   <Controller
                     name='room'
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
-                      <Select
+                      // <Select
+                      //   name='room'
+                      //   value={value}
+                      //   label='Room'
+                      //   onChange={onChange}
+                      //   error={Boolean(errors?.nursery)}
+                      //   labelId='room'
+                      //   disabled={isEdit || isPreFilled}
+                      // >
+                      //   {roomList?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.room_id}>
+                      //         {item?.room_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
+
+                      <Autocomplete
                         name='room'
-                        value={value}
-                        label='Room'
-                        onChange={onChange}
-                        error={Boolean(errors?.nursery)}
-                        labelId='room'
+                        value={defaultRoom}
+                        // value={value}
+                        disablePortal
                         disabled={isEdit || isPreFilled}
-                      >
-                        {roomList?.map((item, index) => {
-                          return (
-                            <MenuItem key={index} value={item?.room_id}>
-                              {item?.room_name}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
+                        id='room'
+                        options={roomList?.length > 0 ? roomList : []}
+                        getOptionLabel={option => option.room_name}
+                        isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultRoom(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultRoom(val)
+                            console.log('val', val)
+                            setValue('room', '')
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchRoom(defaultNursery.nursery_id, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Room *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery)}
+                          />
+                        )}
+                      />
                     )}
                   />
                   {errors?.room && (

@@ -1045,7 +1045,7 @@ const IncubatorDetails = () => {
                     mb: '6px'
                   }}
                 >
-                  No of Censors
+                  {/* No of Censors */}Eggs
                 </Typography>
                 <Typography
                   sx={{
@@ -1055,7 +1055,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  5
+                  {indexedRows?.length}
                 </Typography>
               </Box>
               <Box>
@@ -1068,7 +1068,7 @@ const IncubatorDetails = () => {
                     mb: '6px'
                   }}
                 >
-                  Slots Filled
+                  {/* Slots Filled */} Max Eggs
                 </Typography>
                 <Typography
                   sx={{
@@ -1078,7 +1078,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  0
+                  {incubatorDetail?.max_eggs}
                 </Typography>
               </Box>
               <Box>
@@ -1154,7 +1154,8 @@ const IncubatorDetails = () => {
           </Box>
           <Box>
             {/* <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} /> */}
-            <Typography
+
+            {/* <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontWeight: 500,
@@ -1163,8 +1164,8 @@ const IncubatorDetails = () => {
                 mb: 4
               }}
             >
-              Egg - {indexedRows?.length}
-            </Typography>
+              Eggs - {indexedRows?.length}
+            </Typography> */}
             {/* <CardContent > */}
             <CustomDataGrid
               sx={{
