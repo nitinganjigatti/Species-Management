@@ -1,5 +1,6 @@
 import { LoadingButton } from '@mui/lab'
 import {
+  Autocomplete,
   Box,
   Card,
   CardContent,
@@ -13,9 +14,10 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
@@ -33,6 +35,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const [incubatorName, setIncubatorName] = useState([])
   const [assesmentTypes, setAssesmentTypes] = useState([])
   const [loader, setLoader] = useState(false)
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nurseryList, setNurseryList] = useState([])
+  const [nurseryId, setNurseryId] = useState([])
 
   const defaultValues = {
     nursery_name: '',
@@ -68,10 +73,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       try {
         setLoader(true)
 
-        const nurseryData = await GetNurseryList({ params: '' })
-        if (nurseryData?.data?.result) {
-          setNurseryName(nurseryData?.data?.result)
-        }
+        // const nurseryData = await GetNurseryList({ params: '' })
+        // if (nurseryData?.data?.result) {
+        //   setNurseryName(nurseryData?.data?.result)
+        // }
 
         const assesmentTypes = await GetAssesmentTypes()
 
@@ -93,16 +98,45 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     fetchData()
   }, [])
 
-  const nurseryId = watch('nursery_name')
+  const NurseryList = async q => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        search: q
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  // const nurseryId = watch('nursery_name')
   const roomId = watch('room')
 
   // console.log('roomId :>> ', roomId)
 
   useEffect(() => {
-    if (nurseryId) {
+    if (allocationValues?.nursery_id) {
       const fetchData = async () => {
         const params = {
-          nursery_id: nurseryId
+          nursery_id: allocationValues?.nursery_id
         }
         const roomData = await GetRoomList({ params: params })
         if (roomData?.data?.result) {
@@ -111,7 +145,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       }
       fetchData()
     }
-  }, [nurseryId])
+  }, [allocationValues?.nursery_id])
 
   useEffect(() => {
     if (roomId) {
@@ -132,7 +166,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   useEffect(() => {
     if (allocationValues?.nursery_id) {
-      setValue('nursery_name', allocationValues?.nursery_id)
+      setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
+
+      // setValue('nursery_name', allocationValues?.nursery_id)
     }
   }, [allocationValues])
 
@@ -205,8 +241,62 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 Incubator Selection
               </Typography> */}
 
-              <Card fullWidth sx={{ mt: 3 }}>
-                <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
+              <CardContent sx={{ mt: 3, bgcolor: '#fff', borderRadius: '8px' }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3 }}>
+                  {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
+                      Nursery *
+                    </InputLabel> */}
+
+                  <Controller
+                    name='nursery_name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='nursery_name'
+                        value={defaultNursery}
+                        // value={value}
+                        disablePortal
+                        disabled={allocationValues?.nursery_id}
+                        id='nursery_name'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultNursery(val)
+                            console.log('val', val)
+
+                            // setValue('nursery', e.target.value)
+                            setValue('room', '')
+                            RoomList(val.nursery_id)
+
+                            return onChange(val.nursery_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Select Nursery *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery_name)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.nursery && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
                   <InputLabel error={Boolean(errors?.nursery_name)} id='nursery_name_label'>
                     Nursery Name*
                   </InputLabel>
@@ -235,7 +325,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   {errors && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_name?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
 
                 <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
                   <InputLabel error={Boolean(errors?.room)} id='room_label'>
@@ -292,7 +382,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
                 </FormControl>
-              </Card>
+              </CardContent>
 
               <Typography variant='h6' sx={{ mt: 5 }}>
                 Egg Measurements
