@@ -60,7 +60,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     name: 'measurements'
   })
 
-  console.log('GetValues >>', getValues())
+  // console.log('GetValues >>', getValues())
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -75,13 +75,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
-          console.log('assesment >', assesmentTypes?.data.length)
+          // console.log('assesment >', assesmentTypes?.data.length)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
         }
         setLoader(false)
-        console.log('Assesment >>', assesmentTypes)
+        // console.log('Assesment >>', assesmentTypes)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -92,7 +92,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const nurseryId = watch('nursery_name')
   const roomId = watch('room')
-  console.log('roomId :>> ', roomId)
+  // console.log('roomId :>> ', roomId)
 
   useEffect(() => {
     if (nurseryId) {
@@ -116,7 +116,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           room_id: roomId
         }
         const incubatorName = await getIncubatorList({ params: params })
-        console.log('incubator', incubatorName.data)
+        // console.log('incubator', incubatorName.data)
         if (incubatorName?.data?.data?.result) {
           setIncubatorName(incubatorName?.data?.data?.result)
         }

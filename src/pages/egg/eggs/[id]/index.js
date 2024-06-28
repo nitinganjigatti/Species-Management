@@ -65,7 +65,7 @@ const EggDetail = () => {
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
-          <EggFirstSection eggDetails={eggDetails} />
+          <EggFirstSection getDetails={getDetails} eggDetails={eggDetails} />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}

@@ -255,6 +255,25 @@ const EggList = () => {
     //     </Typography>
     //   )
     // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.35,
@@ -277,7 +296,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.2,
+      flex: 0.16,
       minWidth: 10,
       sortable: false,
       field: 'collected_on',
