@@ -10,7 +10,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Badge from '@mui/material/Badge'
@@ -41,6 +41,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
+  const [allocationNurseryId, setAllocationNurseryId] = useState({})
 
   // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -109,6 +110,12 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
     displayText = 'No data'
     displayTextColor = theme.palette.customColors.OnSurfaceVariant
   }
+
+  useEffect(() => {
+    if (eggDetails?.nursery_id) {
+      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id })
+    }
+  }, [])
 
   return (
     <>
@@ -557,7 +564,13 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
         />
       )}
 
-      {openAllocate && <AllocationSlider setOpenDrawer={setOpenAllocate} allocateEggId={eggDetails?.egg_id} />}
+      {openAllocate && (
+        <AllocationSlider
+          allocationValues={allocationNurseryId}
+          setOpenDrawer={setOpenAllocate}
+          allocateEggId={eggDetails?.egg_id}
+        />
+      )}
       <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
     </>
   )

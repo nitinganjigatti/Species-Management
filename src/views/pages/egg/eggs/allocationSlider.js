@@ -26,7 +26,7 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
-  console.log('allocateEggId :>> ', allocateEggId)
+  console.log('allocationValues :>> ', allocationValues)
   const [nurseryName, setNurseryName] = useState([])
   const [roomName, setRoomName] = useState([])
   const [incubatorName, setIncubatorName] = useState([])
@@ -81,6 +81,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           })
         }
         setLoader(false)
+
         // console.log('Assesment >>', assesmentTypes)
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -92,6 +93,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const nurseryId = watch('nursery_name')
   const roomId = watch('room')
+
   // console.log('roomId :>> ', roomId)
 
   useEffect(() => {
@@ -116,6 +118,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           room_id: roomId
         }
         const incubatorName = await getIncubatorList({ params: params })
+
         // console.log('incubator', incubatorName.data)
         if (incubatorName?.data?.data?.result) {
           setIncubatorName(incubatorName?.data?.data?.result)

@@ -36,6 +36,7 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
+import Toaster from 'src/components/Toaster'
 
 const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const theme = useTheme()
@@ -51,6 +52,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
   const [imgArr, setImgArr] = useState([])
   const [statusId, setStatusId] = useState('')
   const [isAnimal, setIsAnimal] = useState(false)
+  const [loader, setLoader] = useState(false)
 
   const getEggMasterData = async () => {
     try {
@@ -173,6 +175,8 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
+
       const payload = {
         egg_id: eggId,
         egg_status_id: getValues('current_state'),
@@ -188,22 +192,26 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
+        setLoader(false)
+
         console.log('res on submit :>> ', res)
         setImgSrc('')
         reset()
 
         setOpenDrawer(false)
-
-        toast.success(res.message)
+        Toaster({ type: 'success', message: res.message })
 
         getDetails(eggId)
+      } else {
+        setLoader(false)
+        Toaster({ type: 'error', message: res.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
       getDetails(eggId)
       console.error('Error while adding room:', error)
-      toast.error('An error occurred while adding room')
+      Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
   }
 
@@ -221,6 +229,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
     setValue('current_state', eggDetails?.egg_status_id)
     setValue('select_stage', eggDetails?.egg_state_id)
   }, [eggDetails])
+
   return (
     <>
       <Drawer
@@ -725,7 +734,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
                 <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
                   CANCEL
                 </LoadingButton>
-                <LoadingButton fullWidth variant='contained' type='submit' size='large'>
+                <LoadingButton fullWidth variant='contained' loader={loader} type='submit' size='large'>
                   SUBMIT
                 </LoadingButton>
               </Box>
