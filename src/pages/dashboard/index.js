@@ -36,9 +36,11 @@ import Divider from '@mui/material/Divider'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { bgcolor, color } from '@mui/system'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const Dashboard = () => {
   const [totalList, setTotalList] = useState([])
+  const { selectedPharmacy } = usePharmacyContext()
 
   const getAllTotalLists = async () => {
     try {
@@ -86,8 +88,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     getAllTotalLists()
-  }, [])
+  }, [selectedPharmacy.type])
 
+  console.log('selected', selectedPharmacy.type)
+
+  // {selectedPharmacy.type === 'central' &&
   return (
     <ApexChartWrapper>
       <Grid container spacing={6} className='match-height'>
@@ -129,32 +134,40 @@ const Dashboard = () => {
         </Grid>
         <Grid item xs={12} md={12}>
           <TotalListCard
-            data={totalList?.filter(el => el.name !== 'expireCount' && el.name !== 'outOfStockCount')}
+            data={
+              selectedPharmacy.type === 'central'
+                ? totalList?.filter(el => el.name !== 'expireCount' && el.name !== 'outOfStockCount')
+                : totalList?.filter(el => el.name === 'medicineCount' || el.name === 'inStockCount')
+            }
             modifiedProperties={modifiedProperties}
           />
         </Grid>
         <Grid item xs={12} md={4}>
           <PendingRequestsChart />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <StoreWisePendingRequestsChart />
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <RequestCompletedChart />
-        </Grid>
-
-        <Grid container item spacing={6} xs={12} md={8} sx={{ display: 'flex' }}>
-          <Grid item xs={12} md={6}>
-            <MonthlyDispatchChart />
+        {selectedPharmacy.type === 'central' ? (
+          <>
+            <Grid item xs={12} md={4}>
+              <StoreWisePendingRequestsChart />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <RequestCompletedChart />
+            </Grid>
+          </>
+        ) : null}
+        {selectedPharmacy.type === 'central' ? (
+          <Grid container item spacing={6} xs={12} md={8} sx={{ display: 'flex' }}>
+            <Grid item xs={12} md={6}>
+              <MonthlyDispatchChart />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MonthlyPurchaseChart />
+            </Grid>
+            <Grid item xs={12} md={12}>
+              <StoreWiseNewRequests />
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MonthlyPurchaseChart />
-          </Grid>
-          <Grid item xs={12} md={12}>
-            <StoreWiseNewRequests />
-          </Grid>
-        </Grid>
+        ) : null}
 
         <Grid item xs={12} md={4}>
           <FastMovingProducts />

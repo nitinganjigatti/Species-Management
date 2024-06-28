@@ -692,6 +692,25 @@ const IndividualRequest = () => {
           </div>
         </Typography>
       )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Shipped by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.adjusted_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
     }
 
     // {
@@ -994,22 +1013,33 @@ const IndividualRequest = () => {
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
                       <p>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
                       <p>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
                       <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
                       <p>{requestItems?.request_number}</p>
                     </Grid>
+                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                      {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                          {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                        </Typography>
+                        <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                          {Utility.formatDisplayDate(requestItems?.adjusted_at)}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Grid>
                   {/* Medicine Listing */}
                 </CardContent>

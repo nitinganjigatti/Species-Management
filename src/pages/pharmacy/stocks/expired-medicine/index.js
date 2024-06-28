@@ -10,9 +10,9 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
+import { Tooltip } from '@mui/material'
 
 const ExpiredMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -130,9 +130,11 @@ const ExpiredMedicine = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_item_name}
-        </Typography>
+        <Tooltip title={params.row.stock_item_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_item_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
