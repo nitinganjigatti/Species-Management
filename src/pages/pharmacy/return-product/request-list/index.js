@@ -266,7 +266,7 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'request_date',
-      headerName: 'Request date',
+      headerName: 'Returned On',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.request_date)}
@@ -336,7 +336,7 @@ const ReturnRequestList = () => {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Requested by ',
+      headerName: 'Returned by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -345,7 +345,8 @@ const ReturnRequestList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {Utility.formatDisplayDate(params.row.request_date)}
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
             </Typography>
           </Box>
         </Box>
