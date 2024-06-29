@@ -61,6 +61,7 @@ jobs:
           fi
       - name: Build Next.js Application (Optimize for memory)
         run: |
+          cat .env
           npm run build
       - name: Upload Next.js Build Artifact
         uses: actions/upload-artifact@v4

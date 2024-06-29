@@ -55,7 +55,7 @@ rm -f .env;
 # vantara-prod
 if [ $ENV_TO_LOAD == 'development' ]
 then
-  cp -r env.development .env
+  cp -r env.uat .env
 elif [ $ENV_TO_LOAD == 'uat' ]
 then
   cp -r env.uat .env
