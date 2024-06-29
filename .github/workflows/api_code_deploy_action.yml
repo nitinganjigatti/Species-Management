@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nextjs-build-output # Customize this name if needed
-          path: ./next # Replace with the path to your build output directory
+          path: .next # Replace with the path to your build output directory
       - name: Trigger Deploy Script
         run: |
           chmod u+x deploy/
