@@ -95,8 +95,17 @@ echo "Downloading artifact"
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
 GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
 
-echo "${GITHUB_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
-curl -L --user "${GITHUB_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
+echo "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
+curl -L --user "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
+
+
+# # # Replace with actual values
+# # ARTIFACT_URL="https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}"
+# # ACCESS_TOKEN="${ANTZ_DEPLOYMENT_TOKEN}"
+
+# # Download the artifact with authentication
+# curl -L --user "${ACCESS_TOKEN}":x-oauth-basic -o artifact.zip "$ARTIFACT_URL"
+
 
 ls -lt
 # Optionally verify the download
