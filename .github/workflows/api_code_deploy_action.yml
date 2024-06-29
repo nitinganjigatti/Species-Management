@@ -51,7 +51,7 @@ jobs:
         if: github.ref == 'refs/heads/dev-release'
         run: |
           rm -r .env
-          cp -r env.uat .env
+          cp -r env.development .env
 
       - name: Copy environment file for uat-release
         if: github.ref == 'refs/heads/uat-release'
