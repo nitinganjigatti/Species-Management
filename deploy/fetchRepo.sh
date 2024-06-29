@@ -102,7 +102,7 @@ echo $GITHUB_REPOSITORY
 echo "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts";
 
 
-ARTIFACTS_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+ARTIFACTS_RESPONSE=$(curl -s -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
     -w "%{http_code}" \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts")
 
