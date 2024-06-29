@@ -128,22 +128,10 @@ curl -L -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
     $ARTIFACT_URL
 
 # Unzip the artifact
-unzip $ARTIFACT_NAME.zip -d $ARTIFACT_NAME
+unzip $ARTIFACT_NAME.zip -d .next
+rm -rf $ARTIFACT_NAME.zip
+ls -la
 
-ls -lt
-# Optionally verify the download
-if [ $? -eq 0 ]; then
-  echo "Artifact downloaded successfully!"
-else
-  echo "Error downloading artifact!"
-  exit 1
-fi
-
-# Extract the downloaded artifact (replace zip with the actual format)
-unzip artifact.zip
-
-# Replace existing deployment directory or copy files as needed
-mv -f extracted_files/* $APP_DIR  # Adjust the path as needed
 
 process_name="antz-web"
 
