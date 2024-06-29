@@ -50,6 +50,7 @@ jobs:
       - name: Build Next.js Application (Optimize for memory)
         run: |
           npm run build
+          ls -lt
       - name: Upload Next.js Build Artifact
         uses: actions/upload-artifact@v4
         with:
