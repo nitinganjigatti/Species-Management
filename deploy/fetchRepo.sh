@@ -101,7 +101,7 @@ ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
 
 # Get the artifact URL
 ARTIFACT_URL=$(curl -s -H "Authorization: token $ANTZ_DEPLOYMENT_TOKEN" \
-    "https://api.github.com/repos/$GITHUB_USERNAME/${$GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+    "https://api.github.com/repos/$GITHUB_USERNAME/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
     | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
 
 # Download the artifact
