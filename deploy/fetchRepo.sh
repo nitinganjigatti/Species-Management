@@ -94,8 +94,11 @@ echo "Downloading artifact"
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
 GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
+
+echo "${GITHUB_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
 curl -L --user "${GITHUB_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
 
+ls -lt
 # Optionally verify the download
 if [ $? -eq 0 ]; then
   echo "Artifact downloaded successfully!"
