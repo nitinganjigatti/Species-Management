@@ -103,6 +103,8 @@ GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from yo
 ARTIFACT_URL="https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}"
 echo $ARTIFACT_URL;
 # Download the artifact with authentication
+echo "curl -v -L --user '${ANTZ_DEPLOYMENT_TOKEN}':x-oauth-basic -o artifact.zip '$ARTIFACT_URL'"
+
 curl -v -L --user "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic -o artifact.zip "$ARTIFACT_URL"
 
 
