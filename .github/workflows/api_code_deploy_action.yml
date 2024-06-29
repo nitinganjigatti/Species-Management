@@ -7,6 +7,7 @@ on:
       - release/farm
       - prod-release
 env:
+  ARTIFICATE_DOWNLOAD_GITHUB_TOKEN: ${{ secrets.ARTIFICATE_DOWNLOAD_GITHUB_TOKEN }}
   SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
   DEPLOY_SERVER_DEV: ${{vars.DEPLOY_SERVER_DEV}}
   DEPLOY_SERVER_UAT: ${{vars.DEPLOY_SERVER_UAT}}
@@ -54,7 +55,7 @@ jobs:
         with:
           name: nextjs-build-output # Customize this name if needed
           path: ./next # Replace with the path to your build output directory
-      # - name: Trigger Deploy Script
-      #   run: |
-      #     chmod u+x deploy/
-      #     bash deploy/deploy.sh
+      - name: Trigger Deploy Script
+        run: |
+          chmod u+x deploy/
+          bash deploy/deploy.sh

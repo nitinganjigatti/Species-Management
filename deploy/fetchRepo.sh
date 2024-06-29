@@ -5,6 +5,11 @@ set -e
 
 BRANCH=$1
 ENV_TO_LOAD=$2
+GITHUB_RUN_ID=$3
+ANTZ_DEPLOYMENT_TOKEN=$4 
+GITHUB_WORKFLOW=$5 
+GITHUB_REPOSITORY=$6
+
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
 #APP_DIR="/var/www/app"
@@ -44,7 +49,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
-sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
+
 
 rm -f .env;
 # vantara-prod
@@ -80,8 +85,30 @@ npm install
 #### BACKUP the existing FOLDER as ZIP(SITE FOLDER)
 
 #Create build
-echo "Running npm build"
-npm run build
+# echo "Running npm build"
+# npm run build
+
+
+echo "Downloading artifact"
+
+# Download the artifact using artifact name and workflow run ID (replace placeholders)
+ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
+GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
+curl -L --user "${GITHUB_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
+
+# Optionally verify the download
+if [ $? -eq 0 ]; then
+  echo "Artifact downloaded successfully!"
+else
+  echo "Error downloading artifact!"
+  exit 1
+fi
+
+# Extract the downloaded artifact (replace zip with the actual format)
+unzip artifact.zip
+
+# Replace existing deployment directory or copy files as needed
+mv -f extracted_files/* $APP_DIR  # Adjust the path as needed
 
 process_name="antz-web"
 
@@ -97,7 +124,7 @@ else
 fi
 
 pm2 start npm --name "$process_name" -- start
-
+sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 echo "Deployed. DONE!!!"
 
 #  DELETE ALL FOLDERS EXCEPT LAST 5 releases
