@@ -51,7 +51,7 @@ jobs:
         run: |
           rm -f .env;
           if [ "${GITHUB_REF_NAME}" == "dev-release" ]; then
-            cp -r env.development .env
+            cp -r env.uat .env
           elif [ "${GITHUB_REF_NAME}" == "uat-release" ]; then
             cp -r env.uat .env
           elif [ "${GITHUB_REF_NAME}" == "prod-release" ]; then
