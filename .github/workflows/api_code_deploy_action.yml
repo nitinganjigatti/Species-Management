@@ -51,14 +51,14 @@ jobs:
         run: |
           rm -f .env;
           echo ${GITHUB_REF_NAME};
-          if [ "${GITHUB_REF_NAME}" == "dev-release" ]; then
-            cp -r env.uat .env;
-          elif [ "${GITHUB_REF_NAME}" == "uat-release" ]; then
-            cp -r env.uat .env;
-          elif [ "${GITHUB_REF_NAME}" == "prod-release" ]; then
-            cp -r env.production .env;
-          elif [ "${GITHUB_REF_NAME}" == "release/farm" ]; then
-            cp -r env.farm .env;
+          if [ ${GITHUB_REF_NAME} == "dev-release" ]; then
+            cp -r env.development .env
+          elif [ ${GITHUB_REF_NAME} == "uat-release" ]; then
+            cp -r env.uat .env
+          elif [ ${GITHUB_REF_NAME} == "prod-release" ]; then
+            cp -r env.production .env
+          elif [ ${GITHUB_REF_NAME} == "release/farm" ]; then
+            cp -r env.farm .env
           fi
           ls -la;
       - name: Build Next.js Application (Optimize for memory)
