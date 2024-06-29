@@ -39,8 +39,8 @@ jobs:
         run: ssh-keyscan $DEPLOY_SERVER_PROD >> ~/.ssh/known_hosts
       - run: chmod 644 ~/.ssh/known_hosts
         name: UPDATE PERMISSION OF KNOWN HOSTS
-      # - name: Checkout CodeBase
-      #   uses: actions/checkout@v3
+      - name: Checkout CodeBase
+        uses: actions/checkout@v3
       # - name: Install Dependencies (Node.js & GIT)
       #   run: |
       #     apt-get install -qq git nodejs
