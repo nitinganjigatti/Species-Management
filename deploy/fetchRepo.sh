@@ -8,7 +8,7 @@ ENV_TO_LOAD=$2
 GITHUB_RUN_ID=$3
 ANTZ_DEPLOYMENT_TOKEN=$4 
 GITHUB_WORKFLOW=$5 
-GITHUB_REPOSITORY=$6
+GITHUB_REPOSITORY="ANTZ-Systems/antz_web_dashboard"
 
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
