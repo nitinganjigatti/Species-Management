@@ -9,7 +9,6 @@ GITHUB_RUN_ID=$3
 ANTZ_DEPLOYMENT_TOKEN=$4 
 GITHUB_WORKFLOW=$5 
 GITHUB_REPOSITORY=$6
-GITHUB_USERNAME=$7
 
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
@@ -94,16 +93,34 @@ echo "Downloading artifact"
 
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
-# GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
 
-# echo "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
-# curl -L --user "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
-
+echo $GITHUB_RUN_ID 
+echo $ANTZ_DEPLOYMENT_TOKEN 
+echo $GITHUB_WORKFLOW 
+echo $GITHUB_REPOSITORY
 # Get the artifact URL
 echo "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts";
-ARTIFACT_URL=$(curl -s -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-    | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+
+
+ARTIFACTS_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+    -w "%{http_code}" \
+    "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts")
+
+# Extract HTTP status code
+HTTP_STATUS=$(echo "$ARTIFACTS_RESPONSE" | tail -n1)
+ARTIFACTS_JSON=$(echo "$ARTIFACTS_RESPONSE" | head -n-1)
+
+echo "Artifacts response: $ARTIFACTS_JSON"
+ARTIFACT_URL=$(echo $ARTIFACTS_JSON | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+
+
+# Debugging: Print the artifact URL
+echo "Artifact URL: $ARTIFACT_URL"
+
+if [ -z "$ARTIFACT_URL" ]; then
+  echo "Artifact URL not found. Please check the artifact name and run ID."
+  exit 1
+fi
 
 # Download the artifact
 curl -L -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \

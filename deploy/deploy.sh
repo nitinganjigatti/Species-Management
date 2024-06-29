@@ -49,18 +49,11 @@ echo $ENV_TO_LOAD
 # our substring is "," and we replace it with nothing.
 ALL_SERVERS=(${DEPLOY_SERVER//,/ })
 echo "ALL_SERVERS ${ALL_SERVERS}"
-
-echo $GITHUB_REF_NAME 
-echo $ENV_TO_LOAD 
-echo $GITHUB_RUN_ID 
-echo $ARTIFICATE_DOWNLOAD_GITHUB_TOKEN 
-echo $GITHUB_WORKFLOW 
-echo $GITHUB_REPOSITORY
 # Lets iterate over this array and ssh into each EC2 instance
 # Once inside the server, run updateAndRestart.sh
 for server in "${ALL_SERVERS[@]}"
 do
   echo "deploying to ${server}"
-  ssh -o UserKnownHostsFile=/github/home/.ssh/known_hosts antzsystems@${server} 'bash -s' < ./deploy/fetchRepo.sh $GITHUB_REF_NAME $ENV_TO_LOAD $GITHUB_RUN_ID $ARTIFICATE_DOWNLOAD_GITHUB_TOKEN $GITHUB_WORKFLOW $GITHUB_REPOSITORY $GITHUB_USERNAME
+  ssh -o UserKnownHostsFile=/github/home/.ssh/known_hosts antzsystems@${server} 'bash -s' < ./deploy/fetchRepo.sh $GITHUB_REF_NAME $ENV_TO_LOAD $GITHUB_RUN_ID $ARTIFICATE_DOWNLOAD_GITHUB_TOKEN $GITHUB_WORKFLOW $GITHUB_REPOSITORY
 
 done
