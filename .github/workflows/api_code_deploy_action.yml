@@ -41,22 +41,22 @@ jobs:
         name: UPDATE PERMISSION OF KNOWN HOSTS
       - name: Checkout CodeBase
         uses: actions/checkout@v3
-      # - name: Install Dependencies (Node.js & GIT)
-      #   run: |
-      #     apt-get install -qq git nodejs
-      #     npm install -g npm@latest  # Optional: Update npm to latest
-      # - name: Install Next.js Dependencies
-      #   run: npm install # Install project dependencies
-      # - name: Build Next.js Application (Optimize for memory)
-      #   run: |
-      #     npm run build
-      #     ls -lt
-      # - name: Upload Next.js Build Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: nextjs-build-output # Customize this name if needed
-      #     path: .next # Replace with the path to your build output directory
-      #     retention-days: 1
+      - name: Install Dependencies (Node.js & GIT)
+        run: |
+          apt-get install -qq git nodejs
+          npm install -g npm@latest  # Optional: Update npm to latest
+      - name: Install Next.js Dependencies
+        run: npm install # Install project dependencies
+      - name: Build Next.js Application (Optimize for memory)
+        run: |
+          npm run build
+          ls -lt
+      - name: Upload Next.js Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build-output # Customize this name if needed
+          path: .next # Replace with the path to your build output directory
+          retention-days: 1
       - name: Trigger Deploy Script
         run: |
           chmod u+x deploy/

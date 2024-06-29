@@ -9,6 +9,7 @@ GITHUB_RUN_ID=$3
 ANTZ_DEPLOYMENT_TOKEN=$4 
 GITHUB_WORKFLOW=$5 
 GITHUB_REPOSITORY=$6
+GITHUB_USERNAME=$7
 
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
@@ -49,7 +50,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
-
+sudo apt-get install -y curl jq
 
 rm -f .env;
 # vantara-prod
@@ -93,20 +94,20 @@ echo "Downloading artifact"
 
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
-GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
+# GITHUB_RUN_ID="${GITHUB_RUN_ID}"  # Replace with an environment variable from your workflow
 
-echo "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
-curl -L --user "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
+# echo "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME}
+# curl -L --user "${ANTZ_DEPLOYMENT_TOKEN}":x-oauth-basic https://artifacts.githubusercontent.com/v4/repos/${GITHUB_REPOSITORY}/workflows/${GITHUB_WORKFLOW}/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_NAME} > artifact.zip
 
-# Get the artifact ID
-# ARTIFACT_ID=$(curl -s -H "Authorization: token $ANTZ_DEPLOYMENT_TOKEN" \
-#     "https://api.github.com/repos/$GITHUB_USERNAME/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
-#     | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .id")
+# Get the artifact URL
+ARTIFACT_URL=$(curl -s -H "Authorization: token $ANTZ_DEPLOYMENT_TOKEN" \
+    "https://api.github.com/repos/$GITHUB_USERNAME/${$GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+    | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
 
-# # Download the artifact
-# curl -L -H "Authorization: token $ANTZ_DEPLOYMENT_TOKEN" \
-#     -o $ARTIFACT_NAME.zip \
-#     "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/actions/artifacts/$ARTIFACT_ID/zip"
+# Download the artifact
+curl -L -H "Authorization: token $ANTZ_DEPLOYMENT_TOKEN" \
+    -o $ARTIFACT_NAME.zip \
+    $ARTIFACT_URL
 
 # Unzip the artifact
 unzip $ARTIFACT_NAME.zip -d $ARTIFACT_NAME
