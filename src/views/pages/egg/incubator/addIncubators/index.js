@@ -88,7 +88,9 @@ const AddIncubators = ({
     if (isPreFilled) {
       // console.log('isPreFilled :>> ', isPreFilled)
       RoomList(isPreFilled?.nursery_id)
-      setValue('nursery', isPreFilled?.nursery_id)
+      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+      setValue('nursery', incubatorDetail?.nursery_id)
+      setDefaultRoom({ room_id: isPreFilled?.room_id, room_name: isPreFilled?.room_name })
       setValue('room', isPreFilled?.room_id)
     }
   }, [sidebarOpen])
