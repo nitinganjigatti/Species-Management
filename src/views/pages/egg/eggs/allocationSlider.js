@@ -241,7 +241,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 Incubator Selection
               </Typography> */}
 
-              <CardContent sx={{ mt: 3, bgcolor: '#fff', borderRadius: '8px' }}>
+              <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
                 <FormControl fullWidth sx={{ width: '95%', ml: 3 }}>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
