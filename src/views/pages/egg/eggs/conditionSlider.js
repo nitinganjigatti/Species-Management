@@ -92,9 +92,12 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
     // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
     shell_thickness:
-      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired()
+      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
 
-    // assisted_by : hatched === 'assisted_hatch'? yup.string().required('Assisted By is required') : yup.string().notRequired()
+    assisted_by:
+      hatched === 'assisted_hatch'
+        ? yup.string().trim().required('Assisted By is required')
+        : yup.string().notRequired()
   })
 
   const {
@@ -281,7 +284,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
               <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), overflowY: 'auto' }}>
                 <Card fullWidth>
                   <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
-                    <InputLabel id='current_state'>Select State</InputLabel>
+                    <InputLabel id='current_state'>Select State*</InputLabel>
                     <Controller
                       name='current_state'
                       control={control}
@@ -310,7 +313,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
                   {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '95%', ml: 3, mb: 4 }}>
-                      <InputLabel id='select_stage'>Select Stage</InputLabel>
+                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
@@ -408,8 +411,8 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
                             <TextField
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
-                              // type='number'
-                              label='Enter Shell Thickness'
+                              type='number'
+                              label='Enter Shell Thickness*'
                               name='shell_thickness'
                               onChange={onChange}
                               placeholder=''
@@ -434,7 +437,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
                               <TextField
                                 error={Boolean(errors?.assisted_by)}
                                 value={value}
-                                label='Assisted by'
+                                label='Assisted by*'
                                 name='assisted_by'
                                 onChange={onChange}
                                 placeholder=''
