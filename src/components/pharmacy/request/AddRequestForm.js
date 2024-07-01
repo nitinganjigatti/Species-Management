@@ -414,7 +414,8 @@ const AddRequestForm = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        active: true
       }
 
       const searchResults = await getMedicineList({ params: params })
@@ -456,6 +457,7 @@ const AddRequestForm = () => {
         sort: 'asc',
         q: '',
         limit: 20,
+        active: true,
         generic: searchText
       }
 
@@ -1339,27 +1341,28 @@ const AddRequestForm = () => {
             </Grid>
           </Grid>
         </form>
-      </CardContent>
-      <Grid
-        container
-        item
-        spacing={6}
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          mb: 4
-        }}
-      >
-        <AddButton
-          title='Add Request Item'
-          action={() => {
-            handleSubmit()
+        <Grid
+          container
+          item
+          spacing={6}
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            mb: 2,
+            mt: 2
           }}
-        />
-      </Grid>
+        >
+          <AddButton
+            title='Add Request Item'
+            action={() => {
+              handleSubmit()
+            }}
+          />
+        </Grid>
+      </CardContent>
 
       <TableContainer>
         <Table>
