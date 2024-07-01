@@ -270,7 +270,13 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.approved_count_data.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -345,7 +351,13 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.yet_to_submitted_count.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -425,7 +437,13 @@ const SpeciesDetails = () => {
               data: [
                 {
                   value: org.submitted_count_data.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },

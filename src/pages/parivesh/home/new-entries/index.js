@@ -466,7 +466,7 @@ const NewEntry = ({}) => {
           onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}
         >
           <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ENTRIES
+          &nbsp; ADD ENTRY
         </Button>
 
         <LoadingButton
@@ -569,7 +569,7 @@ const NewEntry = ({}) => {
   }
 
   const data = [
-    { value: 200, label: 'REPORTED  ANIMALS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
+    { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
     { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
     { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
     { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
@@ -648,7 +648,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.approved_count_data.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -723,7 +729,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.yet_to_submitted_count.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -803,7 +815,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.submitted_count_data.total_animal,
-                  label: 'REPORTED  ANIMALS ',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },

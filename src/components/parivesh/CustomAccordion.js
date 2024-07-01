@@ -181,6 +181,56 @@ const CustomAccordion = ({
                         sx={{
                           borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
                           paddingLeft: index !== 0 ? '0.5rem' : 0,
+                          paddingRight: index !== 0 ? '0.5rem' : 0,
+                          whiteSpace: 'nowrap',
+                          backgroundColor: index === 0 ? 'rgba(0, 0, 0, 0.4)' : 'transparent',
+                          borderRadius: index === 0 ? '8px' : 0,
+                          minHeight: '4rem', // Set a minimum height to ensure consistency
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'flex-end'
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            padding: index === 0 ? '0.8rem' : 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start'
+                          }}
+                        >
+                          <Typography
+                            variant='h6'
+                            sx={{
+                              color: item.color,
+                              fontWeight: index === 0 || index === 1 ? 'semibold' : 'normal',
+                              fontSize: index === 0 || index === 1 ? '2rem !important' : '1rem !important'
+                            }}
+                          >
+                            {item.value}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: index === data.length - 1 ? item.color : '#FFFFFF',
+                              fontWeight: index === 0 || (index === 1 && 'normal'),
+                              fontSize: index === 0 || index === 1 ? '1rem' : '0.9rem',
+                              marginTop: 'auto'
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  ))}
+
+                  {/* {data.map((item, index) => (
+                    <Grid item key={index} xs>
+                      <Box
+                        sx={{
+                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          paddingLeft: index !== 0 ? '0.5rem' : 0,
                           paddingRight: index !== 0 ? '1rem' : 0,
                           whiteSpace: 'nowrap'
                         }}
@@ -189,14 +239,14 @@ const CustomAccordion = ({
                           variant='h6'
                           sx={{ color: item.color, fontWeight: index === 0 ? 'bold' : 'normal' }}
                         >
-                          {item.value}
+                          {item.value}1
                         </Typography>
                         <Typography variant='body2' sx={{ color: index === data.length - 1 ? item.color : '#FFFFFF' }}>
                           {item.label}
                         </Typography>
                       </Box>
                     </Grid>
-                  ))}
+                  ))} */}
                 </Grid>
               </Box>
             </Box>
@@ -206,7 +256,61 @@ const CustomAccordion = ({
           {showDetails ? (
             <>
               <Box sx={{ margin: '1rem' }}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                  {data.map((item, index) => (
+                    <Grid item key={index} xs>
+                      <Box
+                        sx={{
+                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          paddingLeft: index !== 0 ? '0.5rem' : 0,
+                          paddingRight: index !== 0 ? '1rem' : 0,
+                          whiteSpace: 'nowrap',
+                          backgroundColor: index === 0 ? 'rgba(0, 0, 0, 0.4)' : 'transparent',
+                          borderRadius: index === 0 ? '8px' : 0,
+                          minHeight: '4rem', // Set a minimum height to ensure consistency
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'flex-end', // Align items to the bottom
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            // flexGrow: 1,
+                            padding: index === 0 ? '0.8rem' : 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Typography
+                            variant='h6'
+                            sx={{
+                              color: item.color,
+                              fontWeight: index === 0 || index === 1 ? 'bold' : 'normal',
+                              fontSize: index === 0 || index === 1 ? '2rem !important' : '1rem !important'
+                            }}
+                          >
+                            {item.value}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: index === data.length - 1 ? item.color : '#FFFFFF',
+                              fontWeight: index === 0 || (index === 1 && 'normal'),
+                              fontSize: index === 0 || index === 1 ? '1rem' : '0.9rem',
+                              marginTop: 'auto'
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* <Grid container spacing={2}>
                   {data.map((item, index) => (
                     <Grid item key={index} xs>
                       <Box
@@ -229,7 +333,7 @@ const CustomAccordion = ({
                       </Box>
                     </Grid>
                   ))}
-                </Grid>
+                </Grid> */}
               </Box>
             </>
           ) : (
