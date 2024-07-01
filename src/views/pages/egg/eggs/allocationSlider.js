@@ -168,7 +168,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     if (allocationValues?.nursery_id) {
       setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
 
-      // setValue('nursery_name', allocationValues?.nursery_id)
+      setValue('nursery_name', allocationValues?.nursery_id)
     }
   }, [allocationValues])
 

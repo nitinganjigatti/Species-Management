@@ -68,9 +68,8 @@ const AddIncubators = ({
 
   const schema = yup.object().shape({
     incubator_name: yup.string().trim().required('incubator Name is Required'),
-    nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is Required'),
-
-    room: defaultRoom?.room_id ? yup.string().notRequired() : yup.string().required('Room is Required'),
+    nursery: yup.string().required('Nursery is Required'),
+    room: yup.string().required('Room is Required'),
     maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
   })
 
@@ -89,8 +88,8 @@ const AddIncubators = ({
     if (isPreFilled) {
       // console.log('isPreFilled :>> ', isPreFilled)
       RoomList(isPreFilled?.nursery_id)
-      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: isPreFilled?.nursery_name })
-      setValue('nursery', incubatorDetail?.nursery_id)
+      setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+      setValue('nursery', isPreFilled?.nursery_id)
       setDefaultRoom({ room_id: isPreFilled?.room_id, room_name: isPreFilled?.room_name })
       setValue('room', isPreFilled?.room_id)
     }
@@ -116,13 +115,9 @@ const AddIncubators = ({
         nursery_id: id,
         search: q
       }
-      if (isPreFilled) {
-        setNurseryList({ nursery_id: incubatorDetail?.nursery_id, nursery_name: isPreFilled?.nursery_name })
-      } else {
-        await GetNurseryList({ params: params }).then(res => {
-          setNurseryList(res?.data?.result)
-        })
-      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
     } catch (e) {
       console.log(e)
     }

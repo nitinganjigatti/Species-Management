@@ -467,9 +467,9 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                     display: 'flex',
                     height: '88px',
                     backgroundColor:
-                      eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
+                      eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
                         ? '#37BD691A'
-                        : eggDetails?.status === 'Discard'
+                        : eggDetails?.egg_status === 'Discard'
                         ? '#FFBDA84D'
                         : '#37BD691A',
 
@@ -494,11 +494,11 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                       <Avatar
                         sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
                         src={
-                          eggDetails?.status === 'Fresh' || 'Fertile'
+                          eggDetails?.egg_status === ('Fresh' || 'Fertile')
                             ? '/icons/Egg Fertile.png'
-                            : eggDetails?.status === 'Discard'
+                            : eggDetails?.egg_status === 'Discard'
                             ? '/icons/Egg Discard.png'
-                            : eggDetails?.status === 'Hatched'
+                            : eggDetails?.egg_status === 'Hatched'
                             ? '/icons/Egg Hatched.png'
                             : '/icons/Egg Fertile.png'
                         }
@@ -523,9 +523,9 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                           fontSize: '14px',
                           lineHeight: '16.94px',
                           color:
-                            eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
+                            eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
                               ? theme.palette.primary.main
-                              : eggDetails?.status === 'Discard'
+                              : eggDetails?.egg_status == 'Discard'
                               ? theme.palette.formContent.tertiary
                               : theme.palette.primary.main
                         }}
