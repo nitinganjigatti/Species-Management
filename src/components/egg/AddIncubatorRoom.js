@@ -29,29 +29,26 @@ import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
-  console.log('isPreFilled :>> ', isPreFilled)
   const theme = useTheme()
-  console.log('editParams :>> ', editParams)
+
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
   const [nurseryList, setNurseryList] = useState([])
-  console.log('nurseryList :>> ', nurseryList)
+
   const id = editParams?.room_id
   const [siteDetails, setSiteDetails] = useState({ site_id: '', site_name: '' })
   const [defaultNursery, setDefaultNursery] = useState(null)
 
-  console.log('siteDetails :>> ', siteDetails)
-
   const defaultValues = {
     room_name: '',
     site_id: '',
-    nursery_id: ''
+    nursery: ''
   }
 
   const schema = yup.object().shape({
     room_name: yup.string().trim().required('Room Name is required'),
     site_id: yup.string().required('Select Site'),
-    nursery_id: yup.string().required('Nursery is required')
+    nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is required')
   })
 
   const {
@@ -90,7 +87,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   }, [])
 
   const nurseryId = watch('nursery')
-  console.log('nurseryId :>> ', nurseryId)
 
   useEffect(() => {
     if (nurseryId) {
@@ -103,7 +99,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   useEffect(() => {
     if (isPreFilled) {
-      console.log('isPreFilled :>> ', isPreFilled)
       setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
 
       setValue('site_id', isPreFilled?.site_id)
@@ -123,17 +118,23 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         room_name: values?.room_name,
         site_id: values?.site_id,
 
-        nursery_id: values?.nursery_id
+        nursery_id: defaultNursery?.nursery_id ? defaultNursery?.nursery_id : nurseryId
       }
-      console.log('payload :>> ', payload)
 
-      if (editParams?.nursery_id && editParams?.room_name) {
+      if (editParams?.nursery_id) {
+        // const payload2 = {
+        //   room_name: values?.room_name,
+        //   site_id: values?.site_id,
+
+        //   nursery_id: values?.nursery_id
+        // }
+        // console.log('payload2 :>> ', payload2)
+
         const response = await EditRoom(id, payload)
 
         if (response.success) {
           setLoader(false)
 
-          setIsOpen(false)
           reset()
           if (callApi) {
             callApi()
@@ -143,6 +144,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           }
 
           Toaster({ type: 'success', message: response.message })
+          handleClose()
         } else {
           setLoader(false)
           reset()
@@ -154,8 +156,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         if (response.success) {
           setLoader(false)
 
-          setIsOpen(false)
-          reset()
           Toaster({ type: 'success', message: response.message })
           if (callApi) {
             callApi()
@@ -163,6 +163,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           if (callTableApi) {
             callTableApi()
           }
+          handleClose()
         } else {
           setLoader(false)
           reset()
@@ -170,6 +171,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         }
       }
     } catch (error) {
+      setLoader(false)
       console.error('Error while adding room:', error)
       reset()
       Toaster({ type: 'error', message: 'An error occurred while adding room' })
@@ -271,7 +273,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
-                          console.log('val', val)
+
+                          // console.log('val', val)
 
                           // setValue('nursery', e.target.value)
                           setValue('room', '')
