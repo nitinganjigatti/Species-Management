@@ -204,13 +204,16 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       if (response.success) {
         Toaster({ type: 'success', message: response.message })
 
+        if (callApi) {
+          callApi('')
+        }
         setOpenDrawer(false)
       } else {
         reset()
         Toaster({ type: 'error', message: response.message })
 
         if (callApi) {
-          callApi()
+          callApi('')
         }
       }
     } catch (error) {
