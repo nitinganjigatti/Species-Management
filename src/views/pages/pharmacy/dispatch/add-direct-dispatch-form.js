@@ -79,7 +79,12 @@ const schema = yup.object().shape({
         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
       )
     }),
-  request_item_qty: yup.string().required('Quantity is required'),
+  request_item_qty: yup
+    .number()
+    .typeError('Quantity must be a positive number')
+    .positive('Quantity must be a positive number')
+    .integer('Quantity must be an integer')
+    .required('Quantity is required'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
   expiry_date: yup.string().required('Expiry Date is required')

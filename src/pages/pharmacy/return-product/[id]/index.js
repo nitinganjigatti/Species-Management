@@ -636,7 +636,7 @@ const IndividualReturnRequest = () => {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Requested by ',
+      headerName: 'Shipped by',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -893,7 +893,7 @@ const IndividualReturnRequest = () => {
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned From</h5>
                       <p>{requestItems?.from_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
@@ -909,7 +909,7 @@ const IndividualReturnRequest = () => {
                       <p>{requestItems?.request_number}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
 
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
                         {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}

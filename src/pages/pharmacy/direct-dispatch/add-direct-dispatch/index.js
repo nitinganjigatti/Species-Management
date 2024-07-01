@@ -842,6 +842,7 @@ const AddReturnRequest = () => {
                           setEditParams({ ...editParams, ro_date: formatDate(date) })
                           setErrors({})
                         }}
+                        maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
