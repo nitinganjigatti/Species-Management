@@ -287,7 +287,7 @@ const CustomAccordion = ({
                             variant='h6'
                             sx={{
                               color: item.color,
-                              fontWeight: index === 0 || index === 1 ? 'bold' : 'normal',
+                              fontWeight: index === 0 || index === 1 ? 'semibold' : 'normal',
                               fontSize: index === 0 || index === 1 ? '2rem !important' : '1rem !important'
                             }}
                           >
