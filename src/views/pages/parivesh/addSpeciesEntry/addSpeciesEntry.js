@@ -67,7 +67,10 @@ const defaultValues = {
   registrationNumber: '',
   reason_for_death: '',
   where_disposed: '',
-  possession_type: ''
+  possession_type: '',
+  animal_count: '',
+  gender: '',
+  transaction_date: null
 }
 
 const AddSpeciesNewEntry = props => {
@@ -134,32 +137,15 @@ const AddSpeciesNewEntry = props => {
     }
 
     await handleSubmitData(payload)
+    reset({
+      ...defaultValues,
+      scientific_name: values.scientific_name,
+      common_name: values.common_name
+    })
   }
-
-  // const getDrugClass = useCallback(
-  //   async id => {
-  //     const response = await getDrugById(id)
-  //     if (response?.success) {
-  //       reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-  //     } else {
-  //     }
-  //   },
-  //   [reset]
-  // )
-
-  // useEffect(() => {
-  //   if (resetForm) {
-  //     reset(defaultValues)
-  //   }
-
-  //   // if (editParams?.id !== null) {
-  //   //   getDrugClass(editParams?.id)
-  //   // }
-  // }, [resetForm, editParams, reset])
 
   useEffect(() => {
     console.log(speciesDetails, 'scientificName')
-    // debugger
     if (speciesDetails) {
       setValue('scientific_name', speciesDetails.scientific_name)
       setValue('common_name', speciesDetails.common_name)
@@ -397,6 +383,7 @@ const AddSpeciesNewEntry = props => {
                   fullWidth
                   date={value}
                   width={'100%'}
+                  dateFormat='dd/MM/yyyy'
                   onChangeHandler={onChange}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />
