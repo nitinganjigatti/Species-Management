@@ -270,7 +270,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        created on {moment(eggDetails?.created_at).format('DD MMM YYYY')}
+                        Updated on {moment(eggDetails?.modified_at).format('DD MMM YYYY')}
                       </Typography>
                     </Box>
                     {/* <Box>
