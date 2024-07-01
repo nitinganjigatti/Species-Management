@@ -198,7 +198,9 @@ const AddIncubators = ({
             handleSidebarClose()
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
-            actionApi()
+            if (actionApi) {
+              actionApi('')
+            }
           } else {
             setBtnDisabled(false)
             Toaster({ type: 'error', message: res.message })
@@ -218,8 +220,12 @@ const AddIncubators = ({
         }).then(res => {
           if (res.success) {
             reset()
-            actionApi('')
-            detailsApi()
+            if (actionApi) {
+              actionApi('')
+            }
+            if (detailsApi) {
+              detailsApi()
+            }
             handleSidebarClose()
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
