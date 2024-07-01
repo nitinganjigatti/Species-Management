@@ -70,7 +70,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     try {
       const params = {
         // type: ['length', 'weight'],
-        q,
+        search: q,
         page: 1,
         limit: 50
       }
