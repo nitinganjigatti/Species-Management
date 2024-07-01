@@ -31,6 +31,7 @@ const NurseryDetails = () => {
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
+  const [editSiteName, setEditSiteName] = useState('')
   const [editNurseryId, setEditNurseryId] = useState(null)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -72,6 +73,7 @@ const NurseryDetails = () => {
     setEditNurseryId(id)
     setEditName(res.data?.nursery_name)
     setEditSite(res?.data?.site_id)
+    setEditSiteName(res?.data?.site_name)
   }
 
   useEffect(() => {
@@ -228,8 +230,8 @@ const NurseryDetails = () => {
       minWidth: 10,
       field: 'Eggs',
       headerName: 'Eggs',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_eggs}</Box>
     },
@@ -404,6 +406,7 @@ const NurseryDetails = () => {
             fetchTableData={fetchTableData}
             callApi={fetchNurseryById}
             editSite={editSite}
+            editSiteName={editSiteName}
             editNurseryId={editNurseryId}
           />
         )}
