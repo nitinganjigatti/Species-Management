@@ -122,7 +122,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
 
   useEffect(() => {
     if (eggDetails?.nursery_id) {
-      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id })
+      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id, nursery_name: eggDetails?.nursery_name })
     }
   }, [])
 
