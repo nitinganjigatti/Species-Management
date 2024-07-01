@@ -40,7 +40,7 @@ import { styled } from '@mui/material/styles'
 import { addIncubator } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
 
-const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose }) => {
+const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose, isPreFilled }) => {
   const router = useRouter()
   const { id } = router.query
   const [defaultNursery, setDefaultNursery] = useState(null)
@@ -88,6 +88,12 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
       } catch (error) {
         console.log('error', error)
       }
+    }
+    if (isPreFilled) {
+      console.log('isPreFilled :>> ', isPreFilled)
+
+      setValue('nursery', isPreFilled?.nursery_id)
+      setValue('room', isPreFilled?.room_id)
     }
   }, [sidebarOpen])
 
@@ -154,6 +160,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
         }).then(res => {
           if (res.success) {
             reset()
+
             // handleSidebarClose()
             router.push('/egg/incubators')
           } else {
@@ -242,31 +249,11 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 84, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 50, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='incubator_name'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Incubator Name'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Incubator Name'
-                          error={Boolean(errors.incubator_name)}
-                          name='incubator_name'
-                        />
-                      )}
-                    />
-                    {errors.incubator_name && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
-                    )}
-                  </FormControl>
                   <FormControl fullWidth>
                     <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery
@@ -356,6 +343,26 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
                     />
                     {errors?.room && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='incubator_name'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          label='Incubator Name'
+                          value={value}
+                          onChange={onChange}
+                          placeholder='Incubator Name'
+                          error={Boolean(errors.incubator_name)}
+                          name='incubator_name'
+                        />
+                      )}
+                    />
+                    {errors.incubator_name && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
                     )}
                   </FormControl>
                   <FormControl fullWidth>
