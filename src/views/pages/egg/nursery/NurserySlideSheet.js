@@ -11,9 +11,10 @@ import {
   Select,
   TextField,
   Typography,
-  Card
+  Card,
+  Autocomplete
 } from '@mui/material'
-import { Fragment, useContext, useEffect } from 'react'
+import { Fragment, useContext, useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 
@@ -36,9 +37,11 @@ const NurserySlider = ({
   editNurseryId,
   editName,
   editSite,
+  editSiteName,
   callApi,
   fetchTableData
 }) => {
+  const [defaultSite, setDefaultSite] = useState(null)
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
@@ -86,10 +89,13 @@ const NurserySlider = ({
     )
   }
 
-  console.log('GetValues >>', getValues())
+  // console.log('GetValues >>', getValues())
 
   useEffect(() => {
     setValue('nursery_name', editName), setValue('site_id', editSite)
+    if (editSite && editSiteName) {
+      setDefaultSite({ site_name: editSiteName, site_id: editSite })
+    }
   }, [editNurseryId])
 
   const onSubmit = async values => {
@@ -181,7 +187,20 @@ const NurserySlider = ({
           {/* drower */}
 
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-            <Card sx={{ m: 5, px: 3, py: 3, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Box
+              sx={{
+                m: 5,
+                px: 3,
+                py: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '2px',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+              }}
+            >
               <FormControl fullWidth sx={{ mt: 4 }}>
                 <Controller
                   name='nursery_name'
@@ -206,30 +225,64 @@ const NurserySlider = ({
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth sx={{ mt: 4 }}>
-                  <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                  {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
-                  </InputLabel>
+                  </InputLabel> */}
                   <Controller
                     name='site_id'
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
-                      <Select
+                      // <Select
+                      //   name='site_id'
+                      //   value={value}
+                      //   label='Site *'
+                      //   onChange={onChange}
+                      //   error={Boolean(errors?.site_id)}
+                      //   labelId='site_id'
+                      // >
+                      //   {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
+                      //         {item?.site_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
+                      <Autocomplete
                         name='site_id'
-                        value={value}
-                        label='Site *'
-                        onChange={onChange}
-                        error={Boolean(errors?.site_id)}
-                        labelId='site_id'
-                      >
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                          return (
-                            <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
-                              {item?.site_name}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
+                        value={defaultSite}
+                        // value={value}
+                        disablePortal
+                        // disabled={isEdit || isPreFilled}
+                        id='site_id'
+                        options={authData?.userData?.user?.zoos[0].sites}
+                        getOptionLabel={option => option.site_name}
+                        isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultSite(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultSite(val)
+                            // console.log('val', val)
+                            setValue('site_id', '')
+                            return onChange(val.site_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            // onChange={e => {
+                            //   searchRoom(defaultNursery.nursery_id, e.target.value)
+                            // }}
+                            {...params}
+                            label='Site *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.site_id)}
+                          />
+                        )}
+                      />
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
@@ -239,7 +292,7 @@ const NurserySlider = ({
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <RenderSidebarFooter />
               </Box>
-            </Card>
+            </Box>
           </form>
         </Box>
       </Drawer>
