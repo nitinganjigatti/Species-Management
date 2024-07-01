@@ -28,7 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, getDetails }) => {
+const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
 
   const {
@@ -270,7 +270,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on 1 Apr 2024
+                        created on {moment(eggDetails?.created_at).format('DD MMM YYYY')}
                       </Typography>
                     </Box>
                     {/* <Box>
@@ -565,6 +565,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
       </Card>
       {openDrawer && (
         <ConditionSlider
+          GetGalleryImgList={GetGalleryImgList}
           eggDetails={eggDetails}
           getDetails={getDetails}
           setOpenDrawer={setOpenDrawer}

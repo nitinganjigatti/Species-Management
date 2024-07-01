@@ -9,6 +9,7 @@ import Router, { useRouter } from 'next/router'
 import { assessment_type_string_id } from 'src/constants/Constants'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { Breadcrumbs, Typography } from '@mui/material'
+import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
 const EggDetail = () => {
   const router = useRouter()
@@ -17,6 +18,21 @@ const EggDetail = () => {
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
   const [loader, setLoader] = useState(true)
+
+  const [galleryList, setGalleryList] = useState([])
+
+  const GetGalleryImgListFunc = () => {
+    try {
+      getGalleryImgList({ ref_id: id, ref_type: 'egg' }).then(res => {
+        if (res.success) {
+          setGalleryList(res?.data?.result)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const getDetails = id => {
     // setLoader(true)
@@ -51,6 +67,7 @@ const EggDetail = () => {
   useEffect(() => {
     getDetails(id)
     getDefaultEggAssesmentFunc()
+    GetGalleryImgListFunc()
   }, [])
 
   return (
@@ -66,14 +83,14 @@ const EggDetail = () => {
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
-          <EggFirstSection getDetails={getDetails} eggDetails={eggDetails} />
+          <EggFirstSection GetGalleryImgList={GetGalleryImgListFunc} getDetails={getDetails} eggDetails={eggDetails} />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}
             defaultEggAssesment={defaultEggAssesment}
             egg_id={id}
           />
-          <EggImageGallery eggDetails={eggDetails} eggId={id} />
+          <EggImageGallery galleryList={galleryList} />
           <EggComment eggDetails={eggDetails} eggId={id} />
         </Box>
       )}

@@ -1,31 +1,12 @@
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
-import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
-const EggImageGallery = ({ eggId }) => {
+const EggImageGallery = ({ galleryList }) => {
   const theme = useTheme()
-  const [galleryList, setGalleryList] = useState([])
-
-  const GetGalleryImgListFunc = () => {
-    try {
-      getGalleryImgList({ ref_id: eggId, ref_type: 'egg' }).then(res => {
-        if (res.success) {
-          setGalleryList(res?.data?.result)
-        } else {
-        }
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-  useEffect(() => {
-    GetGalleryImgListFunc()
-  }, [])
 
   return (
     <>
