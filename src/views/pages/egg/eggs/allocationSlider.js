@@ -1,3 +1,4 @@
+import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
   Autocomplete,
@@ -27,6 +28,7 @@ import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
+import * as yup from 'yup'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
   console.log('allocationValues :>> ', allocationValues)
@@ -38,6 +40,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [nurseryId, setNurseryId] = useState([])
+
+  const schema = yup.object().shape({
+    room: yup.string().required('Please Select Room'),
+    incubator: yup.string().required('Please Select Incubator')
+  })
 
   const defaultValues = {
     nursery_name: '',
@@ -57,6 +64,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     formState: { errors }
   } = useForm({
     defaultValues,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -234,7 +242,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default' , height:"120%"}}>
+        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', height: '120%' }}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
               {/* <Typography variant='h6' sx={{ mt: 5 }}>
@@ -242,7 +250,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
               </Typography> */}
 
               <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
-                <FormControl fullWidth sx={{ width: '95%', ml: 3 , mt:2 }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
                     </InputLabel> */}
@@ -335,7 +343,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                     name='room'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { value, onChange }, fieldState: { error } }) => (
                       <Select
                         name='room'
                         value={value}
@@ -363,7 +371,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                     name='incubator'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { value, onChange }, fieldState: { error } }) => (
                       <Select
                         name='incubator'
                         value={value}
