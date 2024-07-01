@@ -234,7 +234,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default' }}>
+        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default' , height:"120%"}}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
               {/* <Typography variant='h6' sx={{ mt: 5 }}>
@@ -242,7 +242,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
               </Typography> */}
 
               <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
-                <FormControl fullWidth sx={{ width: '95%', ml: 3 }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3 , mt:2 }}>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
                     </InputLabel> */}
@@ -355,7 +355,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>}
                 </FormControl>
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 2, mb: 4 }}>
+                <FormControl sx={{ width: '95%', ml: 3, mt: 1, mb: 0 }}>
                   <InputLabel error={Boolean(errors?.incubator)} id='incubator_label'>
                     Incubator*
                   </InputLabel>
@@ -473,7 +473,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   position: 'fixed',
                   bottom: 0,
                   height: '122px',
-
                   backgroundColor: '#fff',
                   width: '562px',
                   px: 4,
