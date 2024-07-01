@@ -338,7 +338,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.25,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'collected_by',
