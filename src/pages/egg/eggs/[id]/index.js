@@ -64,7 +64,7 @@ const EggDetail = () => {
               Egg
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
-              Egg
+              Egg List
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
