@@ -68,8 +68,9 @@ const AddIncubators = ({
 
   const schema = yup.object().shape({
     incubator_name: yup.string().trim().required('incubator Name is Required'),
-    nursery: yup.string().required('Nursery is Required'),
-    room: yup.string().required('Room is Required'),
+    nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is Required'),
+
+    room: defaultRoom?.room_id ? yup.string().notRequired() : yup.string().required('Room is Required'),
     maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
   })
 
@@ -115,9 +116,13 @@ const AddIncubators = ({
         nursery_id: id,
         search: q
       }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
+      if (isPreFilled) {
+        setNurseryList({ nursery_id: incubatorDetail?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+      } else {
+        await GetNurseryList({ params: params }).then(res => {
+          setNurseryList(res?.data?.result)
+        })
+      }
     } catch (e) {
       console.log(e)
     }
@@ -492,7 +497,7 @@ const AddIncubators = ({
 
         <Box
           sx={{
-            height: '100px', 
+            height: '100px',
             width: '100%',
             maxWidth: '502px',
             position: 'fixed',
