@@ -43,7 +43,20 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const schema = yup.object().shape({
     room: yup.string().required('Please Select Room'),
-    incubator: yup.string().required('Please Select Incubator')
+    incubator: yup.string().required('Please Select Incubator'),
+    measurements: yup
+      .array()
+      .of(
+        yup.object().shape({
+          assessment_value: yup
+            .number()
+            .typeError('Value must be a number')
+            .required('Please Enter Weight')
+            .positive('Value must be positive')
+            .min(0, 'Value cannot be negative')
+        })
+      )
+      .required('At least one measurement is required')
   })
 
   const defaultValues = {
@@ -420,12 +433,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                               onChange={onChange}
                               focused={value !== ''}
                               name={`measurements[${index}].assessment_value`}
-                              inputProps={{ type: 'number', step: 'any' }} // Set type to 'number' and step to 'any'
+                              inputProps={{ type: 'number', step: 'any' }}
                               error={!!error}
-                              helperText={error ? 'Please enter a valid number' : ''}
+                              helperText={error ? error.message : ''}
                             />
                           )}
-                          rules={{ required: 'Value is required.' }} // No need for pattern validation for floating point numbers
+                          rules={{ required: 'Please Enter Weight' }}
                         />
                       </FormControl>
                     </Grid>
