@@ -299,7 +299,7 @@ const AddIncubators = ({
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 50, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 50, marginTop: 14, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* <Card sx={{ height: '600px' }}> */}
             <CardContent sx={{ mt: 2, borderRadius: '8px', backgroundColor: '#fff' }}>
@@ -492,7 +492,7 @@ const AddIncubators = ({
 
         <Box
           sx={{
-            height: '100px',
+            height: '100px', 
             width: '100%',
             maxWidth: '502px',
             position: 'fixed',
