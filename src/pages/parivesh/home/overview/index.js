@@ -9,7 +9,7 @@ import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 const data = [
   {
     value: 0,
-    label: 'TOTAL ANIMALS',
+    label: 'ANIMAL RECORDS ',
     color: '#FFFFFF',
     borderColor: '#FFFFFF'
   },
@@ -108,10 +108,6 @@ const Overview = () => {
         }
 
         await getOrgCountList({ params: params }).then(res => {
-          console.log(
-            'respons',
-            res.data.map(org => console.log(org, 'org123'))
-          )
           const transformedData = res.data.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
@@ -121,10 +117,17 @@ const Overview = () => {
               data: [
                 {
                   value: org.approved_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+
                 { value: org.approved_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
                 {
                   value: org.approved_count_data.female_count,
@@ -196,7 +199,13 @@ const Overview = () => {
               data: [
                 {
                   value: org.yet_to_submitted_count.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -276,7 +285,13 @@ const Overview = () => {
               data: [
                 {
                   value: org.submitted_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -464,7 +479,7 @@ export default Overview
 // import { usePariveshContext } from 'src/context/PariveshContext'
 
 // const data = [
-//   { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+//   { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
 //   { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
 //   { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
 //   { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
@@ -596,7 +611,7 @@ export default Overview
 // import { usePariveshContext } from 'src/context/PariveshContext'
 
 // const data = [
-//   { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+//   { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
 //   { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
 //   { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
 //   { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
@@ -771,7 +786,7 @@ export default Overview
 // import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies'
 
 // const data = [
-//   { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+//   { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
 //   { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
 //   { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
 //   { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
@@ -1187,7 +1202,7 @@ export default Overview
 // import { readAsync } from 'src/lib/windows/utils'
 
 // const data = [
-//   { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+//   { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
 //   { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
 //   { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
 //   { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },

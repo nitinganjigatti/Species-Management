@@ -298,7 +298,7 @@ const AddSpecies = props => {
                 >
                   <Image alt={'filename'} src={imageUploader} width={100} height={100} />
 
-                  <Typography sx={{ ml: 3 }}>Add Specie image</Typography>
+                  <Typography sx={{ ml: 3 }}>Add Species Image</Typography>
                 </Box>
               </Grid>
             )}
@@ -378,7 +378,7 @@ const AddSpecies = props => {
                 >
                   <Image alt={'filename'} src={imageUploader} width={100} height={100} />
 
-                  <Typography sx={{ ml: 3 }}>Add Cover image</Typography>
+                  <Typography sx={{ ml: 3 }}>Add Cover Image</Typography>
                 </Box>
               </Grid>
             )}

@@ -316,32 +316,67 @@ const NewEntry = ({}) => {
         </Typography>
       )
     },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 10,
+    //   field: 'gender',
+    //   headerName: 'GENDER / COUNT',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'age',
+    //   headerName: 'Age',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.age ? params.row.age : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.4,
       minWidth: 10,
       field: 'gender',
       headerName: 'GENDER / COUNT',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
-        </Typography>
-      )
+      renderCell: params => {
+        let gender = params.row.gender ? params.row.gender : '-'
+
+        if (gender !== '-') {
+          gender = gender.charAt(0).toUpperCase() + gender.slice(1)
+        }
+
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {gender !== '-' ? `${gender} : ${params.row.animal_count}` : '-'}
+          </Typography>
+        )
+      }
     },
-    {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'age',
-      headerName: 'Age',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.age ? params.row.age : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'possession_type',
+    //   headerName: 'Category',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.possession_type ? params.row.possession_type : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 30,
@@ -351,7 +386,9 @@ const NewEntry = ({}) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.possession_type ? params.row.possession_type : '-'}
+              {params.row.possession_type
+                ? params.row.possession_type.charAt(0).toUpperCase() + params.row.possession_type.slice(1)
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -436,15 +473,20 @@ const NewEntry = ({}) => {
           loading={btnLoader}
           size='medium'
           variant='contained'
-          sx={{ m: 2, backgroundColor: '#1F415B' }}
+          sx={{
+            m: 2,
+            backgroundColor: '#1F415B',
+            color: '#FFFFFF',
+            '&:hover': {
+              // CSS pseudo-class for hover effect
+              backgroundColor: '#0D2B3E' // Darker shade for hover background color
+            }
+          }}
           onClick={handleCreateBatch}
+          disabled={selectedRows.length > 0 ? false : true}
         >
           {'CREATE BATCH'}
         </LoadingButton>
-
-        {/* <Button size='medium' variant='contained' sx={{ m: 2, backgroundColor: '#1F415B' }}>
-          &nbsp; CREATE BATCH
-        </Button> */}
       </div>
     </>
   )
@@ -456,7 +498,7 @@ const NewEntry = ({}) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={'New entries'} action={headerAction} />
+            <CardHeader title={'New Entries'} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -527,7 +569,7 @@ const NewEntry = ({}) => {
   }
 
   const data = [
-    { value: 200, label: 'TOTAL ANIMALS', color: '#FFFFFF', borderColor: '#FFFFFF' },
+    { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
     { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
     { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
     { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
@@ -606,7 +648,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.approved_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -681,7 +729,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.yet_to_submitted_count.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -761,7 +815,13 @@ const NewEntry = ({}) => {
               data: [
                 {
                   value: org.submitted_count_data.total_animal,
-                  label: 'TOTAL ANIMALS',
+                  label: 'ANIMAL RECORDS ',
+                  color: '#FFFFFF',
+                  borderColor: '#FFFFFF'
+                },
+                {
+                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
@@ -925,7 +985,7 @@ const NewEntry = ({}) => {
             </Box>
             {/* <div style='border-bottom: 1px solid black;'></div> */}
           </Box>
-          <Box sx={{ borderBottom: '1px solid black', mt: 5 }}></Box>
+          <Box sx={{ borderBottom: '1px solid #839D8D', opacity: '30%', mt: 5 }}></Box>
           <Grid sx={{ display: 'flex', mt: 2 }}>
             <Grid sx={{ mt: 2 }}>
               {' '}

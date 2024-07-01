@@ -145,7 +145,7 @@ const AddNewEntry = () => {
       gender: gender,
       animal_count: animal_count,
       transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-      age: age,
+      // age: age,
       ...(possession_type === 'death' && {
         alloted_register_no: alloted_register_no,
         reason_for_death: reason_for_death,
@@ -323,7 +323,7 @@ const AddNewEntry = () => {
               {selectedParivesh?.organization_name}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              {isEditMode ? 'Edit Entry' : 'New Entries'}
+              {isEditMode ? 'Edit Entries' : 'New Entries'}
             </Typography>
             <Typography color='text.primary'>{isEditMode ? 'Edit Report' : 'New Report'}</Typography>
           </Breadcrumbs>
@@ -356,7 +356,7 @@ const AddNewEntry = () => {
                           onInputChange={(event, newInputValue) => {
                             handleSearch(newInputValue) // Fetch species based on user input
                           }}
-                          renderInput={params => <TextField {...params} label='Select the Specie' />}
+                          renderInput={params => <TextField {...params} label='Select the Species' />}
                         />
                       )}
                     />
@@ -495,7 +495,7 @@ const AddNewEntry = () => {
               </Grid>
 
               <Grid container spacing={2} sx={{ mb: 6 }}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={12}>
                   <FormControl fullWidth>
                     <Controller
                       name='gender'
@@ -519,7 +519,7 @@ const AddNewEntry = () => {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                {/* <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
                       name='age'
@@ -533,7 +533,7 @@ const AddNewEntry = () => {
 
                     {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
                   </FormControl>
-                </Grid>
+                </Grid> */}
               </Grid>
               <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12} sm={6}>

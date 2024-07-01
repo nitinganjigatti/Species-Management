@@ -6,7 +6,7 @@ const composeLabNavigation = () => {
   const parivesh = {
     title: 'Home',
     path: '/parivesh/home',
-    icon: <img src='/icons/home_white.png' alt='Grocery Icon' />,
+    icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/home_white.png' alt='Grocery Icon' />
   }
 

@@ -68,7 +68,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const [batchDetails, setBatchDetails] = useState()
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
-
+  const [regId, setRegId] = useState('')
   const { selectedParivesh } = usePariveshContext()
 
   console.log(router, 'router')
@@ -198,11 +198,13 @@ const BatchDetails = ({ params, searchParams }) => {
   const handleStatusChange = async event => {
     const value = event.target.value
     setSelectedStatus(value)
-    if (value === 'submitted' && type === 'reportedBatch') {
-      setIsModalOpen(prevState => !prevState)
-    } else {
-      setIsModalOpen(false) // Close modal for other selections
-    }
+    // if (value === 'submitted' && type === 'reportedBatch') {
+    //   setIsModalOpen(prevState => !prevState)
+    // } else {
+    //   setIsModalOpen(false) // Close modal for other selections
+    //   setRegId('')
+    //   reset()
+    // }
     // if (type === 'submittedBatch') {
     //   const payload = {
     //     batch_id: batchDetails?.batch_id,
@@ -213,10 +215,20 @@ const BatchDetails = ({ params, searchParams }) => {
     // }
   }
 
+  const onClickStatus = async event => {
+    if (event.target.dataset.value === 'submitted') {
+      setIsModalOpen(prevState => !prevState)
+    } else {
+      setIsModalOpen(false) // Close modal for other selections
+      setRegId('')
+      reset()
+    }
+  }
+
   console.log(batchDetails, 'batchDetails')
 
-  const handleSaveBatch = async () => {
-    if (type === 'submittedBatch') {
+  const handleSaveBatch = async type => {
+    if (type === 'saveBatch') {
       const ids = batchDetails?.entries_data.map(item => item.id)
       let payload = {
         batch_id: batchDetails?.batch_id,
@@ -229,17 +241,28 @@ const BatchDetails = ({ params, searchParams }) => {
           id: ids
         }
       }
+
+      await updateStatus(payload)
+    }
+    if (type === 'save') {
+      const payload = {
+        batch_id: batchDetails?.batch_id,
+        status: selectedStatus,
+        registration_id: regId
+      }
       await updateStatus(payload)
     }
   }
 
   const onSubmit = async data => {
-    const payload = {
-      batch_id: batchDetails?.batch_id,
-      status: selectedStatus,
-      registration_id: data.registrationId
-    }
-    await updateStatus(payload)
+    setRegId(data.registrationId)
+    setIsModalOpen(false)
+    // const payload = {
+    //   batch_id: batchDetails?.batch_id,
+    //   status: selectedStatus,
+    //   registration_id: data.registrationId
+    // }
+    // await updateStatus(payload)
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -285,7 +308,7 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} />
+          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'
@@ -324,32 +347,45 @@ const BatchDetails = ({ params, searchParams }) => {
         </Typography>
       )
     },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 10,
+    //   field: 'gender_count',
+    //   headerName: 'GENDER / COUNT',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.4,
       minWidth: 10,
       field: 'gender_count',
-      headerName: 'GENDER / COUNT',
+      headerName: 'Gender / Count',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.gender ? params.row.gender + ' : ' + params.row.animal_count : '-'}
+          {params.row.gender
+            ? params.row.gender.charAt(0).toUpperCase() + params.row.gender.slice(1) + ' : ' + params.row.animal_count
+            : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 30,
-      field: 'age',
-      headerName: 'Age',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.age ? params.row.age : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'age',
+    //   headerName: 'Age',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.age ? params.row.age : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 30,
@@ -359,7 +395,9 @@ const BatchDetails = ({ params, searchParams }) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.possession_type ? params.row.possession_type : '-'}
+              {params.row.possession_type
+                ? params.row.possession_type.charAt(0).toUpperCase() + params.row.possession_type.slice(1)
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -470,14 +508,15 @@ const BatchDetails = ({ params, searchParams }) => {
               icon='ep:back'
             />
           }
-          title={`Request - ${batchDetails?.batch_id}`}
+          title={`Batch Details`}
+          // title={`Batch Details - ${batchDetails?.batch_id}`}
         />
-        <Box sx={{ background: '#C3CEC7', borderRadius: '10px', m: 6, p: 6 }}>
+        <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
           <Box>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Batch ID: <span style={{ color: '#37BD69' }}>{batchDetails?.batch_id}</span>
+                  Batch ID: <span style={{ color: '#37BD69' }}>{batchDetails?.batch_code}</span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -506,7 +545,10 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Registration ID : <span style={{ color: '#37BD69' }}>{batchDetails?.registration_id}</span>
+                  Registration ID :{' '}
+                  <span style={{ color: '#37BD69' }}>
+                    {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
+                  </span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -539,6 +581,7 @@ const BatchDetails = ({ params, searchParams }) => {
                     IconComponent={CustomDropdownIcon}
                     value={selectedStatus}
                     onChange={handleStatusChange}
+                    onClick={onClickStatus}
                   >
                     {dropdownOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
@@ -548,7 +591,10 @@ const BatchDetails = ({ params, searchParams }) => {
                   </Select>
                 </Grid>
               ) : (
-                <Typography variant='h6' sx={{ color: '#37BD69', mt: 2 }}>
+                <Typography
+                  variant='h6'
+                  sx={{ color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69', mt: 2 }}
+                >
                   {batchDetails.status === 'accepted'
                     ? 'Approved'
                     : batchDetails.status === 'rejected'
@@ -571,24 +617,52 @@ const BatchDetails = ({ params, searchParams }) => {
               <Icon icon='mdi:printer-outline' fontSize={20} />
               &nbsp; Print
             </Button>
-            {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
+            {type === 'submittedBatch' && (
+              <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Icon icon='mdi:attachment-plus' fontSize={20} />
+                &nbsp; Attachment
+              </Button>
+            )}
+            {/* {(selectedStatus === 'submitted' || batchDetails?.status === 'accepted') && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                 <Icon icon='mdi:attachment-plus' fontSize={20} />
                 &nbsp; Attachment (1)
               </Button>
-            )}
-            {batchDetails?.status === 'accepted' && (
+            )} */}
+            {/* {batchDetails?.status === 'accepted' && (
               <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                 <Icon icon='mdi:pdf-box' fontSize={20} />
                 &nbsp; Reports (1)
               </Button>
-            )}
+            )} */}
           </Box>
-          {batchDetails?.status !== 'accepted' && (
+
+          {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
+            <Button
+              disabled={regId !== '' ? false : true}
+              variant='contained'
+              color='primary'
+              onClick={() => handleSaveBatch('save')}
+            >
+              Save
+            </Button>
+          )}
+          {batchDetails?.status !== 'accepted' && type === 'submittedBatch' && (
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={() => handleSaveBatch('saveBatch')}
+              disabled={batchDetails?.status === 'rejected' ? true : false}
+            >
+              Save Batch
+            </Button>
+          )}
+
+          {/* {batchDetails?.status !== 'accepted' && (
             <Button variant='contained' color='primary' onClick={handleSaveBatch}>
               {type !== 'submittedBatch' ? 'Save' : 'Save Batch'}
             </Button>
-          )}
+          )} */}
         </Box>
       </Card>
 
