@@ -11,8 +11,11 @@ import Icon from 'src/@core/components/icon'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { write } from 'src/lib/windows/utils' // Assuming write function is defined for localStorage operations
 import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies' // Importing API function
+import { useRouter } from 'next/router'
 
 function SelectParivesh() {
+  const router = useRouter()
+  const { id, type } = router.query
   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
   const [open, setOpen] = useState(false)
   const [options, setOptions] = useState(organizationList)
@@ -42,6 +45,9 @@ function SelectParivesh() {
 
     write('selectedParivesh', selected) // Update localStorage with selected organization
     setOpen(false)
+    if (type === 'reportedBatch' || type === 'submittedBatch') {
+      router.back()
+    }
   }
 
   const handleToggle = () => {

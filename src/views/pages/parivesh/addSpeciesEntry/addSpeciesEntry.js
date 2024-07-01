@@ -42,7 +42,7 @@ const schema = yup.object().shape({
     .required('Common Name is Required'),
   animal_count: yup.string().required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
-  age: yup.string().required('Age is Required'),
+  // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
   possession_type: yup.string().required('Reason is Required'),
 
