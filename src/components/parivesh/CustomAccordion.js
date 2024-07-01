@@ -173,7 +173,7 @@ const CustomAccordion = ({
               <Typography sx={{ color: '#fff', display: 'flex', justifyItems: 'center' }}>
                 <Icon style={{ color: '#fff', marginRight: '0.1rem', padding: '3px' }} icon={summaryIcon} /> {title}
               </Typography>
-              <Box sx={{ margin: '1rem' }}>
+              <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
                 <Grid container spacing={2} alignItems='center'>
                   {data.map((item, index) => (
                     <Grid item key={index} xs>
@@ -255,7 +255,7 @@ const CustomAccordion = ({
         <AccordionDetails style={{ paddingTop: '1px', display: 'flex' }}>
           {showDetails ? (
             <>
-              <Box sx={{ margin: '1rem' }}>
+              <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
                 <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
                   {data.map((item, index) => (
                     <Grid item key={index} xs>

@@ -38,7 +38,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import Toaster from 'src/components/Toaster'
 
-const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDetails }) => {
+const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
@@ -191,13 +191,13 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
         egg_assisted_by: getValues('assisted_by'),
         egg_attachment: imgArr
       }
-      console.log('payload :>> ', payload)
+      // console.log('payload :>> ', payload)
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
         setLoader(false)
 
-        console.log('res on submit :>> ', res)
+        // console.log('res on submit :>> ', res)
         setImgSrc('')
         reset()
 
@@ -205,6 +205,9 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
         Toaster({ type: 'success', message: res.message })
         if (getDetails) {
           getDetails(eggId)
+        }
+        if (GetGalleryImgList) {
+          GetGalleryImgList()
         }
       } else {
         setLoader(false)

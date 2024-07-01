@@ -28,7 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, getDetails }) => {
+const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
 
   const {
@@ -62,15 +62,24 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
     const diffInMinutes = now.diff(date, 'minutes')
     const diffInHours = now.diff(date, 'hours')
     const diffInDays = now.diff(date, 'days')
+    const diffInWeeks = now.diff(date, 'weeks')
+    const diffInMonths = now.diff(date, 'months')
+    const diffInYears = now.diff(date, 'years')
 
     if (diffInSeconds < 60) {
-      return { count: diffInSeconds, label: `Sec${diffInSeconds !== 1 ? 's' : ''}` }
+      return { count: diffInSeconds, label: `Sec` }
     } else if (diffInMinutes < 60) {
       return { count: diffInMinutes, label: `Min${diffInMinutes !== 1 ? 's' : ''}` }
     } else if (diffInHours < 24) {
       return { count: diffInHours, label: `Hour${diffInHours !== 1 ? 's' : ''}` }
-    } else {
+    } else if (diffInDays < 7) {
       return { count: diffInDays, label: `Day${diffInDays !== 1 ? 's' : ''}` }
+    } else if (diffInWeeks < 4) {
+      return { count: diffInWeeks, label: `Week${diffInWeeks !== 1 ? 's' : ''}` }
+    } else if (diffInMonths < 12) {
+      return { count: diffInMonths, label: `Month${diffInMonths !== 1 ? 's' : ''}` }
+    } else {
+      return { count: diffInYears, label: `Year${diffInYears !== 1 ? 's' : ''}` }
     }
   }
 
@@ -113,7 +122,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
 
   useEffect(() => {
     if (eggDetails?.nursery_id) {
-      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id })
+      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id, nursery_name: eggDetails?.nursery_name })
     }
   }, [])
 
@@ -261,7 +270,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on 1 Apr 2024
+                        created on {moment(eggDetails?.created_at).format('DD MMM YYYY')}
                       </Typography>
                     </Box>
                     {/* <Box>
@@ -556,6 +565,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
       </Card>
       {openDrawer && (
         <ConditionSlider
+          GetGalleryImgList={GetGalleryImgList}
           eggDetails={eggDetails}
           getDetails={getDetails}
           setOpenDrawer={setOpenDrawer}

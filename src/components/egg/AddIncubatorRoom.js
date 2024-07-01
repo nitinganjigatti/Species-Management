@@ -228,7 +228,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Add Room</Typography>
+              <Typography variant='h6'> {editParams?.nursery_id ? 'Edit Room' : 'Add Room'}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
@@ -409,7 +409,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
               }}
             >
               <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
-                ADD ROOM
+                {editParams?.nursery_id ? 'Edit Room' : 'Add Room'}
               </LoadingButton>
             </Box>
           </form>
