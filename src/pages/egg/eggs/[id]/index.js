@@ -60,6 +60,9 @@ const EggDetail = () => {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Breadcrumbs aria-label='breadcrumb'>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
               Egg
             </Typography>
