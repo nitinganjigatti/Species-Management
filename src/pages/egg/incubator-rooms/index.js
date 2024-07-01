@@ -33,6 +33,8 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+  console.log('searchValue :>> ', searchValue)
+
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -50,8 +52,6 @@ const RoomsList = () => {
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  console.log('Get no', getSlNo)
-
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     id: row.room_id,
@@ -68,10 +68,10 @@ const RoomsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }
@@ -81,7 +81,7 @@ const RoomsList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, status)
+    searchTableData(value, sortColumn, status)
   }
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
@@ -103,7 +103,6 @@ const RoomsList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '12px',
-            fontWeight: '400',
             lineHeight: '14.52px'
           }}
         >
@@ -112,13 +111,44 @@ const RoomsList = () => {
       )
     },
     {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'room',
+      headerName: 'room',
+      sortable: false,
+
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.room_name}
+        </Typography>
+      )
+    },
+    {
       flex: 0.5,
       minWidth: 30,
       field: 'nursery_name',
       headerName: 'nursery name',
+      sortable: false,
+
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
             {params.row.nursery_name}
           </Typography>
         </Box>
@@ -129,31 +159,41 @@ const RoomsList = () => {
       minWidth: 10,
       field: 'site',
       headerName: 'site',
+      sortable: false,
+
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.site_name}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'room',
-      headerName: 'room',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.room_name}
-        </Typography>
-      )
-    },
+
     {
       flex: 0.3,
       minWidth: 10,
       field: 'Incubator',
+      sortable: false,
+
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.no_of_incubators}
         </Typography>
       )
@@ -162,6 +202,8 @@ const RoomsList = () => {
       flex: 0.4,
       minWidth: 60,
       field: 'user_name',
+      sortable: false,
+
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -188,7 +230,16 @@ const RoomsList = () => {
             )}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
+              }}
+            >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
@@ -255,18 +306,11 @@ const RoomsList = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
+    const data = params.row
 
-    if (clickedColumn) {
-      const data = params.row
-
-      Router.push({
-        pathname: `/egg/incubator-rooms/${data?.id}`
-      })
-    } else {
-      return
-    }
+    Router.push({
+      pathname: `/egg/incubator-rooms/${data?.id}`
+    })
   }
 
   function loadServerRows(currentPage, data) {
@@ -274,13 +318,13 @@ const RoomsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async q => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          search: q,
+          search: q || '',
 
           // column,
           page: paginationModel.page + 1,
@@ -300,7 +344,7 @@ const RoomsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(searchValue)
   }, [fetchTableData])
 
   return (
@@ -408,7 +452,12 @@ const RoomsList = () => {
       )}
 
       <>
-        <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddIncubatorRoom
+          callTableApi={fetchTableData}
+          callApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
       </>
     </>
   )

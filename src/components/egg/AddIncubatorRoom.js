@@ -1,6 +1,8 @@
 import {
+  Autocomplete,
   Box,
   Card,
+  CardContent,
   Drawer,
   FormControl,
   FormHelperText,
@@ -9,9 +11,10 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -23,26 +26,29 @@ import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
+import Toaster from 'src/components/Toaster'
 
-const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
+const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
   const theme = useTheme()
-  console.log('editParams :>> ', editParams)
+
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
   const [nurseryList, setNurseryList] = useState([])
-  console.log('nurseryList :>> ', nurseryList)
+
   const id = editParams?.room_id
+  const [siteDetails, setSiteDetails] = useState({ site_id: '', site_name: '' })
+  const [defaultNursery, setDefaultNursery] = useState(null)
 
   const defaultValues = {
     room_name: '',
     site_id: '',
-    nursery_id: ''
+    nursery: ''
   }
 
   const schema = yup.object().shape({
-    room_name: yup.string().required('Room Name is required'),
+    room_name: yup.string().trim().required('Room Name is required'),
     site_id: yup.string().required('Select Site'),
-    nursery_id: yup.string().required('Nursery is required')
+    nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is required')
   })
 
   const {
@@ -50,6 +56,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
     reset,
     control,
     handleSubmit,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -59,10 +66,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
     reValidateMode: 'onChange'
   })
 
-  const NurseryList = async () => {
+  const NurseryList = async q => {
     try {
       const params = {
         // type: ['length', 'weight'],
+        search: q,
         page: 1,
         limit: 50
       }
@@ -78,6 +86,31 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
     NurseryList()
   }, [])
 
+  const nurseryId = watch('nursery')
+
+  useEffect(() => {
+    if (nurseryId) {
+      const selectedNursery = nurseryList.find(nursery => nursery.nursery_id === nurseryId)
+
+      // setSiteDetails({ site_id: selectedNursery.site_id, site_name: selectedNursery.site_name })
+      setValue('site_id', selectedNursery?.site_id)
+    }
+  }, [nurseryId])
+
+  useEffect(() => {
+    if (isPreFilled) {
+      setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+
+      setValue('site_id', isPreFilled?.site_id)
+      setValue('nursery_id', isPreFilled?.nursery_id)
+    }
+    if (editParams?.nursery_id && editParams?.room_name) {
+      setValue('room_name', editParams?.room_name)
+      setValue('site_id', editParams?.site_id)
+      setDefaultNursery({ nursery_id: editParams?.nursery_id, nursery_name: editParams?.nursery_name })
+    }
+  }, [isOpen])
+
   const onSubmit = async values => {
     setLoader(true)
     try {
@@ -85,25 +118,37 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
         room_name: values?.room_name,
         site_id: values?.site_id,
 
-        nursery_id: values?.nursery_id
+        nursery_id: defaultNursery?.nursery_id ? defaultNursery?.nursery_id : nurseryId
       }
-      console.log('payload :>> ', payload)
 
-      if (editParams?.nursery_id && editParams?.room_name) {
+      if (editParams?.nursery_id) {
+        // const payload2 = {
+        //   room_name: values?.room_name,
+        //   site_id: values?.site_id,
+
+        //   nursery_id: values?.nursery_id
+        // }
+        // console.log('payload2 :>> ', payload2)
+
         const response = await EditRoom(id, payload)
 
         if (response.success) {
           setLoader(false)
 
-          setIsOpen(false)
           reset()
+          if (callApi) {
+            callApi()
+          }
+          if (callTableApi) {
+            callTableApi()
+          }
 
-          toast.success('Room updated Successfully')
-          callApi('')
+          Toaster({ type: 'success', message: response.message })
+          handleClose()
         } else {
           setLoader(false)
           reset()
-          toast.error('Unable to add Room')
+          Toaster({ type: 'error', message: response.message })
         }
       } else {
         const response = await AddRoom(payload)
@@ -111,32 +156,43 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
         if (response.success) {
           setLoader(false)
 
-          setIsOpen(false)
-          reset()
-
-          toast.success('Room added Successfully')
-          callApi('')
+          Toaster({ type: 'success', message: response.message })
+          if (callApi) {
+            callApi()
+          }
+          if (callTableApi) {
+            callTableApi()
+          }
+          handleClose()
         } else {
-          setLoader(true)
-          toast.error('Unable to add Room')
+          setLoader(false)
+          reset()
+          Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
+      setLoader(false)
       console.error('Error while adding room:', error)
-      toast.error('An error occurred while adding room')
+      reset()
+      Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
-  }
-
-  if (editParams?.nursery_id && editParams?.room_name) {
-    setValue('room_name', editParams?.room_name)
-    setValue('site_id', editParams?.site_id)
-    setValue('nursery_id', editParams?.nursery_id)
   }
 
   const handleClose = () => {
     setIsOpen(false)
     reset()
   }
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   return (
     <>
@@ -145,7 +201,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
         open={isOpen}
         ModalProps={{ keepMounted: true }}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          '& .MuiDrawer-paper': { width: ['100%', '502px'] },
+
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
@@ -181,33 +238,108 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
           </Box>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Card sx={{ m: 5, px: 4, py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <CardContent
+              sx={{
+                m: 5,
+                px: 4,
+                py: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                bgcolor: '#fff',
+                borderRadius: '8px'
+              }}
+            >
               <FormControl fullWidth>
                 <Controller
-                  name='room_name'
+                  name='nursery'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Room Name'
-                      value={value}
-                      onChange={onChange}
-                      focused={value !== ''}
-                      placeholder='Room Name'
-                      error={Boolean(errors.room_name)}
-                      name='room_name'
+                    <Autocomplete
+                      name='nursery'
+                      value={defaultNursery}
+                      // value={value}
+                      disablePortal
+                      disabled={isPreFilled?.nursery_id}
+                      id='nursery'
+                      options={nurseryList?.length > 0 ? nurseryList : []}
+                      getOptionLabel={option => option.nursery_name}
+                      isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultNursery(null)
+
+                          return onChange('')
+                        } else {
+                          setDefaultNursery(val)
+
+                          // console.log('val', val)
+
+                          // setValue('nursery', e.target.value)
+                          setValue('room', '')
+
+                          // RoomList(val.nursery_id)
+
+                          return onChange(val.nursery_id)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Select Nursery *'
+                          placeholder='Search & Select'
+                          error={Boolean(errors.nursery)}
+                        />
+                      )}
                     />
                   )}
                 />
-                {errors.room_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
+                {errors?.nursery && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
                 )}
               </FormControl>
+
+              {/* <FormControl fullWidth>
+                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
+                  Nursery*
+                </InputLabel>
+                <Controller
+                  name='nursery_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      name='nursery_id'
+                      value={value}
+                      label='Nursery*'
+                      onChange={onChange}
+                      error={Boolean(errors?.nursery_id)}
+                      labelId='nursery_id'
+                      disabled={isPreFilled?.nursery_id}
+                    >
+                      {nurseryList?.map((item, index) => {
+                        return (
+                          <MenuItem key={index} value={item?.nursery_id}>
+                            {item?.nursery_name}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
+                  )}
+                />
+                {errors?.nursery_id && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
+                )}
+              </FormControl> */}
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-                    Site
+                    Site*
                   </InputLabel>
                   <Controller
                     name='site_id'
@@ -217,10 +349,11 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
                       <Select
                         name='site_id'
                         value={value}
-                        label='Site'
+                        label='Site*'
                         onChange={onChange}
                         error={Boolean(errors?.site_id)}
                         labelId='site_id'
+                        disabled
                       >
                         {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                           return (
@@ -237,52 +370,42 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi }) => {
                   )}
                 </FormControl>
               )}
-
               <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
-                  Nursery
-                </InputLabel>
                 <Controller
-                  name='nursery_id'
+                  name='room_name'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='nursery_id'
+                    <TextField
+                      label='Room Name*'
                       value={value}
-                      label='Nursery'
                       onChange={onChange}
-                      error={Boolean(errors?.nursery_id)}
-                      labelId='nursery_id'
-                    >
-                      {nurseryList?.map((item, index) => {
-                        return (
-                          <MenuItem key={index} value={item?.nursery_id}>
-                            {item?.nursery_name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
+                      focused={value !== ''}
+                      placeholder='Room Name'
+                      error={Boolean(errors.room_name)}
+                      name='room_name'
+                    />
                   )}
                 />
-                {errors?.nursery_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
+                {errors.room_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
                 )}
               </FormControl>
-            </Card>
+            </CardContent>
 
             <Box
               sx={{
                 height: '122px',
                 width: '100%',
-                maxWidth: '562px',
+                maxWidth: '502px',
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
-                display: 'flex'
+                display: 'flex',
+                zIndex: 123
               }}
             >
               <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>

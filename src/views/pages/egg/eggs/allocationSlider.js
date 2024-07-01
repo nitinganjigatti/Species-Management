@@ -1,5 +1,6 @@
 import { LoadingButton } from '@mui/lab'
 import {
+  Autocomplete,
   Box,
   Card,
   CardContent,
@@ -13,25 +14,30 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 
-const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
-  console.log('allocateEggId :>> ', allocateEggId)
+const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
+  console.log('allocationValues :>> ', allocationValues)
   const [nurseryName, setNurseryName] = useState([])
   const [roomName, setRoomName] = useState([])
   const [incubatorName, setIncubatorName] = useState([])
   const [assesmentTypes, setAssesmentTypes] = useState([])
   const [loader, setLoader] = useState(false)
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nurseryList, setNurseryList] = useState([])
+  const [nurseryId, setNurseryId] = useState([])
 
   const defaultValues = {
     nursery_name: '',
@@ -45,6 +51,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     register,
     handleSubmit,
     getValues,
+    setValue,
+    watch,
+    reset,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -58,39 +67,29 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     name: 'measurements'
   })
 
-  console.log('GetValues >>', getValues())
+  // console.log('GetValues >>', getValues())
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoader(true)
 
-        const nurseryData = await GetNurseryList({ params: '' })
-        if (nurseryData?.data?.result) {
-          setNurseryName(nurseryData?.data?.result)
-        }
-
-        const roomData = await GetRoomList({ params: '' })
-        if (roomData?.data?.result) {
-          setRoomName(roomData?.data?.result)
-        }
-
-        const incubatorName = await getIncubatorList({ params: '' })
-        console.log('incubator', incubatorName.data)
-        if (incubatorName?.data?.data?.result) {
-          setIncubatorName(incubatorName?.data?.data?.result)
-        }
+        // const nurseryData = await GetNurseryList({ params: '' })
+        // if (nurseryData?.data?.result) {
+        //   setNurseryName(nurseryData?.data?.result)
+        // }
 
         const assesmentTypes = await GetAssesmentTypes()
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
-          console.log('assesment >', assesmentTypes?.data.length)
+          // console.log('assesment >', assesmentTypes?.data.length)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
         }
         setLoader(false)
-        console.log('Assesment >>', assesmentTypes)
+
+        // console.log('Assesment >>', assesmentTypes)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -98,6 +97,80 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
     fetchData()
   }, [])
+
+  const NurseryList = async q => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        search: q
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  // const nurseryId = watch('nursery_name')
+  const roomId = watch('room')
+
+  // console.log('roomId :>> ', roomId)
+
+  useEffect(() => {
+    if (allocationValues?.nursery_id) {
+      const fetchData = async () => {
+        const params = {
+          nursery_id: allocationValues?.nursery_id
+        }
+        const roomData = await GetRoomList({ params: params })
+        if (roomData?.data?.result) {
+          setRoomName(roomData?.data?.result)
+        }
+      }
+      fetchData()
+    }
+  }, [allocationValues?.nursery_id])
+
+  useEffect(() => {
+    if (roomId) {
+      const fetchIncubatorData = async () => {
+        const params = {
+          room_id: roomId
+        }
+        const incubatorName = await getIncubatorList({ params: params })
+
+        // console.log('incubator', incubatorName.data)
+        if (incubatorName?.data?.data?.result) {
+          setIncubatorName(incubatorName?.data?.data?.result)
+        }
+      }
+      fetchIncubatorData()
+    }
+  }, [roomId])
+
+  useEffect(() => {
+    if (allocationValues?.nursery_id) {
+      setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
+
+      setValue('nursery_name', allocationValues?.nursery_id)
+    }
+  }, [allocationValues])
 
   const onSubmit = async values => {
     try {
@@ -108,22 +181,35 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
       }
       const response = await AddAllocation(params)
       if (response.success) {
-        toast.success('Allocation Successfully Done')
-        callApi()
+        Toaster({ type: 'success', message: response.message })
+
         setOpenDrawer(false)
       } else {
-        toast.error('Something went wrong')
-        callApi()
+        reset()
+        Toaster({ type: 'error', message: response.message })
+
+        if (callApi) {
+          callApi()
+        }
       }
     } catch (error) {
+      reset()
       console.error('Error while adding', error)
-      toast.error('An error occurred while adding')
+      Toaster({ type: 'error', message: 'An error occurred while adding' })
     }
   }
 
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 600], height: '100vh' } }}>
+      <Drawer
+        anchor='right'
+        open={open}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
+
+          // backgroundColor: 'background.default'
+        }}
+      >
         <Box
           className='sidebar-header'
           sx={{
@@ -134,13 +220,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+            <Typography variant='h6'>Send For Incubation</Typography>
           </Box>
-          <Typography variant='h6' sx={{ mr: 70 }}>
-            Send For Incubation
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
             </IconButton>
@@ -149,15 +234,69 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
         {/* drower */}
 
-        <Box className='sidebar-body'>
+        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default' }}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
-              <Typography variant='h6' sx={{ mt: 5 }}>
+              {/* <Typography variant='h6' sx={{ mt: 5 }}>
                 Incubator Selection
-              </Typography>
+              </Typography> */}
 
-              <Card fullWidth sx={{ mt: 3 }}>
-                <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
+              <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3 }}>
+                  {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
+                      Nursery *
+                    </InputLabel> */}
+
+                  <Controller
+                    name='nursery_name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='nursery_name'
+                        value={defaultNursery}
+                        // value={value}
+                        disablePortal
+                        disabled={allocationValues?.nursery_id}
+                        id='nursery_name'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultNursery(val)
+                            console.log('val', val)
+
+                            // setValue('nursery', e.target.value)
+                            setValue('room', '')
+                            RoomList(val.nursery_id)
+
+                            return onChange(val.nursery_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Select Nursery *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery_name)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.nursery && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
                   <InputLabel error={Boolean(errors?.nursery_name)} id='nursery_name_label'>
                     Nursery Name*
                   </InputLabel>
@@ -173,6 +312,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                         onChange={onChange}
                         error={Boolean(errors?.nursery_name)}
                         labelId='nursery_name_label'
+                        disabled={allocationValues?.nursery_id}
                       >
                         {nurseryName.map(nursery => (
                           <MenuItem key={nursery?.nursery_id} value={nursery?.nursery_id}>
@@ -185,7 +325,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                   {errors && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_name?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
 
                 <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
                   <InputLabel error={Boolean(errors?.room)} id='room_label'>
@@ -242,7 +382,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
                 </FormControl>
-              </Card>
+              </CardContent>
 
               <Typography variant='h6' sx={{ mt: 5 }}>
                 Egg Measurements
@@ -332,9 +472,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                 sx={{
                   position: 'fixed',
                   bottom: 0,
-                  height: '80px',
+                  height: '122px',
+
                   backgroundColor: '#fff',
-                  width: '600px',
+                  width: '562px',
                   px: 4,
                   display: 'flex',
                   alignItems: 'center'

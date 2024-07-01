@@ -115,7 +115,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       Width: 40,
       field: 'batch_code',
-      headerName: 'BATCH CODE',
+      headerName: 'BATCH ID',
       alignItems: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>

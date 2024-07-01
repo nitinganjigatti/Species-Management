@@ -285,16 +285,20 @@ const StepAddIngredients = ({
     // If both arrays are empty or have incomplete entries, show an error
     if (data.by_percentage.length === 0 && data.by_quantity.length === 0) {
       window.scrollTo(0, 0)
-      return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
-      // return Toaster({
-      //   type: 'error',
-      //   message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
-      // })
+      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      return Toaster({
+        type: 'error',
+        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+      })
     }
 
     if (!isByPercentageValid && !isByQuantityValid) {
       window.scrollTo(0, 0)
-      return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      return Toaster({
+        type: 'error',
+        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+      })
     }
 
     if (data.by_percentage.length > 0 && !isByPercentageValid) {
@@ -304,7 +308,11 @@ const StepAddIngredients = ({
         'preparation_type_id'
       ])
       window.scrollTo(0, 0)
-      return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
+      //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
+      return Toaster({
+        type: 'error',
+        message: `Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`
+      })
     }
 
     if (data.by_quantity.length > 0 && !isByQuantityValid) {
@@ -315,7 +323,11 @@ const StepAddIngredients = ({
         'preparation_type_id'
       ])
       window.scrollTo(0, 0)
-      return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
+      //return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
+      return Toaster({
+        type: 'error',
+        message: `Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`
+      })
     }
     console.log(data, 'data')
     if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {

@@ -285,6 +285,7 @@ const ListOfMedicine = () => {
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
+      setSort(newModel[0].sort)
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }

@@ -5,6 +5,11 @@ set -e
 
 BRANCH=$1
 ENV_TO_LOAD=$2
+GITHUB_RUN_ID=$3
+ANTZ_DEPLOYMENT_TOKEN=$4 
+GITHUB_WORKFLOW=$5 
+GITHUB_REPOSITORY="ANTZ-Systems/antz_web_dashboard"
+
 echo $BRANCH
 REPO="git@github.com:ANTZ-Systems/antz_web_dashboard.git"
 #APP_DIR="/var/www/app"
@@ -44,7 +49,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
-sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
+# sudo apt-get install -y curl jq
 
 rm -f .env;
 # vantara-prod
@@ -80,8 +85,53 @@ npm install
 #### BACKUP the existing FOLDER as ZIP(SITE FOLDER)
 
 #Create build
-echo "Running npm build"
-npm run build
+# echo "Running npm build"
+# npm run build
+
+
+echo "Downloading artifact"
+
+# Download the artifact using artifact name and workflow run ID (replace placeholders)
+ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
+
+echo $GITHUB_RUN_ID 
+echo $ANTZ_DEPLOYMENT_TOKEN 
+echo $GITHUB_WORKFLOW 
+echo $GITHUB_REPOSITORY
+# Get the artifact URL
+echo "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts";
+
+
+ARTIFACTS_RESPONSE=$(curl -s -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
+    -w "%{http_code}" \
+    "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts")
+
+# Extract HTTP status code
+HTTP_STATUS=$(echo "$ARTIFACTS_RESPONSE" | tail -n1)
+ARTIFACTS_JSON=$(echo "$ARTIFACTS_RESPONSE" | head -n-1)
+
+echo "Artifacts response: $ARTIFACTS_JSON"
+ARTIFACT_URL=$(echo $ARTIFACTS_JSON | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+
+
+# Debugging: Print the artifact URL
+echo "Artifact URL: $ARTIFACT_URL"
+
+if [ -z "$ARTIFACT_URL" ]; then
+  echo "Artifact URL not found. Please check the artifact name and run ID."
+  exit 1
+fi
+
+# Download the artifact
+curl -L -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
+    -o $ARTIFACT_NAME.zip \
+    $ARTIFACT_URL
+
+# Unzip the artifact
+unzip $ARTIFACT_NAME.zip -d .next
+rm -rf $ARTIFACT_NAME.zip
+ls -la
+
 
 process_name="antz-web"
 
@@ -97,7 +147,7 @@ else
 fi
 
 pm2 start npm --name "$process_name" -- start
-
+sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 echo "Deployed. DONE!!!"
 
 #  DELETE ALL FOLDERS EXCEPT LAST 5 releases

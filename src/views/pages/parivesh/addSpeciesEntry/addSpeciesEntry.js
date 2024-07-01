@@ -125,7 +125,7 @@ const AddSpeciesNewEntry = props => {
       gender: gender,
       animal_count: animal_count,
       transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-      age: age,
+      // age: age,
       ...(possession_type === 'death' && {
         alloted_register_no: alloted_register_no,
         reason_for_death: reason_for_death,
@@ -354,17 +354,8 @@ const AddSpeciesNewEntry = props => {
             />
             {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
           </FormControl>
+
           {/* <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='age'
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <TextField label='Age*' type='number' value={value} onChange={onChange} error={Boolean(errors.age)} />
-              )}
-            />
-            {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
-          </FormControl> */}
-          <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='age'
               control={control}
@@ -376,7 +367,7 @@ const AddSpeciesNewEntry = props => {
             />
 
             {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='animal_count'

@@ -60,12 +60,13 @@ const EggDetail = () => {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Breadcrumbs aria-label='breadcrumb'>
+            <Typography color='inherit'>Egg</Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
-              Egg
+              Egg List
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
-          <EggFirstSection eggDetails={eggDetails} />
+          <EggFirstSection getDetails={getDetails} eggDetails={eggDetails} />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}

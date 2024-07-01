@@ -1018,7 +1018,7 @@ const IndividualRequest = () => {
                       <p>{requestItems?.to_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched From</h5>
                       <p>{requestItems?.from_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
@@ -1026,20 +1026,24 @@ const IndividualRequest = () => {
                       <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched ID</h5>
                       <p>{requestItems?.request_number}</p>
                     </Grid>
-                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                      {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
-                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                          {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                        </Typography>
-                        <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                          {Utility.formatDisplayDate(requestItems?.adjusted_at)}
-                        </Typography>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
+                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                          </Typography>
+                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                            {Utility.formatDisplayDate(requestItems?.adjusted_at)}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
+                    </Grid>
                   </Grid>
                   {/* Medicine Listing */}
                 </CardContent>

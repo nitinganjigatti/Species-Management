@@ -10,7 +10,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Badge from '@mui/material/Badge'
@@ -41,6 +41,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
+  const [allocationNurseryId, setAllocationNurseryId] = useState({})
 
   // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -109,6 +110,12 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
     displayText = 'No data'
     displayTextColor = theme.palette.customColors.OnSurfaceVariant
   }
+
+  useEffect(() => {
+    if (eggDetails?.nursery_id) {
+      setAllocationNurseryId({ nursery_id: eggDetails?.nursery_id })
+    }
+  }, [])
 
   return (
     <>
@@ -460,9 +467,9 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                     display: 'flex',
                     height: '88px',
                     backgroundColor:
-                      eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
+                      eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
                         ? '#37BD691A'
-                        : eggDetails?.status === 'Discard'
+                        : eggDetails?.egg_status === 'Discard'
                         ? '#FFBDA84D'
                         : '#37BD691A',
 
@@ -487,11 +494,11 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                       <Avatar
                         sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
                         src={
-                          eggDetails?.status === 'Fresh' || 'Fertile'
+                          eggDetails?.egg_status === ('Fresh' || 'Fertile')
                             ? '/icons/Egg Fertile.png'
-                            : eggDetails?.status === 'Discard'
+                            : eggDetails?.egg_status === 'Discard'
                             ? '/icons/Egg Discard.png'
-                            : eggDetails?.status === 'Hatched'
+                            : eggDetails?.egg_status === 'Hatched'
                             ? '/icons/Egg Hatched.png'
                             : '/icons/Egg Fertile.png'
                         }
@@ -516,9 +523,9 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
                           fontSize: '14px',
                           lineHeight: '16.94px',
                           color:
-                            eggDetails?.status === 'Fresh' || 'Fertile' || 'Hatched'
+                            eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
                               ? theme.palette.primary.main
-                              : eggDetails?.status === 'Discard'
+                              : eggDetails?.egg_status == 'Discard'
                               ? theme.palette.formContent.tertiary
                               : theme.palette.primary.main
                         }}
@@ -549,6 +556,7 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
       </Card>
       {openDrawer && (
         <ConditionSlider
+          eggDetails={eggDetails}
           getDetails={getDetails}
           setOpenDrawer={setOpenDrawer}
           openDrawer={openDrawer}
@@ -556,7 +564,13 @@ const EggFirstSection = ({ eggDetails, getDetails }) => {
         />
       )}
 
-      {openAllocate && <AllocationSlider setOpenDrawer={setOpenAllocate} allocateEggId={eggDetails?.egg_id} />}
+      {openAllocate && (
+        <AllocationSlider
+          allocationValues={allocationNurseryId}
+          setOpenDrawer={setOpenAllocate}
+          allocateEggId={eggDetails?.egg_id}
+        />
+      )}
       <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
     </>
   )
