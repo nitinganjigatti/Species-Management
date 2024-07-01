@@ -192,7 +192,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   }
 
   const onError = errors => {
-    console.log('Form errros', errors)
+    // console.log('Form errros', errors)
   }
 
   const columns = [

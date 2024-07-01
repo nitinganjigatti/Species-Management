@@ -36,8 +36,9 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
+import Toaster from 'src/components/Toaster'
 
-const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
+const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
@@ -51,6 +52,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const [imgArr, setImgArr] = useState([])
   const [statusId, setStatusId] = useState('')
   const [isAnimal, setIsAnimal] = useState(false)
+  const [loader, setLoader] = useState(false)
 
   const getEggMasterData = async () => {
     try {
@@ -90,9 +92,12 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
 
     // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
     shell_thickness:
-      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired()
+      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
 
-    // assisted_by : hatched === 'assisted_hatch'? yup.string().required('Assisted By is required') : yup.string().notRequired()
+    assisted_by:
+      hatched === 'assisted_hatch'
+        ? yup.string().trim().required('Assisted By is required')
+        : yup.string().notRequired()
   })
 
   const {
@@ -118,7 +123,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
     if (statusID) {
       setStatusId(statusID)
       console.log('statusID :>> ', statusID)
-      const filteredEggStatus = eggMaster?.egg_state.filter(status => status.egg_status_id === statusID)
+      const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
       console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
@@ -173,6 +178,8 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
+
       const payload = {
         egg_id: eggId,
         egg_status_id: getValues('current_state'),
@@ -188,22 +195,31 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
+        setLoader(false)
+
         console.log('res on submit :>> ', res)
         setImgSrc('')
         reset()
 
         setOpenDrawer(false)
-
-        toast.success(res.message)
-
-        getDetails(eggId)
+        Toaster({ type: 'success', message: res.message })
+        if (getDetails) {
+          getDetails(eggId)
+        }
+      } else {
+        setLoader(false)
+        reset()
+        Toaster({ type: 'error', message: res.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
-      getDetails(eggId)
+      if (getDetails) {
+        getDetails(eggId)
+      }
+      reset()
       console.error('Error while adding room:', error)
-      toast.error('An error occurred while adding room')
+      Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
   }
 
@@ -216,6 +232,11 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
   const handleChangeSwitch = event => {
     setIsAnimal(event.target.checked)
   }
+
+  useEffect(() => {
+    setValue('current_state', eggDetails?.egg_status_id)
+    setValue('select_stage', eggDetails?.egg_state_id)
+  }, [eggDetails])
 
   return (
     <>
@@ -263,7 +284,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
               <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), overflowY: 'auto' }}>
                 <Card fullWidth>
                   <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
-                    <InputLabel id='current_state'>Select State</InputLabel>
+                    <InputLabel id='current_state'>Select State*</InputLabel>
                     <Controller
                       name='current_state'
                       control={control}
@@ -290,9 +311,9 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                     )}
                   </FormControl>
 
-                  {eggStaged.length > 0 && (
+                  {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '95%', ml: 3, mb: 4 }}>
-                      <InputLabel id='select_stage'>Select Stage</InputLabel>
+                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
@@ -390,8 +411,8 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                             <TextField
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
-                              // type='number'
-                              label='Enter Shell Thickness'
+                              type='number'
+                              label='Enter Shell Thickness*'
                               name='shell_thickness'
                               onChange={onChange}
                               placeholder=''
@@ -416,7 +437,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                               <TextField
                                 error={Boolean(errors?.assisted_by)}
                                 value={value}
-                                label='Assisted by'
+                                label='Assisted by*'
                                 name='assisted_by'
                                 onChange={onChange}
                                 placeholder=''
@@ -540,7 +561,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                     </Grid>
                   </Grid>
 
-                  <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {/* <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
 
                     <FormControlLabel
@@ -550,7 +571,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
 
                       // label={isAnimal ? 'On' : 'Off'}
                     />
-                  </Box>
+                  </Box> */}
                 </Card>
 
                 {isAnimal && (
@@ -721,7 +742,7 @@ const ConditionSlider = ({ setOpenDrawer, openDrawer, eggId, getDetails }) => {
                 <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
                   CANCEL
                 </LoadingButton>
-                <LoadingButton fullWidth variant='contained' type='submit' size='large'>
+                <LoadingButton fullWidth variant='contained' loader={loader} type='submit' size='large'>
                   SUBMIT
                 </LoadingButton>
               </Box>

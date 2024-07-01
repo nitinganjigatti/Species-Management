@@ -14,6 +14,7 @@ import Icon from 'src/@core/components/icon'
 import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
+import Toaster from 'src/components/Toaster'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 
@@ -60,24 +61,14 @@ const ActivityLogs = ({
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
           setActivityData(res?.data?.data)
-
-          // setOpenSnackbar({
-          //   ...openSnackbar,
-          //   open: true,
-          //   message: JSON.stringify(res?.data?.message),
-          //   severity: 'success'
-          // })
         } else {
-          // setOpenSnackbar({
-          //   ...openSnackbar,
-          //   open: true,
-          //   message: JSON.stringify(res?.data?.message),
-          //   severity: 'error'
-          // })
+          Toaster({ type: 'error', message: JSON.stringify(res?.data?.message) })
         }
       })
     } catch (error) {
       console.log('error', error)
+      Toaster({ type: 'error', message: JSON.stringify(error) })
+      // Toaster({ type: 'error', message: JSON.stringify(error) })
 
       // setOpenSnackbar({
       //   ...openSnackbar,
@@ -88,19 +79,21 @@ const ActivityLogs = ({
     }
   }
 
-  const activityLogSearch = useCallback(
-    debounce(async value => {
-      try {
-        await getActivityLogs(value)
-      } catch (e) {
-        console.log(e)
-      }
-    }, 500),
-    []
-  )
+  // const activityLogSearch = useCallback(
+  //   debounce(async value => {
+  //     try {
+  //       await getActivityLogs(value)
+  //     } catch (e) {
+  //       console.log(e)
+  //     }
+  //   }, 500),
+  //   []
+  // )
 
   useEffect(() => {
-    getActivityLogs()
+    if (detailsValue?.id) {
+      getActivityLogs()
+    }
   }, [])
 
   return (

@@ -1,7 +1,7 @@
 import { ADD, EDIT, EGG, INCUBATOR, LIST, NURSERY } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../../utility'
 
-export async function getIncubatorList(params) {
+export async function getIncubatorList({ params }) {
   return await axiosGet({
     url: `${EGG}/${NURSERY}/${INCUBATOR}/${LIST}`,
     params: params

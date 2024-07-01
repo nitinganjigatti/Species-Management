@@ -46,6 +46,7 @@ const EggList = () => {
   const [isDiscarded, setIsDiscarded] = useState('eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [allocationValues, setAllocationValues] = useState({})
 
   const [eggID, setEggId] = useState('')
   console.log('eggID  list:>> ', eggID)
@@ -74,7 +75,8 @@ const EggList = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
+            fontSize: '12px',
+            fontWeight: '400',
             lineHeight: '14.52px'
           }}
         >
@@ -253,6 +255,25 @@ const EggList = () => {
     //     </Typography>
     //   )
     // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.35,
@@ -275,7 +296,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.2,
+      flex: 0.16,
       minWidth: 10,
       sortable: false,
       field: 'collected_on',
@@ -317,7 +338,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.25,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'collected_by',
@@ -340,6 +361,7 @@ const EggList = () => {
                   handleDiscard={handleDiscard}
                   setEggId={setEggId}
                   handleAction={handleAction}
+                  setAllocationValues={setAllocationValues}
 
                   // hover={hover} setHover={setHover}
                 />
@@ -404,10 +426,11 @@ const EggList = () => {
     }
   ]
 
-  const handleAction = (event, id) => {
+  const handleAction = (event, params) => {
     event.stopPropagation()
     setOpenDrawer(true)
-    setEggId(id)
+    setAllocationValues(params?.row)
+    setEggId(params?.row?.egg_id)
   }
 
   const onCellClick = params => {
@@ -458,12 +481,12 @@ const EggList = () => {
         const params = {
           sort,
           q,
+          sorting_by_date: 'latest_date',
 
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-
-          // nursery_id: 1,
+          nursery_id: '',
           type:
             status === undefined
               ? 'eggs_received'
@@ -607,7 +630,12 @@ const EggList = () => {
           </>
         )}
         {openDrawer && (
-          <AllocationSlider callApi={fetchTableData} setOpenDrawer={setOpenDrawer} allocateEggId={eggID} />
+          <AllocationSlider
+            callApi={fetchTableData}
+            allocationValues={allocationValues}
+            setOpenDrawer={setOpenDrawer}
+            allocateEggId={eggID}
+          />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
