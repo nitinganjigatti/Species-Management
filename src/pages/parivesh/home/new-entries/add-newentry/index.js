@@ -42,7 +42,7 @@ const schema = yup.object().shape({
     .required('Specie is Required'),
   animal_count: yup.string().required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
-  age: yup.string().required('Age is Required'),
+  // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
   possession_type: yup.string().required('Reason is Required'),
   alloted_register_no: yup.string().when('reason', {
@@ -80,7 +80,7 @@ const AddNewEntry = () => {
   const defaultValues = {
     specie: null,
     gender: '',
-    age: '',
+    // age: '',
     animal_count: '',
     possession_type: '',
     transaction_date: new Date()
@@ -570,6 +570,7 @@ const AddNewEntry = () => {
                           fullWidth
                           date={value}
                           width={'100%'}
+                          dateFormat='dd/MM/yyyy'
                           onChangeHandler={onChange}
                           maxDate={new Date()}
                           customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}

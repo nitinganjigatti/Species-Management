@@ -275,7 +275,7 @@ const SpeciesDetails = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  value: org.approved_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -356,7 +356,7 @@ const SpeciesDetails = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  value: org.approved_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -442,7 +442,7 @@ const SpeciesDetails = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal ? org.approved_count_data.net_animal : 0,
+                  value: org.approved_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
