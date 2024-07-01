@@ -89,7 +89,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     NurseryList()
   }, [])
 
-  const nurseryId = watch('nursery_id')
+  const nurseryId = watch('nursery')
   console.log('nurseryId :>> ', nurseryId)
 
   useEffect(() => {
@@ -275,7 +275,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
                           // setValue('nursery', e.target.value)
                           setValue('room', '')
-                          RoomList(val.nursery_id)
+
+                          // RoomList(val.nursery_id)
 
                           return onChange(val.nursery_id)
                         }
