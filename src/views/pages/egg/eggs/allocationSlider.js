@@ -194,6 +194,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   }, [allocationValues])
 
   const onSubmit = async values => {
+
     try {
       let params = {
         egg_id: allocateEggId,
@@ -209,15 +210,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         }
         setOpenDrawer(false)
       } else {
-        reset()
         Toaster({ type: 'error', message: response.message })
-
-        if (callApi) {
-          callApi('')
-        }
       }
     } catch (error) {
-      reset()
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
     }
