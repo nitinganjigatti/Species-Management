@@ -31,14 +31,18 @@ import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
-  console.log('allocationValues :>> ', allocationValues)
-  const [nurseryName, setNurseryName] = useState([])
-  const [roomName, setRoomName] = useState([])
-  const [incubatorName, setIncubatorName] = useState([])
+  // const [nurseryName, setNurseryName] = useState([])
+  // const [roomName, setRoomName] = useState([])
+  const [incubatorList, setIncubatorList] = useState([])
+
   const [assesmentTypes, setAssesmentTypes] = useState([])
   const [loader, setLoader] = useState(false)
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
+  const [roomList, setRoomList] = useState([])
+  const [defaultRoom, setDefaultRoom] = useState(null)
+  const [defaultIncubator, setDefaultIncubator] = useState(null)
+
   const [nurseryId, setNurseryId] = useState([])
 
   const schema = yup.object().shape({
@@ -88,7 +92,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     name: 'measurements'
   })
 
-  // console.log('GetValues >>', getValues())
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,14 +106,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
-          // console.log('assesment >', assesmentTypes?.data.length)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
         }
         setLoader(false)
-
-        // console.log('Assesment >>', assesmentTypes)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -151,37 +151,64 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   // const nurseryId = watch('nursery_name')
   const roomId = watch('room')
 
-  // console.log('roomId :>> ', roomId)
+  const RoomList = async (id, q) => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        nursery_id: id,
+        search: q
+      }
+      await GetRoomList({ params: params }).then(res => {
+        setRoomList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const searchRoom = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await RoomList(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   useEffect(() => {
     if (allocationValues?.nursery_id) {
-      const fetchData = async () => {
-        const params = {
-          nursery_id: allocationValues?.nursery_id
-        }
-        const roomData = await GetRoomList({ params: params })
-        if (roomData?.data?.result) {
-          setRoomName(roomData?.data?.result)
-        }
-      }
-      fetchData()
+      RoomList(allocationValues?.nursery_id)
     }
   }, [allocationValues?.nursery_id])
 
+  const fetchIncubatorData = async (id, q) => {
+    const params = {
+      room_id: id,
+      q
+    }
+    const incubatorName = await getIncubatorList({ params: params })
+
+    if (incubatorName?.data?.data?.result) {
+      setIncubatorList(incubatorName?.data?.data?.result)
+    }
+  }
+
+  const searchIncubator = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await fetchIncubatorData(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
   useEffect(() => {
     if (roomId) {
-      const fetchIncubatorData = async () => {
-        const params = {
-          room_id: roomId
-        }
-        const incubatorName = await getIncubatorList({ params: params })
-
-        // console.log('incubator', incubatorName.data)
-        if (incubatorName?.data?.data?.result) {
-          setIncubatorName(incubatorName?.data?.data?.result)
-        }
-      }
-      fetchIncubatorData()
+      fetchIncubatorData(roomId)
     }
   }, [roomId])
 
@@ -194,7 +221,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   }, [allocationValues])
 
   const onSubmit = async values => {
-
     try {
       let params = {
         egg_id: allocateEggId,
@@ -274,7 +300,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                       <Autocomplete
                         name='nursery_name'
                         value={defaultNursery}
-                        // value={value}
                         disablePortal
                         disabled={allocationValues?.nursery_id}
                         id='nursery_name'
@@ -288,10 +313,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             return onChange('')
                           } else {
                             setDefaultNursery(val)
-                            console.log('val', val)
+
+                            // console.log('val', val)
 
                             // setValue('nursery', e.target.value)
-                            setValue('room', '')
+                            setValue('nursery_name', '')
                             RoomList(val.nursery_id)
 
                             return onChange(val.nursery_id)
@@ -346,7 +372,101 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   )}
                 </FormControl> */}
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 3 }}>
+                  <Controller
+                    name='room'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='room'
+                        value={defaultRoom}
+                        disablePortal
+                        id='room'
+                        options={roomList?.length > 0 ? roomList : []}
+                        getOptionLabel={option => option.room_name}
+                        isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultRoom(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultRoom(val)
+
+                            // console.log('val', val)
+                            setValue('room', '')
+
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchRoom(allocationValues?.nursery_id, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Room *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.room)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  )}
+                </FormControl>
+
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 3 }}>
+                  <Controller
+                    name='incubator'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='incubator'
+                        value={defaultIncubator}
+                        disablePortal
+                        id='incubator'
+                        options={incubatorList?.length > 0 ? incubatorList : []}
+                        getOptionLabel={option => option.incubator_name}
+                        isOptionEqualToValue={(option, value) => option?.incubator_id === value?.incubator_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultIncubator(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultIncubator(val)
+
+                            // console.log('val', val)
+                            setValue('incubator', '')
+
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchIncubator(roomId, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Incubator *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.room)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  )}
+                </FormControl>
+
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
                   <InputLabel error={Boolean(errors?.room)} id='room_label'>
                     Room*
                   </InputLabel>
@@ -372,9 +492,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>}
-                </FormControl>
+                </FormControl> */}
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 1, mb: 0 }}>
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 1, mb: 0 }}>
                   <InputLabel error={Boolean(errors?.incubator)} id='incubator_label'>
                     Incubator*
                   </InputLabel>
@@ -400,7 +520,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
-                </FormControl>
+                </FormControl> */}
               </CardContent>
 
               <Typography variant='h6' sx={{ mt: 5 }}>

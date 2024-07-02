@@ -49,18 +49,15 @@ const EggList = () => {
   const [allocationValues, setAllocationValues] = useState({})
 
   const [eggID, setEggId] = useState('')
-  console.log('eggID  list:>> ', eggID)
 
   // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openNepoFile, setOpenNepoFile] = useState(false)
-  console.log('isDiscarded :>> ', isDiscarded)
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
     setIsOpen(true)
     setEggId(eggId)
-    console.log('parent discard fn:>> ')
   }
 
   const columns = [

@@ -18,7 +18,6 @@ const DiscardStatusCell = ({
   const theme = useTheme()
 
   const [hover, setHover] = useState(false)
-  console.log('hover :>> ', hover)
 
   // const handleDiscard = e => {
   //   e.stopPropagation()
