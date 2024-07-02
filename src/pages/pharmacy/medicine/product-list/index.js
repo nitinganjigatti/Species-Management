@@ -104,8 +104,7 @@ const ListOfMedicine = () => {
       headerName: 'PRESENTATION',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          ${params.row.package}
-          {`${Utility.formatNumber(params.row.package_qty)}
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )

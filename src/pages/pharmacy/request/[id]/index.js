@@ -412,7 +412,7 @@ const IndividualRequest = () => {
           {!isNaN(params?.row?.prescription_required) && parseInt(params?.row?.prescription_required) == 1 ? (
             <CustomChip sx={{ mx: 2 }} label='PR' skin='light' color='success' size='small' />
           ) : null}
-          {/* <Tooltip
+          <Tooltip
             title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
             placement='top'
           >
@@ -424,7 +424,7 @@ const IndividualRequest = () => {
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params?.row?.manufacturer}
             </Typography>
-          </Tooltip> */}
+          </Tooltip>
         </Box>
       )
     },
@@ -676,7 +676,7 @@ const IndividualRequest = () => {
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
-          {/* <Tooltip title={params?.row?.package} placement='top'>
+          <Tooltip title={params?.row?.package} placement='top'>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params?.row?.package}
             </Typography>
@@ -685,7 +685,7 @@ const IndividualRequest = () => {
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params?.row?.manufacture}
             </Typography>
-          </Tooltip> */}
+          </Tooltip>
         </div>
       )
     },
