@@ -645,7 +645,7 @@ const IndividualReturnRequest = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {Utility.formatDisplayDate(params.row.shipment_date)}
             </Typography>
           </Box>
         </Box>
@@ -918,7 +918,7 @@ const IndividualReturnRequest = () => {
                             {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
                           </Typography>
                           <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.adjusted_at)}
+                            {Utility.formatDisplayDate(requestItems?.request_date)}
                           </Typography>
                         </Box>
                       </Box>
