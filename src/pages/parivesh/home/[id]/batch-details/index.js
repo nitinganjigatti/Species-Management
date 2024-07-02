@@ -14,7 +14,8 @@ import {
   DialogContent,
   DialogActions,
   FormHelperText,
-  TextField
+  TextField,
+  CircularProgress
 } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -39,6 +40,7 @@ import { LoadingButton } from '@mui/lab'
 import Image from 'next/image'
 import { useDropzone } from 'react-dropzone'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
+import { deleteAttachmentForBatch, uploadAttachmentForBatch } from 'src/lib/api/parivesh/uploadAttachmentBatch'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -75,67 +77,6 @@ const BatchDetails = ({ params, searchParams }) => {
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
 
-  // const handleStatusChange = async event => {
-  //   const value = event.target.value
-  //   setSelectedStatus(value)
-  //   if (value === 'submitted' && type === 'reportedBatch') {
-  //     setIsModalOpen(prevState => !prevState)
-  //   } else {
-  //     setIsModalOpen(false) // Close modal for other selections
-  //   }
-  //   if (type === 'submittedBatch') {
-  //     const payload = {
-  //       batch_id: batchDetails?.batch_id,
-  //       status: value,
-  //       registration_id: data.registrationId
-  //     }
-  //     try {
-  //       setBtnLoader(true)
-  //       await updateBatchStatus(payload).then(res => {
-  //         if (res?.success) {
-  //           router.back()
-  //           setIsModalOpen(false)
-  //           reset()
-  //           setBtnLoader(false)
-  //           Toaster({ type: 'success', message: res?.data })
-  //         } else {
-  //           setBtnLoader(false)
-  //           Toaster({ type: 'error', message: res?.message })
-  //         }
-  //       })
-  //     } catch (error) {
-  //       console.log('error', error)
-  //       setBtnLoader(false)
-  //     }
-  //   }
-  // }
-
-  // const onSubmit = async data => {
-  //   const payload = {
-  //     batch_id: batchDetails?.batch_id,
-  //     status: selectedStatus,
-  //     registration_id: data.registrationId
-  //   }
-  //   try {
-  //     setBtnLoader(true)
-  //     await updateBatchStatus(payload).then(res => {
-  //       if (res?.success) {
-  //         router.back()
-  //         setIsModalOpen(false)
-  //         reset()
-  //         setBtnLoader(false)
-  //         Toaster({ type: 'success', message: res?.data })
-  //       } else {
-  //         setBtnLoader(false)
-  //         Toaster({ type: 'error', message: res?.message })
-  //       }
-  //     })
-  //   } catch (error) {
-  //     console.log('error', error)
-  //     setBtnLoader(false)
-  //   }
-  // }
-
   const onClose = () => {
     setDialog(false)
   }
@@ -152,6 +93,7 @@ const BatchDetails = ({ params, searchParams }) => {
         if (response?.success) {
           setBatchDetails(response?.data?.data)
           setSelectedStatus(response?.data?.data?.status)
+          setFilePreviews(response?.data?.data?.attachments)
 
           // console.log(response.data.data.entries_data, 'response')
 
@@ -218,7 +160,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }
 
   const onClickStatus = async event => {
-    if (event.target.dataset.value === 'submitted') {
+    if (event.target.dataset.value === 'submitted' && type === 'reportedBatch') {
       setIsModalOpen(prevState => !prevState)
     } else {
       setIsModalOpen(false) // Close modal for other selections
@@ -227,8 +169,6 @@ const BatchDetails = ({ params, searchParams }) => {
     }
   }
 
-  console.log(batchDetails, 'batchDetails')
-
   const handleSaveBatch = async type => {
     if (type === 'saveBatch') {
       const ids = batchDetails?.entries_data.map(item => item.id)
@@ -236,7 +176,7 @@ const BatchDetails = ({ params, searchParams }) => {
         batch_id: batchDetails?.batch_id,
         status: selectedStatus
       }
-      if (batchDetails.status === 'withdrawn') {
+      if (batchDetails?.status === 'withdrawn') {
         payload = {
           ...payload,
           registration_id: batchDetails?.registration_id,
@@ -310,7 +250,7 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+          <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'
@@ -494,6 +434,65 @@ const BatchDetails = ({ params, searchParams }) => {
     // Handle cell click logic here
   }
 
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: true, // Allow multiple files
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   onDrop: async acceptedFiles => {
+  //     // acceptedFiles.forEach(file => {
+  //     //   const reader = new FileReader()
+  //     //   reader.onload = () => {
+  //     //     setFilePreviews(prev => [
+  //     //       ...prev,
+  //     //       {
+  //     //         file,
+  //     //         preview: file.type.startsWith('image') ? reader.result : null
+  //     //       }
+  //     //     ])
+  //     //   }
+  //     //   reader.readAsDataURL(file)
+  //     // })
+
+  //     console.log(reader.result, 'reader.result')
+  //     try {
+  //       setBtnLoader(true) // Show loader
+
+  //       // Process each dropped file
+  //       for (const file of acceptedFiles) {
+  //         const payload = {
+  //           batch_id: batchDetails?.batch_id,
+  //           status: batchDetails?.status,
+  //           batch_attachment: file
+  //         }
+
+  //         // Call your upload API function with formData
+  //         const res = await uploadAttachmentForBatch(payload)
+
+  //         console.log(res?.data, 'uploadFile')
+
+  //         // Handle API response
+  //         if (res?.success) {
+  //           const msg = res?.data.length > 0 ? res?.data : res?.message
+  //           Toaster({ type: 'success', message: msg })
+  //         } else {
+  //           Toaster({ type: 'error', message: res?.message })
+  //         }
+  //       }
+
+  //       setBtnLoader(false) // Hide loader after processing files
+  //     } catch (error) {
+  //       console.error('Error uploading files:', error)
+  //       setBtnLoader(false) // Hide loader on error
+  //     }
+  //   }
+  // })
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true, // Allow multiple files
     accept: {
@@ -504,33 +503,79 @@ const BatchDetails = ({ params, searchParams }) => {
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
-    onDrop: acceptedFiles => {
-      acceptedFiles.forEach(file => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          setFilePreviews(prev => [
-            ...prev,
-            {
-              file,
-              preview: file.type.startsWith('image') ? reader.result : null
-            }
-          ])
+    onDrop: async acceptedFiles => {
+      if (acceptedFiles?.length + filePreviews?.length > 3) {
+        Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
+        return
+      }
+      try {
+        setBtnLoader(true) // Show loader
+        for (const file of acceptedFiles) {
+          const payload = {
+            batch_id: batchDetails?.batch_id,
+            status: batchDetails?.status,
+            batch_attachment: [file]
+          }
+
+          // Call your upload API function with formData
+          const res = await uploadAttachmentForBatch(payload)
+          console.log(res, 'uploadFile')
+          // Handle API response
+          if (res?.success && res?.data?.length > 0) {
+            Toaster({ type: 'success', message: res?.message })
+            // After successful upload, fetch updated batch details
+            await getBatchListById(batchDetails?.batch_id)
+          } else {
+            Toaster({ type: 'error', message: res?.message })
+          }
         }
-        reader.readAsDataURL(file)
-      })
+        setBtnLoader(false) // Hide loader after processing files
+      } catch (error) {
+        console.error('Error uploading files:', error)
+        setBtnLoader(false) // Hide loader on error
+      }
     }
   })
 
-  // const removeFilePreview = index => {
-  //   setFilePreviews(prev => prev.filter((_, i) => i !== index))
-  // }
-  const removeFilePreview = index => {
-    const newFilePreviews = [...filePreviews]
-    newFilePreviews.splice(index, 1)
-    setFilePreviews(newFilePreviews)
+  const removeFilePreview = async id => {
+    try {
+      const payload = {
+        batch_id: batchDetails?.batch_id
+      }
+      const res = await deleteAttachmentForBatch(id, payload)
+      console.log(res, 'delete')
+
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message })
+        await getBatchListById(batchDetails?.batch_id)
+      } else {
+        Toaster({ type: 'error', message: res?.message })
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error)
+    }
   }
 
   console.log(filePreviews, 'filePreviews')
+
+  const isImage = fileName => fileName.match(/\.(jpeg|jpg|gif|png)$/i)
+  // const truncateFileName = (fileName, maxLength = 15) => {
+  //   if (fileName.length > maxLength) {
+  //     return fileName.substring(0, maxLength) + '...'
+  //   }
+  //   return fileName
+  // }
+  const getFileNameFromUrl = url => {
+    return url.substring(url.lastIndexOf('/') + 1)
+  }
+
+  // Function to truncate the file name
+  const truncateFileName = (fileName, maxLength = 12) => {
+    if (fileName.length <= maxLength) {
+      return fileName
+    }
+    return fileName.substr(0, maxLength - 3) + '...'
+  }
 
   return (
     <>
@@ -546,7 +591,6 @@ const BatchDetails = ({ params, searchParams }) => {
             />
           }
           title={`Batch Details`}
-          // title={`Batch Details - ${batchDetails?.batch_id}`}
         />
         <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
           <Box>
@@ -573,7 +617,7 @@ const BatchDetails = ({ params, searchParams }) => {
             </Grid>
           </Box>
           <Box sx={{ mt: 6 }}>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ alignItems: 'baseline' }}>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   Batch Created:{' '}
@@ -630,7 +674,9 @@ const BatchDetails = ({ params, searchParams }) => {
               ) : (
                 <Typography
                   variant='h6'
-                  sx={{ color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69', mt: 2 }}
+                  sx={{
+                    color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69'
+                  }}
                 >
                   {batchDetails.status === 'accepted'
                     ? 'Approved'
@@ -650,7 +696,7 @@ const BatchDetails = ({ params, searchParams }) => {
       <Card sx={{ mt: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
           <Box>
-            <Grid container spacing={2} alignItems='center'>
+            <Grid container spacing={2}>
               <Grid item>
                 <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                   <Icon icon='mdi:printer-outline' size={1} />
@@ -658,14 +704,18 @@ const BatchDetails = ({ params, searchParams }) => {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }} {...getRootProps()}>
-                  <Icon icon='mdi:attachment-plus' size={1} />
+                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }} {...getRootProps()} disabled={btnLoader}>
+                  {btnLoader ? (
+                    <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                  ) : (
+                    <Icon icon='mdi:attachment-plus' size={1} />
+                  )}
                   &nbsp; Attachment
                   <input {...getInputProps()} />
                 </Button>
               </Grid>
 
-              {filePreviews.map((filePreview, index) => (
+              {filePreviews?.map((filePreview, index) => (
                 <Grid item key={index}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
@@ -673,29 +723,53 @@ const BatchDetails = ({ params, searchParams }) => {
                         position: 'relative',
                         backgroundColor: '#f0f0f0', // Adjust background color as needed
                         borderRadius: '10px',
-                        height: 100,
+                        height: 90,
                         width: 'auto',
-                        padding: '10.5px',
+                        padding: '10px',
                         boxSizing: 'border-box'
                       }}
                     >
-                      {filePreview.preview ? (
+                      {isImage(filePreview.attachment) ? (
                         <img
                           style={{
-                            aspectRatio: '1 / 1',
                             height: '100%',
                             borderRadius: '5%',
                             objectFit: 'cover',
                             width: '100%'
                           }}
-                          alt='Uploaded file'
-                          src={filePreview.preview}
+                          alt='Attachment'
+                          src={filePreview.attachment}
                         />
                       ) : (
-                        <Typography variant='body2' sx={{ m: 2 }}>
-                          {filePreview.file.name}
-                        </Typography>
+                        <a
+                          href={filePreview.attachment}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          style={{ textDecoration: 'none', color: 'inherit' }}
+                        >
+                          <Typography variant='body2' sx={{ m: 2 }}>
+                            {truncateFileName(getFileNameFromUrl(filePreview.attachment))}
+                          </Typography>
+                        </a>
                       )}
+                      {/* {filePreview.attachment ? (
+                        <>
+                          <img
+                            style={{
+                              height: '100%',
+                              borderRadius: '5%',
+                              objectFit: 'cover',
+                              width: '100%'
+                            }}
+                            alt='Attachment'
+                            src={filePreview.attachment}
+                          />
+                        </>
+                      ) : (
+                        <Typography variant='body2' sx={{ m: 2 }}>
+                          {filePreview.attachment}
+                        </Typography>
+                      )} */}
 
                       {/* Button to remove selected file */}
                       <Box
@@ -712,7 +786,7 @@ const BatchDetails = ({ params, searchParams }) => {
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
-                        onClick={() => removeFilePreview(index)}
+                        onClick={() => removeFilePreview(filePreview.id)}
                       >
                         <Icon icon='material-symbols-light:close' color='#fff' />
                       </Box>
@@ -723,7 +797,7 @@ const BatchDetails = ({ params, searchParams }) => {
             </Grid>
           </Box>
           <Box>
-            <Grid container spacing={2} alignItems='center'>
+            <Grid container spacing={2}>
               <Grid item>
                 {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
                   <Button

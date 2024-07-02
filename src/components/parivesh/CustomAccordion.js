@@ -179,7 +179,7 @@ const CustomAccordion = ({
                     <Grid item key={index} xs>
                       <Box
                         sx={{
-                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          borderLeft: index !== 0 && index !== 1 ? `2px solid ${item.borderColor}` : 'none',
                           paddingLeft: index !== 0 ? '0.5rem' : 0,
                           paddingRight: index !== 0 ? '0.5rem' : 0,
                           whiteSpace: 'nowrap',
@@ -261,7 +261,7 @@ const CustomAccordion = ({
                     <Grid item key={index} xs>
                       <Box
                         sx={{
-                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          borderLeft: index !== 0 && index !== 1 ? `2px solid ${item.borderColor}` : 'none',
                           paddingLeft: index !== 0 ? '0.5rem' : 0,
                           paddingRight: index !== 0 ? '1rem' : 0,
                           whiteSpace: 'nowrap',

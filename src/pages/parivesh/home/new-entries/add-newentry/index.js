@@ -161,7 +161,7 @@ const AddNewEntry = () => {
 
       if (response?.success) {
         router.back()
-        Toaster({ type: 'success', message: response?.data })
+        Toaster({ type: 'success', message: response?.message })
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
