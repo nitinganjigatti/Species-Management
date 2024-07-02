@@ -776,7 +776,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               </>
             ) : (
               <>
-                {console.log('params.row.', params.row)}
                 {params.row.status === 'Wrong Count' &&
                 (params.row.status === 'Wrong Count - Deny Closed' ||
                   params?.row?.dispute_status === '' ||
@@ -1273,12 +1272,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     }}
                   />
                 )}
-                {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
-                {console.log('selectedPhh', selectedPharmacy.permission.key)}
 
                 {disputeItemDetails?.delivery_status !== 'Delivered' &&
-                selectedPharmacy.type === 'local' &&
-                selectedPharmacy.id === orderData.from_store_id ? (
+                selectedPharmacy?.type === 'local' &&
+                selectedPharmacy?.id !== orderData?.from_store_id ? (
                   <>
                     <LoadingButton
                       sx={{ float: 'right', my: 4, mx: 2 }}

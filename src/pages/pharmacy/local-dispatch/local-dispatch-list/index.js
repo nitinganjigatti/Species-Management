@@ -327,7 +327,7 @@ const DirectDispatchList = () => {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Requested by ',
+      headerName: 'Dispatched by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -336,7 +336,7 @@ const DirectDispatchList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {Utility.formatDisplayDate(params.row.request_date)}
             </Typography>
           </Box>
         </Box>

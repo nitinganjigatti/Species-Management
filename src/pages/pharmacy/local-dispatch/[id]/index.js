@@ -597,6 +597,7 @@ const IndividualRequest = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {console.log('params.row', Utility.formatDisplayDate(params.row.adjusted_at))}
             </Typography>
           </Box>
         </Box>
