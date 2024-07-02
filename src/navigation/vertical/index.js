@@ -31,20 +31,20 @@ const ComposeNavigation = () => {
     navigationArray.push(...pharmacyNav)
   }
 
-  if (labList?.length > 0 || labRole) {
-    const labNav = labNavigation()
-    navigationArray.push(...labNav)
-  }
+  // if (labList?.length > 0 || labRole) {
+  //   const labNav = labNavigation()
+  //   navigationArray.push(...labNav)
+  // }
 
-  if (dietModule) {
-    const dietNav = dietNavigation()
-    navigationArray.push(...dietNav)
-  }
-  const eggNav = eggNavigation()
-  navigationArray.push(...eggNav)
+  // if (dietModule) {
+  //   const dietNav = dietNavigation()
+  //   navigationArray.push(...dietNav)
+  // }
+  // const eggNav = eggNavigation()
+  // navigationArray.push(...eggNav)
 
-  const pariveshNav = pariveshNavigation()
-  navigationArray.push(...pariveshNav)
+  // const pariveshNav = pariveshNavigation()
+  // navigationArray.push(...pariveshNav)
 
   return navigationArray
 }
