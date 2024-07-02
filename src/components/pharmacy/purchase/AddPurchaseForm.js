@@ -77,7 +77,6 @@ const editParamsInitialState = {
 }
 
 const initialNestedRowMedicine = {
-  id: '',
   medicine_name: '',
   purchase_unit_id: '',
   purchase_qty: 0,
@@ -693,7 +692,7 @@ const AddPurchaseForm = () => {
           return {
             ...el,
             medicine_name: el?.stock_item_name,
-            id: el?.id ? el?.id : '',
+            id: el?.id,
             stock_type: el?.stock_type,
             package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer
@@ -783,7 +782,7 @@ const AddPurchaseForm = () => {
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        id: getItems[0]?.id ? getItems[0]?.id : '',
+        id: getItems[0]?.id,
         index,
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
@@ -832,7 +831,7 @@ const AddPurchaseForm = () => {
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
-        id: getItems[0]?.id ? getItems[0]?.id : '',
+        id: getItems[0]?.id,
 
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,

@@ -38,7 +38,6 @@ const defaultValues = {
     value: '',
     stock_type: ''
   },
-  id: '',
   purchase_batch_no: '',
   purchase_expiry_date: null,
   purchase_unit_price: 0,
@@ -76,7 +75,6 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     product: yup.object().shape({
@@ -311,8 +309,7 @@ const PurchaseItemForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       package_details,
-      manufacture,
-      id
+      manufacture
 
       // purchase_purchase_price,
     } = params
@@ -346,8 +343,7 @@ const PurchaseItemForm = props => {
       stock_type: stock_type,
       purchase_purchase_price: purchase_net_amount,
       package_details,
-      manufacture,
-      id
+      manufacture
     }
 
     submitItems(payload)
