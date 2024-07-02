@@ -10,6 +10,7 @@ import {
   FormLabel,
   Grid,
   IconButton,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Radio,
@@ -91,8 +92,8 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
     select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
 
     // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-    shell_thickness:
-      statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
+    // shell_thickness:
+    //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
 
     assisted_by:
       hatched === 'assisted_hatch'
@@ -217,6 +218,7 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
+      setLoader(false)
       if (getDetails) {
         getDetails(eggId)
       }
@@ -234,6 +236,14 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
 
   const handleChangeSwitch = event => {
     setIsAnimal(event.target.checked)
+  }
+
+  const handleChange = e => {
+    if (e.target.value >= 0) {
+      setValue('shell_thickness', e.target.value)
+    } else {
+      setValue('shell_thickness', Math.abs(e.target.value))
+    }
   }
 
   useEffect(() => {
@@ -411,15 +421,44 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
+                            // <TextField
+                            //   error={Boolean(errors?.shell_thickness)}
+                            //   value={value}
+                            //   type='number'
+                            //   label='Enter Shell Thickness*'
+                            //   name='shell_thickness'
+                            //   onChange={onChange}
+                            //   placeholder=''
+                            //   sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                            // />
                             <TextField
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
                               type='number'
                               label='Enter Shell Thickness*'
                               name='shell_thickness'
-                              onChange={onChange}
+                              onChange={handleChange}
                               placeholder=''
-                              sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                              sx={{
+                                width: '100%',
+                                mr: 12,
+                                // Hiding the spinner controls
+                                '& input[type=number]': {
+                                  '-moz-appearance': 'textfield'
+                                },
+                                '& input[type=number]::-webkit-outer-spin-button': {
+                                  '-webkit-appearance': 'none',
+                                  margin: 0
+                                },
+                                '& input[type=number]::-webkit-inner-spin-button': {
+                                  '-webkit-appearance': 'none',
+                                  margin: 0
+                                }
+                              }}
+                              InputProps={{
+                                endAdornment: <InputAdornment position='end'>MM</InputAdornment>
+                              }}
+                              // inputProps={{ min: 1 }}
                             />
                           )}
                         />
@@ -745,7 +784,14 @@ const ConditionSlider = ({ eggDetails, setOpenDrawer, openDrawer, eggId, getDeta
                 <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
                   CANCEL
                 </LoadingButton>
-                <LoadingButton fullWidth variant='contained' loader={loader} type='submit' size='large'>
+                <LoadingButton
+                  disabled={loader}
+                  fullWidth
+                  variant='contained'
+                  loader={loader}
+                  type='submit'
+                  size='large'
+                >
                   SUBMIT
                 </LoadingButton>
               </Box>
