@@ -97,6 +97,19 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
+  const localDispatchParent = {
+    title: 'Local Dispatch',
+    path: '/pharmacy/local-dispatch',
+    icon: 'iconamoon:delivery-light',
+    children: []
+  }
+
+  const localDispatchList = {
+    title: 'Local Dispatch ',
+    icon: 'iconamoon:delivery-light',
+    path: '/pharmacy/local-dispatch/local-dispatch-list'
+  }
+
   const stockParent = {
     title: 'Stocks',
     path: '/pharmacy/store',
@@ -292,7 +305,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       requestListing,
-
       returnListing,
 
       directDispatchList,

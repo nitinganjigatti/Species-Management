@@ -160,6 +160,8 @@ export const STOCK_ADJUSTMENT = 'stock-adjustment'
 
 export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
 
+export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
