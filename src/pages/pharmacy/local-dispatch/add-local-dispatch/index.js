@@ -108,7 +108,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddDirectDispatch = () => {
+const AddLocalDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
@@ -506,29 +506,6 @@ const AddDirectDispatch = () => {
 
   // ****** edit section //////
   const editTableData = itemId => {
-    //
-    // if (id != undefined && action === 'edit') {
-    //   const getItems = editParams.request_item_details.filter(el => {
-    //     return el.request_item_medicine_id === itemId
-    //   })
-
-    //
-
-    //   setNestedRowMedicine({
-    //     ...nestedRowMedicine,
-    //     request_item_medicine_id: getItems[0].request_item_medicine_id,
-    //     medicine_name: getItems[0].medicine_name,
-    //     request_item_qty: getItems[0].request_item_qty,
-    //     request_item_batch_no: getItems[0].request_item_batch_no,
-    //     expiry_date: getItems[0].expiry_date,
-    //     request_item_leaf_id: getItems[0].request_item_leaf_id,
-    //     priority_item: getItems[0].priority_item,
-    //     control_substance: getItems[0].control_substance,
-    //     control_substance_file: getItems[0].control_substance_file,
-    //     id: getItems[0].id,
-    //     uuid: getItems[0].uuid
-    //   })
-    // } else {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
@@ -589,6 +566,7 @@ const AddDirectDispatch = () => {
     } else {
       try {
         console.log('postData', postData)
+        debugger
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
@@ -604,50 +582,6 @@ const AddDirectDispatch = () => {
       }
     }
   }
-
-  // data posting section
-  // const createForm = () => {
-  //
-
-  //   return (
-  //     <AddItemsForm
-  //       searchBatchData={searchBatchData}
-  //       searchMedicineData={searchMedicineData}
-  //       productList={optionsMedicineList}
-  //       productLoading={productLoading}
-  //       batchLoading={batchLoading}
-  //       onSubmitData={submitItems}
-  //       batchList={optionsBatchList}
-  //       nestedMedicine={nestedRowMedicine}
-  //       error={duplicateMedError}
-  //       totalQuantity={totalBatchQuantity}
-  //       editParams={editParams}
-  //     />
-  //   )
-  // }
-  // const deleteLineItemFromDb = async lineItemId => {
-  //   debugger
-  //   console.log('lineItemId', lineItemId)
-  //   if (lineItemId) {
-  //     try {
-  //       const result = await deleteLineItem(lineItemId)
-  //       console.log('deleteLineItem result', result)
-  //       if (result?.data?.success === true) {
-  //         toast.success(result?.data?.data)
-  //         setDeleteDialog(false)
-  //         setDeleteItemId(null)
-  //         getListOfItemsById(id)
-  //       } else {
-  //         toast.error(result?.data?.data)
-  //         setDeleteDialog(false)
-  //         setDeleteItemId(null)
-  //       }
-  //     } catch (error) {
-  //       toast.error(error.data)
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }
 
   const cancelDirectDispatch = async id => {
     console.log('id', id)
@@ -670,29 +604,10 @@ const AddDirectDispatch = () => {
     }
   }
 
-  // const cancelDirectDispatch = async id => {
-  //   console.log('id', id)
-  //   if (id) {
-  //     try {
-  //       const result = await cancelDirectDispatchItems(id)
-  //       console.log('cancelRequest result', result)
-  //       if (result?.data?.success === true) {
-  //         toast.success(result?.data?.data)
-  //         Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
-  //       } else {
-  //         toast.error(result.data)
-  //       }
-  //     } catch (error) {
-  //       toast.error(error.data)
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }
-
   return (
     <>
-      {selectedPharmacy.type === 'central' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+      {selectedPharmacy.type === 'local' ? (
+        // (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <Card>
           <Grid
             container
@@ -795,40 +710,7 @@ const AddDirectDispatch = () => {
                       &nbsp;
                     </Typography>
                   </Grid>
-                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
 
-                  {errors.from_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid> */}
                   <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
@@ -842,7 +724,6 @@ const AddDirectDispatch = () => {
                           setEditParams({ ...editParams, ro_date: formatDate(date) })
                           setErrors({})
                         }}
-                        maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
@@ -937,34 +818,13 @@ const AddDirectDispatch = () => {
 
                             <IconButton
                               onClick={() => {
-                                // if (editParams?.request_item_details?.length === 1) {
-                                //   openCancelDialog()
-                                // } else {
                                 removeItemsFromTable(el.uuid)
-                                // }
                               }}
                               size='small'
                               sx={{ mr: 0.5 }}
                             >
                               <Icon icon='mdi:delete-outline' />
                             </IconButton>
-
-                            {/* {el.id !== undefined ? (
-                              <IconButton
-                                onClick={() => {
-                                  if (editParams?.request_item_details?.length === 1) {
-                                    openCancelDialog()
-                                  } else {
-                                    setDeleteItemId(el.id)
-                                    setDeleteDialog(true)
-                                  }
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            ) : null} */}
                           </TableCell>
                         </TableRow>
                       )
@@ -1043,49 +903,6 @@ const AddDirectDispatch = () => {
               )}
             </Box>
           </Grid>
-          {/* <ConfirmDialogBox
-            open={deleteDialog}
-            closeDialog={() => {
-              setDeleteDialog(false)
-              setDeleteItemId(null)
-            }}
-            action={() => {
-              setDeleteDialog(false)
-              setDeleteItemId(null)
-            }}
-            content={
-              <Box>
-                <>
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 1 }}>Are you sure you want to delete this item?</DialogContentText>
-                  </DialogContent>
-                  <DialogActions className='dialog-actions-dense'>
-                    <Button
-                      variant='contained'
-                      size='small'
-                      color='primary'
-                      onClick={() => {
-                        setDeleteDialog(false)
-                        setDeleteItemId(null)
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size='small'
-                      variant='contained'
-                      color='error'
-                      onClick={() => {
-                        deleteLineItemFromDb(deleteItemId)
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </DialogActions>
-                </>
-              </Box>
-            }
-          /> */}
           <ConfirmDialogBox
             open={cancelRequestDialog}
             closeDialog={() => {
@@ -1179,4 +996,4 @@ const AddDirectDispatch = () => {
   )
 }
 
-export default AddDirectDispatch
+export default AddLocalDispatch

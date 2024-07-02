@@ -75,7 +75,6 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     product: yup.object().shape({
