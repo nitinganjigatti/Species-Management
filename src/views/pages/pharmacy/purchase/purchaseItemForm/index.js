@@ -38,6 +38,7 @@ const defaultValues = {
     value: '',
     stock_type: ''
   },
+  id: '',
   purchase_batch_no: '',
   purchase_expiry_date: null,
   purchase_unit_price: 0,
@@ -310,7 +311,8 @@ const PurchaseItemForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      id
 
       // purchase_purchase_price,
     } = params
@@ -344,7 +346,8 @@ const PurchaseItemForm = props => {
       stock_type: stock_type,
       purchase_purchase_price: purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      id
     }
 
     submitItems(payload)
