@@ -6,8 +6,8 @@ set -e
 BRANCH=$1
 ENV_TO_LOAD=$2
 GITHUB_RUN_ID=$3
-ANTZ_DEPLOYMENT_TOKEN=$4 
-GITHUB_WORKFLOW=$5 
+ANTZ_DEPLOYMENT_TOKEN=$4
+GITHUB_WORKFLOW=$5
 GITHUB_REPOSITORY="ANTZ-Systems/antz_web_dashboard"
 
 echo $BRANCH
@@ -49,7 +49,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
-# sudo apt-get install -y curl jq
+sudo apt-get install -y curl jq
 
 rm -f .env;
 # vantara-prod
@@ -94,9 +94,9 @@ echo "Downloading artifact"
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
 
-echo $GITHUB_RUN_ID 
-echo $ANTZ_DEPLOYMENT_TOKEN 
-echo $GITHUB_WORKFLOW 
+echo $GITHUB_RUN_ID
+echo $ANTZ_DEPLOYMENT_TOKEN
+echo $GITHUB_WORKFLOW
 echo $GITHUB_REPOSITORY
 # Get the artifact URL
 echo "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts";
