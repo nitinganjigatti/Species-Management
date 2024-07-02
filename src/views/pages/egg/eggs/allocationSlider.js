@@ -46,8 +46,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const [nurseryId, setNurseryId] = useState([])
 
   const schema = yup.object().shape({
-    room: yup.string().required('Please Select Room'),
-    incubator: yup.string().required('Please Select Incubator'),
+    room: yup.string().required('Room is Required'),
+    incubator: yup.string().required('Incubator Name is Required'),
     measurements: yup
       .array()
       .of(
@@ -55,7 +55,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           assessment_value: yup
             .number()
             .typeError('Value must be a number')
-            .required('Please Enter Weight')
+            .required('Weight is Required')
             .positive('Value must be positive')
             .min(0, 'Value cannot be negative')
         })
@@ -462,7 +462,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                     )}
                   />
                   {errors?.room && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>
                   )}
                 </FormControl>
 
