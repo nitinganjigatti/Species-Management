@@ -247,3 +247,5 @@ export const UPDATE_BATCH_STATUS = 'v1/parivesh/species/site/batchstatusupdate'
 export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmentforbatch'
 
 export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
+
+export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
