@@ -468,8 +468,6 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                   item
                   xl={3.75}
                   lg={3.9}
-                  md={12}
-                  sm={5.8}
                   xs={12}
                   sx={{
                     display: 'flex',
@@ -487,7 +485,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Grid container justifyContent='space-between' alignItems='center'>
+                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Box
                         item
@@ -515,7 +513,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         ></Avatar>
                       </Box>
 
-                      <Box item xs={7}>
+                      <Box>
                         <Typography
                           sx={{
                             fontWeight: 500,
@@ -543,7 +541,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         </Typography>
                       </Box>
                     </Box>
-                    <Box item xs={1.2}>
+                    <Box>
                       <IconButton
                         disabled={Number(eggDetails?.action_to_be_taken) != 5}
                         onClick={() => setOpenDrawer(true)}
@@ -556,7 +554,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         />
                       </IconButton>
                     </Box>
-                  </Grid>
+                  </Box>
                 </Grid>
               </Grid>
             </Grid>
