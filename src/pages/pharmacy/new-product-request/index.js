@@ -71,7 +71,6 @@ export default function NewProductList() {
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
-          {console.log('params>>>>>', params)}
           <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
             {params?.row?.request_number}
           </Typography>

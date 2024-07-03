@@ -530,7 +530,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -883,7 +882,6 @@ const AddPurchaseForm = () => {
     //     return
     //   }
     // }
-    console.log('eddddddd', editParams)
     setSubmitLoader(true)
 
     const postData = editParams
@@ -911,7 +909,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }

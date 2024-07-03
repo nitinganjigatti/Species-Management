@@ -382,7 +382,6 @@ const AddReturnRequest = () => {
 
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        console.log('searchResults', searchResults)
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
@@ -410,7 +409,7 @@ const AddReturnRequest = () => {
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
-            console.log('data of batch', searchResults?.data?.items)
+            // console.log('data of batch', searchResults?.data?.items)
             setOptionsBatchList(
               searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
@@ -452,7 +451,6 @@ const AddReturnRequest = () => {
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
-      // console.log('id', id, action)
       getListOfItemsById(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -480,8 +478,6 @@ const AddReturnRequest = () => {
       const result = await getReturnItemsListById(id)
 
       if (result?.success === true && result?.data?.request_item_details?.length > 0) {
-        console.log('details', result?.data?.request_item_details)
-
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el.stock_item_id,
@@ -528,9 +524,6 @@ const AddReturnRequest = () => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
-    console.log('params', editParams)
-
-    console.log('get items in edit table', getItems)
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -618,12 +611,9 @@ const AddReturnRequest = () => {
   // }
 
   const cancelReturnRequest = async id => {
-    // debugger
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelReturnItemsRequest(id)
-        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/return-product/request-list/`)
@@ -828,7 +818,6 @@ const AddReturnRequest = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {console.log('edit params', editParams.request_item_details)}
                 {editParams.request_item_details
                   ? editParams.request_item_details.map((el, index) => {
                       return (

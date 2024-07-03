@@ -38,9 +38,6 @@ import {
 import DialogConfirmation from 'src/components/utility/DialogConfirmation'
 
 const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
-  // console.log('configureMedId', configureMedId)
-  // console.log('storeId', storeId)
-
   const defaultValues = {
     rack_id: '',
     store_id: storeId,
@@ -109,7 +106,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   const getRacksLists = async () => {
     try {
       const response = await getRackList()
-      console.log('racks', response)
+      // console.log('racks', response)
       if (response?.length > 0) {
         setRacks(response)
       }
@@ -122,7 +119,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     if (id) {
       const filteredRacks = racks.filter(el => el.store_id === id)
 
-      // console.log('get filtered filteredRacks', filteredRacks)
       setSelectedRacks(filteredRacks)
       setShouldGetShelf(true)
     }
@@ -137,14 +133,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   }, [shouldGetShelf, selectedRacks])
 
   const getShelfFromRacks = id => {
-    console.log('id', id)
-    console.log('selectedRacks', selectedRacks)
-
-    // debugger
     if (selectedRacks.length > 0) {
       const filteredShelf = selectedRacks?.filter(el => el.id === id)
-
-      // console.log('get filtered shelfs', filteredShelf)
 
       setSelectedShelf(filteredShelf[0]?.shelf_config || [])
     }
@@ -154,12 +144,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     setSubmitLoader(true)
     const { rack_id, store_id, shelf_id, config_id } = params
     if (config_id !== '') {
-      // console.log('config_id', config_id)
       try {
         const payload = { rack_id, store_id, shelf_id }
         const result = await updateMedicineConfig(payload, configureMedId, config_id)
         if (result?.success == true) {
-          // console.log('result', result)
           toast.success(result.data)
           setDeleteRowId('')
           configureMedicine(configureMedId)
@@ -226,7 +214,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     try {
       const result = await getMedicineConfig(id)
 
-      // debugger
       console.log('Medicine config', result)
       if (result?.length > 0) {
         const listWithId = result.map((el, i) => ({ ...el, uid: i + 1 }))
@@ -240,9 +227,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   }
 
   const handleEdit = (store, shelf) => {
-    console.log('edit', store)
-    console.log('shelf', shelf)
-
     const valuesObject = {
       store_id: store.store_id,
       rack_id: store.racks[0].id,
@@ -261,9 +245,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
     reset(valuesObject)
   }
 
-  // delete
   const confirmDeleteAction = async () => {
-    // console.log(deleteRowId)
     const response = await deleteMedicineConfig(deleteRowId)
 
     if (response?.success === true) {
@@ -333,7 +315,6 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                     <TableCell>{elm.store_name}</TableCell>
                     <TableCell>{elm.rack}</TableCell>
                     <TableCell>
-                      {console.log('table', elm.racks)}
                       {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
                           <Chip

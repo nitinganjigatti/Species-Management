@@ -143,7 +143,6 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          console.log('res', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -165,9 +164,7 @@ const RequestList = () => {
   )
   useEffect(() => {
     const statusIsThere = read('requestPageStatus')
-    console.log('requestPageStatus', statusIsThere)
     if (statusIsThere) {
-      debugger
       setStatus(statusIsThere?.currentStatus)
       setFilterSwitch(statusIsThere?.filterSwitch)
 

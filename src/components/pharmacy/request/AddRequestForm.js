@@ -246,7 +246,6 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
-    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -463,8 +462,6 @@ const AddRequestForm = () => {
 
       const searchResults = await getGenericMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        console.log('genrics', searchResults.data?.list_items)
-
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
@@ -504,7 +501,6 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    // console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -667,7 +663,6 @@ const AddRequestForm = () => {
     if (id) {
       try {
         const result = await cancelRequestItems(id)
-        // console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)

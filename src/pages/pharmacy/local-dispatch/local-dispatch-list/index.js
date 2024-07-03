@@ -96,7 +96,7 @@ const DirectDispatchList = () => {
   )
 
   useEffect(() => {
-    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
+    // setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
 
@@ -449,12 +449,10 @@ const DirectDispatchList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'local' ? (
-              <Tab
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
+            <Tab
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+            />
 
             <Tab
               value='shipped'

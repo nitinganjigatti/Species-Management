@@ -76,7 +76,6 @@ const ReturnRequestList = () => {
         }
 
         await getRequestReturnList({ params: params }).then(res => {
-          console.log('response', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -346,7 +345,6 @@ const ReturnRequestList = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {Utility.formatDisplayDate(params.row.request_date)}
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
             </Typography>
           </Box>
         </Box>

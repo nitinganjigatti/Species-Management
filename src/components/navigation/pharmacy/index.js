@@ -105,7 +105,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const localDispatchList = {
-    title: 'Local Dispatch ',
+    title: 'Direct Dispatch Local',
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/local-dispatch/local-dispatch-list'
   }

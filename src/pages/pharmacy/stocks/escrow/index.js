@@ -24,7 +24,6 @@ function Escrow() {
   const onRowClick = params => {
     var data = params.row
     if (data?.request_number?.startsWith('RES')) {
-      console.log('data', data)
       Router.push({
         pathname: `/pharmacy/request/${data?.request_id}`,
         query: { id: data.request_id, request_number: data.request_number }
@@ -154,11 +153,9 @@ function Escrow() {
           type
         }
         await getScrewList({ params: params }).then(res => {
-          // console.log('response', res)
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
-        console.log('row', rows)
         setLoading(false)
       } catch (e) {
         console.log(e)

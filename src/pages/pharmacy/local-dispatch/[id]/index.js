@@ -173,7 +173,6 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
-      console.log('shpped items', response)
       if (response.success) {
         // debugger
 
@@ -231,7 +230,7 @@ const IndividualRequest = () => {
 
   const handleEdit = id => {
     Router.push({
-      pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/',
+      pathname: '/pharmacy/local-dispatch/add-local-dispatch/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -597,7 +596,7 @@ const IndividualRequest = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {Utility.formatDisplayDate(params.row.adjusted_at)}
-              {console.log('params.row', Utility.formatDisplayDate(params.row.adjusted_at))}
+              {console.log('params.row', Utility.formatDisplayDate(params.row.created_at))}
             </Typography>
           </Box>
         </Box>
@@ -767,7 +766,7 @@ const IndividualRequest = () => {
 
   const handleRequestEdit = () => {
     Router.push({
-      pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/',
+      pathname: '/pharmacy/local-dispatch/add-local-dispatch/',
       query: { id: id, action: 'edit' }
     })
   }
@@ -839,7 +838,7 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                        Router.push('/pharmacy/local-dispatch/local-dispatch-list/')
                       }}
                       icon='ep:back'
                     />
@@ -901,7 +900,7 @@ const IndividualRequest = () => {
                       <p>{requestItems?.request_number}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
 
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
                         {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
@@ -910,7 +909,7 @@ const IndividualRequest = () => {
                             {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
                           </Typography>
                           <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.adjusted_at)}
+                            {Utility.formatDisplayDate(requestItems?.created_at)}
                           </Typography>
                         </Box>
                       </Box>
@@ -1107,7 +1106,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                  router.push('/pharmacy/local-dispatch/local-dispatch-list/')
                 }}
                 variant='contained'
                 size='small'

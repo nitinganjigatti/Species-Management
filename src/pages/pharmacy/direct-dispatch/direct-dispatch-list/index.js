@@ -75,7 +75,6 @@ const DirectDispatchList = () => {
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
-          console.log('result', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -168,7 +167,6 @@ const DirectDispatchList = () => {
 
   const onRowClick = params => {
     var data = params.row
-    console.log('params.row', params.row)
 
     Router.push({
       pathname: `/pharmacy/direct-dispatch/${data?.id}`

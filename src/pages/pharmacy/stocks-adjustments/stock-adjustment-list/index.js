@@ -68,7 +68,7 @@ const ListOfStockAdjusted = () => {
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
-          console.log('stocksAdjustedList', res)
+          // console.log('stocksAdjustedList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -282,92 +282,85 @@ const ListOfStockAdjusted = () => {
 
   const tableData = () => {
     return (
-      <>
-        {selectedPharmacy.permission.key === 'allow_full_access' ||
-        selectedPharmacy.permission.stock_adjustment === 1 ||
-        selectedPharmacy.permission.stock_adjustment === '1' ? (
-          loader ? (
-            <FallbackSpinner />
-          ) : (
-            <>
-              <Card>
-                <CardHeader title='Stock Adjustment List' action={headerAction} />
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
+      <Card>
+        <CardHeader title='Stock Adjustment List' action={headerAction} />
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
 
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  total
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                />
-              </Card>
-            </>
-          )
-        ) : (
-          <Error404 />
-        )}
-      </>
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl: false
+          }}
+          autoHeight
+          pagination
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          total
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          slots={{ toolbar: ServerSideToolbar }}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          disableColumnMenu
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+        />
+      </Card>
     )
   }
 
   return (
     <Grid>
-      <TabContext value={status}>
-        <TabList onChange={handleChange}>
-          <Tab
-            value='Missing stock'
-            label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
-          />
-          {/* <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
-            /> */}
-          <Tab value='Expiry' label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />} />
+      {selectedPharmacy.permission.key === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1 ||
+      selectedPharmacy.permission.stock_adjustment === '1' ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <TabContext value={status}>
+            <TabList onChange={handleChange}>
+              <Tab
+                value='Missing stock'
+                label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
+              />
 
-          <Tab
-            value='Broken at pharmacy'
-            label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
-          />
-        </TabList>
-        <TabPanel value='Missing stock'>{tableData()}</TabPanel>
-        {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
-        <TabPanel value='Expiry'>{tableData()}</TabPanel>
+              <Tab value='Expiry' label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />} />
 
-        <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
-      </TabContext>
+              <Tab
+                value='Broken at pharmacy'
+                label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
+              />
+            </TabList>
+            <TabPanel value='Missing stock'>{tableData()}</TabPanel>
+            {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
+            <TabPanel value='Expiry'>{tableData()}</TabPanel>
+
+            <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
+          </TabContext>
+        )
+      ) : (
+        <Error404 />
+      )}
     </Grid>
   )
 }
