@@ -221,7 +221,7 @@ const AddPayment = props => {
                       let formatted = formatDate(date)
                       onChange(formatted)
                     }}
-                    customInput={<CustomInput label='Another Date' error={Boolean(errors.date)} />}
+                    customInput={<CustomInput label='Date' error={Boolean(errors.date)} />}
                   />
                 )}
               />

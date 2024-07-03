@@ -643,12 +643,19 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+      debugger
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
           purchase_expiry_date: response.data.expiry_date
         }))
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: ''
+        }))
+        setProductExpiryDate('')
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -1031,7 +1038,7 @@ const AddPurchaseForm = () => {
                         let formatted = formatDate(date)
                         onChange(formatted)
                       }}
-                      customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
+                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
                     />
                   )}
                 />

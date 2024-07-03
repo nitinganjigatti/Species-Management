@@ -93,8 +93,6 @@ const PurchaseItemForm = props => {
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
-        console.log(purchase_details)
-
         const isDuplicate = purchase_details?.some(
           (entry, index) =>
             index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
@@ -313,7 +311,6 @@ const PurchaseItemForm = props => {
 
       // purchase_purchase_price,
     } = params
-    console.log(params)
 
     const { value, label, stock_type } = product
 
@@ -491,14 +488,13 @@ const PurchaseItemForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
+    } else {
+      setValue('purchase_expiry_date', '')
     }
   }, [productExpiryDate, expiryDateLoader])
 
   useEffect(() => {
-    debugger
     if (nestedRowMedicine.medicine_name !== '') {
-      console.log(optionsMedicineList)
-
       Object.keys(nestedRowMedicine).forEach(key => {
         if (key !== 'purchase_expiry_date') {
           setValue(key, nestedRowMedicine[key])
@@ -632,8 +628,7 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-                      console.log('product', product)
-                      console.log('event', e?.target?.value)
+
                       if (product?.product?.value !== '' && e?.target?.value !== '') {
                         field?.onBlur()
                         checkMedicineExpiryDate(product?.product?.value, e.target.value)
