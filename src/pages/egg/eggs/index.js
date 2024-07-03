@@ -702,16 +702,16 @@ const EggList = () => {
                   value='eggs_ready_to_be_discarded_at_nursery'
                   label={
                     <TabBadge
-                      label='To Be Discarded'
+                      label='Ready to Discarded'
                       totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
                     />
                   }
                 />
-                {/* <Tab
+                <Tab
                   value='eggs_discarded'
                   label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
                 />
-                <Tab
+                {/* <Tab
                   value='eggs_necropsy_needed'
                   label={
                     <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
@@ -721,8 +721,8 @@ const EggList = () => {
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {tableData()}
               </TabPanel>
-              {/* <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
-              <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
+              <TabPanel value='eggs_discarded'>{tableData()}</TabPanel>
+              {/* <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>
           </TabPanel>
         </TabContext>
