@@ -81,6 +81,8 @@ function daysFromToday(inputDate) {
   const differenceInDays = targetDate.diff(today, 'days')
   if (Math.abs(differenceInDays) === 0) {
     return 'Today'
+  } else if (Math.abs(differenceInDays) === 1) {
+    return `${Math.abs(differenceInDays)} Day`
   } else {
     return `${Math.abs(differenceInDays)} Days`
   }

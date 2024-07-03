@@ -690,7 +690,11 @@ const AddLocalDispatch = () => {
                         // labelId='state_id'
                       >
                         {toStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                          <MenuItem
+                            key={index}
+                            disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
+                            value={item?.id}
+                          >
                             {item?.name}
                           </MenuItem>
                         ))}
