@@ -84,9 +84,10 @@ export async function updateSpeciesToOrganization(payload, id) {
     return error
   }
 }
-export async function deleteSpeciesToOrganization(id) {
+export async function deleteSpeciesToOrganization(id, payload) {
   try {
-    const response = await axiosPost({ url: `${DELETE_SPECIES_TO_ORG}/${id}` })
+    const url = `${DELETE_SPECIES_TO_ORG}/${id}`
+    const response = await axiosFormPost({ url: url, body: payload })
 
     return response?.data
   } catch (error) {

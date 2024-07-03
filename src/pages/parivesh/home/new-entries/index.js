@@ -159,7 +159,7 @@ const NewEntry = ({}) => {
         const params = {
           sort,
           q,
-          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          org_id: selectedParivesh?.id,
           sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -240,8 +240,11 @@ const NewEntry = ({}) => {
 
   const confirmDeleteAction = async () => {
     try {
+      const payload = {
+        org_id: selectedParivesh?.id
+      }
       setIsModalOpen(false)
-      const response = await deleteSpeciesToOrganization(selectedId)
+      const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
         Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
         // Reload the table data
@@ -859,7 +862,7 @@ const NewEntry = ({}) => {
 
   return (
     <>
-      {selectedParivesh?.id !== 'all' && organizationCountList.length > 0 && (
+      {organizationCountList.length > 0 && (
         <Card>
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
             {organizationCountList.map((org, inx) => {

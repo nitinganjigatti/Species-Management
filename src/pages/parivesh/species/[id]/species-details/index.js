@@ -223,7 +223,7 @@ const SpeciesDetails = () => {
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,
-          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          org_id: selectedParivesh?.id,
           limit: paginationModel.pageSize
         }
 

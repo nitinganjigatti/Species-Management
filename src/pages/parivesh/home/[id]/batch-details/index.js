@@ -39,8 +39,10 @@ import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 import Image from 'next/image'
 import { useDropzone } from 'react-dropzone'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { deleteAttachmentForBatch, uploadAttachmentForBatch } from 'src/lib/api/parivesh/uploadAttachmentBatch'
+import pdfIcon from 'public/icons/pdf_icon.svg'
+import xlsIcon from 'public/icons/xls_icon.svg'
+import docIcon from 'public/icons/doc_icon.svg'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -70,12 +72,14 @@ const BatchDetails = ({ params, searchParams }) => {
   const [rows, setRows] = useState([])
   const [selectedStatus, setSelectedStatus] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [batchDetails, setBatchDetails] = useState()
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [regId, setRegId] = useState('')
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
+  const [selectedId, setSelectedId] = useState(null)
 
   const onClose = () => {
     setDialog(false)
@@ -538,13 +542,16 @@ const BatchDetails = ({ params, searchParams }) => {
   })
 
   const removeFilePreview = async id => {
+    setIsModalOpenDelete(true)
+    setSelectedId(id)
+  }
+  const confirmDeleteAction = async () => {
     try {
       const payload = {
         batch_id: batchDetails?.batch_id
       }
-      const res = await deleteAttachmentForBatch(id, payload)
-      console.log(res, 'delete')
-
+      setIsModalOpenDelete(false)
+      const res = await deleteAttachmentForBatch(selectedId, payload)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
         await getBatchListById(batchDetails?.batch_id)
@@ -558,23 +565,33 @@ const BatchDetails = ({ params, searchParams }) => {
 
   console.log(filePreviews, 'filePreviews')
 
-  const isImage = fileName => fileName.match(/\.(jpeg|jpg|gif|png)$/i)
-  // const truncateFileName = (fileName, maxLength = 15) => {
-  //   if (fileName.length > maxLength) {
-  //     return fileName.substring(0, maxLength) + '...'
-  //   }
-  //   return fileName
-  // }
+  const isImage = fileName => fileName.match(/\.(jpeg|jpg|svg|png)$/i)
+
   const getFileNameFromUrl = url => {
     return url.substring(url.lastIndexOf('/') + 1)
   }
 
   // Function to truncate the file name
-  const truncateFileName = (fileName, maxLength = 12) => {
+  const truncateFileName = (fileName, maxLength = 16) => {
     if (fileName.length <= maxLength) {
       return fileName
     }
     return fileName.substr(0, maxLength - 3) + '...'
+  }
+  const getIconByFileType = fileName => {
+    const extension = fileName.split('.').pop().toLowerCase()
+    switch (extension) {
+      case 'pdf':
+        return pdfIcon
+      case 'xls':
+      case 'xlsx':
+        return xlsIcon
+      case 'doc':
+      case 'docx':
+        return docIcon
+      default:
+        return '' // default icon if the file type is unknown
+    }
   }
 
   return (
@@ -643,6 +660,7 @@ const BatchDetails = ({ params, searchParams }) => {
                     displayEmpty
                     sx={{
                       minWidth: 200,
+                      height: 40,
                       background: '#00AFD6',
                       color: '#FFFFFF',
                       borderColor: '#00AFD6',
@@ -698,19 +716,25 @@ const BatchDetails = ({ params, searchParams }) => {
           <Box>
             <Grid container spacing={2}>
               <Grid item>
-                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                <Button size='large' variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
                   <Icon icon='mdi:printer-outline' size={1} />
                   &nbsp; Print
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant='outlined' sx={{ color: '#7A8684', mr: 3 }} {...getRootProps()} disabled={btnLoader}>
+                <Button
+                  size='large'
+                  variant='outlined'
+                  sx={{ color: '#7A8684', mr: 3 }}
+                  {...getRootProps()}
+                  disabled={btnLoader}
+                >
                   {btnLoader ? (
                     <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
                   ) : (
                     <Icon icon='mdi:attachment-plus' size={1} />
                   )}
-                  &nbsp; Attachment
+                  &nbsp; {`Attachment${filePreviews?.length ? ` (${filePreviews?.length})` : ''}`}
                   <input {...getInputProps()} />
                 </Button>
               </Grid>
@@ -723,9 +747,9 @@ const BatchDetails = ({ params, searchParams }) => {
                         position: 'relative',
                         backgroundColor: '#f0f0f0', // Adjust background color as needed
                         borderRadius: '10px',
-                        height: 90,
+                        height: 44,
                         width: 'auto',
-                        padding: '10px',
+                        padding: '6px',
                         boxSizing: 'border-box'
                       }}
                     >
@@ -747,29 +771,24 @@ const BatchDetails = ({ params, searchParams }) => {
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none', color: 'inherit' }}
                         >
-                          <Typography variant='body2' sx={{ m: 2 }}>
-                            {truncateFileName(getFileNameFromUrl(filePreview.attachment))}
-                          </Typography>
+                          <Tooltip title={filePreview.attachment_name} arrow>
+                            <Typography variant='body2' sx={{ m: 2 }}>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                {/* <Image src={pdfIcon} alt='' width={50} height={50} /> */}
+                                <Image
+                                  src={getIconByFileType(filePreview.attachment_name)}
+                                  alt=''
+                                  width={20}
+                                  height={20}
+                                />
+                                <span style={{ marginLeft: '6px' }}>
+                                  {truncateFileName(getFileNameFromUrl(filePreview.attachment_name))}
+                                </span>
+                              </div>
+                            </Typography>
+                          </Tooltip>
                         </a>
                       )}
-                      {/* {filePreview.attachment ? (
-                        <>
-                          <img
-                            style={{
-                              height: '100%',
-                              borderRadius: '5%',
-                              objectFit: 'cover',
-                              width: '100%'
-                            }}
-                            alt='Attachment'
-                            src={filePreview.attachment}
-                          />
-                        </>
-                      ) : (
-                        <Typography variant='body2' sx={{ m: 2 }}>
-                          {filePreview.attachment}
-                        </Typography>
-                      )} */}
 
                       {/* Button to remove selected file */}
                       <Box
@@ -779,7 +798,8 @@ const BatchDetails = ({ params, searchParams }) => {
                           top: 0,
                           right: 0,
                           zIndex: 10,
-                          height: '24px',
+                          height: '16px',
+                          width: '16px',
                           borderRadius: 0.4,
                           backgroundColor: theme.palette.customColors.secondaryBg,
                           display: 'flex',
@@ -805,6 +825,7 @@ const BatchDetails = ({ params, searchParams }) => {
                     variant='contained'
                     color='primary'
                     onClick={() => handleSaveBatch('save')}
+                    size='large'
                   >
                     Save
                   </Button>
@@ -817,6 +838,7 @@ const BatchDetails = ({ params, searchParams }) => {
                     color='primary'
                     onClick={() => handleSaveBatch('saveBatch')}
                     disabled={batchDetails?.status === 'rejected' ? true : false}
+                    size='large'
                   >
                     Save Batch
                   </Button>
@@ -838,7 +860,7 @@ const BatchDetails = ({ params, searchParams }) => {
             <Icon icon='mdi:close' />
           </IconButton>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ width: 350 }}>
           <Box sx={{ mt: 6 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <FormControl fullWidth>
@@ -875,6 +897,66 @@ const BatchDetails = ({ params, searchParams }) => {
             Add ID
           </LoadingButton>
         </DialogActions>
+      </Dialog>
+      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpenDelete(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px',
+
+              // padding: '40px',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                Are you sure you want to delete this attachment?
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+              <Button
+                disabled={btnLoader}
+                onClick={() => setIsModalOpenDelete(false)}
+                variant='outlined'
+                sx={{
+                  color: 'gray',
+                  width: '45%'
+                }}
+              >
+                Cancel
+              </Button>
+
+              <LoadingButton
+                loading={btnLoader}
+                size='large'
+                variant='contained'
+                sx={{ width: '45%' }}
+                onClick={() => confirmDeleteAction()}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent />
       </Dialog>
     </>
   )

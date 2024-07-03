@@ -306,11 +306,10 @@ const AddNewEntry = () => {
   }, [fetchSpeciesData, searchValue])
 
   useEffect(() => {
-    if (selectedParivesh?.id === 'all') {
-      setOrganizations(organizationList.filter(el => el.id !== 'all'))
-    } else {
+    if (selectedParivesh?.id) {
       const selected = organizationList.find(el => el.id === selectedParivesh.id)
       setOrganizations(selected ? [selected] : [])
+    } else {
     }
   }, [selectedParivesh, organizationList])
 
@@ -366,7 +365,7 @@ const AddNewEntry = () => {
                   </FormControl>
                 </Grid>
               </Grid>
-              {selectedParivesh?.id === 'all' && organizations && organizations.length > 0 && (
+              {organizations && organizations.length > 0 && (
                 <Grid container spacing={2} sx={{ mb: 6 }}>
                   <Grid item xs={12}>
                     <FormControl fullWidth error={Boolean(errors.organizationName)}>

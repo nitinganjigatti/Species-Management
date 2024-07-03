@@ -87,9 +87,7 @@ const Overview = () => {
   const [organizationCountList, setOrganizationCountList] = useState([])
 
   useEffect(() => {
-    if (selectedParivesh?.id === 'all') {
-      setOrganizationDetails(organizationList.filter(el => el.id !== 'all'))
-    } else {
+    if (selectedParivesh?.id) {
       const selected = organizationList.find(el => el.id === selectedParivesh.id)
       setOrganizationDetails(selected ? [selected] : [])
     }
@@ -418,7 +416,7 @@ const Overview = () => {
                       summaryIcon='mdi:arrow-top-right'
                     />
                   </Box>
-                  {selectedParivesh?.id !== 'all' && (
+                  {selectedParivesh?.id && (
                     <Box sx={{ mt: 3 }}>
                       <CustomAccordion
                         title={orgData.submittedAccordionData.title}
