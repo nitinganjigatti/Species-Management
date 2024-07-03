@@ -430,9 +430,10 @@ const EggList = () => {
     setEggId(params?.row?.egg_id)
   }
 
-  const onCellClick = params => {
-    // console.log('params.field', params.field)
-    // const clickedColumn = params.field !== 'switch'
+  const onCellClick = (params, event) => {
+    if (event.target.closest('.MuiDataGrid-checkboxInput')) {
+      return // Do nothing if the click is on the checkbox
+    }
     if (params) {
       const data = params.row
       Router.push({
@@ -493,7 +494,7 @@ const EggList = () => {
         }
 
         await GetEggList({ params: params }).then(res => {
-          console.log('res :>> ', res)
+          // console.log('res :>> ', res)
 
           // let listWithId = res.data.result.map((el, i) => {
           //   return { ...el, uid: i + 1 }
@@ -552,12 +553,11 @@ const EggList = () => {
 
   const headerAction = (
     <>
-      {/* <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD New
+          &nbsp; Discard
         </Button>
-      </Box> */}
+      </Box>
     </>
   )
 
@@ -623,6 +623,8 @@ const EggList = () => {
                 }
               }}
               onCellClick={onCellClick}
+              // onCellClick={handleCellClick}
+              checkboxSelection
             />
           </>
         )}
