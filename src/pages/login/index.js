@@ -347,13 +347,13 @@ const LoginPage = () => {
                     }}
                   >
                     {' '}
-                    <Typography
+                    {/* <Typography
                       sx={{ marginLeft: 'auto', mt: 3, color: '#E4B819', textDecoration: 'underline', fontSize: 12 }}
                       variant='body2'
                       color='primary'
                     >
                       Forgot Password
-                    </Typography>
+                    </Typography> */}
                   </Box>
 
                   <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
