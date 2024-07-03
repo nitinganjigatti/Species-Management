@@ -44,26 +44,26 @@ const schema = yup.object().shape({
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
-  possession_type: yup.string().required('Reason is Required'),
-  alloted_register_no: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Registration Number is Required for Death Reason')
-  }),
-  reason_for_death: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Reason for Death is Required')
-  }),
-  where_disposed: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Where and How Disposed is Required for Death Reason')
-  }),
+  possession_type: yup.string().required('Reason is Required')
+  // alloted_register_no: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Registration Number is Required for Death Reason')
+  // }),
+  // reason_for_death: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Reason for Death is Required')
+  // }),
+  // where_disposed: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+  // })
 
-  organizationName: yup.mixed().when('selectedParivesh.id', {
-    is: 'all',
-    then: yup.object().shape({
-      organization_name: yup.string().required('Organization Name is Required')
-    })
-  })
+  // organizationName: yup.mixed().when('selectedParivesh.id', {
+  //   is: 'all',
+  //   then: yup.object().shape({
+  //     organization_name: yup.string().required('Organization Name is Required')
+  //   })
+  // })
 })
 
 const AddNewEntry = () => {
@@ -129,28 +129,28 @@ const AddNewEntry = () => {
       transaction_date,
       specie,
       possession_type,
-      organizationName,
-      age,
-      alloted_register_no,
-      reason_for_death,
-      where_disposed,
+      // organizationName,
+      // age,
+      // alloted_register_no,
+      // reason_for_death,
+      // where_disposed,
       animal_count
     } = { ...data }
 
     const payload = {
-      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
       // age: age,
-      ...(possession_type === 'death' && {
-        alloted_register_no: alloted_register_no,
-        reason_for_death: reason_for_death,
-        where_disposed: where_disposed
-      })
+      // ...(possession_type === 'death' && {
+      //   alloted_register_no: alloted_register_no,
+      //   reason_for_death: reason_for_death,
+      //   where_disposed: where_disposed
+      // })
     }
 
     try {
@@ -365,7 +365,7 @@ const AddNewEntry = () => {
                   </FormControl>
                 </Grid>
               </Grid>
-              {organizations && organizations.length > 0 && (
+              {/* {organizations && organizations.length > 0 && (
                 <Grid container spacing={2} sx={{ mb: 6 }}>
                   <Grid item xs={12}>
                     <FormControl fullWidth error={Boolean(errors.organizationName)}>
@@ -393,7 +393,7 @@ const AddNewEntry = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-              )}
+              )} */}
 
               <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12}>
@@ -409,7 +409,7 @@ const AddNewEntry = () => {
                           value={value}
                           onChange={e => {
                             onChange(e)
-                            setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
+                            // setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
                           }}
                           error={Boolean(errors.possession_type)}
                         >
@@ -427,9 +427,9 @@ const AddNewEntry = () => {
                 </Grid>
               </Grid>
               <Grid>
-                {showAdditionalFields && (
+                {/* {showAdditionalFields && (
                   <>
-                    {/* Additional input fields */}
+                 
                     <FormControl fullWidth sx={{ mb: 6 }}>
                       <Controller
                         name='alloted_register_no'
@@ -490,7 +490,7 @@ const AddNewEntry = () => {
                       )}
                     </FormControl>
                   </>
-                )}
+                )} */}
               </Grid>
 
               <Grid container spacing={2} sx={{ mb: 6 }}>
