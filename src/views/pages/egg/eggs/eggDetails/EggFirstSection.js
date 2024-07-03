@@ -131,15 +131,8 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
       <Card>
         <CardContent>
           <Grid container>
-            <Grid
-              sx={{ pr: { xl: '24px', lg: '10px', md: '24px', alignSelf: 'stretch' } }}
-              item
-              xs={12}
-              md={6}
-              lg={2.7}
-              xl={3}
-            >
-              <Box sx={{ borderRadius: '8px', height: '100%' }}>
+            <Grid sx={{ pr: { xl: '24px', lg: '10px', md: '24px' } }} item xs={12} md={6} lg={2.7} xl={3}>
+              <Box sx={{ borderRadius: '8px', width: '100%', height: '100%' }}>
                 {eggDetails?.egg_images?.length ? (
                   <KeenSliderWrapper>
                     <>
@@ -185,14 +178,20 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                   </KeenSliderWrapper>
                 ) : (
                   <ImageListItem
-                    style={{ height: '100%', backgroundColor: theme.palette.background.default, borderRadius: '8px' }}
+                    style={{
+                      width: '100%',
+                      aspectRatio: 15 / 9,
+                      height: '100%',
+                      backgroundColor: theme.palette.background.default,
+                      borderRadius: '8px'
+                    }}
                   >
                     <img
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
                       loading='lazy'
-                      height={'100%'}
+                      // height={'100%'}
                     />
 
                     <ImageListItemBar
