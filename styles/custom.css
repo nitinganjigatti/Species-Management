@@ -14,3 +14,18 @@
 .w_155 {
   width: 155px;
 }
+.element {
+  border: 3px solid;
+  border-color: #446f54;
+  border-image-slice: 1;
+  border-radius: 15px;
+  /* border-image-source: linear-gradient(
+    132.05deg,
+    #c9ffdd -6.28%,
+    #2a884d 31.43%,
+    #1e6639 56.17%,
+    #7e8882 76.32%,
+    #0c2917 100.47%,
+    #000000 129.39%
+  ); */
+}
