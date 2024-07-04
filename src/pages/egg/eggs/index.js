@@ -77,7 +77,7 @@ const EggList = () => {
     try {
       const params = {
         // type: ['length', 'weight'],
-        q,
+        search: q,
         page: 1,
         limit: 50
       }
@@ -614,12 +614,12 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.15,
+      flex: 0.2,
       minWidth: 10,
       field: 'animal_id',
       sortable: false,
       headerName: 'Animal Id',
-      align: 'center',
+
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {params.row.animal_id ? (
@@ -837,7 +837,7 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: status === 'eggs_ready_to_be_discarded_at_nursery' ? nurseryId : '',
+          nursery_id: nurseryId,
           type:
             status === undefined
               ? 'eggs_received'
