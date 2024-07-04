@@ -3,11 +3,9 @@ import Icon from 'src/@core/components/icon'
 import { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
-import { display } from '@mui/system'
 
 import AddGallery from '../../../../../components/egg/AddGallery'
 import EggDisCarded from '../../../../../components/egg/EggDiscarded'
-
 
 const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
   const theme = useTheme()
@@ -36,7 +34,7 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
         anchor='right'
         open={DetailDrawer}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
           // backgroundColor: 'background.default'
         }}
       >
@@ -80,7 +78,10 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', height: '120%' }}>
+        <Box
+          className='sidebar-body'
+          sx={{ backgroundColor: 'background.default', height: 'calc(100vh - 144px)', overflowY: 'auto' }}
+        >
           {status === 'Overview' ? (
             <Box>
               <Box sx={{ px: 4 }}>
@@ -109,7 +110,9 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                         height: '70px',
                         backgroundColor: '#FFD3D3',
                         p: '12px',
-                        borderRadius: '8px',
+                        // border:"0px, 0px, 1px, 0px" ,
+                        borderTopLeftRadius: 8, // Rounded top-left corner
+                        borderTopRightRadius: 8, // Rounded bottom-left corner
                         width: '330px',
                         alignItems: 'center',
                         ml: 4,
@@ -159,9 +162,6 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                             Nursery Name
                           </Typography>
                         </Box>
-                        {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
                       </Grid>
                       <Box sx={{ mt: 3.5 }}>
                         <Grid
@@ -176,7 +176,8 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                             position: 'relative',
                             backgroundColor: '#FFD3D3',
                             p: '12px',
-                            borderRadius: '8px',
+                            borderBottomLeftRadius: 8, // Rounded bottom-left corner
+                            borderBottomRightRadius: 8, // Rounded bottom-right corner
                             width: '330px',
                             right: '12px',
                             alignItems: 'center'
@@ -338,7 +339,7 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                           width: 35,
                           height: 35,
                           mr: 2,
-                          mt: 1,
+
                           borderRadius: '50%',
                           background: '#E8F4F2',
                           overflow: 'hidden'
@@ -370,7 +371,7 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                                 fontWeight: '400',
                                 fontFamily: 'Inter',
                                 lineHeight: '16.94px',
-                                mt: 0.5
+                                mt: 1
                               }}
                             >
                               Gate12345
@@ -386,8 +387,8 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
                                 fontWeight: '400',
                                 fontFamily: 'Inter',
                                 lineHeight: '16.94px',
-                                mt: 0.5,
-                                ml: 56
+                                mt: 1,
+                                ml: 58
                               }}
                             >
                               10 April 2024 ,3:34PM

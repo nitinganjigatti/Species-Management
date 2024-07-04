@@ -1,127 +1,115 @@
 import { Avatar, Box, Card, CardContent, Grid, Typography } from '@mui/material'
-import { fontFamily, fontSize, fontWeight } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 
 const EggDisCarded = () => {
   return (
     <>
-      <Grid sx={{ margin: 4, mt: 10, ml: 10 }}>
+      <Grid sx={{ m: 4, mt: 10, ml: 10 }}>
         <Card sx={{ width: '500px', border: '1px solid #C3CEC7' }}>
           <CardContent>
-            <Box
-              sx={{
-                width: '450px',
-                height: '102px',
-                border: '2px solid #FFD3D3',
-                borderRadius: '8px',
-                gap: 12,
-                display: 'flex'
-              }}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Box
                 sx={{
-                  width: '57px',
-                  height: '99px',
-                  borderTopLeftRadius: '7px', // Border radius on top left corner
-                  borderBottomLeftRadius: '7px', // Border radius on bottom left corner
-                  backgroundColor: '#FFD3D3',
-                  borderLeft: '1px solid #FFD3D3',
-                  gap: 10
+                  width: '100%',
+                  height:"125px" ,
+                  border: '2px solid #FFD3D3',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  gap: 4,
+                  alignItems: 'center'
                 }}
               >
-                <Box sx={{ width: '28px', height: '28px' }}>
-                  <Avatar
-                    src={'/icons/redEgg.png'}
-                    sx={{
-                      width: '36.33px',
-                      height: '30px',
-                      top: '35.5px',
-                      left: '7.93px'
-                    }}
-                  />
+                <Box
+                  sx={{
+                    width: '70px',
+                    height: '123px',
+                    backgroundColor: '#FFD3D3',
+                    borderLeft: '1px solid #FFD3D3',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Avatar src={'/icons/redEgg.png'} sx={{ width: '36.33px', height: '30px' }} />
                 </Box>
-              </Box>
-              <Box
-                sx={{
-                  width: '290px',
-                  height: '104px',
-                  padding: '16px, 12px, 16px, 0px'
-                }}
-              >
-                <Box sx={{ width: '238px', height: '72px', gap: 6 }}>
-                  <Box sx={{ width: '238px', height: '20px' }}>
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        fontFamily: 'Inter',
-                        mt: 2,
-                        position: 'relative',
-                        right: '25px'
-                      }}
-                    >
-                      Rainbow Lorikeet
-                    </Typography>
-                    <Box sx={{ display: 'flex' }}>
-                      <Box>
-                        <Typography
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: '400',
-                            fontFamily: 'Inter',
-                            color: '#44544A',
-                            mt: 1,
-                            position: 'relative',
-                            right: '25px'
-                          }}
-                        >
-                          0273 / 24
-                        </Typography>
-                      </Box>
-                      <Box
+                <Box
+                  sx={{
+                    flex: 1,
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      fontFamily: 'Inter',
+                      position: 'relative',
+                      right: '10px',
+                      bottom:0
+                    }}
+                  >
+                    Rainbow Lorikee
+                  </Typography>
+                  <Box sx={{ display: 'flex' }}>
+                    <Box>
+                      {' '}
+                      <Typography
                         sx={{
-                          mt: 1.5,
+                          fontSize: '16px',
+                          fontWeight: '400',
+                          fontFamily: 'Inter',
+                          color: '#44544A',
                           position: 'relative',
-                          right: '10px'
+                          right: '10px',
+                          bottom:"2px"
                         }}
                       >
-                        <Typography
-                          sx={{
-                            color: '#E93353',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            px: 3,
-                            backgroundColor: '#FFD3D3',
-                            textAlign: 'center',
-                            borderRadius: '4px'
-                          }}
-                        >
-                          Rotten
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '4px',
-                          gap: 10,
-                          position: 'relative',
-                          mt: 1,
-                          left: '170px'
-                        }}
-                      >
-                        <Icon icon='mdi:delete-outline' />
-                      </Box>
+                        0273 / 24
+                      </Typography>
                     </Box>
+                    <Box>
+                      {' '}
+                      <Typography
+                        sx={{
+                          color: '#E93353',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          px: 3,
+                          backgroundColor: '#FFD3D3',
+                          textAlign: 'center',
+                          borderRadius: '4px',
+                          alignSelf: 'flex-start',
+                          position:"relative",
+                          bottom:"0px"
+                        
+                        }}
+                      >
+                        Rotten
+                      </Typography>
+                    </Box>
+                    <Box sx={{ position: 'relative', left: '180px' }}>
+                      <Icon icon='mdi:delete-outline' sx={{ width: '24px', height: '24px', borderRadius: '4px' }} />
+                    </Box>
+                  </Box>
 
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      position: 'relative',
+                      right: '12px',
+                      bottom:"10px"
+                    }}
+                  >
                     <Typography
                       sx={{
                         fontSize: '14px',
                         fontWeight: '400',
-                        fontFamily: 'Inter',
-                        mb: 3,
-                        position: 'relative',
-                        right: '25px'
+                        fontFamily: 'Inter'
                       }}
                     >
                       10 Apr 2024
@@ -129,6 +117,8 @@ const EggDisCarded = () => {
                   </Box>
                 </Box>
               </Box>
+
+           
             </Box>
           </CardContent>
         </Card>

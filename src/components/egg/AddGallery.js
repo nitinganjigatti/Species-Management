@@ -6,13 +6,15 @@ const AddGallery = () => {
   const theme = useTheme()
   return (
     <>
-      <Grid sx={{ m: 3, ml: 4 }}>
+      <Grid sx={{ m: 3, ml: 4}}>
+       
         <Grid
           sx={{
             width: '80%', // Ensure the Grid takes full width
             mt: 4,
             display: 'flex',
             justifyContent: 'space-between',
+            overflowY: 'auto',
             gap: 2,
             paddingBottom: 2
           }}
@@ -144,6 +146,8 @@ const AddGallery = () => {
             </Card>
           </Grid>
         </Grid>
+      
+        
       </Grid>
     </>
   )
