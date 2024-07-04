@@ -553,11 +553,11 @@ const EggList = () => {
 
   const headerAction = (
     <>
-      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
+      {/* <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           &nbsp; Discard
         </Button>
-      </Box>
+      </Box> */}
     </>
   )
 
@@ -623,8 +623,9 @@ const EggList = () => {
                 }
               }}
               onCellClick={onCellClick}
+
               // onCellClick={handleCellClick}
-              checkboxSelection
+              // checkboxSelection
             />
           </>
         )}

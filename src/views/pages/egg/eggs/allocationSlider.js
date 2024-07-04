@@ -106,6 +106,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
+          console.log('assesmentTypes :>> ', assesmentTypes)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
