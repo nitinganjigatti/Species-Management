@@ -168,7 +168,8 @@ const Media = () => {
             {filePreviews.map((group, groupIndex) => (
               <Grid item key={groupIndex} xs={12}>
                 <Typography variant='subtitle1' gutterBottom sx={{ margin: '10px 0', fontWeight: 'bold' }}>
-                  {moment(group.date).format('DD/MM/YYYY')}
+                  {/* {moment(group.date).format('DD/MM/YYYY')} */}
+                  {moment(group.date).format('DD MMMM YYYY')}
                 </Typography>
 
                 <Grid container spacing={6}>
