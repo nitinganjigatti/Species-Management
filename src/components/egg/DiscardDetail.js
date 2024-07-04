@@ -6,6 +6,7 @@ import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 import { display } from '@mui/system'
 import AddGallery from './AddGallery'
 import EggDisCarded from './EggDiscarded'
+import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
 const DiscardDetail = ({ setDetailDrawer }) => {
   const theme = useTheme()
@@ -33,8 +34,7 @@ const DiscardDetail = ({ setDetailDrawer }) => {
         anchor='right'
         open={open}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
-
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
           // backgroundColor: 'background.default'
         }}
       >
@@ -285,8 +285,8 @@ const DiscardDetail = ({ setDetailDrawer }) => {
               </Box>
               <Typography
                 sx={{
-                  mt: 5,
-                  ml: 7,
+                  mt: 6,
+                  ml: 4,
                   fontSize: '20px',
                   fontWeight: 500,
                   fontFamily: 'Inter',
@@ -294,9 +294,10 @@ const DiscardDetail = ({ setDetailDrawer }) => {
                   color: '#44544A'
                 }}
               >
-                Add Photos
+                Added Photos
               </Typography>
               <AddGallery />
+
               <Card>
                 <Box
                   sx={{
@@ -347,10 +348,11 @@ const DiscardDetail = ({ setDetailDrawer }) => {
                         <Typography
                           noWrap
                           sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            lineHeight: '16.94px'
+                            color: '#44544A',
+                            fontSize: '16px',
+                            fontWeight: '400',
+                            lineHeight: '16px',
+                            fontFamily: 'Inter'
                           }}
                         >
                           Balwinder Singh
@@ -362,9 +364,10 @@ const DiscardDetail = ({ setDetailDrawer }) => {
                               noWrap
                               sx={{
                                 color: theme.palette.customColors.neutralSecondary,
-                                fontSize: '12px',
+                                fontSize: '14px',
                                 fontWeight: '400',
-                                lineHeight: '14.52px',
+                                fontFamily: 'Inter',
+                                lineHeight: '16.94px',
                                 mt: 0.5
                               }}
                             >
@@ -377,11 +380,12 @@ const DiscardDetail = ({ setDetailDrawer }) => {
                               noWrap
                               sx={{
                                 color: theme.palette.customColors.neutralSecondary,
-                                fontSize: '12px',
+                                fontSize: '14px',
                                 fontWeight: '400',
-                                lineHeight: '14.52px',
+                                fontFamily: 'Inter',
+                                lineHeight: '16.94px',
                                 mt: 0.5,
-                                ml: 65
+                                ml: 56
                               }}
                             >
                               10 April 2024 ,3:34PM
@@ -393,10 +397,11 @@ const DiscardDetail = ({ setDetailDrawer }) => {
                         <Typography
                           noWrap
                           sx={{
-                            color: theme.palette.error.main,
-                            fontSize: '12px',
+                            color: '#E93353',
+                            fontSize: '14px',
                             fontWeight: '400',
-                            lineHeight: '14.52px',
+                            fontFamily: 'Inter',
+                            lineHeight: '16.94px',
                             mt: 0.5
                           }}
                         >

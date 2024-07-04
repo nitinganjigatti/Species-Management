@@ -5,15 +5,14 @@ import Icon from 'src/@core/components/icon'
 const EggDisCarded = () => {
   return (
     <>
-      <Grid sx={{ mt: 3 }}>
-        <Card>
+      <Grid sx={{ margin: 4, mt: 10, ml: 10 }}>
+        <Card sx={{ width: '500px', border: '1px solid #C3CEC7' }}>
           <CardContent>
             <Box
               sx={{
-                width: '510px',
-                ml: 2,
-                height: '104px',
-                border: '1px solid #FFD3D3',
+                width: '450px',
+                height: '102px',
+                border: '2px solid #FFD3D3',
                 borderRadius: '8px',
                 gap: 12,
                 display: 'flex'
@@ -22,12 +21,11 @@ const EggDisCarded = () => {
               <Box
                 sx={{
                   width: '57px',
-                  height: '103px',
+                  height: '99px',
                   borderTopLeftRadius: '7px', // Border radius on top left corner
                   borderBottomLeftRadius: '7px', // Border radius on bottom left corner
-
                   backgroundColor: '#FFD3D3',
-                  borderLeft: '2px solid FFD3D3',
+                  borderLeft: '1px solid #FFD3D3',
                   gap: 10
                 }}
               >
@@ -45,13 +43,13 @@ const EggDisCarded = () => {
               </Box>
               <Box
                 sx={{
-                  width: '420px',
+                  width: '290px',
                   height: '104px',
                   padding: '16px, 12px, 16px, 0px'
                 }}
               >
-                <Box sx={{ width: '368px', height: '72px', gap: 6 }}>
-                  <Box sx={{ width: '368px', height: '20px' }}>
+                <Box sx={{ width: '238px', height: '72px', gap: 6 }}>
+                  <Box sx={{ width: '238px', height: '20px' }}>
                     <Typography
                       sx={{
                         fontSize: '16px',
@@ -59,7 +57,7 @@ const EggDisCarded = () => {
                         fontFamily: 'Inter',
                         mt: 2,
                         position: 'relative',
-                        right: '35px'
+                        right: '25px'
                       }}
                     >
                       Rainbow Lorikeet
@@ -71,16 +69,22 @@ const EggDisCarded = () => {
                             fontSize: '16px',
                             fontWeight: '400',
                             fontFamily: 'Inter',
-                            color:"#44544A",
+                            color: '#44544A',
                             mt: 1,
                             position: 'relative',
-                            right: '35px'
+                            right: '25px'
                           }}
                         >
                           0273 / 24
                         </Typography>
                       </Box>
-                      <Box sx={{ mt: 1.5 ,position: 'relative', right: '20px' }}>
+                      <Box
+                        sx={{
+                          mt: 1.5,
+                          position: 'relative',
+                          right: '10px'
+                        }}
+                      >
                         <Typography
                           sx={{
                             color: '#E93353',
@@ -102,8 +106,8 @@ const EggDisCarded = () => {
                           borderRadius: '4px',
                           gap: 10,
                           position: 'relative',
-                          mt: 2,
-                          left: '230px'
+                          mt: 1,
+                          left: '170px'
                         }}
                       >
                         <Icon icon='mdi:delete-outline' />
@@ -117,7 +121,7 @@ const EggDisCarded = () => {
                         fontFamily: 'Inter',
                         mb: 3,
                         position: 'relative',
-                        right: '35px'
+                        right: '25px'
                       }}
                     >
                       10 Apr 2024
