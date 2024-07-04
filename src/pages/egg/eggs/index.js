@@ -77,7 +77,7 @@ const EggList = () => {
     try {
       const params = {
         // type: ['length', 'weight'],
-        search: q,
+        q,
         page: 1,
         limit: 50
       }
@@ -622,42 +622,56 @@ const EggList = () => {
       align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography
-            style={{
-              // color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '500'
+          {params.row.animal_id ? (
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '500'
 
-              // lineHeight: '19.36px'
-            }}
-          >
-            {/* {params.row.egg_code ? params.row.egg_code : '-'} */}-
-          </Typography>{' '}
+                // lineHeight: '19.36px'
+              }}
+            >
+              {params.row.animal_id ? params.row.animal_id : '-'}
+            </Typography>
+          ) : (
+            <Typography
+              style={{
+                color: theme.palette?.primary?.main,
+                fontSize: '16px',
+                fontWeight: '500'
+
+                // lineHeight: '19.36px'
+              }}
+            >
+              Create Animal ID
+            </Typography>
+          )}
         </Box>
       )
     },
 
-    {
-      flex: 0.15,
-      minWidth: 10,
-      sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
+    // {
+    //   flex: 0.15,
+    //   minWidth: 10,
+    //   sortable: false,
+    //   field: 'site',
+    //   headerName: 'SITE NAME',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
-      )
-    },
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.site_name ? params.row.site_name : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -1057,6 +1071,46 @@ const EggList = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader title='Egg List' />
+        <Box>
+          <Autocomplete
+            sx={{
+              width: 210,
+              m: 2,
+              ml: 5
+            }}
+            name='nursery'
+            value={defaultNursery}
+            disablePortal
+            id='nursery'
+            options={nurseryList?.length > 0 ? nurseryList : []}
+            getOptionLabel={option => option.nursery_name}
+            isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
+            onChange={(e, val) => {
+              if (val === null) {
+                setDefaultNursery(null)
+
+                // return onChange('')
+              } else {
+                setDefaultNursery(val)
+
+                // setValue('room', '')
+                setFilterByNurseryId(val.nursery_id)
+
+                // return onChange(val.nursery_id)
+              }
+            }}
+            renderInput={params => (
+              <TextField
+                onChange={e => {
+                  searchNursery(e.target.value)
+                }}
+                {...params}
+                label='Select Nursery *'
+                placeholder='Search & Select'
+              />
+            )}
+          />
+        </Box>
         {/* <CardContent> */}
         <TabContext value={status}>
           <TabList onChange={handleChange} sx={{ px: 2 }}>
@@ -1100,54 +1154,20 @@ const EggList = () => {
           <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
             <Divider sx={{ mb: 3 }} />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-              <Autocomplete
-                sx={{ width: 210, m: 2, ml: 5 }}
-                name='nursery'
-                value={defaultNursery}
-                disablePortal
-                id='nursery'
-                options={nurseryList?.length > 0 ? nurseryList : []}
-                getOptionLabel={option => option.nursery_name}
-                isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultNursery(null)
-
-                    // return onChange('')
-                  } else {
-                    setDefaultNursery(val)
-
-                    // setValue('room', '')
-                    setFilterByNurseryId(val.nursery_id)
-
-                    // return onChange(val.nursery_id)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    onChange={e => {
-                      searchNursery(e.target.value)
-                    }}
-                    {...params}
-                    label='Select Nursery *'
-                    placeholder='Search & Select'
-                  />
-                )}
-              />
-              {selectionEggModel?.length > 0 && (
-                <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between', mx: 3 }}>
-                  <Button
-                    sx={{ px: 7, py: 5 }}
-                    size='small'
-                    variant='contained'
-                    onClick={() => setOpenDiscardDialog(true)}
-                  >
-                    &nbsp;{selectionEggModel?.length}&nbsp;Discard
-                  </Button>
-                </Box>
-              )}
-            </Box>
+            {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}> */}
+            {selectionEggModel?.length > 0 && (
+              <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 3 }}>
+                <Button
+                  sx={{ px: 7, py: 5 }}
+                  size='large'
+                  variant='contained'
+                  onClick={() => setOpenDiscardDialog(true)}
+                >
+                  &nbsp;{selectionEggModel?.length}&nbsp;Discard
+                </Button>
+              </Box>
+            )}
+            {/* </Box> */}
             <TabContext value={isDiscarded}>
               <TabList onChange={handleTabs} sx={{ px: 2 }}>
                 <Tab
@@ -1173,7 +1193,7 @@ const EggList = () => {
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {tableData()}
               </TabPanel>
-              <TabPanel value='eggs_discarded'>
+              <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                 {' '}
                 <DiscardedTableView filterByNurseryId={filterByNurseryId} />
               </TabPanel>

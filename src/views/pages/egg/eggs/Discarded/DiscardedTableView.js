@@ -84,7 +84,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
     debounce(async (sort, q) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q)
+        await fetchTableData(sort, q, filterByNurseryId)
       } catch (error) {
         console.error(error)
       }
@@ -199,7 +199,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
       field: 'request_created_on',
       sortable: false,
       headerName: 'Request Created On',
-      align: 'center',
+
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
