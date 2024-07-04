@@ -30,6 +30,7 @@ import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import { useMemo } from 'react'
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
+import DiscardDetail from 'src/components/egg/DiscardDetail'
 
 const EggList = () => {
   const theme = useTheme()
@@ -38,6 +39,7 @@ const EggList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+  const [detailDrawer, setDetailDrawer] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -557,6 +559,13 @@ const EggList = () => {
         <Button sx={{ px: 7, py: 5 }} size='small' variant='contained'>
           &nbsp; Discard
         </Button>
+        <Button
+          onClick={() => {
+            setDetailDrawer(true)
+          }}
+        >
+          Discard Details{' '}
+        </Button>
       </Box>
     </>
   )
@@ -637,6 +646,7 @@ const EggList = () => {
           />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
+        { detailDrawer&& <DiscardDetail openDrawer={openDrawer} setDetailDrawer={setDetailDrawer}/>}
       </>
     )
   }
