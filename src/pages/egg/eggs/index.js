@@ -32,7 +32,7 @@ import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import { useMemo } from 'react'
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
-import DiscardDetail from 'src/components/egg/DiscardDetail'
+import DiscardDetail from 'src/views/pages/egg/eggs/Discarded/DiscardDetail'
 import DiscardDialogBox from 'src/views/pages/egg/eggs/Discarded/DiscardDialogBox'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import DiscardedTableView from 'src/views/pages/egg/eggs/Discarded/DiscardedTableView'
@@ -62,7 +62,7 @@ const EggList = () => {
   const [openNepoFile, setOpenNepoFile] = useState(false)
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
-  console.log('selectionEggModel :>> ', selectionEggModel?.length)
+
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
@@ -812,11 +812,6 @@ const EggList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, status, isDiscarded, nurseryId) => {
-      console.log('nurseryId ddddddddd :>> ', nurseryId)
-
-      // debugger
-      console.log('status :>> ', status)
-
       try {
         setLoading(true)
 
@@ -1045,7 +1040,6 @@ const EggList = () => {
           />
         )}
         {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
-        {detailDrawer && <DiscardDetail openDrawer={openDrawer} setDetailDrawer={setDetailDrawer} />}
       </>
     )
   }

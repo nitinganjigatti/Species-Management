@@ -7,6 +7,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
+import DiscardDetail from './DiscardDetail'
 
 const DiscardedTableView = ({ filterByNurseryId }) => {
   const theme = useTheme()
@@ -17,6 +18,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [DetailDrawer, setDetailDrawer] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -396,6 +398,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
       //   Router.push({
       //     pathname: `/egg/eggs/${data?.id}`
       //   })
+      setDetailDrawer(true)
     } else {
       return
     }
@@ -454,6 +457,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
           }
         }}
       />
+      <DiscardDetail setDetailDrawer={setDetailDrawer} DetailDrawer={DetailDrawer} />
     </Box>
   )
 }

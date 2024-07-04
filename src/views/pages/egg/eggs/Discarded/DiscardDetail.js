@@ -1,14 +1,15 @@
-import { Avatar, Box, Card, CardContent, Drawer, Grid, IconButton, Typography, Tab, Divider } from '@mui/material'
+import { Avatar, Box, Card, CardContent, Drawer, Grid, IconButton, Typography, Tab, Divider, Chip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 import { display } from '@mui/system'
-import AddGallery from './AddGallery'
-import EggDisCarded from './EggDiscarded'
+import AddGallery from '../../../../../components/egg/AddGallery'
+import EggDisCarded from '../../../../../components/egg/EggDiscarded'
 
-const DiscardDetail = ({ setDetailDrawer }) => {
+const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
   const theme = useTheme()
+
   //   const [openDrawer, setOpenDrawer] = useState(false)
   const [status, setStatus] = useState('Overview')
 
@@ -31,7 +32,7 @@ const DiscardDetail = ({ setDetailDrawer }) => {
     <>
       <Drawer
         anchor='right'
-        open={open}
+        open={DetailDrawer}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
 
