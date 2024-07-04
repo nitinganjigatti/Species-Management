@@ -238,27 +238,27 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 10,
-      sortable: false,
-      field: 'collected_on',
-      headerName: 'COLLECTED ON',
+    // {
+    //   flex: 0.2,
+    //   minWidth: 10,
+    //   sortable: false,
+    //   field: 'collected_on',
+    //   headerName: 'COLLECTED ON',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 2
-          }}
-        >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
-        </Typography>
-      )
-    },
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 2
+    //       }}
+    //     >
+    //       {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -333,8 +333,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {/* <Avatar
               variant='square'
-              alt='Medicine Image'
-              className={status === 'eggs_received' ? 'hideField' : ''}
+              alt='Icon Image'
               sx={{
                 width: 30,
                 height: 30,
@@ -343,43 +342,66 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
                 background: '#E8F4F2',
                 overflow: 'hidden'
               }}
-            >
-              {params.row.user_profile_pic ? (
-                <img
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  src={params.row.user_profile_pic}
-                  alt='Profile'
-                />
-              ) : (
-                )}
-                </Avatar> */}
-            <Icon icon='fluent:shield-48-filled' color={'#E93353'} />
+            > */}
+            {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src='/icons/pending_security_check_icon.png'
+                alt='Profile'
+              />
+            ) : (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src='/icons/security_check_icon.png'
+                alt='Profile'
+              />
+            )}
+            {/* </Avatar> */}
+
             <Box
-              sx={{ display: 'flex', flexDirection: 'column' }}
+              sx={{ display: 'flex', flexDirection: 'column', m: 1 }}
               className={status === 'eggs_received' ? 'hideField' : ''}
             >
-              <Typography
-                noWrap
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  lineHeight: '16.94px'
-                }}
-              >
-                {params.row.user_full_name ? params.row.user_full_name : '-'}
-              </Typography>
-              <Typography
-                noWrap
-                sx={{
-                  color: theme.palette.customColors.neutralSecondary,
-                  fontSize: '12px',
-                  fontWeight: '400',
-                  lineHeight: '14.52px'
-                }}
-              >
-                {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-              </Typography>
+              {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
+                <Typography
+                  noWrap
+                  sx={{
+                    color: '#FA6140',
+
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    lineHeight: '16.94px'
+                  }}
+                >
+                  {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? 'Pending' : '-'}
+                </Typography>
+              ) : (
+                <>
+                  <Typography
+                    noWrap
+                    sx={{
+                      color: theme.primary.main,
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      lineHeight: '16.94px'
+                    }}
+                  >
+                    Security Checked
+                  </Typography>
+
+                  <Typography
+                    noWrap
+                    sx={{
+                      color: theme.palette.customColors.neutralSecondary,
+                      fontSize: '12px',
+                      fontWeight: '400',
+                      lineHeight: '14.52px'
+                    }}
+                  >
+                    {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                  </Typography>
+                </>
+              )}
             </Box>
           </Box>
         </>
