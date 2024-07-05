@@ -11,7 +11,7 @@ const EggDisCarded = () => {
               <Box
                 sx={{
                   width: '100%',
-                  height:"125px" ,
+                  height:"124px" ,
                   border: '2px solid #FFD3D3',
                   borderRadius: '8px',
                   display: 'flex',
@@ -22,10 +22,12 @@ const EggDisCarded = () => {
                 <Box
                   sx={{
                     width: '70px',
-                    height: '123px',
+                    height: '120px',
                     backgroundColor: '#FFD3D3',
-                    borderLeft: '1px solid #FFD3D3',
+                    borderLeft: '1px solid FFD3D3',
                     display: 'flex',
+                    borderTopLeftRadius:"5px ",
+                    borderBottomLeftRadius:"5px ",
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
