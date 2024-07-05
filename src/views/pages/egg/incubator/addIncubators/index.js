@@ -262,7 +262,7 @@ const AddIncubators = ({
       open={sidebarOpen}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '502px'] },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -270,7 +270,7 @@ const AddIncubators = ({
       }}
     >
       <form onSubmit={handleSubmit(onSubmit, onError)}>
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: 'background.default', zIndex: 10, width: '502px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: 'background.default', zIndex: 10, width: '562px' }}>
           <Box
             sx={{
               display: 'flex',
@@ -299,7 +299,7 @@ const AddIncubators = ({
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 50, marginTop: 14, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 30, marginTop: 14, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* <Card sx={{ height: '600px' }}> */}
             <CardContent sx={{ mt: 2, borderRadius: '8px', backgroundColor: '#fff' }}>
@@ -331,9 +331,11 @@ const AddIncubators = ({
                             return onChange('')
                           } else {
                             setDefaultNursery(val)
+
                             // console.log('val', val)
                             setValue('room', '')
                             RoomList(val.nursery_id)
+
                             return onChange(val.nursery_id)
                           }
                         }}
@@ -421,6 +423,7 @@ const AddIncubators = ({
                             setDefaultRoom(val)
                             console.log('val', val)
                             setValue('room', '')
+
                             return onChange(val.room_id)
                           }
                         }}
@@ -492,9 +495,9 @@ const AddIncubators = ({
 
         <Box
           sx={{
-            height: '100px',
+            height: '122px',
             width: '100%',
-            maxWidth: '502px',
+            maxWidth: '562px',
             position: 'fixed',
             bottom: 0,
             px: 4,

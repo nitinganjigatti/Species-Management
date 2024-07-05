@@ -79,7 +79,8 @@ const NurserySlider = ({
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
-          display: 'flex'
+          display: 'flex',
+          zIndex: 1234
         }}
       >
         <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
@@ -190,18 +191,20 @@ const NurserySlider = ({
             <Box
               sx={{
                 m: 5,
-                px: 3,
-                py: 3,
+
+                px: '16px',
+
+                // py: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
                 boxShadow: '2px',
                 boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 4 }}>
+              <FormControl fullWidth sx={{ mt: 6 }}>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -224,7 +227,7 @@ const NurserySlider = ({
               </FormControl>
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <FormControl fullWidth sx={{ mt: 4 }}>
+                <FormControl fullWidth>
                   {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
                   </InputLabel> */}
@@ -266,8 +269,10 @@ const NurserySlider = ({
                             return onChange('')
                           } else {
                             setDefaultSite(val)
+
                             // console.log('val', val)
                             setValue('site_id', '')
+
                             return onChange(val.site_id)
                           }
                         }}
