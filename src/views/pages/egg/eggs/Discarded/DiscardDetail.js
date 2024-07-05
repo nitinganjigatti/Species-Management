@@ -1,17 +1,32 @@
-import { Avatar, Box, Card, CardContent, Drawer, Grid, IconButton, Typography, Tab, Divider, Chip } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Card,
+  CardContent,
+  Drawer,
+  Grid,
+  IconButton,
+  Typography,
+  Tab,
+  Divider,
+  Chip,
+  Stack
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 
 import AddGallery from '../../../../../components/egg/AddGallery'
 import EggDisCarded from '../../../../../components/egg/EggDiscarded'
+import { GetDiscardedSummary } from 'src/lib/api/egg/discard'
+import { position } from 'stylis'
 
-const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
+const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
   const theme = useTheme()
-
-  //   const [openDrawer, setOpenDrawer] = useState(false)
   const [status, setStatus] = useState('Overview')
+  const [summary, setSummary] = useState({})
+  console.log('summary :>> ', summary)
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', width: '250px' }}>
@@ -26,15 +41,33 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
     // setTotal(0)
     setStatus(newValue)
   }
-  console.log('Status>>', status)
+
+  const getSummary = async id => {
+    const params = {
+      egg_discard_id: id
+    }
+    try {
+      const res = await GetDiscardedSummary(params)
+      setSummary(res?.data?.data)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    if (eggDiscardedId) {
+      getSummary(eggDiscardedId)
+    }
+  }, [detailDrawer])
 
   return (
     <>
       <Drawer
         anchor='right'
-        open={DetailDrawer}
+        open={detailDrawer}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
+
           // backgroundColor: 'background.default'
         }}
       >
@@ -83,208 +116,148 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
           sx={{ backgroundColor: 'background.default', height: 'calc(100vh - 144px)', overflowY: 'auto' }}
         >
           {status === 'Overview' ? (
-            <Box>
+            <Box sx={{ mb: 20 }}>
               <Box sx={{ px: 4 }}>
-                {/* <Typography variant='h6' sx={{ mt: 5 }}>
-                Incubator Selection
-              </Typography> */}
-
-                <CardContent sx={{ mt: 4, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
-                  <Grid sx={{ display: 'flex', mb: 2 }}>
-                    <Grid>
-                      <Avatar
-                        sx={{ width: '150px', height: '150px', borderRadius: '8px', ml: 4, backgroundColor: '#4A0415' }}
-                        src={'/icons/Incubator_CON.png'}
-                        variant='square'
-                      ></Avatar>
-                    </Grid>
-
-                    <Grid
-                      item
-                      xl={3.75}
-                      lg={3.9}
-                      md={12}
-                      sm={5.8}
-                      xs={12}
-                      sx={{
-                        height: '70px',
-                        backgroundColor: '#FFD3D3',
-                        p: '12px',
-                        // border:"0px, 0px, 1px, 0px" ,
-                        borderTopLeftRadius: 8, // Rounded top-left corner
-                        borderTopRightRadius: 8, // Rounded bottom-left corner
-                        width: '330px',
-                        alignItems: 'center',
-                        ml: 4,
-                        mt: 1
-                      }}
-                    >
-                      <Grid container gap={4} alignItems='center'>
-                        <Box item xs={7}>
-                          <Box sx={{ display: 'flex' }}>
-                            <Box>
-                              {' '}
-                              <Avatar
-                                src={'/icons/bar.png'}
-                                sx={{
-                                  width: '20px',
-                                  height: '20px',
-                                  mt: 0.5
-                                }}
-                              />
-                            </Box>
-                            <Box>
-                              {' '}
-                              <Typography
-                                sx={{
-                                  fontWeight: 500,
-                                  ml: 2,
-                                  mb: '6px',
-                                  fontSize: { xxl: '20px', xl: '20px', lg: '18px', xs: '20px' },
-                                  lineHeight: '24.2px',
-                                  color: theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                Nursery
-                              </Typography>
-                            </Box>
-                          </Box>
+                <Card
+                  sx={{
+                    mt: 4,
+                    p: '20px 16px 20px 16px',
+                    bgcolor: '#fff',
+                    borderRadius: '8px',
+                    gap: '24px'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: '24px' }}>
+                    <Box sx={{ p: 1, width: '135px', height: '135px' }}>
+                      <img
+                        src={summary?.qr_code ? summary?.qr_code : '/icons/Incubator_CON.png'}
+                        style={{ width: '100%', height: '100%' }}
+                        alt='QR Code'
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '340px' }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#FFD3D3',
+                          widows: '340px',
+                          height: '60px',
+                          px: '12px',
+                          py: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          borderTopLeftRadius: '8px',
+                          borderTopRightRadius: '8px'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Avatar
+                            src={'/icons/bar.png'}
+                            sx={{
+                              width: '20px',
+                              height: '20px'
+                            }}
+                          />
 
                           <Typography
                             sx={{
-                              ml: 7,
                               fontWeight: 500,
-                              fontSize: '16px',
-                              lineHeight: '16.94px',
-                              color: theme.palette.customColors.OnSurfaceVariant
+                              fontSize: '14px',
+                              color: '#44544A'
                             }}
                           >
-                            Nursery Name
+                            Nursery
                           </Typography>
                         </Box>
-                      </Grid>
-                      <Box sx={{ mt: 3.5 }}>
-                        <Grid
-                          item
-                          xl={3.75}
-                          lg={3.9}
-                          md={12}
-                          sm={5.8}
-                          xs={12}
-                          sx={{
-                            height: '70px',
-                            position: 'relative',
-                            backgroundColor: '#FFD3D3',
-                            p: '12px',
-                            borderBottomLeftRadius: 8, // Rounded bottom-left corner
-                            borderBottomRightRadius: 8, // Rounded bottom-right corner
-                            width: '330px',
-                            right: '12px',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Grid container gap={4} alignItems='center'>
-                            <Box item xs={7}>
-                              <Box sx={{ display: 'flex' }}>
-                                <Box>
-                                  {' '}
-                                  <Avatar
-                                    src={'/icons/trash.png'}
-                                    sx={{
-                                      width: '20px',
-                                      height: '20px',
-                                      mt: 0.5
-                                    }}
-                                  />
-                                </Box>
-                                <Box>
-                                  <Typography
-                                    sx={{
-                                      fontWeight: 500,
-                                      ml: 2,
-                                      mb: '6px',
-                                      fontSize: { xxl: '20px', xl: '20px', lg: '18px', xs: '20px' },
-                                      lineHeight: '24.2px',
-                                      color: theme.palette.customColors.OnSurfaceVariant
-                                    }}
-                                  >
-                                    Discard
-                                  </Typography>
-                                </Box>
-                              </Box>
-
-                              <Typography
-                                sx={{
-                                  ml: 7,
-                                  fontWeight: 500,
-                                  fontSize: '16px',
-                                  lineHeight: '19.36px',
-                                  mb: 3,
-                                  color: theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                8 Eggs
-                              </Typography>
-                            </Box>
-                            {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    </Grid>
-                  </Grid>
-
-                  <Grid
-                    item
-                    xl={3.75}
-                    lg={3.9}
-                    md={12}
-                    sm={5.8}
-                    xs={12}
-                    sx={{
-                      height: '78px',
-                      backgroundColor: '#FCF4AE',
-                      p: '12px',
-                      borderRadius: '8px',
-                      ml: 3,
-                      mt: 6,
-                      width: '500px'
-                    }}
-                  >
-                    <Grid container gap={4} alignItems='center'>
-                      <Box item xs={7}>
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            mb: '6px',
-                            fontSize: { xl: '14px', lg: '18px', xs: '14px' },
-                            fontFamily: 'Inter',
-                            lineHeight: '24.2px',
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          Notes
-                        </Typography>
 
                         <Typography
                           sx={{
-                            mt: 1,
                             fontWeight: 500,
                             fontSize: '16px',
-                            lineHeight: '16.94px',
-                            color: theme.palette.customColors.OnSurfaceVariant
+                            color: '#44544A',
+                            ml: 7
                           }}
                         >
-                          Type Notes Description Here
+                          {summary?.nursery_name ? summary?.nursery_name : '-'}
                         </Typography>
                       </Box>
-                      {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
-                    </Grid>
-                  </Grid>
-                </CardContent>
+                      <Box
+                        sx={{
+                          bgcolor: '#FFD3D3',
+                          widows: '340px',
+                          height: '60px',
+                          px: '12px',
+                          py: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          borderBottomLeftRadius: '8px',
+                          borderBottomRightRadius: '8px'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Avatar
+                            src={'/icons/trash.png'}
+                            sx={{
+                              width: '20px',
+                              height: '20px'
+                            }}
+                          />
+
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: '14px',
+                              color: '#44544A'
+                            }}
+                          >
+                            Discard
+                          </Typography>
+                        </Box>
+
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: '16px',
+                            color: '#44544A',
+                            ml: 7
+                          }}
+                        >
+                          {summary?.egg_count ? summary?.egg_count : '-'} Eggs
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '64px',
+                      borderRadius: '8px',
+                      gap: '12px',
+                      bgcolor: '#FCF4AE',
+                      mt: '20px',
+                      p: '12px'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        color: '#44544A'
+                      }}
+                    >
+                      Notes
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '16px',
+                        color: '#44544A'
+                      }}
+                    >
+                      {summary?.reason ? summary?.reason : '-'}
+                    </Typography>
+                  </Box>
+                </Card>
               </Box>
               <Typography
                 sx={{
@@ -301,158 +274,108 @@ const DiscardDetail = ({ setDetailDrawer, DetailDrawer }) => {
               </Typography>
               <AddGallery />
 
-              <Card>
+              {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
                   sx={{
-                    position: 'fixed',
-                    bottom: 0,
-                    height: '180px',
-                    backgroundColor: '#fff',
                     width: '562px',
-                    px: 2,
+                    height: '82px',
                     display: 'flex',
-                    alignItems: 'center'
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    bgcolor: theme.palette.background.paper,
+                    position: 'fixed',
+                    bottom: 0
                   }}
                 >
-                  <Grid
-                    item
-                    xl={3.75}
-                    lg={3.9}
-                    md={12}
-                    sm={5.8}
-                    xs={12}
+                  <Stack direction='row' gap={2} alignItems={'center'}>
+                    <img src='/icons/pending_security_check_icon.png' alt='Pending' />
+                    <Typography sx={{ textTransform: 'uppercase', fontSize: '15px', fontWeight: 500 }}>
+                      Security Check Pending
+                    </Typography>
+                  </Stack>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    width: '562px',
+                    height: '174px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    px: '24px',
+                    py: '16px',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    bgcolor: theme.palette.background.paper,
+                    position: 'fixed',
+                    bottom: 0,
+                    gap: '16px'
+                  }}
+                >
+                  <Box
                     sx={{
-                      height: '78px',
-                      backgroundColor: '#FFD3D3',
+                      width: '530px',
+                      height: '86px',
                       p: '12px',
+                      display: 'flex',
+                      gap: '12px',
                       borderRadius: '8px',
-                      ml: 3,
-                      mb: 12,
-                      width: '525px'
+                      bgcolor: '#FFD3D3'
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <Avatar
-                        variant='square'
-                        alt='Medicine Image'
+                        variant='circular'
+                        alt='User Profile'
                         sx={{
-                          width: 35,
-                          height: 35,
-                          mr: 2,
-
+                          width: 30,
+                          height: 30,
+                          mr: 4,
                           borderRadius: '50%',
                           background: '#E8F4F2',
                           overflow: 'hidden'
                         }}
                       >
-                        <Icon icon='mdi:user' />
+                        {summary.profile_pic ? (
+                          <img
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            src={summary.profile_pic}
+                            alt='Profile'
+                          />
+                        ) : (
+                          <Icon icon='mdi:user' fontSize={25} color={'#FA6140'} />
+                        )}
                       </Avatar>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', mt: 1 }}>
-                        <Typography
-                          noWrap
-                          sx={{
-                            color: '#44544A',
-                            fontSize: '16px',
-                            fontWeight: '400',
-                            lineHeight: '16px',
-                            fontFamily: 'Inter'
-                          }}
-                        >
-                          Balwinder Singh
-                          {/* {item?.user_full_name ? item?.user_full_name : '-'} */}
-                        </Typography>
-                        <Grid sx={{ display: 'flex' }}>
-                          <Grid>
-                            <Typography
-                              noWrap
-                              sx={{
-                                color: theme.palette.customColors.neutralSecondary,
-                                fontSize: '14px',
-                                fontWeight: '400',
-                                fontFamily: 'Inter',
-                                lineHeight: '16.94px',
-                                mt: 1
-                              }}
-                            >
-                              Gate12345
-                              {/* {item?.created_at ? 'Created on' + ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'} */}
-                            </Typography>
-                          </Grid>
-                          <Grid>
-                            <Typography
-                              noWrap
-                              sx={{
-                                color: theme.palette.customColors.neutralSecondary,
-                                fontSize: '14px',
-                                fontWeight: '400',
-                                fontFamily: 'Inter',
-                                lineHeight: '16.94px',
-                                mt: 1,
-                                ml: 58
-                              }}
-                            >
-                              10 April 2024 ,3:34PM
-                              {/* {item?.created_at ? 'Created on' + ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'} */}
-                            </Typography>
-                          </Grid>
-                        </Grid>
 
-                        <Typography
-                          noWrap
-                          sx={{
-                            color: '#E93353',
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            fontFamily: 'Inter',
-                            lineHeight: '16.94px',
-                            mt: 0.5
-                          }}
-                        >
-                          Lorem Inpsum dolar sit amer
-                          {/* {item?.created_at ? 'Created on' + ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'} */}
+                      <Stack>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Balwinder Singh</Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Gate12345</Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
+                          {' '}
+                          Lorem ipsum dolar sit amet
                         </Typography>
-                      </Box>
+                      </Stack>
                     </Box>
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mt: 3
-                      }}
-                    >
-                      <Box>
-                        <Avatar
-                          src={'/icons/security.png'}
-                          sx={{
-                            width: '20px',
-                            height: '20px',
-                            mt: 4
-                          }}
-                        />
-                      </Box>
-                      <Box>
-                        <Typography
-                          sx={{
-                            textAlign: 'center',
-                            mt: 4,
-                            color: '#37BD69',
-                            fontSize: '16px',
-                            fontWeight: 500,
-                            fontFamily: 'Inter'
-                          }}
-                        >
-                          SECURITY CHECKED
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
+                  </Box>
+                  <Box>
+                    <Stack direction='row' gap={2} alignItems={'center'}>
+                      <img src='/icons/security_check_icon.png' alt='Pending' />
+                      <Typography
+                        sx={{
+                          textTransform: 'uppercase',
+                          fontSize: '15px',
+                          fontWeight: 500,
+                          color: theme.palette.primary.main
+                        }}
+                      >
+                        Security Checked
+                      </Typography>
+                    </Stack>
+                  </Box>
                 </Box>
-              </Card>
+              )}
             </Box>
           ) : (
-            <EggDisCarded />
+            <EggDi sCarded />
           )}
         </Box>
       </Drawer>

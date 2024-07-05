@@ -224,7 +224,7 @@ export const NURSERY = 'nursery'
 
 export const INCUBATOR = 'incubator'
 
-export const ASSESMENT_TYPES = "egg/default_assessment_types"
+export const ASSESMENT_TYPES = 'egg/default_assessment_types'
 
 export const EDIT = 'edit'
 
@@ -233,3 +233,7 @@ export const DISCARD = 'discard'
 export const COMMENT = 'comment'
 
 export const STATUS = 'status'
+
+export const SUMMARY = 'summary'
+
+export const DISCARD_LIST_BY_ID = 'discard-list-by-id'

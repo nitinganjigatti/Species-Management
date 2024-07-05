@@ -13,12 +13,13 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows  discard:>> ', rows)
+
   const [total, setTotal] = useState(0)
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [DetailDrawer, setDetailDrawer] = useState(false)
+  const [detailDrawer, setDetailDrawer] = useState(false)
+  const [eggDiscardedId, setEggDiscardedId] = useState('')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -125,7 +126,6 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
             lineHeight: '14.52px'
           }}
         >
-          {console.log('params :>> ', params)}
           {params.row.sl_no}
         </Typography>
       )
@@ -395,16 +395,11 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
   ]
 
   const onCellClick = (params, event) => {
-    // if (event.target.closest('.MuiDataGrid-checkboxInput')) {
-    //   return // Do nothing if the click is on the checkbox
-    // }
-    console.log('{data?.id} :>> ', params.row)
+    // console.log('{data?.id} :>> ', params?.row?.egg_discard_id)
     if (params) {
       const data = params.row
+      setEggDiscardedId(params?.row?.egg_discard_id)
 
-      //   Router.push({
-      //     pathname: `/egg/eggs/${data?.id}`
-      //   })
       setDetailDrawer(true)
     } else {
       return
@@ -464,7 +459,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
           }
         }}
       />
-      <DiscardDetail setDetailDrawer={setDetailDrawer} DetailDrawer={DetailDrawer} />
+      <DiscardDetail setDetailDrawer={setDetailDrawer} detailDrawer={detailDrawer} eggDiscardedId={eggDiscardedId} />
     </Box>
   )
 }

@@ -4,10 +4,10 @@ import Icon from 'src/@core/components/icon'
 
 const AddGallery = () => {
   const theme = useTheme()
+
   return (
-    <>
-      <Grid sx={{ m: 3, ml: 4}}>
-       
+    <Box>
+      <Grid sx={{ m: 3, ml: 4 }}>
         <Grid
           sx={{
             width: '80%', // Ensure the Grid takes full width
@@ -146,10 +146,9 @@ const AddGallery = () => {
             </Card>
           </Grid>
         </Grid>
-      
-        
       </Grid>
-    </>
+    </Box>
   )
 }
+
 export default AddGallery

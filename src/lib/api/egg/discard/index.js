@@ -1,5 +1,5 @@
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
-import { ADD, COMMENT, DELETE, EGG, LIST, DISCARD, STATUS, UPDATE } from 'src/constants/ApiConstant'
+import { EGG, DISCARD, DISCARD_LIST_BY_ID, SUMMARY } from 'src/constants/ApiConstant'
 
 export async function DiscardedEggList({ params }) {
   return await axiosGet({
@@ -11,6 +11,30 @@ export async function DiscardedEggList({ params }) {
 export async function AddDiscardEgg(payload) {
   try {
     const response = await axiosPost({ url: `${EGG}/${DISCARD}/add-new`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function GetDiscardedSummary(params) {
+  return await axiosGet({
+    url: `${EGG}/${DISCARD}/${SUMMARY}`,
+    params: params
+  })
+}
+
+export async function GetDiscardedEggList({ params }) {
+  try {
+    const response = await axiosPost({ url: `${EGG}/${DISCARD_LIST_BY_ID}`, params: params })
 
     return response?.data
   } catch (error) {
