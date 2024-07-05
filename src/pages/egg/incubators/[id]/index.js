@@ -1003,13 +1003,15 @@ const IncubatorDetails = () => {
           <Box sx={{ backgroundColor: '#F2FFF8', borderRadius: '8px' }}>
             <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ height: '64px', width: '64px', borderRadius: '8px' }}>
-                  <Avatar
+                <Box sx={{ height: '64px', width: '64px', borderRadius: '8px', bgcolor: '#FFE86E' }}>
+                  {/* <Avatar
                     sx={{ height: '100%', width: '100%' }}
                     variant='rounded'
-                    src='./public/images/icon/Incubator ICON.png'
+                    src='/icon/Incubator_CON.png'
                     alt='incubator'
-                  />
+                  /> */}
+
+                  <img src='/icons/Incubator_CON.png' alt='incubator' style={{ height: '100%', width: '100%' }} />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <Typography

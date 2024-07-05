@@ -296,7 +296,7 @@ const RoomDetails = () => {
       )
     },
     {
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 20,
       sortable: false,
       align: 'center',
