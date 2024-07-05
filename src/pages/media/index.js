@@ -27,6 +27,9 @@ import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/media'
 import moment from 'moment'
+import pdfIcon from 'public/icons/pdf_icon.svg'
+import xlsIcon from 'public/icons/xls_icon.svg'
+import docIcon from 'public/icons/doc_icon.svg'
 
 const Media = () => {
   const auth = useAuth()
@@ -136,6 +139,21 @@ const Media = () => {
         return <ImageIcon />
       default:
         return <InsertDriveFileIcon />
+    }
+  }
+  const getIconByFileType = fileName => {
+    const extension = fileName.split('.').pop().toLowerCase()
+    switch (extension) {
+      case 'pdf':
+        return pdfIcon
+      case 'xls':
+      case 'xlsx':
+        return xlsIcon
+      case 'doc':
+      case 'docx':
+        return docIcon
+      default:
+        return '' // default icon if the file type is unknown
     }
   }
 
@@ -257,7 +275,7 @@ const Media = () => {
                                       height: '160px'
                                     }}
                                   >
-                                    {getFileIcon(media?.file_original_name)}
+                                    {getIconByFileType(media?.file_original_name)}
                                   </Box>
                                 </Tooltip>
                               </a>
