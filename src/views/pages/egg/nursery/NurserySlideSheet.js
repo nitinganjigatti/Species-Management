@@ -23,12 +23,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
-
-const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
-
-  site_id: yup.string().required('Select Site')
-})
+import Toaster from 'src/components/Toaster'
 
 const NurserySlider = ({
   openDrawer,
@@ -49,6 +44,12 @@ const NurserySlider = ({
     nursery_name: '',
     site_id: ''
   }
+
+  const schema = yup.object().shape({
+    nursery_name: yup.string().trim().required('Nursery Name is required'),
+
+    site_id: yup.string().required('Site is required')
+  })
 
   const {
     control,
@@ -108,14 +109,18 @@ const NurserySlider = ({
         }
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
-          toast.success('Nursery updated Successfully')
+          // toast.success('Nursery updated Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
           if (callApi) {
             callApi()
           }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to update Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       } else {
         const payload = {
@@ -126,19 +131,22 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
-          toast.success('Nursery added Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
           if (callApi) {
             callApi()
           }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to add Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
       console.error('Error while adding/updating nursery:', error)
-      toast.error('An error occurred while adding/updating nursery')
+      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
     }
   }
 
@@ -255,9 +263,7 @@ const NurserySlider = ({
                       <Autocomplete
                         name='site_id'
                         value={defaultSite}
-                        // value={value}
                         disablePortal
-                        // disabled={isEdit || isPreFilled}
                         id='site_id'
                         options={authData?.userData?.user?.zoos[0].sites}
                         getOptionLabel={option => option.site_name}
