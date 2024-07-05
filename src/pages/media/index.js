@@ -144,7 +144,7 @@ const Media = () => {
       <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
         <Box display='flex' flexDirection='column'>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant='h6' gutterBottom>
+            <Typography variant='h6' gutterBottom alignItems='center' m={0}>
               Media
             </Typography>
             <Button
@@ -167,10 +167,64 @@ const Media = () => {
           <Grid container spacing={4}>
             {filePreviews.map((group, groupIndex) => (
               <Grid item key={groupIndex} xs={12}>
-                <Typography variant='subtitle1' gutterBottom sx={{ margin: '10px 0', fontWeight: 'bold' }}>
-                  {/* {moment(group.date).format('DD/MM/YYYY')} */}
-                  {moment(group.date).format('DD MMMM YYYY')}
+                <Typography
+                  variant='subtitle1'
+                  gutterBottom
+                  sx={{
+                    margin: '1rem 0',
+                    fontWeight: 'bold',
+                    display: 'block'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      bgcolor: '#37BD69',
+                      color: 'white',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      justifyContent: 'space-between',
+                      width: '100%'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography
+                        component='span'
+                        sx={{
+                          display: 'inline-block',
+                          borderRight: '2px solid white',
+                          paddingRight: '10px',
+                          marginRight: '10px',
+                          fontSize: '24px',
+                          fontWeight: 'bold',
+                          color: 'white'
+                        }}
+                      >
+                        {moment(group.date).format('DD')}
+                      </Typography>
+                      <Box sx={{ textAlign: 'left' }}>
+                        <Typography
+                          component='span'
+                          sx={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: 'white' }}
+                        >
+                          {moment(group.date).format('dddd')}
+                        </Typography>
+                        <Typography
+                          component='span'
+                          sx={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: 'white' }}
+                        >
+                          {moment(group.date).format('MMM YYYY')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </Typography>
+
+                {/* <Typography variant='subtitle1' gutterBottom sx={{ margin: '10px 0', fontWeight: 'bold' }}>
+                  {moment(group.date).format('DD/MM/YYYY')}
+                  {moment(group.date).format('DD MMMM YYYY')}
+                </Typography> */}
 
                 <Grid container spacing={6}>
                   {group.media.map((media, mediaIndex) => (
@@ -179,7 +233,7 @@ const Media = () => {
                         <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 7 }} />
                         {media?.user_media && (
                           <>
-                            {media?.user_media.match(/\.(jpeg|jpg|gif|png)$/) != null ? (
+                            {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
                               <CardMedia
                                 component='img'
                                 height='160'
