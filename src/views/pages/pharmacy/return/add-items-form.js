@@ -87,7 +87,8 @@ export const AddItemsForm = ({
   nestedMedicine,
   error,
   totalQuantity,
-  editParams
+  editParams,
+  setBatchList
 }) => {
   const {
     reset,
@@ -447,6 +448,8 @@ export const AddItemsForm = ({
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
+                      } else {
+                        setBatchList([])
                       }
 
                       checkTotalCount()
