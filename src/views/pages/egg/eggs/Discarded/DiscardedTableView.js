@@ -138,25 +138,10 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
       headerName: 'Request ID & Eggs',
 
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Box sx={{ p: '6px', height: '40px', width: '40px', borderRadius: '4px', bgcolor: '#EFF5F2' }}>
+            <img style={{ width: '100%', height: '100%' }} src={'/icons/redEgg.png'} alt='Egg' />
+          </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <Tooltip title={params.row.request_id ? params.row.request_id : '-'}>
