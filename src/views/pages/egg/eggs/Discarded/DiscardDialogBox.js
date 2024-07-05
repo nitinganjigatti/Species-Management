@@ -46,10 +46,11 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
           flexDirection: 'column',
           width: '500px',
           height: '460px',
-          gap: '32px'
+
+          gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: '#FFD3D3', p: '16px', borderRadius: '12px', mt: 10 }}>
+        <Box sx={{ bgcolor: '#ffe5e5', p: '16px', borderRadius: '12px', mt: 10 }}>
           <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={'#E93353'} />
         </Box>
         <Box>
