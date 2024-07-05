@@ -32,19 +32,9 @@ export async function GetDiscardedSummary(params) {
   })
 }
 
-export async function GetDiscardedEggList({ params }) {
-  try {
-    const response = await axiosPost({ url: `${EGG}/${DISCARD_LIST_BY_ID}`, params: params })
-
-    return response?.data
-  } catch (error) {
-    if (error.response) {
-      console.info('Request made and server responded')
-      console.error(error.response.data)
-      console.error(error.response.status)
-      console.error(error.response.headers)
-    }
-
-    return error
-  }
+export async function GetDiscardedEggList(params) {
+  return await axiosGet({
+    url: `${EGG}/${DISCARD_LIST_BY_ID}`,
+    params: params
+  })
 }

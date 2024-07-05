@@ -19,14 +19,15 @@ import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 
 import AddGallery from '../../../../../components/egg/AddGallery'
 import EggDisCarded from '../../../../../components/egg/EggDiscarded'
-import { GetDiscardedSummary } from 'src/lib/api/egg/discard'
+import { GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
   const theme = useTheme()
   const [status, setStatus] = useState('Overview')
   const [summary, setSummary] = useState({})
-  console.log('summary :>> ', summary)
+  const [eggList, setEggList] = useState([])
+  console.log('eggList :>> ', eggList)
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', width: '250px' }}>
@@ -54,9 +55,22 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
     }
   }
 
+  const getEggListSummary = async id => {
+    const params = {
+      egg_discard_id: id
+    }
+    try {
+      const res = await GetDiscardedEggList(params)
+      setEggList(res?.data?.data?.result)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   useEffect(() => {
     if (eggDiscardedId) {
       getSummary(eggDiscardedId)
+      getEggListSummary(eggDiscardedId)
     }
   }, [detailDrawer])
 
@@ -375,7 +389,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
               )}
             </Box>
           ) : (
-            <EggDi sCarded />
+            <EggDisCarded eggList={eggList} />
           )}
         </Box>
       </Drawer>
