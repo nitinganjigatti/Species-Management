@@ -27,8 +27,9 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
+import CreateAnimalSlider from './CreateAnimal'
 
-const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
+const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
 
   const {
@@ -42,6 +43,8 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
+
+  // const [openCreate, setOpenCreate] = useState(false)
 
   // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -545,12 +548,20 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                     </Box>
                     <Box item xs={1.2}>
                       <IconButton
-                        disabled={Number(eggDetails?.action_to_be_taken) != 5}
+                        disabled={
+                          Number(eggDetails?.action_to_be_taken) === 5 || Number(eggDetails?.action_to_be_taken) === 6
+                            ? false
+                            : true
+                        }
                         onClick={() => setOpenDrawer(true)}
                       >
                         <Icon
                           style={{ cursor: 'pointer' }}
-                          color={Number(eggDetails?.action_to_be_taken) != 5 ? '#7A8684' : '#00AFD6'}
+                          color={
+                            Number(eggDetails?.action_to_be_taken) === 5 || Number(eggDetails?.action_to_be_taken) === 6
+                              ? '#00AFD6'
+                              : '#7A8684'
+                          }
                           icon='fontisto:angle-right'
                           fontSize={16}
                         />
@@ -563,6 +574,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
           </Grid>
         </CardContent>
       </Card>
+
       {openDrawer && (
         <ConditionSlider
           GetGalleryImgList={GetGalleryImgList}
@@ -571,6 +583,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
           setOpenDrawer={setOpenDrawer}
           openDrawer={openDrawer}
           eggId={eggDetails?.egg_id}
+          getActivityLogsFunc={getActivityLogsFunc}
         />
       )}
 

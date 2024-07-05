@@ -36,6 +36,7 @@ import DiscardDetail from 'src/views/pages/egg/eggs/Discarded/DiscardDetail'
 import DiscardDialogBox from 'src/views/pages/egg/eggs/Discarded/DiscardDialogBox'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import DiscardedTableView from 'src/views/pages/egg/eggs/Discarded/DiscardedTableView'
+import CreateAnimalSlider from 'src/views/pages/egg/eggs/eggDetails/CreateAnimal'
 
 const EggList = () => {
   const theme = useTheme()
@@ -45,6 +46,7 @@ const EggList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [detailDrawer, setDetailDrawer] = useState(false)
+  const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -621,7 +623,14 @@ const EggList = () => {
       headerName: 'Animal Id',
 
       renderCell: params => (
-        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        <Box
+          onClick={e => {
+            setEggId(params.row.egg_id)
+            e.stopPropagation()
+            setOpenCreate(true)
+          }}
+          sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}
+        >
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -1203,6 +1212,8 @@ const EggList = () => {
         </TabContext>
         {/* </CardContent> */}
       </Card>
+
+      {openCreate && <CreateAnimalSlider openDrawer={openCreate} setOpenDrawer={setOpenCreate} eggId={eggID} />}
 
       <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
       <DiscardDialogBox

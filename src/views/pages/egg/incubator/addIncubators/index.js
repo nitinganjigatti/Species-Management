@@ -67,7 +67,7 @@ const AddIncubators = ({
   }
 
   const schema = yup.object().shape({
-    incubator_name: yup.string().trim().required('incubator Name is Required'),
+    // incubator_name: yup.string().trim().required('incubator Name is Required'),
     nursery: yup.string().required('Nursery is Required'),
     room: yup.string().required('Room is Required'),
     maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
@@ -215,8 +215,8 @@ const AddIncubators = ({
         addIncubator({
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs,
-          incubator_name: val?.incubator_name
+          max_eggs: val?.maxNumberOfEggs
+          // incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
