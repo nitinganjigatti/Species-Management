@@ -143,7 +143,7 @@ const Media = () => {
     <Card>
       <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
         <Box display='flex' flexDirection='column'>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1rem' }}>
             <Typography variant='h6' gutterBottom alignItems='center' m={0}>
               Media
             </Typography>
@@ -171,9 +171,9 @@ const Media = () => {
                   variant='subtitle1'
                   gutterBottom
                   sx={{
-                    margin: '1rem 0',
                     fontWeight: 'bold',
-                    display: 'block'
+                    display: 'block',
+                    mb: '1rem'
                   }}
                 >
                   <Box
