@@ -106,6 +106,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
+          console.log('assesmentTypes :>> ', assesmentTypes)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
@@ -533,79 +534,84 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CircularProgress />
               </Box>
             ) : (
-              fields.map((measurement, index) => (
-                <Card fullWidth sx={{ mt: 3, mb: fields.length === index + 1 ? 24 : 7, mx: 4 }} key={index}>
-                  <Grid container sx={{ mb: 3 }}>
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <Controller
-                          name={`measurements[${index}].assessment_value`}
-                          control={control}
-                          render={({ field: { value, onChange }, fieldState: { error } }) => (
-                            <TextField
-                              label={`${
-                                measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                measurement.assessment_type_string_id.slice(1)
-                              }*`}
-                              value={value}
-                              onChange={onChange}
-                              focused={value !== ''}
-                              name={`measurements[${index}].assessment_value`}
-                              inputProps={{ type: 'number', step: 'any' }}
-                              error={!!error}
-                              helperText={error ? error.message : ''}
-                            />
+              <Card fullWidth sx={{ mt: 3, mx: 4 }}>
+                <CardContent>
+                  {fields.map((measurement, index) => (
+                    <Grid container spacing={3} key={index}>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth sx={{ mt: 3 }}>
+                          <Controller
+                            name={`measurements[${index}].assessment_value`}
+                            control={control}
+                            render={({ field: { value, onChange }, fieldState: { error } }) => (
+                              <TextField
+                                label={`${
+                                  measurement.assessment_type_string_id.charAt(0).toUpperCase() +
+                                  measurement.assessment_type_string_id.slice(1)
+                                }*`}
+                                value={value}
+                                onChange={onChange}
+                                focused={value !== ''}
+                                name={`measurements[${index}].assessment_value`}
+                                inputProps={{ type: 'number', step: 'any' }}
+                                error={!!error}
+                                helperText={error ? error.message : ''}
+                                fullWidth
+                              />
+                            )}
+                            rules={{ required: 'Please Enter Weight' }}
+                          />
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth sx={{ mt: 3 }}>
+                          <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
+                            {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
+                          </InputLabel>
+                          
+                          <Controller
+                            name={`measurements[${index}].measurement_unit_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            defaultValue={measurement.unit_id}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name={`measurements[${index}].measurement_unit_id`}
+                                value={value}
+                                disabled={measurement.default_measurement_unit_string_id && true}
+                                label={measurement?.unit_name}
+                                onChange={onChange}
+                                error={Boolean(errors?.condition)}
+                                labelId={`unit_label_${index}`}
+                                fullWidth
+                              >
+                                <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
+                                  {measurement?.unit_name}
+                                </MenuItem>
+                              </Select>
+                            )}
+                          />
+                          {errors && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
                           )}
-                          rules={{ required: 'Please Enter Weight' }}
-                        />
-                      </FormControl>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6} sx={{ display: 'none' }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`measurements[${index}].assessment_type_id`}
+                            control={control}
+                            render={({ field }) => <input type='hidden' {...field} />}
+                            defaultValue={measurement.assessment_type_id}
+                          />
+                        </FormControl>
+                      </Grid>
                     </Grid>
-
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
-                          {measurement?.unit_name}
-                        </InputLabel>
-                        <Controller
-                          name={`measurements[${index}].measurement_unit_id`}
-                          control={control}
-                          rules={{ required: true }}
-                          defaultValue={measurement.unit_id}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name={`measurements[${index}].measurement_unit_id`}
-                              value={value}
-                              disabled={measurement.default_measurement_unit_string_id && true}
-                              label={measurement?.unit_name}
-                              onChange={onChange}
-                              error={Boolean(errors?.condition)}
-                              labelId='condition_label'
-                            >
-                              <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
-                                {measurement?.unit_name}
-                              </MenuItem>
-                            </Select>
-                          )}
-                        />
-                        {errors && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={6} sx={{ display: 'none' }}>
-                      <FormControl fullWidth>
-                        <Controller
-                          name={`measurements[${index}].assessment_type_id`}
-                          control={control}
-                          render={({ field }) => <input type='hidden' {...field} />}
-                          defaultValue={measurement.assessment_type_id}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))
+                  ))}
+                </CardContent>
+              </Card>
             )}
+
             <Card>
               <Box
                 sx={{

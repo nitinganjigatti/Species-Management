@@ -201,7 +201,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         open={isOpen}
         ModalProps={{ keepMounted: true }}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '502px'] },
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
 
           position: 'relative',
           display: 'flex',
@@ -241,13 +241,16 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
             <CardContent
               sx={{
                 m: 5,
-                px: 4,
-                py: 4,
+                px: '16px',
+                py: '20px',
+
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                gap: '24px',
                 bgcolor: '#fff',
-                borderRadius: '8px'
+                borderRadius: '8px',
+                boxShadow: '2px',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
               }}
             >
               <FormControl fullWidth>
@@ -397,7 +400,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
               sx={{
                 height: '122px',
                 width: '100%',
-                maxWidth: '502px',
+                maxWidth: '562px',
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
