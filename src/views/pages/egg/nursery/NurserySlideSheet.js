@@ -23,12 +23,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
-
-const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
-
-  site_id: yup.string().required('Select Site')
-})
+import Toaster from 'src/components/Toaster'
 
 const NurserySlider = ({
   openDrawer,
@@ -49,6 +44,12 @@ const NurserySlider = ({
     nursery_name: '',
     site_id: ''
   }
+
+  const schema = yup.object().shape({
+    nursery_name: yup.string().trim().required('Nursery Name is required'),
+
+    site_id: yup.string().required('Site is required')
+  })
 
   const {
     control,
@@ -79,7 +80,8 @@ const NurserySlider = ({
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
-          display: 'flex'
+          display: 'flex',
+          zIndex: 1234
         }}
       >
         <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
@@ -107,14 +109,18 @@ const NurserySlider = ({
         }
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
-          toast.success('Nursery updated Successfully')
+          // toast.success('Nursery updated Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
           if (callApi) {
             callApi()
           }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to update Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       } else {
         const payload = {
@@ -125,19 +131,22 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
-          toast.success('Nursery added Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
           if (callApi) {
             callApi()
           }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to add Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
       console.error('Error while adding/updating nursery:', error)
-      toast.error('An error occurred while adding/updating nursery')
+      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
     }
   }
 
@@ -190,18 +199,20 @@ const NurserySlider = ({
             <Box
               sx={{
                 m: 5,
-                px: 3,
-                py: 3,
+
+                px: '16px',
+
+                // py: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
                 boxShadow: '2px',
                 boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 4 }}>
+              <FormControl fullWidth sx={{ mt: 6 }}>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -224,7 +235,7 @@ const NurserySlider = ({
               </FormControl>
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <FormControl fullWidth sx={{ mt: 4 }}>
+                <FormControl fullWidth>
                   {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
                   </InputLabel> */}
@@ -252,9 +263,7 @@ const NurserySlider = ({
                       <Autocomplete
                         name='site_id'
                         value={defaultSite}
-                        // value={value}
                         disablePortal
-                        // disabled={isEdit || isPreFilled}
                         id='site_id'
                         options={authData?.userData?.user?.zoos[0].sites}
                         getOptionLabel={option => option.site_name}
@@ -266,8 +275,10 @@ const NurserySlider = ({
                             return onChange('')
                           } else {
                             setDefaultSite(val)
+
                             // console.log('val', val)
                             setValue('site_id', '')
+
                             return onChange(val.site_id)
                           }
                         }}
