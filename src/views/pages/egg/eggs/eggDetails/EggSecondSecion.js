@@ -54,7 +54,16 @@ const CustomTableContainer = styled(TableContainer)({
   }
 })
 
-const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }) => {
+const EggSecondSecion = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  eggDetails,
+  egg_id,
+  defaultEggAssesment,
+  getDetails
+}) => {
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
@@ -966,6 +975,10 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
         activtyLogSideBar={activtyLogSideBar}
         setActivtyLogSideBar={setActivtyLogSideBar}
         egg_id={egg_id}
+        activtyLogData={activtyLogData}
+        setActivtyLogData={setActivtyLogData}
+        activtyLogCount={activtyLogCount}
+        setActivtyLogCount={setActivtyLogCount}
       />
     </Grid>
   )
