@@ -93,7 +93,12 @@ const SpeciesDetails = () => {
       headerName: 'IMAGE',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.id} sx={{ height: 'auto' }} />
+          <Avatar
+            variant='square'
+            src={params.row.species_image}
+            alt={'species image'}
+            sx={{ height: 'auto', padding: '2px' }}
+          />
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -223,7 +228,7 @@ const SpeciesDetails = () => {
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,
-          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          org_id: selectedParivesh?.id,
           limit: paginationModel.pageSize
         }
 

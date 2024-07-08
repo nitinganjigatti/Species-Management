@@ -282,7 +282,7 @@ const RequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
+    return selectedPharmacy.type === 'central' ? 'Requested From' : 'Requested To'
   }
 
   const handleSwitchChange = event => {

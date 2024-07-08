@@ -28,7 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
+const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
 
   const {
@@ -131,15 +131,8 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
       <Card>
         <CardContent>
           <Grid container>
-            <Grid
-              sx={{ pr: { xl: '24px', lg: '10px', md: '24px', alignSelf: 'stretch' } }}
-              item
-              xs={12}
-              md={6}
-              lg={2.7}
-              xl={3}
-            >
-              <Box sx={{ borderRadius: '8px', height: '100%' }}>
+            <Grid sx={{ pr: { xl: '24px', lg: '10px', md: '24px' } }} item xs={12} md={6} lg={2.7} xl={3}>
+              <Box sx={{ borderRadius: '8px', width: '100%', height: '100%' }}>
                 {eggDetails?.egg_images?.length ? (
                   <KeenSliderWrapper>
                     <>
@@ -185,14 +178,20 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                   </KeenSliderWrapper>
                 ) : (
                   <ImageListItem
-                    style={{ height: '100%', backgroundColor: theme.palette.background.default, borderRadius: '8px' }}
+                    style={{
+                      width: '100%',
+                      aspectRatio: 15 / 9,
+                      height: '100%',
+                      backgroundColor: theme.palette.background.default,
+                      borderRadius: '8px'
+                    }}
                   >
                     <img
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
                       loading='lazy'
-                      height={'100%'}
+                      // height={'100%'}
                     />
 
                     <ImageListItemBar
@@ -469,8 +468,6 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                   item
                   xl={3.75}
                   lg={3.9}
-                  md={12}
-                  sm={5.8}
                   xs={12}
                   sx={{
                     display: 'flex',
@@ -488,7 +485,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                     alignItems: 'center'
                   }}
                 >
-                  <Grid container justifyContent='space-between' alignItems='center'>
+                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Box
                         item
@@ -516,7 +513,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         ></Avatar>
                       </Box>
 
-                      <Box item xs={7}>
+                      <Box>
                         <Typography
                           sx={{
                             fontWeight: 500,
@@ -544,7 +541,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         </Typography>
                       </Box>
                     </Box>
-                    <Box item xs={1.2}>
+                    <Box>
                       <IconButton
                         disabled={Number(eggDetails?.action_to_be_taken) != 5}
                         onClick={() => setOpenDrawer(true)}
@@ -557,7 +554,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
                         />
                       </IconButton>
                     </Box>
-                  </Grid>
+                  </Box>
                 </Grid>
               </Grid>
             </Grid>
@@ -572,6 +569,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
           setOpenDrawer={setOpenDrawer}
           openDrawer={openDrawer}
           eggId={eggDetails?.egg_id}
+          getActivityLogsFunc={getActivityLogsFunc}
         />
       )}
 

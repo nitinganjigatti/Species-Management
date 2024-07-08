@@ -24,8 +24,6 @@ const NurseryList = () => {
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  console.log('Paginate>', paginationModel)
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -64,7 +62,7 @@ const NurseryList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData( searchValue, newModel[0].field, status)
+      fetchTableData(searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -73,7 +71,7 @@ const NurseryList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData( q, column)
+        await fetchTableData(q, column)
       } catch (error) {
         console.error(error)
       }
@@ -128,7 +126,7 @@ const NurseryList = () => {
       field: 'Nursery Name',
       headerName: 'Nursery Name',
       align: 'left',
-     
+
       renderCell: params => (
         <Typography
           noWrap
@@ -273,7 +271,6 @@ const NurseryList = () => {
   ]
 
   const handleCellClick = params => {
-    console.log('Params >>', params.row)
     router.push(`/egg/nursery/${params.row.id}`)
   }
 
@@ -293,8 +290,6 @@ const NurseryList = () => {
     id: row.nursery_id,
     sl_no: getSlNo(index)
   }))
-
-  console.log('Indexed Rows ??', indexedRows)
 
   return (
     <>
@@ -357,7 +352,6 @@ const NurseryList = () => {
           openDrawer={openDrawer}
           setOpenDrawer={setOpenDrawer}
           loading={loading}
-          // onSubmit={onSubmit}
           fetchTableData={fetchTableData}
         />
       )}

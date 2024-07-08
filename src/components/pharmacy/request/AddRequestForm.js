@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
+import { Button, CardHeader, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -758,22 +758,30 @@ const AddRequestForm = () => {
                 // )}
               />
               {nestedRowMedicine.medicine_name && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={nestedRowMedicine.package}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={nestedRowMedicine.manufacture}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
+                <Grid container item sx={{ my: 2 }}>
+                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                    <Tooltip title={nestedRowMedicine.package}>
+                      <Chip
+                        label={nestedRowMedicine.package}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Tooltip title={nestedRowMedicine.manufacture}>
+                      <Chip
+                        label={nestedRowMedicine.manufacture}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
               )}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -858,22 +866,30 @@ const AddRequestForm = () => {
                 // )}
               />
               {nestedRowMedicine.medicine_name && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={nestedRowMedicine.package}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={nestedRowMedicine.manufacture}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
+                <Grid container item sx={{ my: 2 }}>
+                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                    <Tooltip title={nestedRowMedicine.package}>
+                      <Chip
+                        label={nestedRowMedicine.package}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Tooltip title={nestedRowMedicine.manufacture}>
+                      <Chip
+                        label={nestedRowMedicine.manufacture}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
               )}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -926,7 +942,7 @@ const AddRequestForm = () => {
               ) : null}
             </FormControl>
           </Grid>
-
+          <Grid item xs={12} sm={1}></Grid>
           <Grid item xs={12} sm={11 / 2}>
             <Typography>Priority</Typography>
             <RadioGroup
