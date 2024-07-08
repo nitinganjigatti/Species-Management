@@ -1045,7 +1045,7 @@ const IncubatorDetails = () => {
                     mb: '6px'
                   }}
                 >
-                  {/* No of Censors */}Eggs
+                  No of Censors
                 </Typography>
                 <Typography
                   sx={{
@@ -1055,7 +1055,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {indexedRows?.length}
+                  -{' '}
                 </Typography>
               </Box>
               <Box>
@@ -1068,7 +1068,7 @@ const IncubatorDetails = () => {
                     mb: '6px'
                   }}
                 >
-                  {/* Slots Filled */} Max Eggs
+                  Slots Filled
                 </Typography>
                 <Typography
                   sx={{
@@ -1078,7 +1078,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {incubatorDetail?.max_eggs}
+                  -
                 </Typography>
               </Box>
               <Box>
@@ -1154,18 +1154,31 @@ const IncubatorDetails = () => {
           </Box>
           <Box>
             {/* <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} /> */}
+            <Box sx={{ display: 'flex', gap: '20px' }}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontWeight: 500,
+                  fontSize: '20px',
+                  lineHeight: '24.2px',
+                  mb: 4
+                }}
+              >
+                Max Eggs - {incubatorDetail?.max_eggs}
+              </Typography>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontWeight: 500,
+                  fontSize: '20px',
+                  lineHeight: '24.2px',
+                  mb: 4
+                }}
+              >
+                Eggs - {indexedRows?.length}
+              </Typography>
+            </Box>
 
-            {/* <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontWeight: 500,
-                fontSize: '20px',
-                lineHeight: '24.2px',
-                mb: 4
-              }}
-            >
-              Eggs - {indexedRows?.length}
-            </Typography> */}
             {/* <CardContent > */}
             <CustomDataGrid
               sx={{
