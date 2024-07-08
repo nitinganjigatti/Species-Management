@@ -21,6 +21,9 @@ const EggDetail = () => {
 
   const [galleryList, setGalleryList] = useState([])
 
+  const [activtyLogData, setActivtyLogData] = useState([])
+  const [activtyLogCount, setActivtyLogCount] = useState(0)
+
   const GetGalleryImgListFunc = () => {
     try {
       getGalleryImgList({ ref_id: id, ref_type: 'egg' }).then(res => {
@@ -64,10 +67,26 @@ const EggDetail = () => {
     }
   }
 
+  const getActivityLogsFunc = () => {
+    const params = { page_no: 1 }
+    try {
+      getActivityLogs(id, params).then(res => {
+        if (res.success) {
+          setActivtyLogData(res?.data?.result)
+          setActivtyLogCount(res?.data?.total_count)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
   useEffect(() => {
     getDetails(id)
     getDefaultEggAssesmentFunc()
     GetGalleryImgListFunc()
+    getActivityLogsFunc()
   }, [])
 
   return (
@@ -83,12 +102,21 @@ const EggDetail = () => {
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
-          <EggFirstSection GetGalleryImgList={GetGalleryImgListFunc} getDetails={getDetails} eggDetails={eggDetails} />
+          <EggFirstSection
+            getActivityLogsFunc={getActivityLogsFunc}
+            GetGalleryImgList={GetGalleryImgListFunc}
+            getDetails={getDetails}
+            eggDetails={eggDetails}
+          />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}
             defaultEggAssesment={defaultEggAssesment}
             egg_id={id}
+            activtyLogData={activtyLogData}
+            setActivtyLogData={setActivtyLogData}
+            activtyLogCount={activtyLogCount}
+            setActivtyLogCount={setActivtyLogCount}
           />
           <EggImageGallery galleryList={galleryList} />
           <EggComment eggDetails={eggDetails} eggId={id} />

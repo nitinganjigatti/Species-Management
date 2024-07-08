@@ -24,10 +24,18 @@ const Timeline = styled(MuiTimeline)({
   }
 })
 
-const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) => {
+const EggActivityLogs = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  activtyLogSideBar,
+  setActivtyLogSideBar,
+  egg_id
+}) => {
   const theme = useTheme()
-  const [activtyLogData, setActivtyLogData] = useState([])
-  const [activtyLogCount, setActivtyLogCount] = useState(0)
+  // const [activtyLogData, setActivtyLogData] = useState([])
+  // const [activtyLogCount, setActivtyLogCount] = useState(0)
   let [page_no, setPage_no] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const getActivityLogsFunc = () => {
