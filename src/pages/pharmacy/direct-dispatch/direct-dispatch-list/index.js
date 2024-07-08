@@ -208,6 +208,10 @@ const DirectDispatchList = () => {
     searchTableData(sort, value, 'request_number', status)
   }
 
+  const getRequestedText = () => {
+    return selectedPharmacy.type === 'central' ? 'Dispatched To' : 'Dispatch from'
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -247,10 +251,10 @@ const DirectDispatchList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
-      headerName: 'Dispatched To',
+      headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
+          {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
     },
