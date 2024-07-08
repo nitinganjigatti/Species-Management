@@ -165,7 +165,13 @@ const NurserySlider = ({
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box
+          sx={{
+            bgcolor: theme.palette.customColors.lightBg,
+            width: '100%',
+            height: '100%'
+          }}
+        >
           <Box
             className='sidebar-header'
             sx={{
@@ -199,20 +205,18 @@ const NurserySlider = ({
             <Box
               sx={{
                 m: 5,
-
                 px: '16px',
-
                 // py: '20px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
                 backgroundColor: '#fff',
-                borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                borderRadius: '5px',
+                boxShadow: 'none',
+                border: '1px solid #C3CEC7'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 6 }}>
+              <FormControl fullWidth sx={{ mt: 6, borderRadius: '5px' }}>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -235,7 +239,7 @@ const NurserySlider = ({
               </FormControl>
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={{ borderRadius: '5px' }}>
                   {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
                   </InputLabel> */}

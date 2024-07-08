@@ -311,7 +311,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   mt: 3,
                   px: 0.5,
                   bgcolor: '#fff',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  padding: '20px, 16px, 20px, 16px',
+                  border: '1px solid #C3CEC7'
                 }}
               >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
@@ -560,17 +562,21 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CircularProgress />
               </Box>
             ) : (
-              <Card fullWidth sx={{ mt: 3, mx: 4, marginBottom: '122px' }}>
-                <CardContent>
+              <Card
+                fullWidth
+                sx={{ mt: 2, mx: 4, marginBottom: '122px', boxShadow: 'none', border: '1px solid #C3CEC7' }}
+              >
+                <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
                     <Grid container spacing={3} key={index}>
                       <Grid item xs={6}>
-                        <FormControl fullWidth sx={{ mt: 3 }}>
+                        <FormControl fullWidth sx={{ mt: 3, borderRadius: '5px' }}>
                           <Controller
                             name={`measurements[${index}].assessment_value`}
                             control={control}
                             render={({ field: { value, onChange }, fieldState: { error } }) => (
                               <TextField
+                                sx={{ borderRadius: '4px' }}
                                 label={`${
                                   measurement.assessment_type_string_id.charAt(0).toUpperCase() +
                                   measurement.assessment_type_string_id.slice(1)
@@ -602,6 +608,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             defaultValue={measurement.unit_id}
                             render={({ field: { value, onChange } }) => (
                               <Select
+                                sx={{ borderRadius: '5px' }}
                                 name={`measurements[${index}].measurement_unit_id`}
                                 value={value}
                                 disabled={measurement.default_measurement_unit_string_id && true}
@@ -641,7 +648,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             <Card>
               <Box
                 sx={{
-                  height: '122px',
+                  height: '110px',
                   width: '100%',
                   maxWidth: '562px',
                   position: 'fixed',
