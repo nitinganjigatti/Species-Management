@@ -28,7 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
+const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
 
   const {
@@ -569,6 +569,7 @@ const EggFirstSection = ({ eggDetails, getDetails, GetGalleryImgList }) => {
           setOpenDrawer={setOpenDrawer}
           openDrawer={openDrawer}
           eggId={eggDetails?.egg_id}
+          getActivityLogsFunc={getActivityLogsFunc}
         />
       )}
 

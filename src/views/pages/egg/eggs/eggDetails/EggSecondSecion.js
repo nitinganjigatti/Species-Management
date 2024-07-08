@@ -54,7 +54,16 @@ const CustomTableContainer = styled(TableContainer)({
   }
 })
 
-const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }) => {
+const EggSecondSecion = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  eggDetails,
+  egg_id,
+  defaultEggAssesment,
+  getDetails
+}) => {
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
@@ -683,7 +692,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Temperature
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Coming soon
+                      Coming Soon
                     </Typography>
                     <Typography
                       sx={{
@@ -693,7 +702,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Coming soon
+                      Coming Soon
                     </Typography>
                   </Grid>
                   <Grid
@@ -978,6 +987,10 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
         activtyLogSideBar={activtyLogSideBar}
         setActivtyLogSideBar={setActivtyLogSideBar}
         egg_id={egg_id}
+        activtyLogData={activtyLogData}
+        setActivtyLogData={setActivtyLogData}
+        activtyLogCount={activtyLogCount}
+        setActivtyLogCount={setActivtyLogCount}
       />
     </Grid>
   )

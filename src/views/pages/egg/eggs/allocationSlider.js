@@ -251,7 +251,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         anchor='right'
         open={open}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
 
           // backgroundColor: 'background.default'
         }}
@@ -280,14 +284,36 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', height: '120%' }}>
+        <Box
+          className='sidebar-body'
+          sx={
+            assesmentTypes?.data?.length >= 5
+              ? {
+                  backgroundColor: 'background.default',
+                  height: 'auto',
+                  overflowY: 'scroll',
+                  border: '1px solid #ccc'
+                }
+              : {
+                  backgroundColor: 'background.default',
+                  height: 'auto'
+                }
+          }
+        >
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
               {/* <Typography variant='h6' sx={{ mt: 5 }}>
                 Incubator Selection
               </Typography> */}
 
-              <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
+              <CardContent
+                sx={{
+                  mt: 3,
+                  px: 0.5,
+                  bgcolor: '#fff',
+                  borderRadius: '8px'
+                }}
+              >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
@@ -534,7 +560,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CircularProgress />
               </Box>
             ) : (
-              <Card fullWidth sx={{ mt: 3, mx: 4 }}>
+              <Card fullWidth sx={{ mt: 3, mx: 4, marginBottom: '122px' }}>
                 <CardContent>
                   {fields.map((measurement, index) => (
                     <Grid container spacing={3} key={index}>
@@ -568,7 +594,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                           <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
                             {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
                           </InputLabel>
-                          
+
                           <Controller
                             name={`measurements[${index}].measurement_unit_id`}
                             control={control}
@@ -615,14 +641,17 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             <Card>
               <Box
                 sx={{
+                  height: '122px',
+                  width: '100%',
+                  maxWidth: '562px',
                   position: 'fixed',
                   bottom: 0,
-                  height: '122px',
-                  backgroundColor: '#fff',
-                  width: '562px',
+                  zIndex: 1,
                   px: 4,
-                  display: 'flex',
-                  alignItems: 'center'
+                  bgcolor: 'white',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  display: 'flex'
                 }}
               >
                 <LoadingButton
