@@ -681,7 +681,7 @@ const EggSecondSecion = ({
                       Temperature
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                     <Typography
                       sx={{
@@ -691,7 +691,7 @@ const EggSecondSecion = ({
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                   </Grid>
                   <Grid
