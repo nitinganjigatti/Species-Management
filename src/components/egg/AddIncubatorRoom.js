@@ -238,7 +238,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           </Box>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent
+            <Box
               sx={{
                 m: 5,
                 px: 4,
@@ -247,7 +247,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 flexDirection: 'column',
                 gap: 4,
                 bgcolor: '#fff',
-                borderRadius: '8px'
+                borderRadius: '8px',
+                border: 1,
+                borderColor: '#c3cec7'
               }}
             >
               <FormControl fullWidth>
@@ -391,7 +393,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
                 )}
               </FormControl>
-            </CardContent>
+            </Box>
 
             <Box
               sx={{

@@ -197,8 +197,8 @@ const NurserySlider = ({
                 gap: 4,
                 backgroundColor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                border: 1,
+                borderColor: '#c3cec7'
               }}
             >
               <FormControl fullWidth sx={{ mt: 4 }}>
@@ -266,8 +266,10 @@ const NurserySlider = ({
                             return onChange('')
                           } else {
                             setDefaultSite(val)
+
                             // console.log('val', val)
                             setValue('site_id', '')
+
                             return onChange(val.site_id)
                           }
                         }}

@@ -13,7 +13,9 @@ const EggDisCarded = ({ eggList, handleScroll, handleDelete }) => {
         ml: 4,
         display: 'flex',
         justifyContent: 'center',
-        py: '20px'
+        py: '20px',
+        border: 1,
+        borderColor: '#c3cec7'
       }}
 
       // onScroll={handleScroll}

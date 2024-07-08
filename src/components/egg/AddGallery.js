@@ -103,7 +103,9 @@ const AddGallery = ({ galleryList }) => {
             alignItems: 'center',
             borderRadius: '8px',
             bgcolor: 'white',
-            mb: 4
+            mb: 4,
+            border: 1,
+            borderColor: '#c3cec7'
           }}
         >
           <Box sx={{ width: '200px', height: '140', borderRadius: '8px' }}>

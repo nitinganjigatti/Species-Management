@@ -203,13 +203,15 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
           {status === 'Overview' ? (
             <Box sx={{ mb: 20 }}>
               <Box sx={{ px: 4 }}>
-                <Card
+                <Box
                   sx={{
                     mt: 4,
                     p: '20px 16px 20px 16px',
                     bgcolor: '#fff',
                     borderRadius: '8px',
-                    gap: '24px'
+                    gap: '24px',
+                    border: 1,
+                    borderColor: '#c3cec7'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: '24px' }}>
@@ -344,7 +346,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
                       {summary?.reason ? summary?.reason : '-'}
                     </Typography>
                   </Box>
-                </Card>
+                </Box>
               </Box>
               <Typography
                 sx={{
