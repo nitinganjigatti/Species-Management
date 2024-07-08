@@ -9,6 +9,7 @@ import { AddDiscardEgg } from 'src/lib/api/egg/discard'
 const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEggModel }) => {
   const theme = useTheme()
   const [comments, setComments] = useState('')
+  const [loading, setLoading] = useState(false)
   console.log('comments :>> ', comments)
 
   const handleClose = () => {
@@ -17,6 +18,8 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
   }
 
   const handleDiscardClick = async () => {
+    setLoading(true)
+
     const payload = {
       egg_id: JSON.stringify(selectionEggModel),
       reason: comments
@@ -28,12 +31,14 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
       if (response.success) {
         Toaster({ type: 'success', message: response.message })
         handleClose()
+        setLoading(false)
       }
     } catch (error) {
       console.log('error :>> ', error)
       setComments('')
       handleClose()
       Toaster({ type: 'error', message: 'An error occurred while discard' })
+      setLoading(false)
     }
   }
 
@@ -80,7 +85,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
             CANCEL
           </Button>
 
-          <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} onClick={handleDiscardClick}>
+          <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} loading={loading} onClick={handleDiscardClick}>
             DISCARD
           </LoadingButton>
         </Box>

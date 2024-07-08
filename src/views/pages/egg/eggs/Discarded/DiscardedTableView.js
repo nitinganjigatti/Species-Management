@@ -9,12 +9,12 @@ import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
 
-const DiscardedTableView = ({ filterByNurseryId }) => {
+const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
 
-  const [total, setTotal] = useState(0)
+  const [totalpage, setTotalPage] = useState(0)
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -53,6 +53,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
         if (res.data.success) {
           // console.log('object :>> ', object)
           setTotal(Number(res?.data?.data?.total_count))
+          setTotalPage(Number(res?.data?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.data?.result))
         } else {
           setRows([])
@@ -437,7 +438,7 @@ const DiscardedTableView = ({ filterByNurseryId }) => {
         autoHeight
         pagination
         rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={total}
+        rowCount={totalpage}
         columns={columns}
         sortingMode='server'
         paginationMode='server'

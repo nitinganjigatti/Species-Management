@@ -846,7 +846,7 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryId,
+          nursery_id: filterByNurseryId ? filterByNurseryId : nurseryId,
           type:
             status === undefined
               ? 'eggs_received'
@@ -1204,7 +1204,7 @@ const EggList = () => {
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                 {' '}
-                <DiscardedTableView filterByNurseryId={filterByNurseryId} />
+                <DiscardedTableView filterByNurseryId={filterByNurseryId} setTotal={setTotal} />
               </TabPanel>
               {/* <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>

@@ -19,15 +19,21 @@ import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 
 import AddGallery from '../../../../../components/egg/AddGallery'
 import EggDisCarded from '../../../../../components/egg/EggDiscarded'
-import { GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
+import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
+import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
   const theme = useTheme()
   const [status, setStatus] = useState('Overview')
   const [summary, setSummary] = useState({})
   const [eggList, setEggList] = useState([])
-  console.log('eggList :>> ', eggList)
+  const [galleryList, setGalleryList] = useState([])
+
+  let [eggListPage, setEggListPage] = useState(1)
+  console.log('eggListPage :>> ', eggListPage)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  console.log('reachedEnd :>> ', reachedEnd)
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', width: '250px' }}>
@@ -67,12 +73,76 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
     }
   }
 
+  const GetGalleryImgListFunc = id => {
+    try {
+      getGalleryImgList({ ref_id: id, ref_type: 'egg_discard' }).then(res => {
+        if (res.success) {
+          setGalleryList(res?.data?.result)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
   useEffect(() => {
     if (eggDiscardedId) {
-      getSummary(eggDiscardedId)
-      getEggListSummary(eggDiscardedId)
+      if (status === 'Overview') {
+        getSummary(eggDiscardedId)
+        GetGalleryImgListFunc(eggDiscardedId)
+      } else {
+        getEggListSummary(eggDiscardedId)
+      }
     }
-  }, [detailDrawer])
+  }, [detailDrawer, status])
+
+  const handleScroll = async e => {
+    const container = e.target
+
+    // Check if the user has reached the bottom
+    if (status === 'eggs_list') {
+      console.log('container.scrollTop :>> ', container.scrollHeight)
+      console.log('container.scrollTop:>> ', container.scrollTop)
+      console.log('container.clientHeight :>> ', container.clientHeight)
+
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
+
+        setEggListPage(++eggListPage)
+        setReachedEnd(true)
+
+        try {
+          const params = { page: eggListPage, egg_discard_id: eggDiscardedId }
+          await GetDiscardedEggList(params).then(res => {
+            if (res?.data?.result?.length > 0) {
+              setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+
+  const handleDelete = async ({ id }) => {
+    console.log('delete :>> ', id)
+
+    const params = {
+      id: 3
+    }
+    try {
+      await DeleteEggById(params).then(res => {
+        console.log('res :>> ', res)
+      })
+    } catch (error) {
+      console.log('error :>> ', error)
+    }
+  }
 
   return (
     <>
@@ -117,7 +187,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
             <Divider sx={{ width: '200px' }} />
             {/* {tableData()} */}
           </TabPanel>
-          <TabPanel value='Eggs-8' sx={{ p: 0 }}>
+          <TabPanel value='eggs_list' sx={{ p: 0 }}>
             <Divider />
             {/* {tableData()} */}
           </TabPanel>
@@ -127,7 +197,8 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
 
         <Box
           className='sidebar-body'
-          sx={{ backgroundColor: 'background.default', height: 'calc(100vh - 144px)', overflowY: 'auto' }}
+          onScroll={handleScroll}
+          sx={{ backgroundColor: 'background.default', height: '90%', overflowY: 'auto' }}
         >
           {status === 'Overview' ? (
             <Box sx={{ mb: 20 }}>
@@ -160,7 +231,8 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
                           display: 'flex',
                           flexDirection: 'column',
                           borderTopLeftRadius: '8px',
-                          borderTopRightRadius: '8px'
+                          borderTopRightRadius: '8px',
+                          opacity: 0.8
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -204,7 +276,8 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
                           display: 'flex',
                           flexDirection: 'column',
                           borderBottomLeftRadius: '8px',
-                          borderBottomRightRadius: '8px'
+                          borderBottomRightRadius: '8px',
+                          opacity: 0.8
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -286,7 +359,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
               >
                 Added Photos
               </Typography>
-              <AddGallery />
+
+              {/* image gallery */}
+              <AddGallery galleryList={galleryList} />
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
@@ -389,7 +464,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
               )}
             </Box>
           ) : (
-            <EggDisCarded eggList={eggList} />
+            <EggDisCarded eggList={eggList} handleScroll={handleScroll} handleDelete={handleDelete} />
           )}
         </Box>
       </Drawer>
