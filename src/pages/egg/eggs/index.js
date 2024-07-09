@@ -803,7 +803,7 @@ const EggList = () => {
       Router.push({
         pathname: `/egg/eggs/${data?.id}`,
 
-        query: data?.animal_id
+        query: { animal_id: data?.animal_id }
       })
     } else {
       return
