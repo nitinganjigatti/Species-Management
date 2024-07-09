@@ -19,7 +19,34 @@ const ProductList = () => {
     customPaging: i => <div className='custom-dot'></div>,
     beforeChange: (current, next) => setActiveSlide(next),
     autoplay: false, // Enable auto-scrolling
-    autoplaySpeed: 3000
+    autoplaySpeed: 3000,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+          infinite: true,
+          dots: true
+        }
+      },
+      {
+        breakpoint: 820,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          initialSlide: 1
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          initialSlide: 1
+        }
+      }
+    ]
   }
 
   const [activeSlide, setActiveSlide] = React.useState(0)
