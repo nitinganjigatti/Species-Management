@@ -38,6 +38,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers'
 import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
+import dayjs from 'dayjs'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
   const theme = useTheme()
@@ -190,7 +191,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
         setDefaultSpecies(null)
 
         // console.log('res on submit :>> ', res)
-        // reset()
+        reset()
 
         setOpenDrawer(false)
         Toaster({ type: 'success', message: res.message })
@@ -207,8 +208,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
       // Perform any additional operations, e.g., API call
     } catch (error) {
       setLoader(false)
-      //   reset()
-      console.error('Error while adding room:', error)
+      console.error('Error while creating animal:', error)
       Toaster({ type: 'error', message: 'An error occurred while creating animal' })
     }
   }
@@ -526,6 +526,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                             value={value}
                             onChange={onChange}
                             label={'Accession Date *'}
+                            maxDate={dayjs()}
                             //   error={Boolean(errors.accessionDate)}
                           />
                         </LocalizationProvider>
@@ -720,6 +721,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                             value={value}
                             onChange={onChange}
                             label={'Birth Date *'}
+                            maxDate={dayjs()}
                           />
                         </LocalizationProvider>
                       )}

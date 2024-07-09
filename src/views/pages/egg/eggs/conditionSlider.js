@@ -402,16 +402,12 @@ const ConditionSlider = ({
           } else {
             setLoader(false)
             setDefaultSpecies(null)
-            reset()
             Toaster({ type: 'error', message: res.message })
-            setOpenDrawer(false)
           }
         } else {
           setLoader(false)
           setDefaultSpecies(null)
-          reset()
           Toaster({ type: 'error', message: res.message })
-          setOpenDrawer(false)
         }
       } else {
         const res = await AddEggStatusAndCondition(payload)
@@ -448,8 +444,8 @@ const ConditionSlider = ({
       }
       reset()
       setDefaultSpecies(null)
-      // console.error('Error while adding room:', error)
-      // Toaster({ type: 'error', message: 'An error occurred while adding room' })
+      console.error('Error while creating animal:', error)
+      Toaster({ type: 'error', message: 'An error occurred while creating animal' })
     }
   }
 
@@ -1134,6 +1130,7 @@ const ConditionSlider = ({
                                 value={value}
                                 onChange={onChange}
                                 label={'Accession Date'}
+                                maxDate={dayjs()}
                               />
                               {/* </DemoContainer> */}
                             </LocalizationProvider>
@@ -1331,6 +1328,7 @@ const ConditionSlider = ({
                                 value={value}
                                 onChange={onChange}
                                 label={'Birth Date'}
+                                maxDate={dayjs()}
                               />
                               {/* </DemoContainer> */}
                             </LocalizationProvider>
