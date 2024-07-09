@@ -249,8 +249,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 gap: '24px',
                 bgcolor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                border: '1px solid #C3CEC7'
               }}
             >
               <FormControl fullWidth>
