@@ -849,7 +849,10 @@ const EggList = () => {
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
+
           nursery_id: filterByNurseryId ? filterByNurseryId : nurseryId,
+
+          // nursery_id: 55,
           type:
             status === undefined
               ? 'eggs_received'
@@ -982,7 +985,8 @@ const EggList = () => {
             {status === 'eggs_received' ||
             status === 'eggs_incubation' ||
             status === 'eggs_hatched' ||
-            status === 'all' ? (
+            status === 'all' ||
+            isDiscarded === 'eggs_discarded_at_nursery' ? (
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -1184,14 +1188,14 @@ const EggList = () => {
                 ></Tab>
                 <Tab
                   value='eggs_discarded'
-                  label={<TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />}
-                />
-                {/* <Tab
-                  value='eggs_necropsy_needed'
                   label={
-                    <TabBadge label='Necropsy Needed' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
+                    <TabBadge label='Discarded Batch' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
                   }
-                /> */}
+                />
+                <Tab
+                  value='eggs_discarded_at_nursery'
+                  label={<TabBadge label='Discarded' totalCount={isDiscarded === 'discarded' ? total : null} />}
+                />
               </TabList>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {selectionEggModel?.length > 0 && (
@@ -1207,7 +1211,15 @@ const EggList = () => {
                 {' '}
                 <DiscardedTableView filterByNurseryId={filterByNurseryId} setTotal={setTotal} />
               </TabPanel>
-              {/* <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
+              <TabPanel
+                sx={{ p: 0 }}
+                value='eggs_discarded_at_nursery'
+                label={
+                  <TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null} />
+                }
+              >
+                {tableData()}
+              </TabPanel>
             </TabContext>
           </TabPanel>
           <TabPanel value='all' sx={{ p: 0 }}>
@@ -1219,7 +1231,14 @@ const EggList = () => {
         {/* </CardContent> */}
       </Card>
 
-      {openCreate && <CreateAnimalSlider openDrawer={openCreate} setOpenDrawer={setOpenCreate} eggId={eggID} />}
+      {openCreate && (
+        <CreateAnimalSlider
+          openDrawer={openCreate}
+          fetchTableData={fetchTableData}
+          setOpenDrawer={setOpenCreate}
+          eggId={eggID}
+        />
+      )}
 
       <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
       <DiscardDialogBox
