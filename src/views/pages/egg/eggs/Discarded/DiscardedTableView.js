@@ -27,21 +27,15 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
 
   const fetchTableData = useCallback(
     async (sort, q, nurseryId) => {
-      // console.log('nurseryId ddddddddd :>> ', nurseryId)
-
-      // debugger
-      // console.log('status :>> ', status)
-
       try {
         setLoading(true)
 
         const params = {
           sort,
           q,
-
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryId ? nurseryId : 55
+          nursery_id: nurseryId ? nurseryId : filterByNurseryId
         }
 
         const res = await DiscardedEggList({ params: params })
@@ -49,9 +43,8 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
         // let listWithId = res.data.result.map((el, i) => {
         //   return { ...el, uid: i + 1 }
         // })
-        console.log(' DiscardedEggList res :>> ', res)
+
         if (res.data.success) {
-          // console.log('object :>> ', object)
           setTotal(Number(res?.data?.data?.total_count))
           setTotalPage(Number(res?.data?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.data?.result))
@@ -396,7 +389,6 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   ]
 
   const onCellClick = (params, event) => {
-    // console.log('{data?.id} :>> ', params?.row?.egg_discard_id)
     if (params) {
       const data = params.row
       setEggDiscardedId(params?.row?.egg_discard_id)
@@ -460,7 +452,12 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
           }
         }}
       />
-      <DiscardDetail setDetailDrawer={setDetailDrawer} detailDrawer={detailDrawer} eggDiscardedId={eggDiscardedId} />
+      <DiscardDetail
+        setDetailDrawer={setDetailDrawer}
+        detailDrawer={detailDrawer}
+        eggDiscardedId={eggDiscardedId}
+        fetchTableData={fetchTableData}
+      />
     </Box>
   )
 }

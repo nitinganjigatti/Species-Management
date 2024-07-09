@@ -23,7 +23,7 @@ import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
-const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
+const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
   const [status, setStatus] = useState('Overview')
   const [summary, setSummary] = useState({})
@@ -31,9 +31,10 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
   const [galleryList, setGalleryList] = useState([])
 
   let [eggListPage, setEggListPage] = useState(1)
-  console.log('eggListPage :>> ', eggListPage)
+
   const [reachedEnd, setReachedEnd] = useState(false)
-  console.log('reachedEnd :>> ', reachedEnd)
+
+  const [eggId, setEggId] = useState('')
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', width: '250px' }}>
@@ -63,7 +64,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
 
   const getEggListSummary = async id => {
     const params = {
-      egg_discard_id: id
+      egg_discard_id: id ? id : eggDiscardedId
     }
     try {
       const res = await GetDiscardedEggList(params)
@@ -102,9 +103,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
 
     // Check if the user has reached the bottom
     if (status === 'eggs_list') {
-      console.log('container.scrollTop :>> ', container.scrollHeight)
-      console.log('container.scrollTop:>> ', container.scrollTop)
-      console.log('container.clientHeight :>> ', container.clientHeight)
+      // console.log('container.scrollTop :>> ', container.scrollHeight)
+      // console.log('container.scrollTop:>> ', container.scrollTop)
+      // console.log('container.clientHeight :>> ', container.clientHeight)
 
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
         // User has reached the bottom, perform your action here
@@ -126,21 +127,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
           console.error(error)
         }
       }
-    }
-  }
-
-  const handleDelete = async ({ id }) => {
-    console.log('delete :>> ', id)
-
-    const params = {
-      id: 3
-    }
-    try {
-      await DeleteEggById(params).then(res => {
-        console.log('res :>> ', res)
-      })
-    } catch (error) {
-      console.log('error :>> ', error)
     }
   }
 
@@ -198,7 +184,15 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
         <Box
           className='sidebar-body'
           onScroll={handleScroll}
-          sx={{ backgroundColor: 'background.default', height: '90%', overflowY: 'auto' }}
+          sx={{
+            backgroundColor: 'background.default',
+            height: '90%',
+            overflowY: 'auto'
+
+            // display: 'flex'
+
+            // justifyContent: 'center'
+          }}
         >
           {status === 'Overview' ? (
             <Box sx={{ mb: 20 }}>
@@ -466,7 +460,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
               )}
             </Box>
           ) : (
-            <EggDisCarded eggList={eggList} handleScroll={handleScroll} handleDelete={handleDelete} />
+            <EggDisCarded eggList={eggList} getEggListSummary={getEggListSummary} fetchTableData={fetchTableData} />
           )}
         </Box>
       </Drawer>

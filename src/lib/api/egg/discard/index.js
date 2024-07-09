@@ -39,9 +39,9 @@ export async function GetDiscardedEggList(params) {
   })
 }
 
-export async function DeleteEggById(params) {
+export async function DeleteEggById(payload) {
   try {
-    const response = await axiosPost({ url: `${EGG}/${DISCARD_DELETE}`, params: params })
+    const response = await axiosPost({ url: `${EGG}/${DISCARD_DELETE}`, body: payload })
 
     return response?.data
   } catch (error) {
