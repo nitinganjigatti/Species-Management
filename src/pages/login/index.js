@@ -206,7 +206,7 @@ const LoginPage = () => {
                   </Typography>
                 </Box>
 
-                <form noValidate autoComplete='on' onSubmit={handleSubmit(onSubmit)}>
+                <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4, borderColor: 'white' }}>
                     <Controller
                       name='email'

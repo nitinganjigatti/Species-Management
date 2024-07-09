@@ -11,7 +11,7 @@ import TabContext from '@mui/lab/TabContext'
 
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Box, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Divider, Select, MenuItem, Tooltip } from '@mui/material'
 import toast from 'react-hot-toast'
 import NotesIcon from '@mui/icons-material/Notes'
 
@@ -251,9 +251,22 @@ const Diet = () => {
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.diet_name ? params.row.diet_name : '-'}
-            </Typography>
+            <Tooltip title={params.row.diet_name} placement='right'>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '150px'
+                }}
+              >
+                {params.row.diet_name ? params.row.diet_name : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
