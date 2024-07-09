@@ -58,7 +58,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
   function formatDate(dateString) {
     const now = moment()
-    const date = moment(dateString)
+    // const date = moment(dateString)
+    const date = moment(moment.utc(dateString).toDate().toLocaleString())
 
     const diffInSeconds = now.diff(date, 'seconds')
     const diffInMinutes = now.diff(date, 'minutes')
@@ -271,7 +272,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on {moment(eggDetails?.modified_at).format('DD MMM YYYY')}
+                        Updated on{' '}
+                        {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
+                          'DD MMM YYYY'
+                        )}
                       </Typography>
                     </Box>
                     {/* <Box>
@@ -374,7 +378,9 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {moment(eggDetails?.collection_date).format('DD MMM YYYY')}
+                        {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
+                          'DD MMM YYYY'
+                        )}
                       </Typography>
 
                       <Typography

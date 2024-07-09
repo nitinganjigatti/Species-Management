@@ -456,9 +456,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='institution'>
-                      Institution {Number(getValues('accessionType')) === 4 && '*'}
-                    </InputLabel>
+                    <InputLabel id='institution'>Institution {Number(watch('accessionType')) === 4 && '*'}</InputLabel>
                     <Controller
                       name='institution'
                       control={control}
@@ -467,7 +465,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                         <Select
                           name='institution'
                           value={value}
-                          label='Accession Type'
+                          label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
                           onChange={onChange}
                           labelId='institution'
                           error={Boolean(errors?.institution)}
@@ -827,7 +825,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                         <TextField
                           error={Boolean(errors?.comment)}
                           value={value}
-                          label='Local Identifier'
+                          label={`Local Identifier ${watch('localIdentifierType') != '' && '*'}`}
                           name='localIdentifier'
                           onChange={onChange}
                           placeholder=''

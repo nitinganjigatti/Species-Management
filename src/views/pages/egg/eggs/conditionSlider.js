@@ -1158,7 +1158,7 @@ const ConditionSlider = ({
                       </FormControl>
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='accessionType'>Accession Type</InputLabel>
+                        <InputLabel id='accessionType'>Accession Type *</InputLabel>
                         <Controller
                           name='accessionType'
                           control={control}
@@ -1167,7 +1167,7 @@ const ConditionSlider = ({
                             <Select
                               name='accessionType'
                               value={value}
-                              label='Accession Type'
+                              label='Accession Type *'
                               onChange={onChange}
                               labelId='accessionType'
                               error={Boolean(errors?.species)}
@@ -1185,7 +1185,9 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='institution'>Institution</InputLabel>
+                        <InputLabel id='institution'>
+                          Institution {Number(watch('accessionType')) === 4 && '*'}
+                        </InputLabel>
                         <Controller
                           name='institution'
                           control={control}
@@ -1194,7 +1196,7 @@ const ConditionSlider = ({
                             <Select
                               name='institution'
                               value={value}
-                              label='Accession Type'
+                              label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
                               onChange={onChange}
                               labelId='institution'
                               error={Boolean(errors?.institution)}
@@ -1253,7 +1255,7 @@ const ConditionSlider = ({
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                                 value={value}
                                 onChange={onChange}
-                                label={'Accession Date'}
+                                label={'Accession Date *'}
                                 maxDate={dayjs()}
                               />
                               {/* </DemoContainer> */}
@@ -1266,7 +1268,7 @@ const ConditionSlider = ({
                       </FormControl>
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Select Enclosure</InputLabel>
+                        <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
                         <Controller
                           name='enclosure'
                           control={control}
@@ -1275,7 +1277,7 @@ const ConditionSlider = ({
                             <Select
                               name='enclosure'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Select Enclosure *'
                               onChange={onChange}
                               labelId='enclosure'
                               error={Boolean(errors?.enclosure)}
@@ -1349,7 +1351,7 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Sex Type</InputLabel>
+                        <InputLabel id='enclosure'>Sex Type *</InputLabel>
                         <Controller
                           name='sextype'
                           control={control}
@@ -1358,7 +1360,7 @@ const ConditionSlider = ({
                             <Select
                               name='sextype'
                               value={value}
-                              label='Sex Type'
+                              label='Sex Type *'
                               onChange={onChange}
                               labelId='sextype'
                               error={Boolean(errors?.sextype)}
@@ -1381,7 +1383,7 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='collectionType'>Collection Type</InputLabel>
+                        <InputLabel id='collectionType'>Collection Type *</InputLabel>
                         <Controller
                           name='collectionType'
                           control={control}
@@ -1390,7 +1392,7 @@ const ConditionSlider = ({
                             <Select
                               name='collectionType'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Collection Type *'
                               onChange={onChange}
                               labelId='collectionType'
                               error={Boolean(errors?.collectionType)}
@@ -1451,7 +1453,7 @@ const ConditionSlider = ({
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                                 value={value}
                                 onChange={onChange}
-                                label={'Birth Date'}
+                                label={'Birth Date *'}
                                 maxDate={dayjs()}
                               />
                               {/* </DemoContainer> */}
@@ -1531,7 +1533,7 @@ const ConditionSlider = ({
                             <Select
                               name='local IdentifierType'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Local Identifier Type'
                               onChange={onChange}
                               labelId='localIdentifierType'
                               error={Boolean(errors?.localIdentifierType)}
@@ -1559,7 +1561,7 @@ const ConditionSlider = ({
                             <TextField
                               error={Boolean(errors?.comment)}
                               value={value}
-                              label='Local Identifier'
+                              label={`Local Identifier ${watch('localIdentifierType') !== '' ? '*' : ''}`}
                               name='localIdentifier'
                               onChange={onChange}
                               placeholder=''
