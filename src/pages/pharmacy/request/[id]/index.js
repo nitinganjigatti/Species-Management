@@ -1152,9 +1152,7 @@ const IndividualRequest = () => {
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' &&
-                    (requestItems.status === 'request' ||
-                      (requestItems.status !== 'Cancelled' && requestItems?.status !== 'Partial Dispatched')) ? (
+                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
                       <Button
                         size='big'
                         variant='contained'

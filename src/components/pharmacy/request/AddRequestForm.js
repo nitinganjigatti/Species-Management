@@ -865,7 +865,7 @@ const AddRequestForm = () => {
                 //   </Box>
                 // )}
               />
-              {nestedRowMedicine.medicine_name && (
+              {/* {nestedRowMedicine.medicine_name && (
                 <Grid container item sx={{ my: 2 }}>
                   <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
                     <Tooltip title={nestedRowMedicine.package}>
@@ -890,7 +890,7 @@ const AddRequestForm = () => {
                     </Tooltip>
                   </Grid>
                 </Grid>
-              )}
+              )} */}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                   This field is required
