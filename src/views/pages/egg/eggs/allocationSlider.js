@@ -1,5 +1,7 @@
+import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
+  Autocomplete,
   Box,
   Card,
   CardContent,
@@ -13,25 +15,53 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  debounce
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
+import * as yup from 'yup'
 
-const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
-  console.log('allocateEggId :>> ', allocateEggId)
-  const [nurseryName, setNurseryName] = useState([])
-  const [roomName, setRoomName] = useState([])
-  const [incubatorName, setIncubatorName] = useState([])
+const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
+  // const [nurseryName, setNurseryName] = useState([])
+  // const [roomName, setRoomName] = useState([])
+  const [incubatorList, setIncubatorList] = useState([])
+
   const [assesmentTypes, setAssesmentTypes] = useState([])
   const [loader, setLoader] = useState(false)
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nurseryList, setNurseryList] = useState([])
+  const [roomList, setRoomList] = useState([])
+  const [defaultRoom, setDefaultRoom] = useState(null)
+  const [defaultIncubator, setDefaultIncubator] = useState(null)
+
+  const [nurseryId, setNurseryId] = useState([])
+
+  const schema = yup.object().shape({
+    room: yup.string().required('Room is Required'),
+    incubator: yup.string().required('Incubator Name is Required'),
+    measurements: yup
+      .array()
+      .of(
+        yup.object().shape({
+          assessment_value: yup
+            .number()
+            .typeError('Value must be a number')
+            .required('Weight is Required')
+            .positive('Value must be positive')
+            .min(0, 'Value cannot be negative')
+        })
+      )
+      .required('At least one measurement is required')
+  })
 
   const defaultValues = {
     nursery_name: '',
@@ -45,9 +75,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     register,
     handleSubmit,
     getValues,
+    setValue,
+    watch,
+    reset,
     formState: { errors }
   } = useForm({
     defaultValues,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -58,39 +92,26 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
     name: 'measurements'
   })
 
-  console.log('GetValues >>', getValues())
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoader(true)
 
-        const nurseryData = await GetNurseryList({ params: '' })
-        if (nurseryData?.data?.result) {
-          setNurseryName(nurseryData?.data?.result)
-        }
-
-        const roomData = await GetRoomList({ params: '' })
-        if (roomData?.data?.result) {
-          setRoomName(roomData?.data?.result)
-        }
-
-        const incubatorName = await getIncubatorList({ params: '' })
-        console.log('incubator', incubatorName.data)
-        if (incubatorName?.data?.data?.result) {
-          setIncubatorName(incubatorName?.data?.data?.result)
-        }
+        // const nurseryData = await GetNurseryList({ params: '' })
+        // if (nurseryData?.data?.result) {
+        //   setNurseryName(nurseryData?.data?.result)
+        // }
 
         const assesmentTypes = await GetAssesmentTypes()
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
-          console.log('assesment >', assesmentTypes?.data.length)
+          console.log('assesmentTypes :>> ', assesmentTypes)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
         }
         setLoader(false)
-        console.log('Assesment >>', assesmentTypes)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -98,6 +119,107 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
     fetchData()
   }, [])
+
+  const NurseryList = async q => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        search: q
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  // const nurseryId = watch('nursery_name')
+  const roomId = watch('room')
+
+  const RoomList = async (id, q) => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        nursery_id: id,
+        search: q
+      }
+      await GetRoomList({ params: params }).then(res => {
+        setRoomList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const searchRoom = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await RoomList(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  useEffect(() => {
+    if (allocationValues?.nursery_id) {
+      RoomList(allocationValues?.nursery_id)
+    }
+  }, [allocationValues?.nursery_id])
+
+  const fetchIncubatorData = async (id, q) => {
+    const params = {
+      room_id: id,
+      q
+    }
+    const incubatorName = await getIncubatorList({ params: params })
+
+    if (incubatorName?.data?.data?.result) {
+      setIncubatorList(incubatorName?.data?.data?.result)
+    }
+  }
+
+  const searchIncubator = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await fetchIncubatorData(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  useEffect(() => {
+    if (roomId) {
+      fetchIncubatorData(roomId)
+    }
+  }, [roomId])
+
+  useEffect(() => {
+    if (allocationValues?.nursery_id) {
+      setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
+
+      setValue('nursery_name', allocationValues?.nursery_id)
+    }
+  }, [allocationValues])
 
   const onSubmit = async values => {
     try {
@@ -108,22 +230,36 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
       }
       const response = await AddAllocation(params)
       if (response.success) {
-        toast.success('Allocation Successfully Done')
-        callApi()
+        Toaster({ type: 'success', message: response.message })
+
+        if (callApi) {
+          callApi('')
+        }
         setOpenDrawer(false)
       } else {
-        toast.error('Something went wrong')
-        callApi()
+        Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
       console.error('Error while adding', error)
-      toast.error('An error occurred while adding')
+      Toaster({ type: 'error', message: 'An error occurred while adding' })
     }
   }
 
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 600], height: '100vh' } }}>
+      <Drawer
+        anchor='right'
+        open={open}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+
+          // backgroundColor: 'background.default'
+        }}
+      >
         <Box
           className='sidebar-header'
           sx={{
@@ -134,13 +270,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+            <Typography variant='h6'>Send For Incubation</Typography>
           </Box>
-          <Typography variant='h6' sx={{ mr: 70 }}>
-            Send For Incubation
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
             </IconButton>
@@ -149,15 +284,91 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
 
         {/* drower */}
 
-        <Box className='sidebar-body'>
+        <Box
+          className='sidebar-body'
+          sx={
+            assesmentTypes?.data?.length >= 5
+              ? {
+                  backgroundColor: 'background.default',
+                  height: 'auto',
+                  overflowY: 'scroll',
+                  border: '1px solid #ccc'
+                }
+              : {
+                  backgroundColor: 'background.default',
+                  height: 'auto'
+                }
+          }
+        >
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
-              <Typography variant='h6' sx={{ mt: 5 }}>
+              {/* <Typography variant='h6' sx={{ mt: 5 }}>
                 Incubator Selection
-              </Typography>
+              </Typography> */}
 
-              <Card fullWidth sx={{ mt: 3 }}>
-                <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
+              <CardContent
+                sx={{
+                  mt: 3,
+                  px: 0.5,
+                  bgcolor: '#fff',
+                  borderRadius: '8px'
+                }}
+              >
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
+                  {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
+                      Nursery *
+                    </InputLabel> */}
+
+                  <Controller
+                    name='nursery_name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='nursery_name'
+                        value={defaultNursery}
+                        disablePortal
+                        disabled={allocationValues?.nursery_id}
+                        id='nursery_name'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultNursery(val)
+
+                            // console.log('val', val)
+
+                            // setValue('nursery', e.target.value)
+                            setValue('nursery_name', '')
+                            RoomList(val.nursery_id)
+
+                            return onChange(val.nursery_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Select Nursery *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery_name)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.nursery && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 4 }}>
                   <InputLabel error={Boolean(errors?.nursery_name)} id='nursery_name_label'>
                     Nursery Name*
                   </InputLabel>
@@ -173,6 +384,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                         onChange={onChange}
                         error={Boolean(errors?.nursery_name)}
                         labelId='nursery_name_label'
+                        disabled={allocationValues?.nursery_id}
                       >
                         {nurseryName.map(nursery => (
                           <MenuItem key={nursery?.nursery_id} value={nursery?.nursery_id}>
@@ -185,9 +397,103 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                   {errors && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_name?.message}</FormHelperText>
                   )}
+                </FormControl> */}
+
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 3 }}>
+                  <Controller
+                    name='room'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='room'
+                        value={defaultRoom}
+                        disablePortal
+                        id='room'
+                        options={roomList?.length > 0 ? roomList : []}
+                        getOptionLabel={option => option.room_name}
+                        isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultRoom(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultRoom(val)
+
+                            // console.log('val', val)
+                            setValue('room', '')
+
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchRoom(allocationValues?.nursery_id, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Room *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.room)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  )}
                 </FormControl>
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
+                <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 3 }}>
+                  <Controller
+                    name='incubator'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='incubator'
+                        value={defaultIncubator}
+                        disablePortal
+                        id='incubator'
+                        options={incubatorList?.length > 0 ? incubatorList : []}
+                        getOptionLabel={option => option.incubator_name}
+                        isOptionEqualToValue={(option, value) => option?.incubator_id === value?.incubator_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultIncubator(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultIncubator(val)
+
+                            // console.log('val', val)
+                            setValue('incubator', '')
+
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchIncubator(roomId, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Incubator *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.room)}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>
+                  )}
+                </FormControl>
+
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 6, mb: 4 }}>
                   <InputLabel error={Boolean(errors?.room)} id='room_label'>
                     Room*
                   </InputLabel>
@@ -195,7 +501,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                     name='room'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { value, onChange }, fieldState: { error } }) => (
                       <Select
                         name='room'
                         value={value}
@@ -213,9 +519,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>}
-                </FormControl>
+                </FormControl> */}
 
-                <FormControl sx={{ width: '95%', ml: 3, mt: 2, mb: 4 }}>
+                {/* <FormControl sx={{ width: '95%', ml: 3, mt: 1, mb: 0 }}>
                   <InputLabel error={Boolean(errors?.incubator)} id='incubator_label'>
                     Incubator*
                   </InputLabel>
@@ -223,7 +529,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                     name='incubator'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { value, onChange }, fieldState: { error } }) => (
                       <Select
                         name='incubator'
                         value={value}
@@ -241,8 +547,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>}
-                </FormControl>
-              </Card>
+                </FormControl> */}
+              </CardContent>
 
               <Typography variant='h6' sx={{ mt: 5 }}>
                 Egg Measurements
@@ -254,90 +560,98 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi }) => {
                 <CircularProgress />
               </Box>
             ) : (
-              fields.map((measurement, index) => (
-                <Card fullWidth sx={{ mt: 3, mb: fields.length === index + 1 ? 24 : 7, mx: 4 }} key={index}>
-                  <Grid container sx={{ mb: 3 }}>
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <Controller
-                          name={`measurements[${index}].assessment_value`}
-                          control={control}
-                          render={({ field: { value, onChange }, fieldState: { error } }) => (
-                            <TextField
-                              label={`${
-                                measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                measurement.assessment_type_string_id.slice(1)
-                              }*`}
-                              value={value}
-                              onChange={onChange}
-                              focused={value !== ''}
-                              name={`measurements[${index}].assessment_value`}
-                              inputProps={{ type: 'number', step: 'any' }} // Set type to 'number' and step to 'any'
-                              error={!!error}
-                              helperText={error ? 'Please enter a valid number' : ''}
-                            />
-                          )}
-                          rules={{ required: 'Value is required.' }} // No need for pattern validation for floating point numbers
-                        />
-                      </FormControl>
-                    </Grid>
+              <Card fullWidth sx={{ mt: 3, mx: 4, marginBottom: '122px' }}>
+                <CardContent>
+                  {fields.map((measurement, index) => (
+                    <Grid container spacing={3} key={index}>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth sx={{ mt: 3 }}>
+                          <Controller
+                            name={`measurements[${index}].assessment_value`}
+                            control={control}
+                            render={({ field: { value, onChange }, fieldState: { error } }) => (
+                              <TextField
+                                label={`${
+                                  measurement.assessment_type_string_id.charAt(0).toUpperCase() +
+                                  measurement.assessment_type_string_id.slice(1)
+                                }*`}
+                                value={value}
+                                onChange={onChange}
+                                focused={value !== ''}
+                                name={`measurements[${index}].assessment_value`}
+                                inputProps={{ type: 'number', step: 'any' }}
+                                error={!!error}
+                                helperText={error ? error.message : ''}
+                                fullWidth
+                              />
+                            )}
+                            rules={{ required: 'Please Enter Weight' }}
+                          />
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth sx={{ mt: 3 }}>
+                          <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
+                            {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
+                          </InputLabel>
 
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
-                          {measurement?.unit_name}
-                        </InputLabel>
-                        <Controller
-                          name={`measurements[${index}].measurement_unit_id`}
-                          control={control}
-                          rules={{ required: true }}
-                          defaultValue={measurement.unit_id}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name={`measurements[${index}].measurement_unit_id`}
-                              value={value}
-                              disabled={measurement.default_measurement_unit_string_id && true}
-                              label={measurement?.unit_name}
-                              onChange={onChange}
-                              error={Boolean(errors?.condition)}
-                              labelId='condition_label'
-                            >
-                              <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
-                                {measurement?.unit_name}
-                              </MenuItem>
-                            </Select>
+                          <Controller
+                            name={`measurements[${index}].measurement_unit_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            defaultValue={measurement.unit_id}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name={`measurements[${index}].measurement_unit_id`}
+                                value={value}
+                                disabled={measurement.default_measurement_unit_string_id && true}
+                                label={measurement?.unit_name}
+                                onChange={onChange}
+                                error={Boolean(errors?.condition)}
+                                labelId={`unit_label_${index}`}
+                                fullWidth
+                              >
+                                <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
+                                  {measurement?.unit_name}
+                                </MenuItem>
+                              </Select>
+                            )}
+                          />
+                          {errors && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
                           )}
-                        />
-                        {errors && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
-                        )}
-                      </FormControl>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6} sx={{ display: 'none' }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`measurements[${index}].assessment_type_id`}
+                            control={control}
+                            render={({ field }) => <input type='hidden' {...field} />}
+                            defaultValue={measurement.assessment_type_id}
+                          />
+                        </FormControl>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6} sx={{ display: 'none' }}>
-                      <FormControl fullWidth>
-                        <Controller
-                          name={`measurements[${index}].assessment_type_id`}
-                          control={control}
-                          render={({ field }) => <input type='hidden' {...field} />}
-                          defaultValue={measurement.assessment_type_id}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))
+                  ))}
+                </CardContent>
+              </Card>
             )}
+
             <Card>
               <Box
                 sx={{
+                  height: '122px',
+                  width: '100%',
+                  maxWidth: '562px',
                   position: 'fixed',
                   bottom: 0,
-                  height: '80px',
-                  backgroundColor: '#fff',
-                  width: '600px',
+                  zIndex: 1,
                   px: 4,
-                  display: 'flex',
-                  alignItems: 'center'
+                  bgcolor: 'white',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  display: 'flex'
                 }}
               >
                 <LoadingButton

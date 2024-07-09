@@ -42,22 +42,22 @@ const schema = yup.object().shape({
     .required('Common Name is Required'),
   animal_count: yup.string().required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
-  age: yup.string().required('Age is Required'),
+  // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
-  possession_type: yup.string().required('Reason is Required'),
+  possession_type: yup.string().required('Reason is Required')
 
-  alloted_register_no: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Registration Number is Required for Death Reason')
-  }),
-  reason_for_death: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Reason for Death is Required')
-  }),
-  where_disposed: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Where and How Disposed is Required for Death Reason')
-  })
+  // alloted_register_no: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Registration Number is Required for Death Reason')
+  // }),
+  // reason_for_death: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Reason for Death is Required')
+  // }),
+  // where_disposed: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+  // })
 })
 
 const defaultValues = {
@@ -67,7 +67,10 @@ const defaultValues = {
   registrationNumber: '',
   reason_for_death: '',
   where_disposed: '',
-  possession_type: ''
+  possession_type: '',
+  animal_count: '',
+  gender: '',
+  transaction_date: null
 }
 
 const AddSpeciesNewEntry = props => {
@@ -109,57 +112,40 @@ const AddSpeciesNewEntry = props => {
       transaction_date,
       specie,
       possession_type,
-      organizationName,
-      age,
-      alloted_register_no,
-      reason_for_death,
-      where_disposed,
       animal_count
+      // organizationName,
+      // age
+      // alloted_register_no,
+      // reason_for_death,
+      // where_disposed,
     } = { ...params }
 
     const payload = {
-      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
-      age: age,
-      ...(possession_type === 'death' && {
-        alloted_register_no: alloted_register_no,
-        reason_for_death: reason_for_death,
-        where_disposed: where_disposed
-      })
+      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
+      // age: age,
+      // ...(possession_type === 'death' && {
+      //   alloted_register_no: alloted_register_no,
+      //   reason_for_death: reason_for_death,
+      //   where_disposed: where_disposed
+      // })
     }
 
     await handleSubmitData(payload)
+    reset({
+      ...defaultValues,
+      scientific_name: values.scientific_name,
+      common_name: values.common_name
+    })
   }
-
-  // const getDrugClass = useCallback(
-  //   async id => {
-  //     const response = await getDrugById(id)
-  //     if (response?.success) {
-  //       reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-  //     } else {
-  //     }
-  //   },
-  //   [reset]
-  // )
-
-  // useEffect(() => {
-  //   if (resetForm) {
-  //     reset(defaultValues)
-  //   }
-
-  //   // if (editParams?.id !== null) {
-  //   //   getDrugClass(editParams?.id)
-  //   // }
-  // }, [resetForm, editParams, reset])
 
   useEffect(() => {
     console.log(speciesDetails, 'scientificName')
-    // debugger
     if (speciesDetails) {
       setValue('scientific_name', speciesDetails.scientific_name)
       setValue('common_name', speciesDetails.common_name)
@@ -261,7 +247,7 @@ const AddSpeciesNewEntry = props => {
                   value={value}
                   onChange={e => {
                     onChange(e)
-                    setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
+                    // setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
                   }}
                   error={Boolean(errors.reason)}
                 >
@@ -277,9 +263,8 @@ const AddSpeciesNewEntry = props => {
             )}
           </FormControl>
 
-          {showAdditionalFields && (
+          {/* {showAdditionalFields && (
             <>
-              {/* Additional input fields */}
               <FormControl fullWidth sx={{ mb: 6 }}>
                 <Controller
                   name='alloted_register_no'
@@ -338,7 +323,7 @@ const AddSpeciesNewEntry = props => {
                 )}
               </FormControl>
             </>
-          )}
+          )} */}
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
@@ -354,17 +339,8 @@ const AddSpeciesNewEntry = props => {
             />
             {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
           </FormControl>
+
           {/* <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='age'
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <TextField label='Age*' type='number' value={value} onChange={onChange} error={Boolean(errors.age)} />
-              )}
-            />
-            {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
-          </FormControl> */}
-          <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='age'
               control={control}
@@ -376,7 +352,7 @@ const AddSpeciesNewEntry = props => {
             />
 
             {errors.age && <FormHelperText sx={{ color: 'error.main' }}>{errors.age?.message}</FormHelperText>}
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='animal_count'
@@ -406,6 +382,7 @@ const AddSpeciesNewEntry = props => {
                   fullWidth
                   date={value}
                   width={'100%'}
+                  dateFormat='dd/MM/yyyy'
                   onChangeHandler={onChange}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />

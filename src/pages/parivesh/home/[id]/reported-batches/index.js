@@ -165,7 +165,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       flex: 0.2,
       Width: 40,
       field: 'batch_code',
-      headerName: 'BATCH CODE',
+      headerName: 'BATCH ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_code}
@@ -240,17 +240,40 @@ const ReportedBatches = ({ searchParams, type }) => {
         </Box>
       )
     },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: '#E93353' }}>
+    //       {params.row.status ? params.row.status : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: '#E93353' }}>
-          {params.row.status ? params.row.status : '-'}
-        </Typography>
-      )
+      renderCell: params => {
+        let status = params.row.status ? params.row.status : '-'
+
+        if (status !== '-') {
+          status = status
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+        }
+
+        return (
+          <Typography variant='body2' sx={{ color: '#E93353' }}>
+            {status}
+          </Typography>
+        )
+      }
     },
+
     {
       flex: 0.3,
       minWidth: 10,
@@ -353,7 +376,7 @@ const ReportedBatches = ({ searchParams, type }) => {
             </Box>
             <Box>
               <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this Batch?
+                Are you sure you want to delete this batch?
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>

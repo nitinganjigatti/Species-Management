@@ -108,7 +108,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddReturnRequest = () => {
+const AddDirectDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
@@ -842,6 +842,7 @@ const AddReturnRequest = () => {
                           setEditParams({ ...editParams, ro_date: formatDate(date) })
                           setErrors({})
                         }}
+                        maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
@@ -1178,4 +1179,4 @@ const AddReturnRequest = () => {
   )
 }
 
-export default AddReturnRequest
+export default AddDirectDispatch

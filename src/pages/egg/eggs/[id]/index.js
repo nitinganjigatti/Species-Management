@@ -9,6 +9,7 @@ import Router, { useRouter } from 'next/router'
 import { assessment_type_string_id } from 'src/constants/Constants'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { Breadcrumbs, Typography } from '@mui/material'
+import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
 const EggDetail = () => {
   const router = useRouter()
@@ -17,6 +18,24 @@ const EggDetail = () => {
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
   const [loader, setLoader] = useState(true)
+
+  const [galleryList, setGalleryList] = useState([])
+
+  const [activtyLogData, setActivtyLogData] = useState([])
+  const [activtyLogCount, setActivtyLogCount] = useState(0)
+
+  const GetGalleryImgListFunc = () => {
+    try {
+      getGalleryImgList({ ref_id: id, ref_type: 'egg' }).then(res => {
+        if (res.success) {
+          setGalleryList(res?.data?.result)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const getDetails = id => {
     // setLoader(true)
@@ -48,9 +67,26 @@ const EggDetail = () => {
     }
   }
 
+  const getActivityLogsFunc = () => {
+    const params = { page_no: 1 }
+    try {
+      getActivityLogs(id, params).then(res => {
+        if (res.success) {
+          setActivtyLogData(res?.data?.result)
+          setActivtyLogCount(res?.data?.total_count)
+        } else {
+        }
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
   useEffect(() => {
     getDetails(id)
     getDefaultEggAssesmentFunc()
+    GetGalleryImgListFunc()
+    getActivityLogsFunc()
   }, [])
 
   return (
@@ -60,19 +96,29 @@ const EggDetail = () => {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Breadcrumbs aria-label='breadcrumb'>
+            <Typography color='inherit'>Egg</Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
-              Egg
+              Egg List
             </Typography>
             <Typography color='text.primary'>Egg Details</Typography>
           </Breadcrumbs>
-          <EggFirstSection eggDetails={eggDetails} />
+          <EggFirstSection
+            getActivityLogsFunc={getActivityLogsFunc}
+            GetGalleryImgList={GetGalleryImgListFunc}
+            getDetails={getDetails}
+            eggDetails={eggDetails}
+          />
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}
             defaultEggAssesment={defaultEggAssesment}
             egg_id={id}
+            activtyLogData={activtyLogData}
+            setActivtyLogData={setActivtyLogData}
+            activtyLogCount={activtyLogCount}
+            setActivtyLogCount={setActivtyLogCount}
           />
-          <EggImageGallery eggDetails={eggDetails} eggId={id} />
+          <EggImageGallery galleryList={galleryList} />
           <EggComment eggDetails={eggDetails} eggId={id} />
         </Box>
       )}

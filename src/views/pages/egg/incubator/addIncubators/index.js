@@ -11,6 +11,7 @@ import * as yup from 'yup'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import {
+  Autocomplete,
   Card,
   CardContent,
   CardHeader,
@@ -37,13 +38,23 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import Popper from '@mui/material/Popper'
 import { styled } from '@mui/material/styles'
-import { addIncubator } from 'src/lib/api/egg/incubator'
+import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
+import Toaster from 'src/components/Toaster'
 
-const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handleSidebarClose }) => {
+const AddIncubators = ({
+  incubatorDetail,
+  actionApi,
+  isEdit,
+  sidebarOpen,
+  handleSidebarClose,
+  isPreFilled,
+  detailsApi
+}) => {
   const router = useRouter()
   const { id } = router.query
   const [defaultNursery, setDefaultNursery] = useState(null)
+  const [defaultRoom, setDefaultRoom] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [roomList, setRoomList] = useState([])
   const [btnDisabled, setBtnDisabled] = useState(false)
@@ -56,46 +67,53 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
   }
 
   const schema = yup.object().shape({
-    incubator_name: yup.string().required('incubator Name is Required'),
+    incubator_name: yup.string().trim().required('incubator Name is Required'),
     nursery: yup.string().required('Nursery is Required'),
     room: yup.string().required('Room is Required'),
     maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
   })
 
-  // useEffect(() => {
-  //   if (isEdit) {
-  //     try {
-  //       setValue('incubator_name', incubatorDetail?.incubator_name)
-  //       setValue('nursery', incubatorDetail?.nursery_id)
-  //       setValue('room', incubatorDetail?.room_id)
-  //       setValue('maxNumberOfEggs', incubatorDetail?.no_of_eggs)
-
-  //       console.log('incubatorDetail?', incubatorDetail)
-  //     } catch (error) {
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }, [incubatorDetail])
   useEffect(() => {
     if (isEdit && sidebarOpen) {
       try {
         setValue('incubator_name', incubatorDetail?.incubator_name)
         setValue('nursery', incubatorDetail?.nursery_id)
         setValue('room', incubatorDetail?.room_id)
-        setValue('maxNumberOfEggs', incubatorDetail?.no_of_eggs)
-
-        console.log('incubatorDetail?', incubatorDetail)
+        setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
+        RoomList(incubatorDetail?.nursery_id)
       } catch (error) {
         console.log('error', error)
       }
     }
+    if (isPreFilled) {
+      // console.log('isPreFilled :>> ', isPreFilled)
+      RoomList(isPreFilled?.nursery_id)
+      setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
+      setValue('nursery', isPreFilled?.nursery_id)
+      setDefaultRoom({ room_id: isPreFilled?.room_id, room_name: isPreFilled?.room_name })
+      setValue('room', isPreFilled?.room_id)
+    }
   }, [sidebarOpen])
 
-  const NurseryList = async () => {
+  useEffect(() => {
+    if (incubatorDetail) {
+      RoomList(incubatorDetail?.nursery_id)
+      setValue('nursery', incubatorDetail?.nursery_id)
+      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
+      setValue('room', incubatorDetail?.room_id)
+      setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
+      setValue('incubator_name', incubatorDetail?.incubator_name)
+      setValue('maxNumberOfEggs', Number(incubatorDetail?.max_eggs))
+    }
+  }, [incubatorDetail])
+
+  const NurseryList = async (q, id) => {
     try {
       const params = {
         page: 1,
-        limit: 50
+        limit: 50,
+        nursery_id: id,
+        search: q
       }
       await GetNurseryList({ params: params }).then(res => {
         setNurseryList(res?.data?.result)
@@ -105,11 +123,24 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
     }
   }
 
-  const RoomList = async () => {
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const RoomList = async (id, q) => {
     try {
       const params = {
         page: 1,
-        limit: 50
+        limit: 50,
+        nursery_id: id,
+        search: q
       }
       await GetRoomList({ params: params }).then(res => {
         setRoomList(res?.data?.result)
@@ -119,9 +150,19 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
     }
   }
 
+  const searchRoom = useCallback(
+    debounce(async (id, q) => {
+      try {
+        await RoomList(id, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   useEffect(() => {
     NurseryList()
-    RoomList()
   }, [])
 
   const {
@@ -143,23 +184,30 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
   })
 
   const onSubmit = val => {
+    setBtnDisabled(true)
     if (isEdit) {
-      setBtnDisabled(true)
       try {
         updateIncubator(id, {
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs,
+          max_eggs: Number(val?.maxNumberOfEggs),
           incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
-            // handleSidebarClose()
-            router.push('/egg/incubators')
+            handleSidebarClose()
+            setBtnDisabled(false)
+            Toaster({ type: 'success', message: res.message })
+            if (actionApi) {
+              actionApi('')
+            }
           } else {
+            setBtnDisabled(false)
+            Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
+        setBtnDisabled(false)
         console.log(error)
       }
     } else {
@@ -172,13 +220,22 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
         }).then(res => {
           if (res.success) {
             reset()
-            actionApi('')
+            if (actionApi) {
+              actionApi('')
+            }
+            if (detailsApi) {
+              detailsApi()
+            }
             handleSidebarClose()
             setBtnDisabled(false)
+            Toaster({ type: 'success', message: res.message })
           } else {
+            setBtnDisabled(false)
+            Toaster({ type: 'error', message: res.message })
           }
         })
       } catch (error) {
+        setBtnDisabled(false)
         console.log(error)
       }
     }
@@ -190,7 +247,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
 
   const RenderSidebarFooter = () => {
     return (
-      <LoadingButton fullWidth size='large' type='submit' variant='contained'>
+      <LoadingButton disabled={btnDisabled} fullWidth size='large' type='submit' variant='contained'>
         {isEdit ? 'EDIT' : 'ADD'} INCUBATOR
       </LoadingButton>
     )
@@ -205,7 +262,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
       open={sidebarOpen}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '502px'] },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -213,7 +270,7 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
       }}
     >
       <form onSubmit={handleSubmit(onSubmit, onError)}>
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: 'background.default', zIndex: 10, width: '502px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: 'background.default', zIndex: 10, width: '562px' }}>
           <Box
             sx={{
               display: 'flex',
@@ -242,155 +299,205 @@ const AddIncubators = ({ incubatorDetail, actionApi, isEdit, sidebarOpen, handle
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 84, marginTop: 14, height: '95%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 30, marginTop: 14, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='incubator_name'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Incubator Name'
-                          value={value}
-                          onChange={onChange}
-                          placeholder='Incubator Name'
-                          error={Boolean(errors.incubator_name)}
-                          name='incubator_name'
-                        />
-                      )}
-                    />
-                    {errors.incubator_name && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
-                      Nursery
-                    </InputLabel>
+            {/* <Card sx={{ height: '600px' }}> */}
+            <CardContent sx={{ mt: 2, borderRadius: '8px', backgroundColor: '#fff' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <FormControl fullWidth>
+                  {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
+                      Nursery *
+                    </InputLabel> */}
 
-                    <Controller
-                      name='nursery'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        // <Autocomplete
-                        //   value={defaultNursery}
-                        //   disablePortal
-                        //   id='nursery'
-                        //   options={nurseryList?.length > 0 ? nurseryList : []}
-                        //   getOptionLabel={option => option.nursery_name}
-                        //   isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                        //   onChange={(e, val) => {
-                        //     if (val === null) {
-                        //       setDefaultNursery(null)
+                  <Controller
+                    name='nursery'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        name='nursery'
+                        value={defaultNursery}
+                        // value={value}
+                        disablePortal
+                        disabled={isEdit || isPreFilled}
+                        id='nursery'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
 
-                        //       return onChange('')
-                        //     } else {
-                        //       setDefaultNursery(val)
+                            return onChange('')
+                          } else {
+                            setDefaultNursery(val)
 
-                        //       return onChange(val.nursery_id)
-                        //     }
-                        //   }}
-                        //   renderInput={params => (
-                        //     <TextField
-                        //       {...params}
-                        //       label='Select Nursery'
-                        //       placeholder='Search & Select'
-                        //       error={Boolean(errors.nursery)}
-                        //     />
-                        //   )}
-                        // />
+                            // console.log('val', val)
+                            setValue('room', '')
+                            RoomList(val.nursery_id)
 
-                        <Select
-                          name='nursery'
-                          value={value}
-                          label='Nursery'
-                          onChange={onChange}
-                          error={Boolean(errors?.nursery)}
-                          labelId='nursery'
-                        >
-                          {nurseryList?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.nursery_id}>
-                                {item?.nursery_name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors?.nursery && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                            return onChange(val.nursery_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Select Nursery *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery)}
+                          />
+                        )}
+                      />
+
+                      // <Select
+                      //   name='nursery'
+                      //   value={value}
+                      //   label='Nursery *'
+                      //   onChange={e => {
+                      //     // onChange()
+                      //     setValue('nursery', e.target.value)
+                      //     setValue('room', '')
+                      //     RoomList(e.target.value)
+                      //   }}
+                      //   disabled={isEdit || isPreFilled}
+                      //   error={Boolean(errors?.nursery)}
+                      //   labelId='nursery'
+                      // >
+                      //   {nurseryList?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.nursery_id}>
+                      //         {item?.nursery_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
                     )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.room)} id='room'>
-                      Room
-                    </InputLabel>
-                    <Controller
-                      name='room'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='room'
-                          value={value}
-                          label='Room'
-                          onChange={onChange}
-                          error={Boolean(errors?.nursery)}
-                          labelId='room'
-                        >
-                          {roomList?.map((item, index) => {
-                            return (
-                              <MenuItem key={index} value={item?.room_id}>
-                                {item?.room_name}
-                              </MenuItem>
-                            )
-                          })}
-                        </Select>
-                      )}
-                    />
-                    {errors?.room && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  />
+                  {errors?.nursery && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <Controller
+                    name='room'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      // <Select
+                      //   name='room'
+                      //   value={value}
+                      //   label='Room'
+                      //   onChange={onChange}
+                      //   error={Boolean(errors?.nursery)}
+                      //   labelId='room'
+                      //   disabled={isEdit || isPreFilled}
+                      // >
+                      //   {roomList?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.room_id}>
+                      //         {item?.room_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
+
+                      <Autocomplete
+                        name='room'
+                        value={defaultRoom}
+                        // value={value}
+                        disablePortal
+                        disabled={isEdit || isPreFilled}
+                        id='room'
+                        options={roomList?.length > 0 ? roomList : []}
+                        getOptionLabel={option => option.room_name}
+                        isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultRoom(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultRoom(val)
+                            console.log('val', val)
+                            setValue('room', '')
+
+                            return onChange(val.room_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            onChange={e => {
+                              searchRoom(defaultNursery.nursery_id, e.target.value)
+                            }}
+                            {...params}
+                            label='Select Room *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.nursery)}
+                          />
+                        )}
+                      />
                     )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='maxNumberOfEggs'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          label='Max Number Of Eggs'
-                          value={value}
-                          type='number'
-                          inputProps={{ min: 1 }}
-                          onChange={onChange}
-                          placeholder='Max Number Of Eggs'
-                          error={Boolean(errors.maxNumberOfEggs)}
-                          name='maxNumberOfEggs'
-                        />
-                      )}
-                    />
-                    {errors.maxNumberOfEggs && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.maxNumberOfEggs?.message}</FormHelperText>
+                  />
+                  {errors?.room && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <Controller
+                    name='incubator_name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        label='Incubator Name *'
+                        value={value}
+                        onChange={onChange}
+                        placeholder='Incubator Name'
+                        error={Boolean(errors.incubator_name)}
+                        name='incubator_name'
+                      />
                     )}
-                  </FormControl>
-                </Box>
-              </CardContent>
-            </Card>
+                  />
+                  {errors.incubator_name && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.incubator_name?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                <FormControl fullWidth>
+                  <Controller
+                    name='maxNumberOfEggs'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        label='Max Number Of Eggs *'
+                        value={value}
+                        type='number'
+                        inputProps={{ min: 1 }}
+                        onChange={onChange}
+                        placeholder='Max Number Of Eggs'
+                        error={Boolean(errors.maxNumberOfEggs)}
+                        name='maxNumberOfEggs'
+                      />
+                    )}
+                  />
+                  {errors.maxNumberOfEggs && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.maxNumberOfEggs?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Box>
+            </CardContent>
+            {/* </Card> */}
           </Box>
         </Box>
 
         <Box
           sx={{
-            height: '100px',
+            height: '122px',
             width: '100%',
-            maxWidth: '502px',
+            maxWidth: '562px',
             position: 'fixed',
             bottom: 0,
             px: 4,

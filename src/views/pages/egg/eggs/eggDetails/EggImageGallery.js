@@ -1,31 +1,12 @@
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
-import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
-const EggImageGallery = ({ eggId }) => {
+const EggImageGallery = ({ galleryList }) => {
   const theme = useTheme()
-  const [galleryList, setGalleryList] = useState([])
-
-  const GetGalleryImgListFunc = () => {
-    try {
-      getGalleryImgList({ ref_id: eggId, ref_type: 'egg' }).then(res => {
-        if (res.success) {
-          setGalleryList(res?.data?.result)
-        } else {
-        }
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-  useEffect(() => {
-    GetGalleryImgListFunc()
-  }, [])
 
   return (
     <>
@@ -42,12 +23,12 @@ const EggImageGallery = ({ eggId }) => {
           >
             Image Gallery
           </Typography>
-          <Grid container spacing={6} sx={{ justifyContent: 'space-between' }}>
+          <Grid container spacing={6} sx={{ justifyContent: 'start' }}>
             {galleryList?.map((item, index) => (
               <Grid key={index} item xs={12} sm={6} md={4} xl={4} xxl={4}>
                 <Card>
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {/* <Typography
+                    <Typography
                       sx={{
                         fontWeight: 500,
                         fontSize: '20px',
@@ -56,7 +37,7 @@ const EggImageGallery = ({ eggId }) => {
                       }}
                     >
                       {item?.type}
-                    </Typography> */}
+                    </Typography>
                     <Avatar
                       alt='image'
                       sx={{ width: '100%', height: '100%', aspectRatio: '16/9' }}

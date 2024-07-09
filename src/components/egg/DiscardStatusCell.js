@@ -18,7 +18,6 @@ const DiscardStatusCell = ({
   const theme = useTheme()
 
   const [hover, setHover] = useState(false)
-  console.log('hover :>> ', hover)
 
   // const handleDiscard = e => {
   //   e.stopPropagation()
@@ -46,7 +45,7 @@ const DiscardStatusCell = ({
         >
           Discard
         </Button>
-        <Button variant='contained' onClick={e => handleAction(e, params?.row?.egg_id)}>
+        <Button variant='contained' onClick={e => handleAction(e, params)}>
           Allocate{' '}
         </Button>
       </Stack>

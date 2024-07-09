@@ -27,6 +27,7 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import { GetEggMaster, AddToDiscard } from 'src/lib/api/egg/egg'
 import { width } from '@mui/system'
+import Toaster from 'src/components/Toaster'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   console.log('eggID :>> ', eggID)
@@ -178,21 +179,23 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         setImgSrc('')
         reset()
         setIsOpen(false)
-        toast.success(res?.message)
-        callApi('')
+        Toaster({ type: 'success', message: res?.message })
+
+        if (callApi) {
+          callApi('')
+        }
       } else {
-        setReason('')
-        setImgSrc('')
-        reset()
-        setIsOpen(false)
-        toast.success(res?.message)
-        callApi('')
+        // setReason('')
+        // setImgSrc('')
+        // // reset()
+        // setIsOpen(false)
+        Toaster({ type: 'error', message: res?.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
-      console.error('Error while adding room:', error)
-      toast.error('An error occurred while adding room')
+      console.error('Error while :', error)
+      Toaster({ type: 'error', message: 'An error occurred while Discard' })
     }
   }
 

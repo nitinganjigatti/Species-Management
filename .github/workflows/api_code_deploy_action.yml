@@ -7,6 +7,7 @@ on:
       - release/farm
       - prod-release
 env:
+  ARTIFICATE_DOWNLOAD_GITHUB_TOKEN: ${{ secrets.ARTIFICATE_DOWNLOAD_GITHUB_TOKEN }}
   SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
   DEPLOY_SERVER_DEV: ${{vars.DEPLOY_SERVER_DEV}}
   DEPLOY_SERVER_UAT: ${{vars.DEPLOY_SERVER_UAT}}
@@ -40,6 +41,45 @@ jobs:
         name: UPDATE PERMISSION OF KNOWN HOSTS
       - name: Checkout CodeBase
         uses: actions/checkout@v3
+      - name: Install Dependencies (Node.js & GIT)
+        run: |
+          apt-get install -qq git nodejs
+          npm install -g npm@latest  # Optional: Update npm to latest
+      - name: Install Next.js Dependencies
+        run: npm install # Install project dependencies
+      - name: Copy environment file for dev-release
+        if: github.ref == 'refs/heads/dev-release'
+        run: |
+          rm -r .env
+          cp -r env.development .env
+
+      - name: Copy environment file for uat-release
+        if: github.ref == 'refs/heads/uat-release'
+        run: |
+          rm -r .env
+          cp -r env.uat .env
+
+      - name: Copy environment file for prod-release
+        if: github.ref == 'refs/heads/prod-release'
+        run: |
+          rm -r .env
+          cp -r env.production .env
+
+      - name: Copy environment file for release/farm
+        if: github.ref == 'refs/heads/release/farm'
+        run: |
+          rm -r .env
+          cp -r env.farm .env
+      - name: Build Next.js Application (Optimize for memory)
+        run: |
+          cat .env
+          npm run build
+      - name: Upload Next.js Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build-output # Customize this name if needed
+          path: .next # Replace with the path to your build output directory
+          retention-days: 1
       - name: Trigger Deploy Script
         run: |
           chmod u+x deploy/

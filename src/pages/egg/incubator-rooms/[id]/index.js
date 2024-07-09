@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
-
 import {
   Grid,
   Card,
@@ -19,7 +18,8 @@ import {
   CardHeader,
   Button,
   Stack,
-  Avatar
+  Avatar,
+  Tooltip
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -34,10 +34,11 @@ const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
   const router = useRouter()
   const { id } = router.query
-  console.log('id :>> ', id)
+
   const theme = useTheme()
-  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null }
+  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -48,51 +49,48 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+  console.log('detailsData :>> ', detailsData)
+
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
+  const [isPreFilled, setIsPreFilled] = useState({})
 
-  console.log('detailsData :>> ', detailsData)
+  const fetchTableData = useCallback(async () => {
+    try {
+      // console.log('til_date', cuurent_date)
+      setLoading(true)
 
-  const fetchTableData = useCallback(
-    async q => {
-      try {
-        console.log('til_date', cuurent_date)
-        setLoading(true)
+      const params = {
+        sort,
+        q: searchValue,
+        room_id: id,
 
-        const params = {
-          q,
-
-          // sortColumn,
-          til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await getIncubatorList(params).then(res => {
-          console.log('response', res)
-
-          // Generate uid field based on the index
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
+        til_date: cuurent_date,
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize
       }
-    },
-    [paginationModel]
-  )
+
+      await getIncubatorList({ params }).then(res => {
+        // Generate uid field based on the index
+        let listWithId = res?.data?.data?.result?.map((el, i) => {
+          return { ...el, id: i + 1 }
+        })
+        setTotal(parseInt(res?.data?.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, listWithId))
+
+        // setstatusCheckval(res?.data?.result.map(all => all.active))
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [paginationModel])
 
   useEffect(() => {
     // if (eggModule) {
-    fetchTableData(searchValue)
+    fetchTableData()
 
     // }
   }, [fetchTableData])
@@ -117,7 +115,7 @@ const RoomDetails = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await fetchTableData()
       } catch (error) {
         console.error(error)
       }
@@ -137,15 +135,14 @@ const RoomDetails = () => {
       field: 'id',
       headerName: 'SL ',
       align: 'center',
-
       sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
             fontWeight: '400',
-            lineHeight: '14.52px'
+            lineHeight: '14.52px',
+            fontSize: '12px'
           }}
         >
           {params.row.sl_no}
@@ -154,7 +151,7 @@ const RoomDetails = () => {
     },
 
     {
-      flex: 0.35,
+      flex: 0.27,
       minWidth: 30,
       sortable: false,
       field: 'incubator_code',
@@ -171,6 +168,30 @@ const RoomDetails = () => {
         >
           {params.row.incubator_code ? params.row.incubator_code : '-'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.35,
+      minWidth: 30,
+      sortable: false,
+      field: 'incubator_name',
+      headerName: 'INCUBATOR NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.incubator_name ? params.row.incubator_name : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.incubator_name ? params.row.incubator_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -210,7 +231,7 @@ const RoomDetails = () => {
     //   )
     // },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 10,
       sortable: false,
       field: 'availability',
@@ -229,51 +250,78 @@ const RoomDetails = () => {
       )
     },
     {
-      flex: 0.35,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'site_name',
       headerName: 'SITE',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.24,
+      flex: 0.3,
       minWidth: 20,
       sortable: false,
       field: 'room_name',
       headerName: 'ROOM NO',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name ? params.row.room_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       flex: 0.2,
       minWidth: 20,
       sortable: false,
+      align: 'center',
+      field: 'max_no_eggs',
+      headerName: 'Max EGG',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.max_eggs ? params.row.max_eggs : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.12,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
       field: 'no_of_eggs',
       headerName: 'EGGS',
-      align: 'center',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -345,45 +393,48 @@ const RoomDetails = () => {
       )
     }
   ]
-
   function loadServerRows(currentPage, data) {
     return data
   }
 
-  const fetchDetailsData = useCallback(
-    async (sort, q, column) => {
-      try {
-        setLoader(true)
+  const fetchDetailsData = useCallback(async () => {
+    try {
+      setLoader(true)
 
-        await GetRoomDetails(id).then(res => {
-          setDetailsData(res?.data)
-          setDetailsListData({
-            list: {
-              Room: res?.data?.room_name,
-              NurseryName: res?.data?.nursery_name,
-              Site: res?.data?.site_name,
-              Incubator: res?.data?.no_of_incubators,
-              Eggs: res?.data?.no_of_eggs
-            },
-            Avatar: {
-              profile_Pic: res?.data?.user_profile_pic,
-              user_Name: res?.data?.user_full_name,
-              create_at: res?.data?.created_at,
-              site_id: res?.data?.site_id
-            }
-          })
+      await GetRoomDetails(id).then(res => {
+        setDetailsData(res?.data)
+        setDetailsListData({
+          list: {
+            Room: res?.data?.room_name,
+            'Nursery Name': res?.data?.nursery_name,
+            Site: res?.data?.site_name,
+            Incubator: res?.data?.no_of_incubators,
+            Eggs: res?.data?.no_of_eggs
+          },
+          Avatar: {
+            profile_Pic: res?.data?.user_profile_pic,
+            user_Name: res?.data?.user_full_name,
+            create_at: res?.data?.created_at,
+            site_id: res?.data?.site_id
+          }
         })
-        setLoader(false)
-      } catch (e) {
-        setLoader(false)
-      }
-    },
-    [paginationModel]
-  )
+        setIsPreFilled(res?.data)
+      })
+      setLoader(false)
+    } catch (e) {
+      setLoader(false)
+    }
+  }, [])
 
-  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+  const handleEdit = async (event, site_id, room_name, nursery_id, room_id, nursery_name) => {
     event.stopPropagation()
-    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+    setEditParams({
+      site_id: site_id,
+      room_name: room_name,
+      nursery_id: nursery_id,
+      room_id: room_id,
+      nursery_name: nursery_name
+    })
     setIsOpen(true)
   }
 
@@ -393,7 +444,14 @@ const RoomDetails = () => {
         <IconButton
           sx={{ mr: 4 }}
           onClick={event =>
-            handleEdit(event, detailsData.site_id, detailsData.room_name, detailsData.nursery_id, detailsData.room_id)
+            handleEdit(
+              event,
+              detailsData.site_id,
+              detailsData.room_name,
+              detailsData.nursery_id,
+              detailsData.room_id,
+              detailsData.nursery_name
+            )
           }
         >
           <Icon
@@ -412,7 +470,7 @@ const RoomDetails = () => {
   )
 
   useEffect(() => {
-    fetchDetailsData(sort, searchValue, sortColumn)
+    fetchDetailsData()
   }, [fetchDetailsData])
 
   // const onCellClick = params => {
@@ -425,6 +483,14 @@ const RoomDetails = () => {
 
   const handleSidebarClose = () => {
     setDialog(false)
+  }
+
+  const onCellClick = params => {
+    // console.log(params, 'params')
+
+    Router.push({
+      pathname: `/egg/incubators/${params.row?.incubator_id}`
+    })
   }
 
   return (
@@ -474,9 +540,6 @@ const RoomDetails = () => {
                   columnVisibilityModel={{
                     sl_no: false
                   }}
-                  // sortModel={}
-                  // hideFooterPagination
-                  // hideFooterSelectedRowCount
                   disableColumnSelector={true}
                   autoHeight
                   pagination
@@ -501,8 +564,7 @@ const RoomDetails = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-
-                  // onCellClick={onCellClick}
+                  onCellClick={onCellClick}
                 />
               </Box>
             </Card>
@@ -511,8 +573,20 @@ const RoomDetails = () => {
       )}
 
       <>
-        <AddIncubatorRoom callApi={fetchDetailsData} isOpen={isOpen} setIsOpen={setIsOpen} editParams={editParams} />
-        <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+        <AddIncubatorRoom
+          callApi={fetchDetailsData}
+          callTableApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          editParams={editParams}
+        />
+        <AddIncubators
+          actionApi={fetchTableData}
+          detailsApi={fetchDetailsData}
+          sidebarOpen={dialog}
+          handleSidebarClose={handleSidebarClose}
+          isPreFilled={isPreFilled}
+        />
       </>
     </>
   )

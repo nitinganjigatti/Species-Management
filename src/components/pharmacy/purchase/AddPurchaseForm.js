@@ -507,7 +507,7 @@ const AddPurchaseForm = () => {
     postData.discount_amount = totalLineItemsDiscount
     postData.taxable_amount = totalLineItemsTaxableAmount
     // postData.discount_percentage = calculate_lineItem_discount_percentage
-
+    // console.log('postData', postData)
     if (id) {
       postData.antz_pharmacy_purchase_id = id
       const response = await updatePurchase(id, postData)
@@ -688,7 +688,7 @@ const AddPurchaseForm = () => {
     try {
       const result = await getPurchaseListById(id)
       if (result.success === true && result.data !== '') {
-        const lineItems = result.data.purchase_detailss.map(el => {
+        const lineItems = result?.data?.purchase_detailss?.map(el => {
           return {
             ...el,
             medicine_name: el?.stock_item_name,
@@ -831,6 +831,8 @@ const AddPurchaseForm = () => {
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
+        id: getItems[0]?.id,
+
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         index,
@@ -881,7 +883,7 @@ const AddPurchaseForm = () => {
     //     return
     //   }
     // }
-
+    console.log('eddddddd', editParams)
     setSubmitLoader(true)
 
     const postData = editParams

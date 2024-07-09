@@ -10,9 +10,11 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  Card,
+  Autocomplete
 } from '@mui/material'
-import { Fragment, useContext, useEffect } from 'react'
+import { Fragment, useContext, useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 
@@ -20,19 +22,34 @@ import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
+import Toaster from 'src/components/Toaster'
 
-const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required'),
-  site_id: yup.string().required('Select Site')
-})
-
-const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSite, fetchTableData }) => {
+const NurserySlider = ({
+  openDrawer,
+  setOpenDrawer,
+  loading,
+  editNurseryId,
+  editName,
+  editSite,
+  editSiteName,
+  callApi,
+  fetchTableData
+}) => {
+  const [defaultSite, setDefaultSite] = useState(null)
   const authData = useContext(AuthContext)
+  const theme = useTheme()
 
   const defaultValues = {
     nursery_name: '',
     site_id: ''
   }
+
+  const schema = yup.object().shape({
+    nursery_name: yup.string().trim().required('Nursery Name is required'),
+
+    site_id: yup.string().required('Site is required')
+  })
 
   const {
     control,
@@ -50,18 +67,37 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
 
   const RenderSidebarFooter = () => {
     return (
-      <Fragment>
-        <LoadingButton variant='contained' type='submit' loading={loading}>
+      <Box
+        sx={{
+          position: 'relative',
+          right: 0,
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          px: 4,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          display: 'flex',
+          zIndex: 1234
+        }}
+      >
+        <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
           {editNurseryId ? 'Update Nursery' : 'Add Nursery'}
         </LoadingButton>
-      </Fragment>
+      </Box>
     )
   }
 
-  console.log('GetValues >>', getValues())
+  // console.log('GetValues >>', getValues())
 
   useEffect(() => {
     setValue('nursery_name', editName), setValue('site_id', editSite)
+    if (editSite && editSiteName) {
+      setDefaultSite({ site_name: editSiteName, site_id: editSite })
+    }
   }, [editNurseryId])
 
   const onSubmit = async values => {
@@ -73,11 +109,18 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
         }
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
-          toast.success('Nursery updated Successfully')
+          // toast.success('Nursery updated Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
+          if (callApi) {
+            callApi()
+          }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to update Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       } else {
         const payload = {
@@ -88,44 +131,88 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
         const response = await AddNursery(payload)
 
         if (response.success) {
-          toast.success('Nursery added Successfully')
           setOpenDrawer(false)
-          fetchTableData()
+          if (fetchTableData) {
+            fetchTableData()
+          }
+
+          if (callApi) {
+            callApi()
+          }
+          Toaster({ type: 'success', message: response.message })
         } else {
-          toast.error('Unable to add Nursery')
+          Toaster({ type: 'error', message: response.message })
         }
       }
     } catch (error) {
       console.error('Error while adding/updating nursery:', error)
-      toast.error('An error occurred while adding/updating nursery')
+      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
     }
   }
 
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
-        <div>
+      <Drawer
+        anchor='right'
+        open={openDrawer}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+
+          gap: '24px'
+        }}
+      >
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
           <Box
             className='sidebar-header'
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
-              backgroundColor: 'background.default',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255)
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
+
+              bgcolor: theme.palette.customColors.lightBg
             }}
           >
-            <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <Icon
+                style={{ marginLeft: -8 }}
+                icon='material-symbols-light:add-notes-outline-rounded'
+                fontSize={'32px'}
+              />
+              <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
+            </Box>
+
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' sx={{ color: 'text.primary' }}>
+              <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
               </IconButton>
             </Box>
           </Box>
 
           {/* drower */}
-          <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-            <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-              <FormControl fullWidth sx={{ mb: 6 }}>
+
+          <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+            <Box
+              sx={{
+                m: 5,
+
+                px: '16px',
+
+                // py: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '2px',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <FormControl fullWidth sx={{ mt: 6 }}>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -148,31 +235,65 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
               </FormControl>
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <FormControl fullWidth sx={{ mb: 6 }}>
-                  <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
+                <FormControl fullWidth>
+                  {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
-                  </InputLabel>
+                  </InputLabel> */}
                   <Controller
                     name='site_id'
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
-                      <Select
+                      // <Select
+                      //   name='site_id'
+                      //   value={value}
+                      //   label='Site *'
+                      //   onChange={onChange}
+                      //   error={Boolean(errors?.site_id)}
+                      //   labelId='site_id'
+                      // >
+                      //   {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
+                      //     return (
+                      //       <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
+                      //         {item?.site_name}
+                      //       </MenuItem>
+                      //     )
+                      //   })}
+                      // </Select>
+                      <Autocomplete
                         name='site_id'
-                        value={value}
-                        label='Site *'
-                        onChange={onChange}
-                        error={Boolean(errors?.site_id)}
-                        labelId='site_id'
-                      >
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                          return (
-                            <MenuItem key={index} value={item?.site_id ? item?.site_id : editSite}>
-                              {item?.site_name}
-                            </MenuItem>
-                          )
-                        })}
-                      </Select>
+                        value={defaultSite}
+                        disablePortal
+                        id='site_id'
+                        options={authData?.userData?.user?.zoos[0].sites}
+                        getOptionLabel={option => option.site_name}
+                        isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultSite(null)
+
+                            return onChange('')
+                          } else {
+                            setDefaultSite(val)
+
+                            // console.log('val', val)
+                            setValue('site_id', '')
+
+                            return onChange(val.site_id)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            // onChange={e => {
+                            //   searchRoom(defaultNursery.nursery_id, e.target.value)
+                            // }}
+                            {...params}
+                            label='Site *'
+                            placeholder='Search & Select'
+                            error={Boolean(errors.site_id)}
+                          />
+                        )}
+                      />
                     )}
                   />
                   {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
@@ -182,9 +303,9 @@ const NurserySlider = ({ setOpenDrawer, loading, editNurseryId, editName, editSi
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <RenderSidebarFooter />
               </Box>
-            </form>
-          </Box>
-        </div>
+            </Box>
+          </form>
+        </Box>
       </Drawer>
     </>
   )

@@ -348,14 +348,6 @@ const RequestList = () => {
     getStoresLists()
   }, [])
 
-  const renderUserAvatar = row => {
-    if (row.user_created_profile_pic) {
-      return <CustomAvatar src={row?.user_created_profile_pic} sx={{ mr: 3, width: 34, height: 34 }} />
-    } else {
-      return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
-    }
-  }
-
   const columns = [
     {
       flex: 0.05,
@@ -388,25 +380,7 @@ const RequestList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      Width: 40,
-      field: 'created_by_user_name',
-      headerName: 'Requested by ',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderUserAvatar(params.row)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+
     {
       flex: 0.2,
       minWidth: 20,
@@ -452,6 +426,17 @@ const RequestList = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.daysFromToday(params.row.request_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'request_date',
+      headerName: 'Request Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },
@@ -568,6 +553,26 @@ const RequestList = () => {
           </div>
           {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Requested by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {Utility.formatDisplayDate(params.row.request_date)}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
 

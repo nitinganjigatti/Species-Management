@@ -15,6 +15,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import SelectParivesh from 'src/components/SelectParivesh'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { useRouter } from 'next/router'
 
 const AppBarContent = props => {
   // ** Props
@@ -27,6 +28,7 @@ const AppBarContent = props => {
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
+  const router = useRouter()
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -40,9 +42,11 @@ const AppBarContent = props => {
         {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
         {moduleName === 'parivesh' && <SelectParivesh />}
       </Box>
-      <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>
-        {selectedPharmacy?.name}
-      </Typography>
+      {router?.asPath?.includes('pharmacy') && (
+        <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>
+          {selectedPharmacy?.name}
+        </Typography>
+      )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         <UserDropdown settings={settings} />
       </Box>

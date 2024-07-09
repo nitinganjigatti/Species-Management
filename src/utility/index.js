@@ -2,6 +2,7 @@ import moment from 'moment'
 import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -85,6 +86,14 @@ function daysFromToday(inputDate) {
   }
 }
 
+function renderUserAvatar(image) {
+  if (image) {
+    return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
+  } else {
+    return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -93,7 +102,8 @@ const Utility = {
   errorMessageExtractorFromObject,
   exportToCSV,
   getPreviousDaysDate,
-  daysFromToday
+  daysFromToday,
+  renderUserAvatar
 }
 
 export default Utility

@@ -54,13 +54,23 @@ const CustomTableContainer = styled(TableContainer)({
   }
 })
 
-const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }) => {
+const EggSecondSecion = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  eggDetails,
+  egg_id,
+  defaultEggAssesment,
+  getDetails
+}) => {
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
       Section: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name,
       Enclosure: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name, // taken from h2
       'Clutch No': eggDetails?.clutch_number ? eggDetails?.clutch_number : '-'
+
       // Cage: 'C112',
       // 'Nest Box': 'N123',
       // Shape: 'Normal'
@@ -85,6 +95,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     }
   }
   const theme = useTheme()
+
   const headerAction = (
     <Icon
       onClick={() => setActivtyLogSideBar(true)}
@@ -93,6 +104,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       fontSize={28}
     />
   )
+
   const weightHeaderAction = (
     <>
       <Button
@@ -109,6 +121,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -127,6 +140,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   const schema = yup.object().shape({
     assessment_value: yup.number().required('Assessment value is Required')
   })
+
   const {
     reset,
     control,
@@ -144,6 +158,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   const onSubmit = val => {
     const params = {
       egg_id: egg_id,
@@ -152,6 +167,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       assessment_value: val?.assessment_value
     }
     setSubmitAssementloader(true)
+
     // if (isEdit) {
     //   setBtnDisabled(true)
     //   try {
@@ -188,11 +204,12 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     } catch (error) {
       console.log(error)
     }
+
     // }
   }
 
   const onError = errors => {
-    console.log('Form errros', errors)
+    // console.log('Form errros', errors)
   }
 
   const columns = [
@@ -292,17 +309,20 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     ...row,
     sl_no: getSlNo(index)
   }))
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
+
   const fetchTableData = useCallback(async () => {
     try {
       setLoading(true)
 
       const params = {
         page_no: paginationModel.page + 1,
+
         // limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
@@ -672,7 +692,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Temperature
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                     <Typography
                       sx={{
@@ -682,7 +702,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                   </Grid>
                   <Grid
@@ -706,7 +726,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Humidity
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Comming Soon
+                      Coming soon
                     </Typography>
                     <Typography
                       sx={{
@@ -716,7 +736,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Comming Soon
+                      Coming soon
                     </Typography>
                   </Grid>
                 </Grid>
@@ -863,6 +883,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                 // onChange: event => handleSearch(event.target.value)
               }
             }}
+
             // onCellClick={onCellClick}
           />
         </Box>
@@ -966,6 +987,10 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
         activtyLogSideBar={activtyLogSideBar}
         setActivtyLogSideBar={setActivtyLogSideBar}
         egg_id={egg_id}
+        activtyLogData={activtyLogData}
+        setActivtyLogData={setActivtyLogData}
+        activtyLogCount={activtyLogCount}
+        setActivtyLogCount={setActivtyLogCount}
       />
     </Grid>
   )
