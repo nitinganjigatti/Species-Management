@@ -236,12 +236,10 @@ const PurchaseItemForm = props => {
     purchase_net_amount: yup.number().typeError('Net amount must be a number').required('Net amount is required')
   })
 
-  const [currentField, setCurrentField] = useState(null)
-
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     setValue,
     watch,
@@ -255,8 +253,7 @@ const PurchaseItemForm = props => {
     reValidateMode: 'onChange',
     context: {
       previousEntries: purchase_details,
-      editingIndex: medicineItemId ? nestedRowMedicine?.index : -1,
-      currentField
+      editingIndex: medicineItemId ? nestedRowMedicine?.index : -1
     }
   })
 
@@ -455,13 +452,6 @@ const PurchaseItemForm = props => {
       reset(nestedRowMedicine)
     }
   }, [reset, nestedRowMedicine, medicineItemId])
-
-  const handleFieldChange = (name, value) => {
-    console.log(name)
-    setCurrentField(name)
-    setValue(name, value)
-    trigger(name)
-  }
 
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -684,7 +674,6 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Central GST in %*'
-                  onChange={e => handleFieldChange('purchase_cgst', e.target.value)}
                   onKeyUp={e => {
                     calculateStuff()
                   }}
@@ -706,7 +695,6 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='State GST in %*'
-                  onChange={e => handleFieldChange('purchase_sgst', e.target.value)}
                   onKeyUp={e => {
                     calculateStuff()
                   }}
@@ -750,9 +738,12 @@ const PurchaseItemForm = props => {
                   {...field}
                   disabled={true}
                   label='Central GST Amount*'
-                  onKeyUp={e => {
+                  onChange={e => {
                     calculateStuff()
                   }}
+                  // onKeyUp={e => {
+                  //   calculateStuff()
+                  // }}
                   error={Boolean(errors.purchase_cgst_amount)}
                 />
               )}
@@ -772,9 +763,12 @@ const PurchaseItemForm = props => {
                   {...field}
                   disabled={true}
                   label='State GST Amount*'
-                  onKeyUp={e => {
+                  onChange={e => {
                     calculateStuff()
                   }}
+                  // onKeyUp={e => {
+                  //   calculateStuff()
+                  // }}
                   error={Boolean(errors.purchase_sgst_amount)}
                 />
               )}
