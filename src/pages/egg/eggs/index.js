@@ -799,8 +799,11 @@ const EggList = () => {
     }
     if (params) {
       const data = params.row
+      console.log('params.row :>> ', params.row)
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`
+        pathname: `/egg/eggs/${data?.id}`,
+
+        query: data?.animal_id
       })
     } else {
       return
