@@ -23,7 +23,7 @@ import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
 
-const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
+const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
   const [status, setStatus] = useState('Overview')
   const [summary, setSummary] = useState({})
@@ -33,6 +33,8 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
   let [eggListPage, setEggListPage] = useState(1)
   console.log('eggListPage :>> ', eggListPage)
   const [reachedEnd, setReachedEnd] = useState(false)
+
+  const [eggId, setEggId] = useState('')
   console.log('reachedEnd :>> ', reachedEnd)
 
   const TabBadge = ({ label, totalCount }) => (
@@ -63,7 +65,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
 
   const getEggListSummary = async id => {
     const params = {
-      egg_discard_id: id
+      egg_discard_id: id ? id : eggDiscardedId
     }
     try {
       const res = await GetDiscardedEggList(params)
@@ -129,21 +131,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
     }
   }
 
-  const handleDelete = async ({ id }) => {
-    console.log('delete :>> ', id)
-
-    const params = {
-      id: 3
-    }
-    try {
-      await DeleteEggById(params).then(res => {
-        console.log('res :>> ', res)
-      })
-    } catch (error) {
-      console.log('error :>> ', error)
-    }
-  }
-
   return (
     <>
       <Drawer
@@ -198,7 +185,15 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
         <Box
           className='sidebar-body'
           onScroll={handleScroll}
-          sx={{ backgroundColor: 'background.default', height: '90%', overflowY: 'auto' }}
+          sx={{
+            backgroundColor: 'background.default',
+            height: '90%',
+            overflowY: 'auto'
+
+            // display: 'flex'
+
+            // justifyContent: 'center'
+          }}
         >
           {status === 'Overview' ? (
             <Box sx={{ mb: 20 }}>
@@ -466,7 +461,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId }) => {
               )}
             </Box>
           ) : (
-            <EggDisCarded eggList={eggList} handleScroll={handleScroll} handleDelete={handleDelete} />
+            <EggDisCarded eggList={eggList} getEggListSummary={getEggListSummary} fetchTableData={fetchTableData} />
           )}
         </Box>
       </Drawer>

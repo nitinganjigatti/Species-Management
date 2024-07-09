@@ -38,10 +38,9 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
         const params = {
           sort,
           q,
-
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryId ? nurseryId : 55
+          nursery_id: nurseryId ? nurseryId : filterByNurseryId
         }
 
         const res = await DiscardedEggList({ params: params })
@@ -460,7 +459,12 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
           }
         }}
       />
-      <DiscardDetail setDetailDrawer={setDetailDrawer} detailDrawer={detailDrawer} eggDiscardedId={eggDiscardedId} />
+      <DiscardDetail
+        setDetailDrawer={setDetailDrawer}
+        detailDrawer={detailDrawer}
+        eggDiscardedId={eggDiscardedId}
+        fetchTableData={fetchTableData}
+      />
     </Box>
   )
 }
