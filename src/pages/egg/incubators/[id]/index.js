@@ -1080,7 +1080,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  -
+                  {incubatorDetail?.no_of_eggs} / {incubatorDetail?.max_eggs}
                 </Typography>
               </Box>
               <Box>
