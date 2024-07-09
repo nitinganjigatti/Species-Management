@@ -825,7 +825,7 @@ const AddExistingPurchase = () => {
                         let formatted = formatDate(date)
                         onChange(formatted)
                       }}
-                      customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
+                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
                     />
                   )}
                 />
