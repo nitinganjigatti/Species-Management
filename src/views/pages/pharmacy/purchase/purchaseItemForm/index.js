@@ -208,7 +208,9 @@ const PurchaseItemForm = props => {
     reset,
     setValue,
     watch,
-    getValues
+    getValues,
+    setError
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
