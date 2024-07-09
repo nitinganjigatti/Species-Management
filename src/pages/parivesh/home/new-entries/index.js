@@ -159,7 +159,7 @@ const NewEntry = ({}) => {
         const params = {
           sort,
           q,
-          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          org_id: selectedParivesh?.id,
           sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -240,8 +240,11 @@ const NewEntry = ({}) => {
 
   const confirmDeleteAction = async () => {
     try {
+      const payload = {
+        org_id: selectedParivesh?.id
+      }
       setIsModalOpen(false)
-      const response = await deleteSpeciesToOrganization(selectedId)
+      const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
         Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
         // Reload the table data
@@ -276,7 +279,12 @@ const NewEntry = ({}) => {
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
 
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+          <Avatar
+            variant='square'
+            src={params.row.species_image}
+            alt={'species_image'}
+            sx={{ height: 'auto', p: 0.5 }}
+          />
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -568,67 +576,6 @@ const NewEntry = ({}) => {
     )
   }
 
-  const data = [
-    { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
-    { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
-    { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 156, label: 'TOTAL SPECIES', color: '#E4B819', borderColor: '#E4B819' }
-  ]
-
-  const cards = [
-    {
-      value: 60,
-      content: 'Parent Stock',
-      bgColor: '#37BD69',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 5, bgColor: '#FFD3D3' },
-        { value: 10, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 25,
-      content: 'Acquisition',
-      bgColor: '#37BD69',
-      items: [
-        { value: 11, bgColor: '#00AFD6' },
-        { value: 7, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Births',
-      bgColor: '#37BD69',
-      items: [
-        { value: 21, bgColor: '#00AFD6' },
-        { value: 2, bgColor: '#FFD3D3' },
-        { value: 7, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Deaths',
-      bgColor: '#E93353',
-      items: [
-        { value: 2, bgColor: '#00AFD6' },
-        { value: 6, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Transfers',
-      bgColor: '#FA6140',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 11, bgColor: '#FFD3D3' },
-        { value: 3, bgColor: '#FFFFFF' }
-      ]
-    }
-  ]
-
   const fetchOrgCountData = useCallback(
     async (q, id) => {
       try {
@@ -734,7 +681,7 @@ const NewEntry = ({}) => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.yet_to_submitted_count.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -820,7 +767,7 @@ const NewEntry = ({}) => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.submitted_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -915,7 +862,7 @@ const NewEntry = ({}) => {
 
   return (
     <>
-      {selectedParivesh?.id !== 'all' && organizationCountList.length > 0 && (
+      {organizationCountList.length > 0 && (
         <Card>
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
             {organizationCountList.map((org, inx) => {
@@ -989,16 +936,18 @@ const NewEntry = ({}) => {
           <Grid sx={{ display: 'flex', mt: 2 }}>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6'>Gender</Typography>
+              <Typography variant='h6' color={'#7A8684'}>
+                Gender
+              </Typography>
             </Grid>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6' sx={{ ml: 58 }}>
+              <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
                 {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
               </Typography>
             </Grid>
           </Grid>
-          <Grid sx={{ display: 'flex' }}>
+          {/* <Grid sx={{ display: 'flex' }}>
             <Grid sx={{ mt: 2 }}>
               {' '}
               <Typography variant='h6'>Age</Typography>
@@ -1009,15 +958,17 @@ const NewEntry = ({}) => {
                 {detailData?.age.charAt(0).toUpperCase() + detailData?.age.slice(1)}
               </Typography>
             </Grid>
-          </Grid>
+          </Grid> */}
           <Grid sx={{ display: 'flex' }}>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6'>Reason for Entry</Typography>
+              <Typography variant='h6' color={'#7A8684'}>
+                Reason for Entry
+              </Typography>
             </Grid>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6' sx={{ ml: 36 }}>
+              <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
                 {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
               </Typography>
             </Grid>
@@ -1025,11 +976,13 @@ const NewEntry = ({}) => {
           <Grid sx={{ display: 'flex', mt: 2 }}>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6'>Total Count</Typography>
+              <Typography variant='h6' color={'#7A8684'}>
+                Total Count
+              </Typography>
             </Grid>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6' sx={{ ml: 50 }}>
+              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.animal_count}
               </Typography>
             </Grid>
@@ -1037,11 +990,13 @@ const NewEntry = ({}) => {
           <Grid sx={{ display: 'flex', mt: 2 }}>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6'>Entry Date</Typography>
+              <Typography variant='h6' color={'#7A8684'}>
+                Entry Date
+              </Typography>
             </Grid>
             <Grid sx={{ mt: 2 }}>
               {' '}
-              <Typography variant='h6' sx={{ ml: 50 }}>
+              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
                   ? moment(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
                   : ''}

@@ -129,7 +129,7 @@ const CustomAccordion = ({
                   <Icon style={{ color: '#fff', marginRight: '0.1rem', padding: '3px' }} icon={summaryIcon} /> {title}
                 </Typography>
                 <Grid container spacing={2}>
-                  {cards.map((card, index) => (
+                  {cards?.map((card, index) => (
                     <Grid item xs={12} sm={6} md={12 / cards.length} key={index}>
                       <Card sx={{ backgroundColor: '#00000099', border: '1px solid #37BD694D' }}>
                         <CardContent>
@@ -175,11 +175,11 @@ const CustomAccordion = ({
               </Typography>
               <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
                 <Grid container spacing={2} alignItems='center'>
-                  {data.map((item, index) => (
+                  {data?.map((item, index) => (
                     <Grid item key={index} xs>
                       <Box
                         sx={{
-                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          borderLeft: index !== 0 && index !== 1 ? `2px solid ${item.borderColor}` : 'none',
                           paddingLeft: index !== 0 ? '0.5rem' : 0,
                           paddingRight: index !== 0 ? '0.5rem' : 0,
                           whiteSpace: 'nowrap',
@@ -257,11 +257,11 @@ const CustomAccordion = ({
             <>
               <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
                 <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                  {data.map((item, index) => (
+                  {data?.map((item, index) => (
                     <Grid item key={index} xs>
                       <Box
                         sx={{
-                          borderLeft: index !== 0 ? `2px solid ${item.borderColor}` : 'none',
+                          borderLeft: index !== 0 && index !== 1 ? `2px solid ${item.borderColor}` : 'none',
                           paddingLeft: index !== 0 ? '0.5rem' : 0,
                           paddingRight: index !== 0 ? '1rem' : 0,
                           whiteSpace: 'nowrap',
@@ -279,8 +279,8 @@ const CustomAccordion = ({
                             // flexGrow: 1,
                             padding: index === 0 ? '0.8rem' : 0,
                             display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center'
+                            flexDirection: 'column'
+                            // alignItems: 'center'
                           }}
                         >
                           <Typography
@@ -339,7 +339,7 @@ const CustomAccordion = ({
           ) : (
             <>
               <Grid container spacing={2}>
-                {cards.map((card, index) => (
+                {cards?.map((card, index) => (
                   <Grid item xs={12} sm={6} md={12 / cards.length} key={index}>
                     <Card sx={{ backgroundColor: '#00000099', border: '1px solid #37BD694D' }}>
                       <CardContent>

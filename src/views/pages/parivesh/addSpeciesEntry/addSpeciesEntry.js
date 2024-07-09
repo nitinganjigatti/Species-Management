@@ -44,20 +44,20 @@ const schema = yup.object().shape({
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
-  possession_type: yup.string().required('Reason is Required'),
+  possession_type: yup.string().required('Reason is Required')
 
-  alloted_register_no: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Registration Number is Required for Death Reason')
-  }),
-  reason_for_death: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Reason for Death is Required')
-  }),
-  where_disposed: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Where and How Disposed is Required for Death Reason')
-  })
+  // alloted_register_no: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Registration Number is Required for Death Reason')
+  // }),
+  // reason_for_death: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Reason for Death is Required')
+  // }),
+  // where_disposed: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+  // })
 })
 
 const defaultValues = {
@@ -112,28 +112,28 @@ const AddSpeciesNewEntry = props => {
       transaction_date,
       specie,
       possession_type,
-      organizationName,
-      age,
-      alloted_register_no,
-      reason_for_death,
-      where_disposed,
       animal_count
+      // organizationName,
+      // age
+      // alloted_register_no,
+      // reason_for_death,
+      // where_disposed,
     } = { ...params }
 
     const payload = {
-      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
       // age: age,
-      ...(possession_type === 'death' && {
-        alloted_register_no: alloted_register_no,
-        reason_for_death: reason_for_death,
-        where_disposed: where_disposed
-      })
+      // ...(possession_type === 'death' && {
+      //   alloted_register_no: alloted_register_no,
+      //   reason_for_death: reason_for_death,
+      //   where_disposed: where_disposed
+      // })
     }
 
     await handleSubmitData(payload)
@@ -247,7 +247,7 @@ const AddSpeciesNewEntry = props => {
                   value={value}
                   onChange={e => {
                     onChange(e)
-                    setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
+                    // setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
                   }}
                   error={Boolean(errors.reason)}
                 >
@@ -263,9 +263,8 @@ const AddSpeciesNewEntry = props => {
             )}
           </FormControl>
 
-          {showAdditionalFields && (
+          {/* {showAdditionalFields && (
             <>
-              {/* Additional input fields */}
               <FormControl fullWidth sx={{ mb: 6 }}>
                 <Controller
                   name='alloted_register_no'
@@ -324,7 +323,7 @@ const AddSpeciesNewEntry = props => {
                 )}
               </FormControl>
             </>
-          )}
+          )} */}
 
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller

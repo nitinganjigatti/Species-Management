@@ -4,6 +4,7 @@ import {
   DELETE_SPECIES_TO_ORG,
   LIST_ALL_SPECIES_SEARCH,
   ORGANIZATION_LIST,
+  SEARCH_MASTER_LIST_SPECIES,
   SPECIES_LIST,
   SPECIES_LIST_BY_ORG,
   UPDATE_SPECIES_TO_ORG
@@ -84,9 +85,10 @@ export async function updateSpeciesToOrganization(payload, id) {
     return error
   }
 }
-export async function deleteSpeciesToOrganization(id) {
+export async function deleteSpeciesToOrganization(id, payload) {
   try {
-    const response = await axiosPost({ url: `${DELETE_SPECIES_TO_ORG}/${id}` })
+    const url = `${DELETE_SPECIES_TO_ORG}/${id}`
+    const response = await axiosFormPost({ url: url, body: payload })
 
     return response?.data
   } catch (error) {
@@ -96,4 +98,10 @@ export async function deleteSpeciesToOrganization(id) {
 
     return error
   }
+}
+
+export async function getSearchLMasterListSpecies({ params }) {
+  const response = await axiosGet({ url: `${SEARCH_MASTER_LIST_SPECIES}`, params })
+
+  return response.data
 }

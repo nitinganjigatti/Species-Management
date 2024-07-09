@@ -270,4 +270,10 @@ export const ENTRY_LIST_SPECIES = 'v1/parivesh/species/site/entrieslist'
 
 export const ORG_COUNT_LIST = 'v1/parivesh/species/site/stats'
 
-export const UPDATE_BATCH_STATUS = '/v1/parivesh/species/site/batchstatusupdate'
+export const UPDATE_BATCH_STATUS = 'v1/parivesh/species/site/batchstatusupdate'
+
+export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmentforbatch'
+
+export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
+
+export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
