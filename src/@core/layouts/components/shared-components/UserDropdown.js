@@ -83,6 +83,11 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
+  const handleMedia = () => {
+    router.push('/media')
+    handleDropdownClose()
+  }
+
   useEffect(() => {
     getUserData()
   }, [])
@@ -186,6 +191,10 @@ const UserDropdown = props => {
         >
           <Icon icon='mdi:logout-variant' />
           Logout
+        </MenuItem>
+        <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
+          <Icon icon='ic:round-perm-media' />
+          Media
         </MenuItem>
       </Menu>
     </Fragment>

@@ -361,7 +361,7 @@ const SpeciesDetails = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.yet_to_submitted_count.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -447,7 +447,7 @@ const SpeciesDetails = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.submitted_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
