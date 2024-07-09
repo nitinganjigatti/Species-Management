@@ -215,7 +215,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   }, [roomId])
 
   useEffect(() => {
-    if (allocationValues?.nursery_id) {    
+    if (allocationValues?.nursery_id) {
       setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
 
       setValue('nursery_name', allocationValues?.nursery_id)
@@ -224,6 +224,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
       let params = {
         egg_id: allocateEggId,
         incubator_id: values.incubator,
@@ -236,13 +237,16 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         if (callApi) {
           callApi('')
         }
+        setLoader(false)
         setOpenDrawer(false)
       } else {
         Toaster({ type: 'error', message: response.message })
+        setLoader(true)
       }
     } catch (error) {
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
+      setLoader(true)
     }
   }
 
@@ -679,7 +683,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   disabled={!formState.isValid || loader}
                   sx={{ height: '50px' }}
                 >
-                  Submit 
+                  Submit
                 </LoadingButton>
               </Box>
             </Card>
