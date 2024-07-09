@@ -979,7 +979,10 @@ const EggList = () => {
           <FallbackSpinner />
         ) : (
           <>
-            {status === 'eggs_received' || status === 'eggs_incubation' || status === 'eggs_hatched' ? (
+            {status === 'eggs_received' ||
+            status === 'eggs_incubation' ||
+            status === 'eggs_hatched' ||
+            status === 'all' ? (
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -1019,6 +1022,7 @@ const EggList = () => {
                 slots={{ toolbar: ServerSideToolbarWithFilter }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
+                rowHeight={72}
                 slotProps={{
                   baseButton: {
                     variant: 'outlined'
@@ -1073,6 +1077,7 @@ const EggList = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
+                    rowHeight={72}
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'
@@ -1143,6 +1148,7 @@ const EggList = () => {
                 />
               }
             />
+            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
           <TabPanel value='eggs_received' sx={{ p: 0 }}>
             {' '}
@@ -1203,6 +1209,11 @@ const EggList = () => {
               </TabPanel>
               {/* <TabPanel value='eggs_necropsy_needed'>{tableData()}</TabPanel> */}
             </TabContext>
+          </TabPanel>
+          <TabPanel value='all' sx={{ p: 0 }}>
+            {' '}
+            <Divider />
+            {tableData()}
           </TabPanel>
         </TabContext>
         {/* </CardContent> */}

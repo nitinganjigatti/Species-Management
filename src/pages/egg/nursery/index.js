@@ -64,7 +64,7 @@ const NurseryList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData( searchValue, newModel[0].field, status)
+      fetchTableData(searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -73,7 +73,7 @@ const NurseryList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData( q, column)
+        await fetchTableData(q, column)
       } catch (error) {
         console.error(error)
       }
@@ -128,7 +128,7 @@ const NurseryList = () => {
       field: 'Nursery Name',
       headerName: 'Nursery Name',
       align: 'left',
-     
+
       renderCell: params => (
         <Typography
           noWrap
@@ -334,6 +334,7 @@ const NurseryList = () => {
           sortingMode='server'
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
+          rowHeight={72}
           paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}

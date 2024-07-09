@@ -385,6 +385,7 @@ const NurseryDetails = () => {
           paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           onPaginationModelChange={setPaginationModel}
+          rowHeight={72}
           loading={loading}
           slotProps={{
             baseButton: {

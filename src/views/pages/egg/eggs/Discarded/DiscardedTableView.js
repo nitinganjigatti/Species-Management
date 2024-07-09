@@ -438,6 +438,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
         paginationModel={paginationModel}
         onSortModelChange={handleSortModel}
         slots={{ toolbar: ServerSideToolbarWithFilter }}
+        rowHeight={72}
         onPaginationModelChange={setPaginationModel}
         onCellClick={onCellClick}
         loading={loading}

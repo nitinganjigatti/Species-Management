@@ -431,6 +431,7 @@ const RoomsList = () => {
                     onSortModelChange={handleSortModel}
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
+                    rowHeight={72}
                     loading={loading}
                     slotProps={{
                       baseButton: {
