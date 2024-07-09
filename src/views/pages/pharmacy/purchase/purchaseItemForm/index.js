@@ -141,33 +141,55 @@ const PurchaseItemForm = props => {
     //     return true
     //   }),
 
+    // purchase_cgst: yup
+    //   .number()
+    //   .typeError('Central GST must be a number')
+    //   .min(0, 'Central GST must be at least 0')
+    //   .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
+    //     const { purchase_sgst, purchase_igst } = this.parent
+    //     if (value > 0) {
+    //       // return purchase_sgst > 0 || purchase_igst > 0
+    //       return purchase_sgst > 0 && purchase_igst === 0
+    //     }
+    //     return true
+    //   })
+    //   .required('Central GST is required if State GST or IGST is present'),
+
+    // purchase_sgst: yup
+    //   .number()
+    //   .typeError('State GST must be a number')
+    //   .min(0, 'State GST must be at least 0')
+    //   .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
+    //     const { purchase_cgst, purchase_igst } = this.parent
+    //     if (value > 0) {
+    //       // return purchase_cgst > 0 || purchase_igst > 0
+    //       return purchase_cgst > 0 && purchase_igst === 0
+    //     }
+    //     return true
+    //   })
+    //   .required('State GST is required if Central GST or IGST is present'),
+
     purchase_cgst: yup
       .number()
-      .typeError('Central GST must be a number')
       .min(0, 'Central GST must be at least 0')
       .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
         const { purchase_sgst, purchase_igst } = this.parent
         if (value > 0) {
-          // return purchase_sgst > 0 || purchase_igst > 0
           return purchase_sgst > 0 && purchase_igst === 0
         }
         return true
-      })
-      .required('Central GST is required if State GST or IGST is present'),
+      }),
 
     purchase_sgst: yup
       .number()
-      .typeError('State GST must be a number')
       .min(0, 'State GST must be at least 0')
       .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
         const { purchase_cgst, purchase_igst } = this.parent
         if (value > 0) {
-          // return purchase_cgst > 0 || purchase_igst > 0
           return purchase_cgst > 0 && purchase_igst === 0
         }
         return true
-      })
-      .required('State GST is required if Central GST or IGST is present'),
+      }),
 
     purchase_igst: yup
       .number()
@@ -214,6 +236,8 @@ const PurchaseItemForm = props => {
     purchase_net_amount: yup.number().typeError('Net amount must be a number').required('Net amount is required')
   })
 
+  const [currentField, setCurrentField] = useState(null)
+
   const {
     control,
     handleSubmit,
@@ -221,7 +245,8 @@ const PurchaseItemForm = props => {
     reset,
     setValue,
     watch,
-    getValues
+    getValues,
+    trigger
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -230,7 +255,8 @@ const PurchaseItemForm = props => {
     reValidateMode: 'onChange',
     context: {
       previousEntries: purchase_details,
-      editingIndex: medicineItemId ? nestedRowMedicine?.index : -1
+      editingIndex: medicineItemId ? nestedRowMedicine?.index : -1,
+      currentField
     }
   })
 
@@ -429,6 +455,13 @@ const PurchaseItemForm = props => {
       reset(nestedRowMedicine)
     }
   }, [reset, nestedRowMedicine, medicineItemId])
+
+  const handleFieldChange = (name, value) => {
+    console.log(name)
+    setCurrentField(name)
+    setValue(name, value)
+    trigger(name)
+  }
 
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -651,6 +684,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Central GST in %*'
+                  onChange={e => handleFieldChange('purchase_cgst', e.target.value)}
                   onKeyUp={e => {
                     calculateStuff()
                   }}
@@ -672,6 +706,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='State GST in %*'
+                  onChange={e => handleFieldChange('purchase_sgst', e.target.value)}
                   onKeyUp={e => {
                     calculateStuff()
                   }}
