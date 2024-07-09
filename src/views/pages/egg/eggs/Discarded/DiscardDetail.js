@@ -31,11 +31,10 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
   const [galleryList, setGalleryList] = useState([])
 
   let [eggListPage, setEggListPage] = useState(1)
-  console.log('eggListPage :>> ', eggListPage)
+
   const [reachedEnd, setReachedEnd] = useState(false)
 
   const [eggId, setEggId] = useState('')
-  console.log('reachedEnd :>> ', reachedEnd)
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', width: '250px' }}>
@@ -104,9 +103,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
 
     // Check if the user has reached the bottom
     if (status === 'eggs_list') {
-      console.log('container.scrollTop :>> ', container.scrollHeight)
-      console.log('container.scrollTop:>> ', container.scrollTop)
-      console.log('container.clientHeight :>> ', container.clientHeight)
+      // console.log('container.scrollTop :>> ', container.scrollHeight)
+      // console.log('container.scrollTop:>> ', container.scrollTop)
+      // console.log('container.clientHeight :>> ', container.clientHeight)
 
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
         // User has reached the bottom, perform your action here
