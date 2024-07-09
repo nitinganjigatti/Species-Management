@@ -625,6 +625,7 @@ const IncubatorsList = () => {
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
+              rowHeight={64}
               columns={columns}
               sortingMode='server'
               paginationMode='server'

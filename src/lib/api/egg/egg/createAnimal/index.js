@@ -37,11 +37,11 @@ export async function getMasterInstitutes(params) {
   return response.data
 }
 
-export async function getTaxonomyList(params) {
-  const response = await axiosGet({ url: `master/taxonomy/search`, params })
+// export async function getTaxonomyList(params) {
+//   const response = await axiosGet({ url: `master/taxonomy/search`, params })
 
-  return response.data
-}
+//   return response.data
+// }
 
 export async function getAnimalOwnershipTerms(params) {
   const response = await axiosGet({ url: `masters/animal-ownership-terms`, params })
@@ -53,6 +53,25 @@ export async function createAnimal(params) {
   try {
     const response = await axiosPost({
       url: `animal/create`,
+      body: params
+    })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+export async function getTaxonomyList(params) {
+  try {
+    const response = await axiosPost({
+      url: `taxonomyunits`,
       body: params
     })
 

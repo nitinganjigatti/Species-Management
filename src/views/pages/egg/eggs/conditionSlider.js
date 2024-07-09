@@ -296,7 +296,144 @@ const ConditionSlider = ({
     setValue('image', '')
   }
 
-  const onSubmit = async values => {
+  // const onSubmit = async values => {
+  //   try {
+  //     setLoader(true)
+  //     let payload
+  //     if (Number(getValues('current_state')) === 1) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 2) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         egg_state_id: getValues('select_stage'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 3) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         egg_state_id: getValues('select_stage'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 4) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         hatched_method: hatched,
+  //         egg_shell_thickness: getValues('shell_thickness'),
+  //         comment: getValues('comment'),
+  //         egg_assisted_by: getValues('assisted_by'),
+  //         egg_attachment: imgArr
+  //       }
+  //     }
+
+  //     const animalPayload = {
+  //       accession_type: values?.accessionType,
+  //       accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
+  //       taxonomy_id: values?.species,
+  //       enclosure_id: values?.enclosure,
+  //       sex: values?.sextype,
+  //       collection_type: values?.collectionType,
+  //       organization_id: values?.mastersOrganization,
+  //       from_institution: values?.institution,
+  //       birth_date: moment(values?.birthDate).format('YYYY-MM-DD'),
+  //       local_id_type: values?.localIdentifierType,
+  //       local_id: values?.localIdentifier,
+  //       age: values?.age,
+  //       parent_female: values?.parentMother,
+  //       parent_male: values?.parentFather,
+  //       ownership_term: values?.animalOwnershipTerms,
+  //       sexing_type: values?.sexingType,
+  //       life_stage: values?.lifeStage,
+  //       contraception_type: values.contraceptionType,
+  //       description: '',
+  //       form_type: 'single',
+  //       zoo_id: '',
+  //       site_id: eggDetails?.enclosure_data[0]?.site_id,
+  //       section_id: eggDetails?.enclosure_data[0]?.section_id,
+  //       egg_id: eggId
+  //     }
+
+  //     if (isAnimal && statusID === '4') {
+  //       const ress = await AddEggStatusAndCondition(payload)
+  //       if (ress?.success) {
+  //         // setLoader(false)
+  //         Toaster({ type: 'success', message: res.message })
+  //         const res = await createAnimal(animalPayload)
+  //         if (res.success) {
+  //           setLoader(false)
+  //           setDefaultSpecies(null)
+
+  //           reset()
+  //           setImgSrc('')
+  //           if (getDetails) {
+  //             getDetails(eggId)
+  //           }
+  //           if (GetGalleryImgList) {
+  //             GetGalleryImgList()
+  //           }
+  //           if (getActivityLogsFunc) {
+  //             getActivityLogsFunc()
+  //           }
+
+  //           setOpenDrawer(false)
+
+  //           Toaster({ type: 'success', message: res.message })
+  //         } else {
+  //           setLoader(false)
+  //           // setDefaultSpecies(null)
+  //           Toaster({ type: 'error', message: res.message })
+  //         }
+  //       } else {
+  //         setLoader(false)
+  //         // setDefaultSpecies(null)
+  //         Toaster({ type: 'error', message: res.message })
+  //       }
+  //     } else {
+  //       const res = await AddEggStatusAndCondition(payload)
+  //       if (res.success) {
+  //         setLoader(false)
+
+  //         // console.log('res on submit :>> ', res)
+  //         setImgSrc('')
+  //         reset()
+
+  //         if (getDetails) {
+  //           getDetails(eggId)
+  //         }
+  //         if (GetGalleryImgList) {
+  //           GetGalleryImgList()
+  //         }
+  //         if (getActivityLogsFunc) {
+  //           getActivityLogsFunc()
+  //         }
+  //         setOpenDrawer(false)
+  //         Toaster({ type: 'success', message: res.message })
+  //       } else {
+  //         setLoader(false)
+  //         Toaster({ type: 'error', message: res.message })
+  //       }
+  //     }
+
+  //     // Perform any additional operations, e.g., API call
+  //   } catch (error) {
+  //     setLoader(false)
+  //     if (getDetails) {
+  //       getDetails(eggId)
+  //     }
+  //     Toaster({ type: 'error', message: 'An error occurred while creating animal' })
+  //   }
+  // }
+
+  const onSubmit = values => {
     try {
       setLoader(true)
       let payload
@@ -334,17 +471,6 @@ const ConditionSlider = ({
           egg_attachment: imgArr
         }
       }
-      // const payload = {
-      //   egg_id: eggId,
-      //   egg_status_id: getValues('current_state'),
-      //   egg_state_id: getValues('select_stage'),
-      //   hatched_method: hatched,
-      //   comment: getValues('comment'),
-      //   egg_shell_thickness: getValues('shell_thickness'),
-
-      //   egg_assisted_by: getValues('assisted_by'),
-      //   egg_attachment: imgArr
-      // }
 
       const animalPayload = {
         accession_type: values?.accessionType,
@@ -372,20 +498,53 @@ const ConditionSlider = ({
         section_id: eggDetails?.enclosure_data[0]?.section_id,
         egg_id: eggId
       }
-      // console.log('payload :>> ', values)
 
       if (isAnimal && statusID === '4') {
-        const ress = await AddEggStatusAndCondition(payload)
-        if (ress?.success) {
-          // setLoader(false)
-          Toaster({ type: 'success', message: res.message })
-          const res = await createAnimal(animalPayload)
+        AddEggStatusAndCondition(payload).then(ress => {
+          if (ress?.success) {
+            // setLoader(false)
+            Toaster({ type: 'success', message: ress.message })
+            createAnimal(animalPayload).then(res => {
+              if (res.success) {
+                setLoader(false)
+                setDefaultSpecies(null)
+
+                reset()
+                setImgSrc('')
+                if (getDetails) {
+                  getDetails(eggId)
+                }
+                if (GetGalleryImgList) {
+                  GetGalleryImgList()
+                }
+                if (getActivityLogsFunc) {
+                  getActivityLogsFunc()
+                }
+
+                setOpenDrawer(false)
+
+                Toaster({ type: 'success', message: res.message })
+              } else {
+                setLoader(false)
+                // setDefaultSpecies(null)
+                Toaster({ type: 'error', message: res.message })
+              }
+            })
+          } else {
+            setLoader(false)
+            // setDefaultSpecies(null)
+            Toaster({ type: 'error', message: res.message })
+          }
+        })
+      } else {
+        AddEggStatusAndCondition(payload).then(res => {
           if (res.success) {
             setLoader(false)
-            setDefaultSpecies(null)
 
-            reset()
+            // console.log('res on submit :>> ', res)
             setImgSrc('')
+            reset()
+
             if (getDetails) {
               getDetails(eggId)
             }
@@ -395,45 +554,13 @@ const ConditionSlider = ({
             if (getActivityLogsFunc) {
               getActivityLogsFunc()
             }
-
             setOpenDrawer(false)
-
             Toaster({ type: 'success', message: res.message })
           } else {
             setLoader(false)
-            setDefaultSpecies(null)
             Toaster({ type: 'error', message: res.message })
           }
-        } else {
-          setLoader(false)
-          setDefaultSpecies(null)
-          Toaster({ type: 'error', message: res.message })
-        }
-      } else {
-        const res = await AddEggStatusAndCondition(payload)
-        if (res.success) {
-          setLoader(false)
-
-          // console.log('res on submit :>> ', res)
-          setImgSrc('')
-          reset()
-
-          if (getDetails) {
-            getDetails(eggId)
-          }
-          if (GetGalleryImgList) {
-            GetGalleryImgList()
-          }
-          if (getActivityLogsFunc) {
-            getActivityLogsFunc()
-          }
-          setOpenDrawer(false)
-          Toaster({ type: 'success', message: res.message })
-        } else {
-          setLoader(false)
-          // reset()
-          Toaster({ type: 'error', message: res.message })
-        }
+        })
       }
 
       // Perform any additional operations, e.g., API call
@@ -442,9 +569,6 @@ const ConditionSlider = ({
       if (getDetails) {
         getDetails(eggId)
       }
-      reset()
-      setDefaultSpecies(null)
-      console.error('Error while creating animal:', error)
       Toaster({ type: 'error', message: 'An error occurred while creating animal' })
     }
   }
@@ -543,9 +667,9 @@ const ConditionSlider = ({
   }
 
   const searchSpecies = useCallback(
-    debounce(async q => {
+    debounce(async search => {
       try {
-        await getTaxonomyListFunc({ q })
+        await getTaxonomyListFunc({ search })
       } catch (error) {
         console.error(error)
       }
@@ -1003,7 +1127,7 @@ const ConditionSlider = ({
                               id='species'
                               options={taxonomyList?.length > 0 ? taxonomyList : []}
                               getOptionLabel={option => option.scientific_name}
-                              isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                              isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
                               onChange={(e, val) => {
                                 if (val === null) {
                                   setDefaultSpecies(null)
@@ -1011,7 +1135,7 @@ const ConditionSlider = ({
                                   return onChange('')
                                 } else {
                                   setDefaultSpecies(val)
-                                  return onChange(val.taxonomy_id)
+                                  return onChange(val.tsn)
                                 }
                               }}
                               renderInput={params => (

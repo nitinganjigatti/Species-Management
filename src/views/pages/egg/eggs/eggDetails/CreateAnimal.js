@@ -288,9 +288,9 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
   }
 
   const searchSpecies = useCallback(
-    debounce(async q => {
+    debounce(async search => {
       try {
-        await getTaxonomyListFunc({ q })
+        await getTaxonomyListFunc({ search })
       } catch (error) {
         console.error(error)
       }

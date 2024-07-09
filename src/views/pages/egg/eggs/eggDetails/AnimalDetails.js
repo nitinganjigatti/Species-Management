@@ -25,7 +25,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
               <Grid xs={12} sm={6} lg={4} xl={3} item>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Avatar
-                    src=''
+                    src={eggDetails?.animal_data?.default_icon}
                     variant='rounded'
                     alt='Medicine Image'
                     sx={{
@@ -52,7 +52,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                           width: '100%'
                         }}
                       >
-                        Rainbow Lorikeet
+                        {eggDetails?.animal_data?.default_common_name}
                       </Typography>
                     </Tooltip>
                     <Tooltip title={'-'}>
@@ -68,7 +68,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                           width: '100%'
                         }}
                       >
-                        Trichougous Molocious
+                        {eggDetails?.animal_data?.scientific_name}
                       </Typography>
                     </Tooltip>
                   </Box>
@@ -94,7 +94,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {animal_id}
+                  {eggDetails?.animal_data?.animal_id}
                 </Typography>
               </Grid>
               <Grid xs={12} sm={6} lg={4} xl={1.7} item>
@@ -117,7 +117,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {eggDetails?.site_name}
+                  {eggDetails?.animal_data?.site_name}
                 </Typography>
               </Grid>
               <Grid xs={12} sm={6} lg={4} xl={1.7} item>
@@ -140,7 +140,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {eggDetails?.enclosure_data[0]?.section_name}
+                  {eggDetails?.animal_data?.section_name}
                 </Typography>
               </Grid>
               <Grid xs={12} sm={6} lg={4} xl={1.7} item>
@@ -163,7 +163,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  {eggDetails?.enclosure_data[0]?.user_enclosure_name}
+                  {eggDetails?.animal_data?.user_enclosure_name}
                 </Typography>
               </Grid>
               <Grid xs={12} sm={6} lg={4} xl={1.7} item>
