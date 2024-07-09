@@ -1,9 +1,11 @@
 .tablerowi .cellmodule {
   padding-left: 0 !important;
 }
+
 .w_280 {
   width: 280px;
 }
+
 .text_overflow_moduled {
   width: 100%;
   float: left;
@@ -11,21 +13,237 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
 .w_155 {
   width: 155px;
 }
+
 .element {
   border: 3px solid;
   border-color: #446f54;
   border-image-slice: 1;
   border-radius: 15px;
-  /* border-image-source: linear-gradient(
-    132.05deg,
-    #c9ffdd -6.28%,
-    #2a884d 31.43%,
-    #1e6639 56.17%,
-    #7e8882 76.32%,
-    #0c2917 100.47%,
-    #000000 129.39%
-  ); */
+}
+
+.container {
+  position: relative;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2%;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background-image: url('/images/login_new.svg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px);
+  z-index: -1;
+}
+
+.content {
+  position: relative;
+  text-align: center;
+  color: #fff;
+}
+
+.content h1 {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.logo {
+  z-index: 1;
+  float: left;
+}
+
+.skip-link {
+  position: absolute;
+  top: 70px;
+  right: 100px;
+  text-decoration: none;
+  font-weight: bold !important;
+  color: #fff !important;
+  font-size: 20px !important;
+  cursor: pointer;
+}
+.skip-link:hover {
+  text-decoration: none;
+}
+
+.test {
+  text-align: center;
+  background: green;
+  height: 100px;
+  padding-top: 26px;
+  width: 65%;
+}
+
+.overlay.always-show {
+  position: absolute;
+  top: inherit;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  padding-left: 20px;
+  transition: opacity 0.5s, transform 0.5s;
+  text-align: left;
+  color: white;
+  width: 544px;
+  height: 155px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Add the following CSS */
+
+.overlay {
+  position: absolute;
+  top: inherit;
+  left: -15px;
+  right: 0;
+  bottom: -11px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  padding-left: 20px;
+  transition: opacity 0.5s, transform 0.5s;
+  text-align: left;
+  color: white;
+  width: 660px;
+  height: 155px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.overlay.always-show {
+  opacity: 1;
+}
+
+.overlay-text {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.overlay-button {
+  padding: 10px 20px;
+  background-color: #37bd69;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.overlay-button:hover {
+  background-color: #2e9c56;
+}
+
+.notblurred-image .overlay.always-show {
+  opacity: 1;
+}
+
+.blurred-image:hover .overlay {
+  opacity: 1;
+}
+
+.blurred-image {
+  transform: scale(0.5);
+  transition: transform 0.5s;
+  position: relative;
+}
+
+.blurred-image img {
+  filter: blur(8px);
+  border-radius: 12px;
+}
+
+.blurred-image:hover img {
+  filter: none;
+  transform: scale(1.05);
+}
+
+.notblurred-image:hover img {
+  filter: none;
+  transform: scale(1.05);
+}
+
+.notblurred-image {
+  transform: scale(1);
+  transition: transform 0.5s;
+  position: relative;
+}
+
+.notblurred-image img {
+  filter: none;
+  width: 544px;
+  transition: transform 0.5s;
+  border-radius: 12px;
+}
+
+.notblurred-image img:hover {
+  transform: scale(1.05);
+}
+
+.notblurred-image img:hover + .overlay.always-show {
+  transform: scale(1.05);
+}
+
+.notblurred-image:hover img + .overlay.always-show {
+  transform: scale(1.05);
+}
+.slick-dots {
+  bottom: 0px !important;
+}
+.slick-dots li button:before {
+  font-size: 0;
+  content: '';
+  width: 30px;
+  height: 2px;
+  background-color: #fff;
+  display: block;
+  margin: 0 auto;
+}
+
+.slick-dots li {
+  margin: 0 10px !important;
+}
+
+.slick-dots li.slick-active button:before {
+  background-color: #37bd69 !important;
+}
+
+.custom-dot {
+  width: 30px;
+  height: 2px;
+  background-color: #fff;
+  display: block;
+  margin: 0 auto;
+}
+
+.slick-active .custom-dot {
+  background-color: #006d35;
+}
+
+.slider-container {
+  margin-top: 5%;
+}
+
+.slick-slide {
+  transition: transform 0.5s;
 }

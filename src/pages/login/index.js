@@ -221,7 +221,7 @@ const LoginPage = () => {
                           onChange={onChange}
                           error={Boolean(errors.email)}
                           InputProps={{
-                            style: { color: 'white' }
+                            style: { color: 'white', height: '55px' }
                           }}
                           InputLabelProps={{
                             style: { color: 'white' }
@@ -304,6 +304,7 @@ const LoginPage = () => {
                             </InputAdornment>
                           }
                           sx={{
+                            height: '55px',
                             '& .MuiOutlinedInput-root': {
                               '& fieldset': {
                                 borderColor: 'white'
