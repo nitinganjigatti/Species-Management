@@ -232,7 +232,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       }
       const response = await AddAllocation(params)
       if (response.success) {
-        Toaster({ type: 'success', message: 'Egg Allocated Successfully' })
+        Toaster({ type: 'success', message: response.message })
 
         if (callApi) {
           callApi('')
