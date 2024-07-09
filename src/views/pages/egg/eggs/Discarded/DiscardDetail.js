@@ -166,7 +166,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         <TabContext value={status} sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <TabList onChange={handleChange} sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Tab value='Overview' label={<TabBadge label='Overview' />} />
-            <Tab value='Eggs-8' label={<TabBadge label='Eggs-8' />} />
+            <Tab value='Eggs' label={<TabBadge label={'Eggs - ' + eggList?.length} />} />
           </TabList>
           <TabPanel value='Overview' sx={{ p: 0 }}>
             {' '}
