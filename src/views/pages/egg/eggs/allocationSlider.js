@@ -77,6 +77,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     getValues,
     setValue,
     watch,
+    formState,
     reset,
     formState: { errors }
   } = useForm({
@@ -214,7 +215,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   }, [roomId])
 
   useEffect(() => {
-    if (allocationValues?.nursery_id) {
+    if (allocationValues?.nursery_id) {    
       setDefaultNursery({ nursery_id: allocationValues?.nursery_id, nursery_name: allocationValues?.nursery_name })
 
       setValue('nursery_name', allocationValues?.nursery_id)
@@ -290,13 +291,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             assesmentTypes?.data?.length >= 5
               ? {
                   backgroundColor: 'background.default',
-                  height: 'auto',
+                  height: '120%',
                   overflowY: 'scroll',
                   border: '1px solid #ccc'
                 }
               : {
                   backgroundColor: 'background.default',
-                  height: 'auto'
+                  height: '120%'
                 }
           }
         >
@@ -569,7 +570,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
                     <Grid container spacing={3} key={index}>
-                      <Grid item xs={6}>
+                      <Grid item xs={6} sx={{ borderRadius: '5px' }}>
                         <FormControl fullWidth sx={{ mt: 3, borderRadius: '5px' }}>
                           <Controller
                             name={`measurements[${index}].assessment_value`}
@@ -582,8 +583,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   measurement.assessment_type_string_id.slice(1)
                                 }*`}
                                 value={value}
-                                onChange={onChange}
-                                focused={value !== ''}
+                                onChange={e => {
+                                  // Prevent entering negative values
+                                  const inputValue = e.target.value
+                                  if (inputValue === '' || parseFloat(inputValue) >= 0) {
+                                    onChange(e)
+                                  }
+                                }}
                                 name={`measurements[${index}].assessment_value`}
                                 inputProps={{ type: 'number', step: 'any' }}
                                 error={!!error}
@@ -591,7 +597,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                 fullWidth
                               />
                             )}
-                            rules={{ required: 'Please Enter Weight' }}
+                            rules={{
+                              required: 'Please enter a value',
+                              validate: {
+                                nonNegative: value => parseFloat(value) >= 0 || 'Negative values are not allowed'
+                              }
+                            }}
                           />
                         </FormControl>
                       </Grid>
@@ -648,7 +659,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             <Card>
               <Box
                 sx={{
-                  height: '110px',
+                  height: '100px',
                   width: '100%',
                   maxWidth: '562px',
                   position: 'fixed',
@@ -665,10 +676,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   fullWidth
                   variant='contained'
                   type='submit'
-                  disabled={loader && true}
+                  disabled={!formState.isValid || loader}
                   sx={{ height: '50px' }}
                 >
-                  Submit
+                  Submit 
                 </LoadingButton>
               </Box>
             </Card>
