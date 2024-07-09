@@ -31,9 +31,14 @@ import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import { useMemo } from 'react'
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
+import { useEggContext } from 'src/context/EggContext'
 
 const EggList = () => {
   const theme = useTheme()
+
+  const { selectedEggTab, setSelectedEggTab } = useEggContext()
+  console.log('selectedEggTab :>> ', selectedEggTab)
+
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -43,8 +48,13 @@ const EggList = () => {
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('eggs_received')
-  const [isDiscarded, setIsDiscarded] = useState('eggs_ready_to_be_discarded_at_nursery')
+  const [status, setStatus] = useState(selectedEggTab ? selectedEggTab : 'eggs_received')
+
+  const [isDiscarded, setIsDiscarded] = useState(
+    status === 'eggs_ready_to_be_discarded_at_nursery'
+      ? selectedEggTab && selectedEggTab
+      : 'eggs_ready_to_be_discarded_at_nursery'
+  )
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -848,12 +858,14 @@ const EggList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setStatus(newValue)
+    setSelectedEggTab(newValue)
   }
 
   const handleTabs = (event, newValue) => {
     setTotal(0)
 
     setIsDiscarded(newValue)
+    setSelectedEggTab(newValue)
   }
 
   const fetchTableData = useCallback(
