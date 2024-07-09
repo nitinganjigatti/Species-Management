@@ -27,9 +27,11 @@ import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/media'
 import moment from 'moment'
+
 import pdfIcon from 'public/icons/pdf_icon.svg'
 import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
+import Image from 'next/image'
 
 const Media = () => {
   const auth = useAuth()
@@ -275,7 +277,14 @@ const Media = () => {
                                       height: '160px'
                                     }}
                                   >
-                                    {getIconByFileType(media?.file_original_name)}
+                                    <Image
+                                      src={getIconByFileType(media?.file_original_name)}
+                                      alt=''
+                                      width={80}
+                                      height={80}
+                                    />
+
+                                    {/* {getFileIcon(media?.file_original_name)} */}
                                   </Box>
                                 </Tooltip>
                               </a>
