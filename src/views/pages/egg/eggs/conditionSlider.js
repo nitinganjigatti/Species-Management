@@ -448,8 +448,8 @@ const ConditionSlider = ({
       }
       reset()
       setDefaultSpecies(null)
-      console.error('Error while adding room:', error)
-      Toaster({ type: 'error', message: 'An error occurred while adding room' })
+      // console.error('Error while adding room:', error)
+      // Toaster({ type: 'error', message: 'An error occurred while adding room' })
     }
   }
 
@@ -624,7 +624,17 @@ const ConditionSlider = ({
           <Box>
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
-                <Card sx={{ py: '20px', px: '16px' }} fullWidth>
+                <Box
+                  sx={{
+                    background: '#fff',
+                    borderRadius: '8px',
+                    border: 1,
+                    borderColor: '#c3cec7',
+                    py: '20px',
+                    px: '16px'
+                  }}
+                  fullWidth
+                >
                   <FormControl sx={{ width: '100%', mb: 4 }}>
                     <InputLabel id='current_state'>Select State*</InputLabel>
                     <Controller
@@ -819,9 +829,21 @@ const ConditionSlider = ({
                       )}
                     </>
                   )}
-                </Card>
+                </Box>
 
-                <Card fullWidth sx={{ mt: 6, mb: isAnimal ? 3 : 35, py: '20px', px: '16px' }}>
+                <Box
+                  fullWidth
+                  sx={{
+                    mt: 6,
+                    mb: isAnimal ? 3 : 35,
+                    background: '#fff',
+                    borderRadius: '8px',
+                    border: 1,
+                    borderColor: '#c3cec7',
+                    py: '20px',
+                    px: '16px'
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='comment'
@@ -938,12 +960,22 @@ const ConditionSlider = ({
                       />
                     </Box>
                   )}
-                </Card>
+                </Box>
 
                 {isAnimal && statusID === '4' && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
-                    <Card fullWidth sx={{ py: '20px', px: '16px' }}>
+                    <Box
+                      fullWidth
+                      sx={{
+                        background: '#fff',
+                        borderRadius: '8px',
+                        border: 1,
+                        borderColor: '#c3cec7',
+                        py: '20px',
+                        px: '16px'
+                      }}
+                    >
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         {/* <InputLabel id='species'>Species / Taxonomy</InputLabel> */}
                         <Controller
@@ -1735,7 +1767,7 @@ const ConditionSlider = ({
                           </FormHelperText>
                         )}
                       </FormControl>
-                    </Card>
+                    </Box>
                   </Box>
                 )}
               </Box>

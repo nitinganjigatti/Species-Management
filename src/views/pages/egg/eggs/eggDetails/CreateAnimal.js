@@ -398,7 +398,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                           id='species'
                           options={taxonomyList?.length > 0 ? taxonomyList : []}
                           getOptionLabel={option => option.scientific_name}
-                          isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                          isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
                           onChange={(e, val) => {
                             if (val === null) {
                               setDefaultSpecies(null)
@@ -406,7 +406,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                               return onChange('')
                             } else {
                               setDefaultSpecies(val)
-                              return onChange(val.taxonomy_id)
+                              return onChange(val.tsn)
                             }
                           }}
                           renderInput={params => (

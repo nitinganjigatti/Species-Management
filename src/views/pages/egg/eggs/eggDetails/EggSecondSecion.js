@@ -340,7 +340,7 @@ const EggSecondSecion = ({
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
       <Grid item xs={12}>
-        <Card>
+        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardHeader
             sx={{
               pb: 0,
