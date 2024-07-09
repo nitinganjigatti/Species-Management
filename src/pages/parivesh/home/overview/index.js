@@ -15,6 +15,12 @@ const data = [
   },
   {
     value: 0,
+    label: 'NET ANIMALS ',
+    color: '#FFFFFF',
+    borderColor: '#FFFFFF'
+  },
+  {
+    value: 0,
     label: 'MALE',
     color: '#00AFD6',
     borderColor: '#00AFD6'
@@ -120,7 +126,7 @@ const Overview = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org?.approved_count_data?.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -202,7 +208,7 @@ const Overview = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.yet_to_submitted_count.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -288,7 +294,7 @@ const Overview = () => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.submitted_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
