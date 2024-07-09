@@ -40,7 +40,7 @@ import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
 import dayjs from 'dayjs'
 
-const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
+const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
 
   const [loader, setLoader] = useState(false)
@@ -113,6 +113,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
           if (accessionType === '2') {
             return !!value // Return true if value is not empty
           }
+
           return true // Otherwise, always pass validation
         }
       ),
@@ -131,6 +132,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
           if (localIdentifierType && localIdentifierType.trim() !== '') {
             return !!value // Return true if value is not empty
           }
+
           return true // Otherwise, always pass validation
         }
       )
@@ -152,6 +154,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   const onSubmit = async values => {
     try {
       setLoader(true)
@@ -192,6 +195,9 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
 
         // console.log('res on submit :>> ', res)
         reset()
+        if (fetchTableData) {
+          fetchTableData()
+        }
 
         setOpenDrawer(false)
         Toaster({ type: 'success', message: res.message })
@@ -227,6 +233,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
       })
     } catch (error) {}
   }
+
   const getMasterInstitutesFunc = () => {
     try {
       getMasterInstitutes().then(res => {
@@ -256,6 +263,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
       })
     } catch (error) {}
   }
+
   const getAnimalGetconfigsFunc = () => {
     try {
       getAnimalGetconfigs().then(res => {
@@ -266,6 +274,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
       })
     } catch (error) {}
   }
+
   const getAnimalMasterFunc = () => {
     try {
       getAnimalMaster().then(res => {
@@ -277,6 +286,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
       })
     } catch (error) {}
   }
+
   const getTaxonomyListFunc = q => {
     try {
       getTaxonomyList(q).then(res => {
@@ -406,6 +416,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer }) => {
                               return onChange('')
                             } else {
                               setDefaultSpecies(val)
+
                               return onChange(val.tsn)
                             }
                           }}
