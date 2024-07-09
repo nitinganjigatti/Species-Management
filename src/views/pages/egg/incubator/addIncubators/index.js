@@ -67,10 +67,10 @@ const AddIncubators = ({
   }
 
   const schema = yup.object().shape({
-    incubator_name: yup.string().trim().required('incubator Name is Required'),
-    nursery: yup.string().required('Nursery is Required'),
-    room: yup.string().required('Room is Required'),
-    maxNumberOfEggs: yup.string().required('Max Number Of Eggs is Required')
+    incubator_name: yup.string().trim().required('Incubator name is required'),
+    nursery: yup.string().required('Nursery is required'),
+    room: yup.string().required('Room is required'),
+    maxNumberOfEggs: yup.string().required('Max number of eggs is required')
   })
 
   useEffect(() => {
@@ -299,10 +299,18 @@ const AddIncubators = ({
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 30, marginTop: 14, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
+        <Box sx={{ marginBottom: 30, marginTop: 11, height: '120%', overflowY: 'auto', bgcolor: 'background.default' }}>
           <Box sx={{ m: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* <Card sx={{ height: '600px' }}> */}
-            <CardContent sx={{ mt: 2, borderRadius: '8px', backgroundColor: '#fff' }}>
+            <Box
+              sx={{
+                paddingY: '24px',
+                px: '16px',
+                border: 1,
+                borderColor: '#C3CEC7',
+                borderRadius: '8px',
+                backgroundColor: '#fff'
+              }}
+            >
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <FormControl fullWidth>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
@@ -488,8 +496,7 @@ const AddIncubators = ({
                   )}
                 </FormControl>
               </Box>
-            </CardContent>
-            {/* </Card> */}
+            </Box>
           </Box>
         </Box>
 
