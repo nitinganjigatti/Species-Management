@@ -28,7 +28,7 @@ const defaultValues = {
   },
   purchase_batch_no: '',
   purchase_expiry_date: null,
-  purchase_unit_price: 0,
+  purchase_unit_price: '',
   purchase_qty: '',
   purchase_free_quantity: 0,
   purchase_discount: '',
@@ -105,72 +105,9 @@ const PurchaseItemForm = props => {
       .min(0, 'Discount must be greater than zero')
       .required('Discount is required'),
 
-    // purchase_cgst: yup
-    //   .number()
-    //   .typeError('Central GST must be a number')
-    //   .min(0, 'Central GST must be at least 0')
-    //   .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
-    //     const { purchase_sgst, purchase_igst } = this.parent
-    //     if (value > 0) {
-    //       return purchase_sgst > 0 && purchase_igst === 0
-    //     }
-    //     return true
-    //   }),
-
-    // purchase_sgst: yup
-    //   .number()
-    //   .typeError('State GST must be a number')
-    //   .min(0, 'State GST must be at least 0')
-    //   .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
-    //     const { purchase_cgst, purchase_igst } = this.parent
-    //     if (value > 0) {
-    //       return purchase_cgst > 0 && purchase_igst === 0
-    //     }
-    //     return true
-    //   }),
-
-    // purchase_igst: yup
-    //   .number()
-    //   .typeError('IGST must be a number')
-    //   .min(0, 'IGST must be at least 0')
-    //   .test('igst_conditional', 'IGST must be zero if either CGST or SGST is present', function (value) {
-    //     const { purchase_cgst, purchase_sgst } = this.parent
-    //     if (value > 0) {
-    //       return purchase_cgst === 0 && purchase_sgst === 0
-    //     }
-    //     return true
-    //   }),
-
-    // purchase_cgst: yup
-    //   .number()
-    //   .typeError('Central GST must be a number')
-    //   .min(0, 'Central GST must be at least 0')
-    //   .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
-    //     const { purchase_sgst, purchase_igst } = this.parent
-    //     if (value > 0) {
-    //       // return purchase_sgst > 0 || purchase_igst > 0
-    //       return purchase_sgst > 0 && purchase_igst === 0
-    //     }
-    //     return true
-    //   })
-    //   .required('Central GST is required if State GST or IGST is present'),
-
-    // purchase_sgst: yup
-    //   .number()
-    //   .typeError('State GST must be a number')
-    //   .min(0, 'State GST must be at least 0')
-    //   .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
-    //     const { purchase_cgst, purchase_igst } = this.parent
-    //     if (value > 0) {
-    //       // return purchase_cgst > 0 || purchase_igst > 0
-    //       return purchase_cgst > 0 && purchase_igst === 0
-    //     }
-    //     return true
-    //   })
-    //   .required('State GST is required if Central GST or IGST is present'),
-
     purchase_cgst: yup
       .number()
+      .typeError('Central GST must be a number')
       .min(0, 'Central GST must be at least 0')
       .test('cgst_conditional', 'State GST is required if Central GST is present', function (value) {
         const { purchase_sgst, purchase_igst } = this.parent
@@ -182,6 +119,7 @@ const PurchaseItemForm = props => {
 
     purchase_sgst: yup
       .number()
+      .typeError('State GST must be a number')
       .min(0, 'State GST must be at least 0')
       .test('sgst_conditional', 'Central GST is required if State GST is present', function (value) {
         const { purchase_cgst, purchase_igst } = this.parent
@@ -201,8 +139,7 @@ const PurchaseItemForm = props => {
           return purchase_cgst === 0 && purchase_sgst === 0
         }
         return true
-      })
-      .required('IGST is required if Central GST or State GST is present'),
+      }),
 
     purchase_cgst_amount: yup
       .number()
@@ -244,7 +181,7 @@ const PurchaseItemForm = props => {
     setValue,
     watch,
     getValues,
-    trigger
+    setError
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -258,6 +195,7 @@ const PurchaseItemForm = props => {
   })
 
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
+  const [userInteracted, setUserInteracted] = useState(false)
 
   const onSubmit = async params => {
     const {
@@ -675,9 +613,13 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Central GST in %*'
                   onKeyUp={e => {
+                    field.onChange(e)
                     calculateStuff()
+                    if (field.value && !isNaN(field.value)) {
+                      setUserInteracted(false)
+                    }
                   }}
-                  error={Boolean(errors.purchase_cgst)}
+                  error={userInteracted ? false : Boolean(errors.purchase_cgst)}
                 />
               )}
             />
@@ -696,7 +638,12 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='State GST in %*'
                   onKeyUp={e => {
+                    field.onChange(e)
                     calculateStuff()
+                    if (field.value && !isNaN(field.value)) {
+                      setError('purchase_cgst', '')
+                      setUserInteracted(true)
+                    }
                   }}
                   error={Boolean(errors.purchase_sgst)}
                 />
@@ -738,12 +685,9 @@ const PurchaseItemForm = props => {
                   {...field}
                   disabled={true}
                   label='Central GST Amount*'
-                  onChange={e => {
+                  onKeyUp={e => {
                     calculateStuff()
                   }}
-                  // onKeyUp={e => {
-                  //   calculateStuff()
-                  // }}
                   error={Boolean(errors.purchase_cgst_amount)}
                 />
               )}
