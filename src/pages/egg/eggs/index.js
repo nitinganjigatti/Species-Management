@@ -916,15 +916,50 @@ const EggList = () => {
     []
   )
 
-  // const headerAction = (
-  //   <>
-  //     <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-  //       <Button sx={{ px: 7, py: 5 }} size='small' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
-  //         &nbsp;{selectionEggModel?.length}&nbsp;Discard
-  //       </Button>
-  //     </Box>
-  //   </>
-  // )
+  const headerAction = (
+    <>
+      <Box>
+        <Autocomplete
+          sx={{
+            width: 250,
+            m: 2,
+            ml: 5
+          }}
+          name='nursery'
+          value={defaultNursery}
+          disablePortal
+          id='nursery'
+          options={nurseryList?.length > 0 ? nurseryList : []}
+          getOptionLabel={option => option.nursery_name}
+          isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
+          onChange={(e, val) => {
+            if (val === null) {
+              setDefaultNursery(null)
+
+              // return onChange('')
+            } else {
+              setDefaultNursery(val)
+
+              // setValue('room', '')
+              setFilterByNurseryId(val.nursery_id)
+
+              // return onChange(val.nursery_id)
+            }
+          }}
+          renderInput={params => (
+            <TextField
+              onChange={e => {
+                searchNursery(e.target.value)
+              }}
+              {...params}
+              label='Select Nursery *'
+              placeholder='Search & Select'
+            />
+          )}
+        />
+      </Box>
+    </>
+  )
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -1082,47 +1117,8 @@ const EggList = () => {
         </Typography>
       </Breadcrumbs>
       <Card>
-        <CardHeader title='Egg List' />
-        <Box>
-          <Autocomplete
-            sx={{
-              width: 210,
-              m: 2,
-              ml: 5
-            }}
-            name='nursery'
-            value={defaultNursery}
-            disablePortal
-            id='nursery'
-            options={nurseryList?.length > 0 ? nurseryList : []}
-            getOptionLabel={option => option.nursery_name}
-            isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
-            onChange={(e, val) => {
-              if (val === null) {
-                setDefaultNursery(null)
+        <CardHeader title='Egg List' action={headerAction} />
 
-                // return onChange('')
-              } else {
-                setDefaultNursery(val)
-
-                // setValue('room', '')
-                setFilterByNurseryId(val.nursery_id)
-
-                // return onChange(val.nursery_id)
-              }
-            }}
-            renderInput={params => (
-              <TextField
-                onChange={e => {
-                  searchNursery(e.target.value)
-                }}
-                {...params}
-                label='Select Nursery *'
-                placeholder='Search & Select'
-              />
-            )}
-          />
-        </Box>
         {/* <CardContent> */}
         <TabContext value={status}>
           <TabList onChange={handleChange} sx={{ px: 2 }}>
