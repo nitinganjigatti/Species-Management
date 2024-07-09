@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import {
   FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   FormHelperText,
+  CustomInput,
   TextField,
   Autocomplete,
   Grid,
@@ -13,10 +17,18 @@ import {
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+
 import { useForm, Controller, useWatch } from 'react-hook-form'
+
+// import DatePicker from 'react-datepicker'
+import SingleDatePicker from 'src/components/SingleDatePicker'
+import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
+import Icon from 'src/@core/components/icon'
+import InputAdornment from '@mui/material/InputAdornment'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 
@@ -62,6 +74,8 @@ const PurchaseItemForm = props => {
     expiryDateLoader
   } = props
 
+  const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
+
   const schema = yup.object().shape({
     product: yup.object().shape({
       value: yup.string().required('Product name is required'),
@@ -72,6 +86,7 @@ const PurchaseItemForm = props => {
     purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
       const result =
         stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
+
       return result
     }),
 
@@ -84,6 +99,7 @@ const PurchaseItemForm = props => {
             entry.purchase_unit_id === parent?.product?.value &&
             entry.purchase_batch_no === value
         )
+
         return !isDuplicate
       })
       .required('Batch number is required'),
@@ -114,6 +130,7 @@ const PurchaseItemForm = props => {
         if (value > 0) {
           return purchase_sgst > 0 && purchase_igst === 0
         }
+
         return true
       }),
 
@@ -126,6 +143,7 @@ const PurchaseItemForm = props => {
         if (value > 0) {
           return purchase_cgst > 0 && purchase_igst === 0
         }
+
         return true
       }),
 
@@ -138,12 +156,13 @@ const PurchaseItemForm = props => {
         if (value > 0) {
           return purchase_cgst === 0 && purchase_sgst === 0
         }
+
         return true
       }),
-
     purchase_cgst_amount: yup
       .number()
       .typeError('Central GST Amount must be a number')
+
       .required('Central GST Amount is required'),
 
     purchase_sgst_amount: yup
@@ -152,7 +171,11 @@ const PurchaseItemForm = props => {
 
       .required('State GST Amount is required'),
 
-    purchase_igst_amount: yup.number().typeError('Tax Amount must be a number').required('Tax Amount is required'),
+    purchase_igst_amount: yup
+      .number()
+      .typeError('Tax Amount must be a number')
+
+      .required('Tax Amount is required'),
 
     purchase_gross_amount: yup
       .number()
@@ -168,20 +191,25 @@ const PurchaseItemForm = props => {
     purchase_taxable_amount: yup
       .number()
       .typeError('Taxable amount must be a number')
+
       .required('Taxable amount is required'),
 
-    purchase_net_amount: yup.number().typeError('Net amount must be a number').required('Net amount is required')
+    purchase_net_amount: yup
+      .number()
+      .typeError('Net amount must be a number')
+
+      .required('Net amount is required')
   })
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
     setValue,
     watch,
-    getValues,
-    setError
+    getValues
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -219,9 +247,13 @@ const PurchaseItemForm = props => {
       purchase_net_amount,
       package_details,
       manufacture
+
+      // purchase_purchase_price,
     } = params
 
     const { value, label, stock_type } = product
+
+    // const purchase_discount_amount = calculateDiscountAmount(purchase_purchase_price, purchase_discount)
 
     const payload = {
       medicine_name: label,
@@ -249,7 +281,10 @@ const PurchaseItemForm = props => {
       package_details,
       manufacture
     }
+
     submitItems(payload)
+
+    // await handleSubmitData(payload)
   }
 
   function calculateDiscountAmount(originalPrice, discountPercentage) {
@@ -320,16 +355,73 @@ const PurchaseItemForm = props => {
       netAmount = taxableAmount + purchase_igst_amount
     }
 
-    setValue('purchase_cgst_amount', checkFloatValue(purchase_cgst_amount))
-    setValue('purchase_sgst_amount', checkFloatValue(purchase_sgst_amount))
+    // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
-    setValue('purchase_igst_amount', checkFloatValue(purchase_igst_amount))
+    // console.log('taxAmount', taxAmount)
+    setValue(
+      'purchase_cgst_amount',
+      checkFloatValue(purchase_cgst_amount)
 
-    setValue('purchase_gst', checkFloatValue(purchase_gst_amount))
-    setValue('purchase_gross_amount', checkFloatValue(grossAmount))
-    setValue('purchase_discount_amount', checkFloatValue(discountAmount))
-    setValue('purchase_taxable_amount', checkFloatValue(taxableAmount))
-    setValue('purchase_net_amount', checkFloatValue(netAmount))
+      // purchase_cgst_amount >= 0.01
+      //   ? parseFloat(purchase_cgst_amount).toFixed(2)
+      //   : parseFloat(purchase_cgst_amount).toFixed(5)
+    )
+    setValue(
+      'purchase_sgst_amount',
+      checkFloatValue(purchase_sgst_amount)
+
+      // purchase_sgst_amount >= 0.01
+      //   ? parseFloat(purchase_sgst_amount).toFixed(2)
+      //   : parseFloat(purchase_sgst_amount).toFixed(5)
+    )
+
+    // setValue(
+    //   'purchase_igst',
+    //   checkFloatValue(purchase_igst)
+
+    //   // purchase_igst >= 0.01 ? parseFloat(purchase_igst).toFixed(2) : parseFloat(purchase_igst).toFixed(5)
+    // )
+    setValue(
+      'purchase_igst_amount',
+      checkFloatValue(purchase_igst_amount)
+
+      // purchase_igst_amount >= 0.01
+      //   ? parseFloat(purchase_igst_amount).toFixed(2)
+      //   : parseFloat(purchase_igst_amount).toFixed(5)
+    )
+
+    setValue(
+      'purchase_gst',
+      checkFloatValue(purchase_gst_amount)
+
+      // purchase_igst_amount >= 0.01
+      //   ? parseFloat(purchase_igst_amount).toFixed(2)
+      //   : parseFloat(purchase_igst_amount).toFixed(5)
+    )
+    setValue(
+      'purchase_gross_amount',
+      checkFloatValue(grossAmount)
+
+      // grossAmount >= 0.01 ? parseFloat(grossAmount).toFixed(2) : parseFloat(grossAmount).toFixed(5)
+    )
+    setValue(
+      'purchase_discount_amount',
+      checkFloatValue(discountAmount)
+
+      // discountAmount >= 0.01 ? parseFloat(discountAmount).toFixed(2) : parseFloat(discountAmount).toFixed(5)
+    )
+    setValue(
+      'purchase_taxable_amount',
+      checkFloatValue(taxableAmount)
+
+      // taxableAmount >= 0.01 ? parseFloat(taxableAmount).toFixed(2) : parseFloat(taxableAmount).toFixed(2)
+    )
+    setValue(
+      'purchase_net_amount',
+      checkFloatValue(netAmount)
+
+      // netAmount >= 0.01 ? parseFloat(netAmount).toFixed(2) : parseFloat(netAmount).toFixed(5)
+    )
   }
 
   useEffect(() => {
@@ -359,6 +451,7 @@ const PurchaseItemForm = props => {
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
       }
+
       setValue('purchase_expiry_date', dayjs(nestedRowMedicine.purchase_expiry_date))
     } else {
       setValue('purchase_expiry_date', null)
@@ -509,6 +602,7 @@ const PurchaseItemForm = props => {
             />
           </FormControl>
         </Grid>
+
         {!nonMedicalProduct && (
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
@@ -534,12 +628,14 @@ const PurchaseItemForm = props => {
                   </LocalizationProvider>
                 )}
               />
+              {/* disabled={expiryDateLoader} */}
               {errors.purchase_expiry_date && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_expiry_date?.message}</FormHelperText>
               )}
             </FormControl>
           </Grid>
         )}
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -553,6 +649,8 @@ const PurchaseItemForm = props => {
                   }}
                   label='Supplier Rate*'
                   error={Boolean(errors.purchase_unit_price)}
+
+                  // helperText={errors.purchase_unit_price?.message}
                 />
               )}
             />
@@ -561,6 +659,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -574,6 +673,8 @@ const PurchaseItemForm = props => {
                     calculateStuff()
                   }}
                   error={Boolean(errors.purchase_unit_price)}
+
+                  // helperText={errors.purchase_unit_price?.message}
                 />
               )}
             />
@@ -582,6 +683,31 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
+        {/* <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <Controller
+              name='purchase_free_quantity'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label='Free Quantity'
+                  onKeyUp={e => {
+                    calculateStuff()
+                  }}
+                  error={Boolean(errors.purchase_free_quantity)}
+
+                  //helperText={errors.purchase_free_quantity?.message}
+                />
+              )}
+            />
+            {errors.purchase_free_quantity && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_free_quantity?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid> */}
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -595,6 +721,8 @@ const PurchaseItemForm = props => {
                   }}
                   label='Discount in %'
                   error={Boolean(errors.purchase_discount)}
+
+                  //helperText={errors.purchase_discount?.message}
                 />
               )}
             />
@@ -603,6 +731,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -613,13 +742,15 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Central GST in %*'
                   onKeyUp={e => {
-                    field.onChange(e)
                     calculateStuff()
+                    field.onChange(e)
                     if (field.value && !isNaN(field.value)) {
                       setUserInteracted(false)
                     }
                   }}
                   error={userInteracted ? false : Boolean(errors.purchase_cgst)}
+
+                  // helperText={errors.purchase_gst?.message}
                 />
               )}
             />
@@ -628,6 +759,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -638,7 +770,6 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='State GST in %*'
                   onKeyUp={e => {
-                    field.onChange(e)
                     calculateStuff()
                     if (field.value && !isNaN(field.value)) {
                       setError('purchase_cgst', '')
@@ -646,6 +777,8 @@ const PurchaseItemForm = props => {
                     }
                   }}
                   error={Boolean(errors.purchase_sgst)}
+
+                  // helperText={errors.purchase_gst?.message}
                 />
               )}
             />
@@ -665,8 +798,11 @@ const PurchaseItemForm = props => {
                   label='IGST in %*'
                   onKeyUp={e => {
                     calculateStuff()
+                    field.onChange(e)
                   }}
                   error={Boolean(errors.purchase_igst)}
+
+                  // helperText={errors.purchase_gst?.message}
                 />
               )}
             />
@@ -675,6 +811,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -689,6 +826,8 @@ const PurchaseItemForm = props => {
                     calculateStuff()
                   }}
                   error={Boolean(errors.purchase_cgst_amount)}
+
+                  // helperText={errors.purchase_gst?.message}
                 />
               )}
             />
@@ -697,6 +836,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -707,13 +847,12 @@ const PurchaseItemForm = props => {
                   {...field}
                   disabled={true}
                   label='State GST Amount*'
-                  onChange={e => {
+                  onKeyUp={e => {
                     calculateStuff()
                   }}
-                  // onKeyUp={e => {
-                  //   calculateStuff()
-                  // }}
                   error={Boolean(errors.purchase_sgst_amount)}
+
+                  // helperText={errors.purchase_gst?.message}
                 />
               )}
             />
@@ -758,6 +897,7 @@ const PurchaseItemForm = props => {
             />
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -770,6 +910,8 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Gross Amount*'
                   error={Boolean(errors.purchase_gross_amount)}
+
+                  // helperText={errors.purchase_purchase_price?.message}
                 />
               )}
             />
@@ -791,6 +933,8 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Discount Amount*'
                   error={Boolean(errors.purchase_discount_amount)}
+
+                  // helperText={errors.purchase_purchase_price?.message}
                 />
               )}
             />
@@ -812,6 +956,8 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Taxable Amount*'
                   error={Boolean(errors.purchase_taxable_amount)}
+
+                  // helperText={errors.purchase_purchase_price?.message}
                 />
               )}
             />
@@ -828,7 +974,14 @@ const PurchaseItemForm = props => {
               control={control}
               defaultValue=''
               render={({ field }) => (
-                <TextField disabled={true} {...field} label='Net Amount*' error={Boolean(errors.purchase_net_amount)} />
+                <TextField
+                  disabled={true}
+                  {...field}
+                  label='Net Amount*'
+                  error={Boolean(errors.purchase_net_amount)}
+
+                  // helperText={errors.purchase_purchase_price?.message}
+                />
               )}
             />
             {errors.purchase_net_amount && (
@@ -836,6 +989,8 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+
+        {/* // file uploader */}
         <Grid item xs={12}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (
