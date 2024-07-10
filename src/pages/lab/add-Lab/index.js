@@ -1018,7 +1018,7 @@ const AddLab = () => {
               p: theme => theme.spacing(3, 3.255, 3, 5.255)
             }}
           >
-            <Typography variant='h6'>Add Labs</Typography>
+            <Typography variant='h6'>Add Lab Tests</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} />

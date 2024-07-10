@@ -76,10 +76,10 @@ const Site = ({ labId }) => {
     searchTableData(sort, value, 'request_number', status)
   }
 
-  const LabSitesById = async labId => {
+  const LabSitesById = async id => {
     const params = {
       // id: labId
-      lab_id: labId
+      lab_id: id || labId
     }
     try {
       const res = await GetLabSitesById({ params })
