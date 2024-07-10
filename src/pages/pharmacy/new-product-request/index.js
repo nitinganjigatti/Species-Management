@@ -213,11 +213,18 @@ export default function NewProductList() {
         }
 
         await getNonExistingProductList({ params: params }).then(res => {
-          setTotal(parseInt(res?.count))
-          setRows(loadServerRows(paginationModel.page, res?.data))
+          if (res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+          } else {
+            setTotal(0)
+            setRows([])
+          }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -400,98 +407,6 @@ export default function NewProductList() {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        // <>
-        //   <Card sx={{ cursor: 'pointer' }}>
-        //     <CardHeader title='New Product Request List' action={headerAction} />
-        //     <DataGrid
-        //       sx={{ cursor: 'pointer' }}
-        //       columnVisibilityModel={{
-        //         id: false
-        //       }}
-        //       autoHeight
-        //       pagination
-        //       hideFooterSelectedRowCount
-        //       disableColumnSelector={true}
-        //       rows={indexedRows === undefined ? [] : indexedRows}
-        //       rowCount={total}
-        //       columns={columns}
-        //       sortingMode='server'
-        //       paginationMode='server'
-        //       pageSizeOptions={[7, 10, 25, 50]}
-        //       paginationModel={paginationModel}
-        //       onSortModelChange={handleSortModel}
-        //       slots={{ toolbar: ServerSideToolbar }}
-        //       onPaginationModelChange={setPaginationModel}
-        //       loading={loading}
-        //       disableColumnMenu
-        //       slotProps={{
-        //         baseButton: {
-        //           variant: 'outlined'
-        //         },
-        //         toolbar: {
-        //           value: searchValue,
-        //           clearSearch: () => handleSearch(''),
-        //           onChange: event => handleSearch(event.target.value)
-        //         }
-        //       }}
-        //       onRowClick={onRowClick}
-        //     />
-        //   </Card>
-
-        //   {show && (
-        //     <>
-        //       <CardContent>
-        //         <Grid container>
-        //           <CommonDialogBox
-        //             title={
-        //               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        //                 <div>Product Details - {productDetails?.request_number}</div>
-        //                 {selectedPharmacy.type === 'local' &&
-        //                   (selectedPharmacy.permission.key === 'allow_full_access' ||
-        //                     selectedPharmacy.permission.key === 'ADD') &&
-        //                   productDetails.status === 'Pending' && (
-        //                     <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-        //                       <IconButton
-        //                         size='small'
-        //                         sx={{ mr: 0.5 }}
-        //                         aria-label='Edit'
-        //                         onClick={() => handleEdit(itemId)}
-        //                       >
-        //                         <Icon icon='mdi:pencil-outline' />
-        //                       </IconButton>
-        //                     </Grid>
-        //                   )}
-        //               </div>
-        //             }
-        //             dialogBoxStatus={show}
-        //             formComponent={
-        //               <ProductDetail
-        //                 setShow={setShow}
-        //                 statusCall={statusCall}
-        //                 submitLoader={submitLoader}
-        //                 detailsData={detailsData}
-        //                 handleRequestStatus={handleRequestStatus}
-        //                 prescriptionImages={prescriptionImages}
-        //                 reasonText={reasonText}
-        //                 setReasonText={setReasonText}
-        //                 imgUrl={imgUrl}
-        //                 itemId={itemId}
-        //                 handleEdit={handleEdit}
-        //                 productDetails={productDetails}
-        //               />
-        //             }
-        //             close={() => {
-        //               setShow(false)
-        //               setProductDetails({})
-        //               setDetailsData([])
-        //             }}
-        //             show={() => setShow(true)}
-        //           />
-        //         </Grid>
-        //       </CardContent>
-        //     </>
-        //   )}
-        // </>
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
