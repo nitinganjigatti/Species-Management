@@ -54,6 +54,7 @@ import ExpiredMedicine from '../expired-medicine'
 import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
+import ExpiringMedicine from '../expired-medicine/expiringStock'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -427,7 +428,9 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.purchase_price}
+          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+            : 'NA'}
         </Typography>
       )
     },
@@ -645,7 +648,9 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.purchase_price}
+          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+            : 'NA'}
         </Typography>
       )
     },
@@ -894,6 +899,7 @@ const ListOfStocks = () => {
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Medicine' />
+              <Tab value='6' label='About Expire Medicine' />
 
               <Tab value='5' label='Escrow' />
             </TabList>
@@ -1063,6 +1069,8 @@ const ListOfStocks = () => {
             <>{loader ? <FallbackSpinner /> : <StockOut />}</>
           </TabPanel>
           <TabPanel value='4'>{loader ? <FallbackSpinner /> : <ExpiredMedicine />}</TabPanel>
+          <TabPanel value='6'>{loader ? <FallbackSpinner /> : <ExpiringMedicine />}</TabPanel>
+
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>

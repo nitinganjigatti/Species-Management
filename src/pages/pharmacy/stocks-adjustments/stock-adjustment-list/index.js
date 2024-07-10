@@ -72,12 +72,17 @@ const ListOfStockAdjusted = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          } else {
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
         setLoading(false)
+        setTotal(0)
+        setRows([])
       }
     },
     [paginationModel]
@@ -212,7 +217,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'Expiry  Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
     },
@@ -230,7 +235,7 @@ const ListOfStockAdjusted = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
             </Typography>
           </Box>
         </Box>
@@ -352,7 +357,6 @@ const ListOfStockAdjusted = () => {
               />
             </TabList>
             <TabPanel value='Missing stock'>{tableData()}</TabPanel>
-            {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
             <TabPanel value='Expiry'>{tableData()}</TabPanel>
 
             <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>

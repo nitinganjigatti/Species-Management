@@ -1132,6 +1132,7 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
               <Card sx={{ mb: 6 }}>
+                {console.log('sttt', requestItems.status)}
                 <CardHeader
                   avatar={
                     <Icon
@@ -1147,8 +1148,11 @@ const IndividualRequest = () => {
                   title={`Request - ${requestItems?.request_number}`}
                   action={
                     selectedPharmacy.type === 'local' &&
-                    (requestItems.status === 'request' ||
-                      (requestItems.status !== 'Cancelled' && requestItems?.status !== 'Partial Dispatched')) ? (
+                    requestItems.status === 'request' ? (
+                    // ||
+                    //   (requestItems.status !== 'Cancelled' &&
+                    //     requestItems.status !== 'Partial Dispatched' &&
+                    //     requestItems.status !== 'Fully Dispatched')
                       <Button
                         size='big'
                         variant='contained'

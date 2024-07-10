@@ -40,21 +40,21 @@ const defaultValues = {
   },
   purchase_batch_no: '',
   purchase_expiry_date: null,
-  purchase_unit_price: 0,
-  purchase_qty: 0,
-  purchase_free_quantity: 0,
-  purchase_discount: 0,
-  purchase_cgst: 0,
-  purchase_sgst: 0,
-  purchase_igst: 0,
-  purchase_gst: 0,
-  purchase_cgst_amount: 0,
-  purchase_sgst_amount: 0,
-  purchase_igst_amount: 0,
-  purchase_gross_amount: 0,
-  purchase_discount_amount: 0,
-  purchase_taxable_amount: 0,
-  purchase_net_amount: 0,
+  purchase_unit_price: '',
+  purchase_qty: '',
+  purchase_free_quantity: '',
+  purchase_discount: '',
+  purchase_cgst: '',
+  purchase_sgst: '',
+  purchase_igst: '',
+  purchase_gst: '',
+  purchase_cgst_amount: '',
+  purchase_sgst_amount: '',
+  purchase_igst_amount: '',
+  purchase_gross_amount: '',
+  purchase_discount_amount: '',
+  purchase_taxable_amount: '',
+  purchase_net_amount: '',
   package_details: '',
   manufacture: ''
 }
@@ -83,13 +83,15 @@ const PurchaseItemForm = props => {
       stock_type: yup.string().nullable()
     }),
 
-    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
-      const result =
-        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
-
-      return result
+    purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
+      if (stockType === 'non_medical') {
+        return schema.notRequired()
+      } else {
+        return schema
+          .required('Please enter the expiry date')
+          .test('is-valid-date', 'Select a valid expiry date', value => !isNaN(Date.parse(value)))
+      }
     }),
-
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
@@ -268,7 +270,9 @@ const PurchaseItemForm = props => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    // mode: 'onBlur',
+    mode: 'onSubmit',
+    // reValidateMode: 'onSubmit',
     reValidateMode: 'onChange',
     context: {
       previousEntries: purchase_details,

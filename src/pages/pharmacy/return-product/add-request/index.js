@@ -658,6 +658,7 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
+        setBatchList={setOptionsBatchList}
         nestedMedicine={nestedRowMedicine}
         error={duplicateMedError}
         totalQuantity={totalBatchQuantity}

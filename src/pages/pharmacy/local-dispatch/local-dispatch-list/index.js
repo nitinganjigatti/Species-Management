@@ -81,13 +81,15 @@ const DirectDispatchList = () => {
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('dispatchPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('dispatchPageStatus')
           }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -238,7 +240,7 @@ const DirectDispatchList = () => {
       headerName: 'Dispatched date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.request_date)}
+          {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
         </Typography>
       )
     },
@@ -336,7 +338,7 @@ const DirectDispatchList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.request_date)}
+              {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
             </Typography>
           </Box>
         </Box>

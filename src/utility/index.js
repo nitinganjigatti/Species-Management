@@ -74,6 +74,13 @@ function getPreviousDaysDate(todayDate, days) {
 
   return previousDate
 }
+function getFeaturesDates(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() + days)
+  const featureDate = moment(date).format('YYYY-MM-DD')
+
+  return featureDate
+}
 function daysFromToday(inputDate) {
   const today = moment()
   const targetDate = moment(inputDate, 'YYYY-MM-DD')
@@ -103,6 +110,7 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
+  getFeaturesDates,
   getPreviousDaysDate,
   daysFromToday,
   renderUserAvatar
