@@ -192,10 +192,10 @@ const UserDropdown = props => {
           <Icon icon='mdi:logout-variant' />
           Logout
         </MenuItem>
-        <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
+        {/* <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
           <Icon icon='ic:round-perm-media' />
           Media
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </Fragment>
   )

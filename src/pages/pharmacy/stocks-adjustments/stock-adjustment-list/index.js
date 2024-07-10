@@ -72,11 +72,16 @@ const ListOfStockAdjusted = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+          } else {
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },
