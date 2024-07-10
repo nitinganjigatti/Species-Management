@@ -239,16 +239,12 @@ const AddLab = () => {
   }
 
   const schema = yup.object().shape({
-    lab_name: yup.string().required('Lab name is required'),
+    lab_name: yup.string().trim().required('Lab name is required'),
     type: yup.string().required('Lab Type is required'),
-    incharge_name: yup.string().required('Lab Incharge name  is required'),
-    lab_contact_number: yup
-      .string()
-      .required('Lab Incharge  No is required')
+    incharge_name: yup.string().trim().required('Lab Incharge name is required'),
+    address: yup.string().trim().required('Address is required'),
 
-      // .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-
-      .max(10, 'Maximum of 10 digits'),
+    lab_contact_number: yup.string().trim().max(10, 'Maximum of 10 digits').required('Lab incharge No is required'),
     is_default: yup.boolean()
 
     // latitude: yup.string(),
@@ -790,7 +786,7 @@ const AddLab = () => {
                               />
                             )}
                           />
-                          {errors?.phone && (
+                          {errors?.lab_contact_number && (
                             <FormHelperText sx={{ color: 'error.main' }}>
                               {errors?.lab_contact_number?.message}
                             </FormHelperText>
@@ -974,7 +970,7 @@ const AddLab = () => {
                       </Grid>
                       <Grid item xs={12} md={12} sm={12}>
                         <Card>
-                          <CardHeader title='Add Lab Picture' />
+                          <CardHeader title='Upload LAB Picture' />
                           <CardContent>
                             <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
                           </CardContent>
