@@ -345,7 +345,7 @@ const RequestDetails = () => {
                 </Select>
               </FormControl>
             ) : (
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                 <span
                   alt={params.row.status}
                   style={{
