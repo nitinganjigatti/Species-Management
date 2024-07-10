@@ -29,6 +29,7 @@ import { useRouter } from 'next/router'
 import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 import { jsx } from '@emotion/react'
+import moment from 'moment'
 
 const ListOfRequest = () => {
   const router = useRouter()
@@ -86,11 +87,7 @@ const ListOfRequest = () => {
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          // onClick={() => handleClickRequestId(params)}
-          sx={{ color: 'text.primary', cursor: 'pointer' }}
-        >
+        <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer' }}>
           {params.row.lab_test_id}
         </Typography>
       )
@@ -115,7 +112,7 @@ const ListOfRequest = () => {
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDate(params.row.created_at)}
+          {moment(params.row.created_at).format('DD MMM YYYY')}
         </Typography>
       )
     },
