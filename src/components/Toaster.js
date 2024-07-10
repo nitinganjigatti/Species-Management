@@ -5,6 +5,11 @@ import toast from 'react-hot-toast'
 import { IconButton, Divider, Typography } from '@mui/material'
 
 const Toaster = ({ type = 'success', message }) => {
+  function toSentenceCase(str) {
+    if (!str) return str
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+  }
+
   return toast(
     t => (
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -31,7 +36,7 @@ const Toaster = ({ type = 'success', message }) => {
             </Typography>
             <Divider sx={{ my: 2 }} />
             <Typography sx={{ fontWeight: 500 }} variant='body2'>
-              {message}
+              {toSentenceCase(message)}
             </Typography>
           </div>
         </Box>

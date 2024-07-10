@@ -548,6 +548,7 @@ const RoomDetails = () => {
                   columns={columns}
                   sortingMode='server'
                   paginationMode='server'
+                  rowHeight={64}
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}

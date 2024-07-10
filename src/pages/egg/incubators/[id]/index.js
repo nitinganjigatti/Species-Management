@@ -1200,6 +1200,7 @@ const IncubatorDetails = () => {
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
+              rowHeight={72}
               columns={columns}
               sortingMode='server'
               paginationMode='server'

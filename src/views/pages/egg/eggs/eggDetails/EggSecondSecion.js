@@ -88,8 +88,11 @@ const EggSecondSecion = ({
           : eggDetails?.parent_list?.father_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
           : eggDetails?.parent_list?.father_list[0]?._id,
-      'Collected on': moment(eggDetails?.collection_date).format('DD MMM YYYY'),
-      'Lay Date': moment(eggDetails?.lay_date).format('DD MMM YYYY')
+
+      'Collected on': moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
+        'DD MMM YYYY'
+      ),
+      'Lay Date': moment(moment(moment.utc(eggDetails?.lay_date).toDate().toLocaleString())).format('DD MMM YYYY')
 
       // 'Collected By': 'Jordan Steveson'
     }
@@ -351,7 +354,7 @@ const EggSecondSecion = ({
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
       <Grid item xs={12}>
-        <Card>
+        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardHeader
             sx={{
               pb: 0,
