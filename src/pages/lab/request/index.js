@@ -203,9 +203,8 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-
-      // field: 'Action',
-      // headerName: 'Action',
+      field: 'Action',
+      headerName: 'Action',
 
       renderCell: params => (
         <>

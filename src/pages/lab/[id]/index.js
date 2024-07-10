@@ -56,6 +56,7 @@ import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
+import CommonMediaView from 'src/components/lab/CommonMediaView'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -67,7 +68,6 @@ const RequestDetails = () => {
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
-  console.log('transferStatus :>> ', transferStatus)
 
   const { id } = Router.query
   const searchParams = useSearchParams()
@@ -109,7 +109,7 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
-  console.log('requestId', requestId)
+
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
 
@@ -120,6 +120,8 @@ const RequestDetails = () => {
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
+  const [userData, setUserData] = useState({})
+  console.log('userData :>> ', userData)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -186,8 +188,14 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
+        console.log('res?.data.result[0] :>> ', res?.data.result[0])
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
+        setUserData({
+          user_profile: '',
+          user_name: res?.data?.result[0]?.user_first_name,
+          created_at: res?.data?.result[0]?.created_at
+        })
 
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
@@ -385,6 +393,9 @@ const RequestDetails = () => {
               '& .MuiPaper-root': {
                 minWidth: 140,
                 borderRadius: '5px'
+              },
+              '& .MuiBackdrop-root': {
+                bgcolor: 'transparent'
               }
             }}
             open={openPopover}
@@ -681,19 +692,23 @@ const RequestDetails = () => {
             {image || document ? (
               <Box sx={{ px: 5 }}>
                 <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+
+                {/* <CommonMediaView /> */}
                 {image ? (
                   <Box>
-                    <Typography sx={{ fontSize: '18px' }}>Images</Typography>
+                    <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      {image?.map(item => (
+                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} userData={userData} />
+                      {/* {image?.map(item => (
                         <a
                           key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none' }}
-                        >
-                          <Card
+                        > */}
+
+                      {/* <Card
                             sx={{
                               width: 200,
                               height: 150,
@@ -703,18 +718,38 @@ const RequestDetails = () => {
                               flexDirection: 'column'
                             }}
                           >
-                            <Box>
+                            <Box sx={{ position: 'relative' }}>
+                              <IconButton
+                                sx={{
+                                  position: 'absolute',
+                                  top: 4,
+                                  right: 4,
+                                  zIndex: 1
+
+                                  // width: 30,
+                                  // height: 30
+                                }}
+                                onClick={e => handleDeleteImg(e, item)}
+                              >
+                                <Icon
+                                  icon='material-symbols:close'
+                                  fontSize={20}
+                                  color={'#37BD69'}
+                                  sx={{ zIndex: 1, position: 'absolute' }}
+                                />
+                              </IconButton>
+
                               {item.file ? (
                                 <img
                                   src={item.file}
                                   alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
                                 />
                               ) : (
                                 <img
                                   src='/images/tablet.png'
                                   alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
                                 />
                               )}
                             </Box>
@@ -730,13 +765,10 @@ const RequestDetails = () => {
                               }}
                             >
                               {item?.file_original_name}{' '}
-                              <IconButton onClick={e => handleDeleteImg(e, item)}>
-                                <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                              </IconButton>
                             </Box>
-                          </Card>
-                        </a>
-                      ))}
+                          </Card> */}
+                      {/* </a>
+                      ))} */}
                     </Box>
                   </Box>
                 ) : null}
@@ -745,7 +777,8 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      {document?.map(item => (
+                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} userData={userData} />
+                      {/* {document?.map(item => (
                         <a
                           key={item.file}
                           href={item.file}
@@ -753,7 +786,7 @@ const RequestDetails = () => {
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none', color: '#6e6f81' }}
                         >
-                          <Box
+                          {/* <Box
                             key={item?.file}
                             sx={{
                               bgcolor: '#EFF5F2',
@@ -773,9 +806,9 @@ const RequestDetails = () => {
                             <IconButton onClick={e => handleDeleteImg(e, item)}>
                               <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
                             </IconButton>
-                          </Box>
-                        </a>
-                      ))}
+                          </Box> */}
+                      {/* </a> */}
+                      {/* ))} */}
                     </Box>
                   </Box>
                 ) : null}
