@@ -327,16 +327,16 @@ const AddNewEntry = () => {
               {selectedParivesh?.organization_name}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              {isEditMode ? 'Edit Entries' : 'New Entries'}
+              {isEditMode ? 'New Entries' : 'New Entries'}
             </Typography>
-            <Typography color='text.primary'>{isEditMode ? 'Edit Report' : 'New Report'}</Typography>
+            <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
           </Breadcrumbs>
         </Box>
 
         <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
           <CardContent>
             <Typography sx={{ mb: '20px' }} variant='h6'>
-              {isEditMode ? 'Edit Report' : 'New Report'}
+              {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
             </Typography>
 
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

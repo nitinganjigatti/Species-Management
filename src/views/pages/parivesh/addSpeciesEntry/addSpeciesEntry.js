@@ -40,7 +40,14 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  animal_count: yup.string().required('Total Count is Required'),
+  // animal_count: yup.string().required('Total Count is Required'),
+  animal_count: yup
+    .number()
+    .typeError('Total Count must be a number')
+    .positive('Total Count must be greater than zero')
+    .integer('Total Count must be an integer')
+    .required('Total Count is Required')
+    .min(0, 'Total Count must be greater than or equal to zero'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),

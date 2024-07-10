@@ -76,6 +76,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const [batchDetails, setBatchDetails] = useState()
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
+  const [attachmentLoader, setAttachmentLoader] = useState(false)
   const [regId, setRegId] = useState('')
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
@@ -523,7 +524,7 @@ const BatchDetails = ({ params, searchParams }) => {
         return
       }
       try {
-        setBtnLoader(true) // Show loader
+        setAttachmentLoader(true) // Show loader
         for (const file of acceptedFiles) {
           const payload = {
             batch_id: batchDetails?.batch_id,
@@ -543,10 +544,10 @@ const BatchDetails = ({ params, searchParams }) => {
             Toaster({ type: 'error', message: res?.message })
           }
         }
-        setBtnLoader(false) // Hide loader after processing files
+        setAttachmentLoader(false) // Hide loader after processing files
       } catch (error) {
         console.error('Error uploading files:', error)
-        setBtnLoader(false) // Hide loader on error
+        setAttachmentLoader(false) // Hide loader on error
       }
     }
   })
@@ -737,9 +738,9 @@ const BatchDetails = ({ params, searchParams }) => {
                   variant='outlined'
                   sx={{ color: '#7A8684', mr: 3 }}
                   {...getRootProps()}
-                  disabled={btnLoader}
+                  disabled={attachmentLoader}
                 >
-                  {btnLoader ? (
+                  {attachmentLoader ? (
                     <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
                   ) : (
                     <Icon icon='mdi:attachment-plus' size={1} />
